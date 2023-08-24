@@ -1,0 +1,19 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Note: you must disable the base rule as it can report incorrect errors
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    //"no-console": ["error", { "allow": ["error"] }],
+    "@typescript-eslint/no-explicit-any": "error"
+  },
+  "plugins": ["@typescript-eslint"],
+  "parser": "@typescript-eslint/parser"
+}

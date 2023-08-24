@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "neosync-app.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "neosync-app.fullname" . }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: {{ .Values.port }}
+  selector:
+    app: {{ template "neosync-app.fullname" . }}

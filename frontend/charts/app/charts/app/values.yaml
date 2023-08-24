@@ -1,0 +1,42 @@
+image:
+  repository:
+  # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
+  tag:
+  pullPolicy:
+
+nameOverride:
+fullnameOverride:
+
+imagePullSecrets: []
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create:
+  # The name of the service account to use. If namenot set and create is true, a name is generated using fullname template
+  name:
+  annotations: {}
+  #   eks.amazonaws.com/role-arn: arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME
+
+nucleusEnv:
+
+istio:
+  enabled: false
+
+datadog:
+  enabled: false
+
+host: 0.0.0.0
+
+port: 80
+
+terminationGracePeriodSeconds:
+shutdownTimeoutSeconds:
+
+auth0:
+  baseUrl:
+  clientId:
+  clientSecret:
+  cookieSecret:
+  issuerBaseUrl:
+  scope:
+  audience:
