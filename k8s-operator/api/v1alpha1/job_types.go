@@ -28,14 +28,27 @@ type JobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Job. Edit job_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	SourceConnection        LocalResourceRef   `json:"sourceConnection"`
+	DestinationConnections  []LocalResourceRef `json:"destinationConnections"`
+	CronSchedule            *string            `json:"cronSchedule,omitempty"`
+	HaltOnNewColumnAddition bool               `json:"bool,omitempty"`
+	Mappings                []*DataMapping     `json:"mappings"`
+}
+
+// This is specific to SQLConnections and will probably change if we want to introduce non-sql connections
+type DataMapping struct {
+	Schema      string `json:"schema"`
+	TableName   string `json:"tableName"`
+	Column      string `json:"column"`
+	Transformer string `json:"transformer"`
 }
 
 // JobStatus defines the observed state of Job
 type JobStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Conditions []metav1.Condition `json:"conditions"`
 }
 
 //+kubebuilder:object:root=true
@@ -61,4 +74,9 @@ type JobList struct {
 
 func init() {
 	SchemeBuilder.Register(&Job{}, &JobList{})
+}
+
+type LocalResourceRef struct {
+	Kind string `json:"kind"`
+	Name string `json:"name"`
 }
