@@ -23,7 +23,12 @@ local_resource(
 )
 
 k8s_yaml(kustomize('config/overlays/dev'))
-k8s_resource('neosync-operator-controller-manager', new_name='neosync-operator', labels=['backend'], resource_deps=['operator-build'])
+k8s_resource(
+  'neosync-operator-controller-manager',
+  new_name='neosync-operator',
+  labels=['operator'],
+  resource_deps=['operator-build'],
+)
 docker_build_with_restart(
   ref='neosync-operator-controller-manager',
   context='.',

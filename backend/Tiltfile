@@ -75,7 +75,15 @@ base_dir = os.path.dirname(__file__)
 helmfileDir = base_dir + '/dev/helm/api'
 k8s_yaml(helmfile_with_local_chart('neosync-api', base_dir + '/charts/mgmt', helmfileDir=helmfileDir))
 # References the deployment
-k8s_resource('neosync-api', resource_deps=[], labels=['backend'])
+k8s_resource(
+  'neosync-api',
+  resource_deps=[],
+  labels=['backend'],
+  links=[
+    'http://localhost:8080',
+  ],
+  port_forwards="8080:8080",
+)
 docker_build_with_restart(
   ref='neosync-api',
   context='.',

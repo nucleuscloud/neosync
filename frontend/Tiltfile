@@ -22,7 +22,9 @@ k8s_resource(
   labels=['frontend'],
   links=[
     'https://app.nucleuscloud.dev',
+    'http://localhost:3000',
   ],
+  port_forwards='3000:3000',
 )
 
 docker_build(
