@@ -21,11 +21,11 @@ jobs:
   prettier:
     name: Prettier
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: frontend
-
       - run: npm ci
       - run: npm run prettier:check

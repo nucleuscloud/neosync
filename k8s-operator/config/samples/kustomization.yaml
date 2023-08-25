@@ -3,4 +3,5 @@ resources:
 - _v1alpha1_connection.yaml
 - _v1alpha1_job.yaml
 - _v1alpha1_jobrun.yaml
+- _v1alpha1_sqlconnection.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples
