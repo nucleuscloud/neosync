@@ -8,11 +8,12 @@ jobs:
   build:
     name: TS Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: frontend
 
       - name: Set up Node
         uses: actions/setup-node@v3

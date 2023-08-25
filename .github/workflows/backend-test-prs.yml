@@ -7,26 +7,27 @@ name: Tests
 jobs:
   test:
     name: run-tests
-    runs-on: ubuntu-latest-8-cores
-    services:
-      postgres:
-        image: postgres:14
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: nucleus
-          POSTGRES_PASSWORD: postgres
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    # services:
+    #   postgres:
+    #     image: postgres:14
+    #     ports:
+    #       - 5432:5432
+    #     env:
+    #       POSTGRES_DB: nucleus
+    #       POSTGRES_PASSWORD: postgres
+    #     # Set health checks to wait until postgres has started
+    #     options: >-
+    #       --health-cmd pg_isready
+    #       --health-interval 10s
+    #       --health-timeout 5s
+    #       --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: backend
 
       - name: Granting private modules access
         run: |
@@ -44,9 +45,9 @@ jobs:
       - name: Test
         run: |
           go test -race ./...
-        env:
-          DB_HOST: localhost
-          DB_PORT: '5432'
-          DB_NAME: nucleus
-          DB_USER: postgres
-          DB_PASS: postgres
+        # env:
+        #   DB_HOST: localhost
+        #   DB_PORT: '5432'
+        #   DB_NAME: nucleus
+        #   DB_USER: postgres
+        #   DB_PASS: postgres
