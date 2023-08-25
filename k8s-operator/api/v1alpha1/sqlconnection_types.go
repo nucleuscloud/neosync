@@ -28,8 +28,21 @@ type SqlConnectionSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of SqlConnection. Edit sqlconnection_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Driver string           `json:"driver"`
+	Url    SqlConnectionUrl `json:"url"`
+}
+
+type SqlConnectionUrl struct {
+	Value     *string                 `json:"value,omitempty"`
+	ValueFrom *SqlConnectionUrlSource `json:"valueFrom,omitempty"`
+}
+
+type SqlConnectionUrlSource struct {
+	SecretKeyRef *SecretKeySelector `json:"secretKeyRef,omitempty"`
+}
+type SecretKeySelector struct {
+	Name string `json:"name"`
+	Key  string `json:"key"`
 }
 
 // SqlConnectionStatus defines the observed state of SqlConnection
