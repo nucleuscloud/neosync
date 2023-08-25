@@ -51,6 +51,8 @@ spec:
                   - name
                   type: object
                 type: array
+              executionStatus:
+                type: string
               mappings:
                 items:
                   description: This is specific to SQLConnections and will probably
@@ -83,6 +85,7 @@ spec:
                 type: object
             required:
             - destinationConnections
+            - executionStatus
             - mappings
             - sourceConnection
             type: object

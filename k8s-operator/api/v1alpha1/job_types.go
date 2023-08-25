@@ -20,6 +20,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type JobExecutionStatus string
+
+const (
+	JobExecutionStatus_Enabled  = "enabled"
+	JobExecutionStatus_Disabled = "disabled"
+	JobExecutionStatus_Paused   = "paused"
+)
+
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
@@ -33,6 +41,8 @@ type JobSpec struct {
 	CronSchedule            *string            `json:"cronSchedule,omitempty"`
 	HaltOnNewColumnAddition bool               `json:"bool,omitempty"`
 	Mappings                []*DataMapping     `json:"mappings"`
+	//
+	ExecutionStatus JobExecutionStatus `json:"executionStatus"`
 }
 
 // This is specific to SQLConnections and will probably change if we want to introduce non-sql connections
