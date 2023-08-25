@@ -52,6 +52,8 @@ jobs:
 
       - name: Buf Lint
         uses: bufbuild/buf-lint-action@v1
+        with:
+          input: backend
 
   gofmt:
     name: gofmt
