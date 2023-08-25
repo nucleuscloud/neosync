@@ -8,11 +8,12 @@ jobs:
   golangci:
     name: golang-lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: backend
 
       - name: Granting private modules access
         run: |
@@ -32,10 +33,11 @@ jobs:
   buf:
     name: buf-lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: backend
 
       - name: Retrieve Buf Version
         run: |
@@ -54,11 +56,12 @@ jobs:
   gofmt:
     name: gofmt
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: backend
 
       - name: Granting private modules access
         run: |
