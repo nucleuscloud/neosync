@@ -10,7 +10,7 @@ import { ReactElement } from 'react';
 import { getColumns } from './components/DataTable/columns';
 import { DataTable } from './components/DataTable/data-table';
 
-export default async function Jobs() {
+export default function Jobs() {
   return (
     <OverviewContainer
       Header={

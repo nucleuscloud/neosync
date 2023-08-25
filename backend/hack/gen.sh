@@ -8,7 +8,7 @@ docker run --rm -i --volume "./:/workspace" --workdir "/workspace" "bufbuild/buf
 docker run --rm -i --volume "./:/src" --workdir "/src" "sqlc/sqlc:${SQLC_VERSION}" generate &
 wait
 
-rm -rf ../neosync-app/neosync-api-client
-mkdir -p ../neosync-app/neosync-api-client
-mv gen/es/protos/** ../neosync-app/neosync-api-client
+rm -rf ../frontend/neosync-api-client
+mkdir -p ../frontend/neosync-api-client
+mv gen/es/protos/** ../frontend/neosync-api-client
 rm -rf gen/es
