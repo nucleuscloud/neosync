@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+message GetConnectionsRequest {
+  string account_id = 1 [(validate.rules).string.uuid = true];
+}
+message GetConnectionsResponse {
+  repeated Connection connections = 1;
+}
+
+message GetConnectionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+message GetConnectionResponse {
+  Connection connection = 1;
+}
+
+message CreateConnectionRequest {
+  string account_id = 1 [(validate.rules).string.uuid = true];
+
+  string name = 2 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
+
+  ConnectionConfig connection_config = 3;
+}
+message CreateConnectionResponse {
+  Connection connection = 1;
+}
+
+message UpdateConnectionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+
+  ConnectionConfig connection_config = 2;
+}
+message UpdateConnectionResponse {
+  Connection connection = 1;
+}
+
+message DeleteConnectionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+message DeleteConnectionResponse {}
+
+message CheckConnectionConfigRequest {
+  ConnectionConfig connection_config = 1;
+}
+
+message CheckConnectionConfigResponse {
+  bool is_connected = 1;
+  optional string connection_error = 2;
+}
+
+message Connection {
+  string id = 1;
+  string name = 2;
+
+  ConnectionConfig connection_config = 3;
+
+  string created_by_user_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+
+  string updated_by_user_id = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message ConnectionConfig {
+  oneof config {
+    option (validate.required) = true;
+
+    PostgresConnectionConfig pg_config = 1;
+    AwsS3ConnectionConfig aws_s3_config = 2;
+  }
+}
+
+message PostgresConnectionConfig {
+  oneof connection_config {
+    option (validate.required) = true;
+
+    string url = 1;
+    PostgresConnection connection = 2;
+  }
+}
+
+message PostgresConnection {
+  string host = 1;
+  int32 port = 2;
+  string name = 3;
+  string user = 4;
+  string pass = 5;
+  optional string ssl_mode = 6;
+}
+
+message AwsS3ConnectionConfig {
+  string bucket_arn = 1;
+  optional string path_prefix = 2;
+}
+
+message IsConnectionNameAvailableRequest {
+  string account_id = 1 [(validate.rules).string.uuid = true];
+  string connection_name = 2 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
+}
+
+message IsConnectionNameAvailableResponse {
+  bool is_available = 1;
+}
+
+service ConnectionService {
+  rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
+  rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {}
+  rpc CreateConnection(CreateConnectionRequest) returns (CreateConnectionResponse) {}
+  rpc UpdateConnection(UpdateConnectionRequest) returns (UpdateConnectionResponse) {}
+  rpc DeleteConnection(DeleteConnectionRequest) returns (DeleteConnectionResponse) {}
+  rpc IsConnectionNameAvailable(IsConnectionNameAvailableRequest) returns (IsConnectionNameAvailableResponse) {}
+
+  rpc CheckConnectionConfig(CheckConnectionConfigRequest) returns (CheckConnectionConfigResponse) {}
+}

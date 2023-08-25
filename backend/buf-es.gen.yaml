@@ -1,0 +1,13 @@
+version: v1
+plugins:
+  -
+    plugin: buf.build/bufbuild/es:v1.3.0
+    out: gen/es/protos
+    opt:
+      - target=ts
+  -
+    plugin: buf.build/connectrpc/es:v0.13.1
+    out: gen/es/protos
+    opt:
+      - target=ts
+      - import_extension=none

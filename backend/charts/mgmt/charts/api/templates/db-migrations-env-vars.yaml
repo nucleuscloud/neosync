@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: {{ template "neosync-api.fullname" . }}-migration-evs
+    namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+    SKIP_SCHEMA_CREATION: {{ .Values.migrations.skipSchemaCreation | quote }}
+
+    PG_USERNAME: {{ .Values.migrations.db.username }}
+    PG_PASSWORD: {{ .Values.migrations.db.password }}
+    PG_HOSTNAME: {{ .Values.migrations.db.host }}

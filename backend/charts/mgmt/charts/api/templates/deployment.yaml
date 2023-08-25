@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "neosync-api.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- if eq .Values.datadog.enabled true }}
+    tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
+    tags.datadoghq.com/service: {{ template "neosync-api.fullname" . }}
+    tags.datadoghq.com/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "neosync-api.fullname" . }}
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        {{- if eq .Values.datadog.enabled true }}
+        ad.datadoghq.com/nucleus-api.logs: '[{"source":"nucleus-neosync-api","service":"{{ template "neosync-api.fullname" . }}"}]'
+        {{- end }}
+        {{- if eq .Values.istio.enabled true }}
+        proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
+        {{- end }}
+        rollme: {{ randAlphaNum 5 | quote }} # causes deployment to always roll on helm upgrade
+      labels:
+        app: {{ template "neosync-api.fullname" . }}
+        version: v1
+        {{- if eq .Values.istio.enabled true }}
+        sidecar.istio.io/inject: "true"
+        {{- end }}
+        {{- if eq .Values.datadog.enabled true }}
+        admission.datadoghq.com/enabled: "true"
+        tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
+        tags.datadoghq.com/service: {{ template "neosync-api.fullname" . }}
+        tags.datadoghq.com/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "neosync-api.serviceAccountName" . }}
+      {{- end }}
+      terminationGracePeriod: {{ .Values.terminationGracePeriod }}
+
+      initContainers:
+        - name: db-migration
+          image: '{{ .Values.migrations.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          envFrom:
+            - secretRef:
+                name: {{ template "neosync-api.fullname" . }}-migration-evs
+
+      containers:
+        - name: user-container
+          image: '{{ .Values.image.repository | default "ghcr.io/nucleuscloud/neosync/backend" }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - serve
+            - connect
+          ports:
+            - containerPort: {{ .Values.port }}
+              name: grpc
+              protocol: TCP
+          livenessProbe:
+            grpc:
+              port: {{ .Values.port}}
+            periodSeconds: 2
+            failureThreshold: 2
+            successThreshold: 1
+          readinessProbe:
+            grpc:
+              port: {{ .Values.port }}
+            periodSeconds: 2
+            failureThreshold: 2
+            successThreshold: 1
+            initialDelaySeconds: 1
+          env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+
+            {{- if eq .Values.datadog.enabled true }}
+            - name: DD_ENV
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/env']
+            - name: DD_SERVICE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/service']
+            - name: DD_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/version']
+            {{- end }}
+
+          envFrom:
+            - secretRef:
+                name: {{ template "neosync-api.fullname" . }}-service-evs
+          {{- if eq .Values.nucleusEnv "dev" }} # config created by Tilt; keep this at the bottom to override
+            - configMapRef:
+                name: dev-config
+          {{- end }}

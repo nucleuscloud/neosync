@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "validate/validate.proto";
+message GetUserRequest {}
+message GetUserResponse {
+  string user_id = 1;
+}
+
+message SetUserRequest {}
+message SetUserResponse {
+  string user_id = 1;
+}
+
+message GetUserAccountsRequest {}
+message GetUserAccountsResponse {
+  repeated UserAccount accounts = 1;
+}
+
+message UserAccount {
+  string id = 1;
+  string name = 2;
+  UserAccountType type = 3;
+}
+
+enum UserAccountType {
+  USER_ACCOUNT_TYPE_UNSPECIFIED = 0;
+  USER_ACCOUNT_TYPE_PERSONAL = 1;
+  USER_ACCOUNT_TYPE_TEAM = 2;
+}
+
+message ConvertPersonalToTeamAccountRequest {}
+message ConvertPersonalToTeamAccountResponse {}
+
+message SetPersonalAccountRequest {}
+message SetPersonalAccountResponse {
+  string account_id = 1;
+}
+
+message IsUserInAccountRequest {
+  string account_id = 1 [(validate.rules).string.uuid = true];
+}
+message IsUserInAccountResponse {
+  bool ok = 1;
+}
+
+service UserAccountService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+  rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
+
+  rpc GetUserAccounts(GetUserAccountsRequest) returns (GetUserAccountsResponse) {}
+
+  rpc SetPersonalAccount(SetPersonalAccountRequest) returns (SetPersonalAccountResponse) {}
+
+  rpc ConvertPersonalToTeamAccount(ConvertPersonalToTeamAccountRequest) returns (ConvertPersonalToTeamAccountResponse) {}
+
+  rpc IsUserInAccount(IsUserInAccountRequest) returns (IsUserInAccountResponse) {}
+}

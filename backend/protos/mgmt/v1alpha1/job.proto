@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+message GetJobsRequest {
+  string account_id = 1 [(validate.rules).string.uuid = true];
+}
+message GetJobsResponse {
+  repeated Job jobs = 1;
+}
+
+message CreateJobRequest {
+  string account_id = 1 [(validate.rules).string.uuid = true];
+
+  string job_name = 2;
+
+  string connection_source_id = 3 [(validate.rules).string.uuid = true];
+  repeated string connection_destination_ids = 4;
+  optional string cron_schedule = 5;
+  bool halt_on_new_column_addition = 6;
+  repeated JobMapping mappings = 7;
+}
+message CreateJobResponse {
+  Job job = 1;
+}
+
+message JobMapping {
+  string schema = 1;
+  string table = 2;
+  string column = 3;
+  JobMappingTransformer transformer = 4;
+}
+
+enum JobMappingTransformer {
+  JOB_MAPPING_TRANSFORMER_UNSPECIFIED = 0;
+  JOB_MAPPING_TRANSFORMER_PASSTHROUGH = 1;
+  JOB_MAPPING_TRANSFORMER_SSN = 2;
+  JOB_MAPPING_TRANSFORMER_SCRAMBLE = 3;
+}
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  JOB_STATUS_ENABLED = 1;
+  JOB_STATUS_PAUSED = 3;
+  JOB_STATUS_DISABLED = 4;
+}
+
+message GetJobRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+message GetJobResponse {
+  Job job = 1;
+}
+
+message UpdateJobRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+message UpdateJobResponse {
+  Job job = 1;
+}
+
+message DeleteJobRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+message DeleteJobResponse {}
+
+message GetJobRunsRequest {
+  oneof id {
+    string job_id = 1 [(validate.rules).string.uuid = true];
+    string account_id = 2 [(validate.rules).string.uuid = true];
+  }
+}
+message GetJobRunsResponse {
+  repeated JobRun job_runs = 1;
+}
+
+message GetJobRunRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+message GetJobRunResponse {
+  JobRun job_run = 1;
+}
+
+message CreateJobRunRequest {
+  string job_id = 1;
+}
+message CreateJobRunResponse {
+  JobRun job_run = 1;
+}
+
+message CancelJobRunRequest {
+  string job_run_id = 1;
+}
+message CancelJobRunResponse {}
+
+message Job {
+  string id = 1;
+
+  string created_by_user_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+
+  string updated_by_user_id = 4;
+  google.protobuf.Timestamp updated_at = 5;
+
+  string name = 6;
+  JobStatus status = 7;
+
+  string connection_source_id = 8 [(validate.rules).string.uuid = true];
+  repeated string connection_destination_ids = 9;
+  repeated JobMapping mappings = 10;
+  optional string cron_schedule = 11;
+  bool halt_on_new_column_addition = 12;
+}
+
+message JobRun {
+  string id = 1;
+  string job_id = 2;
+  string name = 3;
+  JobRunStatus status = 4;
+
+  string created_by_user_id = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+enum JobRunStatus {
+  JOB_RUN_STATUS_UNSPECIFIED = 0;
+  JOB_RUN_STATUS_PENDING = 1;
+  JOB_RUN_STATUS_RUNNING = 2;
+  JOB_RUN_STATUS_COMPLETE = 3;
+  JOB_RUN_STATUS_ERROR = 4;
+}
+
+service JobService {
+  rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
+  rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
+  rpc CreateJob(CreateJobRequest) returns (CreateJobResponse) {}
+  rpc UpdateJob(UpdateJobRequest) returns (UpdateJobResponse) {}
+  rpc DeleteJob(DeleteJobRequest) returns (DeleteJobResponse) {}
+
+  rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
+  rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}
+  rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
+  rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}
+}

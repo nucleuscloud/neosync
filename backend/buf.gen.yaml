@@ -1,0 +1,21 @@
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/nucleuscloud/neosync/backend/gen/go/protos
+    except:
+      - buf.build/envoyproxy/protoc-gen-validate
+      - buf.build/googleapis/googleapis
+plugins:
+  - plugin: buf.build/protocolbuffers/go:v1.31.0
+    out: gen/go/protos
+    opt:
+      - paths=source_relative
+  - plugin: buf.build/connectrpc/go:v1.11.0
+    out: gen/go/protos
+    opt:
+      - paths=source_relative
+  - plugin: buf.build/bufbuild/validate-go:v1.0.2
+    out: gen/go/protos
+    opt:
+      - paths=source_relative

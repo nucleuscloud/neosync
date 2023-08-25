@@ -1,0 +1,15 @@
+bin
+.DS_Store
+
+.env.prod
+.env.stage
+.env.dev.secrets
+.env.stage.secrets
+.env.prod.secrets
+
+*.log
+
+node_modules
+
+Chart.lock
+charts/**/*.tgz

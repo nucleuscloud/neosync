@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+message GetNewAccessTokenRequest {
+  string client_id = 1;
+  string refresh_token = 2;
+}
+
+message GetNewAccessTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
+  string scope = 4;
+  string id_token = 5;
+  string token_type = 6;
+}
+
+message GetAccessTokenRequest {
+  string client_id = 1;
+  string code = 2;
+  string redirect_uri = 3;
+}
+
+message GetAccessTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
+  string scope = 4;
+  string id_token = 5;
+  string token_type = 6;
+}
+
+// message GetServiceAccountAccessTokenRequest {
+//   string client_id = 1;
+//   string client_secret = 2;
+// }
+
+// message GetServiceAccountAccessTokenResponse {
+//   string access_token = 1;
+//   int64 expires_in = 2;
+//   string scope = 3;
+//   string token_type = 4;
+// }
+
+service AuthService {
+  rpc GetNewAccessToken(GetNewAccessTokenRequest) returns (GetNewAccessTokenResponse) {}
+
+  rpc GetAccessToken(GetAccessTokenRequest) returns (GetAccessTokenResponse) {}
+
+  // rpc GetServiceAccountAccessToken(GetServiceAccountAccessTokenRequest) returns (GetServiceAccountAccessTokenResponse) {}
+}
