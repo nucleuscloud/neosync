@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package mgmt.v1alpha1;
 
+import "validate/validate.proto";
+
 
 message Transformer {
   string title = 1;
