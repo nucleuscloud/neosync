@@ -23,13 +23,19 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+type SqlConnectionDriver string
+
+const (
+	PostgresDriver = "postgres"
+)
+
 // SqlConnectionSpec defines the desired state of SqlConnection
 type SqlConnectionSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Driver string           `json:"driver"`
-	Url    SqlConnectionUrl `json:"url"`
+	Driver SqlConnectionDriver `json:"driver"`
+	Url    SqlConnectionUrl    `json:"url"`
 }
 
 type SqlConnectionUrl struct {
