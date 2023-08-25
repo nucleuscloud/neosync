@@ -108,6 +108,7 @@ type JobMapping struct {
 	Schema      string
 	Table       string
 	Column      string
+	DataType    string
 	Transformer int32
 }
 
@@ -116,6 +117,7 @@ func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
 		Schema:      jm.Schema,
 		Table:       jm.Table,
 		Column:      jm.Column,
+		DataType:    jm.DataType,
 		Transformer: mgmtv1alpha1.JobMappingTransformer(jm.Transformer),
 	}
 }
@@ -124,6 +126,7 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 	jm.Schema = dto.Schema
 	jm.Table = dto.Table
 	jm.Column = dto.Column
+	jm.DataType = dto.DataType
 	jm.Transformer = int32(dto.Transformer)
 	return nil
 }

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+message Transformer {
+  string title = 1;
+  string value = 2;
+}
+message GetTransformersRequest {}
+message GetTransformersResponse {
+  repeated Transformer transformers = 1;
+}
+
+service TransformerService {
+  rpc GetTransformers(GetTransformersRequest) returns (GetTransformersResponse) {}
+}

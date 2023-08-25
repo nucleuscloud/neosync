@@ -107,6 +107,21 @@ message IsConnectionNameAvailableResponse {
   bool is_available = 1;
 }
 
+message DatabaseColumn {
+  string schema = 1;
+  string table = 2;
+  string column = 3;
+  string data_type = 4;
+}
+
+message GetConnectionSchemaRequest {
+  string id = 1;
+}
+
+message GetConnectionSchemaResponse {
+  repeated DatabaseColumn schemas = 1;
+}
+
 service ConnectionService {
   rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
   rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {}
@@ -116,4 +131,5 @@ service ConnectionService {
   rpc IsConnectionNameAvailable(IsConnectionNameAvailableRequest) returns (IsConnectionNameAvailableResponse) {}
 
   rpc CheckConnectionConfig(CheckConnectionConfigRequest) returns (CheckConnectionConfigResponse) {}
+  rpc GetConnectionSchema(GetConnectionSchemaRequest) returns (GetConnectionSchemaResponse) {}
 }

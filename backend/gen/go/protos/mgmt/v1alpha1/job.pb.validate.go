@@ -625,6 +625,8 @@ func (m *JobMapping) validate(all bool) error {
 
 	// no validation rules for Column
 
+	// no validation rules for DataType
+
 	// no validation rules for Transformer
 
 	if len(errors) > 0 {

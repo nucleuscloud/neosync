@@ -20,6 +20,8 @@ import (
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
+	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformer-service"
+
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -62,6 +64,7 @@ func serve(
 		mgmtv1alpha1connect.AuthServiceName,
 		mgmtv1alpha1connect.ConnectionServiceName,
 		mgmtv1alpha1connect.JobServiceName,
+		mgmtv1alpha1connect.TransformerServiceName,
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
@@ -126,6 +129,14 @@ func serve(
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
+			stdInterceptors,
+		),
+	)
+
+	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{}, db)
+	api.Handle(
+		mgmtv1alpha1connect.NewTransformerServiceHandler(
+			transformerService,
 			stdInterceptors,
 		),
 	)

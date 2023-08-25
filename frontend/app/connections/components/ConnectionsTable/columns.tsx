@@ -104,7 +104,6 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Category" />
       ),
       cell: ({ row }) => {
-        console.log('row', row);
         return (
           <div className="flex space-x-2">
             {/* {label && <Badge variant="outline">{label.label}</Badge>} */}
@@ -167,7 +166,6 @@ export function getColumns(
 }
 
 function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
-  console.log('cc', cc);
   if (!cc) {
     return '-';
   }
