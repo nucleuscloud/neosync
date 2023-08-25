@@ -5,6 +5,7 @@ resources:
 - bases/neosync.dev_connections.yaml
 - bases/neosync.dev_jobs.yaml
 - bases/neosync.dev_jobruns.yaml
+- bases/neosync.dev_sqlconnections.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
@@ -13,6 +14,7 @@ patchesStrategicMerge:
 #- patches/webhook_in_connections.yaml
 #- patches/webhook_in_jobs.yaml
 #- patches/webhook_in_jobruns.yaml
+#- patches/webhook_in_sqlconnections.yaml
 #+kubebuilder:scaffold:crdkustomizewebhookpatch
 
 # [CERTMANAGER] To enable cert-manager, uncomment all the sections with [CERTMANAGER] prefix.
@@ -20,6 +22,7 @@ patchesStrategicMerge:
 #- patches/cainjection_in_connections.yaml
 #- patches/cainjection_in_jobs.yaml
 #- patches/cainjection_in_jobruns.yaml
+#- patches/cainjection_in_sqlconnections.yaml
 #+kubebuilder:scaffold:crdkustomizecainjectionpatch
 
 # the following config is for teaching kustomize how to do kustomization for CRDs.
