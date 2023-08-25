@@ -1,0 +1,9 @@
+releases:
+  - name: neosync-app
+    chart: ../../../charts/app
+    version: 'v0.0.0'
+    namespace: neosync
+    createNamespace: false
+
+    values:
+      - values.gotmpl

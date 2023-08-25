@@ -8,34 +8,33 @@ jobs:
   golangci:
     name: golang-lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: backend
-
-      - name: Granting private modules access
-        run: |
-          git config --global url."https://${{ secrets.REPO_PAT }}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version-file: go.mod
+          go-version-file: backend/go.mod
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
           args: --timeout=5m
+          working-directory: backend
 
   buf:
     name: buf-lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: backend
 
       - name: Retrieve Buf Version
         run: |
@@ -50,24 +49,23 @@ jobs:
 
       - name: Buf Lint
         uses: bufbuild/buf-lint-action@v1
+        with:
+          input: backend
 
   gofmt:
     name: gofmt
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          path: backend
-
-      - name: Granting private modules access
-        run: |
-          git config --global url."https://${{ secrets.REPO_PAT }}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version-file: go.mod
+          go-version-file: backend/go.mod
 
       - name: Check Go Format
         run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi

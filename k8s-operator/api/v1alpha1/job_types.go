@@ -20,6 +20,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type JobExecutionStatus string
+
+const (
+	JobExecutionStatus_Enabled  = "enabled"
+	JobExecutionStatus_Disabled = "disabled"
+	JobExecutionStatus_Paused   = "paused"
+)
+
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
@@ -28,14 +36,29 @@ type JobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Job. Edit job_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	SourceConnection        LocalResourceRef   `json:"sourceConnection"`
+	DestinationConnections  []LocalResourceRef `json:"destinationConnections"`
+	CronSchedule            *string            `json:"cronSchedule,omitempty"`
+	HaltOnNewColumnAddition bool               `json:"bool,omitempty"`
+	Mappings                []*DataMapping     `json:"mappings"`
+	//
+	ExecutionStatus JobExecutionStatus `json:"executionStatus"`
+}
+
+// This is specific to SQLConnections and will probably change if we want to introduce non-sql connections
+type DataMapping struct {
+	Schema      string `json:"schema"`
+	TableName   string `json:"tableName"`
+	Column      string `json:"column"`
+	Transformer string `json:"transformer"`
 }
 
 // JobStatus defines the observed state of Job
 type JobStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Conditions []metav1.Condition `json:"conditions"`
 }
 
 //+kubebuilder:object:root=true
@@ -61,4 +84,9 @@ type JobList struct {
 
 func init() {
 	SchemeBuilder.Register(&Job{}, &JobList{})
+}
+
+type LocalResourceRef struct {
+	Kind string `json:"kind"`
+	Name string `json:"name"`
 }

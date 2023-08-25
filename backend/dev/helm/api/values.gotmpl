@@ -1,0 +1,40 @@
+api:
+  image:
+    repository: neosync-api
+
+  serviceAccount:
+    create: true
+
+  auth0:
+    baseUrl: https://auth.nucleuscloud.dev
+    audience: https://api.nucleuscloud.com
+    clientMap:
+      foo: bar
+
+  db:
+    host: postgresql
+    name: nucleus
+    port: 5432
+    username: postgres
+    password: foofar
+
+  migrations:
+    skipSchemaCreation: false
+    image:
+      repository: db-migration
+    db:
+      username: postgres
+      password: foofar
+
+  terminationGracePeriodSeconds: 300
+  shutdownTimeoutSeconds: 5
+
+  istio:
+    enabled: false
+
+  datadog:
+    enabled: false
+
+  nucleusEnv: dev
+
+  port: 8080

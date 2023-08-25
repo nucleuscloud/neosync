@@ -1,0 +1,7 @@
+FROM alpine:3.18
+
+WORKDIR /
+
+COPY bin/manager /manager
+
+ENTRYPOINT ["/manager"]
