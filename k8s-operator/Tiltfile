@@ -1,0 +1,36 @@
+load('ext://restart_process', 'docker_build_with_restart')
+
+allow_k8s_contexts('kind-nuc-dev')
+
+secret_settings(disable_scrub=True)
+
+local_resource(
+  'operator-build',
+  'CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o bin/manager main.go',
+  deps=['.'],
+  ignore=[
+    '.git',
+    'bin',
+    '.gitignore',
+    '.vscode',
+    'Makefile',
+    'Dockerfile',
+    'Dockerfile.dev',
+    'README.md',
+    '.github',
+  ],
+  labels=['build'],
+)
+
+k8s_yaml(kustomize('config/overlays/dev'))
+k8s_resource('nucleus-operator-controller-manager', new_name='operator', labels=['backend'], resource_deps=['operator-build'])
+docker_build_with_restart(
+  ref='nucleus-operator-controller-manager',
+  context='.',
+  entrypoint=['/manager'],
+  dockerfile='./Dockerfile.dev',
+  only=['bin'],
+  live_update=[
+    sync('bin', '/'),
+  ],
+)

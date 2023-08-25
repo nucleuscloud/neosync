@@ -1,0 +1,10 @@
+FROM alpine:3.17.3
+
+# This previously ran the user in nonroot mode. but we dont really want that for dev, at least right now
+# RUN adduser -D -g '' 65532
+# USER 65532
+WORKDIR /
+
+COPY bin/manager /manager
+
+ENTRYPOINT ["/manager"]
