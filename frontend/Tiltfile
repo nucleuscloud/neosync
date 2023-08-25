@@ -1,2 +1,37 @@
+load('ext://restart_process', 'docker_build_with_restart')
+load('ext://configmap', 'configmap_from_dict')
+load('ext://namespace', 'namespace_create')
+
+helpers = load_dynamic("../tilt/extensions/Tiltfile")
+helmfile_with_local_chart = helpers['helmfile_with_local_chart']
+helmfile = helpers['helmfile']
 
 allow_k8s_contexts('kind-nuc-dev')
+
+# when debugging can be handy to disable scrub
+secret_settings(disable_scrub=True)
+
+namespace_create('neosync', allow_duplicates=True)
+
+base_dir = os.path.dirname(__file__)
+helmfileDir = base_dir + '/dev/helm/app'
+k8s_yaml(helmfile_with_local_chart('neosync-app', base_dir + '/charts/app', helmfileDir=helmfileDir))
+# References the deployment
+k8s_resource(
+  'neosync-app',
+  labels=['frontend'],
+  links=[
+    'https://app.nucleuscloud.dev',
+  ],
+)
+
+docker_build(
+  ref='neosync-app',
+  context='.',
+  dockerfile='dev/build/Dockerfile.dev',
+  # secret='id=npmrc,src=%s' % npmrc,
+  live_update=[
+    sync('.', '/app'),
+    run('npm install', trigger=['package.json', 'package-lock.json']),
+  ],
+)

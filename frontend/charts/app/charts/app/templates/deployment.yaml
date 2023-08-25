@@ -78,7 +78,7 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ template "neosync-app.fullname" . }}-service-evs
-          {{- if eq .Values.nucleusEnv "dev" }} # config created by Tilt; keep this at the bottom to override
-            - configMapRef:
-                name: dev-config
-          {{- end }}
+          # {{- if eq .Values.nucleusEnv "dev" }} # config created by Tilt; keep this at the bottom to override
+          #   - configMapRef:
+          #       name: dev-config
+          # {{- end }}

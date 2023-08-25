@@ -1,6 +1,6 @@
 releases:
-  - name: neosync-api
-    chart: ../../../charts/mgmt
+  - name: neosync-app
+    chart: ../../../charts/app
     version: 'v0.0.0'
     namespace: neosync
     createNamespace: false

@@ -11,7 +11,7 @@ allow_k8s_contexts('kind-nuc-dev')
 # when debugging can be handy to disable scrub
 secret_settings(disable_scrub=True)
 
-namespace_create('neosync')
+namespace_create('neosync', allow_duplicates=True)
 
 local_resource(
   'neosync-api-protos',
