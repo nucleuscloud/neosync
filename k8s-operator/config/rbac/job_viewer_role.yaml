@@ -1,0 +1,27 @@
+# permissions for end users to view jobs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: job-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: k8s-operator
+    app.kubernetes.io/part-of: k8s-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: job-viewer-role
+rules:
+- apiGroups:
+  - neosync.dev
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - neosync.dev
+  resources:
+  - jobs/status
+  verbs:
+  - get
