@@ -1,0 +1,32 @@
+on:
+  pull_request:
+    paths:
+      - frontend/**
+
+name: Build
+jobs:
+  build:
+    name: TS Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: frontend
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # these are here as for whatever reason auth0 this at build time.
+          AUTH0_CLIENT_SECRET: 'asdf'
+          AUTH0_BASE_URL: 'https://app.nucleuscloud.dev'
+          AUTH0_CLIENT_ID: 'asdf'
+          AUTH0_SECRET: '8ecbca07073acc72'
+          AUTH0_ISSUER_BASE_URL: 'https://auth.nucleuscloud.dev'
+          AUTH0_SCOPE: 'openid email profile'
+          AUTH0_AUDIENCE: 'https://api.nucleuscloud.com'
