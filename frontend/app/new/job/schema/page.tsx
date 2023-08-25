@@ -161,7 +161,6 @@ async function createNewJob(
         schema: m.schema,
         table: m.table,
         column: m.column,
-        dataType: m.dataType,
         transformer: m.transformer as unknown as JobMappingTransformer,
       });
     }),

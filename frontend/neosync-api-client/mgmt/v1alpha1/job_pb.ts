@@ -312,11 +312,6 @@ export class JobMapping extends Message<JobMapping> {
   column = "";
 
   /**
-   * @generated from field: string data_type = 4;
-   */
-  dataType = "";
-
-  /**
    * @generated from field: mgmt.v1alpha1.JobMappingTransformer transformer = 5;
    */
   transformer = JobMappingTransformer.UNSPECIFIED;
@@ -332,7 +327,6 @@ export class JobMapping extends Message<JobMapping> {
     { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "transformer", kind: "enum", T: proto3.getEnumType(JobMappingTransformer) },
   ]);
 

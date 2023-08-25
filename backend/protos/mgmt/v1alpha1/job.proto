@@ -31,7 +31,6 @@ message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  string data_type = 4;
   JobMappingTransformer transformer = 5;
 }
 
