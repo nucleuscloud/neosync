@@ -1,0 +1,9 @@
+releases:
+  - name: neosync-api
+    chart: ../../charts/mgmt
+    version: 'v0.0.0'
+    namespace: neosync
+    createNamespace: false
+
+    values:
+      - values.gotmpl

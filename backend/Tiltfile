@@ -1,0 +1,89 @@
+load('ext://restart_process', 'docker_build_with_restart')
+load('ext://configmap', 'configmap_from_dict')
+load('ext://namespace', 'namespace_create')
+
+helpers = load_dynamic("../tilt/extensions/Tiltfile")
+helmfile_with_local_chart = helpers['helmfile_with_local_chart']
+helmfile = helpers['helmfile']
+
+allow_k8s_contexts('kind-nuc-dev')
+
+# when debugging can be handy to disable scrub
+secret_settings(disable_scrub=True)
+
+namespace_create('neosync')
+
+local_resource(
+  'neosync-api-protos',
+  'hack/gen.sh',
+  deps=[
+    'protos',
+    'buf.gen.yaml',
+    'buf.work.yaml',
+    'buf-es.gen.yaml',
+  ],
+  labels=['build']
+)
+
+# Watches and rebuilds Go code
+local_resource(
+  'neosync-api-build',
+  'hack/build.sh',
+  deps=['.'],
+  ignore=[
+    '.git',
+    'bin',
+    '.gitignore',
+    'protos',
+    '.vscode',
+    'README.md',
+    '.github',
+    'charts',
+    'Makefile',
+    'Dockerfile',
+    'Dockerfile.migrations',
+    'buf.gen.yaml',
+    'buf.work.yaml',
+    'buf-es.gen.yaml',
+    'migrations',
+  ],
+  labels=['build']
+)
+
+# docker_build(
+#   'db-migration',
+#   '.',
+#   dockerfile='./Dockerfile.migrations',
+#   only=['hack', 'migrations'],
+# )
+
+# for namespace in [ "nucleus" ]:
+#   k8s_yaml(configmap_from_dict("dev-config", namespace=namespace, inputs = {
+#       'AWS_ACCESS_KEY_ID'         : os.getenv('AWS_ACCESS_KEY_ID'),
+#       'AWS_SECRET_ACCESS_KEY'     : os.getenv('AWS_SECRET_ACCESS_KEY'),
+#       'AWS_SESSION_TOKEN'         : os.getenv('AWS_SESSION_TOKEN'),
+#       'AWS_SECURITY_TOKEN'        : os.getenv('AWS_SECURITY_TOKEN'),
+#       'AWS_REGION'                : os.getenv('AWS_REGION'),
+#       'CUST_INGRESS_DNS_ZONE_ID' : os.getenv('NUCLEUS_DEV_DNS_ZONE_ID'),
+#       'CUST_INGRESS_HOSTNAME'     : str(os.getenv('NUCLEUS_DEV_DOMAIN_PREFIX')) + '.nucleuscloud.dev',
+#       'EVENTS_QUEUE_URL' : os.getenv('NUCLEUS_DEV_EVENTS_QUEUE_URL'),
+#       'NOTIFICATIONS_QUEUE_URL' : os.getenv('NUCLEUS_DEV_NOTIFICATIONS_QUEUE_URL'),
+#       'EVENTS_TOPIC_ARN' : os.getenv('NUCLEUS_DEV_EVENTS_TOPIC_ARN'),
+# }))
+
+base_dir = os.path.dirname(__file__)
+helmfileDir = base_dir + '/dev/helm/api'
+k8s_yaml(helmfile_with_local_chart('neosync-api', base_dir + '/charts/mgmt', helmfileDir=helmfileDir))
+# References the deployment
+k8s_resource('neosync-api', resource_deps=[], labels=['backend'])
+docker_build_with_restart(
+  ref='neosync-api',
+  context='.',
+  entrypoint=['/app/mgmt', 'serve', 'connect'],
+  dockerfile='./dev/build/Dockerfile.dev',
+  only=['.env.dev', 'bin'],
+  live_update=[
+    sync('bin', '/app'),
+    sync('.env.dev', '/app'),
+  ],
+)

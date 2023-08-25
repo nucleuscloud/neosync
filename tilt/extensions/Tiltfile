@@ -1,0 +1,49 @@
+RootDir = os.path.join(os.path.dirname(__file__), "../../")
+
+# BaseHelmChartDir = BaseKustomizeDir + "/helm-charts"
+# BaseKustomizationsDir = BaseKustomizeDir + "/kustomizations"
+# BaseKustomizationsDevDir = BaseKustomizationsDir + "/overlays/dev"
+
+# Helmfile runs helmfile template (using the dev environment) for the specified values
+# located in the directory at kustomize/helm-charts specified by chartName for the chart
+# located at chartLocation. It watches the resources in the chartDirectory for changes
+# so changes there can be tested in dev.
+#
+#   * chartName is the name of the directory under kustomize/helm-charts
+#   * chartLocation is the path to the chart, relative to the chartDirectory
+def _helmfile_run(chartName, chartImplementationLocation = '', environment = '', namespace='', helmfileDir=''):
+  cmdLine = ['helmfile']
+
+  if chartImplementationLocation != '':
+    opt = '--chart ' + chartImplementationLocation
+    cmdLine.append(opt)
+    # watch_file(chartImplementationLocation)
+
+  if environment != '':
+    opt = '--environment ' + environment
+    cmdLine.append(opt)
+
+  if namespace != '':
+    opt = '--namespace ' + namespace
+    cmdLine.append(opt)
+
+  cmdLine.append('template')
+  cmdLine.append('--include-crds')
+  cmd = " ".join(cmdLine)
+
+  # chartDirectory = BaseHelmChartDir + '/' + chartName
+  # watch so tilt will reload chart on changes
+  # watch_file(chartDirectory)
+
+  # return local(cmd, dir=chartDirectory)
+  return local(cmd, dir=helmfileDir)
+
+
+def helmfile_with_local_chart(chartName, chartLocation, helmfileDir, namespace=''):
+  return _helmfile_run(chartName, chartImplementationLocation=chartLocation, environment='', namespace=namespace, helmfileDir=helmfileDir)
+
+# def helmfile_with_dev_env(chartName, namespace=''):
+#   return _helmfile_run(chartName, environment='dev', namespace=namespace)
+
+def helmfile(chartName, helmfileDir, namespace=''):
+  return _helmfile_run(chartName, namespace=namespace, helmfileDir=helmfileDir)
