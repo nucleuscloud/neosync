@@ -4,7 +4,6 @@ package mgmt.v1alpha1;
 
 import "validate/validate.proto";
 
-
 message Transformer {
   string title = 1;
   string value = 2;
