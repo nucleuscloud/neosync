@@ -21,22 +21,13 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import {
-  CreateJobRequest,
-  CreateJobResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import {
-  DefineFormValues,
-  FLOW_FORM_SCHEMA,
-  FlowFormValues,
-  FormValues,
-} from '../schema';
+import { FLOW_FORM_SCHEMA, FlowFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
@@ -67,32 +58,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const account = useAccount();
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
-  const [defineFormValues] = useSessionStorage<DefineFormValues>(
-    `${sessionPrefix}-new-job-define`,
-    { jobName: '' }
-  );
 
   const connections = connectionsData?.connections ?? [];
 
-  async function onSubmit(values: FlowFormValues) {
-    if (!account?.id) {
-      return;
-    }
-    try {
-      const job = await createNewJob(account.id, {
-        define: defineFormValues,
-        flow: values,
-        schema: {},
-      });
-      if (job.job?.id) {
-        router.push(`/jobs/${job.job.id}`);
-      } else {
-        router.push(`/jobs`);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-    // router.push(`/new/job/schema?sessionId=${sessionPrefix}`);
+  async function onSubmit(_values: FlowFormValues) {
+    router.push(`/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
   return (
@@ -152,7 +122,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  {/* <Input placeholder="Source ID" {...field} /> */}
                   {isConnectionsLoading ? (
                     <Skeleton />
                   ) : (
@@ -184,22 +153,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             )}
           />
 
-          {/* <FormField
-            control={form.control}
-            name="cronSchedule"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input placeholder="Cron Schedule" {...field} />
-                </FormControl>
-                <FormDescription>
-                  The schedule to run the job against if not a oneoff.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
-
           <div className="flex flex-row gap-1 justify-between">
             <Button type="button" onClick={() => router.back()}>
               Back
@@ -210,32 +163,4 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </OverviewContainer>
   );
-}
-
-async function createNewJob(
-  accountId: string,
-  formData: FormValues
-): Promise<CreateJobResponse> {
-  const res = await fetch(`/api/jobs`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CreateJobRequest({
-        accountId,
-        jobName: formData.define.jobName,
-        cronSchedule: formData.define.cronSchedule,
-        haltOnNewColumnAddition: false,
-        mappings: [],
-        connectionSourceId: formData.flow.sourceId,
-        connectionDestinationIds: [formData.flow.destinationId],
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateJobResponse.fromJson(await res.json());
 }

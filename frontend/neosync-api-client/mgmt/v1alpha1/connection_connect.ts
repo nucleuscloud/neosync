@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb";
+import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -73,6 +73,15 @@ export const ConnectionService = {
       name: "CheckConnectionConfig",
       I: CheckConnectionConfigRequest,
       O: CheckConnectionConfigResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionSchema
+     */
+    getConnectionSchema: {
+      name: "GetConnectionSchema",
+      I: GetConnectionSchemaRequest,
+      O: GetConnectionSchemaResponse,
       kind: MethodKind.Unary,
     },
   }

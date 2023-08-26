@@ -2626,3 +2626,352 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = IsConnectionNameAvailableResponseValidationError{}
+
+// Validate checks the field values on DatabaseColumn with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *DatabaseColumn) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DatabaseColumn with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DatabaseColumnMultiError,
+// or nil if none found.
+func (m *DatabaseColumn) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DatabaseColumn) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Schema
+
+	// no validation rules for Table
+
+	// no validation rules for Column
+
+	// no validation rules for DataType
+
+	if len(errors) > 0 {
+		return DatabaseColumnMultiError(errors)
+	}
+
+	return nil
+}
+
+// DatabaseColumnMultiError is an error wrapping multiple validation errors
+// returned by DatabaseColumn.ValidateAll() if the designated constraints
+// aren't met.
+type DatabaseColumnMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DatabaseColumnMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DatabaseColumnMultiError) AllErrors() []error { return m }
+
+// DatabaseColumnValidationError is the validation error returned by
+// DatabaseColumn.Validate if the designated constraints aren't met.
+type DatabaseColumnValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DatabaseColumnValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DatabaseColumnValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DatabaseColumnValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DatabaseColumnValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DatabaseColumnValidationError) ErrorName() string { return "DatabaseColumnValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DatabaseColumnValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDatabaseColumn.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DatabaseColumnValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DatabaseColumnValidationError{}
+
+// Validate checks the field values on GetConnectionSchemaRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetConnectionSchemaRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetConnectionSchemaRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetConnectionSchemaRequestMultiError, or nil if none found.
+func (m *GetConnectionSchemaRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionSchemaRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return GetConnectionSchemaRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionSchemaRequestMultiError is an error wrapping multiple
+// validation errors returned by GetConnectionSchemaRequest.ValidateAll() if
+// the designated constraints aren't met.
+type GetConnectionSchemaRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionSchemaRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionSchemaRequestMultiError) AllErrors() []error { return m }
+
+// GetConnectionSchemaRequestValidationError is the validation error returned
+// by GetConnectionSchemaRequest.Validate if the designated constraints aren't met.
+type GetConnectionSchemaRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionSchemaRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionSchemaRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionSchemaRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionSchemaRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionSchemaRequestValidationError) ErrorName() string {
+	return "GetConnectionSchemaRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionSchemaRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionSchemaRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionSchemaRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionSchemaRequestValidationError{}
+
+// Validate checks the field values on GetConnectionSchemaResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetConnectionSchemaResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetConnectionSchemaResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetConnectionSchemaResponseMultiError, or nil if none found.
+func (m *GetConnectionSchemaResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionSchemaResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetSchemas() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetConnectionSchemaResponseValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetConnectionSchemaResponseValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetConnectionSchemaResponseValidationError{
+					field:  fmt.Sprintf("Schemas[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetConnectionSchemaResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionSchemaResponseMultiError is an error wrapping multiple
+// validation errors returned by GetConnectionSchemaResponse.ValidateAll() if
+// the designated constraints aren't met.
+type GetConnectionSchemaResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionSchemaResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionSchemaResponseMultiError) AllErrors() []error { return m }
+
+// GetConnectionSchemaResponseValidationError is the validation error returned
+// by GetConnectionSchemaResponse.Validate if the designated constraints
+// aren't met.
+type GetConnectionSchemaResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionSchemaResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionSchemaResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionSchemaResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionSchemaResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionSchemaResponseValidationError) ErrorName() string {
+	return "GetConnectionSchemaResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionSchemaResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionSchemaResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionSchemaResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionSchemaResponseValidationError{}

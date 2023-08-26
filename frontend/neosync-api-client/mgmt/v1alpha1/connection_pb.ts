@@ -831,3 +831,132 @@ export class IsConnectionNameAvailableResponse extends Message<IsConnectionNameA
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.DatabaseColumn
+ */
+export class DatabaseColumn extends Message<DatabaseColumn> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: string table = 2;
+   */
+  table = "";
+
+  /**
+   * @generated from field: string column = 3;
+   */
+  column = "";
+
+  /**
+   * @generated from field: string data_type = 4;
+   */
+  dataType = "";
+
+  constructor(data?: PartialMessage<DatabaseColumn>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DatabaseColumn";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DatabaseColumn {
+    return new DatabaseColumn().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DatabaseColumn {
+    return new DatabaseColumn().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DatabaseColumn {
+    return new DatabaseColumn().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DatabaseColumn | PlainMessage<DatabaseColumn> | undefined, b: DatabaseColumn | PlainMessage<DatabaseColumn> | undefined): boolean {
+    return proto3.util.equals(DatabaseColumn, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionSchemaRequest
+ */
+export class GetConnectionSchemaRequest extends Message<GetConnectionSchemaRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  constructor(data?: PartialMessage<GetConnectionSchemaRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionSchemaRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionSchemaRequest {
+    return new GetConnectionSchemaRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionSchemaRequest {
+    return new GetConnectionSchemaRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionSchemaRequest {
+    return new GetConnectionSchemaRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionSchemaRequest | PlainMessage<GetConnectionSchemaRequest> | undefined, b: GetConnectionSchemaRequest | PlainMessage<GetConnectionSchemaRequest> | undefined): boolean {
+    return proto3.util.equals(GetConnectionSchemaRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionSchemaResponse
+ */
+export class GetConnectionSchemaResponse extends Message<GetConnectionSchemaResponse> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.DatabaseColumn schemas = 1;
+   */
+  schemas: DatabaseColumn[] = [];
+
+  constructor(data?: PartialMessage<GetConnectionSchemaResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionSchemaResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schemas", kind: "message", T: DatabaseColumn, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionSchemaResponse {
+    return new GetConnectionSchemaResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionSchemaResponse {
+    return new GetConnectionSchemaResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionSchemaResponse {
+    return new GetConnectionSchemaResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionSchemaResponse | PlainMessage<GetConnectionSchemaResponse> | undefined, b: GetConnectionSchemaResponse | PlainMessage<GetConnectionSchemaResponse> | undefined): boolean {
+    return proto3.util.equals(GetConnectionSchemaResponse, a, b);
+  }
+}
+

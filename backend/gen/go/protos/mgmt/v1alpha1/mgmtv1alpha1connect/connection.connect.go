@@ -54,6 +54,9 @@ const (
 	// ConnectionServiceCheckConnectionConfigProcedure is the fully-qualified name of the
 	// ConnectionService's CheckConnectionConfig RPC.
 	ConnectionServiceCheckConnectionConfigProcedure = "/mgmt.v1alpha1.ConnectionService/CheckConnectionConfig"
+	// ConnectionServiceGetConnectionSchemaProcedure is the fully-qualified name of the
+	// ConnectionService's GetConnectionSchema RPC.
+	ConnectionServiceGetConnectionSchemaProcedure = "/mgmt.v1alpha1.ConnectionService/GetConnectionSchema"
 )
 
 // ConnectionServiceClient is a client for the mgmt.v1alpha1.ConnectionService service.
@@ -65,6 +68,7 @@ type ConnectionServiceClient interface {
 	DeleteConnection(context.Context, *connect.Request[v1alpha1.DeleteConnectionRequest]) (*connect.Response[v1alpha1.DeleteConnectionResponse], error)
 	IsConnectionNameAvailable(context.Context, *connect.Request[v1alpha1.IsConnectionNameAvailableRequest]) (*connect.Response[v1alpha1.IsConnectionNameAvailableResponse], error)
 	CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error)
+	GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error)
 }
 
 // NewConnectionServiceClient constructs a client for the mgmt.v1alpha1.ConnectionService service.
@@ -112,6 +116,11 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			baseURL+ConnectionServiceCheckConnectionConfigProcedure,
 			opts...,
 		),
+		getConnectionSchema: connect.NewClient[v1alpha1.GetConnectionSchemaRequest, v1alpha1.GetConnectionSchemaResponse](
+			httpClient,
+			baseURL+ConnectionServiceGetConnectionSchemaProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -124,6 +133,7 @@ type connectionServiceClient struct {
 	deleteConnection          *connect.Client[v1alpha1.DeleteConnectionRequest, v1alpha1.DeleteConnectionResponse]
 	isConnectionNameAvailable *connect.Client[v1alpha1.IsConnectionNameAvailableRequest, v1alpha1.IsConnectionNameAvailableResponse]
 	checkConnectionConfig     *connect.Client[v1alpha1.CheckConnectionConfigRequest, v1alpha1.CheckConnectionConfigResponse]
+	getConnectionSchema       *connect.Client[v1alpha1.GetConnectionSchemaRequest, v1alpha1.GetConnectionSchemaResponse]
 }
 
 // GetConnections calls mgmt.v1alpha1.ConnectionService.GetConnections.
@@ -161,6 +171,11 @@ func (c *connectionServiceClient) CheckConnectionConfig(ctx context.Context, req
 	return c.checkConnectionConfig.CallUnary(ctx, req)
 }
 
+// GetConnectionSchema calls mgmt.v1alpha1.ConnectionService.GetConnectionSchema.
+func (c *connectionServiceClient) GetConnectionSchema(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error) {
+	return c.getConnectionSchema.CallUnary(ctx, req)
+}
+
 // ConnectionServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionService service.
 type ConnectionServiceHandler interface {
 	GetConnections(context.Context, *connect.Request[v1alpha1.GetConnectionsRequest]) (*connect.Response[v1alpha1.GetConnectionsResponse], error)
@@ -170,6 +185,7 @@ type ConnectionServiceHandler interface {
 	DeleteConnection(context.Context, *connect.Request[v1alpha1.DeleteConnectionRequest]) (*connect.Response[v1alpha1.DeleteConnectionResponse], error)
 	IsConnectionNameAvailable(context.Context, *connect.Request[v1alpha1.IsConnectionNameAvailableRequest]) (*connect.Response[v1alpha1.IsConnectionNameAvailableResponse], error)
 	CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error)
+	GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error)
 }
 
 // NewConnectionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -213,6 +229,11 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		svc.CheckConnectionConfig,
 		opts...,
 	)
+	connectionServiceGetConnectionSchemaHandler := connect.NewUnaryHandler(
+		ConnectionServiceGetConnectionSchemaProcedure,
+		svc.GetConnectionSchema,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.ConnectionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionServiceGetConnectionsProcedure:
@@ -229,6 +250,8 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 			connectionServiceIsConnectionNameAvailableHandler.ServeHTTP(w, r)
 		case ConnectionServiceCheckConnectionConfigProcedure:
 			connectionServiceCheckConnectionConfigHandler.ServeHTTP(w, r)
+		case ConnectionServiceGetConnectionSchemaProcedure:
+			connectionServiceGetConnectionSchemaHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -264,4 +287,8 @@ func (UnimplementedConnectionServiceHandler) IsConnectionNameAvailable(context.C
 
 func (UnimplementedConnectionServiceHandler) CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.CheckConnectionConfig is not implemented"))
+}
+
+func (UnimplementedConnectionServiceHandler) GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.GetConnectionSchema is not implemented"))
 }
