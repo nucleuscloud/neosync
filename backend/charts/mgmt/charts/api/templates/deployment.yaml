@@ -46,14 +46,14 @@ spec:
       {{- end }}
       terminationGracePeriod: {{ .Values.terminationGracePeriod }}
 
-      initContainers:
-        - name: db-migration
-          image: '{{ .Values.migrations.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+      # initContainers:
+      #   - name: db-migration
+      #     image: '{{ .Values.migrations.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
+      #     imagePullPolicy: {{ .Values.image.pullPolicy }}
 
-          envFrom:
-            - secretRef:
-                name: {{ template "neosync-api.fullname" . }}-migration-evs
+      #     envFrom:
+      #       - secretRef:
+      #           name: {{ template "neosync-api.fullname" . }}-migration-evs
 
       containers:
         - name: user-container
@@ -103,7 +103,7 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ template "neosync-api.fullname" . }}-service-evs
-          {{- if eq .Values.nucleusEnv "dev" }} # config created by Tilt; keep this at the bottom to override
-            - configMapRef:
-                name: dev-config
-          {{- end }}
+          # {{- if eq .Values.nucleusEnv "dev" }} # config created by Tilt; keep this at the bottom to override
+          #   - configMapRef:
+          #       name: dev-config
+          # {{- end }}

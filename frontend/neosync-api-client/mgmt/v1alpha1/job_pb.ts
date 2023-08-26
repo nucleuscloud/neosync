@@ -312,7 +312,7 @@ export class JobMapping extends Message<JobMapping> {
   column = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.JobMappingTransformer transformer = 4;
+   * @generated from field: mgmt.v1alpha1.JobMappingTransformer transformer = 5;
    */
   transformer = JobMappingTransformer.UNSPECIFIED;
 
@@ -327,7 +327,7 @@ export class JobMapping extends Message<JobMapping> {
     { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "transformer", kind: "enum", T: proto3.getEnumType(JobMappingTransformer) },
+    { no: 5, name: "transformer", kind: "enum", T: proto3.getEnumType(JobMappingTransformer) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobMapping {

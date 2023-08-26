@@ -23,17 +23,36 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// ConnectionSpec defines the desired state of Connection
-type ConnectionSpec struct {
+type SqlConnectionDriver string
+
+const (
+	PostgresDriver = "postgres"
+)
+
+// SqlConnectionSpec defines the desired state of SqlConnection
+type SqlConnectionSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Connection. Edit connection_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Driver SqlConnectionDriver `json:"driver"`
+	Url    SqlConnectionUrl    `json:"url"`
 }
 
-// ConnectionStatus defines the observed state of Connection
-type ConnectionStatus struct {
+type SqlConnectionUrl struct {
+	Value     *string                 `json:"value,omitempty"`
+	ValueFrom *SqlConnectionUrlSource `json:"valueFrom,omitempty"`
+}
+
+type SqlConnectionUrlSource struct {
+	SecretKeyRef *SecretKeySelector `json:"secretKeyRef,omitempty"`
+}
+type SecretKeySelector struct {
+	Name string `json:"name"`
+	Key  string `json:"key"`
+}
+
+// SqlConnectionStatus defines the observed state of SqlConnection
+type SqlConnectionStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
@@ -41,24 +60,24 @@ type ConnectionStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Connection is the Schema for the connections API
-type Connection struct {
+// SqlConnection is the Schema for the sqlconnections API
+type SqlConnection struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ConnectionSpec   `json:"spec,omitempty"`
-	Status ConnectionStatus `json:"status,omitempty"`
+	Spec   SqlConnectionSpec   `json:"spec,omitempty"`
+	Status SqlConnectionStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// ConnectionList contains a list of Connection
-type ConnectionList struct {
+// SqlConnectionList contains a list of SqlConnection
+type SqlConnectionList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Connection `json:"items"`
+	Items           []SqlConnection `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Connection{}, &ConnectionList{})
+	SchemeBuilder.Register(&SqlConnection{}, &SqlConnectionList{})
 }
