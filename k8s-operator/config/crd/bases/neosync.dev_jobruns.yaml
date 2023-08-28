@@ -60,6 +60,8 @@ spec:
                 required:
                 - benthos
                 type: object
+              serviceAccountName:
+                type: string
             required:
             - runConfig
             type: object

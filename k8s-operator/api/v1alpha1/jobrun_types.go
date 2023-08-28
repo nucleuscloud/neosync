@@ -29,7 +29,8 @@ type JobRunSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	RunConfig *RunConfig `json:"runConfig"`
+	ServiceAccountName *string    `json:"serviceAccountName,omitempty"`
+	RunConfig          *RunConfig `json:"runConfig"`
 }
 
 // JobRunStatus defines the observed state of JobRun
