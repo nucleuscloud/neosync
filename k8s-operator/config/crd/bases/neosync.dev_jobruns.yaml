@@ -36,16 +36,26 @@ spec:
             description: JobRunSpec defines the desired state of JobRun
             properties:
               runConfig:
+                description: defines the run config that will be used when spawning
+                  the job
                 properties:
                   benthos:
+                    description: Represents the configuration needed to spawn a benthos
+                      sync process
                     properties:
                       configFrom:
+                        description: Specify where to pull the benthos.yaml config
+                          from
                         properties:
                           secretKeyRef:
+                            description: Secret key reference of where the benthos.yaml
+                              file lives
                             properties:
                               key:
+                                description: The key to select from the resource
                                 type: string
                               name:
+                                description: The name of the resource to be selected
                                 type: string
                             required:
                             - key
@@ -55,6 +65,9 @@ spec:
                         - secretKeyRef
                         type: object
                       image:
+                        description: Optionally provide an alternative image to run
+                          benthos. Useful if augmenting benthos to provide custom
+                          plugins, or to pull from an alternative registry
                         type: string
                     required:
                     - configFrom
@@ -63,6 +76,9 @@ spec:
                 - benthos
                 type: object
               serviceAccountName:
+                description: Optionally specify the service account name that will
+                  be used by the pod when the job runs If not specified, the default
+                  service account will be used.
                 type: string
             required:
             - runConfig
@@ -71,9 +87,7 @@ spec:
             description: JobRunStatus defines the observed state of JobRun
             properties:
               jobStatus:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file'
+                description: Represents the status of the underlying k8s job
                 properties:
                   active:
                     description: The number of pending and running pods.

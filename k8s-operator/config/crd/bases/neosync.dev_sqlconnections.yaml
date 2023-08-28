@@ -44,10 +44,17 @@ spec:
                   valueFrom:
                     properties:
                       secretKeyRef:
+                        description: Represents the name and key of where a config
+                          file lives. This could be used to represent a ConfigMap
+                          or Secret, along with the key at which the configuration
+                          object is stashed This selector is intended for local use
+                          only
                         properties:
                           key:
+                            description: The key to select from the resource
                             type: string
                           name:
+                            description: The name of the resource to be selected
                             type: string
                         required:
                         - key
