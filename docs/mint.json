@@ -1,0 +1,135 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Neosync Docs",
+  "logo": {
+    "dark": "/logo/neosync_white.svg",
+    "light": "/logo/neosync_black.svg"
+  },
+  "modeToggle": {
+    "default": "dark",
+    "isHidden": true
+  },
+  "favicon": "favicon.png",
+  "colors": {
+    "primary": "#3239FB",
+    "light": "#AE87FF",
+    "dark": "#0D001D",
+    "background": {
+      "dark": "#101010"
+    },
+    "anchors": {
+      "from": "#FF7F57",
+      "to": "#9563FF"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:hi@mintlify.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://dashboard.mintlify.com"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Documentation",
+      "icon": "book-open-cover",
+      "url": "https://mintlify.com/docs"
+    },
+    {
+      "name": "Community",
+      "icon": "slack",
+      "url": "https://mintlify.com/community"
+    },
+    {
+      "name": "Blog",
+      "icon": "newspaper",
+      "url": "https://mintlify.com/blog"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Overview",
+      "pages": [
+        "overview/introduction",
+        "overview/platform",
+        "overview/architecture"
+      ]
+    },
+    {
+      "group": "Self-host Neosync",
+      "pages": [
+        "self-host/introduction",
+        {
+          "group": "Deployment options",
+          "pages": [
+            "self-host/deployment-options/kubernetes",
+            "self-host/deployment-options/docker",
+            "self-host/deployment-options/emr",
+            "self-host/deployment-options/spark"
+          ]
+        },
+        "self-host/faqs"
+      ]
+    },
+    {
+      "group": "Connections",
+      "pages": [
+        "connections/postgres",
+        "connections/mysql",
+        "connections/mongodb",
+        "connections/s3"
+      ]
+    },
+    {
+      "group": "Transformers",
+      "pages": [
+        {
+          "group": "Pre-built",
+          "pages": [
+            "transformers/pre-built/email",
+            "transformers/pre-built/ssn",
+            "transformers/pre-built/address",
+            "transformers/pre-built/phone"
+          ]
+        },
+        "transformers/custom"
+      ]
+    },
+    {
+      "group": "Guides",
+      "pages": [
+        "guides/creating-a-job",
+        "guides/cloning-a-job",
+        "guides/creating-a-connection",
+        "guides/subsetting-data"
+      ]
+    },
+    {
+      "group": "API Documentation",
+      "pages": ["api-reference/authentication"]
+    },
+    {
+      "group": "Authentication",
+      "pages": [
+        "api-reference/endpoint/get",
+        "api-reference/endpoint/create",
+        "api-reference/endpoint/update",
+        "api-reference/endpoint/delete"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/neosync",
+    "github": "https://github.com/neosync",
+    "linkedin": "https://www.linkedin.com/company/neosync"
+  }
+}
