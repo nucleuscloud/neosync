@@ -114,6 +114,10 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				logger.Info("benthos config not present in job spec, or corresponding secret is not found or in correct format")
 				return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 			}
+			image := "jeffail/benthos:4.11.0"
+			if jobrun.Spec.RunConfig.Benthos.Image != nil {
+				image = *jobrun.Spec.RunConfig.Benthos.Image
+			}
 			job = &batchv1.Job{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: req.Namespace,
@@ -126,7 +130,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 								{
 									Name:  "benthos",
 									Args:  []string{"-c", "/benthos.yaml"},
-									Image: "jeffail/benthos:4.11.0",
+									Image: image,
 									Ports: []corev1.ContainerPort{
 										{
 											ContainerPort: 4195,

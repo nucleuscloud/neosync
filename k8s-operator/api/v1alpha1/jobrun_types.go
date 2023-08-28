@@ -57,6 +57,7 @@ type RunConfig struct {
 }
 
 type BenthosConfig struct {
+	Image      *string       `json:"image,omitempty"`
 	ConfigFrom *ConfigSource `json:"configFrom"`
 }
 

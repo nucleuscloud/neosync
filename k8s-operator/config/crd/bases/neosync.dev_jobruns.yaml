@@ -54,6 +54,8 @@ spec:
                         required:
                         - secretKeyRef
                         type: object
+                      image:
+                        type: string
                     required:
                     - configFrom
                     type: object
