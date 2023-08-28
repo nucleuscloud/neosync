@@ -1,0 +1,12 @@
+apiVersion: neosync.dev/v1alpha1
+kind: JobRunTask
+metadata:
+  labels:
+    app.kubernetes.io/name: jobruntask
+    app.kubernetes.io/instance: jobruntask-sample
+    app.kubernetes.io/part-of: k8s-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: k8s-operator
+  name: jobruntask-sample
+spec:
+  # TODO(user): Add fields here
