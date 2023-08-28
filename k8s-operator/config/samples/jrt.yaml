@@ -31,15 +31,15 @@ stringData:
         codec: lines
 ---
 apiVersion: neosync.dev/v1alpha1
-kind: JobRun
+kind: JobRunTask
 metadata:
   labels:
-    app.kubernetes.io/name: jobrun
-    app.kubernetes.io/instance: jobrun-sample
+    app.kubernetes.io/name: jobruntask
+    app.kubernetes.io/instance: jobruntask-sample
     app.kubernetes.io/part-of: k8s-operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: k8s-operator
-  name: jobrun-sample
+  name: jobruntask-sample
 spec:
   runConfig:
     benthos:
