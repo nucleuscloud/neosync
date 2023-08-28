@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,14 +29,18 @@ type JobRunSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of JobRun. Edit jobrun_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Optionally specify the service account name that will be used by the pod when the job runs
+	// If not specified, the default service account will be used.
+	ServiceAccountName *string `json:"serviceAccountName,omitempty"`
+
+	// defines the run config that will be used when spawning the job
+	RunConfig *RunConfig `json:"runConfig"`
 }
 
 // JobRunStatus defines the observed state of JobRun
 type JobRunStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Represents the status of the underlying k8s job
+	JobStatus *batchv1.JobStatus `json:"jobStatus,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -48,6 +53,27 @@ type JobRun struct {
 
 	Spec   JobRunSpec   `json:"spec,omitempty"`
 	Status JobRunStatus `json:"status,omitempty"`
+}
+
+// Represents the run config. Currently benthos is the supported provider
+type RunConfig struct {
+	// Represents the configuration needed to spawn a benthos sync process
+	Benthos *BenthosRunConfig `json:"benthos"`
+}
+
+// Represents the run config for a Benthos process
+type BenthosRunConfig struct {
+	// Optionally provide an alternative image to run benthos.
+	// Useful if augmenting benthos to provide custom plugins, or to pull from an alternative registry
+	Image *string `json:"image,omitempty"`
+	// Specify where to pull the benthos.yaml config from
+	ConfigFrom *ConfigSource `json:"configFrom"`
+}
+
+// Represents the meta configuration of where to find the benthos config
+type ConfigSource struct {
+	// Secret key reference of where the benthos.yaml file lives
+	SecretKeyRef *ConfigSelector `json:"secretKeyRef"`
 }
 
 //+kubebuilder:object:root=true

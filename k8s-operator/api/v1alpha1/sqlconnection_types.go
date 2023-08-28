@@ -44,11 +44,17 @@ type SqlConnectionUrl struct {
 }
 
 type SqlConnectionUrlSource struct {
-	SecretKeyRef *SecretKeySelector `json:"secretKeyRef,omitempty"`
+	SecretKeyRef *ConfigSelector `json:"secretKeyRef,omitempty"`
 }
-type SecretKeySelector struct {
+
+// Represents the name and key of where a config file lives.
+// This could be used to represent a ConfigMap or Secret, along with the key at which the configuration object is stashed
+// This selector is intended for local use only
+type ConfigSelector struct {
+	// The name of the resource to be selected
 	Name string `json:"name"`
-	Key  string `json:"key"`
+	// The key to select from the resource
+	Key string `json:"key"`
 }
 
 // SqlConnectionStatus defines the observed state of SqlConnection

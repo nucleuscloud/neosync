@@ -18,6 +18,7 @@ local_resource(
     'Dockerfile.dev',
     'README.md',
     '.github',
+    'config/samples',
   ],
   labels=['build'],
 )
