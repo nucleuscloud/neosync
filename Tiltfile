@@ -3,6 +3,9 @@ allow_k8s_contexts('kind-nuc-dev')
 operator = [
   'neosync-operator',
 ]
+db = [
+  'postgresql',
+]
 backend = [
   'neosync-api',
 ]
@@ -12,8 +15,8 @@ frontend = [
 
 groups = {
   'operator': operator,
-  'backend': backend,
-  'frontend': backend + frontend,
+  'backend': backend + db,
+  'frontend': backend + db + frontend,
 }
 config.define_string_list("to-run", args=True)
 cfg = config.parse()
