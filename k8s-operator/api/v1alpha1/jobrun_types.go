@@ -53,10 +53,10 @@ type JobRun struct {
 }
 
 type RunConfig struct {
-	Benthos *BenthosConfig `json:"benthos"`
+	Benthos *BenthosRunConfig `json:"benthos"`
 }
 
-type BenthosConfig struct {
+type BenthosRunConfig struct {
 	Image      *string       `json:"image,omitempty"`
 	ConfigFrom *ConfigSource `json:"configFrom"`
 }
