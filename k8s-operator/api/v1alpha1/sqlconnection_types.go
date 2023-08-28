@@ -44,9 +44,9 @@ type SqlConnectionUrl struct {
 }
 
 type SqlConnectionUrlSource struct {
-	SecretKeyRef *SecretKeySelector `json:"secretKeyRef,omitempty"`
+	SecretKeyRef *ConfigSelector `json:"secretKeyRef,omitempty"`
 }
-type SecretKeySelector struct {
+type ConfigSelector struct {
 	Name string `json:"name"`
 	Key  string `json:"key"`
 }

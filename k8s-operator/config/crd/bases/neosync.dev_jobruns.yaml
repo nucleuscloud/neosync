@@ -35,10 +35,33 @@ spec:
           spec:
             description: JobRunSpec defines the desired state of JobRun
             properties:
-              foo:
-                description: Foo is an example field of JobRun. Edit jobrun_types.go
-                  to remove/update
-                type: string
+              runConfig:
+                properties:
+                  benthos:
+                    properties:
+                      configFrom:
+                        properties:
+                          secretKeyRef:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                type: string
+                            required:
+                            - key
+                            - name
+                            type: object
+                        required:
+                        - secretKeyRef
+                        type: object
+                    required:
+                    - configFrom
+                    type: object
+                required:
+                - benthos
+                type: object
+            required:
+            - runConfig
             type: object
           status:
             description: JobRunStatus defines the observed state of JobRun

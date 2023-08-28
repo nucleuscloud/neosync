@@ -28,8 +28,7 @@ type JobRunSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of JobRun. Edit jobrun_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	RunConfig *RunConfig `json:"runConfig"`
 }
 
 // JobRunStatus defines the observed state of JobRun
@@ -48,6 +47,18 @@ type JobRun struct {
 
 	Spec   JobRunSpec   `json:"spec,omitempty"`
 	Status JobRunStatus `json:"status,omitempty"`
+}
+
+type RunConfig struct {
+	Benthos *BenthosConfig `json:"benthos"`
+}
+
+type BenthosConfig struct {
+	ConfigFrom *ConfigSource `json:"configFrom"`
+}
+
+type ConfigSource struct {
+	SecretKeyRef *ConfigSelector `json:"secretKeyRef"`
 }
 
 //+kubebuilder:object:root=true
