@@ -71,31 +71,6 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
-	// serviceAccount := &corev1.ServiceAccount{}
-	// err = r.Get(ctx, req.NamespacedName, serviceAccount)
-	// if err != nil && !apierrors.IsNotFound(err) {
-	// 	logger.Error(err, "failed to get jobrun serviceaccount")
-	// 	return ctrl.Result{}, err
-	// } else if err != nil && apierrors.IsNotFound(err) {
-	// 	serviceAccount = &corev1.ServiceAccount{
-	// 		ObjectMeta: metav1.ObjectMeta{
-	// 			Namespace: req.Namespace,
-	// 			Name:      req.Name,
-	// 		},
-	// 	}
-	// 	err = ctrl.SetControllerReference(jobrun, serviceAccount, r.Scheme)
-	// 	if err != nil {
-	// 		logger.Error(err, "unable to set ownership reference on service account")
-	// 		return ctrl.Result{}, err
-	// 	}
-	// 	if err = r.Create(ctx, serviceAccount); err != nil {
-	// 		logger.Error(err, "unable to create service account")
-	// 		return ctrl.Result{}, err
-	// 	}
-	// } else {
-	// 	logger.Info("service account exists, continuing...")
-	// }
-
 	if jobrun.Status.JobStatus == nil || jobrun.Status.JobStatus.CompletionTime == nil {
 		logger.Info("reconciling job")
 
