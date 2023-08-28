@@ -64,29 +64,29 @@ func (r *JobRunTaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	err := r.Get(ctx, req.NamespacedName, task)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			logger.Info("jobrun resource not found. Ignoring since object must be deleted")
+			logger.Info("jobruntask resource not found. Ignoring since object must be deleted")
 			return ctrl.Result{}, nil
 		}
-		logger.Error(err, "failed to get jobrun resource")
+		logger.Error(err, "failed to get jobruntask resource")
 		return ctrl.Result{}, err
 	}
 
 	if task.Status.JobStatus == nil || task.Status.JobStatus.CompletionTime == nil {
-		logger.Info("reconciling job")
+		logger.Info("reconciling jobruntask")
 
 		job := &batchv1.Job{}
 		err = r.Get(ctx, req.NamespacedName, job)
 		if err != nil && !apierrors.IsNotFound(err) {
-			logger.Error(err, "failed to get job")
+			logger.Error(err, "failed to get jobruntask")
 			return ctrl.Result{}, err
 		} else if err != nil && apierrors.IsNotFound(err) {
 			isConfigPresent, err := isBenthosConfigPresent(ctx, r.Client, req.Namespace, task.Spec.RunConfig, logger)
 			if err != nil {
-				logger.Error(err, "unable to check if benthos config is present prior to creating job")
+				logger.Error(err, "unable to check if benthos config is present prior to creating jobruntask")
 				return ctrl.Result{RequeueAfter: 30 * time.Second}, err
 			}
 			if !isConfigPresent {
-				logger.Info("benthos config not present in job spec, or corresponding secret is not found or in correct format")
+				logger.Info("benthos config not present in jobruntask spec, or corresponding secret is not found or in correct format")
 				return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 			}
 			image := "jeffail/benthos:4.11.0"
@@ -146,24 +146,24 @@ func (r *JobRunTaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			}
 			err = ctrl.SetControllerReference(task, job, r.Scheme)
 			if err != nil {
-				logger.Error(err, "unable to set ownership reference on job")
+				logger.Error(err, "unable to set ownership reference on jobruntask")
 				return ctrl.Result{}, err
 			}
-			logger.Info("attempting to create job")
+			logger.Info("attempting to create jobruntask")
 			if err = r.Create(ctx, job); err != nil {
-				logger.Error(err, "unable to create job")
+				logger.Error(err, "unable to create jobruntask")
 				return ctrl.Result{}, err
 			}
 		} else {
-			logger.Info("job already exists...")
+			logger.Info("jobruntask already exists...")
 			task.Status.JobStatus = &job.Status
 		}
 	}
 	if err = r.Status().Update(ctx, task); err != nil {
-		logger.Error(err, "failed to update pipeline status")
+		logger.Error(err, "failed to update jobruntask status")
 		return ctrl.Result{}, err
 	}
-	logger.Info(fmt.Sprintf("reconciliation of pipeline %s finished", req.Name))
+	logger.Info(fmt.Sprintf("reconciliation of jobruntask %s finished", req.Name))
 
 	return ctrl.Result{}, nil
 }
