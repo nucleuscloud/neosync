@@ -72,22 +72,22 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
+	job := &neosyncdevv1alpha1.Job{}
+	err = r.Get(ctx, types.NamespacedName{
+		Namespace: jobrun.Namespace,
+		Name:      jobrun.Spec.Job.JobRef.Name,
+	}, job)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("jobrun references job that could not be found.")
+			return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+		}
+		logger.Error(err, "unable to retrieve job resource")
+		return ctrl.Result{}, err
+	}
+
 	if jobrun.Status.CompletionTime == nil {
 		logger.Info("reconciling jobrun")
-
-		job := &neosyncdevv1alpha1.Job{}
-		err = r.Get(ctx, types.NamespacedName{
-			Namespace: jobrun.Namespace,
-			Name:      jobrun.Spec.Job.JobRef.Name,
-		}, job)
-		if err != nil {
-			if apierrors.IsNotFound(err) {
-				logger.Info("jobrun references job that could not be found.")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
-			}
-			logger.Error(err, "unable to retrieve job resource")
-			return ctrl.Result{}, err
-		}
 
 		if len(job.Spec.Tasks) == 0 {
 			currentTime := metav1.Now()
@@ -143,48 +143,34 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				}
 				logger.Info("taskrun created successfully")
 			}
-		}
-	} else {
-		job := &neosyncdevv1alpha1.Job{}
-		err = r.Get(ctx, types.NamespacedName{
-			Namespace: jobrun.Namespace,
-			Name:      jobrun.Spec.Job.JobRef.Name,
-		}, job)
-		if err != nil {
-			if apierrors.IsNotFound(err) {
-				logger.Info("jobrun references job that could not be found.")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
-			}
-			logger.Error(err, "unable to retrieve job resource")
-			return ctrl.Result{}, err
-		}
 
-		taskRuns := &neosyncdevv1alpha1.TaskRunList{}
-		err = r.List(ctx, taskRuns, client.MatchingLabels{
-			neoysncParentKey: jobrun.Name,
-		})
-		if err != nil {
-			logger.Error(err, "unable to list task runs")
-			return ctrl.Result{}, err
-		}
-		jobrun.Status.TaskRuns = []*neosyncdevv1alpha1.JobRunStatusTaskRun{}
-		for _, tr := range taskRuns.Items {
-			jobrun.Status.TaskRuns = append(jobrun.Status.TaskRuns, &neosyncdevv1alpha1.JobRunStatusTaskRun{
-				Name: tr.Name,
+			taskRuns = &neosyncdevv1alpha1.TaskRunList{}
+			err = r.List(ctx, taskRuns, client.MatchingLabels{
+				neoysncParentKey: jobrun.Name,
 			})
-		}
-
-		if len(job.Spec.Tasks) == len(taskRuns.Items) {
-			isComplete := true
-			for _, tr := range taskRuns.Items {
-				if tr.Status.JobStatus == nil || tr.Status.JobStatus.CompletionTime == nil {
-					isComplete = false
-					break
-				}
+			if err != nil {
+				logger.Error(err, "unable to list task runs")
+				return ctrl.Result{}, err
 			}
-			if isComplete {
-				now := metav1.Now()
-				jobrun.Status.CompletionTime = &now
+			jobrun.Status.TaskRuns = []*neosyncdevv1alpha1.JobRunStatusTaskRun{}
+			for _, tr := range taskRuns.Items {
+				jobrun.Status.TaskRuns = append(jobrun.Status.TaskRuns, &neosyncdevv1alpha1.JobRunStatusTaskRun{
+					Name: tr.Name,
+				})
+			}
+
+			if len(job.Spec.Tasks) == len(taskRuns.Items) {
+				isComplete := true
+				for _, tr := range taskRuns.Items {
+					if tr.Status.JobStatus == nil || tr.Status.JobStatus.CompletionTime == nil {
+						isComplete = false
+						break
+					}
+				}
+				if isComplete {
+					now := metav1.Now()
+					jobrun.Status.CompletionTime = &now
+				}
 			}
 		}
 	}
