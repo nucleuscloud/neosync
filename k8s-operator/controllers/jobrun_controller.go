@@ -128,7 +128,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 					},
 					Spec: neosyncdevv1alpha1.TaskRunSpec{
 						Task: &neosyncdevv1alpha1.TaskRunTask{
-							TaskRef: &task.TaskRef,
+							TaskRef: task.TaskRef,
 						},
 					},
 				}
