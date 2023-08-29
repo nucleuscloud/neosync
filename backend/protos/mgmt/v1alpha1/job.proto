@@ -133,6 +133,15 @@ enum JobRunStatus {
   JOB_RUN_STATUS_ERROR = 4;
 }
 
+message Transformer {
+  string title = 1;
+  JobMappingTransformer value = 2;
+}
+message GetTransformersRequest {}
+message GetTransformersResponse {
+  repeated Transformer transformers = 1;
+}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -144,4 +153,6 @@ service JobService {
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
   rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}
+
+  rpc GetTransformers(GetTransformersRequest) returns (GetTransformersResponse) {}
 }

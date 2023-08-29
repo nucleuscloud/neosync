@@ -1,4 +1,4 @@
-package v1alpha1_transformerservice
+package v1alpha1_jobservice
 
 import (
 	"context"
@@ -13,10 +13,10 @@ func (s *Service) GetTransformers(
 ) (*connect.Response[mgmtv1alpha1.GetTransformersResponse], error) {
 	return connect.NewResponse(&mgmtv1alpha1.GetTransformersResponse{
 		Transformers: []*mgmtv1alpha1.Transformer{
-			{Title: "Unspecified", Value: "JOB_MAPPING_TRANSFORMER_UNSPECIFIED"},
-			{Title: "Passthrough", Value: "JOB_MAPPING_TRANSFORMER_PASSTHROUGH"},
-			{Title: "Social Security Number", Value: "JOB_MAPPING_TRANSFORMER_SSN"},
-			{Title: "Scramble", Value: "JOB_MAPPING_TRANSFORMER_SCRAMBLE"},
+			{Title: "Unspecified", Value: mgmtv1alpha1.JobMappingTransformer_JOB_MAPPING_TRANSFORMER_UNSPECIFIED},
+			{Title: "Passthrough", Value: mgmtv1alpha1.JobMappingTransformer_JOB_MAPPING_TRANSFORMER_PASSTHROUGH},
+			{Title: "Social Security Number", Value: mgmtv1alpha1.JobMappingTransformer_JOB_MAPPING_TRANSFORMER_SSN},
+			{Title: "Scramble", Value: mgmtv1alpha1.JobMappingTransformer_JOB_MAPPING_TRANSFORMER_SCRAMBLE},
 		},
 	}), nil
 }

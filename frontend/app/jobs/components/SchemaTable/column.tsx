@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { DataTableColumnHeader } from './data-table-column-header';
 
@@ -134,7 +134,7 @@ export function getColumns(
                           <SelectItem
                             className="cursor-pointer"
                             key={t.value}
-                            value={t.value}
+                            value={t.value as unknown as string}
                           >
                             {t.title}
                           </SelectItem>
