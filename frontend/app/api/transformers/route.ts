@@ -4,8 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.jobsClient.getTransformers(
-      new GetTransformersRequest({})
-    );
+    return ctx.jobsClient.getTransformers(new GetTransformersRequest({}));
   })(req);
 }

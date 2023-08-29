@@ -1,4 +1,4 @@
-import { GetJobResponse } from "@/neosync-api-client/mgmt/v1alpha1/job_pb";
+import { GetJobResponse } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 
 export async function getJob(
   jobId?: string
