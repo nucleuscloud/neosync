@@ -1,13 +1,14 @@
 'use client';
+import {
+  SchemaTable,
+  getConnectionSchema,
+} from '@/app/jobs/components/SchemaForm/schema-form';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import { useAccount } from '@/components/contexts/account-context';
 import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
-import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
   CreateJobResponse,
@@ -24,12 +25,9 @@ import {
   DefineFormValues,
   FlowFormValues,
   FormValues,
-  JobMappingFormValues,
   SCHEMA_FORM_SCHEMA,
   SchemaFormValues,
 } from '../schema';
-import { getColumns } from './components/SchemaTable/column';
-import { DataTable } from './components/SchemaTable/data-table';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
@@ -109,7 +107,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <JobTable data={form.getValues().mappings} />
+          <SchemaTable data={form.getValues().mappings} />
 
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
@@ -122,28 +120,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         </form>
       </Form>
     </OverviewContainer>
-  );
-}
-
-interface JobTableProps {
-  data: JobMappingFormValues[];
-}
-
-function JobTable(props: JobTableProps): ReactElement {
-  const { data } = props;
-  const { data: transformers, isLoading: transformersIsLoading } =
-    useGetTransformers();
-
-  if (transformersIsLoading) {
-    return <Skeleton />;
-  }
-
-  const columns = getColumns({ transformers: transformers?.transformers });
-
-  return (
-    <div>
-      <DataTable columns={columns} data={data} />
-    </div>
   );
 }
 
@@ -179,23 +155,4 @@ async function createNewJob(
     throw new Error(body.message);
   }
   return CreateJobResponse.fromJson(await res.json());
-}
-
-async function getConnectionSchema(
-  connectionId?: string
-): Promise<GetConnectionSchemaResponse | undefined> {
-  if (!connectionId) {
-    return;
-  }
-  const res = await fetch(`/api/connections/${connectionId}/schema`, {
-    method: 'GET',
-    headers: {
-      'content-type': 'application/json',
-    },
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return GetConnectionSchemaResponse.fromJson(await res.json());
 }
