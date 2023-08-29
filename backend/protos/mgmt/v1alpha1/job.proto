@@ -32,6 +32,7 @@ message JobMapping {
   string table = 2;
   string column = 3;
   JobMappingTransformer transformer = 5;
+  bool exclude = 6;
 }
 
 enum JobMappingTransformer {

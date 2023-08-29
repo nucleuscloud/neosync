@@ -2,7 +2,7 @@
 import {
   SchemaTable,
   getConnectionSchema,
-} from '@/app/jobs/components/SchemaForm/schema-form';
+} from '@/app/jobs/components/SchemaTable/schema-table';
 import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';

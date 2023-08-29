@@ -316,6 +316,11 @@ export class JobMapping extends Message<JobMapping> {
    */
   transformer = JobMappingTransformer.UNSPECIFIED;
 
+  /**
+   * @generated from field: bool exclude = 6;
+   */
+  exclude = false;
+
   constructor(data?: PartialMessage<JobMapping>) {
     super();
     proto3.util.initPartial(data, this);
@@ -328,6 +333,7 @@ export class JobMapping extends Message<JobMapping> {
     { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "transformer", kind: "enum", T: proto3.getEnumType(JobMappingTransformer) },
+    { no: 6, name: "exclude", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobMapping {
