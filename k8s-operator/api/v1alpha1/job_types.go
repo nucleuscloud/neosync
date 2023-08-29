@@ -93,6 +93,6 @@ func init() {
 }
 
 type LocalResourceRef struct {
-	Kind string `json:"kind"`
+	// Kind string `json:"kind"`
 	Name string `json:"name"`
 }

@@ -42,12 +42,10 @@ spec:
                       properties:
                         connectionRef:
                           properties:
-                            kind:
-                              type: string
                             name:
+                              description: Kind string `json:"kind"`
                               type: string
                           required:
-                          - kind
                           - name
                           type: object
                       required:
@@ -57,12 +55,10 @@ spec:
                       properties:
                         connectionRef:
                           properties:
-                            kind:
-                              type: string
                             name:
+                              description: Kind string `json:"kind"`
                               type: string
                           required:
-                          - kind
                           - name
                           type: object
                         initDbSchema:
@@ -82,12 +78,10 @@ spec:
                     properties:
                       connectionRef:
                         properties:
-                          kind:
-                            type: string
                           name:
+                            description: Kind string `json:"kind"`
                             type: string
                         required:
-                        - kind
                         - name
                         type: object
                       haltOnSchemaChange:

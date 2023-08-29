@@ -31,6 +31,13 @@ stringData:
         codec: lines
 ---
 apiVersion: neosync.dev/v1alpha1
+kind: JobRun
+metadata:
+  name: foo
+spec:
+
+---
+apiVersion: neosync.dev/v1alpha1
 kind: JobRunTask
 metadata:
   labels:
@@ -46,4 +53,24 @@ spec:
       configFrom:
         secretKeyRef:
           name: my-secret
+          key: benthos.yaml
+---
+apiVersion: neosync.dev/v1alpha1
+kind: JobRunTask
+metadata:
+  labels:
+    app.kubernetes.io/name: jobruntask
+    app.kubernetes.io/instance: jobruntask-sample
+    app.kubernetes.io/part-of: k8s-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: k8s-operator
+  name: jobruntask-sample2
+spec:
+  depends_on:
+    - jobruntask-sample
+  runConfig:
+    benthos:
+      configFrom:
+        secretKeyRef:
+          name: my-secret2
           key: benthos.yaml

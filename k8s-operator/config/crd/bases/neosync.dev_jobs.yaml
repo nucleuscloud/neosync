@@ -74,12 +74,10 @@ spec:
                       type: string
                     taskRef:
                       properties:
-                        kind:
-                          type: string
                         name:
+                          description: Kind string `json:"kind"`
                           type: string
                       required:
-                      - kind
                       - name
                       type: object
                   required:
