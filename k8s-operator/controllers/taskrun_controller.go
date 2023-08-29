@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/go-logr/logr"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 )
 
@@ -90,7 +91,7 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		job := &batchv1.Job{}
 		err = r.Get(ctx, req.NamespacedName, job)
 		if err != nil && !apierrors.IsNotFound(err) {
-			logger.Error(err, "failed to get jobruntask")
+			logger.Error(err, "failed to get batchv1.job")
 			return ctrl.Result{}, err
 		} else if err != nil && apierrors.IsNotFound(err) {
 			isConfigPresent, err := isBenthosConfigPresent(ctx, r.Client, req.Namespace, task.Spec.RunConfig, logger)
@@ -185,4 +186,46 @@ func (r *TaskRunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&neosyncdevv1alpha1.TaskRun{}).
 		Complete(r)
+}
+
+func isBenthosConfigPresent(
+	ctx context.Context,
+	k8sclient client.Client,
+	namespace string,
+	rc *neosyncdevv1alpha1.RunConfig,
+	logger logr.Logger,
+) (bool, error) {
+	if rc == nil {
+		logger.Info("runconfig was nil")
+		return false, nil
+	}
+	if rc.Benthos == nil || rc.Benthos.ConfigFrom == nil || rc.Benthos.ConfigFrom.SecretKeyRef == nil {
+		logger.Info("benthos, benthos.configfrom, or benthos.configfrom.secretkeyref was nil")
+		return false, nil
+	}
+	if rc.Benthos.ConfigFrom.SecretKeyRef.Name == "" || rc.Benthos.ConfigFrom.SecretKeyRef.Key == "" {
+		logger.Info("benthos secret key ref contains empty strings for name and/or key")
+		return false, nil
+	}
+	secret := &corev1.Secret{}
+	err := k8sclient.Get(ctx, types.NamespacedName{
+		Namespace: namespace,
+		Name:      rc.Benthos.ConfigFrom.SecretKeyRef.Name,
+	}, secret)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return false, fmt.Errorf("isBenthosConfigPresent: %w", err)
+	} else if err != nil && apierrors.IsNotFound(err) {
+		logger.Info("benthos secret was not found", "error", err)
+		return false, nil
+	}
+	if secret.Data == nil {
+		logger.Info("benthos data was nil")
+		return false, nil
+	}
+	if _, ok := secret.Data[rc.Benthos.ConfigFrom.SecretKeyRef.Key]; !ok {
+		logger.Info("benthos secret did not have referenced key")
+		return false, nil
+	}
+
+	return true, nil
 }

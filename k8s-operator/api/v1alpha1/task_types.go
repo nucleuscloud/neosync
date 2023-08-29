@@ -61,3 +61,24 @@ type TaskList struct {
 func init() {
 	SchemeBuilder.Register(&Task{}, &TaskList{})
 }
+
+// Represents the run config. Currently benthos is the supported provider
+type RunConfig struct {
+	// Represents the configuration needed to spawn a benthos sync process
+	Benthos *BenthosRunConfig `json:"benthos"`
+}
+
+// Represents the run config for a Benthos process
+type BenthosRunConfig struct {
+	// Optionally provide an alternative image to run benthos.
+	// Useful if augmenting benthos to provide custom plugins, or to pull from an alternative registry
+	Image *string `json:"image,omitempty"`
+	// Specify where to pull the benthos.yaml config from
+	ConfigFrom *ConfigSource `json:"configFrom"`
+}
+
+// Represents the meta configuration of where to find the benthos config
+type ConfigSource struct {
+	// Secret key reference of where the benthos.yaml file lives
+	SecretKeyRef *ConfigSelector `json:"secretKeyRef"`
+}
