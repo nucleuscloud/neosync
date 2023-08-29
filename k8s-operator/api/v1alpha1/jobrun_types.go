@@ -25,10 +25,21 @@ import (
 
 // JobRunSpec defines the desired state of JobRun
 type JobRunSpec struct {
+	Job *JobRunJob `json:"job,omitempty"`
+}
+
+type JobRunJob struct {
+	JobRef *LocalResourceRef `json:"jobRef,omitempty"`
 }
 
 // JobRunStatus defines the observed state of JobRun
 type JobRunStatus struct {
+	TaskRuns []*JobRunStatusTaskRun `json:"taskRuns,omitempty"`
+}
+
+type JobRunStatusTaskRun struct {
+	Name string `json:"name"`
+	// ... todo:
 }
 
 //+kubebuilder:object:root=true

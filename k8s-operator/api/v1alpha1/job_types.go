@@ -36,8 +36,6 @@ type JobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// SourceConnection        LocalResourceRef   `json:"sourceConnection"`
-	// DestinationConnections  []LocalResourceRef `json:"destinationConnections"`
 	CronSchedule            *string            `json:"cronSchedule,omitempty"`
 	HaltOnNewColumnAddition bool               `json:"bool,omitempty"`
 	Mappings                []*DataMapping     `json:"mappings"`
