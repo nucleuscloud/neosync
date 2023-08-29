@@ -7,8 +7,6 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
     'checkNameUnique',
     'This name is already taken.',
     async (value) => {
-      console.log(value)
-      console.log("HERE")
       if (!value || value.length == 0 ) {
         return false;
       }
@@ -25,6 +23,7 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
     .test('isValidCron', 'Not a valid cron schedule', (value) => {
       return !!value && cron(value).isValid();
     }),
+    haltOnNewColumnAddition: Yup.boolean(),
 });
 
 export type DefineFormValues = Yup.InferType<typeof DEFINE_FORM_SCHEMA>;

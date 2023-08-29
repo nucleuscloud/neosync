@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
@@ -94,6 +95,31 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </FormItem>
             )}
           />
+
+          <div className="w-96">
+            <FormField
+              control={form.control}
+              name="haltOnNewColumnAddition"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      Halt Job on new column addition
+                    </FormLabel>
+                    <FormDescription>
+                      Stops job runs if new column is detected
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="flex flex-row justify-end">
             <Button type="submit">Next</Button>

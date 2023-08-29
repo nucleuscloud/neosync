@@ -33,6 +33,7 @@
     "@radix-ui/react-select": "^1.2.2",
     "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-toast": "^1.1.4",
     "@tanstack/react-table": "^8.9.3",
     "class-variance-authority": "^0.7.0",
