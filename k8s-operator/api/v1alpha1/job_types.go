@@ -43,18 +43,10 @@ type JobSpec struct {
 }
 
 type JobTask struct {
-	Name      string           `json:"name"`
-	TaskRef   LocalResourceRef `json:"taskRef"`
-	DependsOn []string         `json:"dependsOn,omitempty"`
+	Name      string            `json:"name"`
+	TaskRef   *LocalResourceRef `json:"taskRef"`
+	DependsOn []string          `json:"dependsOn,omitempty"`
 }
-
-// This is specific to SQLConnections and will probably change if we want to introduce non-sql connections
-// type DataMapping struct {
-// 	Schema      string `json:"schema"`
-// 	TableName   string `json:"tableName"`
-// 	Column      string `json:"column"`
-// 	Transformer string `json:"transformer"`
-// }
 
 // JobStatus defines the observed state of Job
 type JobStatus struct {

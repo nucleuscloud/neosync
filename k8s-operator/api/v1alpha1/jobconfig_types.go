@@ -65,13 +65,13 @@ type JobConfigDestination struct {
 }
 
 type DestinationSql struct {
-	ConnectionRef        LocalResourceRef `json:"connectionRef"`
-	TruncateBeforeInsert *bool            `json:"truncateBeforeInsert,omitempty"`
-	InitDbSchema         *bool            `json:"initDbSchema,omitempty"`
+	ConnectionRef        *LocalResourceRef `json:"connectionRef"`
+	TruncateBeforeInsert *bool             `json:"truncateBeforeInsert,omitempty"`
+	InitDbSchema         *bool             `json:"initDbSchema,omitempty"`
 }
 
 type DestinationAwsS3 struct {
-	ConnectionRef LocalResourceRef `json:"connectionRef"`
+	ConnectionRef *LocalResourceRef `json:"connectionRef"`
 }
 
 // JobConfigStatus defines the observed state of JobConfig
