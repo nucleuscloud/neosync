@@ -38,19 +38,9 @@ spec:
               bool:
                 type: boolean
               cronSchedule:
+                description: SourceConnection        LocalResourceRef   `json:"sourceConnection"`
+                  DestinationConnections  []LocalResourceRef `json:"destinationConnections"`
                 type: string
-              destinationConnections:
-                items:
-                  properties:
-                    kind:
-                      type: string
-                    name:
-                      type: string
-                  required:
-                  - kind
-                  - name
-                  type: object
-                type: array
               executionStatus:
                 type: string
               mappings:
@@ -73,21 +63,34 @@ spec:
                   - transformer
                   type: object
                 type: array
-              sourceConnection:
-                properties:
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - kind
-                - name
-                type: object
+              tasks:
+                items:
+                  properties:
+                    dependsOn:
+                      items:
+                        type: string
+                      type: array
+                    name:
+                      type: string
+                    taskRef:
+                      properties:
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - kind
+                      - name
+                      type: object
+                  required:
+                  - name
+                  - taskRef
+                  type: object
+                type: array
             required:
-            - destinationConnections
             - executionStatus
             - mappings
-            - sourceConnection
+            - tasks
             type: object
           status:
             description: JobStatus defines the observed state of Job

@@ -36,13 +36,19 @@ type JobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	SourceConnection        LocalResourceRef   `json:"sourceConnection"`
-	DestinationConnections  []LocalResourceRef `json:"destinationConnections"`
+	// SourceConnection        LocalResourceRef   `json:"sourceConnection"`
+	// DestinationConnections  []LocalResourceRef `json:"destinationConnections"`
 	CronSchedule            *string            `json:"cronSchedule,omitempty"`
 	HaltOnNewColumnAddition bool               `json:"bool,omitempty"`
 	Mappings                []*DataMapping     `json:"mappings"`
-	//
-	ExecutionStatus JobExecutionStatus `json:"executionStatus"`
+	ExecutionStatus         JobExecutionStatus `json:"executionStatus"`
+	Tasks                   []JobTask          `json:"tasks"`
+}
+
+type JobTask struct {
+	Name      string           `json:"name"`
+	TaskRef   LocalResourceRef `json:"taskRef"`
+	DependsOn []string         `json:"dependsOn,omitempty"`
 }
 
 // This is specific to SQLConnections and will probably change if we want to introduce non-sql connections

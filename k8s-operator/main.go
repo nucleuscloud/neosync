@@ -116,6 +116,20 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "JobRunTask")
 		os.Exit(1)
 	}
+	if err = (&controllers.TaskReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Task")
+		os.Exit(1)
+	}
+	if err = (&controllers.JobConfigReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "JobConfig")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

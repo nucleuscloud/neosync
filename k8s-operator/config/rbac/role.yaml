@@ -34,6 +34,32 @@ rules:
 - apiGroups:
   - neosync.dev
   resources:
+  - jobconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - neosync.dev
+  resources:
+  - jobconfigs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - neosync.dev
+  resources:
+  - jobconfigs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - neosync.dev
+  resources:
   - jobruns
   verbs:
   - create
@@ -131,6 +157,32 @@ rules:
   - neosync.dev
   resources:
   - sqlconnections/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - neosync.dev
+  resources:
+  - tasks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - neosync.dev
+  resources:
+  - tasks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - neosync.dev
+  resources:
+  - tasks/status
   verbs:
   - get
   - patch
