@@ -7,18 +7,10 @@ secret_settings(disable_scrub=True)
 local_resource(
   'operator-build',
   'CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o bin/manager main.go',
-  deps=['.'],
-  ignore=[
-    '.git',
-    'bin',
-    '.gitignore',
-    '.vscode',
-    'Makefile',
-    'Dockerfile',
-    'Dockerfile.dev',
-    'README.md',
-    '.github',
-    'config/samples',
+  deps=[
+    'main.go',
+    'controllers/',
+    'api/',
   ],
   labels=['build'],
 )

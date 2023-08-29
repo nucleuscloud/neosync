@@ -20,68 +20,65 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type JobExecutionStatus string
-
-const (
-	JobExecutionStatus_Enabled  = "enabled"
-	JobExecutionStatus_Disabled = "disabled"
-	JobExecutionStatus_Paused   = "paused"
-)
-
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// JobSpec defines the desired state of Job
-type JobSpec struct {
+// TaskSpec defines the desired state of Task
+type TaskSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	CronSchedule            *string            `json:"cronSchedule,omitempty"`
-	HaltOnNewColumnAddition bool               `json:"bool,omitempty"`
-	ExecutionStatus         JobExecutionStatus `json:"executionStatus"`
-	Tasks                   []JobTask          `json:"tasks"`
+	RunConfig *RunConfig `json:"runConfig"`
 }
 
-type JobTask struct {
-	Name      string            `json:"name"`
-	TaskRef   *LocalResourceRef `json:"taskRef"`
-	DependsOn []string          `json:"dependsOn,omitempty"`
-}
-
-// JobStatus defines the observed state of Job
-type JobStatus struct {
+// TaskStatus defines the observed state of Task
+type TaskStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	Conditions []metav1.Condition `json:"conditions"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Job is the Schema for the jobs API
-type Job struct {
+// Task is the Schema for the tasks API
+type Task struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   JobSpec   `json:"spec,omitempty"`
-	Status JobStatus `json:"status,omitempty"`
+	Spec   TaskSpec   `json:"spec,omitempty"`
+	Status TaskStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// JobList contains a list of Job
-type JobList struct {
+// TaskList contains a list of Task
+type TaskList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Job `json:"items"`
+	Items           []Task `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Job{}, &JobList{})
+	SchemeBuilder.Register(&Task{}, &TaskList{})
 }
 
-type LocalResourceRef struct {
-	// Kind string `json:"kind"`
-	Name string `json:"name"`
+// Represents the run config. Currently benthos is the supported provider
+type RunConfig struct {
+	// Represents the configuration needed to spawn a benthos sync process
+	Benthos *BenthosRunConfig `json:"benthos"`
+}
+
+// Represents the run config for a Benthos process
+type BenthosRunConfig struct {
+	// Optionally provide an alternative image to run benthos.
+	// Useful if augmenting benthos to provide custom plugins, or to pull from an alternative registry
+	Image *string `json:"image,omitempty"`
+	// Specify where to pull the benthos.yaml config from
+	ConfigFrom *ConfigSource `json:"configFrom"`
+}
+
+// Represents the meta configuration of where to find the benthos config
+type ConfigSource struct {
+	// Secret key reference of where the benthos.yaml file lives
+	SecretKeyRef *ConfigSelector `json:"secretKeyRef"`
 }

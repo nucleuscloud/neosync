@@ -17,71 +17,54 @@ limitations under the License.
 package v1alpha1
 
 import (
+	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-type JobExecutionStatus string
-
-const (
-	JobExecutionStatus_Enabled  = "enabled"
-	JobExecutionStatus_Disabled = "disabled"
-	JobExecutionStatus_Paused   = "paused"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// JobSpec defines the desired state of Job
-type JobSpec struct {
+// TaskRunSpec defines the desired state of TaskRun
+type TaskRunSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	CronSchedule            *string            `json:"cronSchedule,omitempty"`
-	HaltOnNewColumnAddition bool               `json:"bool,omitempty"`
-	ExecutionStatus         JobExecutionStatus `json:"executionStatus"`
-	Tasks                   []JobTask          `json:"tasks"`
+	// Foo is an example field of TaskRun. Edit taskrun_types.go to remove/update
+	Task *TaskRunTask `json:"task"`
 }
 
-type JobTask struct {
-	Name      string            `json:"name"`
-	TaskRef   *LocalResourceRef `json:"taskRef"`
-	DependsOn []string          `json:"dependsOn,omitempty"`
+type TaskRunTask struct {
+	TaskRef *LocalResourceRef `json:"taskRef,omitempty"`
 }
 
-// JobStatus defines the observed state of Job
-type JobStatus struct {
+// TaskRunStatus defines the observed state of TaskRun
+type TaskRunStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	Conditions []metav1.Condition `json:"conditions"`
+	JobStatus *batchv1.JobStatus `json:"jobStatus,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// Job is the Schema for the jobs API
-type Job struct {
+// TaskRun is the Schema for the taskruns API
+type TaskRun struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   JobSpec   `json:"spec,omitempty"`
-	Status JobStatus `json:"status,omitempty"`
+	Spec   TaskRunSpec   `json:"spec,omitempty"`
+	Status TaskRunStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// JobList contains a list of Job
-type JobList struct {
+// TaskRunList contains a list of TaskRun
+type TaskRunList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Job `json:"items"`
+	Items           []TaskRun `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Job{}, &JobList{})
-}
-
-type LocalResourceRef struct {
-	// Kind string `json:"kind"`
-	Name string `json:"name"`
+	SchemeBuilder.Register(&TaskRun{}, &TaskRunList{})
 }

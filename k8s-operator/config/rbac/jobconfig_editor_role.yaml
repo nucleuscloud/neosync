@@ -1,0 +1,31 @@
+# permissions for end users to edit jobconfigs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: jobconfig-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: k8s-operator
+    app.kubernetes.io/part-of: k8s-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: jobconfig-editor-role
+rules:
+- apiGroups:
+  - neosync.dev
+  resources:
+  - jobconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - neosync.dev
+  resources:
+  - jobconfigs/status
+  verbs:
+  - get
