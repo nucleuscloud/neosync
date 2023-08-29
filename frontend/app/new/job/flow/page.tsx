@@ -10,6 +10,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {
@@ -81,6 +82,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             name="sourceId"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Source</FormLabel>
                 <FormControl>
                   {/* <Input placeholder="Source ID" {...field} /> */}
                   {isConnectionsLoading ? (
@@ -121,6 +123,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             name="destinationId"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Destination</FormLabel>
                 <FormControl>
                   {isConnectionsLoading ? (
                     <Skeleton />

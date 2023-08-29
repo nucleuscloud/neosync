@@ -240,6 +240,15 @@ func (s *Service) DeleteJob(
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 }
 
+func (s *Service) IsJobNameAvailable(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest],
+) (*connect.Response[mgmtv1alpha1.IsJobNameAvailableResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.IsJobNameAvailableResponse{
+		IsAvailable: true,
+	}), nil
+}
+
 func (s *Service) verifyUserInAccount(
 	ctx context.Context,
 	accountId string,

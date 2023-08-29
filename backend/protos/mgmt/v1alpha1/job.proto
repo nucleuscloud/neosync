@@ -68,6 +68,13 @@ message DeleteJobRequest {
 }
 message DeleteJobResponse {}
 
+message IsJobNameAvailableRequest {
+  string name = 1;
+}
+message IsJobNameAvailableResponse {
+  bool is_available = 1;
+}
+
 message GetJobRunsRequest {
   oneof id {
     string job_id = 1 [(validate.rules).string.uuid = true];
@@ -149,6 +156,7 @@ service JobService {
   rpc CreateJob(CreateJobRequest) returns (CreateJobResponse) {}
   rpc UpdateJob(UpdateJobRequest) returns (UpdateJobResponse) {}
   rpc DeleteJob(DeleteJobRequest) returns (DeleteJobResponse) {}
+  rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}
