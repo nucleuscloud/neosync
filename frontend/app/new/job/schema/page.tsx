@@ -2,7 +2,7 @@
 import {
   SchemaTable,
   getConnectionSchema,
-} from '@/app/jobs/components/SchemaForm/schema-form';
+} from '@/app/jobs/components/SchemaTable/schema-table';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import { useAccount } from '@/components/contexts/account-context';
 import PageHeader from '@/components/headers/PageHeader';
@@ -138,6 +138,7 @@ async function createNewJob(
         table: m.table,
         column: m.column,
         transformer: m.transformer as unknown as JobMappingTransformer,
+        exclude: m.exclude,
       });
     }),
     connectionSourceId: formData.flow.sourceId,

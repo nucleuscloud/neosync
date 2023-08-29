@@ -120,7 +120,6 @@ export function getColumns(
         return (
           <div className="flex space-x-2">
             <FormField
-              // control={form.control}
               name={`mappings.${row.index}.transformer`}
               render={({ field }) => (
                 <FormItem>
@@ -143,6 +142,57 @@ export function getColumns(
                     </Select>
                   </FormControl>
 
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'exclude',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Exclude" />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <FormField
+              name={`mappings.${row.index}.exclude`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={
+                        field.value == true || field.value == 'true'
+                          ? 'true'
+                          : 'false'
+                      }
+                    >
+                      <SelectTrigger className="w-[125px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                          className="cursor-pointer"
+                          key="exclude"
+                          value="true"
+                        >
+                          Exclude
+                        </SelectItem>
+
+                        <SelectItem
+                          className="cursor-pointer"
+                          key="include"
+                          value="false"
+                        >
+                          Include
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

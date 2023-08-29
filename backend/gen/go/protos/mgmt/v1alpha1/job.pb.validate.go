@@ -627,6 +627,8 @@ func (m *JobMapping) validate(all bool) error {
 
 	// no validation rules for Transformer
 
+	// no validation rules for Exclude
+
 	if len(errors) > 0 {
 		return JobMappingMultiError(errors)
 	}
