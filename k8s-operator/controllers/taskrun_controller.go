@@ -169,7 +169,6 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				return ctrl.Result{}, err
 			}
 		} else {
-			logger.Info("job already exists...")
 			taskRun.Status.JobStatus = &job.Status
 		}
 	}

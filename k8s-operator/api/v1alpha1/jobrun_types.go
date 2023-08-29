@@ -39,8 +39,7 @@ type JobRunStatus struct {
 }
 
 type JobRunStatusTaskRun struct {
-	FriendlyTaskName string `json:"friendlyTaskName"`
-	Name             string `json:"name"`
+	Name string `json:"name"`
 	// ... todo:
 }
 
