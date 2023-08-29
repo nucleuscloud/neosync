@@ -38,31 +38,9 @@ spec:
               bool:
                 type: boolean
               cronSchedule:
-                description: SourceConnection        LocalResourceRef   `json:"sourceConnection"`
-                  DestinationConnections  []LocalResourceRef `json:"destinationConnections"`
                 type: string
               executionStatus:
                 type: string
-              mappings:
-                items:
-                  description: This is specific to SQLConnections and will probably
-                    change if we want to introduce non-sql connections
-                  properties:
-                    column:
-                      type: string
-                    schema:
-                      type: string
-                    tableName:
-                      type: string
-                    transformer:
-                      type: string
-                  required:
-                  - column
-                  - schema
-                  - tableName
-                  - transformer
-                  type: object
-                type: array
               tasks:
                 items:
                   properties:
@@ -87,7 +65,6 @@ spec:
                 type: array
             required:
             - executionStatus
-            - mappings
             - tasks
             type: object
           status:

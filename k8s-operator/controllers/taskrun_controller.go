@@ -160,7 +160,7 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			// }
 			err = ctrl.SetControllerReference(taskRun, job, r.Scheme)
 			if err != nil {
-				logger.Error(err, "unable to set ownership reference on taskrun")
+				logger.Error(err, "unable to set ownership reference on batchv1.job")
 				return ctrl.Result{}, err
 			}
 			logger.Info("attempting to create job")
@@ -185,6 +185,7 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 func (r *TaskRunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&neosyncdevv1alpha1.TaskRun{}).
+		Owns(&batchv1.Job{}).
 		Complete(r)
 }
 

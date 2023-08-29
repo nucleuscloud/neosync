@@ -38,7 +38,6 @@ type JobSpec struct {
 
 	CronSchedule            *string            `json:"cronSchedule,omitempty"`
 	HaltOnNewColumnAddition bool               `json:"bool,omitempty"`
-	Mappings                []*DataMapping     `json:"mappings"`
 	ExecutionStatus         JobExecutionStatus `json:"executionStatus"`
 	Tasks                   []JobTask          `json:"tasks"`
 }
@@ -50,12 +49,12 @@ type JobTask struct {
 }
 
 // This is specific to SQLConnections and will probably change if we want to introduce non-sql connections
-type DataMapping struct {
-	Schema      string `json:"schema"`
-	TableName   string `json:"tableName"`
-	Column      string `json:"column"`
-	Transformer string `json:"transformer"`
-}
+// type DataMapping struct {
+// 	Schema      string `json:"schema"`
+// 	TableName   string `json:"tableName"`
+// 	Column      string `json:"column"`
+// 	Transformer string `json:"transformer"`
+// }
 
 // JobStatus defines the observed state of Job
 type JobStatus struct {

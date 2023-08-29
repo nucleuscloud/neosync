@@ -34,11 +34,13 @@ type JobRunJob struct {
 
 // JobRunStatus defines the observed state of JobRun
 type JobRunStatus struct {
-	TaskRuns []*JobRunStatusTaskRun `json:"taskRuns,omitempty"`
+	CompletionTime *metav1.Time           `json:"completionTime,omitempty"`
+	TaskRuns       []*JobRunStatusTaskRun `json:"taskRuns,omitempty"`
 }
 
 type JobRunStatusTaskRun struct {
-	Name string `json:"name"`
+	FriendlyTaskName string `json:"friendlyTaskName"`
+	Name             string `json:"name"`
 	// ... todo:
 }
 
