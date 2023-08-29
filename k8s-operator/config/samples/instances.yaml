@@ -1,0 +1,35 @@
+apiVersion: neosync.dev/v1alpha1
+kind: JobRun
+metadata:
+  name: prod-to-stage-1234
+spec:
+  job:
+    jobRef:
+      name: prod-to-stage
+status:
+  taskRuns:
+    - name: public-users-sync-1234
+
+    - name: public-accounts-sync-1234
+---
+apiVersion: neosync.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: public-users-sync-1234
+spec:
+  task:
+    taskRef:
+      name: public-users-sync
+status:
+  jobStatus: # inline the status from the spawned job
+---
+apiVersion: neosync.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: public-accounts-sync-1234
+spec:
+  task:
+    taskRef:
+      name: public-accounts-sync
+status:
+  jobStatus: # inline the status from the spawned job

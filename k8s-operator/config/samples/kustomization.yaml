@@ -4,4 +4,7 @@ resources:
 - _v1alpha1_job.yaml
 - _v1alpha1_jobrun.yaml
 - _v1alpha1_sqlconnection.yaml
+- _v1alpha1_task.yaml
+- _v1alpha1_jobconfig.yaml
+- _v1alpha1_taskrun.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

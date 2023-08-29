@@ -1,0 +1,146 @@
+
+---
+apiVersion: neosync.dev/v1alpha1
+kind: Job
+metadata:
+  name: prod-to-stage
+spec:
+  executionStatus: active
+  # schedule: '* * * * *' # optional
+  tasks:
+    - name: task1
+      taskRef:
+        name: public-users-sync
+    - name: task2
+      taskRef:
+        name: public-accounts-sync
+      depends_on:
+        - task1
+---
+apiVerison: neosync.dev/v1alpha1
+kind: Task
+metadata:
+  name: public-users-sync
+spec:
+  runConfig:
+    benthos:
+      configFrom:
+        secretKeyRef:
+          name: public-users-sync
+          key: benthos.yaml
+---
+apiVerison: neosync.dev/v1alpha1
+kind: Task
+metadata:
+  name: public-accounts-sync
+spec:
+  runConfig:
+    benthos:
+      configFrom:
+        secretKeyRef:
+          name: public-accounts-sync
+          key: benthos.yaml
+---
+
+apiVersion: neosync.dev/v1alpha1
+kind: SqlConnection
+metadata:
+  name: prod
+spec:
+  driver: postgresql
+  url: postgres://postgres:postgres@localhost:5432/nucleus
+---
+apiVersion: neosync.dev/v1alpha1
+kind: SqlConnection
+metadata:
+  name: stage
+spec:
+  driver: postgresql
+  url: postgres://postgres:postgres@localhost:5433/nucleus
+---
+apiVersion: neosync.dev/v1alpha1
+kind: AwsS3Connection
+spec:
+  bucket: stage-backup
+  # role_arn: <role-arn-to-assume>
+  # credentialsFrom:
+  #   - secretRef:
+  #     name: stage-backup-creds
+  #     key: credentials.json
+
+apiVersion: neosync.dev/v1alpha1
+kind: JobConfig
+metadata:
+  name: prod-to-stage-sync
+spec:
+  source:
+    sql:
+      connectionRef:
+        name: prod
+      halt_on_schema_change: true
+      schemas:
+        - schema: public
+          table: users
+          columns:
+            - name: id
+            - name: first_name
+            - name: last_name
+            - name: email
+              transformer: email
+            - name: created_at
+              exclude: true
+            - name: updated_at
+        - schema: public
+          table: accounts
+          columns:
+            - name: id
+            - name: name
+            - name: created_at
+            - name: updated_at
+
+
+  destinations:
+    - sql:
+        connectionRef:
+          name: stage
+        truncate_before_insert: true # default
+        init_db_schema: true # run create table statements
+
+    - awss3:
+        connectionRef:
+          name: stage-backup
+
+
+
+
+  # sqlInput:
+  #   connection:
+  #     name: prod
+  #     kind: SqlConnection # default
+  #   schema: public
+  #   table: users
+  #   columns: ['id', 'name']
+    # where: 'created_at > ?'
+    # args_mapping: []
+
+  # sourceConnection:
+  #   name: prod
+  #   kind: SqlConnection
+  # destinationConnections:
+  #   - name: stage
+  #     kind: SqlConnection
+
+  # mappings:
+  #   - schema: public
+  #     tableName: users
+  #     column: id
+  #   - schema: public
+  #     tableName: users
+  #     column: name
+  #   - schema: public
+  #     tableName: accounts
+  #     column: id
+  #   - schema: public
+  #     tableName: accounts
+  #     column: name
+

@@ -1,0 +1,102 @@
+apiVersion: neosync.dev/v1alpha1
+kind: Job
+metadata:
+  name: testjob
+spec:
+  executionStatus: active
+  # schedule: '* * * * *' # optional
+  tasks:
+    - name: task1
+      taskRef:
+        name: public-users-sync
+    - name: task2
+      taskRef:
+        name: public-accounts-sync
+      # depends_on:
+      #   - task1
+---
+apiVersion: neosync.dev/v1alpha1
+kind: Task
+metadata:
+  name: public-users-sync
+spec:
+  runConfig:
+    benthos:
+      configFrom:
+        secretKeyRef:
+          name: public-users-sync
+          key: benthos.yaml
+---
+apiVersion: neosync.dev/v1alpha1
+kind: Task
+metadata:
+  name: public-accounts-sync
+spec:
+  runConfig:
+    benthos:
+      configFrom:
+        secretKeyRef:
+          name: public-accounts-sync
+          key: benthos.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: public-users-sync
+stringData:
+  benthos.yaml: |
+    http:
+      address: localhost:4195
+    input:
+      label: ""
+      generate:
+        mapping: |
+          root = if random_int() % 2 == 0 {
+            {
+              "type": "foo",
+              "foo": "is yummy"
+            }
+          } else {
+            {
+              "type": "bar",
+              "bar": "is gross"
+            }
+          }
+        interval: 1s
+        count: 10
+        batch_size: 1
+    output:
+      label: ""
+      stdout:
+        codec: lines
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: public-accounts-sync
+stringData:
+  benthos.yaml: |
+    http:
+      address: localhost:4195
+    input:
+      label: ""
+      generate:
+        mapping: |
+          root = if random_int() % 2 == 0 {
+            {
+              "type": "foo",
+              "foo": "is yummy"
+            }
+          } else {
+            {
+              "type": "bar",
+              "bar": "is gross"
+            }
+          }
+        interval: 1s
+        count: 10
+        batch_size: 1
+    output:
+      label: ""
+      stdout:
+        codec: lines

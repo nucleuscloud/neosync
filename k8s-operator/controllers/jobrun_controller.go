@@ -21,8 +21,6 @@ import (
 	"fmt"
 	"time"
 
-	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,8 +29,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	"github.com/go-logr/logr"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+)
+
+const (
+	neoysncParentKey   = "neosync.dev/parent"
+	neosyncJobTaskName = "neoosync.dev/job-task-name"
 )
 
 // JobRunReconciler reconciles a JobRun object
@@ -44,9 +46,8 @@ type JobRunReconciler struct {
 //+kubebuilder:rbac:groups=neosync.dev,resources=jobruns,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=neosync.dev,resources=jobruns/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=neosync.dev,resources=jobruns/finalizers,verbs=update
-//+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=batch,resources=jobs/status,verbs=get
-//+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch
+//+kubebuilder:rbac:groups=neosync.dev,resources=taskruns,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=neosync.dev,resources=taskruns/status,verbs=get;update;patch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -71,149 +72,121 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, err
 	}
 
-	if jobrun.Status.JobStatus == nil || jobrun.Status.JobStatus.CompletionTime == nil {
-		logger.Info("reconciling job")
-
-		job := &batchv1.Job{}
-		err = r.Get(ctx, req.NamespacedName, job)
-		if err != nil && !apierrors.IsNotFound(err) {
-			logger.Error(err, "failed to get job")
-			return ctrl.Result{}, err
-		} else if err != nil && apierrors.IsNotFound(err) {
-			isConfigPresent, err := isBenthosConfigPresent(ctx, r.Client, req.Namespace, jobrun.Spec.RunConfig, logger)
-			if err != nil {
-				logger.Error(err, "unable to check if benthos config is present prior to creating job")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, err
-			}
-			if !isConfigPresent {
-				logger.Info("benthos config not present in job spec, or corresponding secret is not found or in correct format")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
-			}
-			image := "jeffail/benthos:4.11.0"
-			if jobrun.Spec.RunConfig.Benthos.Image != nil {
-				image = *jobrun.Spec.RunConfig.Benthos.Image
-			}
-			job = &batchv1.Job{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: req.Namespace,
-					Name:      req.Name,
-				},
-				Spec: batchv1.JobSpec{
-					Template: corev1.PodTemplateSpec{
-						Spec: corev1.PodSpec{
-							Containers: []corev1.Container{
-								{
-									Name:  "benthos",
-									Args:  []string{"-c", "/benthos.yaml"},
-									Image: image,
-									Ports: []corev1.ContainerPort{
-										{
-											ContainerPort: 4195,
-											Name:          "http",
-											Protocol:      corev1.ProtocolTCP,
-										},
-									},
-									VolumeMounts: []corev1.VolumeMount{
-										{
-											Name:      "config",
-											ReadOnly:  true,
-											MountPath: "/benthos.yaml",
-											SubPath:   jobrun.Spec.RunConfig.Benthos.ConfigFrom.SecretKeyRef.Key,
-										},
-									},
-								},
-							},
-							RestartPolicy: corev1.RestartPolicyNever,
-							Volumes: []corev1.Volume{
-								{
-									Name: "config",
-									VolumeSource: corev1.VolumeSource{
-										Secret: &corev1.SecretVolumeSource{
-											SecretName: jobrun.Spec.RunConfig.Benthos.ConfigFrom.SecretKeyRef.Name,
-											// Items: []corev1.KeyToPath{
-											// 	{},
-											// },
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			}
-			if jobrun.Spec.ServiceAccountName != nil && *jobrun.Spec.ServiceAccountName != "" {
-				job.Spec.Template.Spec.ServiceAccountName = *jobrun.Spec.ServiceAccountName
-			}
-			err = ctrl.SetControllerReference(jobrun, job, r.Scheme)
-			if err != nil {
-				logger.Error(err, "unable to set ownership reference on job")
-				return ctrl.Result{}, err
-			}
-			logger.Info("attempting to create job")
-			if err = r.Create(ctx, job); err != nil {
-				logger.Error(err, "unable to create job")
-				return ctrl.Result{}, err
-			}
-		} else {
-			logger.Info("job already exists...")
-			jobrun.Status.JobStatus = &job.Status
+	job := &neosyncdevv1alpha1.Job{}
+	err = r.Get(ctx, types.NamespacedName{
+		Namespace: jobrun.Namespace,
+		Name:      jobrun.Spec.Job.JobRef.Name,
+	}, job)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("jobrun references job that could not be found.")
+			return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 		}
-	}
-	if err = r.Status().Update(ctx, jobrun); err != nil {
-		logger.Error(err, "failed to update pipeline status")
+		logger.Error(err, "unable to retrieve job resource")
 		return ctrl.Result{}, err
 	}
-	logger.Info(fmt.Sprintf("reconciliation of pipeline %s finished", req.Name))
 
+	if jobrun.Status.CompletionTime == nil {
+		logger.Info("reconciling jobrun")
+
+		if len(job.Spec.Tasks) == 0 {
+			currentTime := metav1.Now()
+			jobrun.Status.CompletionTime = &currentTime
+		} else {
+			/// spawn tasks
+
+			createdTasks := map[string]struct{}{}
+			taskRuns := &neosyncdevv1alpha1.TaskRunList{}
+			err = r.List(ctx, taskRuns, client.MatchingLabels{
+				neoysncParentKey: jobrun.Name,
+			})
+			if err != nil {
+				logger.Error(err, "unable to list task runs")
+				return ctrl.Result{}, err
+			}
+			for _, tr := range taskRuns.Items {
+				label, ok := tr.Labels[neosyncJobTaskName]
+				if ok {
+					createdTasks[label] = struct{}{}
+				} else {
+					logger.Info(fmt.Sprintf("found task run associated with job run without a task name: %s", tr.Name))
+				}
+			}
+
+			for _, task := range job.Spec.Tasks {
+				if _, ok := createdTasks[task.Name]; ok {
+					continue
+				}
+				taskrun := &neosyncdevv1alpha1.TaskRun{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace:    req.Namespace,
+						GenerateName: fmt.Sprintf("%s-", task.TaskRef.Name),
+						Labels: map[string]string{
+							neoysncParentKey:   jobrun.Name,
+							neosyncJobTaskName: task.Name,
+						},
+					},
+					Spec: neosyncdevv1alpha1.TaskRunSpec{
+						Task: &neosyncdevv1alpha1.TaskRunTask{
+							TaskRef: task.TaskRef,
+						},
+					},
+				}
+				err = ctrl.SetControllerReference(jobrun, taskrun, r.Scheme)
+				if err != nil {
+					logger.Error(err, "unable to set ownership reference on taskrun")
+					return ctrl.Result{}, err
+				}
+				if err = r.Create(ctx, taskrun); err != nil {
+					logger.Error(err, "unable to create task run")
+					return ctrl.Result{}, err
+				}
+				logger.Info("taskrun created successfully")
+			}
+
+			taskRuns = &neosyncdevv1alpha1.TaskRunList{}
+			err = r.List(ctx, taskRuns, client.MatchingLabels{
+				neoysncParentKey: jobrun.Name,
+			})
+			if err != nil {
+				logger.Error(err, "unable to list task runs")
+				return ctrl.Result{}, err
+			}
+			jobrun.Status.TaskRuns = []*neosyncdevv1alpha1.JobRunStatusTaskRun{}
+			for _, tr := range taskRuns.Items {
+				jobrun.Status.TaskRuns = append(jobrun.Status.TaskRuns, &neosyncdevv1alpha1.JobRunStatusTaskRun{
+					Name: tr.Name,
+				})
+			}
+
+			if len(job.Spec.Tasks) == len(taskRuns.Items) {
+				isComplete := true
+				for _, tr := range taskRuns.Items {
+					if tr.Status.JobStatus == nil || tr.Status.JobStatus.CompletionTime == nil {
+						isComplete = false
+						break
+					}
+				}
+				if isComplete {
+					now := metav1.Now()
+					jobrun.Status.CompletionTime = &now
+				}
+			}
+		}
+	}
+
+	if err = r.Status().Update(ctx, jobrun); err != nil {
+		logger.Error(err, "failed to update jobrun status")
+		return ctrl.Result{}, err
+	}
+	logger.Info(fmt.Sprintf("reconciliation of jobrun %s finished", req.Name))
 	return ctrl.Result{}, nil
-}
-
-func isBenthosConfigPresent(
-	ctx context.Context,
-	k8sclient client.Client,
-	namespace string,
-	rc *neosyncdevv1alpha1.RunConfig,
-	logger logr.Logger,
-) (bool, error) {
-	if rc == nil {
-		logger.Info("runconfig was nil")
-		return false, nil
-	}
-	if rc.Benthos == nil || rc.Benthos.ConfigFrom == nil || rc.Benthos.ConfigFrom.SecretKeyRef == nil {
-		logger.Info("benthos, benthos.configfrom, or benthos.configfrom.secretkeyref was nil")
-		return false, nil
-	}
-	if rc.Benthos.ConfigFrom.SecretKeyRef.Name == "" || rc.Benthos.ConfigFrom.SecretKeyRef.Key == "" {
-		logger.Info("benthos secret key ref contains empty strings for name and/or key")
-		return false, nil
-	}
-	secret := &corev1.Secret{}
-	err := k8sclient.Get(ctx, types.NamespacedName{
-		Namespace: namespace,
-		Name:      rc.Benthos.ConfigFrom.SecretKeyRef.Name,
-	}, secret)
-	if err != nil && !apierrors.IsNotFound(err) {
-		return false, fmt.Errorf("isBenthosConfigPresent: %w", err)
-	} else if err != nil && apierrors.IsNotFound(err) {
-		logger.Info("benthos secret was not found", "error", err)
-		return false, nil
-	}
-	if secret.Data == nil {
-		logger.Info("benthos data was nil")
-		return false, nil
-	}
-	if _, ok := secret.Data[rc.Benthos.ConfigFrom.SecretKeyRef.Key]; !ok {
-		logger.Info("benthos secret did not have referenced key")
-		return false, nil
-	}
-
-	return true, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *JobRunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&neosyncdevv1alpha1.JobRun{}).
-		Owns(&batchv1.Job{}).
+		Owns(&neosyncdevv1alpha1.TaskRun{}).
 		Complete(r)
 }

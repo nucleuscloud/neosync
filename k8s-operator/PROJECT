@@ -35,4 +35,28 @@ resources:
   kind: SqlConnection
   path: github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: neosync.dev
+  kind: Task
+  path: github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: neosync.dev
+  kind: JobConfig
+  path: github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: neosync.dev
+  kind: TaskRun
+  path: github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1
+  version: v1alpha1
 version: "3"

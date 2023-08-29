@@ -39,55 +39,33 @@ spec:
                 type: boolean
               cronSchedule:
                 type: string
-              destinationConnections:
-                items:
-                  properties:
-                    kind:
-                      type: string
-                    name:
-                      type: string
-                  required:
-                  - kind
-                  - name
-                  type: object
-                type: array
               executionStatus:
                 type: string
-              mappings:
+              tasks:
                 items:
-                  description: This is specific to SQLConnections and will probably
-                    change if we want to introduce non-sql connections
                   properties:
-                    column:
+                    dependsOn:
+                      items:
+                        type: string
+                      type: array
+                    name:
                       type: string
-                    schema:
-                      type: string
-                    tableName:
-                      type: string
-                    transformer:
-                      type: string
+                    taskRef:
+                      properties:
+                        name:
+                          description: Kind string `json:"kind"`
+                          type: string
+                      required:
+                      - name
+                      type: object
                   required:
-                  - column
-                  - schema
-                  - tableName
-                  - transformer
+                  - name
+                  - taskRef
                   type: object
                 type: array
-              sourceConnection:
-                properties:
-                  kind:
-                    type: string
-                  name:
-                    type: string
-                required:
-                - kind
-                - name
-                type: object
             required:
-            - destinationConnections
             - executionStatus
-            - mappings
-            - sourceConnection
+            - tasks
             type: object
           status:
             description: JobStatus defines the observed state of Job
