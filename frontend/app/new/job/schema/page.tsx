@@ -64,7 +64,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
-          transformer: 'JOB_MAPPING_TRANSFORMER_UNSPECIFIED',
+          transformer: JobMappingTransformer.UNSPECIFIED as unknown as string,
         };
       });
       return { mappings };
@@ -87,7 +87,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         schema: values,
       });
       if (job.job?.id) {
-        router.push(`/jobs/${job.job.id}`);
+        router.push(`/jobs/${job.job.id}/overview`);
       } else {
         router.push(`/jobs`);
       }

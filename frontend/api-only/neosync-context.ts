@@ -1,6 +1,5 @@
 import { ConnectionService } from '@/neosync-api-client/mgmt/v1alpha1/connection_connect';
 import { JobService } from '@/neosync-api-client/mgmt/v1alpha1/job_connect';
-import { TransformerService } from '@/neosync-api-client/mgmt/v1alpha1/transformer_connect';
 import { UserAccountService } from '@/neosync-api-client/mgmt/v1alpha1/user_account_connect';
 import { getAccessToken, getSession } from '@auth0/nextjs-auth0';
 import {
@@ -18,7 +17,6 @@ interface NeosyncContext {
   connectionClient: PromiseClient<typeof ConnectionService>;
   userClient: PromiseClient<typeof UserAccountService>;
   jobsClient: PromiseClient<typeof JobService>;
-  transformerClient: PromiseClient<typeof TransformerService>;
 }
 
 // type NeosyncApiHandler<T = unknown> = (
@@ -90,7 +88,6 @@ export async function getNeosyncContext(
     connectionClient: createPromiseClient(ConnectionService, transport),
     userClient: createPromiseClient(UserAccountService, transport),
     jobsClient: createPromiseClient(JobService, transport),
-    transformerClient: createPromiseClient(TransformerService, transport),
   };
 }
 

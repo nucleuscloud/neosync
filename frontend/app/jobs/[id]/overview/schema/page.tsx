@@ -7,11 +7,11 @@ import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { useGetJob } from '@/libs/hooks/useGetJob';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import { getJob } from '../util';
 
 const JOB_MAPPING_SCHEMA = Yup.object({
   schema: Yup.string().required(),
@@ -20,32 +20,28 @@ const JOB_MAPPING_SCHEMA = Yup.object({
   dataType: Yup.string().required(),
   transformer: Yup.string().required(),
 }).required();
-export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
 
-export const SCHEMA_FORM_SCHEMA = Yup.object({
+const SCHEMA_FORM_SCHEMA = Yup.object({
   mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
 });
-export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
+type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
+
+interface SchemaMap {
+  [schema: string]: {
+    [table: string]: {
+      [column: string]: {
+        dataType: string;
+      };
+    };
+  };
+}
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { data, isLoading } = useGetJob(id);
 
   const form = useForm({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
-    defaultValues: async () => {
-      const res = await getConnectionSchema(data?.job?.connectionSourceId);
-      if (!res) {
-        return { mappings: [] };
-      }
-      const mappings = res.schemas.map((r) => {
-        return {
-          ...r,
-          transformer: 'JOB_MAPPING_TRANSFORMER_UNSPECIFIED',
-        };
-      });
-      return { mappings };
-    },
+    defaultValues: async () => getMappings(id),
   });
   async function onSubmit(_values: SchemaFormValues) {}
 
@@ -65,4 +61,51 @@ export default function Page({ params }: PageProps): ReactElement {
       </Form>
     </div>
   );
+}
+
+async function getMappings(jobId?: string): Promise<SchemaFormValues> {
+  if (!jobId) {
+    return { mappings: [] };
+  }
+  const jobRes = await getJob(jobId);
+  if (!jobRes) {
+    return { mappings: [] };
+  }
+  const job = jobRes?.job;
+
+  const res = await getConnectionSchema(job?.connectionSourceId);
+  if (!res) {
+    return { mappings: [] };
+  }
+
+  const schemaMap: SchemaMap = {};
+  res.schemas.forEach((c) => {
+    if (!schemaMap[c.schema]) {
+      schemaMap[c.schema] = {
+        [c.table]: {
+          [c.column]: {
+            dataType: c.dataType,
+          },
+        },
+      };
+    } else if (!schemaMap[c.schema][c.table]) {
+      schemaMap[c.schema][c.table] = {
+        [c.column]: {
+          dataType: c.dataType,
+        },
+      };
+    } else {
+      schemaMap[c.schema][c.table][c.column] = { dataType: c.dataType };
+    }
+  });
+
+  const mappings = job?.mappings.map((r) => {
+    const datatype = schemaMap[r.schema][r.table][r.column].dataType;
+    return {
+      ...r,
+      transformer: r.transformer as unknown as string,
+      dataType: datatype || '',
+    };
+  });
+  return { mappings: mappings || [] };
 }
