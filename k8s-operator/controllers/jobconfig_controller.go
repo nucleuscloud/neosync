@@ -106,7 +106,7 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				},
 			},
 			StringData: map[string]string{
-				benthosConfigKey: fmt.Sprintf("|\n\n%s", string(yamlbits)),
+				benthosConfigKey: string(yamlbits),
 			},
 		}
 		err = ctrl.SetControllerReference(jobconfig, secret, r.Scheme)
@@ -193,6 +193,7 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if err != nil && !apierrors.IsAlreadyExists(err) {
 		return ctrl.Result{}, err
 	} else if err != nil && apierrors.IsAlreadyExists(err) {
+		logger.Info("job found during creation, retrieving...")
 		err = r.Get(ctx, types.NamespacedName{Namespace: job.Namespace, Name: job.Name}, job)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -202,6 +203,8 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+	} else {
+		logger.Info("job created successfully")
 	}
 
 	err = r.Get(ctx, types.NamespacedName{Namespace: job.Namespace, Name: job.Name}, job)
@@ -235,6 +238,9 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 func (r *JobConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&neosyncdevv1alpha1.JobConfig{}).
+		Owns(&neosyncdevv1alpha1.Job{}).
+		Owns(&neosyncdevv1alpha1.Task{}).
+		Owns(&corev1.Secret{}).
 		Complete(r)
 }
 
