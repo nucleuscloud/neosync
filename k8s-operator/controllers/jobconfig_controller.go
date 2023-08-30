@@ -49,6 +49,13 @@ type JobConfigReconciler struct {
 //+kubebuilder:rbac:groups=neosync.dev,resources=jobconfigs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=neosync.dev,resources=jobconfigs/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=neosync.dev,resources=jobconfigs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=neosync.dev,resources=jobs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=neosync.dev,resources=jobs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=neosync.dev,resources=jobs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=neosync.dev,resources=tasks,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=neosync.dev,resources=tasks/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=neosync.dev,resources=tasks/finalizers,verbs=update
+//+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -197,7 +204,7 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
-	err = r.Get(ctx, types.NamespacedName{}, job)
+	err = r.Get(ctx, types.NamespacedName{Namespace: job.Namespace, Name: job.Name}, job)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -310,7 +317,6 @@ func (r *JobConfigReconciler) generateConfigs(
 				Name:   fmt.Sprintf("%s-sync", buildBenthosTable(schema.Schema, schema.Table)),
 				Config: benthosConfig,
 			})
-			// benthosConfigs = append(benthosConfigs, benthosConfig)
 		}
 	}
 

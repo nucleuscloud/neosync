@@ -1,0 +1,56 @@
+apiVersion: neosync.dev/v1alpha1
+kind: SqlConnection
+metadata:
+  name: prod
+spec:
+  driver: postgresql
+  url:
+    value: postgres://postgres:postgres@localhost:5432/nucleus
+---
+apiVersion: neosync.dev/v1alpha1
+kind: SqlConnection
+metadata:
+  name: stage
+spec:
+  driver: postgresql
+  url:
+    value: postgres://postgres:postgres@localhost:5433/nucleus
+---
+apiVersion: neosync.dev/v1alpha1
+kind: JobConfig
+metadata:
+  name: prod-to-stage-sync
+spec:
+  source:
+    sql:
+      connectionRef:
+        name: prod
+      haltOnSchemaChange: true
+      schemas:
+        - schema: public
+          table: users
+          columns:
+            - name: id
+            - name: first_name
+            - name: last_name
+            - name: email
+              transformer:
+                name: email
+            - name: created_at
+              # exclude: true
+            - name: updated_at
+        - schema: public
+          table: accounts
+          columns:
+            - name: id
+            - name: name
+            - name: created_at
+            - name: updated_at
+
+
+  destinations:
+    - sql:
+        connectionRef:
+          name: stage
+        # truncate_before_insert: true # default
+        # init_db_schema: true # run create table statements
