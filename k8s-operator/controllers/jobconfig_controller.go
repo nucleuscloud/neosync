@@ -27,8 +27,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/go-logr/logr"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
@@ -56,6 +60,7 @@ type JobConfigReconciler struct {
 //+kubebuilder:rbac:groups=neosync.dev,resources=tasks/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=neosync.dev,resources=tasks/finalizers,verbs=update
 //+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=neosync.dev,resources=sqlconnections,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -241,7 +246,47 @@ func (r *JobConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&neosyncdevv1alpha1.Job{}).
 		Owns(&neosyncdevv1alpha1.Task{}).
 		Owns(&corev1.Secret{}).
+		Watches(&neosyncdevv1alpha1.SqlConnection{}, handler.EnqueueRequestsFromMapFunc(r.triggerReconcileBecauseSqlConnectionChanged), builder.WithPredicates(predicate.ResourceVersionChangedPredicate{})).
 		Complete(r)
+}
+
+func (r *JobConfigReconciler) triggerReconcileBecauseSqlConnectionChanged(
+	ctx context.Context,
+	o client.Object,
+) []reconcile.Request {
+	jobconfigList := &neosyncdevv1alpha1.JobConfigList{}
+	err := r.List(ctx, jobconfigList, &client.ListOptions{
+		Namespace: o.GetNamespace(),
+		// todo: add a better filter
+	})
+	if err != nil {
+		return []reconcile.Request{}
+	}
+	requests := []reconcile.Request{}
+	for _, jobconfig := range jobconfigList.Items {
+		if ok := doesJobConfigUseSqlConnection(jobconfig, o.GetName()); ok {
+			requests = append(requests, reconcile.Request{
+				NamespacedName: types.NamespacedName{Namespace: jobconfig.Namespace, Name: jobconfig.Name},
+			})
+		}
+	}
+
+	return requests
+}
+
+func doesJobConfigUseSqlConnection(
+	jobconfig neosyncdevv1alpha1.JobConfig,
+	sqlConnectionName string,
+) bool {
+	if jobconfig.Spec.Source != nil && jobconfig.Spec.Source.Sql != nil && jobconfig.Spec.Source.Sql.ConnectionRef.Name == sqlConnectionName {
+		return true
+	}
+	for _, dest := range jobconfig.Spec.Destinations {
+		if dest.Sql != nil && dest.Sql.ConnectionRef != nil && dest.Sql.ConnectionRef.Name == sqlConnectionName {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *JobConfigReconciler) getSqlConnectionUrl(
