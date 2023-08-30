@@ -15,10 +15,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.REPO_PAT }}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -66,6 +71,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
 
       - name: Check Go Format
         run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi

@@ -15,6 +15,7 @@ import (
 	authmw "github.com/nucleuscloud/neosync/backend/internal/auth/middleware"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
@@ -101,6 +102,11 @@ func serve(
 		return err
 	}
 
+	neosyncK8sClient, err := neosync_k8sclient.New()
+	if err != nil {
+		return err
+	}
+
 	stdInterceptors := connect.WithInterceptors(
 		otelconnect.NewInterceptor(),
 		auth_interceptor.NewInterceptor(authMiddleware.ValidateAndInjectAll),
@@ -116,7 +122,7 @@ func serve(
 			stdInterceptors,
 		),
 	)
-	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, userAccountService)
+	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, neosyncK8sClient, userAccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -124,7 +130,7 @@ func serve(
 		),
 	)
 
-	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{}, db, userAccountService, connectionService)
+	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{}, db, neosyncK8sClient, userAccountService, connectionService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
