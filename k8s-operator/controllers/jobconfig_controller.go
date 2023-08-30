@@ -122,7 +122,7 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 				return ctrl.Result{}, err
 			}
 			secret.StringData = map[string]string{
-				benthosConfigKey: fmt.Sprintf("|\n\n%s", string(yamlbits)),
+				benthosConfigKey: string(yamlbits),
 			}
 			err = r.Update(ctx, secret)
 			if err != nil {
