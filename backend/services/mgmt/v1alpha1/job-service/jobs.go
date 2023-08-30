@@ -11,7 +11,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	"golang.org/x/sync/errgroup"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	// "k8s.io/apimachinery/pkg/types"
 )
 
 func (s *Service) GetJobs(
@@ -203,21 +206,89 @@ func (s *Service) GetJob(
 // 	}), nil
 // }
 
+func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1.SourceSqlSchema {
+	schema := []*neosyncdevv1alpha1.SourceSqlSchema{}
+
+	schemaMap := map[string]map[string][]*neosyncdevv1alpha1.SourceSqlColumn{}
+	for _, row := range mappings {
+
+		_, ok := schemaMap[row.Schema][row.Table]
+		if !ok {
+			schemaMap[row.Schema] = map[string][]*neosyncdevv1alpha1.SourceSqlColumn{
+				row.Table: []*neosyncdevv1alpha1.SourceSqlColumn{
+					{
+						Name:    row.Column,
+						Exclude: &row.Exclude,
+						Transformer: &neosyncdevv1alpha1.ColumnTransformer{
+							Name: row.Transformer.String(),
+						},
+					},
+				},
+			}
+			break
+		}
+
+		schemaMap[row.Schema][row.Table] = append(schemaMap[row.Schema][row.Table], &neosyncdevv1alpha1.SourceSqlColumn{
+			Name:    row.Column,
+			Exclude: &row.Exclude,
+			Transformer: &neosyncdevv1alpha1.ColumnTransformer{
+				Name: row.Transformer.String(),
+			},
+		})
+
+	}
+
+	return schema
+}
+
 func (s *Service) CreateJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
+	// TODO use go routines
+
+	// check connections exist
+
+	schemas := createSqlSchemas(req.Msg.Mappings)
+
+	// create job config
+	trueBool := true
 	job := &neosyncdevv1alpha1.JobConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "",
+			Namespace: s.k8sclient.Namespace,
 			Name:      req.Msg.JobName,
+		},
+		Spec: neosyncdevv1alpha1.JobConfigSpec{
+			Source: &neosyncdevv1alpha1.JobConfigSource{
+				Sql: &neosyncdevv1alpha1.SourceSql{
+					ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
+						Name: "",
+					},
+					HaltOnSchemaChange: &req.Msg.HaltOnNewColumnAddition,
+					Schemas:            schemas,
+				},
+			},
+			Destinations: []*neosyncdevv1alpha1.JobConfigDestination{
+				{
+					Sql: &neosyncdevv1alpha1.DestinationSql{
+						ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
+							Name: "destinationConnection.Name",
+						},
+						TruncateBeforeInsert: &trueBool, //TODO
+						InitDbSchema:         &trueBool, //TODO
+					},
+				},
+			},
 		},
 	}
 
-	s.k8sclient.CustomResourceClient.Create(ctx)
+	err := s.k8sclient.CustomResourceClient.Create(ctx, job)
+	if err != nil {
+		return nil, err
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(createdJob, destUuids),
+		// Job: dtomaps.ToJobDto(createdJob, destUuids),
 	}), nil
 }
 

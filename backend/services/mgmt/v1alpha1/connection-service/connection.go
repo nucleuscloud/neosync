@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -13,6 +14,10 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
+	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (s *Service) CheckConnectionConfig(
@@ -95,23 +100,23 @@ func (s *Service) GetConnections(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionsResponse], error) {
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	if err != nil {
-		return nil, err
-	}
+	// accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	connections, err := s.db.Q.GetConnectionsByAccount(ctx, *accountId)
-	if err != nil {
-		return nil, err
-	}
+	// connections, err := s.db.Q.GetConnectionsByAccount(ctx, *accountId)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	dtoConns := []*mgmtv1alpha1.Connection{}
-	for _, connection := range connections {
-		dtoConns = append(dtoConns, dtomaps.ToConnectionDto(&connection))
-	}
+	// dtoConns := []*mgmtv1alpha1.Connection{}
+	// for _, connection := range connections {
+	// 	dtoConns = append(dtoConns, dtomaps.ToConnectionDto(&connection))
+	// }
 
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionsResponse{
-		Connections: dtoConns,
+		// Connections: dtoConns,
 	}), nil
 }
 
@@ -138,42 +143,135 @@ func (s *Service) GetConnection(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: dtomaps.ToConnectionDto(&connection),
+		// Connection: dtomaps.ToConnectionDto(&connection),
 	}), nil
+}
+
+// func (s *Service) CreateConnection(
+// 	ctx context.Context,
+// 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
+// ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
+// 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	cc := &jsonmodels.ConnectionConfig{}
+// 	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
+// 		return nil, err
+// 	}
+
+// 	userUuid, err := s.getUserUuid(ctx)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	connection, err := s.db.Q.CreateConnection(ctx, db_queries.CreateConnectionParams{
+// 		AccountID:        *accountUuid,
+// 		Name:             req.Msg.Name,
+// 		ConnectionConfig: cc,
+// 		CreatedByID:      *userUuid,
+// 		UpdatedByID:      *userUuid,
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return connect.NewResponse(&mgmtv1alpha1.CreateConnectionResponse{
+// 		Connection: dtomaps.ToConnectionDto(&connection),
+// 	}), nil
+// }
+
+func getPostgresConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) {
+	switch config := c.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		var connectionString *string
+		switch connectionConfig := config.PgConfig.ConnectionConfig.(type) {
+		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
+			connStr := nucleusdb.GetDbUrl(&nucleusdb.ConnectConfig{
+				Host:     connectionConfig.Connection.Host,
+				Port:     int(connectionConfig.Connection.Port),
+				Database: connectionConfig.Connection.Name,
+				User:     connectionConfig.Connection.User,
+				Pass:     connectionConfig.Connection.Pass,
+				SslMode:  connectionConfig.Connection.SslMode,
+			})
+			connectionString = &connStr
+		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
+			connectionString = &connectionConfig.Url
+		default:
+			return "", nucleuserrors.NewBadRequest("must provide valid postgres connection")
+		}
+		return *connectionString, nil
+	default:
+		return "", nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+	}
 }
 
 func (s *Service) CreateConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	connectionString, err := getPostgresConnectionUrl(req.Msg.ConnectionConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	cc := &jsonmodels.ConnectionConfig{}
-	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
-		return nil, err
+	sourceConnSecret := &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      req.Msg.Name,
+			Namespace: s.k8sclient.Namespace,
+		},
+		StringData: map[string]string{
+			"url": connectionString,
+		},
+		Type: corev1.SecretTypeOpaque,
 	}
 
-	userUuid, err := s.getUserUuid(ctx)
+	// Create the secret
+	createdSecret, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Create(ctx, sourceConnSecret, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	connection, err := s.db.Q.CreateConnection(ctx, db_queries.CreateConnectionParams{
-		AccountID:        *accountUuid,
-		Name:             req.Msg.Name,
-		ConnectionConfig: cc,
-		CreatedByID:      *userUuid,
-		UpdatedByID:      *userUuid,
-	})
+	uuid := uuid.NewString()
+	// make source connection
+	sourceConnection := &neosyncdevv1alpha1.SqlConnection{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: s.k8sclient.Namespace,
+			Name:      req.Msg.Name,
+			Labels: map[string]string{
+				utils.NeosyncUuidLabel: uuid,
+			},
+		},
+		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
+			Driver: neosyncdevv1alpha1.PostgresDriver,
+			Url: neosyncdevv1alpha1.SqlConnectionUrl{
+				ValueFrom: &neosyncdevv1alpha1.SqlConnectionUrlSource{
+					SecretKeyRef: &neosyncdevv1alpha1.ConfigSelector{
+						Name: createdSecret.Name,
+						Key:  "url",
+					},
+				},
+			},
+		},
+	}
+	err = s.k8sclient.CustomResourceClient.Create(ctx, sourceConnection)
+	if err != nil {
+		return nil, err
+	}
+
+	dto, err := dtomaps.ToConnectionDto(sourceConnection, sourceConnSecret)
 	if err != nil {
 		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateConnectionResponse{
-		Connection: dtomaps.ToConnectionDto(&connection),
+		Connection: dto,
 	}), nil
 }
 
@@ -217,7 +315,7 @@ func (s *Service) UpdateConnection(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.UpdateConnectionResponse{
-		Connection: dtomaps.ToConnectionDto(&connection),
+		// Connection: dtomaps.ToConnectionDto(&connection),
 	}), nil
 }
 
