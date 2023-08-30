@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -70,6 +71,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
 
       - name: Check Go Format
         run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
