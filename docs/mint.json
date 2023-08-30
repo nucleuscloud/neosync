@@ -68,15 +68,8 @@
       "group": "Self-host Neosync",
       "pages": [
         "self-host/introduction",
-        {
-          "group": "Deployment options",
-          "pages": [
-            "self-host/deployment-options/kubernetes",
-            "self-host/deployment-options/docker",
-            "self-host/deployment-options/emr",
-            "self-host/deployment-options/spark"
-          ]
-        },
+        "self-host/kubernetes",
+        "self-host/docker-compose",
         "self-host/faqs"
       ]
     },
