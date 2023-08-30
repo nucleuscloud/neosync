@@ -20,11 +20,9 @@ message GetConnectionResponse {
 }
 
 message CreateConnectionRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
+  string name = 1 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
 
-  string name = 2 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
-
-  ConnectionConfig connection_config = 3;
+  ConnectionConfig connection_config = 2;
 }
 message CreateConnectionResponse {
   Connection connection = 1;

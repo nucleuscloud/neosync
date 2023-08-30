@@ -159,17 +159,12 @@ export class GetConnectionResponse extends Message<GetConnectionResponse> {
  */
 export class CreateConnectionRequest extends Message<CreateConnectionRequest> {
   /**
-   * @generated from field: string account_id = 1;
-   */
-  accountId = "";
-
-  /**
-   * @generated from field: string name = 2;
+   * @generated from field: string name = 1;
    */
   name = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 3;
+   * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 2;
    */
   connectionConfig?: ConnectionConfig;
 
@@ -181,9 +176,8 @@ export class CreateConnectionRequest extends Message<CreateConnectionRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.CreateConnectionRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "connection_config", kind: "message", T: ConnectionConfig },
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "connection_config", kind: "message", T: ConnectionConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateConnectionRequest {
