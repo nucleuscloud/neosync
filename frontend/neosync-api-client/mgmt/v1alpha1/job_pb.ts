@@ -644,6 +644,80 @@ export class IsJobNameAvailableResponse extends Message<IsJobNameAvailableRespon
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.UpdateJobScheduleRequest
+ */
+export class UpdateJobScheduleRequest extends Message<UpdateJobScheduleRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string cron_schedule = 2;
+   */
+  cronSchedule = "";
+
+  constructor(data?: PartialMessage<UpdateJobScheduleRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.UpdateJobScheduleRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobScheduleRequest {
+    return new UpdateJobScheduleRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateJobScheduleRequest {
+    return new UpdateJobScheduleRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateJobScheduleRequest {
+    return new UpdateJobScheduleRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateJobScheduleRequest | PlainMessage<UpdateJobScheduleRequest> | undefined, b: UpdateJobScheduleRequest | PlainMessage<UpdateJobScheduleRequest> | undefined): boolean {
+    return proto3.util.equals(UpdateJobScheduleRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.UpdateJobScheduleResponse
+ */
+export class UpdateJobScheduleResponse extends Message<UpdateJobScheduleResponse> {
+  constructor(data?: PartialMessage<UpdateJobScheduleResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.UpdateJobScheduleResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobScheduleResponse {
+    return new UpdateJobScheduleResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateJobScheduleResponse {
+    return new UpdateJobScheduleResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateJobScheduleResponse {
+    return new UpdateJobScheduleResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateJobScheduleResponse | PlainMessage<UpdateJobScheduleResponse> | undefined, b: UpdateJobScheduleResponse | PlainMessage<UpdateJobScheduleResponse> | undefined): boolean {
+    return proto3.util.equals(UpdateJobScheduleResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.GetJobRunsRequest
  */
 export class GetJobRunsRequest extends Message<GetJobRunsRequest> {

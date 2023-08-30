@@ -46,6 +46,9 @@ const (
 	// JobServiceIsJobNameAvailableProcedure is the fully-qualified name of the JobService's
 	// IsJobNameAvailable RPC.
 	JobServiceIsJobNameAvailableProcedure = "/mgmt.v1alpha1.JobService/IsJobNameAvailable"
+	// JobServiceUpdateJobScheduleProcedure is the fully-qualified name of the JobService's
+	// UpdateJobSchedule RPC.
+	JobServiceUpdateJobScheduleProcedure = "/mgmt.v1alpha1.JobService/UpdateJobSchedule"
 	// JobServiceGetJobRunsProcedure is the fully-qualified name of the JobService's GetJobRuns RPC.
 	JobServiceGetJobRunsProcedure = "/mgmt.v1alpha1.JobService/GetJobRuns"
 	// JobServiceGetJobRunProcedure is the fully-qualified name of the JobService's GetJobRun RPC.
@@ -67,6 +70,7 @@ type JobServiceClient interface {
 	UpdateJob(context.Context, *connect.Request[v1alpha1.UpdateJobRequest]) (*connect.Response[v1alpha1.UpdateJobResponse], error)
 	DeleteJob(context.Context, *connect.Request[v1alpha1.DeleteJobRequest]) (*connect.Response[v1alpha1.DeleteJobResponse], error)
 	IsJobNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobNameAvailableResponse], error)
+	UpdateJobSchedule(context.Context, *connect.Request[v1alpha1.UpdateJobScheduleRequest]) (*connect.Response[v1alpha1.UpdateJobScheduleResponse], error)
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
@@ -114,6 +118,11 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			baseURL+JobServiceIsJobNameAvailableProcedure,
 			opts...,
 		),
+		updateJobSchedule: connect.NewClient[v1alpha1.UpdateJobScheduleRequest, v1alpha1.UpdateJobScheduleResponse](
+			httpClient,
+			baseURL+JobServiceUpdateJobScheduleProcedure,
+			opts...,
+		),
 		getJobRuns: connect.NewClient[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunsProcedure,
@@ -150,6 +159,7 @@ type jobServiceClient struct {
 	updateJob          *connect.Client[v1alpha1.UpdateJobRequest, v1alpha1.UpdateJobResponse]
 	deleteJob          *connect.Client[v1alpha1.DeleteJobRequest, v1alpha1.DeleteJobResponse]
 	isJobNameAvailable *connect.Client[v1alpha1.IsJobNameAvailableRequest, v1alpha1.IsJobNameAvailableResponse]
+	updateJobSchedule  *connect.Client[v1alpha1.UpdateJobScheduleRequest, v1alpha1.UpdateJobScheduleResponse]
 	getJobRuns         *connect.Client[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse]
 	getJobRun          *connect.Client[v1alpha1.GetJobRunRequest, v1alpha1.GetJobRunResponse]
 	createJobRun       *connect.Client[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse]
@@ -187,6 +197,11 @@ func (c *jobServiceClient) IsJobNameAvailable(ctx context.Context, req *connect.
 	return c.isJobNameAvailable.CallUnary(ctx, req)
 }
 
+// UpdateJobSchedule calls mgmt.v1alpha1.JobService.UpdateJobSchedule.
+func (c *jobServiceClient) UpdateJobSchedule(ctx context.Context, req *connect.Request[v1alpha1.UpdateJobScheduleRequest]) (*connect.Response[v1alpha1.UpdateJobScheduleResponse], error) {
+	return c.updateJobSchedule.CallUnary(ctx, req)
+}
+
 // GetJobRuns calls mgmt.v1alpha1.JobService.GetJobRuns.
 func (c *jobServiceClient) GetJobRuns(ctx context.Context, req *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error) {
 	return c.getJobRuns.CallUnary(ctx, req)
@@ -220,6 +235,7 @@ type JobServiceHandler interface {
 	UpdateJob(context.Context, *connect.Request[v1alpha1.UpdateJobRequest]) (*connect.Response[v1alpha1.UpdateJobResponse], error)
 	DeleteJob(context.Context, *connect.Request[v1alpha1.DeleteJobRequest]) (*connect.Response[v1alpha1.DeleteJobResponse], error)
 	IsJobNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobNameAvailableResponse], error)
+	UpdateJobSchedule(context.Context, *connect.Request[v1alpha1.UpdateJobScheduleRequest]) (*connect.Response[v1alpha1.UpdateJobScheduleResponse], error)
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
@@ -263,6 +279,11 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		svc.IsJobNameAvailable,
 		opts...,
 	)
+	jobServiceUpdateJobScheduleHandler := connect.NewUnaryHandler(
+		JobServiceUpdateJobScheduleProcedure,
+		svc.UpdateJobSchedule,
+		opts...,
+	)
 	jobServiceGetJobRunsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunsProcedure,
 		svc.GetJobRuns,
@@ -302,6 +323,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceDeleteJobHandler.ServeHTTP(w, r)
 		case JobServiceIsJobNameAvailableProcedure:
 			jobServiceIsJobNameAvailableHandler.ServeHTTP(w, r)
+		case JobServiceUpdateJobScheduleProcedure:
+			jobServiceUpdateJobScheduleHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunsProcedure:
 			jobServiceGetJobRunsHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunProcedure:
@@ -343,6 +366,10 @@ func (UnimplementedJobServiceHandler) DeleteJob(context.Context, *connect.Reques
 
 func (UnimplementedJobServiceHandler) IsJobNameAvailable(context.Context, *connect.Request[v1alpha1.IsJobNameAvailableRequest]) (*connect.Response[v1alpha1.IsJobNameAvailableResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.IsJobNameAvailable is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) UpdateJobSchedule(context.Context, *connect.Request[v1alpha1.UpdateJobScheduleRequest]) (*connect.Response[v1alpha1.UpdateJobScheduleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.UpdateJobSchedule is not implemented"))
 }
 
 func (UnimplementedJobServiceHandler) GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error) {

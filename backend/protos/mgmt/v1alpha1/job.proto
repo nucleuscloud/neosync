@@ -75,6 +75,12 @@ message IsJobNameAvailableResponse {
   bool is_available = 1;
 }
 
+message UpdateJobScheduleRequest {
+  string id = 1;
+  string cron_schedule = 2;
+}
+message UpdateJobScheduleResponse {}
+
 message GetJobRunsRequest {
   oneof id {
     string job_id = 1 [(validate.rules).string.uuid = true];
@@ -157,6 +163,7 @@ service JobService {
   rpc UpdateJob(UpdateJobRequest) returns (UpdateJobResponse) {}
   rpc DeleteJob(DeleteJobRequest) returns (DeleteJobResponse) {}
   rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {}
+  rpc UpdateJobSchedule(UpdateJobScheduleRequest) returns (UpdateJobScheduleResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}

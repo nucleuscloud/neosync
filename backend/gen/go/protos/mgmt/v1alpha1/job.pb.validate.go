@@ -1636,6 +1636,214 @@ var _ interface {
 	ErrorName() string
 } = IsJobNameAvailableResponseValidationError{}
 
+// Validate checks the field values on UpdateJobScheduleRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateJobScheduleRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateJobScheduleRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateJobScheduleRequestMultiError, or nil if none found.
+func (m *UpdateJobScheduleRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateJobScheduleRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for CronSchedule
+
+	if len(errors) > 0 {
+		return UpdateJobScheduleRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateJobScheduleRequestMultiError is an error wrapping multiple validation
+// errors returned by UpdateJobScheduleRequest.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateJobScheduleRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateJobScheduleRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateJobScheduleRequestMultiError) AllErrors() []error { return m }
+
+// UpdateJobScheduleRequestValidationError is the validation error returned by
+// UpdateJobScheduleRequest.Validate if the designated constraints aren't met.
+type UpdateJobScheduleRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateJobScheduleRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateJobScheduleRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateJobScheduleRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateJobScheduleRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateJobScheduleRequestValidationError) ErrorName() string {
+	return "UpdateJobScheduleRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateJobScheduleRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateJobScheduleRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateJobScheduleRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateJobScheduleRequestValidationError{}
+
+// Validate checks the field values on UpdateJobScheduleResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateJobScheduleResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateJobScheduleResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpdateJobScheduleResponseMultiError, or nil if none found.
+func (m *UpdateJobScheduleResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateJobScheduleResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return UpdateJobScheduleResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateJobScheduleResponseMultiError is an error wrapping multiple validation
+// errors returned by UpdateJobScheduleResponse.ValidateAll() if the
+// designated constraints aren't met.
+type UpdateJobScheduleResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateJobScheduleResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateJobScheduleResponseMultiError) AllErrors() []error { return m }
+
+// UpdateJobScheduleResponseValidationError is the validation error returned by
+// UpdateJobScheduleResponse.Validate if the designated constraints aren't met.
+type UpdateJobScheduleResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateJobScheduleResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateJobScheduleResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateJobScheduleResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateJobScheduleResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateJobScheduleResponseValidationError) ErrorName() string {
+	return "UpdateJobScheduleResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateJobScheduleResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateJobScheduleResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateJobScheduleResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateJobScheduleResponseValidationError{}
+
 // Validate checks the field values on GetJobRunsRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.

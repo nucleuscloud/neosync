@@ -1,18 +1,31 @@
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/components/ui/use-toast';
 import { ReactElement, useState } from 'react';
 
 interface Props {
   isHalted: boolean;
+  mutate: () => {};
 }
 
 export default function JobHaltNewAdditionSwitch(props: Props): ReactElement {
+  const { mutate } = props;
+  const { toast } = useToast();
   const [halt, setHalt] = useState(props.isHalted);
   async function changeSwitch(value: boolean): Promise<void> {
-    await updateJobHaltSwitch(value);
-    setHalt(value);
-    // setup toast
-    // mutate etc...
+    try {
+      await updateJobHaltSwitch(value);
+      setHalt(value);
+      toast({
+        description: 'Halt Job on new column addition updated!',
+      });
+      mutate();
+    } catch (e) {
+      toast({
+        variant: 'destructive',
+        description: 'Failed to update halt job on new column addition',
+      });
+    }
   }
   return (
     <div className="w-96">
@@ -30,7 +43,7 @@ export default function JobHaltNewAdditionSwitch(props: Props): ReactElement {
 }
 
 async function updateJobHaltSwitch(value: boolean): Promise<void> {
-  const res = await fetch(`/api/job/update-halt-new-addition-switch`, {
+  const res = await fetch(`/api/job/update-halt-on-new-addition`, {
     method: 'POST',
     body: JSON.stringify({
       haltOnNewColumnAddition: value,
