@@ -10,8 +10,6 @@ allow_k8s_contexts('kind-nuc-dev')
 
 # when debugging can be handy to disable scrub
 secret_settings(disable_scrub=True)
-k8s_yaml(helmfile('postgres'))
-k8s_resource('postgresql', labels=['db'], port_forwards=5432)
 
 namespace_create('neosync', allow_duplicates=True)
 
@@ -79,7 +77,7 @@ k8s_yaml(helmfile_with_local_chart('neosync-api', base_dir + '/charts/mgmt', hel
 # References the deployment
 k8s_resource(
   'neosync-api',
-  resource_deps=['postgresql'],
+  resource_deps=[],
   labels=['backend'],
   links=[
     'http://localhost:8080',
