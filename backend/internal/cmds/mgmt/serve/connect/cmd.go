@@ -64,7 +64,6 @@ func serve(
 		mgmtv1alpha1connect.AuthServiceName,
 		mgmtv1alpha1connect.ConnectionServiceName,
 		mgmtv1alpha1connect.JobServiceName,
-		mgmtv1alpha1connect.TransformerServiceName,
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
