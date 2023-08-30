@@ -2,9 +2,15 @@
 title: Deploy on Kubernetes
 sidebarTitle: Kubernetes
 icon: dharmachakra
-description: "Deploy neosync on kubernetes"
+description: "use our helm chart to deploy Neosync on your Kubernetes cluster"
 ---
 
-## Setting up
+## Prerequisites
 
-The first step to world-class documentation is setting up your editing environnments.
+- You have an existing Kubernetes cluster
+- Installed [Helm package manager](https://helm.sh/) version v3.11.3 or greater
+- You have [Kubectl](https://kubernetes.io/docs/tasks/tools/) installed and connected to your kubernetes cluster
+
+Deploying Neosync on Kubernetes is an easy way to leverage the power of Kubernetes to make Neosync fault-tolerant, scalable and highly available. In order to make the deployment process easy and streamlined, we have created a Helm chart that you can use to deploy Neosync onto your cluster.
+
+In the Helm chart, we expose a number of configurations that allow you to configure Neosync so that it works with the way that you have Kubernetes configured.
