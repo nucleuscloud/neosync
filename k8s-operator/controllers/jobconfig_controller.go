@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
@@ -352,7 +353,7 @@ func (r *JobConfigReconciler) generateConfigs(
 				StreamConfig: neosync_benthos.StreamConfig{
 					Input: &neosync_benthos.InputConfig{
 						Inputs: neosync_benthos.Inputs{
-							SqlSelect: &neosync_benthos.Sql{
+							SqlSelect: &neosync_benthos.SqlSelect{
 								Driver: driver,
 								Dsn:    dsn,
 
@@ -365,7 +366,7 @@ func (r *JobConfigReconciler) generateConfigs(
 				},
 			}
 			responses = append(responses, &benthosConfigResponse{
-				Name:   fmt.Sprintf("%s-sync", buildBenthosTable(schema.Schema, schema.Table)),
+				Name:   sanitizeName(fmt.Sprintf("%s-sync", buildBenthosTable(schema.Schema, schema.Table))),
 				Config: benthosConfig,
 			})
 		}
@@ -389,12 +390,13 @@ func (r *JobConfigReconciler) generateConfigs(
 				if err != nil {
 					return nil, err
 				}
-				output := &neosync_benthos.Sql{
+				output := &neosync_benthos.SqlInsert{
 					Driver: driver,
 					Dsn:    dsn,
 
-					Table:   resp.Config.Input.SqlSelect.Table,
-					Columns: resp.Config.Input.SqlSelect.Columns,
+					Table:       resp.Config.Input.SqlSelect.Table,
+					Columns:     resp.Config.Input.SqlSelect.Columns,
+					ArgsMapping: buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
 				}
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					SqlInsert: output,
@@ -415,6 +417,10 @@ func buildBenthosTable(schema, table string) string {
 	return table
 }
 
+func sanitizeName(val string) string {
+	return strings.ReplaceAll(val, "_", "-")
+}
+
 func buildPlainColumns(cols []*neosyncdevv1alpha1.SourceSqlColumn) []string {
 	columns := []string{}
 
@@ -425,4 +431,15 @@ func buildPlainColumns(cols []*neosyncdevv1alpha1.SourceSqlColumn) []string {
 	}
 
 	return columns
+}
+
+func buildPlainInsertArgs(cols []string) string {
+	if len(cols) == 0 {
+		return ""
+	}
+	pieces := make([]string, len(cols))
+	for idx, col := range cols {
+		pieces[idx] = fmt.Sprintf("this.%s", col)
+	}
+	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }

@@ -3,18 +3,18 @@ kind: SqlConnection
 metadata:
   name: prod
 spec:
-  driver: postgresql
+  driver: postgres
   url:
-    value: postgres://postgres:postgres@localhost:5432/nucleus
+    value: postgres://postgres:foofar@postgresql1:5432/neosync?sslmode=disable
 ---
 apiVersion: neosync.dev/v1alpha1
 kind: SqlConnection
 metadata:
   name: stage
 spec:
-  driver: postgresql
+  driver: postgres
   url:
-    value: postgres://postgres:postgres@localhost:5433/nucleus
+    value: postgres://postgres:foofar@postgresql2:5432/neosync?sslmode=disable
 ---
 apiVersion: neosync.dev/v1alpha1
 kind: JobConfig
@@ -27,25 +27,26 @@ spec:
         name: prod
       haltOnSchemaChange: true
       schemas:
-        - schema: public
+        - schema: neosync_api
           table: users
           columns:
             - name: id
-            - name: first_name
-            - name: last_name
-            - name: email
-              transformer:
-                name: email
+            # - name: first_name
+            # - name: last_name
+            # - name: email
+            #   transformer:
+            #     name: email
             - name: created_at
               # exclude: true
             - name: updated_at
-        - schema: public
+        - schema: neosync_api
           table: accounts
           columns:
             - name: id
-            - name: name
             - name: created_at
             - name: updated_at
+            - name: account_type
+            - name: account_slug
 
 
   destinations:

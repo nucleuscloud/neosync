@@ -18,20 +18,21 @@ type HTTPConfig struct {
 
 type StreamConfig struct {
 	Input    *InputConfig    `json:"input" yaml:"input"`
-	Buffer   *BufferConfig   `json:"buffer,omitempty" yaml:"buffer,omitempty"`
-	Pipeline *PipelineConfig `json:"pipeline,omitempty" yaml:"pipeline,omitempty"`
-	Output   *OutputConfig   `json:"output,omitempty" yaml:"output,omitempty"`
+	Buffer   *BufferConfig   `json:"buffer" yaml:"buffer"`
+	Pipeline *PipelineConfig `json:"pipeline" yaml:"pipeline"`
+	Output   *OutputConfig   `json:"output" yaml:"output"`
 }
 
 type InputConfig struct {
+	Label  string `json:"label" yaml:"label"`
 	Inputs `json:"inline" yaml:",inline"`
 }
 
 type Inputs struct {
-	SqlSelect *Sql `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
+	SqlSelect *SqlSelect `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
 }
 
-type Sql struct {
+type SqlSelect struct {
 	Driver        string   `json:"driver" yaml:"driver"`
 	Dsn           string   `json:"dsn" yaml:"dsn"`
 	Table         string   `json:"table" yaml:"table"`
@@ -49,16 +50,26 @@ type PipelineConfig struct {
 }
 
 type ProcessorConfig struct {
-	Mutation string `json:"mutation,omitempty" yaml:"mutation,omitempty"`
+	Mutation string `json:"mutation" yaml:"mutation"`
 }
 
 type OutputConfig struct {
+	Label   string `json:"label" yaml:"label"`
 	Outputs `json:",inline" yaml:",inline"`
 	Broker  *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
 }
 
 type Outputs struct {
-	SqlInsert *Sql `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
+	SqlInsert *SqlInsert `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
+}
+
+type SqlInsert struct {
+	Driver        string   `json:"driver" yaml:"driver"`
+	Dsn           string   `json:"dsn" yaml:"dsn"`
+	Table         string   `json:"table" yaml:"table"`
+	Columns       []string `json:"columns" yaml:"columns"`
+	ArgsMapping   string   `json:"args_mapping" yaml:"args_mapping"`
+	InitStatement string   `json:"init_statement" yaml:"init_statement"`
 }
 
 type OutputBrokerConfig struct {
