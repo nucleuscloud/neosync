@@ -6,9 +6,9 @@ WORKDIR /workspace
 COPY go.mod go.mod
 COPY go.sum go.sum
 
-# RUN \
-#   --mount=type=secret,id=GITHUB_TOKEN \
-#   GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN) && git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
+RUN \
+  --mount=type=secret,id=GITHUB_TOKEN \
+  GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN) && git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
 RUN go mod download
 
 COPY tools.go tools.go
