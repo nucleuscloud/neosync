@@ -80,7 +80,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Info("jobrun references job that could not be found.")
-			return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
+			return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 		}
 		logger.Error(err, "unable to retrieve job resource")
 		return ctrl.Result{}, err
