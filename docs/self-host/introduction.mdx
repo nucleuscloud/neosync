@@ -1,6 +1,29 @@
 ---
 title: Introduction
 sidebarTitle: introduction
-icon: sitemap
-description: "You can self-host neosync to abide by your compliance and security audits."
+icon: house
+description: "Learn how to self-host Neosync."
 ---
+
+Self-hosting Neosync is a great way to meet various compliance requirements and/or ensure that your data never leaves your infrastructure.
+
+We highly recommend that you deploy Neosync on Kubernetes but we do make Neosync available to deploy using Docker Compose for non-Kubernetes related deployments. Click on one of the options below to get started.
+
+<CardGroup cols={2}>
+  <Card
+    title="Kubernetes"
+    icon="dharmachakra"
+    color="#0285c7"
+    href="/self-host/kubernetes"
+  >
+    Use our Helm chart to deploy Neosync on your Kubernetes cluster
+  </Card>
+  <Card
+    title="Docker Compose"
+    icon="docker"
+    color="#0285c7"
+    href="/self-host/docker-compose"
+  >
+    Use our Docker Compose template to deploy Neosync on your infrastructure
+  </Card>
+</CardGroup>
