@@ -4,12 +4,11 @@ import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
 export function useGetUserAccounts(
-  suspense?: boolean
 ): HookReply<GetUserAccountsResponse> {
   return useNucleusAuthenticatedFetch<GetUserAccountsResponse, JsonValue>(
     `/api/users/accounts`,
     undefined,
-    { suspense },
+    undefined,
     (data) => GetUserAccountsResponse.fromJson(data)
   );
 }
