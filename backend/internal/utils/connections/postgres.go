@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type ConnectConfig struct {
@@ -57,7 +58,7 @@ func ParsePostgresUrl(connStr string) (*ConnectConfig, error) {
 		Pass:     pass,
 		Host:     host,
 		Port:     int32(portInt),
-		Database: u.Path,
+		Database: strings.Replace(u.Path, "/", "", 1),
 		SslMode:  sslmode,
 	}, nil
 }
