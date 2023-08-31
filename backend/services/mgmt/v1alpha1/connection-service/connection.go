@@ -6,7 +6,6 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
@@ -73,13 +72,13 @@ func (s *Service) IsConnectionNameAvailable(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsConnectionNameAvailableRequest],
 ) (*connect.Response[mgmtv1alpha1.IsConnectionNameAvailableResponse], error) {
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
 	count, err := s.db.Q.IsConnectionNameAvailable(ctx, db_queries.IsConnectionNameAvailableParams{
-		AccountId:      *accountId,
+		AccountId:      accountUuid,
 		ConnectionName: req.Msg.ConnectionName,
 	})
 	if err != nil {
@@ -95,12 +94,12 @@ func (s *Service) GetConnections(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionsResponse], error) {
-	accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
-	connections, err := s.db.Q.GetConnectionsByAccount(ctx, *accountId)
+	connections, err := s.db.Q.GetConnectionsByAccount(ctx, accountUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -132,11 +131,6 @@ func (s *Service) GetConnection(
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: dtomaps.ToConnectionDto(&connection),
 	}), nil
@@ -146,27 +140,14 @@ func (s *Service) CreateConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	if err != nil {
-		return nil, err
-	}
-
 	cc := &jsonmodels.ConnectionConfig{}
 	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
 		return nil, err
 	}
 
-	userUuid, err := s.getUserUuid(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	connection, err := s.db.Q.CreateConnection(ctx, db_queries.CreateConnectionParams{
-		AccountID:        *accountUuid,
 		Name:             req.Msg.Name,
 		ConnectionConfig: cc,
-		CreatedByID:      *userUuid,
-		UpdatedByID:      *userUuid,
 	})
 	if err != nil {
 		return nil, err
@@ -192,25 +173,14 @@ func (s *Service) UpdateConnection(
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
 	cc := &jsonmodels.ConnectionConfig{}
 	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
-		return nil, err
-	}
-
-	userUuid, err := s.getUserUuid(ctx)
-	if err != nil {
 		return nil, err
 	}
 
 	connection, err = s.db.Q.UpdateConnection(ctx, db_queries.UpdateConnectionParams{
 		ID:               connection.ID,
 		ConnectionConfig: cc,
-		UpdatedByID:      *userUuid,
 	})
 	if err != nil {
 		return nil, err
@@ -237,47 +207,9 @@ func (s *Service) DeleteConnection(
 		return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
 	err = s.db.Q.RemoveConnectionById(ctx, connection.ID)
 	if err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
-}
-
-func (s *Service) verifyUserInAccount(
-	ctx context.Context,
-	accountId string,
-) (*pgtype.UUID, error) {
-	resp, err := s.userAccountService.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
-	if err != nil {
-		return nil, err
-	}
-	if !resp.Msg.Ok {
-		return nil, nucleuserrors.NewForbidden("user in not in requested account")
-	}
-
-	accountUuid, err := nucleusdb.ToUuid(accountId)
-	if err != nil {
-		return nil, err
-	}
-	return &accountUuid, nil
-}
-
-func (s *Service) getUserUuid(
-	ctx context.Context,
-) (*pgtype.UUID, error) {
-	user, err := s.userAccountService.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
-	if err != nil {
-		return nil, err
-	}
-	return &userUuid, nil
 }
