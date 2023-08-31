@@ -112,11 +112,6 @@ proto3.util.setEnumType(JobRunStatus, "mgmt.v1alpha1.JobRunStatus", [
  * @generated from message mgmt.v1alpha1.GetJobsRequest
  */
 export class GetJobsRequest extends Message<GetJobsRequest> {
-  /**
-   * @generated from field: string account_id = 1;
-   */
-  accountId = "";
-
   constructor(data?: PartialMessage<GetJobsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -125,7 +120,6 @@ export class GetJobsRequest extends Message<GetJobsRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetJobsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobsRequest {
@@ -187,37 +181,32 @@ export class GetJobsResponse extends Message<GetJobsResponse> {
  */
 export class CreateJobRequest extends Message<CreateJobRequest> {
   /**
-   * @generated from field: string account_id = 1;
-   */
-  accountId = "";
-
-  /**
-   * @generated from field: string job_name = 2;
+   * @generated from field: string job_name = 1;
    */
   jobName = "";
 
   /**
-   * @generated from field: string connection_source_id = 3;
+   * @generated from field: string connection_source_id = 2;
    */
   connectionSourceId = "";
 
   /**
-   * @generated from field: repeated string connection_destination_ids = 4;
+   * @generated from field: repeated string connection_destination_ids = 3;
    */
   connectionDestinationIds: string[] = [];
 
   /**
-   * @generated from field: optional string cron_schedule = 5;
+   * @generated from field: optional string cron_schedule = 4;
    */
   cronSchedule?: string;
 
   /**
-   * @generated from field: bool halt_on_new_column_addition = 6;
+   * @generated from field: bool halt_on_new_column_addition = 5;
    */
   haltOnNewColumnAddition = false;
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 7;
+   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 6;
    */
   mappings: JobMapping[] = [];
 
@@ -229,13 +218,12 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.CreateJobRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "job_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "connection_source_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "connection_destination_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 5, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 6, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 7, name: "mappings", kind: "message", T: JobMapping, repeated: true },
+    { no: 1, name: "job_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "connection_source_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "connection_destination_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 6, name: "mappings", kind: "message", T: JobMapping, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRequest {
@@ -582,12 +570,6 @@ export class GetJobRunsRequest extends Message<GetJobRunsRequest> {
      */
     value: string;
     case: "jobId";
-  } | {
-    /**
-     * @generated from field: string account_id = 2;
-     */
-    value: string;
-    case: "accountId";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<GetJobRunsRequest>) {
@@ -599,7 +581,6 @@ export class GetJobRunsRequest extends Message<GetJobRunsRequest> {
   static readonly typeName = "mgmt.v1alpha1.GetJobRunsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "id" },
-    { no: 2, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "id" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunsRequest {

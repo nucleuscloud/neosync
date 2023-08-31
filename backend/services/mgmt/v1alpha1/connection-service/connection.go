@@ -170,7 +170,7 @@ func (s *Service) GetConnection(
 	req *connect.Request[mgmtv1alpha1.GetConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
+	logger = logger.With("connectionId", req.Msg.Id)
 
 	connection, err := getConnectionById(ctx, logger, s.k8sclient, req.Msg.Id)
 	if err != nil {
@@ -192,7 +192,7 @@ func (s *Service) CreateConnection(
 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("name", req.Msg.Name)
+	logger = logger.With("connectionName", req.Msg.Name)
 	logger.Info("creating connection")
 	connUuid := uuid.NewString()
 	connectionString, err := getPostgresConnectionUrl(req.Msg.ConnectionConfig)
@@ -303,7 +303,7 @@ func (s *Service) UpdateConnection(
 	req *connect.Request[mgmtv1alpha1.UpdateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.UpdateConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
+	logger = logger.With("connectionId", req.Msg.Id)
 	logger.Info("updating connection")
 	connection, err := getConnectionById(ctx, logger, s.k8sclient, req.Msg.Id)
 	if err != nil {
@@ -352,7 +352,7 @@ func (s *Service) DeleteConnection(
 	req *connect.Request[mgmtv1alpha1.DeleteConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
+	logger = logger.With("connectionId", req.Msg.Id)
 	logger.Info("deleting connection")
 
 	conn, err := getSqlConnectionById(ctx, logger, s.k8sclient, req.Msg.Id)

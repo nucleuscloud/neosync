@@ -5,23 +5,19 @@ package mgmt.v1alpha1;
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
-message GetJobsRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
-}
+message GetJobsRequest {}
 message GetJobsResponse {
   repeated Job jobs = 1;
 }
 
 message CreateJobRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
+  string job_name = 1;
 
-  string job_name = 2;
-
-  string connection_source_id = 3 [(validate.rules).string.uuid = true];
-  repeated string connection_destination_ids = 4;
-  optional string cron_schedule = 5;
-  bool halt_on_new_column_addition = 6;
-  repeated JobMapping mappings = 7;
+  string connection_source_id = 2 [(validate.rules).string.uuid = true];
+  repeated string connection_destination_ids = 3;
+  optional string cron_schedule = 4;
+  bool halt_on_new_column_addition = 5;
+  repeated JobMapping mappings = 6;
 }
 message CreateJobResponse {
   Job job = 1;
@@ -71,7 +67,6 @@ message DeleteJobResponse {}
 message GetJobRunsRequest {
   oneof id {
     string job_id = 1 [(validate.rules).string.uuid = true];
-    string account_id = 2 [(validate.rules).string.uuid = true];
   }
 }
 message GetJobRunsResponse {

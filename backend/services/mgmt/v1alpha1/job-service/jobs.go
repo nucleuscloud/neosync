@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -12,7 +13,10 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
+	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	"golang.org/x/sync/errgroup"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (s *Service) GetJobs(
@@ -115,7 +119,7 @@ func (s *Service) GetJob(
 	}), nil
 }
 
-func (s *Service) CreateJob(
+func (s *Service) CreateJobOld(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
@@ -189,6 +193,98 @@ func (s *Service) CreateJob(
 	}), nil
 }
 
+func (s *Service) Create(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
+) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobName", req.Msg.JobName)
+	logger.Info("creating job")
+	jobUuid := uuid.NewString()
+
+	var sourceConnName *string
+	destConnNames := make([]string, len(req.Msg.ConnectionDestinationIds))
+
+	errs, errCtx := errgroup.WithContext(ctx)
+	errs.Go(func() error {
+		conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: req.Msg.ConnectionSourceId,
+		}))
+		if err != nil {
+			return nil
+		}
+		sourceConnName = &conn.Msg.Connection.Name
+		return nil
+	})
+
+	for index, id := range req.Msg.ConnectionDestinationIds {
+		connId := id
+		errs.Go(func() error {
+			conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+				Id: connId,
+			}))
+			if err != nil {
+				return err
+			}
+			destConnNames[index] = conn.Msg.Connection.Name
+			return nil
+		})
+	}
+	err := errs.Wait()
+	if err != nil {
+		logger.Error("unable to retrieve job connections")
+		return nil, err
+	}
+
+	trueBool := true
+	jobDestinations := []*neosyncdevv1alpha1.JobConfigDestination{}
+	for _, name := range destConnNames {
+		jobDestinations = append(jobDestinations, &neosyncdevv1alpha1.JobConfigDestination{
+			Sql: &neosyncdevv1alpha1.DestinationSql{
+				ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
+					Name: name,
+				},
+				TruncateBeforeInsert: &trueBool, //TODO
+				InitDbSchema:         &trueBool, //TODO
+			},
+		})
+	}
+
+	schemas := createSqlSchemas(req.Msg.Mappings)
+	job := &neosyncdevv1alpha1.JobConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: s.k8sclient.Namespace,
+			Name:      req.Msg.JobName,
+			Labels: map[string]string{
+				k8s_utils.NeosyncUuidLabel: jobUuid,
+			},
+		},
+		Spec: neosyncdevv1alpha1.JobConfigSpec{
+			Source: &neosyncdevv1alpha1.JobConfigSource{
+				Sql: &neosyncdevv1alpha1.SourceSql{
+					ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
+						Name: *sourceConnName,
+					},
+					HaltOnSchemaChange: &req.Msg.HaltOnNewColumnAddition,
+					Schemas:            schemas,
+				},
+			},
+			Destinations: jobDestinations,
+		},
+	}
+
+	err = s.k8sclient.CustomResourceClient.Create(ctx, job)
+	if err != nil {
+		logger.Error("unable to create job")
+		return nil, err
+	}
+	logger.Info("created job", "jobId", jobUuid)
+
+	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
+		Job: dtomaps.ToJobDto(createdJob, destUuids),
+	}), nil
+}
+
 func (s *Service) UpdateJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobRequest],
@@ -218,4 +314,39 @@ func (s *Service) DeleteJob(
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
+}
+
+func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1.SourceSqlSchema {
+	schema := []*neosyncdevv1alpha1.SourceSqlSchema{}
+
+	schemaMap := map[string]map[string][]*neosyncdevv1alpha1.SourceSqlColumn{}
+	for _, row := range mappings {
+
+		_, ok := schemaMap[row.Schema][row.Table]
+		if !ok {
+			schemaMap[row.Schema] = map[string][]*neosyncdevv1alpha1.SourceSqlColumn{
+				row.Table: {
+					{
+						Name:    row.Column,
+						Exclude: &row.Exclude,
+						Transformer: &neosyncdevv1alpha1.ColumnTransformer{
+							Name: row.Transformer.String(),
+						},
+					},
+				},
+			}
+			break
+		}
+
+		schemaMap[row.Schema][row.Table] = append(schemaMap[row.Schema][row.Table], &neosyncdevv1alpha1.SourceSqlColumn{
+			Name:    row.Column,
+			Exclude: &row.Exclude,
+			Transformer: &neosyncdevv1alpha1.ColumnTransformer{
+				Name: row.Transformer.String(),
+			},
+		})
+
+	}
+
+	return schema
 }

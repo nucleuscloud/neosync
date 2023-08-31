@@ -60,28 +60,8 @@ func (m *GetJobsRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = GetJobsRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if len(errors) > 0 {
 		return GetJobsRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetJobsRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -313,18 +293,6 @@ func (m *CreateJobRequest) validate(all bool) error {
 	}
 
 	var errors []error
-
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = CreateJobRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
 
 	// no validation rules for JobName
 
@@ -1466,30 +1434,6 @@ func (m *GetJobRunsRequest) validate(all bool) error {
 		if err := m._validateUuid(m.GetJobId()); err != nil {
 			err = GetJobRunsRequestValidationError{
 				field:  "JobId",
-				reason: "value must be a valid UUID",
-				cause:  err,
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-	case *GetJobRunsRequest_AccountId:
-		if v == nil {
-			err := GetJobRunsRequestValidationError{
-				field:  "Id",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if err := m._validateUuid(m.GetAccountId()); err != nil {
-			err = GetJobRunsRequestValidationError{
-				field:  "AccountId",
 				reason: "value must be a valid UUID",
 				cause:  err,
 			}
