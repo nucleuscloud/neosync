@@ -2,6 +2,8 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
@@ -115,80 +117,6 @@ func (s *Service) GetJob(
 	}), nil
 }
 
-// func (s *Service) CreateJobOld(
-// 	ctx context.Context,
-// 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
-// ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
-// 	destUuids := []pgtype.UUID{}
-// 	for _, destId := range req.Msg.ConnectionDestinationIds {
-// 		destUuid, err := nucleusdb.ToUuid(destId)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		destUuids = append(destUuids, destUuid)
-// 	}
-
-// 	cron := pgtype.Text{}
-// 	if req.Msg.CronSchedule != nil {
-// 		err := cron.Scan(req.Msg.GetCronSchedule())
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	}
-// 	connectionSourceUuid, err := nucleusdb.ToUuid(req.Msg.ConnectionSourceId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	mappings := []*jsonmodels.JobMapping{}
-// 	for _, mapping := range req.Msg.Mappings {
-// 		jm := &jsonmodels.JobMapping{}
-// 		err = jm.FromDto(mapping)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		mappings = append(mappings, jm)
-// 	}
-
-// 	var createdJob *db_queries.NeosyncApiJob
-// 	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
-// 		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
-// 			Name: req.Msg.JobName,
-// 			// AccountID:               *accountUuid,
-// 			Status:                  int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
-// 			CronSchedule:            cron,
-// 			HaltOnNewColumnAddition: nucleusdb.BoolToInt16(req.Msg.HaltOnNewColumnAddition),
-// 			ConnectionSourceID:      connectionSourceUuid,
-// 			Mappings:                mappings,
-// 		})
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		connDestParams := []db_queries.CreateJobConnectionDestinationsParams{}
-// 		for _, destUuid := range destUuids {
-// 			connDestParams = append(connDestParams, db_queries.CreateJobConnectionDestinationsParams{
-// 				JobID:        job.ID,
-// 				ConnectionID: destUuid,
-// 			})
-// 		}
-// 		if len(connDestParams) > 0 {
-// 			_, err = q.CreateJobConnectionDestinations(ctx, connDestParams)
-// 			if err != nil {
-// 				return err
-// 			}
-// 		}
-// 		createdJob = &job
-// 		return nil
-// 	}); err != nil {
-// 		return nil, err
-// 	}
-
-// 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-// 		// Job: dtomaps.ToJobDto(createdJob, destUuids),
-// 	}), nil
-// }
-
 func (s *Service) CreateJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
@@ -215,6 +143,7 @@ func (s *Service) CreateJob(
 
 	for index, id := range req.Msg.ConnectionDestinationIds {
 		connId := id
+		index := index
 		errs.Go(func() error {
 			conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 				Id: connId,
@@ -314,7 +243,6 @@ func (s *Service) DeleteJob(
 
 func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1.SourceSqlSchema {
 	schema := []*neosyncdevv1alpha1.SourceSqlSchema{}
-
 	schemaMap := map[string]map[string][]*neosyncdevv1alpha1.SourceSqlColumn{}
 	for _, row := range mappings {
 
@@ -331,7 +259,7 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 					},
 				},
 			}
-			break
+			continue
 		}
 
 		schemaMap[row.Schema][row.Table] = append(schemaMap[row.Schema][row.Table], &neosyncdevv1alpha1.SourceSqlColumn{
@@ -343,6 +271,18 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 		})
 
 	}
+
+	for s, table := range schemaMap {
+		for t, columns := range table {
+			schema = append(schema, &neosyncdevv1alpha1.SourceSqlSchema{
+				Schema:  s,
+				Table:   t,
+				Columns: columns,
+			})
+		}
+	}
+	jsonF, _ := json.MarshalIndent(schema, "", " ")
+	fmt.Printf("\n\n schema: %s \n\n", string(jsonF))
 
 	return schema
 }

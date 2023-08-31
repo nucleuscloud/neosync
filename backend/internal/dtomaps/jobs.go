@@ -29,7 +29,8 @@ func ToJobDto(
 		Id:                       inputJob.Labels[k8s_utils.NeosyncUuidLabel],
 		Name:                     inputJob.Name,
 		CreatedAt:                timestamppb.New(inputJob.CreationTimestamp.Time),
-		Status:                   mgmtv1alpha1.JobStatus(0), // TODO
+		UpdatedAt:                timestamppb.New(inputJob.CreationTimestamp.Time), // TODO
+		Status:                   mgmtv1alpha1.JobStatus(0),                        // TODO
 		ConnectionSourceId:       inputSourceConnId,
 		CronSchedule:             inputJob.Spec.CronSchedule,
 		HaltOnNewColumnAddition:  *inputJob.Spec.Source.Sql.HaltOnSchemaChange,
