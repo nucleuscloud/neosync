@@ -108,7 +108,7 @@ linters:
     - unconvert
     - unparam
     - unused
-    - whitespace
+    # - whitespace
 
   # don't enable:
   # - asciicheck

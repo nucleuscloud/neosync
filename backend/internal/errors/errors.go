@@ -2,7 +2,6 @@ package nucleuserrors
 
 import (
 	"errors"
-	"fmt"
 
 	"connectrpc.com/connect"
 	"google.golang.org/grpc/codes"
@@ -21,28 +20,27 @@ func New(err error) error {
 }
 
 func NewNotFound(message string) error {
-	return connect.NewError(connect.CodeNotFound, fmt.Errorf(message))
-	// return status.Error(codes.NotFound, message)
+	return connect.NewError(connect.CodeNotFound, errors.New(message))
 }
 
 func NewInternalError(message string) error {
-	return connect.NewError(connect.CodeInternal, fmt.Errorf(message))
+	return connect.NewError(connect.CodeInternal, errors.New(message))
 }
 
 func NewBadRequest(message string) error {
-	return connect.NewError(connect.CodeInvalidArgument, fmt.Errorf(message))
+	return connect.NewError(connect.CodeInvalidArgument, errors.New(message))
 }
 
 func NewAlreadyExists(message string) error {
-	return connect.NewError(connect.CodeAlreadyExists, fmt.Errorf(message))
+	return connect.NewError(connect.CodeAlreadyExists, errors.New(message))
 }
 
 func NewForbidden(message string) error {
-	return connect.NewError(connect.CodePermissionDenied, fmt.Errorf(message))
+	return connect.NewError(connect.CodePermissionDenied, errors.New(message))
 }
 
 func NewUnauthenticated(message string) error {
-	return connect.NewError(connect.CodeUnauthenticated, fmt.Errorf(message))
+	return connect.NewError(connect.CodeUnauthenticated, errors.New(message))
 }
 
 // Identical to NewUnauthenticated
@@ -51,7 +49,7 @@ func NewUnauthorized(message string) error {
 }
 
 func NewNotImplemented(message string) error {
-	return connect.NewError(connect.CodeUnimplemented, fmt.Errorf(message))
+	return connect.NewError(connect.CodeUnimplemented, errors.New(message))
 }
 
 func IsNotFound(err error) bool {

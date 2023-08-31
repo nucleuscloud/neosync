@@ -10,16 +10,12 @@ import (
 )
 
 func Execute() {
-	// logger, err := l.NewLogger(true)
-	// if err != nil {
-	// 	panic(err)
-	// }
 	cobra.OnInitialize(func() { initConfig() })
 
 	rootCmd := &cobra.Command{
 		Use:   "mgmt",
 		Short: "Terminal UI that interfaces with the Nucleus system.",
-		Long:  "Terminal UI that allows authenticated access to the Nucleus system.\nThis CLI allows you to deploy and manage all of the environments and services within your Nucleus account or accounts.",
+		Long:  "",
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			cmd.SilenceErrors = true
 		},
@@ -45,7 +41,6 @@ func initConfig(
 	viper.SetConfigName(".env")
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// logger.Info(".env file not found, skipping")
 		} else {
 			panic(err)
 		}
@@ -55,7 +50,6 @@ func initConfig(
 		viper.SetConfigName(fmt.Sprintf(".env.%s", envType))
 		if err := viper.MergeInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				// logger.Info(fmt.Sprintf(".env.%s file not found, skipping", envType))
 			} else {
 				panic(err)
 			}
@@ -64,7 +58,6 @@ func initConfig(
 		viper.SetConfigName(fmt.Sprintf(".env.%s.secrets", envType))
 		if err := viper.MergeInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				// logger.Info(fmt.Sprintf(".env.%s.secrets file not found, skipping", envType))
 			} else {
 				panic(err)
 			}

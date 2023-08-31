@@ -11,9 +11,9 @@ import (
 )
 
 type DBTX interface {
-	Exec(context.Context, string, ...interface{}) (pgconn.CommandTag, error)
-	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
-	QueryRow(context.Context, string, ...interface{}) pgx.Row
+	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+	Query(context.Context, string, ...any) (pgx.Rows, error)
+	QueryRow(context.Context, string, ...any) pgx.Row
 
 	Begin(ctx context.Context) (pgx.Tx, error)
 	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
@@ -67,7 +67,7 @@ func (d *NucleusDb) WithTx(
 		}
 	}()
 
-	if err = fn(d.Q.WithTx(tx)); err != nil {
+	if err := fn(d.Q.WithTx(tx)); err != nil {
 		return err
 	}
 	return tx.Commit(ctx)
