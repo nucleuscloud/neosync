@@ -167,26 +167,14 @@ func (r *SqlConnectionReconciler) triggerReconcileBecauseSecretChanged(
 	if err != nil {
 		return []reconcile.Request{}
 	}
-	requests := []reconcile.Request{}
+	requests := make([]reconcile.Request, len(sqlconnList.Items))
 	for idx := range sqlconnList.Items {
 		conn := sqlconnList.Items[idx]
-		if ok := doesSqlConnUseSecret(&conn, o.GetName()); ok {
-			requests = append(requests, reconcile.Request{
-				NamespacedName: types.NamespacedName{Namespace: conn.Namespace, Name: conn.Name},
-			})
-		}
+		requests = append(requests, reconcile.Request{
+			NamespacedName: types.NamespacedName{Namespace: conn.Namespace, Name: conn.Name},
+		})
 	}
 	return requests
-}
-
-func doesSqlConnUseSecret(
-	conn *neosyncdevv1alpha1.SqlConnection,
-	secretName string,
-) bool {
-	return conn != nil &&
-		conn.Spec.Url.ValueFrom != nil &&
-		conn.Spec.Url.ValueFrom.SecretKeyRef != nil &&
-		conn.Spec.Url.ValueFrom.SecretKeyRef.Name == secretName
 }
 
 func generateSha256Hash(val []byte) string {
