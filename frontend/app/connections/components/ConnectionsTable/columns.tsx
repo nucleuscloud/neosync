@@ -135,24 +135,24 @@ export function getColumns(
         return value.includes(row.getValue(id));
       },
     },
-    // {
-    //   accessorKey: 'updatedAt',
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader column={column} title="Updated At" />
-    //   ),
-    //   cell: ({ row }) => {
-    //     return (
-    //       <div className="flex space-x-2">
-    //         <span className="max-w-[500px] truncate font-medium">
-    //           {formatDateTime(row.getValue<Timestamp>('updatedAt').toDate())}
-    //         </span>
-    //       </div>
-    //     );
-    //   },
-    //   filterFn: (row, id, value) => {
-    //     return value.includes(row.getValue(id));
-    //   },
-    // },
+    {
+      accessorKey: 'updatedAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Updated At" />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              {formatDateTime(row.getValue<Timestamp>('updatedAt').toDate())}
+            </span>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
     {
       id: 'actions',
       cell: ({ row }) => (

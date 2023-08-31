@@ -1606,8 +1606,6 @@ func (m *Connection) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for CreatedByUserId
-
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
@@ -1636,8 +1634,6 @@ func (m *Connection) validate(all bool) error {
 			}
 		}
 	}
-
-	// no validation rules for UpdatedByUserId
 
 	if all {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {

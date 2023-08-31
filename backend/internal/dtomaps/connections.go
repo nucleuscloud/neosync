@@ -41,5 +41,6 @@ func ToConnectionDto(
 			},
 		},
 		CreatedAt: timestamppb.New(input.CreationTimestamp.Time),
+		UpdatedAt: timestamppb.New(input.CreationTimestamp.Time), // TODO
 	}, nil
 }
