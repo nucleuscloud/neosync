@@ -104,12 +104,13 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				logger.Error(err, "unable to list task runs")
 				return ctrl.Result{}, err
 			}
-			for _, tr := range taskRuns.Items {
-				label, ok := tr.Labels[neosyncJobTaskName]
+			for idx := range taskRuns.Items {
+				taskRun := taskRuns.Items[idx]
+				label, ok := taskRun.Labels[neosyncJobTaskName]
 				if ok {
 					createdTasks[label] = struct{}{}
 				} else {
-					logger.Info(fmt.Sprintf("found task run associated with job run without a task name: %s", tr.Name))
+					logger.Info(fmt.Sprintf("found task run associated with job run without a task name: %s", taskRun.Name))
 				}
 			}
 
@@ -153,16 +154,18 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				return ctrl.Result{}, err
 			}
 			jobrun.Status.TaskRuns = []*neosyncdevv1alpha1.JobRunStatusTaskRun{}
-			for _, tr := range taskRuns.Items {
+			for idx := range taskRuns.Items {
+				taskRun := taskRuns.Items[idx]
 				jobrun.Status.TaskRuns = append(jobrun.Status.TaskRuns, &neosyncdevv1alpha1.JobRunStatusTaskRun{
-					Name: tr.Name,
+					Name: taskRun.Name,
 				})
 			}
 
 			if len(job.Spec.Tasks) == len(taskRuns.Items) {
 				isComplete := true
-				for _, tr := range taskRuns.Items {
-					if tr.Status.JobStatus == nil || tr.Status.JobStatus.CompletionTime == nil {
+				for idx := range taskRuns.Items {
+					taskRun := taskRuns.Items[idx]
+					if taskRun.Status.JobStatus == nil || taskRun.Status.JobStatus.CompletionTime == nil {
 						isComplete = false
 						break
 					}

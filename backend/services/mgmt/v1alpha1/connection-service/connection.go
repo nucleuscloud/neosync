@@ -105,7 +105,8 @@ func (s *Service) GetConnections(
 	}
 
 	dtoConns := []*mgmtv1alpha1.Connection{}
-	for _, connection := range connections {
+	for idx := range connections {
+		connection := connections[idx]
 		dtoConns = append(dtoConns, dtomaps.ToConnectionDto(&connection))
 	}
 

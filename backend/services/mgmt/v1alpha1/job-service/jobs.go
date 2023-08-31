@@ -32,7 +32,8 @@ func (s *Service) GetJobs(
 	}
 
 	jobIds := []pgtype.UUID{}
-	for _, job := range jobs {
+	for idx := range jobs {
+		job := jobs[idx]
 		jobIds = append(jobIds, job.ID)
 	}
 
@@ -46,8 +47,8 @@ func (s *Service) GetJobs(
 	}
 
 	jobMap := map[pgtype.UUID]*db_queries.NeosyncApiJob{}
-	for _, job := range jobs {
-		job := job // This is necessary otherwise the same job gets set in the map as the memory pointer is re-used
+	for idx := range jobs {
+		job := jobs[idx]
 		jobMap[job.ID] = &job
 	}
 
@@ -150,7 +151,7 @@ func (s *Service) CreateJob(
 	}
 
 	var createdJob *db_queries.NeosyncApiJob
-	if err = s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
+	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
 		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
 			Name: req.Msg.JobName,
 			// AccountID:               *accountUuid,

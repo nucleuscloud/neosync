@@ -3,7 +3,7 @@ on:
     paths:
       - backend/**
 
-name: Lint
+name: Backend
 jobs:
   golangci:
     name: golang-lint
@@ -57,8 +57,8 @@ jobs:
         with:
           input: backend
 
-  gofmt:
-    name: gofmt
+  test:
+    name: test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -67,32 +67,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.REPO_PAT }}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
 
-      - name: Check Go Format
-        run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
-
-  # sqlc:
-  #   name: sqlc
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #       with:
-  #         path: backend
-
-  #     - name: Retrieve SQLC Version
-  #       run: |
-  #         VER=$(cat SQLC_VERSION)
-  #         echo "SQLC_VERSION=$VER" >> $GITHUB_ENV
-
-  #     - uses: sqlc-dev/setup-sqlc@v3
-  #       with:
-  #         sqlc-version: ${{ env.SQLC_VERSION }}
-
-  #     - run: sqlc diff
-  #     - run: sqlc vet
+      - name: Test
+        run: |
+          go test -race ./...

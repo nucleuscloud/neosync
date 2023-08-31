@@ -1,9 +1,9 @@
 package serve_connect
 
 import (
-	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/grpchealth"
@@ -30,14 +30,12 @@ func NewCmd() *cobra.Command {
 		Short: "serves up connect",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
-			return serve(cmd.Context())
+			return serve()
 		},
 	}
 }
 
-func serve(
-	ctx context.Context,
-) error {
+func serve() error {
 	port := viper.GetInt32("PORT")
 	if port == 0 {
 		port = 8080
@@ -111,9 +109,10 @@ func serve(
 
 	logger.Info(fmt.Sprintf("listening on %s", addr))
 	httpServer := http.Server{
-		Addr:     addr,
-		Handler:  h2c.NewHandler(mux, &http2.Server{}),
-		ErrorLog: loglogger,
+		Addr:              addr,
+		Handler:           h2c.NewHandler(mux, &http2.Server{}),
+		ErrorLog:          loglogger,
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	if err = httpServer.ListenAndServe(); err != nil {
