@@ -2,6 +2,8 @@ package v1alpha1_connectionservice
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 
 	"connectrpc.com/connect"
@@ -14,10 +16,13 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
-	utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
+	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/validation/field"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (s *Service) CheckConnectionConfig(
@@ -124,26 +129,49 @@ func (s *Service) GetConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
+	conns := &neosyncdevv1alpha1.SqlConnectionList{}
+	err := s.k8sclient.CustomResourceClient.List(ctx, conns, runtimeclient.InNamespace(s.k8sclient.Namespace), &runtimeclient.MatchingLabels{
+		k8s_utils.NeosyncUuidLabel: req.Msg.Id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(conns.Items) == 0 {
+		return nil, nucleuserrors.NewNotFound(fmt.Sprintf("connection not found. id: %s", req.Msg.Id))
+	}
+	if len(conns.Items) > 1 {
+		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 connection found. id: %s", req.Msg.Id))
+	}
 
-	idUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	conn := conns.Items[0]
+	secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
+
+	secrets, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: ,
+
+	})
+	secrets, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Get()
 	if err != nil {
 		return nil, err
 	}
 
-	connection, err := s.db.Q.GetConnectionById(ctx, idUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
-	}
+	filteredSecrets := utils.FilterSlice[corev1.Secret](secrets.Items, func(secret corev1.Secret) bool {
+		return secret.Labels[k8s_utils.NeosyncUuidLabel] == req.Msg.Id
+	})
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
+
+	
+
+	// TODO get connection first then get secret by reference namee
+	//TODO verify ids match
+
+	dto, err := dtomaps.ToConnectionDto(&conns.Items[0], &filteredSecrets[0])
 	if err != nil {
 		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		// Connection: dtomaps.ToConnectionDto(&connection),
+		Connection: dto,
 	}), nil
 }
 
@@ -212,6 +240,8 @@ func (s *Service) CreateConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
+	// TODO handle failures or name collisions
+	uuid := uuid.NewString()
 	connectionString, err := getPostgresConnectionUrl(req.Msg.ConnectionConfig)
 	if err != nil {
 		return nil, err
@@ -225,6 +255,9 @@ func (s *Service) CreateConnection(
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      req.Msg.Name,
 			Namespace: s.k8sclient.Namespace,
+			Labels: map[string]string{
+				k8s_utils.NeosyncUuidLabel: uuid,
+			},
 		},
 		StringData: map[string]string{
 			"url": connectionString,
@@ -232,20 +265,18 @@ func (s *Service) CreateConnection(
 		Type: corev1.SecretTypeOpaque,
 	}
 
-	// Create the secret
 	createdSecret, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Create(ctx, sourceConnSecret, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	uuid := uuid.NewString()
 	// make source connection
 	sourceConnection := &neosyncdevv1alpha1.SqlConnection{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.k8sclient.Namespace,
 			Name:      req.Msg.Name,
 			Labels: map[string]string{
-				utils.NeosyncUuidLabel: uuid,
+				k8s_utils.NeosyncUuidLabel: uuid,
 			},
 		},
 		Spec: neosyncdevv1alpha1.SqlConnectionSpec{

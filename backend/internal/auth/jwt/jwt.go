@@ -115,37 +115,37 @@ func (j *JwtClient) InjectTokenCtx(ctx context.Context, header http.Header) (con
 	// 	// logger.Error(err, "unable to pull unparsedToken from grpc auth metadata")
 	// 	return nil, nucleuserrors.NewUnauthenticated("must provide valid bearer unparsedToken")
 	// }
-	unparsedToken := header.Get("Authorization")
-	if unparsedToken == "" {
-		return nil, nucleuserrors.NewUnauthenticated("must provide valid bearer token")
-	}
-	pieces := strings.Split(unparsedToken, " ")
-	if len(pieces) != 2 {
-		return nil, nucleuserrors.NewUnauthenticated("token not in proper format")
-	}
-	if pieces[0] != "Bearer" {
-		return nil, nucleuserrors.NewUnauthenticated("must provided bearer token")
-	}
-	token := pieces[1]
+	// unparsedToken := header.Get("Authorization")
+	// if unparsedToken == "" {
+	// 	return nil, nucleuserrors.NewUnauthenticated("must provide valid bearer token")
+	// }
+	// pieces := strings.Split(unparsedToken, " ")
+	// if len(pieces) != 2 {
+	// 	return nil, nucleuserrors.NewUnauthenticated("token not in proper format")
+	// }
+	// if pieces[0] != "Bearer" {
+	// 	return nil, nucleuserrors.NewUnauthenticated("must provided bearer token")
+	// }
+	// token := pieces[1]
 
-	parsedToken, err := j.validateToken(ctx, token)
-	if err != nil {
-		return nil, err
-	}
+	// parsedToken, err := j.validateToken(ctx, token)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	claims, ok := parsedToken.CustomClaims.(*CustomClaims)
-	if !ok {
-		return nil, nucleuserrors.NewInternalError("unable to cast custom token claims to CustomClaims struct")
-	}
+	// claims, ok := parsedToken.CustomClaims.(*CustomClaims)
+	// if !ok {
+	// 	return nil, nucleuserrors.NewInternalError("unable to cast custom token claims to CustomClaims struct")
+	// }
 
-	scopes := getCombinedScopesAndPermissions(claims.Scope, claims.Permissions)
+	// scopes := getCombinedScopesAndPermissions(claims.Scope, claims.Permissions)
 
-	userId := parsedToken.RegisteredClaims.Subject
-	isServiceAccount := hasScope(scopes, m2mPermission)
-	// Service accounts come in with the subject as `<id>@clients`
-	if isServiceAccount {
-		userId = strings.TrimSuffix(userId, "@clients")
-	}
+	// userId := parsedToken.RegisteredClaims.Subject
+	// isServiceAccount := hasScope(scopes, m2mPermission)
+	// // Service accounts come in with the subject as `<id>@clients`
+	// if isServiceAccount {
+	// 	userId = strings.TrimSuffix(userId, "@clients")
+	// }
 
 	// var orgId *string
 	// if claims.OrgId != "" {
@@ -153,16 +153,16 @@ func (j *JwtClient) InjectTokenCtx(ctx context.Context, header http.Header) (con
 	// }
 
 	newCtx := context.WithValue(ctx, tokenContextKey{}, &TokenContextData{
-		ParsedToken: parsedToken,
-		RawToken:    token,
+		// ParsedToken: parsedToken,
+		// RawToken:    token,
 
-		Claims: claims,
+		// Claims: claims,
 
-		AuthUserId: userId,
-		// OrganizationId:   orgId,
-		Scopes:           scopes,
-		IsServiceAccount: isServiceAccount,
-		IsNucleusOwned:   hasScope(scopes, nucleusPermission),
+		// AuthUserId: userId,
+		// // OrganizationId:   orgId,
+		// Scopes:           scopes,
+		// IsServiceAccount: isServiceAccount,
+		// IsNucleusOwned:   hasScope(scopes, nucleusPermission),
 	})
 
 	return newCtx, nil

@@ -46,12 +46,18 @@ func ParsePostgresUrl(connStr string) (*ConnectConfig, error) {
 		return nil, err
 	}
 
+	var sslmode *string
+	_, ok := m["sslmode"]
+	if ok {
+		sslmode = &m["sslmode"][0]
+	}
+
 	return &ConnectConfig{
 		User:     u.User.Username(),
 		Pass:     pass,
 		Host:     host,
 		Port:     int32(portInt),
 		Database: u.Path,
-		SslMode:  &m["sslmode"][0],
+		SslMode:  sslmode,
 	}, nil
 }

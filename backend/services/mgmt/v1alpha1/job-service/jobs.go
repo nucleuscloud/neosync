@@ -215,7 +215,7 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 		_, ok := schemaMap[row.Schema][row.Table]
 		if !ok {
 			schemaMap[row.Schema] = map[string][]*neosyncdevv1alpha1.SourceSqlColumn{
-				row.Table: []*neosyncdevv1alpha1.SourceSqlColumn{
+				row.Table: {
 					{
 						Name:    row.Column,
 						Exclude: &row.Exclude,

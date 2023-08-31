@@ -14,7 +14,7 @@ func ToConnectionDto(
 	secret *corev1.Secret,
 ) (*mgmtv1alpha1.Connection, error) {
 
-	url := secret.StringData["url"]
+	url := string(secret.Data["url"])
 	connCfg, err := conn_utils.ParsePostgresUrl(url)
 	if err != nil {
 		return nil, err
