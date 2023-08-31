@@ -6,7 +6,6 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { fontSans } from '@/libs/fonts';
 import { cn } from '@/libs/utils';
-import { UserProvider } from '@auth0/nextjs-auth0/client';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {};
@@ -34,9 +33,7 @@ export default function RootLayout({
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />
             <div className="flex-1 container">
-              <UserProvider>
                 <AccountProvider>{children}</AccountProvider>
-              </UserProvider>
             </div>
             <SiteFooter />
             <Toaster />

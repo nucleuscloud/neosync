@@ -1,14 +1,12 @@
 import { ConnectionService } from '@/neosync-api-client/mgmt/v1alpha1/connection_connect';
 import { JobService } from '@/neosync-api-client/mgmt/v1alpha1/job_connect';
 import { UserAccountService } from '@/neosync-api-client/mgmt/v1alpha1/user_account_connect';
-import { getAccessToken, getSession } from '@auth0/nextjs-auth0';
 import {
   Code,
   ConnectError,
-  Interceptor,
   PromiseClient,
   Transport,
-  createPromiseClient,
+  createPromiseClient
 } from '@connectrpc/connect';
 import { createConnectTransport } from '@connectrpc/connect-node';
 import { NextRequest, NextResponse } from 'next/server';
@@ -18,22 +16,6 @@ interface NeosyncContext {
   userClient: PromiseClient<typeof UserAccountService>;
   jobsClient: PromiseClient<typeof JobService>;
 }
-
-// type NeosyncApiHandler<T = unknown> = (
-//   req: NextApiRequest,
-//   ctx: NeosyncContext,
-//   res: NextApiResponse<T>
-// ) => unknown | Promise<T>;
-
-// export function withNeosyncContext<T = any>(
-//   handler: NeosyncApiHandler
-// ): NextApiHandler {
-//   return async (req) => {
-//     const res = NextResponse.next() as NextResponse<T>;
-//     const output = await handler(req, {} as any, res);
-//     return res;
-//   };
-// }
 
 type NeosyncApiHandler<T = unknown> = (ctx: NeosyncContext) => Promise<T>;
 
@@ -73,15 +55,9 @@ export async function getNeosyncContext(
   req: NextRequest
 ): Promise<NeosyncContext> {
   const res = new NextResponse();
-  await getAccessToken(req, res);
-  const session = await getSession(req, res);
-  if (!session || !session.accessToken) {
-    throw new Error('no session provided');
-  }
 
   const transport = getAuthenticatedConnectTransport(
     getApiBaseUrlFromEnv(),
-    () => session.accessToken ?? ''
   );
 
   return {
@@ -93,23 +69,12 @@ export async function getNeosyncContext(
 
 function getAuthenticatedConnectTransport(
   baseUrl: string,
-  getAccessToken: () => Promise<string> | string
 ): Transport {
   return createConnectTransport({
     baseUrl,
     httpVersion: '2',
-    interceptors: [getAuthInterceptor(getAccessToken)],
+    interceptors: [],
   });
-}
-
-function getAuthInterceptor(
-  getAccessToken: () => Promise<string> | string
-): Interceptor {
-  return (next) => async (req) => {
-    const accessToken = await getAccessToken();
-    req.header.set('Authorization', `Bearer ${accessToken}`);
-    return next(req);
-  };
 }
 
 function getApiBaseUrlFromEnv(): string {
