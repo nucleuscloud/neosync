@@ -5,7 +5,17 @@ metadata:
 spec:
   driver: postgres
   url:
-    value: postgres://postgres:foofar@postgresql1:5432/neosync?sslmode=disable
+    valueFrom:
+      secretKeyRef:
+        name: prod-pg-creds
+        key: url
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prod-pg-creds
+stringData:
+  url: postgres://postgres:foofar@postgresql1:5432/neosync?sslmode=disable
 ---
 apiVersion: neosync.dev/v1alpha1
 kind: SqlConnection
@@ -31,6 +41,8 @@ spec:
           table: users
           columns:
             - name: id
+              transformer:
+                name: uuid_v4
             # - name: first_name
             # - name: last_name
             # - name: email
@@ -43,10 +55,14 @@ spec:
           table: accounts
           columns:
             - name: id
+              transformer:
+                name: uuid_v4
             - name: created_at
             - name: updated_at
             - name: account_type
             - name: account_slug
+              transformer:
+                name: name
 
 
   destinations:

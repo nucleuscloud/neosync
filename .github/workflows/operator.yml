@@ -1,7 +1,7 @@
 on:
   pull_request:
     paths:
-      - operator/**
+      - k8s-operator/**
 
 name: Operator
 jobs:
@@ -42,6 +42,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.REPO_PAT }}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -50,4 +54,4 @@ jobs:
 
       - name: Test
         run: |
-          go test -race ./...
+          make test

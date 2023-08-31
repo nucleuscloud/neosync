@@ -31,6 +31,7 @@ type JobConfigSpec struct {
 	// Foo is an example field of JobConfig. Edit jobconfig_types.go to remove/update
 	Source       *JobConfigSource        `json:"source"`
 	Destinations []*JobConfigDestination `json:"destinations"`
+	CronSchedule *string                 `json:"cronSchedule,omitempty"`
 }
 
 type JobConfigSource struct {
