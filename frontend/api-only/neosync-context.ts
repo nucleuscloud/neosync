@@ -6,7 +6,7 @@ import {
   ConnectError,
   PromiseClient,
   Transport,
-  createPromiseClient
+  createPromiseClient,
 } from '@connectrpc/connect';
 import { createConnectTransport } from '@connectrpc/connect-node';
 import { NextRequest, NextResponse } from 'next/server';
@@ -51,14 +51,10 @@ export function withNeosyncContext<T = unknown>(
   };
 }
 
-async function getNeosyncContext(
-  req: NextRequest
-): Promise<NeosyncContext> {
+async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
   const res = new NextResponse();
 
-  const transport = getAuthenticatedConnectTransport(
-    getApiBaseUrlFromEnv(),
-  );
+  const transport = getAuthenticatedConnectTransport(getApiBaseUrlFromEnv());
 
   return {
     connectionClient: createPromiseClient(ConnectionService, transport),
@@ -67,9 +63,7 @@ async function getNeosyncContext(
   };
 }
 
-function getAuthenticatedConnectTransport(
-  baseUrl: string,
-): Transport {
+function getAuthenticatedConnectTransport(baseUrl: string): Transport {
   return createConnectTransport({
     baseUrl,
     httpVersion: '2',

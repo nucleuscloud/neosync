@@ -33,7 +33,7 @@ export default function RootLayout({
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />
             <div className="flex-1 container">
-                <AccountProvider>{children}</AccountProvider>
+              <AccountProvider>{children}</AccountProvider>
             </div>
             <SiteFooter />
             <Toaster />
