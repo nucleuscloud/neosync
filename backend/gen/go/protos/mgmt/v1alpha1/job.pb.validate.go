@@ -2386,8 +2386,6 @@ func (m *Job) validate(all bool) error {
 
 	// no validation rules for Id
 
-	// no validation rules for CreatedByUserId
-
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
@@ -2416,8 +2414,6 @@ func (m *Job) validate(all bool) error {
 			}
 		}
 	}
-
-	// no validation rules for UpdatedByUserId
 
 	if all {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {

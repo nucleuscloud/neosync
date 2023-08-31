@@ -13,18 +13,35 @@ func ToJobDto(
 	inputDestConnIds []string,
 ) *mgmtv1alpha1.Job {
 	mappings := []*mgmtv1alpha1.JobMapping{}
-	for _, schema := range inputJob.Spec.Source.Sql.Schemas {
-		for _, table := range schema.Schema
+	for _, table := range inputJob.Spec.Source.Sql.Schemas {
+		for _, column := range table.Columns {
+			mappings = append(mappings, &mgmtv1alpha1.JobMapping{
+				Schema:      table.Schema,
+				Table:       table.Table,
+				Column:      column.Name,
+				Exclude:     *column.Exclude,
+				Transformer: getTransformer(column.Transformer.Name),
+			})
+		}
 	}
+
 	return &mgmtv1alpha1.Job{
 		Id:                       inputJob.Labels[k8s_utils.NeosyncUuidLabel],
 		Name:                     inputJob.Name,
 		CreatedAt:                timestamppb.New(inputJob.CreationTimestamp.Time),
-		Status:                   "",
+		Status:                   mgmtv1alpha1.JobStatus(0), // TODO
 		ConnectionSourceId:       inputSourceConnId,
-		CronSchedule:             "",
+		CronSchedule:             inputJob.Spec.CronSchedule,
 		HaltOnNewColumnAddition:  *inputJob.Spec.Source.Sql.HaltOnSchemaChange,
 		ConnectionDestinationIds: inputDestConnIds,
 		Mappings:                 mappings,
 	}
+}
+
+func getTransformer(transformerName string) mgmtv1alpha1.JobMappingTransformer {
+	transformer, ok := mgmtv1alpha1.JobMappingTransformer_value[transformerName]
+	if !ok {
+		return mgmtv1alpha1.JobMappingTransformer(0)
+	}
+	return mgmtv1alpha1.JobMappingTransformer(transformer)
 }

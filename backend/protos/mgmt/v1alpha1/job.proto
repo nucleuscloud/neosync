@@ -95,20 +95,17 @@ message CancelJobRunResponse {}
 message Job {
   string id = 1;
 
-  string created_by_user_id = 2;
-  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
 
-  string updated_by_user_id = 4;
-  google.protobuf.Timestamp updated_at = 5;
+  string name = 4;
+  JobStatus status = 5;
 
-  string name = 6;
-  JobStatus status = 7;
-
-  string connection_source_id = 8 [(validate.rules).string.uuid = true];
-  repeated string connection_destination_ids = 9;
-  repeated JobMapping mappings = 10;
-  optional string cron_schedule = 11;
-  bool halt_on_new_column_addition = 12;
+  string connection_source_id = 6 [(validate.rules).string.uuid = true];
+  repeated string connection_destination_ids = 7;
+  repeated JobMapping mappings = 8;
+  optional string cron_schedule = 9;
+  bool halt_on_new_column_addition = 10;
 }
 
 message JobRun {

@@ -863,57 +863,47 @@ export class Job extends Message<Job> {
   id = "";
 
   /**
-   * @generated from field: string created_by_user_id = 2;
-   */
-  createdByUserId = "";
-
-  /**
-   * @generated from field: google.protobuf.Timestamp created_at = 3;
+   * @generated from field: google.protobuf.Timestamp created_at = 2;
    */
   createdAt?: Timestamp;
 
   /**
-   * @generated from field: string updated_by_user_id = 4;
-   */
-  updatedByUserId = "";
-
-  /**
-   * @generated from field: google.protobuf.Timestamp updated_at = 5;
+   * @generated from field: google.protobuf.Timestamp updated_at = 3;
    */
   updatedAt?: Timestamp;
 
   /**
-   * @generated from field: string name = 6;
+   * @generated from field: string name = 4;
    */
   name = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.JobStatus status = 7;
+   * @generated from field: mgmt.v1alpha1.JobStatus status = 5;
    */
   status = JobStatus.UNSPECIFIED;
 
   /**
-   * @generated from field: string connection_source_id = 8;
+   * @generated from field: string connection_source_id = 6;
    */
   connectionSourceId = "";
 
   /**
-   * @generated from field: repeated string connection_destination_ids = 9;
+   * @generated from field: repeated string connection_destination_ids = 7;
    */
   connectionDestinationIds: string[] = [];
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 10;
+   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 8;
    */
   mappings: JobMapping[] = [];
 
   /**
-   * @generated from field: optional string cron_schedule = 11;
+   * @generated from field: optional string cron_schedule = 9;
    */
   cronSchedule?: string;
 
   /**
-   * @generated from field: bool halt_on_new_column_addition = 12;
+   * @generated from field: bool halt_on_new_column_addition = 10;
    */
   haltOnNewColumnAddition = false;
 
@@ -926,17 +916,15 @@ export class Job extends Message<Job> {
   static readonly typeName = "mgmt.v1alpha1.Job";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "created_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "created_at", kind: "message", T: Timestamp },
-    { no: 4, name: "updated_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "updated_at", kind: "message", T: Timestamp },
-    { no: 6, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "status", kind: "enum", T: proto3.getEnumType(JobStatus) },
-    { no: 8, name: "connection_source_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 9, name: "connection_destination_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 10, name: "mappings", kind: "message", T: JobMapping, repeated: true },
-    { no: 11, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 12, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "created_at", kind: "message", T: Timestamp },
+    { no: 3, name: "updated_at", kind: "message", T: Timestamp },
+    { no: 4, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "status", kind: "enum", T: proto3.getEnumType(JobStatus) },
+    { no: 6, name: "connection_source_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "connection_destination_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 8, name: "mappings", kind: "message", T: JobMapping, repeated: true },
+    { no: 9, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 10, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Job {
