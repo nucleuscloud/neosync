@@ -35,6 +35,8 @@ spec:
           spec:
             description: JobConfigSpec defines the desired state of JobConfig
             properties:
+              cronSchedule:
+                type: string
               destinations:
                 items:
                   properties:
