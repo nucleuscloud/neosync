@@ -227,8 +227,10 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	for _, task := range taskList.Items {
+	for idx := range taskList.Items {
+		task := taskList.Items[idx]
 		if _, ok := taskNameSet[task.Name]; !ok {
+			task := task
 			err = r.Delete(ctx, &task)
 			if err != nil && !apierrors.IsNotFound(err) {
 				return ctrl.Result{}, err
@@ -247,7 +249,11 @@ func (r *JobConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&neosyncdevv1alpha1.Job{}).
 		Owns(&neosyncdevv1alpha1.Task{}).
 		Owns(&corev1.Secret{}).
-		Watches(&neosyncdevv1alpha1.SqlConnection{}, handler.EnqueueRequestsFromMapFunc(r.triggerReconcileBecauseSqlConnectionChanged), builder.WithPredicates(predicate.ResourceVersionChangedPredicate{})).
+		Watches(
+			&neosyncdevv1alpha1.SqlConnection{},
+			handler.EnqueueRequestsFromMapFunc(r.triggerReconcileBecauseSqlConnectionChanged),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
 		Complete(r)
 }
 
@@ -264,8 +270,9 @@ func (r *JobConfigReconciler) triggerReconcileBecauseSqlConnectionChanged(
 		return []reconcile.Request{}
 	}
 	requests := []reconcile.Request{}
-	for _, jobconfig := range jobconfigList.Items {
-		if ok := doesJobConfigUseSqlConnection(jobconfig, o.GetName()); ok {
+	for idx := range jobconfigList.Items {
+		jobconfig := jobconfigList.Items[idx]
+		if ok := doesJobConfigUseSqlConnection(&jobconfig, o.GetName()); ok {
 			requests = append(requests, reconcile.Request{
 				NamespacedName: types.NamespacedName{Namespace: jobconfig.Namespace, Name: jobconfig.Name},
 			})
@@ -276,7 +283,7 @@ func (r *JobConfigReconciler) triggerReconcileBecauseSqlConnectionChanged(
 }
 
 func doesJobConfigUseSqlConnection(
-	jobconfig neosyncdevv1alpha1.JobConfig,
+	jobconfig *neosyncdevv1alpha1.JobConfig,
 	sqlConnectionName string,
 ) bool {
 	if jobconfig.Spec.Source != nil && jobconfig.Spec.Source.Sql != nil && jobconfig.Spec.Source.Sql.ConnectionRef.Name == sqlConnectionName {
@@ -293,9 +300,9 @@ func doesJobConfigUseSqlConnection(
 func (r *JobConfigReconciler) getSqlConnectionUrl(
 	ctx context.Context,
 	nsName types.NamespacedName,
-) (string, string, error) {
+) (driver, url string, err error) {
 	sqlConn := &neosyncdevv1alpha1.SqlConnection{}
-	err := r.Get(ctx, nsName, sqlConn)
+	err = r.Get(ctx, nsName, sqlConn)
 	if err != nil {
 		return "", "", err
 	}
@@ -331,7 +338,6 @@ func (r *JobConfigReconciler) generateConfigs(
 	logger logr.Logger,
 ) ([]*benthosConfigResponse, error) {
 	responses := []*benthosConfigResponse{}
-	// benthosConfigs := []*neosync_benthos.BenthosConfig{}
 
 	if jobconfig.Spec.Source.Sql != nil {
 		sqlSrc := jobconfig.Spec.Source.Sql
@@ -411,7 +417,7 @@ func (r *JobConfigReconciler) generateConfigs(
 }
 
 func buildBenthosTable(schema, table string) string {
-	if len(schema) != 0 {
+	if schema != "" {
 		return fmt.Sprintf("%s.%s", schema, table)
 	}
 	return table

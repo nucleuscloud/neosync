@@ -144,9 +144,6 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 									VolumeSource: corev1.VolumeSource{
 										Secret: &corev1.SecretVolumeSource{
 											SecretName: task.Spec.RunConfig.Benthos.ConfigFrom.SecretKeyRef.Name,
-											// Items: []corev1.KeyToPath{
-											// 	{},
-											// },
 										},
 									},
 								},
@@ -155,9 +152,7 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 					},
 				},
 			}
-			// if taskRun.Spec.ServiceAccountName != nil && *taskRun.Spec.ServiceAccountName != "" {
-			// 	job.Spec.Template.Spec.ServiceAccountName = *taskRun.Spec.ServiceAccountName
-			// }
+
 			err = ctrl.SetControllerReference(taskRun, job, r.Scheme)
 			if err != nil {
 				logger.Error(err, "unable to set ownership reference on batchv1.job")
