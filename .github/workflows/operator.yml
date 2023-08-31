@@ -50,4 +50,4 @@ jobs:
 
       - name: Test
         run: |
-          go test -race ./...
+          make test
