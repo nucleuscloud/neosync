@@ -37,10 +37,6 @@ import (
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 )
 
-const (
-	sqlConnectionSecretShaLabelKey = "neosync.dev/secret-key-sha256" //nolint:gosec
-)
-
 // SqlConnectionReconciler reconciles a SqlConnection object
 type SqlConnectionReconciler struct {
 	client.Client
@@ -113,6 +109,10 @@ func (r *SqlConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			}
 		} else {
 			logger.Info("generated hash for SqlConnection was not different, skipping status update")
+		}
+	} else {
+		if conn.Status.ValueHash != nil {
+			conn.Status.ValueHash = nil
 		}
 	}
 
