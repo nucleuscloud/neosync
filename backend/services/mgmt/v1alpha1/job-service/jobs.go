@@ -21,20 +21,21 @@ func (s *Service) GetJobs(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-
-	jobs, err := s.db.Q.GetJobsByAccount(ctx, *accountUuid)
+	jobs, err := s.db.Q.GetJobsByAccount(ctx, accountUuid)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
 	}
 
 	jobIds := []pgtype.UUID{}
-	for _, job := range jobs {
+	for idx := range jobs {
+		job := jobs[idx]
 		jobIds = append(jobIds, job.ID)
 	}
 
@@ -48,8 +49,8 @@ func (s *Service) GetJobs(
 	}
 
 	jobMap := map[pgtype.UUID]*db_queries.NeosyncApiJob{}
-	for _, job := range jobs {
-		job := job // This is necessary otherwise the same job gets set in the map as the memory pointer is re-used
+	for idx := range jobs {
+		job := jobs[idx]
 		jobMap[job.ID] = &job
 	}
 
@@ -108,11 +109,6 @@ func (s *Service) GetJob(
 		if nucleusdb.IsNoRows(err) {
 			return nil, nucleuserrors.NewNotFound("unable to find job by id")
 		}
-		return nil, err
-	}
-
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
-	if err != nil {
 		return nil, err
 	}
 
@@ -316,47 +312,9 @@ func (s *Service) DeleteJob(
 		return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
 	err = s.db.Q.RemoveJobById(ctx, job.ID)
 	if err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
-}
-
-func (s *Service) verifyUserInAccount(
-	ctx context.Context,
-	accountId string,
-) (*pgtype.UUID, error) {
-	resp, err := s.userAccountService.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
-	if err != nil {
-		return nil, err
-	}
-	if !resp.Msg.Ok {
-		return nil, nucleuserrors.NewForbidden("user in not in requested account")
-	}
-
-	accountUuid, err := nucleusdb.ToUuid(accountId)
-	if err != nil {
-		return nil, err
-	}
-	return &accountUuid, nil
-}
-
-func (s *Service) getUserUuid(
-	ctx context.Context,
-) (*pgtype.UUID, error) {
-	user, err := s.userAccountService.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
-	if err != nil {
-		return nil, err
-	}
-	return &userUuid, nil
 }

@@ -11,6 +11,7 @@ local_resource(
     'main.go',
     'controllers/',
     'api/',
+    'internal/',
   ],
   labels=['build'],
 )
