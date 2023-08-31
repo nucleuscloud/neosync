@@ -82,7 +82,7 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				logger.Info("taskrun references task that could not be found.")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+				return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 			}
 			logger.Error(err, "unable to retrieve task resource")
 			return ctrl.Result{}, err
@@ -97,11 +97,11 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			isConfigPresent, err := isBenthosConfigPresent(ctx, r.Client, req.Namespace, task.Spec.RunConfig, logger)
 			if err != nil {
 				logger.Error(err, "unable to check if benthos config is present prior to creating resource")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, err
+				return ctrl.Result{RequeueAfter: 5 * time.Second}, err
 			}
 			if !isConfigPresent {
 				logger.Info("benthos config not present in task spec, or corresponding secret is not found or in correct format")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+				return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 			}
 			image := "jeffail/benthos:4.11.0"
 			if task.Spec.RunConfig.Benthos.Image != nil {
