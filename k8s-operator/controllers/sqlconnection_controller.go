@@ -110,10 +110,9 @@ func (r *SqlConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		} else {
 			logger.Info("generated hash for SqlConnection was not different, skipping status update")
 		}
-	} else {
-		if conn.Status.ValueHash != nil {
-			conn.Status.ValueHash = nil
-		}
+	} else if conn.Status.ValueHash != nil {
+		// The SqlConnection Spec is configured with neither a Value or ValueFrom
+		conn.Status.ValueHash = nil
 	}
 
 	if err := r.Status().Update(ctx, conn); err != nil {
