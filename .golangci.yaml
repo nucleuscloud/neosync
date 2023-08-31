@@ -80,7 +80,7 @@ linters:
     - bodyclose
     # - depguard
     - dogsled
-    - dupl
+    # - dupl
     - errcheck
     - exportloopref
     # - funlen

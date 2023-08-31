@@ -59,8 +59,15 @@ type ConfigSelector struct {
 
 // SqlConnectionStatus defines the observed state of SqlConnection
 type SqlConnectionStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Populated based on the value specified for the sql connection.
+	// This is useful if specifying a secret to configure a sql connection so that items that watch this resource
+	// will receive updates and can use the most up to date sql connection string
+	ValueHash *HashResult `json:"valueHash,omitempty"`
+}
+
+type HashResult struct {
+	Value     string `json:"value"`
+	Algorithm string `json:"algorithm"`
 }
 
 //+kubebuilder:object:root=true
