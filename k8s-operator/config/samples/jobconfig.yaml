@@ -41,6 +41,8 @@ spec:
           table: users
           columns:
             - name: id
+              transformer:
+                name: uuid_v4
             # - name: first_name
             # - name: last_name
             # - name: email
@@ -53,10 +55,14 @@ spec:
           table: accounts
           columns:
             - name: id
+              transformer:
+                name: uuid_v4
             - name: created_at
             - name: updated_at
             - name: account_type
             - name: account_slug
+              transformer:
+                name: name
 
 
   destinations:
