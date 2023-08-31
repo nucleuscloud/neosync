@@ -3,7 +3,6 @@ import useSWR, { KeyedMutator, SWRConfiguration } from 'swr';
 import { fetcher } from '../fetcher';
 import { HookReply } from './types';
 import { useGenericErrorToast } from './useGenericErrorToast';
-import { useNucleusUser } from './useNucleusUser';
 
 export function useNucleusAuthenticatedFetch<T, RawT>(
   fetchUrl: string,
@@ -22,9 +21,7 @@ export function useNucleusAuthenticatedFetch<T, RawT = T>(
   swrConfig?: SWRConfiguration<RawT | T, Error>,
   onData?: (data: RawT | undefined) => T
 ): HookReply<RawT | T> {
-  const { data: nucleusUser, isLoading: isNucUserLoading } = useNucleusUser();
-
-  const isReady = !isNucUserLoading && nucleusUser && isReadyCondition;
+  const isReady = isReadyCondition;
 
   const {
     data,

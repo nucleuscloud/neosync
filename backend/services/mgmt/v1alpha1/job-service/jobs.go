@@ -19,13 +19,13 @@ func (s *Service) GetJobs(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-
-	jobs, err := s.db.Q.GetJobsByAccount(ctx, *accountUuid)
+	jobs, err := s.db.Q.GetJobsByAccount(ctx, accountUuid)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -109,11 +109,6 @@ func (s *Service) GetJob(
 		return nil, err
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 		Job: dtomaps.ToJobDto(&job, destConnections),
 	}), nil
@@ -123,15 +118,6 @@ func (s *Service) CreateJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := s.getUserUuid(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	destUuids := []pgtype.UUID{}
 	for _, destId := range req.Msg.ConnectionDestinationIds {
 		destUuid, err := nucleusdb.ToUuid(destId)
@@ -143,7 +129,7 @@ func (s *Service) CreateJob(
 
 	cron := pgtype.Text{}
 	if req.Msg.CronSchedule != nil {
-		err = cron.Scan(req.Msg.GetCronSchedule())
+		err := cron.Scan(req.Msg.GetCronSchedule())
 		if err != nil {
 			return nil, err
 		}
@@ -166,13 +152,11 @@ func (s *Service) CreateJob(
 	var createdJob *db_queries.NeosyncApiJob
 	if err = s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
 		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
-			Name:                    req.Msg.JobName,
-			AccountID:               *accountUuid,
+			Name: req.Msg.JobName,
+			// AccountID:               *accountUuid,
 			Status:                  int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
 			CronSchedule:            cron,
 			HaltOnNewColumnAddition: nucleusdb.BoolToInt16(req.Msg.HaltOnNewColumnAddition),
-			CreatedByID:             *userUuid,
-			UpdatedByID:             *userUuid,
 			ConnectionSourceID:      connectionSourceUuid,
 			Mappings:                mappings,
 		})
@@ -228,47 +212,9 @@ func (s *Service) DeleteJob(
 		return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
 	err = s.db.Q.RemoveJobById(ctx, job.ID)
 	if err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
-}
-
-func (s *Service) verifyUserInAccount(
-	ctx context.Context,
-	accountId string,
-) (*pgtype.UUID, error) {
-	resp, err := s.userAccountService.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
-	if err != nil {
-		return nil, err
-	}
-	if !resp.Msg.Ok {
-		return nil, nucleuserrors.NewForbidden("user in not in requested account")
-	}
-
-	accountUuid, err := nucleusdb.ToUuid(accountId)
-	if err != nil {
-		return nil, err
-	}
-	return &accountUuid, nil
-}
-
-func (s *Service) getUserUuid(
-	ctx context.Context,
-) (*pgtype.UUID, error) {
-	user, err := s.userAccountService.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
-	if err != nil {
-		return nil, err
-	}
-	return &userUuid, nil
 }

@@ -19,16 +19,6 @@ serviceAccount:
 
 nucleusEnv:
 
-auth0:
-  baseUrl:
-  audience:
-  clientMap:
-
-  mgmtBaseUrl:
-  mgmtClientId:
-  mgmtClientSecret:
-# dashboardUrl:
-
 db:
   host:
   name:
@@ -57,13 +47,3 @@ port: 80
 
 terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
-
-# publisher:
-#   type:
-#   eventsTopicArn:
-
-# adminDashUrl:
-# nucleusEvents:
-#   slack:
-#     authToken:
-#     blockedAccountList:

@@ -41,11 +41,6 @@ func (s *Service) GetConnectionSchema(
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
 	var connectionString *string
