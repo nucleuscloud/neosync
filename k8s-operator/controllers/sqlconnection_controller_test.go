@@ -7,55 +7,56 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDoesSqlConnUseSecret(t *testing.T) {
-	assert.False(t, doesSqlConnUseSecret(nil, "foo"))
-	assert.False(t, doesSqlConnUseSecret(&neosyncdevv1alpha1.SqlConnection{}, "foo"))
-	assert.False(t, doesSqlConnUseSecret(&neosyncdevv1alpha1.SqlConnection{
-		Spec: neosyncdevv1alpha1.SqlConnectionSpec{},
-	}, "foo"))
-	assert.False(t, doesSqlConnUseSecret(&neosyncdevv1alpha1.SqlConnection{
-		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
-			Url: neosyncdevv1alpha1.SqlConnectionUrl{},
-		},
-	}, "foo"))
-	assert.False(t, doesSqlConnUseSecret(&neosyncdevv1alpha1.SqlConnection{
-		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
-			Url: neosyncdevv1alpha1.SqlConnectionUrl{
-				ValueFrom: &neosyncdevv1alpha1.SqlConnectionUrlSource{},
-			},
-		},
-	}, "foo"))
-	assert.False(t, doesSqlConnUseSecret(&neosyncdevv1alpha1.SqlConnection{
-		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
-			Url: neosyncdevv1alpha1.SqlConnectionUrl{
-				ValueFrom: &neosyncdevv1alpha1.SqlConnectionUrlSource{
-					SecretKeyRef: &neosyncdevv1alpha1.ConfigSelector{},
-				},
-			},
-		},
-	}, "foo"))
-	assert.False(t, doesSqlConnUseSecret(&neosyncdevv1alpha1.SqlConnection{
-		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
-			Url: neosyncdevv1alpha1.SqlConnectionUrl{
-				ValueFrom: &neosyncdevv1alpha1.SqlConnectionUrlSource{
-					SecretKeyRef: &neosyncdevv1alpha1.ConfigSelector{
-						Name: "foo2",
+func TestExtractSqlConnSecretRefName(t *testing.T) {
+	assert.Nil(
+		t,
+		extractSqlConnSecretRefName(nil),
+	)
+	assert.Nil(
+		t,
+		extractSqlConnSecretRefName(
+			&neosyncdevv1alpha1.Job{},
+		),
+	)
+	assert.Nil(
+		t,
+		extractSqlConnSecretRefName(
+			&neosyncdevv1alpha1.SqlConnection{},
+		),
+	)
+	assert.Nil(
+		t,
+		extractSqlConnSecretRefName(
+			&neosyncdevv1alpha1.SqlConnection{
+				Spec: neosyncdevv1alpha1.SqlConnectionSpec{
+					Url: neosyncdevv1alpha1.SqlConnectionUrl{
+						ValueFrom: &neosyncdevv1alpha1.SqlConnectionUrlSource{
+							SecretKeyRef: &neosyncdevv1alpha1.ConfigSelector{
+								Name: "",
+							},
+						},
 					},
 				},
 			},
-		},
-	}, "foo"))
-	assert.True(t, doesSqlConnUseSecret(&neosyncdevv1alpha1.SqlConnection{
-		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
-			Url: neosyncdevv1alpha1.SqlConnectionUrl{
-				ValueFrom: &neosyncdevv1alpha1.SqlConnectionUrlSource{
-					SecretKeyRef: &neosyncdevv1alpha1.ConfigSelector{
-						Name: "foo",
+		),
+	)
+	assert.Equal(
+		t,
+		extractSqlConnSecretRefName(
+			&neosyncdevv1alpha1.SqlConnection{
+				Spec: neosyncdevv1alpha1.SqlConnectionSpec{
+					Url: neosyncdevv1alpha1.SqlConnectionUrl{
+						ValueFrom: &neosyncdevv1alpha1.SqlConnectionUrlSource{
+							SecretKeyRef: &neosyncdevv1alpha1.ConfigSelector{
+								Name: "foo",
+							},
+						},
 					},
 				},
 			},
-		},
-	}, "foo"))
+		),
+		[]string{"foo"},
+	)
 }
 
 func TestGenerateSha256Hash(t *testing.T) {

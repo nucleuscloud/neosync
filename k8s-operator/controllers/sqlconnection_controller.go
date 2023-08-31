@@ -24,6 +24,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -35,6 +36,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+)
+
+const (
+	sqlConnectionSecretKeyIdxField = ".spec.url.valueFrom.secretKeyRef.name" //nolint:gosec
 )
 
 // SqlConnectionReconciler reconciles a SqlConnection object
@@ -126,6 +131,15 @@ func (r *SqlConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *SqlConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().
+		IndexField(
+			context.Background(),
+			&neosyncdevv1alpha1.SqlConnection{},
+			sqlConnectionSecretKeyIdxField,
+			extractSqlConnSecretRefName,
+		); err != nil {
+		return err
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&neosyncdevv1alpha1.SqlConnection{}).
 		Watches(
@@ -136,37 +150,35 @@ func (r *SqlConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+func extractSqlConnSecretRefName(o client.Object) []string {
+	conn, ok := o.(*neosyncdevv1alpha1.SqlConnection)
+	if !ok || conn.Spec.Url.ValueFrom == nil ||
+		conn.Spec.Url.ValueFrom.SecretKeyRef == nil || conn.Spec.Url.ValueFrom.SecretKeyRef.Name == "" {
+		return nil
+	}
+	return []string{conn.Spec.Url.ValueFrom.SecretKeyRef.Name}
+}
+
 func (r *SqlConnectionReconciler) triggerReconcileBecauseSecretChanged(
 	ctx context.Context,
 	o client.Object,
 ) []reconcile.Request {
 	sqlconnList := &neosyncdevv1alpha1.SqlConnectionList{}
 	err := r.List(ctx, sqlconnList, &client.ListOptions{
-		Namespace: o.GetNamespace(),
+		Namespace:     o.GetNamespace(),
+		FieldSelector: fields.OneTermEqualSelector(sqlConnectionSecretKeyIdxField, o.GetName()),
 	})
 	if err != nil {
 		return []reconcile.Request{}
 	}
-	requests := []reconcile.Request{}
+	requests := make([]reconcile.Request, len(sqlconnList.Items))
 	for idx := range sqlconnList.Items {
 		conn := sqlconnList.Items[idx]
-		if ok := doesSqlConnUseSecret(&conn, o.GetName()); ok {
-			requests = append(requests, reconcile.Request{
-				NamespacedName: types.NamespacedName{Namespace: conn.Namespace, Name: conn.Name},
-			})
-		}
+		requests = append(requests, reconcile.Request{
+			NamespacedName: types.NamespacedName{Namespace: conn.Namespace, Name: conn.Name},
+		})
 	}
 	return requests
-}
-
-func doesSqlConnUseSecret(
-	conn *neosyncdevv1alpha1.SqlConnection,
-	secretName string,
-) bool {
-	return conn != nil &&
-		conn.Spec.Url.ValueFrom != nil &&
-		conn.Spec.Url.ValueFrom.SecretKeyRef != nil &&
-		conn.Spec.Url.ValueFrom.SecretKeyRef.Name == secretName
 }
 
 func generateSha256Hash(val []byte) string {
