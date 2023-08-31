@@ -40,3 +40,6 @@ auth0:
   issuerBaseUrl:
   scope:
   audience:
+
+neosyncApi:
+  url:
