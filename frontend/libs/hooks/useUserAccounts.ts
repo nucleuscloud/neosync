@@ -3,8 +3,7 @@ import { JsonValue } from '@bufbuild/protobuf';
 import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
-export function useGetUserAccounts(
-): HookReply<GetUserAccountsResponse> {
+export function useGetUserAccounts(): HookReply<GetUserAccountsResponse> {
   return useNucleusAuthenticatedFetch<GetUserAccountsResponse, JsonValue>(
     `/api/users/accounts`,
     undefined,
