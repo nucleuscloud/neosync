@@ -744,12 +744,7 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
  */
 export class IsConnectionNameAvailableRequest extends Message<IsConnectionNameAvailableRequest> {
   /**
-   * @generated from field: string account_id = 1;
-   */
-  accountId = "";
-
-  /**
-   * @generated from field: string connection_name = 2;
+   * @generated from field: string connection_name = 1;
    */
   connectionName = "";
 
@@ -761,8 +756,7 @@ export class IsConnectionNameAvailableRequest extends Message<IsConnectionNameAv
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.IsConnectionNameAvailableRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "connection_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "connection_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsConnectionNameAvailableRequest {

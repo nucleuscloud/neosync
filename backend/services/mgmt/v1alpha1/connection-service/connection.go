@@ -10,7 +10,6 @@ import (
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
@@ -87,21 +86,22 @@ func (s *Service) IsConnectionNameAvailable(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsConnectionNameAvailableRequest],
 ) (*connect.Response[mgmtv1alpha1.IsConnectionNameAvailableResponse], error) {
-	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
-	if err != nil {
+	connection := &neosyncdevv1alpha1.SqlConnection{}
+	err := s.k8sclient.CustomResourceClient.Get(
+		ctx,
+		types.NamespacedName{Name: req.Msg.ConnectionName, Namespace: s.k8sclient.Namespace},
+		connection,
+	)
+	if err != nil && !errors.IsNotFound(err) {
 		return nil, err
-	}
-
-	count, err := s.db.Q.IsConnectionNameAvailable(ctx, db_queries.IsConnectionNameAvailableParams{
-		AccountId:      accountUuid,
-		ConnectionName: req.Msg.ConnectionName,
-	})
-	if err != nil {
-		return nil, err
+	} else if err != nil && errors.IsNotFound(err) {
+		return connect.NewResponse(&mgmtv1alpha1.IsConnectionNameAvailableResponse{
+			IsAvailable: true,
+		}), nil
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.IsConnectionNameAvailableResponse{
-		IsAvailable: count == 0,
+		IsAvailable: false,
 	}), nil
 }
 

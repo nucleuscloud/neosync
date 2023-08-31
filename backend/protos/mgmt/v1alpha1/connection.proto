@@ -95,8 +95,7 @@ message AwsS3ConnectionConfig {
 }
 
 message IsConnectionNameAvailableRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
-  string connection_name = 2 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string connection_name = 1 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
 }
 
 message IsConnectionNameAvailableResponse {
