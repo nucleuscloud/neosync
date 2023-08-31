@@ -571,9 +571,9 @@ func buildPlainInsertArgs(cols []string) string {
 	if len(cols) == 0 {
 		return ""
 	}
-	pieces := []string{}
-	for _, col := range cols {
-		pieces = append(pieces, fmt.Sprintf("this.%s", col))
+	pieces := make([]string, len(cols))
+	for idx, col := range cols {
+		pieces[idx] = fmt.Sprintf("this.%s", col)
 	}
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
