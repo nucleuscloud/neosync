@@ -5,22 +5,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
-	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+	"golang.org/x/sync/errgroup"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/validation/field"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -104,23 +109,59 @@ func (s *Service) GetConnections(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionsResponse], error) {
-	// accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	conns := &neosyncdevv1alpha1.SqlConnectionList{}
+	err := s.k8sclient.CustomResourceClient.List(ctx, conns, runtimeclient.InNamespace(s.k8sclient.Namespace))
+	if err != nil && !errors.IsNotFound(err) {
+		logger.Error("unable to retrieve connections")
+		return nil, err
+	} else if err != nil && errors.IsNotFound(err) {
+		logger.Error("connections not found")
+		return nil, err
+	}
+	if len(conns.Items) == 0 {
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionsResponse{
+			Connections: []*mgmtv1alpha1.Connection{},
+		}), nil
+	}
 
-	// connections, err := s.db.Q.GetConnectionsByAccount(ctx, *accountId)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	secrets, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: k8s_utils.NeosyncUuidLabel,
+	})
+	if err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if err != nil && errors.IsNotFound(err) {
+		logger.Error("connection secrets not found")
+		return nil, err
+	}
 
-	// dtoConns := []*mgmtv1alpha1.Connection{}
-	// for _, connection := range connections {
-	// 	dtoConns = append(dtoConns, dtomaps.ToConnectionDto(&connection))
-	// }
+	secretsMap := map[string]corev1.Secret{}
+	for _, s := range secrets.Items {
+		secretsMap[s.Name] = s
+	}
+
+	dtoConns := []*mgmtv1alpha1.Connection{}
+	for _, conn := range conns.Items {
+		connId := conn.Labels[k8s_utils.NeosyncUuidLabel]
+		secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
+		secret, ok := secretsMap[secretName]
+		if !ok {
+			return nil, nucleuserrors.NewNotFound(fmt.Sprintf("connection secret not found. id: %s", connId))
+		}
+		secretId := secret.Labels[k8s_utils.NeosyncUuidLabel]
+		if connId != secretId {
+			msg := fmt.Sprintf("connection and secret uuid mismatch. connId: %s secretId: %s", connId, secretId)
+			return nil, nucleuserrors.NewInternalError(msg)
+		}
+		dto, err := dtomaps.ToConnectionDto(conn, secret)
+		if err != nil {
+			return nil, err
+		}
+		dtoConns = append(dtoConns, dto)
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionsResponse{
-		// Connections: dtoConns,
+		Connections: dtoConns,
 	}), nil
 }
 
@@ -128,43 +169,15 @@ func (s *Service) GetConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
-	conns := &neosyncdevv1alpha1.SqlConnectionList{}
-	err := s.k8sclient.CustomResourceClient.List(ctx, conns, runtimeclient.InNamespace(s.k8sclient.Namespace), &runtimeclient.MatchingLabels{
-		k8s_utils.NeosyncUuidLabel: req.Msg.Id,
-	})
-	if err != nil {
-		return nil, err
-	}
-	if len(conns.Items) == 0 {
-		return nil, nucleuserrors.NewNotFound(fmt.Sprintf("connection not found. id: %s", req.Msg.Id))
-	}
-	if len(conns.Items) > 1 {
-		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 connection found. id: %s", req.Msg.Id))
-	}
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("id", req.Msg.Id)
 
-	conn := conns.Items[0]
-	secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
-
-	secrets, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).List(ctx, metav1.ListOptions{
-		LabelSelector: ,
-
-	})
-	secrets, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Get()
+	connection, err := getConnectionById(ctx, logger, s.k8sclient, req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	filteredSecrets := utils.FilterSlice[corev1.Secret](secrets.Items, func(secret corev1.Secret) bool {
-		return secret.Labels[k8s_utils.NeosyncUuidLabel] == req.Msg.Id
-	})
-
-
-	
-
-	// TODO get connection first then get secret by reference namee
-	//TODO verify ids match
-
-	dto, err := dtomaps.ToConnectionDto(&conns.Items[0], &filteredSecrets[0])
+	dto, err := dtomaps.ToConnectionDto(*connection.Connection, *connection.Secret)
 	if err != nil {
 		return nil, err
 	}
@@ -174,40 +187,217 @@ func (s *Service) GetConnection(
 	}), nil
 }
 
-// func (s *Service) CreateConnection(
-// 	ctx context.Context,
-// 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
-// ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
-// 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (s *Service) CreateConnection(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("name", req.Msg.Name)
+	logger.Info("creating connection")
+	connUuid := uuid.NewString()
+	connectionString, err := getPostgresConnectionUrl(req.Msg.ConnectionConfig)
+	if err != nil {
+		return nil, err
+	}
 
-// 	cc := &jsonmodels.ConnectionConfig{}
-// 	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
-// 		return nil, err
-// 	}
+	connSecret := &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      req.Msg.Name,
+			Namespace: s.k8sclient.Namespace,
+			Labels: map[string]string{
+				k8s_utils.NeosyncUuidLabel: connUuid,
+			},
+		},
+		StringData: map[string]string{
+			"url": connectionString,
+		},
+		Type: corev1.SecretTypeOpaque,
+	}
 
-// 	userUuid, err := s.getUserUuid(ctx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	connection := &neosyncdevv1alpha1.SqlConnection{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: s.k8sclient.Namespace,
+			Name:      req.Msg.Name,
+			Labels: map[string]string{
+				k8s_utils.NeosyncUuidLabel: connUuid,
+			},
+		},
+		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
+			Driver: neosyncdevv1alpha1.PostgresDriver,
+			Url: neosyncdevv1alpha1.SqlConnectionUrl{
+				ValueFrom: &neosyncdevv1alpha1.SqlConnectionUrlSource{
+					SecretKeyRef: &neosyncdevv1alpha1.ConfigSelector{
+						Name: connSecret.Name,
+						Key:  "url",
+					},
+				},
+			},
+		},
+	}
 
-// 	connection, err := s.db.Q.CreateConnection(ctx, db_queries.CreateConnectionParams{
-// 		AccountID:        *accountUuid,
-// 		Name:             req.Msg.Name,
-// 		ConnectionConfig: cc,
-// 		CreatedByID:      *userUuid,
-// 		UpdatedByID:      *userUuid,
-// 	})
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	secretChan := make(chan *corev1.Secret, 1)
+	errs, errCtx := errgroup.WithContext(ctx)
+	errs.Go(func() error {
+		logger.Info("creating connection secret")
+		createdSecret, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Create(errCtx, connSecret, metav1.CreateOptions{})
+		if err != nil && !errors.IsAlreadyExists(err) {
+			return err
+		} else if err != nil && errors.IsAlreadyExists(err) {
+			logger.Info("secret already exists, updating...")
+			createdSecret, err = s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Update(errCtx, connSecret, metav1.UpdateOptions{})
+			if err != nil {
+				logger.Error("unable to update connection secret")
+				return err
+			}
+		}
+		select {
+		case secretChan <- createdSecret:
+			return nil
+		case <-errCtx.Done():
+			return errCtx.Err()
+		}
+	})
 
-// 	return connect.NewResponse(&mgmtv1alpha1.CreateConnectionResponse{
-// 		Connection: dtomaps.ToConnectionDto(&connection),
-// 	}), nil
-// }
+	errs.Go(func() error {
+		logger.Info("creating connection")
+		err = s.k8sclient.CustomResourceClient.Create(errCtx, connection)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	err = errs.Wait()
+	if err != nil && !errors.IsAlreadyExists(err) {
+		deleteSecretErr := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Delete(ctx, connSecret.Name, metav1.DeleteOptions{})
+		if deleteSecretErr != nil {
+			logger.Error("unable to clean up connection secret")
+		}
+		deleteConnErr := s.k8sclient.CustomResourceClient.Delete(ctx, connection, &runtimeclient.DeleteOptions{})
+		if deleteConnErr != nil {
+			logger.Error("unable to clean up connection")
+		}
+		return nil, err
+	} else if err != nil && errors.IsAlreadyExists(err) {
+		return nil, err
+	}
+	secret := <-secretChan
+	close(secretChan)
+
+	dto, err := dtomaps.ToConnectionDto(*connection, *secret)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.CreateConnectionResponse{
+		Connection: dto,
+	}), nil
+}
+
+func (s *Service) UpdateConnection(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.UpdateConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.UpdateConnectionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("id", req.Msg.Id)
+	logger.Info("updating connection")
+	connection, err := getConnectionById(ctx, logger, s.k8sclient, req.Msg.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	connectionString, err := getPostgresConnectionUrl(req.Msg.ConnectionConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	patch := &corev1.Secret{
+		StringData: map[string]string{
+			"url": connectionString,
+		},
+	}
+	patchBits, err := json.Marshal(patch)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedSecret, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Patch(
+		ctx,
+		connection.Secret.Name,
+		types.MergePatchType,
+		patchBits,
+		metav1.PatchOptions{},
+	)
+	if err != nil {
+		logger.Error("unable to update connection")
+		return nil, err
+	}
+
+	dto, err := dtomaps.ToConnectionDto(*connection.Connection, *updatedSecret)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.UpdateConnectionResponse{
+		Connection: dto,
+	}), nil
+}
+
+func (s *Service) DeleteConnection(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.DeleteConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.DeleteConnectionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("id", req.Msg.Id)
+	logger.Info("deleting connection")
+
+	conn, err := getSqlConnectionById(ctx, logger, s.k8sclient, req.Msg.Id)
+	if err != nil && !nucleuserrors.IsNotFound(err) {
+		return nil, err
+	}
+
+	secret, err := getConnectionSecretById(ctx, logger, s.k8sclient, req.Msg.Id)
+	if err != nil && !nucleuserrors.IsNotFound(err) {
+		return nil, err
+	}
+
+	errs, errCtx := errgroup.WithContext(ctx)
+	if secret != nil {
+		errs.Go(func() error {
+			err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Delete(errCtx, secret.Name, metav1.DeleteOptions{})
+			if err != nil && !errors.IsNotFound(err) {
+				return err
+			} else if err != nil && errors.IsNotFound(err) {
+				return nil
+			}
+			return nil
+		})
+	}
+
+	if conn != nil {
+		errs.Go(func() error {
+			err := s.k8sclient.CustomResourceClient.Delete(errCtx, conn, &runtimeclient.DeleteOptions{})
+			if err != nil && !errors.IsNotFound(err) {
+				return err
+			} else if err != nil && errors.IsNotFound(err) {
+				return nil
+			}
+			return nil
+		})
+	}
+
+	err = errs.Wait()
+	if err != nil {
+		logger.Error("unable to delete connection")
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
+}
 
 func getPostgresConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) {
 	switch config := c.Config.(type) {
@@ -235,128 +425,98 @@ func getPostgresConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) 
 	}
 }
 
-func (s *Service) CreateConnection(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
-) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
-	// TODO handle failures or name collisions
-	uuid := uuid.NewString()
-	connectionString, err := getPostgresConnectionUrl(req.Msg.ConnectionConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	sourceConnSecret := &corev1.Secret{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Secret",
-			APIVersion: "v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      req.Msg.Name,
-			Namespace: s.k8sclient.Namespace,
-			Labels: map[string]string{
-				k8s_utils.NeosyncUuidLabel: uuid,
-			},
-		},
-		StringData: map[string]string{
-			"url": connectionString,
-		},
-		Type: corev1.SecretTypeOpaque,
-	}
-
-	createdSecret, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.k8sclient.Namespace).Create(ctx, sourceConnSecret, metav1.CreateOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	// make source connection
-	sourceConnection := &neosyncdevv1alpha1.SqlConnection{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: s.k8sclient.Namespace,
-			Name:      req.Msg.Name,
-			Labels: map[string]string{
-				k8s_utils.NeosyncUuidLabel: uuid,
-			},
-		},
-		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
-			Driver: neosyncdevv1alpha1.PostgresDriver,
-			Url: neosyncdevv1alpha1.SqlConnectionUrl{
-				ValueFrom: &neosyncdevv1alpha1.SqlConnectionUrlSource{
-					SecretKeyRef: &neosyncdevv1alpha1.ConfigSelector{
-						Name: createdSecret.Name,
-						Key:  "url",
-					},
-				},
-			},
-		},
-	}
-	err = s.k8sclient.CustomResourceClient.Create(ctx, sourceConnection)
-	if err != nil {
-		return nil, err
-	}
-
-	dto, err := dtomaps.ToConnectionDto(sourceConnection, sourceConnSecret)
-	if err != nil {
-		return nil, err
-	}
-
-	return connect.NewResponse(&mgmtv1alpha1.CreateConnectionResponse{
-		Connection: dto,
-	}), nil
+type connection struct {
+	Connection *neosyncdevv1alpha1.SqlConnection
+	Secret     *corev1.Secret
 }
 
-func (s *Service) UpdateConnection(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.UpdateConnectionRequest],
-) (*connect.Response[mgmtv1alpha1.UpdateConnectionResponse], error) {
-	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+func getConnectionById(ctx context.Context, logger *slog.Logger, k8sclient *neosync_k8sclient.Client, id string) (*connection, error) {
+	conn, err := getSqlConnectionById(ctx, logger, k8sclient, id)
 	if err != nil {
 		return nil, err
 	}
-	connection, err := s.db.Q.GetConnectionById(ctx, connectionUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
-	}
 
-	cc := &jsonmodels.ConnectionConfig{}
-	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
+	secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
+	secret, err := getConnectionSecretByName(ctx, logger, k8sclient, secretName)
+	if err != nil {
 		return nil, err
 	}
 
-	connection, err = s.db.Q.UpdateConnection(ctx, db_queries.UpdateConnectionParams{
-		ID:               connection.ID,
-		ConnectionConfig: cc,
+	secretId := secret.Labels[k8s_utils.NeosyncUuidLabel]
+	if conn.Labels[k8s_utils.NeosyncUuidLabel] != secretId {
+		msg := fmt.Sprintf("connection and secret uuid mismatch. connId: %s secretId: %s", id, secretId)
+		return nil, nucleuserrors.NewInternalError(msg)
+	}
+
+	return &connection{
+		Connection: conn,
+		Secret:     secret,
+	}, nil
+}
+
+func getConnectionSecretByName(
+	ctx context.Context,
+	logger *slog.Logger,
+	k8sclient *neosync_k8sclient.Client,
+	name string,
+) (*corev1.Secret, error) {
+	secret, err := k8sclient.K8sClient.CoreV1().Secrets(k8sclient.Namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if err != nil && errors.IsNotFound(err) {
+		logger.Error("connection secret not found", "secretName", name)
+		return nil, err
+	}
+	return secret, nil
+}
+
+func getConnectionSecretById(
+	ctx context.Context,
+	logger *slog.Logger,
+	k8sclient *neosync_k8sclient.Client,
+	id string,
+) (*corev1.Secret, error) {
+	req, err := labels.NewRequirement(k8s_utils.NeosyncUuidLabel, selection.Equals, []string{id})
+	if err != nil {
+		return nil, err
+	}
+	labelSelector := labels.NewSelector().Add(*req)
+	secrets, err := k8sclient.K8sClient.CoreV1().Secrets(k8sclient.Namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: labelSelector.String(),
 	})
 	if err != nil {
+		logger.Error("unable to retrieve secrets")
 		return nil, err
 	}
-
-	return connect.NewResponse(&mgmtv1alpha1.UpdateConnectionResponse{
-		// Connection: dtomaps.ToConnectionDto(&connection),
-	}), nil
+	if len(secrets.Items) == 0 {
+		return nil, nucleuserrors.NewNotFound(fmt.Sprintf("secret not found. id: %s", id))
+	}
+	if len(secrets.Items) > 1 {
+		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 secret found. id: %s", id))
+	}
+	return &secrets.Items[0], nil
 }
 
-func (s *Service) DeleteConnection(
+func getSqlConnectionById(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.DeleteConnectionRequest],
-) (*connect.Response[mgmtv1alpha1.DeleteConnectionResponse], error) {
-	idUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	logger *slog.Logger,
+	k8sclient *neosync_k8sclient.Client,
+	id string,
+) (*neosyncdevv1alpha1.SqlConnection, error) {
+	conns := &neosyncdevv1alpha1.SqlConnectionList{}
+	err := k8sclient.CustomResourceClient.List(ctx, conns, runtimeclient.InNamespace(k8sclient.Namespace), &runtimeclient.MatchingLabels{
+		k8s_utils.NeosyncUuidLabel: id,
+	})
 	if err != nil {
+		logger.Error("unable to retrieve connection")
 		return nil, err
 	}
+	if len(conns.Items) == 0 {
+		return nil, nucleuserrors.NewNotFound(fmt.Sprintf("connection not found. id: %s", id))
+	}
+	if len(conns.Items) > 1 {
+		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 connection found. id: %s", id))
+	}
+	return &conns.Items[0], nil
 
-	connection, err := s.db.Q.GetConnectionById(ctx, idUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
-	}
-
-	err = s.db.Q.RemoveConnectionById(ctx, connection.ID)
-	if err != nil {
-		return nil, err
-	}
-	return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
 }

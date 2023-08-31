@@ -60,28 +60,8 @@ func (m *GetConnectionsRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = GetConnectionsRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if len(errors) > 0 {
 		return GetConnectionsRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetConnectionsRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil

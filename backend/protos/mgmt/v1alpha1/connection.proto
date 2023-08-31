@@ -5,9 +5,7 @@ package mgmt.v1alpha1;
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
-message GetConnectionsRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
-}
+message GetConnectionsRequest {}
 message GetConnectionsResponse {
   repeated Connection connections = 1;
 }

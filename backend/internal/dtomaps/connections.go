@@ -10,8 +10,8 @@ import (
 )
 
 func ToConnectionDto(
-	input *neosyncdevv1alpha1.SqlConnection,
-	secret *corev1.Secret,
+	input neosyncdevv1alpha1.SqlConnection,
+	secret corev1.Secret,
 ) (*mgmtv1alpha1.Connection, error) {
 
 	url := string(secret.Data["url"])

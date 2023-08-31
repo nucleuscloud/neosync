@@ -10,11 +10,6 @@ import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
  * @generated from message mgmt.v1alpha1.GetConnectionsRequest
  */
 export class GetConnectionsRequest extends Message<GetConnectionsRequest> {
-  /**
-   * @generated from field: string account_id = 1;
-   */
-  accountId = "";
-
   constructor(data?: PartialMessage<GetConnectionsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -23,7 +18,6 @@ export class GetConnectionsRequest extends Message<GetConnectionsRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetConnectionsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionsRequest {
