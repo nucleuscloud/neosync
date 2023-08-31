@@ -11,10 +11,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 	"golang.org/x/sync/errgroup"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	// "k8s.io/apimachinery/pkg/types"
 )
 
 func (s *Service) GetJobs(
@@ -117,174 +115,77 @@ func (s *Service) GetJob(
 	}), nil
 }
 
-// func (s *Service) CreateJob(
-// 	ctx context.Context,
-// 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
-// ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
-// 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	userUuid, err := s.getUserUuid(ctx)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	destUuids := []pgtype.UUID{}
-// 	for _, destId := range req.Msg.ConnectionDestinationIds {
-// 		destUuid, err := nucleusdb.ToUuid(destId)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		destUuids = append(destUuids, destUuid)
-// 	}
-
-// 	cron := pgtype.Text{}
-// 	if req.Msg.CronSchedule != nil {
-// 		err = cron.Scan(req.Msg.GetCronSchedule())
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	}
-// 	connectionSourceUuid, err := nucleusdb.ToUuid(req.Msg.ConnectionSourceId)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	mappings := []*jsonmodels.JobMapping{}
-// 	for _, mapping := range req.Msg.Mappings {
-// 		jm := &jsonmodels.JobMapping{}
-// 		err = jm.FromDto(mapping)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		mappings = append(mappings, jm)
-// 	}
-
-// 	var createdJob *db_queries.NeosyncApiJob
-// 	if err = s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
-// 		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
-// 			Name:                    req.Msg.JobName,
-// 			AccountID:               *accountUuid,
-// 			Status:                  int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
-// 			CronSchedule:            cron,
-// 			HaltOnNewColumnAddition: nucleusdb.BoolToInt16(req.Msg.HaltOnNewColumnAddition),
-// 			CreatedByID:             *userUuid,
-// 			UpdatedByID:             *userUuid,
-// 			ConnectionSourceID:      connectionSourceUuid,
-// 			Mappings:                mappings,
-// 		})
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		connDestParams := []db_queries.CreateJobConnectionDestinationsParams{}
-// 		for _, destUuid := range destUuids {
-// 			connDestParams = append(connDestParams, db_queries.CreateJobConnectionDestinationsParams{
-// 				JobID:        job.ID,
-// 				ConnectionID: destUuid,
-// 			})
-// 		}
-// 		if len(connDestParams) > 0 {
-// 			_, err = q.CreateJobConnectionDestinations(ctx, connDestParams)
-// 			if err != nil {
-// 				return err
-// 			}
-// 		}
-// 		createdJob = &job
-// 		return nil
-// 	}); err != nil {
-// 		return nil, err
-// 	}
-
-// 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-// 		Job: dtomaps.ToJobDto(createdJob, destUuids),
-// 	}), nil
-// }
-
-func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1.SourceSqlSchema {
-	schema := []*neosyncdevv1alpha1.SourceSqlSchema{}
-
-	schemaMap := map[string]map[string][]*neosyncdevv1alpha1.SourceSqlColumn{}
-	for _, row := range mappings {
-
-		_, ok := schemaMap[row.Schema][row.Table]
-		if !ok {
-			schemaMap[row.Schema] = map[string][]*neosyncdevv1alpha1.SourceSqlColumn{
-				row.Table: {
-					{
-						Name:    row.Column,
-						Exclude: &row.Exclude,
-						Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-							Name: row.Transformer.String(),
-						},
-					},
-				},
-			}
-			break
-		}
-
-		schemaMap[row.Schema][row.Table] = append(schemaMap[row.Schema][row.Table], &neosyncdevv1alpha1.SourceSqlColumn{
-			Name:    row.Column,
-			Exclude: &row.Exclude,
-			Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-				Name: row.Transformer.String(),
-			},
-		})
-
-	}
-
-	return schema
-}
-
 func (s *Service) CreateJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
-	// TODO use go routines
-
-	// check connections exist
-
-	schemas := createSqlSchemas(req.Msg.Mappings)
-
-	// create job config
-	trueBool := true
-	job := &neosyncdevv1alpha1.JobConfig{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: s.k8sclient.Namespace,
-			Name:      req.Msg.JobName,
-		},
-		Spec: neosyncdevv1alpha1.JobConfigSpec{
-			Source: &neosyncdevv1alpha1.JobConfigSource{
-				Sql: &neosyncdevv1alpha1.SourceSql{
-					ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
-						Name: "",
-					},
-					HaltOnSchemaChange: &req.Msg.HaltOnNewColumnAddition,
-					Schemas:            schemas,
-				},
-			},
-			Destinations: []*neosyncdevv1alpha1.JobConfigDestination{
-				{
-					Sql: &neosyncdevv1alpha1.DestinationSql{
-						ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
-							Name: "destinationConnection.Name",
-						},
-						TruncateBeforeInsert: &trueBool, //TODO
-						InitDbSchema:         &trueBool, //TODO
-					},
-				},
-			},
-		},
+	destUuids := []pgtype.UUID{}
+	for _, destId := range req.Msg.ConnectionDestinationIds {
+		destUuid, err := nucleusdb.ToUuid(destId)
+		if err != nil {
+			return nil, err
+		}
+		destUuids = append(destUuids, destUuid)
 	}
 
-	err := s.k8sclient.CustomResourceClient.Create(ctx, job)
+	cron := pgtype.Text{}
+	if req.Msg.CronSchedule != nil {
+		err := cron.Scan(req.Msg.GetCronSchedule())
+		if err != nil {
+			return nil, err
+		}
+	}
+	connectionSourceUuid, err := nucleusdb.ToUuid(req.Msg.ConnectionSourceId)
 	if err != nil {
 		return nil, err
 	}
 
+	mappings := []*jsonmodels.JobMapping{}
+	for _, mapping := range req.Msg.Mappings {
+		jm := &jsonmodels.JobMapping{}
+		err = jm.FromDto(mapping)
+		if err != nil {
+			return nil, err
+		}
+		mappings = append(mappings, jm)
+	}
+
+	var createdJob *db_queries.NeosyncApiJob
+	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
+		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
+			Name: req.Msg.JobName,
+			// AccountID:               *accountUuid,
+			Status:                  int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
+			CronSchedule:            cron,
+			HaltOnNewColumnAddition: nucleusdb.BoolToInt16(req.Msg.HaltOnNewColumnAddition),
+			ConnectionSourceID:      connectionSourceUuid,
+			Mappings:                mappings,
+		})
+		if err != nil {
+			return err
+		}
+
+		connDestParams := []db_queries.CreateJobConnectionDestinationsParams{}
+		for _, destUuid := range destUuids {
+			connDestParams = append(connDestParams, db_queries.CreateJobConnectionDestinationsParams{
+				JobID:        job.ID,
+				ConnectionID: destUuid,
+			})
+		}
+		if len(connDestParams) > 0 {
+			_, err = q.CreateJobConnectionDestinations(ctx, connDestParams)
+			if err != nil {
+				return err
+			}
+		}
+		createdJob = &job
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		// Job: dtomaps.ToJobDto(createdJob, destUuids),
+		Job: dtomaps.ToJobDto(createdJob, destUuids),
 	}), nil
 }
 
