@@ -26,3 +26,5 @@ stringData:
     AUTH0_ISSUER_BASE_URL: {{ .Values.auth0.issuerBaseUrl }}
     AUTH0_SCOPE: {{ .Values.auth0.scope }}
     AUTH0_AUDIENCE: {{ .Values.auth0.audience }}
+
+    NEOSYNC_API_BASE_URL: {{ .Values.neosyncApi.url }}
