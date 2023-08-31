@@ -136,7 +136,8 @@ func (r *SqlConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			context.Background(),
 			&neosyncdevv1alpha1.SqlConnection{},
 			sqlConnectionSecretKeyIdxField,
-			extractSqlConnSecretRefName); err != nil {
+			extractSqlConnSecretRefName,
+		); err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).
