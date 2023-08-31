@@ -136,13 +136,7 @@ func (r *SqlConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			context.Background(),
 			&neosyncdevv1alpha1.SqlConnection{},
 			sqlConnectionSecretKeyIdxField,
-			func(o client.Object) []string {
-				conn := o.(*neosyncdevv1alpha1.SqlConnection)
-				if conn.Spec.Url.ValueFrom == nil || conn.Spec.Url.ValueFrom.SecretKeyRef == nil || conn.Spec.Url.ValueFrom.SecretKeyRef.Name == "" {
-					return nil
-				}
-				return []string{conn.Spec.Url.ValueFrom.SecretKeyRef.Name}
-			}); err != nil {
+			extractSqlConnSecretRefName); err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).
@@ -153,6 +147,15 @@ func (r *SqlConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 		).
 		Complete(r)
+}
+
+func extractSqlConnSecretRefName(o client.Object) []string {
+	conn, ok := o.(*neosyncdevv1alpha1.SqlConnection)
+	if !ok || conn.Spec.Url.ValueFrom == nil ||
+		conn.Spec.Url.ValueFrom.SecretKeyRef == nil || conn.Spec.Url.ValueFrom.SecretKeyRef.Name == "" {
+		return nil
+	}
+	return []string{conn.Spec.Url.ValueFrom.SecretKeyRef.Name}
 }
 
 func (r *SqlConnectionReconciler) triggerReconcileBecauseSecretChanged(
