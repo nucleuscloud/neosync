@@ -51,7 +51,7 @@ export function withNeosyncContext<T = unknown>(
   };
 }
 
-export async function getNeosyncContext(
+async function getNeosyncContext(
   req: NextRequest
 ): Promise<NeosyncContext> {
   const res = new NextResponse();
