@@ -5,7 +5,17 @@ metadata:
 spec:
   driver: postgres
   url:
-    value: postgres://postgres:foofar@postgresql1:5432/neosync?sslmode=disable
+    valueFrom:
+      secretKeyRef:
+        name: prod-pg-creds
+        key: url
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prod-pg-creds
+stringData:
+  url: postgres://postgres:foofar@postgresql1:5432/neosync?sslmode=disable
 ---
 apiVersion: neosync.dev/v1alpha1
 kind: SqlConnection
