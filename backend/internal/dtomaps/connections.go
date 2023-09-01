@@ -26,7 +26,7 @@ func ToConnectionDto(
 		Name:             input.Name,
 		ConnectionConfig: connectionConfig,
 		CreatedAt:        timestamppb.New(input.CreationTimestamp.Time),
-		UpdatedAt:        timestamppb.New(input.CreationTimestamp.Time), // TODO
+		UpdatedAt:        timestamppb.New(input.CreationTimestamp.Time), // TODO @alisha
 	}, nil
 }
 
