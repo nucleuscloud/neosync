@@ -2,7 +2,6 @@ package v1alpha1_jobservice
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -10,11 +9,13 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	"golang.org/x/sync/errgroup"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (s *Service) GetJobs(
@@ -80,37 +81,23 @@ func (s *Service) GetJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
-	// jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
 
-	// errgrp, errctx := errgroup.WithContext(ctx)
-
-	// var job db_queries.NeosyncApiJob
-	// errgrp.Go(func() error {
-	// 	j, err := s.db.Q.GetJobById(errctx, jobUuid)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	job = j
-	// 	return nil
-	// })
-	// var destConnections []pgtype.UUID
-	// errgrp.Go(func() error {
-	// 	dcs, err := s.db.Q.GetJobConnectionDestinations(ctx, jobUuid)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	destConnections = dcs
-	// 	return nil
-	// })
-	// if err = errgrp.Wait(); err != nil {
-	// 	if nucleusdb.IsNoRows(err) {
-	// 		return nil, nucleuserrors.NewNotFound("unable to find job by id")
-	// 	}
-	// 	return nil, err
-	// }
+	jobs := &neosyncdevv1alpha1.JobConfigList{}
+	err := s.k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(s.k8sclient.Namespace), &runtimeclient.MatchingLabels{
+		k8s_utils.NeosyncUuidLabel: req.Msg.Id,
+	})
+	if err != nil {
+		logger.Error("unable to retrieve job")
+		return nil, err
+	}
+	if len(jobs.Items) == 0 {
+		return nil, nucleuserrors.NewNotFound(fmt.Sprintf("connection not found. id: %s", req.Msg.Id))
+	}
+	if len(jobs.Items) > 1 {
+		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 connection found. id: %s", req.Msg.Id))
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 		// Job: dtomaps.ToJobDto(&job, destConnections),
@@ -254,7 +241,7 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 						Name:    row.Column,
 						Exclude: &row.Exclude,
 						Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-							Name: row.Transformer.String(),
+							Name: row.Transformer.Enum().String(),
 						},
 					},
 				},
@@ -266,7 +253,7 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 			Name:    row.Column,
 			Exclude: &row.Exclude,
 			Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-				Name: row.Transformer.String(),
+				Name: row.Transformer.Enum().String(),
 			},
 		})
 
@@ -281,8 +268,6 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 			})
 		}
 	}
-	jsonF, _ := json.MarshalIndent(schema, "", " ")
-	fmt.Printf("\n\n schema: %s \n\n", string(jsonF))
 
 	return schema
 }

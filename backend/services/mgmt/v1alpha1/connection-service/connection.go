@@ -518,5 +518,4 @@ func getSqlConnectionById(
 		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 connection found. id: %s", id))
 	}
 	return &conns.Items[0], nil
-
 }
