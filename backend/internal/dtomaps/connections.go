@@ -34,7 +34,6 @@ func getConnectionConfig(
 	input *neosyncdevv1alpha1.SqlConnection,
 	secret *corev1.Secret,
 ) (*mgmtv1alpha1.ConnectionConfig, error) {
-
 	switch input.Spec.Driver {
 	case neosyncdevv1alpha1.PostgresDriver:
 		var url string

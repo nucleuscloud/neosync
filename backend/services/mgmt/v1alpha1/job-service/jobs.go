@@ -85,7 +85,7 @@ func (s *Service) GetJob(
 	logger = logger.With("jobId", req.Msg.Id)
 
 	jobs := &neosyncdevv1alpha1.JobConfigList{}
-	err := s.k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(s.k8sclient.Namespace), &runtimeclient.MatchingLabels{
+	err := s.k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(s.cfg.JobConfigNamespace), &runtimeclient.MatchingLabels{
 		k8s_utils.NeosyncUuidLabel: req.Msg.Id,
 	})
 	if err != nil {
@@ -98,6 +98,8 @@ func (s *Service) GetJob(
 	if len(jobs.Items) > 1 {
 		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 connection found. id: %s", req.Msg.Id))
 	}
+
+	// get job connections
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 		// Job: dtomaps.ToJobDto(&job, destConnections),
@@ -148,7 +150,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	trueBool := true // TODO
+	trueBool := true // TODO @alisha
 	jobDestinations := []*neosyncdevv1alpha1.JobConfigDestination{}
 	for _, name := range destConnNames {
 		jobDestinations = append(jobDestinations, &neosyncdevv1alpha1.JobConfigDestination{
@@ -156,8 +158,8 @@ func (s *Service) CreateJob(
 				ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
 					Name: name,
 				},
-				TruncateBeforeInsert: &trueBool, // TODO
-				InitDbSchema:         &trueBool, // TODO
+				TruncateBeforeInsert: &trueBool, // TODO @alisha
+				InitDbSchema:         &trueBool, // TODO @alisha
 			},
 		})
 	}
@@ -165,7 +167,7 @@ func (s *Service) CreateJob(
 	schemas := createSqlSchemas(req.Msg.Mappings)
 	job := &neosyncdevv1alpha1.JobConfig{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: s.k8sclient.Namespace,
+			Namespace: s.cfg.JobConfigNamespace,
 			Name:      req.Msg.JobName,
 			Labels: map[string]string{
 				k8s_utils.NeosyncUuidLabel: jobUuid,
