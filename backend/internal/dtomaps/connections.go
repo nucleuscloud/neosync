@@ -39,7 +39,10 @@ func getConnectionConfig(
 	case neosyncdevv1alpha1.PostgresDriver:
 		var url string
 		if secret != nil {
-			url = string(secret.Data["url"])
+			url = string(secret.Data[conn_utils.ConnectionSecretUrlField])
+			if url == "" {
+				return nil, nucleuserrors.NewInternalError("unable to locate connection url in secret")
+			}
 		} else if input.Spec.Url.Value != nil && *input.Spec.Url.Value != "" {
 			url = *input.Spec.Url.Value
 		} else {

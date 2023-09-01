@@ -16,6 +16,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	conn_utils "github.com/nucleuscloud/neosync/backend/internal/utils/connections"
 	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	"golang.org/x/sync/errgroup"
@@ -215,7 +216,7 @@ func (s *Service) CreateConnection(
 			},
 		},
 		StringData: map[string]string{
-			"url": connectionString,
+			conn_utils.ConnectionSecretUrlField: connectionString,
 		},
 		Type: corev1.SecretTypeOpaque,
 	}
@@ -312,7 +313,6 @@ func (s *Service) UpdateConnection(
 		return nil, err
 	}
 
-	// check connection type
 	connectionString, err := getConnectionUrl(req.Msg.ConnectionConfig)
 	if err != nil {
 		return nil, err
@@ -330,7 +330,6 @@ func (s *Service) UpdateConnection(
 		if err != nil {
 			return nil, err
 		}
-		// update secret or value from depending
 		secret, err = s.k8sclient.K8sClient.CoreV1().Secrets(s.cfg.JobConfigNamespace).Patch(
 			ctx,
 			connection.Secret.Name,
@@ -472,22 +471,27 @@ func getConnectionById(
 		return nil, err
 	}
 
-	secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
-	secret, err := getConnectionSecretByName(ctx, logger, k8sclient, secretName, namespace)
-	if err != nil {
-		return nil, err
-	}
-
-	secretId := secret.Labels[k8s_utils.NeosyncUuidLabel]
-	if conn.Labels[k8s_utils.NeosyncUuidLabel] != secretId {
-		msg := fmt.Sprintf("connection and secret uuid mismatch. connId: %s secretId: %s", id, secretId)
-		return nil, nucleuserrors.NewInternalError(msg)
+	if conn.Spec.Url.ValueFrom != nil {
+		secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
+		secret, err := getConnectionSecretByName(ctx, logger, k8sclient, secretName, namespace)
+		if err != nil {
+			return nil, err
+		}
+		secretId := secret.Labels[k8s_utils.NeosyncUuidLabel]
+		if conn.Labels[k8s_utils.NeosyncUuidLabel] != secretId {
+			msg := fmt.Sprintf("connection and secret uuid mismatch. connId: %s secretId: %s", id, secretId)
+			return nil, nucleuserrors.NewInternalError(msg)
+		}
+		return &connection{
+			Connection: conn,
+			Secret:     secret,
+		}, nil
 	}
 
 	return &connection{
 		Connection: conn,
-		Secret:     secret,
 	}, nil
+
 }
 
 func getConnectionSecretByName(
