@@ -55,11 +55,8 @@ message Connection {
 
   ConnectionConfig connection_config = 3;
 
-  string created_by_user_id = 4;
-  google.protobuf.Timestamp created_at = 5;
-
-  string updated_by_user_id = 6;
-  google.protobuf.Timestamp updated_at = 7;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
 }
 
 message ConnectionConfig {

@@ -11,7 +11,9 @@ type Service struct {
 	k8sclient *neosync_k8sclient.Client
 }
 
-type Config struct{}
+type Config struct {
+	JobConfigNamespace string
+}
 
 func New(
 	cfg *Config,

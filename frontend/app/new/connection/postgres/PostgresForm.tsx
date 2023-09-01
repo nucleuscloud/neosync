@@ -1,5 +1,4 @@
 'use client';
-import { useAccount } from '@/components/contexts/account-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,20 +55,15 @@ export default function PostgresForm() {
     },
   });
   const router = useRouter();
-  const account = useAccount();
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
 
   async function onSubmit(values: FormValues) {
-    if (!account?.id) {
-      return;
-    }
     try {
       const connection = await createPostgresConnection(
         values.db,
-        values.connectionName,
-        account.id
+        values.connectionName
       );
       if (connection.connection?.id) {
         router.push(`/connections/${connection.connection.id}`);
@@ -255,8 +249,7 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 }
 async function createPostgresConnection(
   db: FormValues['db'],
-  name: string,
-  accountId: string
+  name: string
 ): Promise<CreateConnectionResponse> {
   const res = await fetch(`/api/connections`, {
     method: 'POST',
@@ -265,7 +258,6 @@ async function createPostgresConnection(
     },
     body: JSON.stringify(
       new CreateConnectionRequest({
-        accountId: accountId,
         name: name,
         connectionConfig: new ConnectionConfig({
           config: {
