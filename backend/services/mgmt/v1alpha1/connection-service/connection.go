@@ -132,24 +132,27 @@ func (s *Service) GetConnections(
 		return nil, err
 	}
 
-	secretsMap := map[string]corev1.Secret{}
-	for _, s := range secrets.Items {
-		secretsMap[s.Name] = s
+	secretsMap := map[string]*corev1.Secret{}
+	for i := range secrets.Items {
+		secret := secrets.Items[i]
+		secretsMap[secret.Name] = &secret
 	}
 
 	dtoConns := []*mgmtv1alpha1.Connection{}
-	for _, conn := range conns.Items {
+	for i := range conns.Items {
+		conn := conns.Items[i]
 		connId := conn.Labels[k8s_utils.NeosyncUuidLabel]
 		var secret *corev1.Secret
 		if conn.Spec.Url.ValueFrom != nil {
 			secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
-			secret, ok := secretsMap[secretName]
+			secretEntry, ok := secretsMap[secretName]
 			if ok {
-				secretId := secret.Labels[k8s_utils.NeosyncUuidLabel]
+				secretId := secretEntry.Labels[k8s_utils.NeosyncUuidLabel]
 				if connId != secretId {
 					msg := fmt.Sprintf("connection and secret uuid mismatch. connId: %s secretId: %s", connId, secretId)
 					return nil, nucleuserrors.NewInternalError(msg)
 				}
+				secret = secretEntry
 			}
 		}
 		dto, err := dtomaps.ToConnectionDto(&conn, secret)
@@ -457,7 +460,13 @@ type connection struct {
 	Secret     *corev1.Secret
 }
 
-func getConnectionById(ctx context.Context, logger *slog.Logger, k8sclient *neosync_k8sclient.Client, id string, namespace string) (*connection, error) {
+func getConnectionById(
+	ctx context.Context,
+	logger *slog.Logger,
+	k8sclient *neosync_k8sclient.Client,
+	id,
+	namespace string,
+) (*connection, error) {
 	conn, err := getSqlConnectionById(ctx, logger, k8sclient, id, namespace)
 	if err != nil {
 		return nil, err

@@ -42,6 +42,8 @@ func getConnectionConfig(
 			url = string(secret.Data["url"])
 		} else if input.Spec.Url.Value != nil && *input.Spec.Url.Value != "" {
 			url = *input.Spec.Url.Value
+		} else {
+			return nil, nucleuserrors.NewNotImplemented("this connection config url is not currently supported")
 		}
 		connCfg, err := conn_utils.ParsePostgresUrl(url)
 		if err != nil {
