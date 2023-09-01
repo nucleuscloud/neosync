@@ -24,4 +24,4 @@ stringData:
     NUCLEUS_ENV: {{ .Values.nucleusEnv }}
 
     SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
-    K8_NAMESPACE: {{ .Values.k8.namespace }}
+    JOB_CONFIG_NAMESPACE: {{ .Values.jobConfig.namespace }}

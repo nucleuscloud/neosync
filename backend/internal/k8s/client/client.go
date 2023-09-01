@@ -9,13 +9,11 @@ import (
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
-	"github.com/spf13/viper"
 )
 
 type Client struct {
 	K8sClient            *kubernetes.Clientset
 	CustomResourceClient runtimeclient.WithWatch
-	Namespace            string
 }
 
 func New() (*Client, error) {
@@ -49,15 +47,9 @@ func newFromConfig(
 		return nil, fmt.Errorf("unable to init kubernetes runtime client: %w", err)
 	}
 
-	k8Namespace := viper.GetString("K8_NAMESPACE")
-	if k8Namespace == "" {
-		return nil, fmt.Errorf("must provide K8_NAMESPACE in environment")
-	}
-
 	return &Client{
 		K8sClient:            clientset,
 		CustomResourceClient: rtclient,
-		Namespace:            k8Namespace,
 	}, nil
 }
 
