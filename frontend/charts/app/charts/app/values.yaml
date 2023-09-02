@@ -32,11 +32,5 @@ port: 80
 terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
-auth0:
-  baseUrl:
-  clientId:
-  clientSecret:
-  cookieSecret:
-  issuerBaseUrl:
-  scope:
-  audience:
+neosyncApi:
+  url:

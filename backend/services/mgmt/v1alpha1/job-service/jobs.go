@@ -11,30 +11,29 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 	"golang.org/x/sync/errgroup"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 func (s *Service) GetJobs(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
-	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-
-	jobs, err := s.db.Q.GetJobsByAccount(ctx, *accountUuid)
+	jobs, err := s.db.Q.GetJobsByAccount(ctx, accountUuid)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
 	}
 
 	jobIds := []pgtype.UUID{}
-	for _, job := range jobs {
+	for idx := range jobs {
+		job := jobs[idx]
 		jobIds = append(jobIds, job.ID)
 	}
 
@@ -48,8 +47,8 @@ func (s *Service) GetJobs(
 	}
 
 	jobMap := map[pgtype.UUID]*db_queries.NeosyncApiJob{}
-	for _, job := range jobs {
-		job := job // This is necessary otherwise the same job gets set in the map as the memory pointer is re-used
+	for idx := range jobs {
+		job := jobs[idx]
 		jobMap[job.ID] = &job
 	}
 
@@ -108,11 +107,6 @@ func (s *Service) GetJob(
 		if nucleusdb.IsNoRows(err) {
 			return nil, nucleuserrors.NewNotFound("unable to find job by id")
 		}
-		return nil, err
-	}
-
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
-	if err != nil {
 		return nil, err
 	}
 
@@ -210,14 +204,70 @@ func (s *Service) CreateJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
-	job := &neosyncdevv1alpha1.JobConfig{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-		},
+	destUuids := []pgtype.UUID{}
+	for _, destId := range req.Msg.ConnectionDestinationIds {
+		destUuid, err := nucleusdb.ToUuid(destId)
+		if err != nil {
+			return nil, err
+		}
+		destUuids = append(destUuids, destUuid)
 	}
 
-	s.k8sclient.CustomResourceClient.Create(ctx)
+	cron := pgtype.Text{}
+	if req.Msg.CronSchedule != nil {
+		err := cron.Scan(req.Msg.GetCronSchedule())
+		if err != nil {
+			return nil, err
+		}
+	}
+	connectionSourceUuid, err := nucleusdb.ToUuid(req.Msg.ConnectionSourceId)
+	if err != nil {
+		return nil, err
+	}
+
+	mappings := []*jsonmodels.JobMapping{}
+	for _, mapping := range req.Msg.Mappings {
+		jm := &jsonmodels.JobMapping{}
+		err = jm.FromDto(mapping)
+		if err != nil {
+			return nil, err
+		}
+		mappings = append(mappings, jm)
+	}
+
+	var createdJob *db_queries.NeosyncApiJob
+	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
+		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
+			Name: req.Msg.JobName,
+			// AccountID:               *accountUuid,
+			Status:                  int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
+			CronSchedule:            cron,
+			HaltOnNewColumnAddition: nucleusdb.BoolToInt16(req.Msg.HaltOnNewColumnAddition),
+			ConnectionSourceID:      connectionSourceUuid,
+			Mappings:                mappings,
+		})
+		if err != nil {
+			return err
+		}
+
+		connDestParams := []db_queries.CreateJobConnectionDestinationsParams{}
+		for _, destUuid := range destUuids {
+			connDestParams = append(connDestParams, db_queries.CreateJobConnectionDestinationsParams{
+				JobID:        job.ID,
+				ConnectionID: destUuid,
+			})
+		}
+		if len(connDestParams) > 0 {
+			_, err = q.CreateJobConnectionDestinations(ctx, connDestParams)
+			if err != nil {
+				return err
+			}
+		}
+		createdJob = &job
+		return nil
+	}); err != nil {
+		return nil, err
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
 		Job: dtomaps.ToJobDto(createdJob, destUuids),
@@ -248,74 +298,9 @@ func (s *Service) DeleteJob(
 		return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 	}
 
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
 	err = s.db.Q.RemoveJobById(ctx, job.ID)
 	if err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
-}
-
-func (s *Service) IsJobNameAvailable(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest],
-) (*connect.Response[mgmtv1alpha1.IsJobNameAvailableResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.IsJobNameAvailableResponse{
-		IsAvailable: true,
-	}), nil
-}
-
-func (s *Service) UpdateJobSchedule(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.UpdateJobScheduleRequest],
-) (*connect.Response[mgmtv1alpha1.UpdateJobScheduleResponse], error) {
-	job := &neosyncdevv1alpha1.JobConfig{}
-	err := s.k8sclient.CustomResourceClient.Get(ctx, types.NamespacedName{Namespace: "", Name: ""}, job)
-	if err != nil {
-		return nil, err
-	}
-	// patch := {}
-	// patchBits, err := json.Marshal(patch)
-	// if err != nil {
-	// 	return err
-	// }
-	// s.k8sclient.CustomResourceClient.Patch(ctx, {}, {}, metav1.PatchOptions{})
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobScheduleResponse{}), nil
-}
-
-func (s *Service) verifyUserInAccount(
-	ctx context.Context,
-	accountId string,
-) (*pgtype.UUID, error) {
-	resp, err := s.userAccountService.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
-	if err != nil {
-		return nil, err
-	}
-	if !resp.Msg.Ok {
-		return nil, nucleuserrors.NewForbidden("user in not in requested account")
-	}
-
-	accountUuid, err := nucleusdb.ToUuid(accountId)
-	if err != nil {
-		return nil, err
-	}
-	return &accountUuid, nil
-}
-
-func (s *Service) getUserUuid(
-	ctx context.Context,
-) (*pgtype.UUID, error) {
-	user, err := s.userAccountService.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
-	if err != nil {
-		return nil, err
-	}
-	return &userUuid, nil
 }

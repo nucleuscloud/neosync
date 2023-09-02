@@ -64,7 +64,7 @@ spec:
                     format: int32
                     type: integer
                   completedIndexes:
-                    description: CompletedIndexes holds the completed indexes when
+                    description: completedIndexes holds the completed indexes when
                       .spec.completionMode = "Indexed" in a text format. The indexes
                       are represented as decimal integers separated by commas. The
                       numbers are listed in increasing order. Three or more consecutive
@@ -124,6 +124,18 @@ spec:
                     description: The number of pods which reached phase Failed.
                     format: int32
                     type: integer
+                  failedIndexes:
+                    description: FailedIndexes holds the failed indexes when backoffLimitPerIndex=true.
+                      The indexes are represented in the text format analogous as
+                      for the `completedIndexes` field, ie. they are kept as decimal
+                      integers separated by commas. The numbers are listed in increasing
+                      order. Three or more consecutive numbers are compressed and
+                      represented by the first and last element of the series, separated
+                      by a hyphen. For example, if the failed indexes are 1, 3, 4,
+                      5 and 7, they are represented as "1,3-5,7". This field is alpha-level.
+                      It can be used when the `JobBackoffLimitPerIndex` feature gate
+                      is enabled (disabled by default).
+                    type: string
                   ready:
                     description: "The number of pods which have a Ready condition.
                       \n This field is beta-level. The job controller populates the
@@ -143,20 +155,28 @@ spec:
                     description: The number of pods which reached phase Succeeded.
                     format: int32
                     type: integer
+                  terminating:
+                    description: "The number of pods which are terminating (in phase
+                      Pending or Running and have a deletionTimestamp). \n This field
+                      is alpha-level. The job controller populates the field when
+                      the feature gate JobPodReplacementPolicy is enabled (disabled
+                      by default)."
+                    format: int32
+                    type: integer
                   uncountedTerminatedPods:
-                    description: "UncountedTerminatedPods holds the UIDs of Pods that
+                    description: "uncountedTerminatedPods holds the UIDs of Pods that
                       have terminated but the job controller hasn't yet accounted
                       for in the status counters. \n The job controller creates pods
                       with a finalizer. When a pod terminates (succeeded or failed),
                       the controller does three steps to account for it in the job
-                      status: (1) Add the pod UID to the arrays in this field. (2)
-                      Remove the pod finalizer. (3) Remove the pod UID from the arrays
+                      status: \n 1. Add the pod UID to the arrays in this field. 2.
+                      Remove the pod finalizer. 3. Remove the pod UID from the arrays
                       while increasing the corresponding counter. \n Old jobs might
                       not be tracked using this field, in which case the field remains
                       null."
                     properties:
                       failed:
-                        description: Failed holds UIDs of failed Pods.
+                        description: failed holds UIDs of failed Pods.
                         items:
                           description: UID is a type that holds unique ID values,
                             including UUIDs.  Because we don't ONLY use UUIDs, this
@@ -166,7 +186,7 @@ spec:
                         type: array
                         x-kubernetes-list-type: set
                       succeeded:
-                        description: Succeeded holds UIDs of succeeded Pods.
+                        description: succeeded holds UIDs of succeeded Pods.
                         items:
                           description: UID is a type that holds unique ID values,
                             including UUIDs.  Because we don't ONLY use UUIDs, this

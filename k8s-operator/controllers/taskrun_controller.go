@@ -82,7 +82,7 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		if err != nil {
 			if apierrors.IsNotFound(err) {
 				logger.Info("taskrun references task that could not be found.")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+				return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 			}
 			logger.Error(err, "unable to retrieve task resource")
 			return ctrl.Result{}, err
@@ -97,11 +97,11 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			isConfigPresent, err := isBenthosConfigPresent(ctx, r.Client, req.Namespace, task.Spec.RunConfig, logger)
 			if err != nil {
 				logger.Error(err, "unable to check if benthos config is present prior to creating resource")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, err
+				return ctrl.Result{RequeueAfter: 5 * time.Second}, err
 			}
 			if !isConfigPresent {
 				logger.Info("benthos config not present in task spec, or corresponding secret is not found or in correct format")
-				return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+				return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
 			}
 			image := "jeffail/benthos:4.11.0"
 			if task.Spec.RunConfig.Benthos.Image != nil {
@@ -144,9 +144,6 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 									VolumeSource: corev1.VolumeSource{
 										Secret: &corev1.SecretVolumeSource{
 											SecretName: task.Spec.RunConfig.Benthos.ConfigFrom.SecretKeyRef.Name,
-											// Items: []corev1.KeyToPath{
-											// 	{},
-											// },
 										},
 									},
 								},
@@ -155,9 +152,7 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 					},
 				},
 			}
-			// if taskRun.Spec.ServiceAccountName != nil && *taskRun.Spec.ServiceAccountName != "" {
-			// 	job.Spec.Template.Spec.ServiceAccountName = *taskRun.Spec.ServiceAccountName
-			// }
+
 			err = ctrl.SetControllerReference(taskRun, job, r.Scheme)
 			if err != nil {
 				logger.Error(err, "unable to set ownership reference on batchv1.job")

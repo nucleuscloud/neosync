@@ -5,15 +5,9 @@ app:
   serviceAccount:
     create: true
 
-  auth0:
-    baseUrl: http://localhost:3000
-    clientId: toXbXZXIYD3ni7MheOrU6J70j8lNtiSt
-    issuerBaseUrl: https://auth.nucleuscloud.dev
-    scope: openid email profile offline_access
-    audience: https://api.nucleuscloud.com
-    clientSecret: uuvwzNHx7dPdSKjGO1rSOypnKiTvGV7Ivh80VZHkjmZXLAwSma__FzCxeDoHeA
-    cookieSecret: 8ecbca07073acc7244d5434fe896e0b07899d432297eb043602c36b21f4dcd2e
-
   nucleusEnv: dev
 
   port: 3000
+
+  neosyncApi:
+    url: http://neosync-api

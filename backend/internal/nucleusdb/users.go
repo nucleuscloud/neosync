@@ -57,7 +57,7 @@ func (d *NucleusDb) SetUserByAuth0Id(
 			}
 		}
 	}
-	if err = tx.Commit(ctx); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -111,7 +111,7 @@ func (d *NucleusDb) SetPersonalAccount(
 		}
 	}
 
-	if err = tx.Commit(ctx); err != nil {
+	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
 
