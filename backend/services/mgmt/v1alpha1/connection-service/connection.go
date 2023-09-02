@@ -117,8 +117,9 @@ func (s *Service) GetConnections(
 		logger.Error("unable to retrieve connections")
 		return nil, err
 	} else if err != nil && errors.IsNotFound(err) {
-		logger.Error("connections not found")
-		return nil, err
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionsResponse{
+			Connections: []*mgmtv1alpha1.Connection{},
+		}), nil
 	}
 	if len(conns.Items) == 0 {
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionsResponse{
@@ -200,48 +201,47 @@ func (s *Service) GetConnectionsByNames(
 	}
 	close(connsChan)
 
-	secretsChan := make(chan *corev1.Secret, len(req.Msg.Names))
-	errs, errCtx := errgroup.WithContext(ctx)
-	for _, name := range req.Msg.Names {
+	conns := []*neosyncdevv1alpha1.SqlConnection{}
+	secretNames := []string{}
+	for conn := range connsChan {
+		if conn.Spec.Url.ValueFrom != nil {
+			secretNames = append(secretNames, conn.Spec.Url.ValueFrom.SecretKeyRef.Name)
+		}
+		conns = append(conns, conn)
+	}
+
+	secretsChan := make(chan *corev1.Secret, len(secretNames))
+	errs, errCtx = errgroup.WithContext(ctx)
+	for _, name := range secretNames {
 		name := name
 		errs.Go(func() error {
-			conn := &neosyncdevv1alpha1.SqlConnection{}
-			err := s.k8sclient.CustomResourceClient.Get(errCtx, types.NamespacedName{Name: name, Namespace: s.cfg.JobConfigNamespace}, conn)
+			secret, err := getConnectionSecretByName(errCtx, logger, s.k8sclient, name, s.cfg.JobConfigNamespace)
 			if err != nil && !errors.IsNotFound(err) {
 				return err
 			} else if err != nil && errors.IsNotFound(err) {
-				logger.Warn("connection not found", "connectionName", name)
 				return nil
 			}
 			select {
-			case connsChan <- conn:
+			case secretsChan <- secret:
 				return nil
 			case <-errCtx.Done():
 				return errCtx.Err()
 			}
 		})
 	}
-	err := errs.Wait()
+	err = errs.Wait()
 	if err != nil {
 		return nil, err
 	}
-	close(connsChan)
-
-	secrets, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.cfg.JobConfigNamespace).List(ctx, metav1.ListOptions{
-		LabelSelector: k8s_utils.NeosyncUuidLabel,
-	})
-	if err != nil && !errors.IsNotFound(err) {
-		return nil, err
-	}
+	close(secretsChan)
 
 	secretsMap := map[string]*corev1.Secret{}
-	for i := range secrets.Items {
-		secret := secrets.Items[i]
-		secretsMap[secret.Name] = &secret
+	for secret := range secretsChan {
+		secretsMap[secret.Name] = secret
 	}
 
 	dtoConns := []*mgmtv1alpha1.Connection{}
-	for conn := range connsChan {
+	for _, conn := range conns {
 		connId := conn.Labels[k8s_utils.NeosyncUuidLabel]
 		var secret *corev1.Secret
 		if conn.Spec.Url.ValueFrom != nil {

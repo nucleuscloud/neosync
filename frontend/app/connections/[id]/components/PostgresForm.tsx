@@ -1,5 +1,4 @@
 'use client';
-import { useAccount } from '@/components/contexts/account-context';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,15 +52,11 @@ export default function PostgresForm(props: Props) {
     resolver: yupResolver(FORM_SCHEMA),
     defaultValues,
   });
-  const account = useAccount();
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
 
   async function onSubmit(values: FormValues) {
-    if (!account?.id) {
-      return;
-    }
     try {
       const connectionResp = await updatePostgresConnection(
         connectionId,

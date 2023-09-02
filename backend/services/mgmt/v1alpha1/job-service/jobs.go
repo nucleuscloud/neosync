@@ -13,7 +13,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -22,58 +24,52 @@ func (s *Service) GetJobs(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
-	// logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	jobs := &neosyncdevv1alpha1.JobConfigList{}
+	err := s.k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(s.cfg.JobConfigNamespace))
+	if err != nil && !errors.IsNotFound(err) {
+		logger.Error("unable to retrieve jobs")
+		return nil, err
+	} else if err != nil && errors.IsNotFound(err) {
+		return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
+			Jobs: []*mgmtv1alpha1.Job{},
+		}), nil
+	}
+	if len(jobs.Items) == 0 {
+		return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
+			Jobs: []*mgmtv1alpha1.Job{},
+		}), nil
+	}
 
-	// accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// jobs, err := s.db.Q.GetJobsByAccount(ctx, accountUuid)
-	// if err != nil {
-	// 	logger.Error(err.Error())
-	// 	return nil, err
-	// }
+	connections, err := s.connectionService.GetConnections(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionsRequest{}))
+	if err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	}
 
-	// jobIds := []pgtype.UUID{}
-	// for idx := range jobs {
-	// 	job := jobs[idx]
-	// 	jobIds = append(jobIds, job.ID)
-	// }
+	connsNameToIdMap := map[string]string{}
+	for _, conn := range connections.Msg.Connections {
+		connsNameToIdMap[conn.Name] = conn.Id
+	}
 
-	// var destinationAssociations []db_queries.NeosyncApiJobDestinationConnectionAssociation
-	// if len(jobIds) > 0 {
-	// 	destinationAssociations, err = s.db.Q.GetJobConnectionDestinationsByJobIds(ctx, jobIds)
-	// 	if err != nil {
-	// 		logger.Error(err.Error())
-	// 		return nil, err
-	// 	}
-	// }
+	dtoJobs := []*mgmtv1alpha1.Job{}
+	for i := range jobs.Items {
+		job := jobs.Items[i]
+		sourceConnName := job.Spec.Source.Sql.ConnectionRef.Name
+		sourceConnId := connsNameToIdMap[sourceConnName]
+		destConnIds := []string{}
+		for _, dest := range job.Spec.Destinations {
+			destConnIds = append(destConnIds, connsNameToIdMap[dest.Sql.ConnectionRef.Name])
+		}
 
-	// jobMap := map[pgtype.UUID]*db_queries.NeosyncApiJob{}
-	// for idx := range jobs {
-	// 	job := jobs[idx]
-	// 	jobMap[job.ID] = &job
-	// }
-
-	// associationMap := map[pgtype.UUID][]pgtype.UUID{}
-	// for _, assoc := range destinationAssociations {
-	// 	if _, ok := associationMap[assoc.JobID]; ok {
-	// 		associationMap[assoc.JobID] = append(associationMap[assoc.JobID], assoc.ConnectionID)
-	// 	} else {
-	// 		associationMap[assoc.JobID] = append([]pgtype.UUID{}, assoc.ConnectionID)
-	// 	}
-	// }
-
-	// dtos := []*mgmtv1alpha1.Job{}
-
-	// Use jobIds to retain original query order
-	// for _, jobId := range jobIds {
-	// 	job := jobMap[jobId]
-	// 	dtos = append(dtos, dtomaps.ToJobDto(job, associationMap[job.ID]))
-	// }
+		dto := dtomaps.ToJobDto(&job, sourceConnId, destConnIds)
+		if err != nil {
+			return nil, err
+		}
+		dtoJobs = append(dtoJobs, dto)
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
-		// Jobs: dtos,
+		Jobs: dtoJobs,
 	}), nil
 }
 
@@ -83,7 +79,6 @@ func (s *Service) GetJob(
 ) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.Id)
-
 	jobs := &neosyncdevv1alpha1.JobConfigList{}
 	err := s.k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(s.cfg.JobConfigNamespace), &runtimeclient.MatchingLabels{
 		k8s_utils.NeosyncUuidLabel: req.Msg.Id,
@@ -99,10 +94,33 @@ func (s *Service) GetJob(
 		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 connection found. id: %s", req.Msg.Id))
 	}
 
-	// get job connections
+	job := jobs.Items[0]
+	destConnNames := []string{}
+	for _, dest := range job.Spec.Destinations {
+		destConnNames = append(destConnNames, dest.Sql.ConnectionRef.Name)
+	}
+	connNames := []string{job.Spec.Source.Sql.ConnectionRef.Name}
+	connNames = append(connNames, destConnNames...)
+
+	connections, err := s.connectionService.GetConnectionsByNames(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionsByNamesRequest{
+		Names: connNames,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	destConnIds := []string{}
+	var sourceConnId string
+	for _, conn := range connections.Msg.Connections {
+		if conn.Name == job.Spec.Source.Sql.ConnectionRef.Name {
+			sourceConnId = conn.Id
+		} else if slices.Contains(destConnNames, conn.Name) {
+			destConnIds = append(destConnIds, conn.Id)
+		}
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		// Job: dtomaps.ToJobDto(&job, destConnections),
+		Job: dtomaps.ToJobDto(&job, sourceConnId, destConnIds),
 	}), nil
 }
 
@@ -234,7 +252,7 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 	schema := []*neosyncdevv1alpha1.SourceSqlSchema{}
 	schemaMap := map[string]map[string][]*neosyncdevv1alpha1.SourceSqlColumn{}
 	for _, row := range mappings {
-
+		row := row
 		_, ok := schemaMap[row.Schema][row.Table]
 		if !ok {
 			schemaMap[row.Schema] = map[string][]*neosyncdevv1alpha1.SourceSqlColumn{
