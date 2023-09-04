@@ -2,6 +2,7 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 
@@ -18,6 +19,7 @@ import (
 	"golang.org/x/sync/errgroup"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -196,6 +198,7 @@ func (s *Service) CreateJob(
 			},
 		},
 		Spec: neosyncdevv1alpha1.JobConfigSpec{
+			CronSchedule: req.Msg.CronSchedule,
 			Source: &neosyncdevv1alpha1.JobConfigSource{
 				Sql: &neosyncdevv1alpha1.SourceSql{
 					ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
@@ -249,40 +252,264 @@ func (s *Service) UpdateJobSchedule(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobScheduleRequest],
 ) (*connect.Response[mgmtv1alpha1.UpdateJobScheduleResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+	logger.Info("updating job schedule")
+	job, err := getJobById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
+	if err != nil {
+		return nil, err
+	}
 
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobScheduleResponse{}), nil
+	patch := &neosyncdevv1alpha1.JobConfig{
+		Spec: neosyncdevv1alpha1.JobConfigSpec{
+			CronSchedule: &req.Msg.CronSchedule,
+		},
+	}
+	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+	if err != nil {
+		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error("unable to retrieve job")
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.UpdateJobScheduleResponse{
+		Job: updatedJob.Msg.Job,
+	}), nil
 }
 
 func (s *Service) UpdateJobSourceConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobSourceConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.UpdateJobSourceConnectionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+	logger.Info("updating job source connection")
+	job, err := getJobById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
+	if err != nil {
+		return nil, err
+	}
 
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobSourceConnectionResponse{}), nil
+	conn, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.ConnectionId,
+	}))
+	if err != nil {
+		logger.Error("unable to retrieve source connection")
+		return nil, err
+	}
+
+	var source *neosyncdevv1alpha1.JobConfigSource
+	switch conn.Msg.Connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		source = &neosyncdevv1alpha1.JobConfigSource{
+			Sql: &neosyncdevv1alpha1.SourceSql{
+				ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
+					Name: conn.Msg.Connection.Name,
+				},
+			},
+		}
+	default:
+		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+	}
+
+	patch := &neosyncdevv1alpha1.JobConfig{
+		Spec: neosyncdevv1alpha1.JobConfigSpec{
+			Source: source,
+		},
+	}
+	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+	if err != nil {
+		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error("unable to retrieve job")
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.UpdateJobSourceConnectionResponse{
+		Job: updatedJob.Msg.Job,
+	}), nil
 }
 
 func (s *Service) UpdateJobDestinationConnections(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobDestinationConnectionsRequest],
 ) (*connect.Response[mgmtv1alpha1.UpdateJobDestinationConnectionsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+	logger.Info("updating job destination connections")
 
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobDestinationConnectionsResponse{}), nil
+	var job *neosyncdevv1alpha1.JobConfig
+	destConns := make([]*mgmtv1alpha1.Connection, len(req.Msg.ConnectionIds))
+	errs, errCtx := errgroup.WithContext(ctx)
+	errs.Go(func() error {
+		jobConfig, err := getJobById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
+		if err != nil {
+			return err
+		}
+		job = jobConfig
+		return nil
+	})
+
+	for index, id := range req.Msg.ConnectionIds {
+		connId := id
+		index := index
+		errs.Go(func() error {
+			conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+				Id: connId,
+			}))
+			if err != nil {
+				return err
+			}
+			destConns[index] = conn.Msg.Connection
+			return nil
+		})
+	}
+	err := errs.Wait()
+	if err != nil {
+		logger.Error("unable to retrieve job connections")
+		return nil, err
+	}
+
+	jobDestinations := []*neosyncdevv1alpha1.JobConfigDestination{}
+	for _, conn := range destConns {
+		switch conn.ConnectionConfig.Config.(type) {
+		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+			jobDestinations = append(jobDestinations, &neosyncdevv1alpha1.JobConfigDestination{
+				Sql: &neosyncdevv1alpha1.DestinationSql{
+					ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
+						Name: conn.Name,
+					},
+				},
+			})
+		default:
+			return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+		}
+	}
+
+	patch := &neosyncdevv1alpha1.JobConfig{
+		Spec: neosyncdevv1alpha1.JobConfigSpec{
+			Destinations: jobDestinations,
+		},
+	}
+	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+	if err != nil {
+		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error("unable to retrieve job")
+		return nil, err
+	}
+	return connect.NewResponse(&mgmtv1alpha1.UpdateJobDestinationConnectionsResponse{
+		Job: updatedJob.Msg.Job,
+	}), nil
 }
 
 func (s *Service) UpdateJobMappings(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobMappingsRequest],
 ) (*connect.Response[mgmtv1alpha1.UpdateJobMappingsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+	logger.Info("updating job mappings")
+	job, err := getJobById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
+	if err != nil {
+		return nil, err
+	}
 
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobMappingsResponse{}), nil
+	schemas := createSqlSchemas(req.Msg.Mappings)
+	var patch *neosyncdevv1alpha1.JobConfig
+	if job.Spec.Source.Sql != nil {
+		patch = &neosyncdevv1alpha1.JobConfig{
+			Spec: neosyncdevv1alpha1.JobConfigSpec{
+				Source: &neosyncdevv1alpha1.JobConfigSource{
+					Sql: &neosyncdevv1alpha1.SourceSql{
+						Schemas: schemas,
+					},
+				},
+			},
+		}
+	} else {
+		return nil, nucleuserrors.NewBadRequest("this job config is not currently supported")
+	}
+	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+	if err != nil {
+		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error("unable to retrieve job")
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.UpdateJobMappingsResponse{
+		Job: updatedJob.Msg.Job,
+	}), nil
 }
 
 func (s *Service) UpdateJobHaltOnNewColumnAddition(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobHaltOnNewColumnAdditionRequest],
 ) (*connect.Response[mgmtv1alpha1.UpdateJobHaltOnNewColumnAdditionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+	logger.Info("updating job halt on new column addition")
+	job, err := getJobById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
+	if err != nil {
+		return nil, err
+	}
 
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobHaltOnNewColumnAdditionResponse{}), nil
+	var patch *neosyncdevv1alpha1.JobConfig
+	if job.Spec.Source.Sql != nil {
+		patch = &neosyncdevv1alpha1.JobConfig{
+			Spec: neosyncdevv1alpha1.JobConfigSpec{
+				Source: &neosyncdevv1alpha1.JobConfigSource{
+					Sql: &neosyncdevv1alpha1.SourceSql{
+						HaltOnSchemaChange: &req.Msg.HaltOnNewColumnAddition,
+					},
+				},
+			},
+		}
+	} else {
+		return nil, nucleuserrors.NewBadRequest("this job config is not currently supported")
+	}
+	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+	if err != nil {
+		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error("unable to retrieve job")
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.UpdateJobHaltOnNewColumnAdditionResponse{
+		Job: updatedJob.Msg.Job,
+	}), nil
 }
 
 func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1.SourceSqlSchema {
@@ -365,4 +592,22 @@ func getJobById(
 		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 job config found. id: %s", id))
 	}
 	return &jobs.Items[0], nil
+}
+
+func patchJobConfig(
+	ctx context.Context,
+	k8sclient *neosync_k8sclient.Client,
+	jobConfig *neosyncdevv1alpha1.JobConfig,
+	patch *neosyncdevv1alpha1.JobConfig,
+) error {
+	patchBits, err := json.Marshal(patch)
+	if err != nil {
+		return err
+	}
+
+	err = k8sclient.CustomResourceClient.Patch(ctx, jobConfig, runtimeclient.RawPatch(types.MergePatchType, patchBits))
+	if err != nil {
+		return err
+	}
+	return nil
 }

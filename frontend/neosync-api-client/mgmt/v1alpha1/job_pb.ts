@@ -425,9 +425,9 @@ export class UpdateJobScheduleRequest extends Message<UpdateJobScheduleRequest> 
   id = "";
 
   /**
-   * @generated from field: string schedule = 2;
+   * @generated from field: string cron_schedule = 2;
    */
-  schedule = "";
+  cronSchedule = "";
 
   constructor(data?: PartialMessage<UpdateJobScheduleRequest>) {
     super();
@@ -438,7 +438,7 @@ export class UpdateJobScheduleRequest extends Message<UpdateJobScheduleRequest> 
   static readonly typeName = "mgmt.v1alpha1.UpdateJobScheduleRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "schedule", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobScheduleRequest {

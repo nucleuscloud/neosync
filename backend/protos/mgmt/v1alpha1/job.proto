@@ -54,7 +54,7 @@ message GetJobResponse {
 
 message UpdateJobScheduleRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  string schedule = 2;
+  string cron_schedule = 2;
 }
 message UpdateJobScheduleResponse {
   Job job = 1;

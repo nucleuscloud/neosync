@@ -957,7 +957,7 @@ func (m *UpdateJobScheduleRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Schedule
+	// no validation rules for CronSchedule
 
 	if len(errors) > 0 {
 		return UpdateJobScheduleRequestMultiError(errors)
