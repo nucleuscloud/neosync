@@ -35,6 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
+	"github.com/google/uuid"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 )
 
@@ -74,6 +75,19 @@ func (r *SqlConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 		logger.Error(err, "failed to get sqlconnection resource")
 		return ctrl.Result{}, err
+	}
+
+	if _, ok := conn.Labels[neosyncIdLabel]; !ok {
+		if conn.Labels == nil {
+			conn.Labels = map[string]string{}
+		}
+		conn.Labels[neosyncIdLabel] = uuid.NewString()
+		if err := r.Update(ctx, conn); err != nil {
+			logger.Error(err, "unable to add neosync id label to resource")
+			return ctrl.Result{}, err
+		}
+		logger.Info("added neosync id label to resource")
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	if conn.Spec.Url.ValueFrom != nil && conn.Spec.Url.ValueFrom.SecretKeyRef != nil {
