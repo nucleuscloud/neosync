@@ -8,7 +8,6 @@ import (
 	"log/slog"
 
 	"connectrpc.com/connect"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -23,8 +22,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -197,7 +194,6 @@ func (s *Service) CreateConnection(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("name", req.Msg.Name)
 	logger.Info("creating connection")
-	connUuid := uuid.NewString()
 	connectionString, err := getConnectionUrl(req.Msg.ConnectionConfig)
 	if err != nil {
 		return nil, err
@@ -211,9 +207,6 @@ func (s *Service) CreateConnection(
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      req.Msg.Name,
 			Namespace: s.cfg.JobConfigNamespace,
-			Labels: map[string]string{
-				k8s_utils.NeosyncUuidLabel: connUuid,
-			},
 		},
 		StringData: map[string]string{
 			conn_utils.ConnectionSecretUrlField: connectionString,
@@ -225,9 +218,6 @@ func (s *Service) CreateConnection(
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.cfg.JobConfigNamespace,
 			Name:      req.Msg.Name,
-			Labels: map[string]string{
-				k8s_utils.NeosyncUuidLabel: connUuid,
-			},
 		},
 		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
 			Driver: neosyncdevv1alpha1.PostgresDriver,
@@ -389,15 +379,17 @@ func (s *Service) DeleteConnection(
 		return nil, err
 	}
 
-	secret, err := getConnectionSecretById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
-	if err != nil && !nucleuserrors.IsNotFound(err) {
-		return nil, err
-	}
-
 	errs, errCtx := errgroup.WithContext(ctx)
-	if secret != nil {
+	if conn.Spec.Url.ValueFrom != nil {
 		errs.Go(func() error {
-			err := s.k8sclient.K8sClient.CoreV1().Secrets(s.cfg.JobConfigNamespace).Delete(errCtx, secret.Name, metav1.DeleteOptions{})
+			secret, err := getConnectionSecretByName(ctx, logger, s.k8sclient, conn.Spec.Url.ValueFrom.SecretKeyRef.Name, s.cfg.JobConfigNamespace)
+			if err != nil && !errors.IsNotFound(err) {
+				return err
+			} else if err != nil && errors.IsNotFound((err)) {
+				return nil
+			}
+			logger.Info("deleting connection secret", "secretName", secret.Name)
+			err = s.k8sclient.K8sClient.CoreV1().Secrets(s.cfg.JobConfigNamespace).Delete(errCtx, secret.Name, metav1.DeleteOptions{})
 			if err != nil && !errors.IsNotFound(err) {
 				return err
 			} else if err != nil && errors.IsNotFound(err) {
@@ -477,11 +469,6 @@ func getConnectionById(
 		if err != nil {
 			return nil, err
 		}
-		secretId := secret.Labels[k8s_utils.NeosyncUuidLabel]
-		if conn.Labels[k8s_utils.NeosyncUuidLabel] != secretId {
-			msg := fmt.Sprintf("connection and secret uuid mismatch. connId: %s secretId: %s", id, secretId)
-			return nil, nucleuserrors.NewInternalError(msg)
-		}
 		return &connection{
 			Connection: conn,
 			Secret:     secret,
@@ -491,7 +478,6 @@ func getConnectionById(
 	return &connection{
 		Connection: conn,
 	}, nil
-
 }
 
 func getConnectionSecretByName(
@@ -509,34 +495,6 @@ func getConnectionSecretByName(
 		return nil, err
 	}
 	return secret, nil
-}
-
-func getConnectionSecretById(
-	ctx context.Context,
-	logger *slog.Logger,
-	k8sclient *neosync_k8sclient.Client,
-	id string,
-	namespace string,
-) (*corev1.Secret, error) {
-	req, err := labels.NewRequirement(k8s_utils.NeosyncUuidLabel, selection.Equals, []string{id})
-	if err != nil {
-		return nil, err
-	}
-	labelSelector := labels.NewSelector().Add(*req)
-	secrets, err := k8sclient.K8sClient.CoreV1().Secrets(namespace).List(ctx, metav1.ListOptions{
-		LabelSelector: labelSelector.String(),
-	})
-	if err != nil {
-		logger.Error("unable to retrieve secrets")
-		return nil, err
-	}
-	if len(secrets.Items) > 1 {
-		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 secret found. id: %s", id))
-	}
-	if len(secrets.Items) == 0 {
-		return nil, err
-	}
-	return &secrets.Items[0], nil
 }
 
 func getSqlConnectionById(

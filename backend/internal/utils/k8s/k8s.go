@@ -1,5 +1,5 @@
 package k8s
 
 const (
-	NeosyncUuidLabel = "neosync.dev/uuid"
+	NeosyncUuidLabel = "neosync.dev/id"
 )
