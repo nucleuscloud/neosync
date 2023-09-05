@@ -13,7 +13,7 @@ jobs:
         working-directory: backend
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Granting private modules access
         run: |
@@ -39,7 +39,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Retrieve Buf Version
         run: |
@@ -65,7 +65,7 @@ jobs:
         working-directory: backend
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Granting private modules access
         run: |
