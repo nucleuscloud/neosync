@@ -32,6 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/go-logr/logr"
+	"github.com/google/uuid"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 )
 
@@ -69,6 +70,19 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		}
 		logger.Error(err, "failed to get taskrun resource")
 		return ctrl.Result{}, err
+	}
+
+	if _, ok := taskRun.Labels[neosyncIdLabel]; !ok {
+		if taskRun.Labels == nil {
+			taskRun.Labels = map[string]string{}
+		}
+		taskRun.Labels[neosyncIdLabel] = uuid.NewString()
+		if err := r.Update(ctx, taskRun); err != nil {
+			logger.Error(err, "unable to add neosync id label to resource")
+			return ctrl.Result{}, err
+		}
+		logger.Info("added neosync id label to resource")
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	if taskRun.Status.JobStatus == nil || taskRun.Status.JobStatus.CompletionTime == nil {

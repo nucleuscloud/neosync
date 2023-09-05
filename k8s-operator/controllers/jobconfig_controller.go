@@ -36,6 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/go-logr/logr"
+	"github.com/google/uuid"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	neosync_benthos "github.com/nucleuscloud/neosync/k8s-operator/internal/benthos"
 )
@@ -43,6 +44,7 @@ import (
 const (
 	benthosConfigKey          = "benthos.yaml"
 	neosyncJobConfigNameLabel = "neosync.dev/parent-job-config"
+	neosyncIdLabel            = "neosync.dev/id"
 )
 
 // JobConfigReconciler reconciles a JobConfig object
@@ -84,6 +86,19 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 		logger.Error(err, "failed to get jobconfig resource")
 		return ctrl.Result{}, err
+	}
+
+	if _, ok := jobconfig.Labels[neosyncIdLabel]; !ok {
+		if jobconfig.Labels == nil {
+			jobconfig.Labels = map[string]string{}
+		}
+		jobconfig.Labels[neosyncIdLabel] = uuid.NewString()
+		if err := r.Update(ctx, jobconfig); err != nil {
+			logger.Error(err, "unable to add neosync id label to resource")
+			return ctrl.Result{}, err
+		}
+		logger.Info("added neosync id label to resource")
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	benthosConfigResponses, err := r.generateConfigs(
@@ -368,8 +383,23 @@ func (r *JobConfigReconciler) generateConfigs(
 							},
 						},
 					},
-					Pipeline: &neosync_benthos.PipelineConfig{},
+					Pipeline: &neosync_benthos.PipelineConfig{
+						Threads:    -1,
+						Processors: []neosync_benthos.ProcessorConfig{},
+					},
 				},
+			}
+			mutation, err := buildProcessorMutation(schema.Columns)
+			if err != nil {
+				return nil, err
+			}
+			if mutation != "" {
+				benthosConfig.StreamConfig.Pipeline.Processors = append(
+					benthosConfig.StreamConfig.Pipeline.Processors,
+					neosync_benthos.ProcessorConfig{
+						Mutation: mutation,
+					},
+				)
 			}
 			responses = append(responses, &benthosConfigResponse{
 				Name:   sanitizeName(fmt.Sprintf("%s-sync", buildBenthosTable(schema.Schema, schema.Table))),
@@ -437,6 +467,119 @@ func buildPlainColumns(cols []*neosyncdevv1alpha1.SourceSqlColumn) []string {
 	}
 
 	return columns
+}
+
+func buildProcessorMutation(cols []*neosyncdevv1alpha1.SourceSqlColumn) (string, error) {
+	pieces := []string{}
+	for _, col := range cols {
+		if col.Transformer != nil {
+			mutation, err := computeMutationFunction(col.Transformer)
+			if err != nil {
+				return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer.Name, err)
+			}
+			pieces = append(pieces, fmt.Sprintf("root.%s = %s", col.Name, mutation))
+		}
+	}
+	return strings.Join(pieces, "\n"), nil
+}
+
+func computeMutationFunction(transformer *neosyncdevv1alpha1.ColumnTransformer) (string, error) {
+	switch transformer.Name {
+	case "uuid_v4":
+		return "uuid_v4()", nil
+	case "latitude":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "longitude":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "unix_time":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "date":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "time_string":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "month_name":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "year_string":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "day_of_week":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "day_of_month":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "timestamp":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "century":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "timezone":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "time_period":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "email":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "mac_address":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "domain_name":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "url":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "username":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "ipv4":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "ipv6":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "password":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "jwt":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "word":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "sentence":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "paragraph":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "cc_type":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "cc_number":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "currency":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "amount_with_currency":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "title_male":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "title_female":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "first_name":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "first_name_male":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "first_name_female":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "last_name":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "name":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "gender":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "chinese_first_name":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "chinese_last_name":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "chinese_name":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "phone_number":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "toll_free_phone_number":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "e164_phone_number":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "uuid_hyphenated":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	case "uuid_digit":
+		return fmt.Sprintf("fake(%q)", transformer.Name), nil
+	default:
+		return "", fmt.Errorf("unsupported transformer")
+	}
 }
 
 func buildPlainInsertArgs(cols []string) string {
