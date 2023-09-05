@@ -18,8 +18,9 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
-	"gopkg.in/yaml.v3"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -45,8 +46,8 @@ type JobReconciler struct {
 //+kubebuilder:rbac:groups=neosync.dev,resources=jobs/finalizers,verbs=update
 //+kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=rbac,resources=roles,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=rbac,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -271,9 +272,13 @@ func (r *JobReconciler) ensureScheduledConfigMap(
 		return err
 	} else if err != nil && apierrors.IsNotFound(err) {
 		jr := &neosyncdevv1alpha1.JobRun{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "JobRun",
+				APIVersion: neosyncdevv1alpha1.GroupVersion.String(),
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace:    nsName.Namespace,
-				GenerateName: nsName.Name,
+				GenerateName: fmt.Sprintf("%s-", nsName.Name),
 			},
 			Spec: neosyncdevv1alpha1.JobRunSpec{
 				Job: &neosyncdevv1alpha1.JobRunJob{
@@ -283,7 +288,7 @@ func (r *JobReconciler) ensureScheduledConfigMap(
 				},
 			},
 		}
-		jrBits, err := yaml.Marshal(jr)
+		jrBits, err := json.MarshalIndent(jr, "", "  ")
 		if err != nil {
 			return err
 		}
@@ -293,7 +298,7 @@ func (r *JobReconciler) ensureScheduledConfigMap(
 				Name:      nsName.Name,
 			},
 			Data: map[string]string{
-				"jobrun.yaml": string(jrBits),
+				"jobrun.json": string(jrBits),
 			},
 		}
 		err = ctrl.SetControllerReference(owner, cm, r.Scheme)
@@ -344,12 +349,12 @@ func (r *JobReconciler) ensureCronJob(
 									{
 										Name:  "spawn-job",
 										Image: "bitnami/kubectl:latest",
-										Args:  []string{"create", "-f", "/jobrun.yaml"},
+										Args:  []string{"create", "-f", "/jobrun.json"},
 										VolumeMounts: []corev1.VolumeMount{
 											{
 												Name:      "jr-file",
-												MountPath: "/jobrun.yaml",
-												SubPath:   "jobrun.yaml",
+												MountPath: "/jobrun.json",
+												SubPath:   "jobrun.json",
 												ReadOnly:  true,
 											},
 										},

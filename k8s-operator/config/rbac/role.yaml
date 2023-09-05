@@ -228,7 +228,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - rbac
+  - rbac.authorization.k8s.io
   resources:
   - rolebindings
   verbs:
@@ -240,7 +240,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - rbac
+  - rbac.authorization.k8s.io
   resources:
   - roles
   verbs:
