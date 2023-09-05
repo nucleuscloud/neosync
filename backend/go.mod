@@ -8,10 +8,12 @@ require (
 	connectrpc.com/grpcreflect v1.2.0
 	connectrpc.com/otelconnect v0.5.0
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
+	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/nucleuscloud/neosync/k8s-operator v0.0.0-20230829225820-cbcf4083ce05
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
+	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
 	golang.org/x/net v0.15.0
 	golang.org/x/sync v0.3.0
 	google.golang.org/grpc v1.57.0
@@ -101,7 +103,6 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/s2a-go v0.1.3 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect

@@ -8,8 +8,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 )
 
 type DatabaseSchema struct {
@@ -29,43 +27,22 @@ func (s *Service) GetConnectionSchema(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionSchemaRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionSchemaResponse], error) {
-	idUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("connectionId", req.Msg.Id)
+	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.Id,
+	}))
 	if err != nil {
 		return nil, err
 	}
 
-	connection, err := s.db.Q.GetConnectionById(ctx, idUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	connCfg := connection.Msg.Connection.ConnectionConfig
+	connectionString, err := s.GetConnectionUrl(connCfg)
+	if err != nil {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{}), nil
 	}
 
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-
-	var connectionString *string
-	if connection.ConnectionConfig.PgConfig != nil {
-		pgConfig := connection.ConnectionConfig.PgConfig
-		if pgConfig.Connection != nil {
-			connStr := nucleusdb.GetDbUrl(&nucleusdb.ConnectConfig{
-				Host:     pgConfig.Connection.Host,
-				Port:     int(pgConfig.Connection.Port),
-				Database: pgConfig.Connection.Name,
-				User:     pgConfig.Connection.User,
-				Pass:     pgConfig.Connection.Pass,
-				SslMode:  pgConfig.Connection.SslMode,
-			})
-			connectionString = &connStr
-		} else if pgConfig.Url != nil {
-			connectionString = pgConfig.Url
-		} else {
-			return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
-		}
-	} else {
-		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
-	}
-
-	conn, err := pgx.Connect(ctx, *connectionString)
+	conn, err := pgx.Connect(ctx, connectionString)
 	if err != nil {
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{}), nil
 	}

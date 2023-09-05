@@ -39,7 +39,7 @@ func (s *Service) CheckConnectionConfig(
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
 			connStr := conn_utils.GetPostgresUrl(&conn_utils.ConnectConfig{
 				Host:     connectionConfig.Connection.Host,
-				Port:     int32(connectionConfig.Connection.Port),
+				Port:     connectionConfig.Connection.Port,
 				Database: connectionConfig.Connection.Name,
 				User:     connectionConfig.Connection.User,
 				Pass:     connectionConfig.Connection.Pass,
@@ -285,7 +285,7 @@ func (s *Service) CreateConnection(
 	connUuid := uuid.NewString()
 	logger = logger.With("name", req.Msg.Name, "connectionId", connUuid)
 	logger.Info("creating connection")
-	connectionString, err := getConnectionUrl(req.Msg.ConnectionConfig)
+	connectionString, err := s.GetConnectionUrl(req.Msg.ConnectionConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -400,7 +400,7 @@ func (s *Service) UpdateConnection(
 		return nil, err
 	}
 
-	connectionString, err := getConnectionUrl(req.Msg.ConnectionConfig)
+	connectionString, err := s.GetConnectionUrl(req.Msg.ConnectionConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -517,7 +517,7 @@ func (s *Service) DeleteConnection(
 	return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
 }
 
-func getConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) {
+func (s *Service) GetConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) {
 	switch config := c.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		var connectionString *string
@@ -525,7 +525,7 @@ func getConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
 			connStr := conn_utils.GetPostgresUrl(&conn_utils.ConnectConfig{
 				Host:     connectionConfig.Connection.Host,
-				Port:     int32(connectionConfig.Connection.Port),
+				Port:     connectionConfig.Connection.Port,
 				Database: connectionConfig.Connection.Name,
 				User:     connectionConfig.Connection.User,
 				Pass:     connectionConfig.Connection.Pass,
