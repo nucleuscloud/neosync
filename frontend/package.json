@@ -65,7 +65,7 @@
     "@typescript-eslint/parser": "^5.48.2",
     "autoprefixer": "^10.4.15",
     "eslint": "8.48.0",
-    "eslint-config-next": "13.4.12",
+    "eslint-config-next": "13.4.19",
     "knip": "^2.19.1",
     "postcss": "^8.4.29",
     "prettier": "^3.0.3",
