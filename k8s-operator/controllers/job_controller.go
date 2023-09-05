@@ -348,7 +348,7 @@ func (r *JobReconciler) ensureCronJob(
 										VolumeMounts: []corev1.VolumeMount{
 											{
 												Name:      "jr-file",
-												MountPath: "/jobru.yaml",
+												MountPath: "/jobrun.yaml",
 												SubPath:   "jobrun.yaml",
 												ReadOnly:  true,
 											},

@@ -204,6 +204,7 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		Spec: neosyncdevv1alpha1.JobSpec{
 			ExecutionStatus: "active",
 			Tasks:           jobTasks,
+			CronSchedule:    jobconfig.Spec.CronSchedule,
 		},
 	}
 	err = ctrl.SetControllerReference(jobconfig, job, r.Scheme)
