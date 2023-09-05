@@ -248,6 +248,14 @@ func (s *Service) DeleteJob(
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 }
 
+type CronSchedule struct {
+	CronSchedule string
+}
+
+type UpdateJobScheduleSpec struct {
+	Spec *CronSchedule
+}
+
 func (s *Service) UpdateJobSchedule(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobScheduleRequest],
@@ -260,14 +268,18 @@ func (s *Service) UpdateJobSchedule(
 		return nil, err
 	}
 
-	patch := &neosyncdevv1alpha1.JobConfig{
-		Spec: neosyncdevv1alpha1.JobConfigSpec{
-			CronSchedule: &req.Msg.CronSchedule,
+	patch := &UpdateJobScheduleSpec{
+		Spec: &CronSchedule{
+			CronSchedule: req.Msg.CronSchedule,
 		},
 	}
-	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+	patchBits, err := json.Marshal(patch)
 	if err != nil {
-		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
+	if err != nil {
 		return nil, err
 	}
 
@@ -484,12 +496,11 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 		patch = &neosyncdevv1alpha1.JobConfig{
 			Spec: neosyncdevv1alpha1.JobConfigSpec{
 				Source: &neosyncdevv1alpha1.JobConfigSource{
-					Sql: &neosyncdevv1alpha1.SourceSql{
-						HaltOnSchemaChange: &req.Msg.HaltOnNewColumnAddition,
-					},
+					Sql: job.Spec.Source.Sql,
 				},
 			},
 		}
+		patch.Spec.Source.Sql.HaltOnSchemaChange = &req.Msg.HaltOnNewColumnAddition
 	} else {
 		return nil, nucleuserrors.NewBadRequest("this job config is not currently supported")
 	}
