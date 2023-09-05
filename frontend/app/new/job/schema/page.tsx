@@ -4,7 +4,6 @@ import {
   getConnectionSchema,
 } from '@/app/jobs/components/SchemaTable/schema-table';
 import OverviewContainer from '@/components/containers/OverviewContainer';
-import { useAccount } from '@/components/contexts/account-context';
 import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import {
   CreateJobRequest,
   CreateJobResponse,
   JobMapping,
-  JobMappingTransformer,
+  JobSourceOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
@@ -39,7 +38,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const sessionPrefix = searchParams?.sessionId ?? '';
 
-  const account = useAccount();
   const [defineFormValues] = useSessionStorage<DefineFormValues>(
     `${sessionPrefix}-new-job-define`,
     { jobName: '' }
@@ -64,7 +62,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
-          transformer: JobMappingTransformer.UNSPECIFIED as unknown as string,
+          transformer: 'UNSPECIFIED',
         };
       });
       return { mappings };
@@ -77,11 +75,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   async function onSubmit(values: SchemaFormValues) {
-    if (!account?.id) {
-      return;
-    }
     try {
-      const job = await createNewJob(account.id, {
+      const job = await createNewJob({
         define: defineFormValues,
         flow: flowFormValues,
         schema: values,
@@ -123,21 +118,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 }
 
-async function createNewJob(
-  accountId: string,
-  formData: FormValues
-): Promise<CreateJobResponse> {
+async function createNewJob(formData: FormValues): Promise<CreateJobResponse> {
   const body = new CreateJobRequest({
-    accountId,
     jobName: formData.define.jobName,
     cronSchedule: formData.define.cronSchedule,
-    haltOnNewColumnAddition: false,
+    sourceOptions: new JobSourceOptions({
+      haltOnNewColumnAddition: false,
+    }),
     mappings: formData.schema.mappings.map((m) => {
       return new JobMapping({
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: m.transformer as unknown as JobMappingTransformer,
+        transformer: m.transformer,
         exclude: m.exclude,
       });
     }),

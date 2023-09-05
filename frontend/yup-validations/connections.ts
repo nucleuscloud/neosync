@@ -12,7 +12,6 @@ export const POSTGRES_CONNECTION = Yup.object({
 export type YupPostgresConnection = Yup.InferType<typeof POSTGRES_CONNECTION>;
 
 export const NEW_POSTGRES_CONNECTION = Yup.object({
-  accountId: Yup.string().uuid().required(),
   connectionName: Yup.string().required(),
   connection: POSTGRES_CONNECTION,
 });

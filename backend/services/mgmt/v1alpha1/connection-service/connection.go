@@ -8,6 +8,7 @@ import (
 	"log/slog"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -164,12 +165,103 @@ func (s *Service) GetConnections(
 	}), nil
 }
 
+func (s *Service) GetConnectionsByNames(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionsByNamesRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionsByNamesResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	connsChan := make(chan *neosyncdevv1alpha1.SqlConnection, len(req.Msg.Names))
+	errs, errCtx := errgroup.WithContext(ctx)
+	for _, name := range req.Msg.Names {
+		name := name
+		errs.Go(func() error {
+			conn := &neosyncdevv1alpha1.SqlConnection{}
+			err := s.k8sclient.CustomResourceClient.Get(errCtx, types.NamespacedName{Name: name, Namespace: s.cfg.JobConfigNamespace}, conn)
+			if err != nil && !errors.IsNotFound(err) {
+				return err
+			} else if err != nil && errors.IsNotFound(err) {
+				logger.Warn("connection not found", "connectionName", name)
+				return nil
+			}
+			select {
+			case connsChan <- conn:
+				return nil
+			case <-errCtx.Done():
+				return errCtx.Err()
+			}
+		})
+	}
+	err := errs.Wait()
+	if err != nil {
+		return nil, err
+	}
+	close(connsChan)
+
+	conns := []*neosyncdevv1alpha1.SqlConnection{}
+	secretNames := []string{}
+	for conn := range connsChan {
+		if conn.Spec.Url.ValueFrom != nil {
+			secretNames = append(secretNames, conn.Spec.Url.ValueFrom.SecretKeyRef.Name)
+		}
+		conns = append(conns, conn)
+	}
+
+	secretsChan := make(chan *corev1.Secret, len(secretNames))
+	errs, errCtx = errgroup.WithContext(ctx)
+	for _, name := range secretNames {
+		name := name
+		errs.Go(func() error {
+			secret, err := getConnectionSecretByName(errCtx, logger, s.k8sclient, name, s.cfg.JobConfigNamespace)
+			if err != nil && !errors.IsNotFound(err) {
+				return err
+			} else if err != nil && errors.IsNotFound(err) {
+				return nil
+			}
+			select {
+			case secretsChan <- secret:
+				return nil
+			case <-errCtx.Done():
+				return errCtx.Err()
+			}
+		})
+	}
+	err = errs.Wait()
+	if err != nil {
+		return nil, err
+	}
+	close(secretsChan)
+
+	secretsMap := map[string]*corev1.Secret{}
+	for secret := range secretsChan {
+		secretsMap[secret.Name] = secret
+	}
+
+	dtoConns := []*mgmtv1alpha1.Connection{}
+	for _, conn := range conns {
+		var secret *corev1.Secret
+		if conn.Spec.Url.ValueFrom != nil {
+			secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
+			secretEntry := secretsMap[secretName]
+			secret = secretEntry
+		}
+		dto, err := dtomaps.ToConnectionDto(logger, conn, secret)
+		if err != nil {
+			return nil, err
+		}
+		dtoConns = append(dtoConns, dto)
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionsByNamesResponse{
+		Connections: dtoConns,
+	}), nil
+}
+
 func (s *Service) GetConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
+	logger = logger.With("connectionId", req.Msg.Id)
 
 	connection, err := getConnectionById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
 	if err != nil {
@@ -191,7 +283,8 @@ func (s *Service) CreateConnection(
 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("name", req.Msg.Name)
+	connUuid := uuid.NewString()
+	logger = logger.With("name", req.Msg.Name, "connectionId", connUuid)
 	logger.Info("creating connection")
 	connectionString, err := getConnectionUrl(req.Msg.ConnectionConfig)
 	if err != nil {
@@ -220,6 +313,9 @@ func (s *Service) CreateConnection(
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.cfg.JobConfigNamespace,
 			Name:      req.Msg.Name,
+			Labels: map[string]string{
+				k8s_utils.NeosyncUuidLabel: connUuid,
+			},
 		},
 		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
 			Driver: neosyncdevv1alpha1.PostgresDriver,
@@ -298,7 +394,7 @@ func (s *Service) UpdateConnection(
 	req *connect.Request[mgmtv1alpha1.UpdateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.UpdateConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
+	logger = logger.With("connectionId", req.Msg.Id)
 	logger.Info("updating connection")
 	connection, err := getConnectionById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
 	if err != nil {
@@ -373,7 +469,7 @@ func (s *Service) DeleteConnection(
 	req *connect.Request[mgmtv1alpha1.DeleteConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
+	logger = logger.With("connectionId", req.Msg.Id)
 	logger.Info("deleting connection")
 
 	conn, err := getSqlConnectionById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
@@ -521,5 +617,4 @@ func getSqlConnectionById(
 		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 connection found. id: %s", id))
 	}
 	return &conns.Items[0], nil
-
 }
