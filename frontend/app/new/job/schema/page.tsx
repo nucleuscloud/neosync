@@ -12,7 +12,6 @@ import {
   CreateJobRequest,
   CreateJobResponse,
   JobMapping,
-  JobMappingTransformer,
   JobSourceOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -63,7 +62,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
-          transformer: JobMappingTransformer.UNSPECIFIED as unknown as string,
+          transformer: 'UNSPECIFIED',
         };
       });
       return { mappings };
@@ -131,7 +130,7 @@ async function createNewJob(formData: FormValues): Promise<CreateJobResponse> {
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: m.transformer as unknown as JobMappingTransformer,
+        transformer: m.transformer,
         exclude: m.exclude,
       });
     }),
