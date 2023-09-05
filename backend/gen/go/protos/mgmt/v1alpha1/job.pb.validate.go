@@ -308,7 +308,34 @@ func (m *CreateJobRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for HaltOnNewColumnAddition
+	if all {
+		switch v := interface{}(m.GetSourceOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "SourceOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "SourceOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSourceOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateJobRequestValidationError{
+				field:  "SourceOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	for idx, item := range m.GetMappings() {
 		_, _ = idx, item
@@ -3473,6 +3500,108 @@ var _ interface {
 	ErrorName() string
 } = CancelJobRunResponseValidationError{}
 
+// Validate checks the field values on JobSourceOptions with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *JobSourceOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobSourceOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobSourceOptionsMultiError, or nil if none found.
+func (m *JobSourceOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobSourceOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for HaltOnNewColumnAddition
+
+	if len(errors) > 0 {
+		return JobSourceOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobSourceOptionsMultiError is an error wrapping multiple validation errors
+// returned by JobSourceOptions.ValidateAll() if the designated constraints
+// aren't met.
+type JobSourceOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobSourceOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobSourceOptionsMultiError) AllErrors() []error { return m }
+
+// JobSourceOptionsValidationError is the validation error returned by
+// JobSourceOptions.Validate if the designated constraints aren't met.
+type JobSourceOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobSourceOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobSourceOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobSourceOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobSourceOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobSourceOptionsValidationError) ErrorName() string { return "JobSourceOptionsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobSourceOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobSourceOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobSourceOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobSourceOptionsValidationError{}
+
 // Validate checks the field values on Job with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
 // encountered is returned, or nil if there are no violations.
@@ -3604,7 +3733,34 @@ func (m *Job) validate(all bool) error {
 
 	}
 
-	// no validation rules for HaltOnNewColumnAddition
+	if all {
+		switch v := interface{}(m.GetSourceOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "SourceOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "SourceOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSourceOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobValidationError{
+				field:  "SourceOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule

@@ -169,9 +169,9 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   cronSchedule?: string;
 
   /**
-   * @generated from field: bool halt_on_new_column_addition = 5;
+   * @generated from field: mgmt.v1alpha1.JobSourceOptions source_options = 5;
    */
-  haltOnNewColumnAddition = false;
+  sourceOptions?: JobSourceOptions;
 
   /**
    * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 6;
@@ -190,7 +190,7 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
     { no: 2, name: "connection_source_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "connection_destination_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 4, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 5, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "source_options", kind: "message", T: JobSourceOptions },
     { no: 6, name: "mappings", kind: "message", T: JobMapping, repeated: true },
   ]);
 
@@ -1150,6 +1150,43 @@ export class CancelJobRunResponse extends Message<CancelJobRunResponse> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.JobSourceOptions
+ */
+export class JobSourceOptions extends Message<JobSourceOptions> {
+  /**
+   * @generated from field: bool halt_on_new_column_addition = 1;
+   */
+  haltOnNewColumnAddition = false;
+
+  constructor(data?: PartialMessage<JobSourceOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobSourceOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceOptions {
+    return new JobSourceOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobSourceOptions {
+    return new JobSourceOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobSourceOptions {
+    return new JobSourceOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobSourceOptions | PlainMessage<JobSourceOptions> | undefined, b: JobSourceOptions | PlainMessage<JobSourceOptions> | undefined): boolean {
+    return proto3.util.equals(JobSourceOptions, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.Job
  */
 export class Job extends Message<Job> {
@@ -1199,9 +1236,9 @@ export class Job extends Message<Job> {
   cronSchedule?: string;
 
   /**
-   * @generated from field: bool halt_on_new_column_addition = 10;
+   * @generated from field: mgmt.v1alpha1.JobSourceOptions source_options = 10;
    */
-  haltOnNewColumnAddition = false;
+  sourceOptions?: JobSourceOptions;
 
   constructor(data?: PartialMessage<Job>) {
     super();
@@ -1220,7 +1257,7 @@ export class Job extends Message<Job> {
     { no: 7, name: "connection_destination_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 8, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 9, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 10, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 10, name: "source_options", kind: "message", T: JobSourceOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Job {

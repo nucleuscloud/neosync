@@ -33,13 +33,15 @@ func ToJobDto(
 		Status:                   mgmtv1alpha1.JobStatus(0),                        // TODO
 		ConnectionSourceId:       inputSourceConnId,
 		CronSchedule:             inputJob.Spec.CronSchedule,
-		HaltOnNewColumnAddition:  *inputJob.Spec.Source.Sql.HaltOnSchemaChange,
 		ConnectionDestinationIds: inputDestConnIds,
 		Mappings:                 mappings,
+		SourceOptions: &mgmtv1alpha1.JobSourceOptions{
+			HaltOnNewColumnAddition: *inputJob.Spec.Source.Sql.HaltOnSchemaChange,
+		},
 	}
 }
 
 func getTransformer(transformerName string) string {
-	// TODO @alisha handler operator to api transformer mapping
+	// TODO @alisha handle operator to api transformer mapping
 	return transformerName
 }

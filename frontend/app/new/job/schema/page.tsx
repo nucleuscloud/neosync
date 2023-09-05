@@ -13,6 +13,7 @@ import {
   CreateJobResponse,
   JobMapping,
   JobMappingTransformer,
+  JobSourceOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
@@ -122,7 +123,9 @@ async function createNewJob(formData: FormValues): Promise<CreateJobResponse> {
   const body = new CreateJobRequest({
     jobName: formData.define.jobName,
     cronSchedule: formData.define.cronSchedule,
-    haltOnNewColumnAddition: false,
+    sourceOptions: new JobSourceOptions({
+      haltOnNewColumnAddition: false,
+    }),
     mappings: formData.schema.mappings.map((m) => {
       return new JobMapping({
         schema: m.schema,

@@ -68,7 +68,11 @@ func (s *Service) GetJobs(
 			if err != nil {
 				return nil, err
 			}
-			destConnIds = append(destConnIds, connsNameToIdMap[destConnName])
+			destConnId, ok := connsNameToIdMap[destConnName]
+			if ok {
+				destConnIds = append(destConnIds, destConnId)
+			}
+
 		}
 
 		dto := dtomaps.ToJobDto(&job, sourceConnId, destConnIds)
@@ -103,7 +107,7 @@ func (s *Service) GetJob(
 	}
 	sourceConnName, err := getSourceConnectionName(job.Spec.Source)
 	if err != nil {
-		return nil, err // TODO @alisha should return job even without connections
+		return nil, err
 	}
 	connNames := []string{sourceConnName}
 	connNames = append(connNames, destConnNames...)
@@ -174,7 +178,6 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	trueBool := true // TODO @alisha
 	jobDestinations := []*neosyncdevv1alpha1.JobConfigDestination{}
 	for _, name := range destConnNames {
 		jobDestinations = append(jobDestinations, &neosyncdevv1alpha1.JobConfigDestination{
@@ -182,8 +185,6 @@ func (s *Service) CreateJob(
 				ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
 					Name: name,
 				},
-				TruncateBeforeInsert: &trueBool, // TODO @alisha
-				InitDbSchema:         &trueBool, // TODO @alisha
 			},
 		})
 	}
@@ -204,7 +205,7 @@ func (s *Service) CreateJob(
 					ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
 						Name: *sourceConnName,
 					},
-					HaltOnSchemaChange: &req.Msg.HaltOnNewColumnAddition,
+					HaltOnSchemaChange: &req.Msg.SourceOptions.HaltOnNewColumnAddition,
 					Schemas:            schemas,
 				},
 			},
@@ -650,22 +651,4 @@ func getJobById(
 		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 job config found. id: %s", id))
 	}
 	return &jobs.Items[0], nil
-}
-
-func patchJobConfig(
-	ctx context.Context,
-	k8sclient *neosync_k8sclient.Client,
-	jobConfig *neosyncdevv1alpha1.JobConfig,
-	patch *neosyncdevv1alpha1.JobConfig,
-) error {
-	patchBits, err := json.Marshal(patch)
-	if err != nil {
-		return err
-	}
-
-	err = k8sclient.CustomResourceClient.Patch(ctx, jobConfig, runtimeclient.RawPatch(types.MergePatchType, patchBits))
-	if err != nil {
-		return err
-	}
-	return nil
 }

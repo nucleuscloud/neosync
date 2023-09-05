@@ -16,7 +16,7 @@ message CreateJobRequest {
   string connection_source_id = 2 [(validate.rules).string.uuid = true];
   repeated string connection_destination_ids = 3;
   optional string cron_schedule = 4;
-  bool halt_on_new_column_addition = 5;
+  JobSourceOptions source_options = 5;
   repeated JobMapping mappings = 6;
 }
 message CreateJobResponse {
@@ -118,6 +118,10 @@ message CancelJobRunRequest {
 }
 message CancelJobRunResponse {}
 
+message JobSourceOptions {
+  bool halt_on_new_column_addition = 1;
+}
+
 message Job {
   string id = 1;
 
@@ -131,7 +135,7 @@ message Job {
   repeated string connection_destination_ids = 7;
   repeated JobMapping mappings = 8;
   optional string cron_schedule = 9;
-  bool halt_on_new_column_addition = 10;
+  JobSourceOptions source_options = 10;
 }
 
 message JobRun {
