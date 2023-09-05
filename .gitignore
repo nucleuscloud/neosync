@@ -6,6 +6,7 @@ bin
 .env.dev.secrets
 .env.stage.secrets
 .env.prod.secrets
+.env.*.secrets
 
 *.log
 
