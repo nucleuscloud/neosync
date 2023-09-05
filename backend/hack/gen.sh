@@ -5,7 +5,6 @@ SQLC_VERSION=$(cat SQLC_VERSION)
 docker run --rm -i --volume "./:/workspace" --workdir "/workspace" "bufbuild/buf:${BUF_VERSION}" format -d | patch --quiet
 docker run --rm -i --volume "./:/workspace" --workdir "/workspace" "bufbuild/buf:${BUF_VERSION}" generate &
 docker run --rm -i --volume "./:/workspace" --workdir "/workspace" "bufbuild/buf:${BUF_VERSION}" generate --template ./buf-es.gen.yaml &
-docker run --rm -i --volume "./:/src" --workdir "/src" "sqlc/sqlc:${SQLC_VERSION}" generate &
 wait
 
 rm -rf ../frontend/neosync-api-client

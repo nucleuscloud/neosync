@@ -8,7 +8,6 @@ require (
 	connectrpc.com/grpcreflect v1.2.0
 	connectrpc.com/otelconnect v0.5.0
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
-	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/nucleuscloud/neosync/k8s-operator v0.0.0-20230829225820-cbcf4083ce05
