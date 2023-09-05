@@ -5,10 +5,15 @@ package mgmt.v1alpha1;
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
-message GetConnectionsRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
-}
+message GetConnectionsRequest {}
 message GetConnectionsResponse {
+  repeated Connection connections = 1;
+}
+
+message GetConnectionsByNamesRequest {
+  repeated string names = 1;
+}
+message GetConnectionsByNamesResponse {
   repeated Connection connections = 1;
 }
 
@@ -20,11 +25,9 @@ message GetConnectionResponse {
 }
 
 message CreateConnectionRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
+  string name = 1 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
 
-  string name = 2 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
-
-  ConnectionConfig connection_config = 3;
+  ConnectionConfig connection_config = 2;
 }
 message CreateConnectionResponse {
   Connection connection = 1;
@@ -59,11 +62,8 @@ message Connection {
 
   ConnectionConfig connection_config = 3;
 
-  string created_by_user_id = 4;
-  google.protobuf.Timestamp created_at = 5;
-
-  string updated_by_user_id = 6;
-  google.protobuf.Timestamp updated_at = 7;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
 }
 
 message ConnectionConfig {
@@ -99,8 +99,7 @@ message AwsS3ConnectionConfig {
 }
 
 message IsConnectionNameAvailableRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
-  string connection_name = 2 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string connection_name = 1 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
 }
 
 message IsConnectionNameAvailableResponse {
@@ -124,6 +123,7 @@ message GetConnectionSchemaResponse {
 
 service ConnectionService {
   rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
+  rpc GetConnectionsByNames(GetConnectionsByNamesRequest) returns (GetConnectionsByNamesResponse) {}
   rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {}
   rpc CreateConnection(CreateConnectionRequest) returns (CreateConnectionResponse) {}
   rpc UpdateConnection(UpdateConnectionRequest) returns (UpdateConnectionResponse) {}

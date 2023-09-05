@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CancelJobRunRequest, CancelJobRunResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobRequest, DeleteJobResponse, GetJobRequest, GetJobResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetTransformersRequest, GetTransformersResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, UpdateJobRequest, UpdateJobResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse } from "./job_pb";
+import { CancelJobRunRequest, CancelJobRunResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobRequest, DeleteJobResponse, GetJobRequest, GetJobResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetTransformersRequest, GetTransformersResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, UpdateJobDestinationConnectionsRequest, UpdateJobDestinationConnectionsResponse, UpdateJobHaltOnNewColumnAdditionRequest, UpdateJobHaltOnNewColumnAdditionResponse, UpdateJobMappingsRequest, UpdateJobMappingsResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse } from "./job_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -40,15 +40,6 @@ export const JobService = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc mgmt.v1alpha1.JobService.UpdateJob
-     */
-    updateJob: {
-      name: "UpdateJob",
-      I: UpdateJobRequest,
-      O: UpdateJobResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc mgmt.v1alpha1.JobService.DeleteJob
      */
     deleteJob: {
@@ -73,6 +64,42 @@ export const JobService = {
       name: "UpdateJobSchedule",
       I: UpdateJobScheduleRequest,
       O: UpdateJobScheduleResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.JobService.UpdateJobSourceConnection
+     */
+    updateJobSourceConnection: {
+      name: "UpdateJobSourceConnection",
+      I: UpdateJobSourceConnectionRequest,
+      O: UpdateJobSourceConnectionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.JobService.UpdateJobDestinationConnections
+     */
+    updateJobDestinationConnections: {
+      name: "UpdateJobDestinationConnections",
+      I: UpdateJobDestinationConnectionsRequest,
+      O: UpdateJobDestinationConnectionsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.JobService.UpdateJobMappings
+     */
+    updateJobMappings: {
+      name: "UpdateJobMappings",
+      I: UpdateJobMappingsRequest,
+      O: UpdateJobMappingsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.JobService.UpdateJobHaltOnNewColumnAddition
+     */
+    updateJobHaltOnNewColumnAddition: {
+      name: "UpdateJobHaltOnNewColumnAddition",
+      I: UpdateJobHaltOnNewColumnAdditionRequest,
+      O: UpdateJobHaltOnNewColumnAdditionResponse,
       kind: MethodKind.Unary,
     },
     /**

@@ -1,6 +1,5 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
-import { useAccount } from '@/components/contexts/account-context';
 import PageHeader from '@/components/headers/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,8 +32,7 @@ interface JobTableProps {}
 
 function JobTable(props: JobTableProps): ReactElement {
   const {} = props;
-  const account = useAccount();
-  const { isLoading, data, mutate } = useGetJobs(account?.id ?? '');
+  const { isLoading, data, mutate } = useGetJobs();
 
   if (isLoading) {
     return <Skeleton />;

@@ -10,11 +10,6 @@ import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
  * @generated from message mgmt.v1alpha1.GetConnectionsRequest
  */
 export class GetConnectionsRequest extends Message<GetConnectionsRequest> {
-  /**
-   * @generated from field: string account_id = 1;
-   */
-  accountId = "";
-
   constructor(data?: PartialMessage<GetConnectionsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -23,7 +18,6 @@ export class GetConnectionsRequest extends Message<GetConnectionsRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetConnectionsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionsRequest {
@@ -77,6 +71,80 @@ export class GetConnectionsResponse extends Message<GetConnectionsResponse> {
 
   static equals(a: GetConnectionsResponse | PlainMessage<GetConnectionsResponse> | undefined, b: GetConnectionsResponse | PlainMessage<GetConnectionsResponse> | undefined): boolean {
     return proto3.util.equals(GetConnectionsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionsByNamesRequest
+ */
+export class GetConnectionsByNamesRequest extends Message<GetConnectionsByNamesRequest> {
+  /**
+   * @generated from field: repeated string names = 1;
+   */
+  names: string[] = [];
+
+  constructor(data?: PartialMessage<GetConnectionsByNamesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionsByNamesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "names", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionsByNamesRequest {
+    return new GetConnectionsByNamesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionsByNamesRequest {
+    return new GetConnectionsByNamesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionsByNamesRequest {
+    return new GetConnectionsByNamesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionsByNamesRequest | PlainMessage<GetConnectionsByNamesRequest> | undefined, b: GetConnectionsByNamesRequest | PlainMessage<GetConnectionsByNamesRequest> | undefined): boolean {
+    return proto3.util.equals(GetConnectionsByNamesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionsByNamesResponse
+ */
+export class GetConnectionsByNamesResponse extends Message<GetConnectionsByNamesResponse> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.Connection connections = 1;
+   */
+  connections: Connection[] = [];
+
+  constructor(data?: PartialMessage<GetConnectionsByNamesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionsByNamesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connections", kind: "message", T: Connection, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionsByNamesResponse {
+    return new GetConnectionsByNamesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionsByNamesResponse {
+    return new GetConnectionsByNamesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionsByNamesResponse {
+    return new GetConnectionsByNamesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionsByNamesResponse | PlainMessage<GetConnectionsByNamesResponse> | undefined, b: GetConnectionsByNamesResponse | PlainMessage<GetConnectionsByNamesResponse> | undefined): boolean {
+    return proto3.util.equals(GetConnectionsByNamesResponse, a, b);
   }
 }
 
@@ -159,17 +227,12 @@ export class GetConnectionResponse extends Message<GetConnectionResponse> {
  */
 export class CreateConnectionRequest extends Message<CreateConnectionRequest> {
   /**
-   * @generated from field: string account_id = 1;
-   */
-  accountId = "";
-
-  /**
-   * @generated from field: string name = 2;
+   * @generated from field: string name = 1;
    */
   name = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 3;
+   * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 2;
    */
   connectionConfig?: ConnectionConfig;
 
@@ -181,9 +244,8 @@ export class CreateConnectionRequest extends Message<CreateConnectionRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.CreateConnectionRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "connection_config", kind: "message", T: ConnectionConfig },
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "connection_config", kind: "message", T: ConnectionConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateConnectionRequest {
@@ -488,22 +550,12 @@ export class Connection extends Message<Connection> {
   connectionConfig?: ConnectionConfig;
 
   /**
-   * @generated from field: string created_by_user_id = 4;
-   */
-  createdByUserId = "";
-
-  /**
-   * @generated from field: google.protobuf.Timestamp created_at = 5;
+   * @generated from field: google.protobuf.Timestamp created_at = 4;
    */
   createdAt?: Timestamp;
 
   /**
-   * @generated from field: string updated_by_user_id = 6;
-   */
-  updatedByUserId = "";
-
-  /**
-   * @generated from field: google.protobuf.Timestamp updated_at = 7;
+   * @generated from field: google.protobuf.Timestamp updated_at = 5;
    */
   updatedAt?: Timestamp;
 
@@ -518,10 +570,8 @@ export class Connection extends Message<Connection> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "connection_config", kind: "message", T: ConnectionConfig },
-    { no: 4, name: "created_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "created_at", kind: "message", T: Timestamp },
-    { no: 6, name: "updated_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "updated_at", kind: "message", T: Timestamp },
+    { no: 4, name: "created_at", kind: "message", T: Timestamp },
+    { no: 5, name: "updated_at", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Connection {
@@ -756,12 +806,7 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
  */
 export class IsConnectionNameAvailableRequest extends Message<IsConnectionNameAvailableRequest> {
   /**
-   * @generated from field: string account_id = 1;
-   */
-  accountId = "";
-
-  /**
-   * @generated from field: string connection_name = 2;
+   * @generated from field: string connection_name = 1;
    */
   connectionName = "";
 
@@ -773,8 +818,7 @@ export class IsConnectionNameAvailableRequest extends Message<IsConnectionNameAv
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.IsConnectionNameAvailableRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "connection_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "connection_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsConnectionNameAvailableRequest {

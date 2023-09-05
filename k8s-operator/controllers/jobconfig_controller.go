@@ -36,6 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/go-logr/logr"
+	"github.com/google/uuid"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	neosync_benthos "github.com/nucleuscloud/neosync/k8s-operator/internal/benthos"
 )
@@ -43,6 +44,7 @@ import (
 const (
 	benthosConfigKey          = "benthos.yaml"
 	neosyncJobConfigNameLabel = "neosync.dev/parent-job-config"
+	neosyncIdLabel            = "neosync.dev/id"
 )
 
 // JobConfigReconciler reconciles a JobConfig object
@@ -84,6 +86,19 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 		logger.Error(err, "failed to get jobconfig resource")
 		return ctrl.Result{}, err
+	}
+
+	if _, ok := jobconfig.Labels[neosyncIdLabel]; !ok {
+		if jobconfig.Labels == nil {
+			jobconfig.Labels = map[string]string{}
+		}
+		jobconfig.Labels[neosyncIdLabel] = uuid.NewString()
+		if err := r.Update(ctx, jobconfig); err != nil {
+			logger.Error(err, "unable to add neosync id label to resource")
+			return ctrl.Result{}, err
+		}
+		logger.Info("added neosync id label to resource")
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	benthosConfigResponses, err := r.generateConfigs(
@@ -189,6 +204,7 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		Spec: neosyncdevv1alpha1.JobSpec{
 			ExecutionStatus: "active",
 			Tasks:           jobTasks,
+			CronSchedule:    jobconfig.Spec.CronSchedule,
 		},
 	}
 	err = ctrl.SetControllerReference(jobconfig, job, r.Scheme)

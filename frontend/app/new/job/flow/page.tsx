@@ -1,6 +1,5 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
-import { useAccount } from '@/components/contexts/account-context';
 import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
@@ -56,9 +55,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setValue: form.setValue,
     storage: window.sessionStorage,
   });
-  const account = useAccount();
   const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
+    useGetConnections();
 
   const connections = connectionsData?.connections ?? [];
 

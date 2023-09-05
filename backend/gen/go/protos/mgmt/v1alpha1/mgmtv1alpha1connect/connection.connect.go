@@ -36,6 +36,9 @@ const (
 	// ConnectionServiceGetConnectionsProcedure is the fully-qualified name of the ConnectionService's
 	// GetConnections RPC.
 	ConnectionServiceGetConnectionsProcedure = "/mgmt.v1alpha1.ConnectionService/GetConnections"
+	// ConnectionServiceGetConnectionsByNamesProcedure is the fully-qualified name of the
+	// ConnectionService's GetConnectionsByNames RPC.
+	ConnectionServiceGetConnectionsByNamesProcedure = "/mgmt.v1alpha1.ConnectionService/GetConnectionsByNames"
 	// ConnectionServiceGetConnectionProcedure is the fully-qualified name of the ConnectionService's
 	// GetConnection RPC.
 	ConnectionServiceGetConnectionProcedure = "/mgmt.v1alpha1.ConnectionService/GetConnection"
@@ -62,6 +65,7 @@ const (
 // ConnectionServiceClient is a client for the mgmt.v1alpha1.ConnectionService service.
 type ConnectionServiceClient interface {
 	GetConnections(context.Context, *connect.Request[v1alpha1.GetConnectionsRequest]) (*connect.Response[v1alpha1.GetConnectionsResponse], error)
+	GetConnectionsByNames(context.Context, *connect.Request[v1alpha1.GetConnectionsByNamesRequest]) (*connect.Response[v1alpha1.GetConnectionsByNamesResponse], error)
 	GetConnection(context.Context, *connect.Request[v1alpha1.GetConnectionRequest]) (*connect.Response[v1alpha1.GetConnectionResponse], error)
 	CreateConnection(context.Context, *connect.Request[v1alpha1.CreateConnectionRequest]) (*connect.Response[v1alpha1.CreateConnectionResponse], error)
 	UpdateConnection(context.Context, *connect.Request[v1alpha1.UpdateConnectionRequest]) (*connect.Response[v1alpha1.UpdateConnectionResponse], error)
@@ -84,6 +88,11 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 		getConnections: connect.NewClient[v1alpha1.GetConnectionsRequest, v1alpha1.GetConnectionsResponse](
 			httpClient,
 			baseURL+ConnectionServiceGetConnectionsProcedure,
+			opts...,
+		),
+		getConnectionsByNames: connect.NewClient[v1alpha1.GetConnectionsByNamesRequest, v1alpha1.GetConnectionsByNamesResponse](
+			httpClient,
+			baseURL+ConnectionServiceGetConnectionsByNamesProcedure,
 			opts...,
 		),
 		getConnection: connect.NewClient[v1alpha1.GetConnectionRequest, v1alpha1.GetConnectionResponse](
@@ -127,6 +136,7 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 // connectionServiceClient implements ConnectionServiceClient.
 type connectionServiceClient struct {
 	getConnections            *connect.Client[v1alpha1.GetConnectionsRequest, v1alpha1.GetConnectionsResponse]
+	getConnectionsByNames     *connect.Client[v1alpha1.GetConnectionsByNamesRequest, v1alpha1.GetConnectionsByNamesResponse]
 	getConnection             *connect.Client[v1alpha1.GetConnectionRequest, v1alpha1.GetConnectionResponse]
 	createConnection          *connect.Client[v1alpha1.CreateConnectionRequest, v1alpha1.CreateConnectionResponse]
 	updateConnection          *connect.Client[v1alpha1.UpdateConnectionRequest, v1alpha1.UpdateConnectionResponse]
@@ -139,6 +149,11 @@ type connectionServiceClient struct {
 // GetConnections calls mgmt.v1alpha1.ConnectionService.GetConnections.
 func (c *connectionServiceClient) GetConnections(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionsRequest]) (*connect.Response[v1alpha1.GetConnectionsResponse], error) {
 	return c.getConnections.CallUnary(ctx, req)
+}
+
+// GetConnectionsByNames calls mgmt.v1alpha1.ConnectionService.GetConnectionsByNames.
+func (c *connectionServiceClient) GetConnectionsByNames(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionsByNamesRequest]) (*connect.Response[v1alpha1.GetConnectionsByNamesResponse], error) {
+	return c.getConnectionsByNames.CallUnary(ctx, req)
 }
 
 // GetConnection calls mgmt.v1alpha1.ConnectionService.GetConnection.
@@ -179,6 +194,7 @@ func (c *connectionServiceClient) GetConnectionSchema(ctx context.Context, req *
 // ConnectionServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionService service.
 type ConnectionServiceHandler interface {
 	GetConnections(context.Context, *connect.Request[v1alpha1.GetConnectionsRequest]) (*connect.Response[v1alpha1.GetConnectionsResponse], error)
+	GetConnectionsByNames(context.Context, *connect.Request[v1alpha1.GetConnectionsByNamesRequest]) (*connect.Response[v1alpha1.GetConnectionsByNamesResponse], error)
 	GetConnection(context.Context, *connect.Request[v1alpha1.GetConnectionRequest]) (*connect.Response[v1alpha1.GetConnectionResponse], error)
 	CreateConnection(context.Context, *connect.Request[v1alpha1.CreateConnectionRequest]) (*connect.Response[v1alpha1.CreateConnectionResponse], error)
 	UpdateConnection(context.Context, *connect.Request[v1alpha1.UpdateConnectionRequest]) (*connect.Response[v1alpha1.UpdateConnectionResponse], error)
@@ -197,6 +213,11 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 	connectionServiceGetConnectionsHandler := connect.NewUnaryHandler(
 		ConnectionServiceGetConnectionsProcedure,
 		svc.GetConnections,
+		opts...,
+	)
+	connectionServiceGetConnectionsByNamesHandler := connect.NewUnaryHandler(
+		ConnectionServiceGetConnectionsByNamesProcedure,
+		svc.GetConnectionsByNames,
 		opts...,
 	)
 	connectionServiceGetConnectionHandler := connect.NewUnaryHandler(
@@ -238,6 +259,8 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		switch r.URL.Path {
 		case ConnectionServiceGetConnectionsProcedure:
 			connectionServiceGetConnectionsHandler.ServeHTTP(w, r)
+		case ConnectionServiceGetConnectionsByNamesProcedure:
+			connectionServiceGetConnectionsByNamesHandler.ServeHTTP(w, r)
 		case ConnectionServiceGetConnectionProcedure:
 			connectionServiceGetConnectionHandler.ServeHTTP(w, r)
 		case ConnectionServiceCreateConnectionProcedure:
@@ -263,6 +286,10 @@ type UnimplementedConnectionServiceHandler struct{}
 
 func (UnimplementedConnectionServiceHandler) GetConnections(context.Context, *connect.Request[v1alpha1.GetConnectionsRequest]) (*connect.Response[v1alpha1.GetConnectionsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.GetConnections is not implemented"))
+}
+
+func (UnimplementedConnectionServiceHandler) GetConnectionsByNames(context.Context, *connect.Request[v1alpha1.GetConnectionsByNamesRequest]) (*connect.Response[v1alpha1.GetConnectionsByNamesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.GetConnectionsByNames is not implemented"))
 }
 
 func (UnimplementedConnectionServiceHandler) GetConnection(context.Context, *connect.Request[v1alpha1.GetConnectionRequest]) (*connect.Response[v1alpha1.GetConnectionResponse], error) {

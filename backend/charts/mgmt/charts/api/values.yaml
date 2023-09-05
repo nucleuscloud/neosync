@@ -19,22 +19,6 @@ serviceAccount:
 
 nucleusEnv:
 
-db:
-  host:
-  name:
-  port: 5432
-  username:
-  password:
-
-migrations:
-  skipSchemaCreation:
-  image:
-    repository:
-  db:
-    host:
-    username:
-    password:
-
 istio:
   enabled: false
 
@@ -47,3 +31,6 @@ port: 80
 
 terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
+
+jobConfig:
+  namespace:

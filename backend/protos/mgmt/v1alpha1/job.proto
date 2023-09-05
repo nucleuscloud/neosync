@@ -5,23 +5,19 @@ package mgmt.v1alpha1;
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
-message GetJobsRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
-}
+message GetJobsRequest {}
 message GetJobsResponse {
   repeated Job jobs = 1;
 }
 
 message CreateJobRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
+  string job_name = 1;
 
-  string job_name = 2;
-
-  string connection_source_id = 3 [(validate.rules).string.uuid = true];
-  repeated string connection_destination_ids = 4;
-  optional string cron_schedule = 5;
-  bool halt_on_new_column_addition = 6;
-  repeated JobMapping mappings = 7;
+  string connection_source_id = 2 [(validate.rules).string.uuid = true];
+  repeated string connection_destination_ids = 3;
+  optional string cron_schedule = 4;
+  JobSourceOptions source_options = 5;
+  repeated JobMapping mappings = 6;
 }
 message CreateJobResponse {
   Job job = 1;
@@ -31,15 +27,8 @@ message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  JobMappingTransformer transformer = 5;
+  string transformer = 5; //TODO @alisha add validation here
   bool exclude = 6;
-}
-
-enum JobMappingTransformer {
-  JOB_MAPPING_TRANSFORMER_UNSPECIFIED = 0;
-  JOB_MAPPING_TRANSFORMER_PASSTHROUGH = 1;
-  JOB_MAPPING_TRANSFORMER_SSN = 2;
-  JOB_MAPPING_TRANSFORMER_SCRAMBLE = 3;
 }
 
 enum JobStatus {
@@ -56,10 +45,43 @@ message GetJobResponse {
   Job job = 1;
 }
 
-message UpdateJobRequest {
+message UpdateJobScheduleRequest {
   string id = 1 [(validate.rules).string.uuid = true];
+  optional string cron_schedule = 2;
 }
-message UpdateJobResponse {
+message UpdateJobScheduleResponse {
+  Job job = 1;
+}
+
+message UpdateJobSourceConnectionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string connection_id = 2 [(validate.rules).string.uuid = true];
+}
+message UpdateJobSourceConnectionResponse {
+  Job job = 1;
+}
+
+message UpdateJobDestinationConnectionsRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  repeated string connection_ids = 2 [(validate.rules).repeated = {min_items: 1}];
+}
+message UpdateJobDestinationConnectionsResponse {
+  Job job = 1;
+}
+
+message UpdateJobMappingsRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  repeated JobMapping mappings = 2 [(validate.rules).repeated = {min_items: 1}];
+}
+message UpdateJobMappingsResponse {
+  Job job = 1;
+}
+
+message UpdateJobHaltOnNewColumnAdditionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  bool halt_on_new_column_addition = 2;
+}
+message UpdateJobHaltOnNewColumnAdditionResponse {
   Job job = 1;
 }
 
@@ -75,16 +97,9 @@ message IsJobNameAvailableResponse {
   bool is_available = 1;
 }
 
-message UpdateJobScheduleRequest {
-  string id = 1;
-  string cron_schedule = 2;
-}
-message UpdateJobScheduleResponse {}
-
 message GetJobRunsRequest {
   oneof id {
     string job_id = 1 [(validate.rules).string.uuid = true];
-    string account_id = 2 [(validate.rules).string.uuid = true];
   }
 }
 message GetJobRunsResponse {
@@ -110,23 +125,24 @@ message CancelJobRunRequest {
 }
 message CancelJobRunResponse {}
 
+message JobSourceOptions {
+  bool halt_on_new_column_addition = 1;
+}
+
 message Job {
   string id = 1;
 
-  string created_by_user_id = 2;
-  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp created_at = 2;
+  google.protobuf.Timestamp updated_at = 3;
 
-  string updated_by_user_id = 4;
-  google.protobuf.Timestamp updated_at = 5;
+  string name = 4;
+  JobStatus status = 5;
 
-  string name = 6;
-  JobStatus status = 7;
-
-  string connection_source_id = 8 [(validate.rules).string.uuid = true];
-  repeated string connection_destination_ids = 9;
-  repeated JobMapping mappings = 10;
-  optional string cron_schedule = 11;
-  bool halt_on_new_column_addition = 12;
+  string connection_source_id = 6 [(validate.rules).string.uuid = true];
+  repeated string connection_destination_ids = 7;
+  repeated JobMapping mappings = 8;
+  optional string cron_schedule = 9;
+  JobSourceOptions source_options = 10;
 }
 
 message JobRun {
@@ -149,7 +165,7 @@ enum JobRunStatus {
 
 message Transformer {
   string title = 1;
-  JobMappingTransformer value = 2;
+  string value = 2;
 }
 message GetTransformersRequest {}
 message GetTransformersResponse {
@@ -160,10 +176,13 @@ service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
   rpc CreateJob(CreateJobRequest) returns (CreateJobResponse) {}
-  rpc UpdateJob(UpdateJobRequest) returns (UpdateJobResponse) {}
   rpc DeleteJob(DeleteJobRequest) returns (DeleteJobResponse) {}
   rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {}
   rpc UpdateJobSchedule(UpdateJobScheduleRequest) returns (UpdateJobScheduleResponse) {}
+  rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
+  rpc UpdateJobDestinationConnections(UpdateJobDestinationConnectionsRequest) returns (UpdateJobDestinationConnectionsResponse) {}
+  rpc UpdateJobMappings(UpdateJobMappingsRequest) returns (UpdateJobMappingsResponse) {}
+  rpc UpdateJobHaltOnNewColumnAddition(UpdateJobHaltOnNewColumnAdditionRequest) returns (UpdateJobHaltOnNewColumnAdditionResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}
