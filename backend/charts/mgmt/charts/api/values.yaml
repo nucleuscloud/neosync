@@ -47,3 +47,6 @@ port: 80
 
 terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
+
+jobConfig:
+  namespace:

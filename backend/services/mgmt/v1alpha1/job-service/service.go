@@ -13,7 +13,9 @@ type Service struct {
 	connectionService *v1alpha1_connectionservice.Service
 }
 
-type Config struct{}
+type Config struct {
+	JobConfigNamespace string
+}
 
 func New(
 	cfg *Config,

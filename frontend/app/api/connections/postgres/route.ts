@@ -17,7 +17,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const jsonbody = await NEW_POSTGRES_CONNECTION.validate(await req.json());
     return ctx.connectionClient.createConnection(
       new CreateConnectionRequest({
-        accountId: jsonbody.accountId,
         name: jsonbody.connectionName,
         connectionConfig: new ConnectionConfig({
           config: {

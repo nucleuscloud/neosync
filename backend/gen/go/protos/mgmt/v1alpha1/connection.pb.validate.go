@@ -60,28 +60,8 @@ func (m *GetConnectionsRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = GetConnectionsRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if len(errors) > 0 {
 		return GetConnectionsRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetConnectionsRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -571,18 +551,6 @@ func (m *CreateConnectionRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = CreateConnectionRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if !_CreateConnectionRequest_Name_Pattern.MatchString(m.GetName()) {
 		err := CreateConnectionRequestValidationError{
 			field:  "Name",
@@ -625,14 +593,6 @@ func (m *CreateConnectionRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return CreateConnectionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *CreateConnectionRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1646,8 +1606,6 @@ func (m *Connection) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for CreatedByUserId
-
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
@@ -1676,8 +1634,6 @@ func (m *Connection) validate(all bool) error {
 			}
 		}
 	}
-
-	// no validation rules for UpdatedByUserId
 
 	if all {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {
@@ -2405,18 +2361,6 @@ func (m *IsConnectionNameAvailableRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = IsConnectionNameAvailableRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
 	if !_IsConnectionNameAvailableRequest_ConnectionName_Pattern.MatchString(m.GetConnectionName()) {
 		err := IsConnectionNameAvailableRequestValidationError{
 			field:  "ConnectionName",
@@ -2430,14 +2374,6 @@ func (m *IsConnectionNameAvailableRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return IsConnectionNameAvailableRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *IsConnectionNameAvailableRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil

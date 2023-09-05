@@ -1,5 +1,4 @@
 'use client';
-import { useAccount } from '@/components/contexts/account-context';
 import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
@@ -39,9 +38,8 @@ export type ConnectionsFormValues = Yup.InferType<
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
 
-  const account = useAccount();
   const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
+    useGetConnections();
 
   const connections = connectionsData?.connections ?? [];
 
