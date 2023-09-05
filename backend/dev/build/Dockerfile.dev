@@ -8,7 +8,5 @@ WORKDIR /app
 COPY /bin/mgmt /app
 
 RUN echo 'NUCLEUS_ENV=dev' > /app/.env
-COPY .env.dev /app
-COPY .env.dev.* /app
 
 ENTRYPOINT ["/app/mgmt"]
