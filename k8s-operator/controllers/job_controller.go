@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,9 +48,23 @@ type JobReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	job := &neosyncdevv1alpha1.Job{}
+	err := r.Get(ctx, req.NamespacedName, job)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("job resource not found. Ignoring since object must be deleted")
+			return ctrl.Result{}, nil
+		}
+		logger.Error(err, "failed to get job resource")
+		return ctrl.Result{}, err
+	}
+
+	if job.Spec.CronSchedule != nil {
+		// spawn Cronjob that creates JobRuns on a schedule
+		// Job that is spawned will need a custom service accout that lets it create JobRuns
+	}
 
 	return ctrl.Result{}, nil
 }
