@@ -15,7 +15,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
-	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	conn_utils "github.com/nucleuscloud/neosync/backend/internal/utils/connections"
 	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
@@ -38,9 +37,9 @@ func (s *Service) CheckConnectionConfig(
 		var connectionString *string
 		switch connectionConfig := config.PgConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-			connStr := nucleusdb.GetDbUrl(&nucleusdb.ConnectConfig{
+			connStr := conn_utils.GetPostgresUrl(&conn_utils.ConnectConfig{
 				Host:     connectionConfig.Connection.Host,
-				Port:     int(connectionConfig.Connection.Port),
+				Port:     int32(connectionConfig.Connection.Port),
 				Database: connectionConfig.Connection.Name,
 				User:     connectionConfig.Connection.User,
 				Pass:     connectionConfig.Connection.Pass,
@@ -524,9 +523,9 @@ func getConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) {
 		var connectionString *string
 		switch connectionConfig := config.PgConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-			connStr := nucleusdb.GetDbUrl(&nucleusdb.ConnectConfig{
+			connStr := conn_utils.GetPostgresUrl(&conn_utils.ConnectConfig{
 				Host:     connectionConfig.Connection.Host,
-				Port:     int(connectionConfig.Connection.Port),
+				Port:     int32(connectionConfig.Connection.Port),
 				Database: connectionConfig.Connection.Name,
 				User:     connectionConfig.Connection.User,
 				Pass:     connectionConfig.Connection.Pass,
