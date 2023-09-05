@@ -39,10 +39,7 @@ func ToJobDto(
 	}
 }
 
-func getTransformer(transformerName string) mgmtv1alpha1.JobMappingTransformer {
-	transformer, ok := mgmtv1alpha1.JobMappingTransformer_value[transformerName]
-	if !ok {
-		return mgmtv1alpha1.JobMappingTransformer(0)
-	}
-	return mgmtv1alpha1.JobMappingTransformer(transformer)
+func getTransformer(transformerName string) string {
+	// TODO @alisha handler operator to api transformer mapping
+	return transformerName
 }

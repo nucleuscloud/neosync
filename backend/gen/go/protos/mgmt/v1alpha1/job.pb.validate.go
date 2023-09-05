@@ -957,7 +957,9 @@ func (m *UpdateJobScheduleRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for CronSchedule
+	if m.CronSchedule != nil {
+		// no validation rules for CronSchedule
+	}
 
 	if len(errors) > 0 {
 		return UpdateJobScheduleRequestMultiError(errors)
@@ -1485,6 +1487,17 @@ func (m *UpdateJobDestinationConnectionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if len(m.GetConnectionIds()) < 1 {
+		err := UpdateJobDestinationConnectionsRequestValidationError{
+			field:  "ConnectionIds",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return UpdateJobDestinationConnectionsRequestMultiError(errors)
 	}
@@ -1737,6 +1750,17 @@ func (m *UpdateJobMappingsRequest) validate(all bool) error {
 			field:  "Id",
 			reason: "value must be a valid UUID",
 			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetMappings()) < 1 {
+		err := UpdateJobMappingsRequestValidationError{
+			field:  "Mappings",
+			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
 			return err

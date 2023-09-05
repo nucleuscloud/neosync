@@ -8,6 +8,7 @@ import (
 	"log/slog"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -237,21 +238,13 @@ func (s *Service) GetConnectionsByNames(
 
 	dtoConns := []*mgmtv1alpha1.Connection{}
 	for _, conn := range conns {
-		connId := conn.Labels[k8s_utils.NeosyncUuidLabel]
 		var secret *corev1.Secret
 		if conn.Spec.Url.ValueFrom != nil {
 			secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
-			secretEntry, ok := secretsMap[secretName]
-			if ok {
-				secretId := secretEntry.Labels[k8s_utils.NeosyncUuidLabel]
-				if connId != secretId {
-					msg := fmt.Sprintf("connection and secret uuid mismatch. connId: %s secretId: %s", connId, secretId)
-					return nil, nucleuserrors.NewInternalError(msg)
-				}
-				secret = secretEntry
-			}
+			secretEntry := secretsMap[secretName]
+			secret = secretEntry
 		}
-		dto, err := dtomaps.ToConnectionDto(conn, secret)
+		dto, err := dtomaps.ToConnectionDto(logger, conn, secret)
 		if err != nil {
 			return nil, err
 		}
@@ -268,7 +261,7 @@ func (s *Service) GetConnection(
 	req *connect.Request[mgmtv1alpha1.GetConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
+	logger = logger.With("connectionId", req.Msg.Id)
 
 	connection, err := getConnectionById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
 	if err != nil {
@@ -290,7 +283,8 @@ func (s *Service) CreateConnection(
 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("name", req.Msg.Name)
+	connUuid := uuid.NewString()
+	logger = logger.With("name", req.Msg.Name, "connectionId", connUuid)
 	logger.Info("creating connection")
 	connectionString, err := getConnectionUrl(req.Msg.ConnectionConfig)
 	if err != nil {
@@ -319,6 +313,9 @@ func (s *Service) CreateConnection(
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.cfg.JobConfigNamespace,
 			Name:      req.Msg.Name,
+			Labels: map[string]string{
+				k8s_utils.NeosyncUuidLabel: connUuid,
+			},
 		},
 		Spec: neosyncdevv1alpha1.SqlConnectionSpec{
 			Driver: neosyncdevv1alpha1.PostgresDriver,
@@ -397,7 +394,7 @@ func (s *Service) UpdateConnection(
 	req *connect.Request[mgmtv1alpha1.UpdateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.UpdateConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
+	logger = logger.With("connectionId", req.Msg.Id)
 	logger.Info("updating connection")
 	connection, err := getConnectionById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
 	if err != nil {
@@ -472,7 +469,7 @@ func (s *Service) DeleteConnection(
 	req *connect.Request[mgmtv1alpha1.DeleteConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
+	logger = logger.With("connectionId", req.Msg.Id)
 	logger.Info("deleting connection")
 
 	conn, err := getSqlConnectionById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)

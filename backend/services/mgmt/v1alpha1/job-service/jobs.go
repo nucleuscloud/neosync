@@ -135,9 +135,9 @@ func (s *Service) CreateJob(
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobName", req.Msg.JobName)
-	logger.Info("creating job")
 	jobUuid := uuid.NewString()
+	logger = logger.With("jobName", req.Msg.JobName, "jobId", jobUuid)
+	logger.Info("creating job")
 
 	var sourceConnName *string
 	destConnNames := make([]string, len(req.Msg.ConnectionDestinationIds))
@@ -148,7 +148,7 @@ func (s *Service) CreateJob(
 			Id: req.Msg.ConnectionSourceId,
 		}))
 		if err != nil {
-			return nil
+			return err
 		}
 		sourceConnName = &conn.Msg.Connection.Name
 		return nil
@@ -217,7 +217,8 @@ func (s *Service) CreateJob(
 		logger.Error("unable to create job")
 		return nil, err
 	}
-	logger.Info("created job", "jobId", jobUuid)
+
+	logger.Info("created job")
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
 		Job: dtomaps.ToJobDto(job, req.Msg.ConnectionSourceId, req.Msg.ConnectionDestinationIds),
@@ -248,12 +249,12 @@ func (s *Service) DeleteJob(
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 }
 
-type CronSchedule struct {
-	CronSchedule string
+type cronScheduleSpec struct {
+	CronSchedule *string `json:"cronSchedule"`
 }
 
-type UpdateJobScheduleSpec struct {
-	Spec *CronSchedule
+type updateJobScheduleSpec struct {
+	Spec *cronScheduleSpec `json:"spec"`
 }
 
 func (s *Service) UpdateJobSchedule(
@@ -268,8 +269,8 @@ func (s *Service) UpdateJobSchedule(
 		return nil, err
 	}
 
-	patch := &UpdateJobScheduleSpec{
-		Spec: &CronSchedule{
+	patch := &updateJobScheduleSpec{
+		Spec: &cronScheduleSpec{
 			CronSchedule: req.Msg.CronSchedule,
 		},
 	}
@@ -296,6 +297,30 @@ func (s *Service) UpdateJobSchedule(
 	}), nil
 }
 
+type patchUpdateJobConfigSpec struct {
+	Spec *jobConfigSpec `json:"spec"`
+}
+
+type jobConfigSpec struct {
+	Source       *jobConnection   `json:"source,omitempty"`
+	Destinations []*jobConnection `json:"destinations,omitempty"`
+	CronSchedule *string          `json:"cronSchedule,omitempty"`
+}
+
+type jobConnection struct {
+	Sql *sqlConnection `json:"sql,omitempty"`
+}
+
+type sqlConnection struct {
+	ConnectionRef      *connectionRef                        `json:"connectionRef,omitempty"`
+	HaltOnSchemaChange *bool                                 `json:"haltOnSchemaChange,omitempty"`
+	Schemas            []*neosyncdevv1alpha1.SourceSqlSchema `json:"schemas,omitempty"`
+}
+
+type connectionRef struct {
+	Name string `json:"name"`
+}
+
 func (s *Service) UpdateJobSourceConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobSourceConnectionRequest],
@@ -316,12 +341,12 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, err
 	}
 
-	var source *neosyncdevv1alpha1.JobConfigSource
+	var source *jobConnection
 	switch conn.Msg.Connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		source = &neosyncdevv1alpha1.JobConfigSource{
-			Sql: &neosyncdevv1alpha1.SourceSql{
-				ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
+		source = &jobConnection{
+			Sql: &sqlConnection{
+				ConnectionRef: &connectionRef{
 					Name: conn.Msg.Connection.Name,
 				},
 			},
@@ -330,14 +355,19 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}
 
-	patch := &neosyncdevv1alpha1.JobConfig{
-		Spec: neosyncdevv1alpha1.JobConfigSpec{
+	patch := &patchUpdateJobConfigSpec{
+		Spec: &jobConfigSpec{
 			Source: source,
 		},
 	}
-	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+	patchBits, err := json.Marshal(patch)
 	if err != nil {
-		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
+	if err != nil {
+		logger.Error("unable to update job source connection")
 		return nil, err
 	}
 
@@ -394,13 +424,13 @@ func (s *Service) UpdateJobDestinationConnections(
 		return nil, err
 	}
 
-	jobDestinations := []*neosyncdevv1alpha1.JobConfigDestination{}
+	jobDestinations := []*jobConnection{}
 	for _, conn := range destConns {
 		switch conn.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-			jobDestinations = append(jobDestinations, &neosyncdevv1alpha1.JobConfigDestination{
-				Sql: &neosyncdevv1alpha1.DestinationSql{
-					ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
+			jobDestinations = append(jobDestinations, &jobConnection{
+				Sql: &sqlConnection{
+					ConnectionRef: &connectionRef{
 						Name: conn.Name,
 					},
 				},
@@ -410,14 +440,19 @@ func (s *Service) UpdateJobDestinationConnections(
 		}
 	}
 
-	patch := &neosyncdevv1alpha1.JobConfig{
-		Spec: neosyncdevv1alpha1.JobConfigSpec{
+	patch := &patchUpdateJobConfigSpec{
+		Spec: &jobConfigSpec{
 			Destinations: jobDestinations,
 		},
 	}
-	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+	patchBits, err := json.Marshal(patch)
 	if err != nil {
-		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
+	if err != nil {
+		logger.Error("unable to update job destination connections")
 		return nil, err
 	}
 
@@ -446,12 +481,12 @@ func (s *Service) UpdateJobMappings(
 	}
 
 	schemas := createSqlSchemas(req.Msg.Mappings)
-	var patch *neosyncdevv1alpha1.JobConfig
+	var patch *patchUpdateJobConfigSpec
 	if job.Spec.Source.Sql != nil {
-		patch = &neosyncdevv1alpha1.JobConfig{
-			Spec: neosyncdevv1alpha1.JobConfigSpec{
-				Source: &neosyncdevv1alpha1.JobConfigSource{
-					Sql: &neosyncdevv1alpha1.SourceSql{
+		patch = &patchUpdateJobConfigSpec{
+			Spec: &jobConfigSpec{
+				Source: &jobConnection{
+					Sql: &sqlConnection{
 						Schemas: schemas,
 					},
 				},
@@ -460,9 +495,14 @@ func (s *Service) UpdateJobMappings(
 	} else {
 		return nil, nucleuserrors.NewBadRequest("this job config is not currently supported")
 	}
-	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+	patchBits, err := json.Marshal(patch)
 	if err != nil {
-		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
+	if err != nil {
+		logger.Error("unable to update job destination connections")
 		return nil, err
 	}
 
@@ -491,22 +531,29 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 		return nil, err
 	}
 
-	var patch *neosyncdevv1alpha1.JobConfig
+	var patch *patchUpdateJobConfigSpec
 	if job.Spec.Source.Sql != nil {
-		patch = &neosyncdevv1alpha1.JobConfig{
-			Spec: neosyncdevv1alpha1.JobConfigSpec{
-				Source: &neosyncdevv1alpha1.JobConfigSource{
-					Sql: job.Spec.Source.Sql,
+		patch = &patchUpdateJobConfigSpec{
+			Spec: &jobConfigSpec{
+				Source: &jobConnection{
+					Sql: &sqlConnection{
+						HaltOnSchemaChange: &req.Msg.HaltOnNewColumnAddition,
+					},
 				},
 			},
 		}
-		patch.Spec.Source.Sql.HaltOnSchemaChange = &req.Msg.HaltOnNewColumnAddition
 	} else {
 		return nil, nucleuserrors.NewBadRequest("this job config is not currently supported")
 	}
-	err = patchJobConfig(ctx, s.k8sclient, job, patch)
+
+	patchBits, err := json.Marshal(patch)
 	if err != nil {
-		logger.Error("unable to update job schedule")
+		return nil, err
+	}
+
+	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
+	if err != nil {
+		logger.Error("unable to update job destination connections")
 		return nil, err
 	}
 
@@ -536,7 +583,7 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 						Name:    row.Column,
 						Exclude: &row.Exclude,
 						Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-							Name: row.Transformer.Enum().String(),
+							Name: row.Transformer,
 						},
 					},
 				},
@@ -548,7 +595,7 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 			Name:    row.Column,
 			Exclude: &row.Exclude,
 			Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-				Name: row.Transformer.Enum().String(),
+				Name: row.Transformer,
 			},
 		})
 

@@ -27,15 +27,8 @@ message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  JobMappingTransformer transformer = 5;
+  string transformer = 5; //TODO @alisha add validation here
   bool exclude = 6;
-}
-
-enum JobMappingTransformer {
-  JOB_MAPPING_TRANSFORMER_UNSPECIFIED = 0;
-  JOB_MAPPING_TRANSFORMER_PASSTHROUGH = 1;
-  JOB_MAPPING_TRANSFORMER_SSN = 2;
-  JOB_MAPPING_TRANSFORMER_SCRAMBLE = 3;
 }
 
 enum JobStatus {
@@ -54,7 +47,7 @@ message GetJobResponse {
 
 message UpdateJobScheduleRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  string cron_schedule = 2;
+  optional string cron_schedule = 2;
 }
 message UpdateJobScheduleResponse {
   Job job = 1;
@@ -70,7 +63,7 @@ message UpdateJobSourceConnectionResponse {
 
 message UpdateJobDestinationConnectionsRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  repeated string connection_ids = 2;
+  repeated string connection_ids = 2 [(validate.rules).repeated = {min_items: 1}];
 }
 message UpdateJobDestinationConnectionsResponse {
   Job job = 1;
@@ -78,7 +71,7 @@ message UpdateJobDestinationConnectionsResponse {
 
 message UpdateJobMappingsRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  repeated JobMapping mappings = 2;
+  repeated JobMapping mappings = 2 [(validate.rules).repeated = {min_items: 1}];
 }
 message UpdateJobMappingsResponse {
   Job job = 1;
@@ -161,7 +154,7 @@ enum JobRunStatus {
 
 message Transformer {
   string title = 1;
-  JobMappingTransformer value = 2;
+  string value = 2;
 }
 message GetTransformersRequest {}
 message GetTransformersResponse {

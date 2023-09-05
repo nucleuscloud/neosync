@@ -7,38 +7,6 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
- * @generated from enum mgmt.v1alpha1.JobMappingTransformer
- */
-export enum JobMappingTransformer {
-  /**
-   * @generated from enum value: JOB_MAPPING_TRANSFORMER_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * @generated from enum value: JOB_MAPPING_TRANSFORMER_PASSTHROUGH = 1;
-   */
-  PASSTHROUGH = 1,
-
-  /**
-   * @generated from enum value: JOB_MAPPING_TRANSFORMER_SSN = 2;
-   */
-  SSN = 2,
-
-  /**
-   * @generated from enum value: JOB_MAPPING_TRANSFORMER_SCRAMBLE = 3;
-   */
-  SCRAMBLE = 3,
-}
-// Retrieve enum metadata with: proto3.getEnumType(JobMappingTransformer)
-proto3.util.setEnumType(JobMappingTransformer, "mgmt.v1alpha1.JobMappingTransformer", [
-  { no: 0, name: "JOB_MAPPING_TRANSFORMER_UNSPECIFIED" },
-  { no: 1, name: "JOB_MAPPING_TRANSFORMER_PASSTHROUGH" },
-  { no: 2, name: "JOB_MAPPING_TRANSFORMER_SSN" },
-  { no: 3, name: "JOB_MAPPING_TRANSFORMER_SCRAMBLE" },
-]);
-
-/**
  * @generated from enum mgmt.v1alpha1.JobStatus
  */
 export enum JobStatus {
@@ -300,9 +268,11 @@ export class JobMapping extends Message<JobMapping> {
   column = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.JobMappingTransformer transformer = 5;
+   * TODO @alisha add validation here
+   *
+   * @generated from field: string transformer = 5;
    */
-  transformer = JobMappingTransformer.UNSPECIFIED;
+  transformer = "";
 
   /**
    * @generated from field: bool exclude = 6;
@@ -320,7 +290,7 @@ export class JobMapping extends Message<JobMapping> {
     { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "transformer", kind: "enum", T: proto3.getEnumType(JobMappingTransformer) },
+    { no: 5, name: "transformer", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "exclude", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
@@ -425,9 +395,9 @@ export class UpdateJobScheduleRequest extends Message<UpdateJobScheduleRequest> 
   id = "";
 
   /**
-   * @generated from field: string cron_schedule = 2;
+   * @generated from field: optional string cron_schedule = 2;
    */
-  cronSchedule = "";
+  cronSchedule?: string;
 
   constructor(data?: PartialMessage<UpdateJobScheduleRequest>) {
     super();
@@ -438,7 +408,7 @@ export class UpdateJobScheduleRequest extends Message<UpdateJobScheduleRequest> 
   static readonly typeName = "mgmt.v1alpha1.UpdateJobScheduleRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobScheduleRequest {
@@ -1347,9 +1317,9 @@ export class Transformer extends Message<Transformer> {
   title = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.JobMappingTransformer value = 2;
+   * @generated from field: string value = 2;
    */
-  value = JobMappingTransformer.UNSPECIFIED;
+  value = "";
 
   constructor(data?: PartialMessage<Transformer>) {
     super();
@@ -1360,7 +1330,7 @@ export class Transformer extends Message<Transformer> {
   static readonly typeName = "mgmt.v1alpha1.Transformer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "value", kind: "enum", T: proto3.getEnumType(JobMappingTransformer) },
+    { no: 2, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transformer {
