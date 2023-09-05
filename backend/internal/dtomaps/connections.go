@@ -1,8 +1,9 @@
 package dtomaps
 
 import (
+	"log/slog"
+
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	conn_utils "github.com/nucleuscloud/neosync/backend/internal/utils/connections"
 	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
@@ -11,18 +12,21 @@ import (
 )
 
 func ToConnectionDto(
+	logger *slog.Logger,
 	input *neosyncdevv1alpha1.SqlConnection,
 	secret *corev1.Secret,
 ) (*mgmtv1alpha1.Connection, error) {
+	labels := input.GetLabels()
+	id := labels[k8s_utils.NeosyncUuidLabel]
+	logger = logger.With("connectionId", id)
 
-	connectionConfig, err := getConnectionConfig(input, secret)
+	connectionConfig, err := getConnectionConfig(logger, input, secret)
 	if err != nil {
 		return nil, err
 	}
 
-	labels := input.GetLabels()
 	return &mgmtv1alpha1.Connection{
-		Id:               labels[k8s_utils.NeosyncUuidLabel],
+		Id:               id,
 		Name:             input.Name,
 		ConnectionConfig: connectionConfig,
 		CreatedAt:        timestamppb.New(input.CreationTimestamp.Time),
@@ -31,6 +35,7 @@ func ToConnectionDto(
 }
 
 func getConnectionConfig(
+	logger *slog.Logger,
 	input *neosyncdevv1alpha1.SqlConnection,
 	secret *corev1.Secret,
 ) (*mgmtv1alpha1.ConnectionConfig, error) {
@@ -38,14 +43,33 @@ func getConnectionConfig(
 	case neosyncdevv1alpha1.PostgresDriver:
 		var url string
 		if secret != nil {
-			url = string(secret.Data[conn_utils.ConnectionSecretUrlField])
+			key := input.Spec.Url.ValueFrom.SecretKeyRef.Key
+			url = string(secret.Data[key])
 			if url == "" {
-				return nil, nucleuserrors.NewInternalError("unable to locate connection url in secret")
+				logger.Error("unable to locate connection url in secret")
+				return &mgmtv1alpha1.ConnectionConfig{
+					Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+						PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+							ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
+								Connection: &mgmtv1alpha1.PostgresConnection{},
+							},
+						},
+					},
+				}, nil
 			}
 		} else if input.Spec.Url.Value != nil && *input.Spec.Url.Value != "" {
 			url = *input.Spec.Url.Value
 		} else {
-			return nil, nucleuserrors.NewNotImplemented("this connection config url is not currently supported")
+			logger.Error("this postgres connection config is not currently supported")
+			return &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
+							Connection: &mgmtv1alpha1.PostgresConnection{},
+						},
+					},
+				},
+			}, nil
 		}
 		connCfg, err := conn_utils.ParsePostgresUrl(url)
 		if err != nil {
@@ -69,6 +93,9 @@ func getConnectionConfig(
 		}, nil
 
 	default:
-		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+		logger.Error("this connection config is not currently supported")
+		return &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
+		}, nil
 	}
 }

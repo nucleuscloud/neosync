@@ -29,6 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/google/uuid"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 )
 
@@ -70,6 +71,19 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		}
 		logger.Error(err, "failed to get jobrun resource")
 		return ctrl.Result{}, err
+	}
+
+	if _, ok := jobrun.Labels[neosyncIdLabel]; !ok {
+		if jobrun.Labels == nil {
+			jobrun.Labels = map[string]string{}
+		}
+		jobrun.Labels[neosyncIdLabel] = uuid.NewString()
+		if err := r.Update(ctx, jobrun); err != nil {
+			logger.Error(err, "unable to add neosync id label to resource")
+			return ctrl.Result{}, err
+		}
+		logger.Info("added neosync id label to resource")
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	job := &neosyncdevv1alpha1.Job{}
