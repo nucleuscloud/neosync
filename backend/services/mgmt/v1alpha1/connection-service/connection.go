@@ -22,6 +22,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -123,8 +125,13 @@ func (s *Service) GetConnections(
 		}), nil
 	}
 
+	labelReq, err := labels.NewRequirement(k8s_utils.NeosyncComponentLabel, selection.Equals, []string{"connection"})
+	if err != nil {
+		return nil, err
+	}
+
 	secrets, err := s.k8sclient.K8sClient.CoreV1().Secrets(s.cfg.JobConfigNamespace).List(ctx, metav1.ListOptions{
-		LabelSelector: k8s_utils.NeosyncUuidLabel,
+		LabelSelector: labels.NewSelector().Add(*labelReq).String(),
 	})
 	if err != nil && !errors.IsNotFound(err) {
 		return nil, err
@@ -139,21 +146,13 @@ func (s *Service) GetConnections(
 	dtoConns := []*mgmtv1alpha1.Connection{}
 	for i := range conns.Items {
 		conn := conns.Items[i]
-		connId := conn.Labels[k8s_utils.NeosyncUuidLabel]
 		var secret *corev1.Secret
 		if conn.Spec.Url.ValueFrom != nil {
 			secretName := conn.Spec.Url.ValueFrom.SecretKeyRef.Name
-			secretEntry, ok := secretsMap[secretName]
-			if ok {
-				secretId := secretEntry.Labels[k8s_utils.NeosyncUuidLabel]
-				if connId != secretId {
-					msg := fmt.Sprintf("connection and secret uuid mismatch. connId: %s secretId: %s", connId, secretId)
-					return nil, nucleuserrors.NewInternalError(msg)
-				}
-				secret = secretEntry
-			}
+			secretEntry := secretsMap[secretName]
+			secret = secretEntry
 		}
-		dto, err := dtomaps.ToConnectionDto(&conn, secret)
+		dto, err := dtomaps.ToConnectionDto(logger, &conn, secret)
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +176,7 @@ func (s *Service) GetConnection(
 		return nil, err
 	}
 
-	dto, err := dtomaps.ToConnectionDto(connection.Connection, connection.Secret)
+	dto, err := dtomaps.ToConnectionDto(logger, connection.Connection, connection.Secret)
 	if err != nil {
 		return nil, err
 	}
@@ -207,6 +206,9 @@ func (s *Service) CreateConnection(
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      req.Msg.Name,
 			Namespace: s.cfg.JobConfigNamespace,
+			Labels: map[string]string{
+				k8s_utils.NeosyncComponentLabel: "connection",
+			},
 		},
 		StringData: map[string]string{
 			conn_utils.ConnectionSecretUrlField: connectionString,
@@ -281,7 +283,7 @@ func (s *Service) CreateConnection(
 	secret := <-secretChan
 	close(secretChan)
 
-	dto, err := dtomaps.ToConnectionDto(connection, secret)
+	dto, err := dtomaps.ToConnectionDto(logger, connection, secret)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +358,7 @@ func (s *Service) UpdateConnection(
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}
 
-	dto, err := dtomaps.ToConnectionDto(connection.Connection, secret)
+	dto, err := dtomaps.ToConnectionDto(logger, connection.Connection, secret)
 	if err != nil {
 		return nil, err
 	}
