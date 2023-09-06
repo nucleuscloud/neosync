@@ -23,7 +23,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import {
+  UpdateJobSourceConnectionRequest,
+  UpdateJobSourceConnectionResponse,
+} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -44,6 +50,7 @@ interface Props {
 }
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
+  const { toast } = useToast();
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections();
 
@@ -63,7 +70,22 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
     },
   });
 
-  async function onSubmit(_values: ConnectionsFormValues) {}
+  async function onSubmit(values: ConnectionsFormValues) {
+    try {
+      await updateJobConnection(jobId, values.sourceId);
+      toast({
+        title: 'Successfully updated job schedule!',
+        variant: 'default',
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to update job schedule',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
+  }
 
   return (
     <Card>
@@ -119,7 +141,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
       </CardContent>
       <CardFooter className="bg-muted">
         <div className="flex flex-row items-center justify-between w-full mt-4">
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             It may take a minute to validate your connection
           </p>
           <Button type="submit">Save</Button>
@@ -127,4 +149,27 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
       </CardFooter>
     </Card>
   );
+}
+
+async function updateJobConnection(
+  jobId: string,
+  connectionId: string
+): Promise<UpdateJobSourceConnectionResponse> {
+  const res = await fetch(`/api/jobs/${jobId}/schedule`, {
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(
+      new UpdateJobSourceConnectionRequest({
+        id: jobId,
+        connectionId: connectionId,
+      })
+    ),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return UpdateJobSourceConnectionResponse.fromJson(await res.json());
 }

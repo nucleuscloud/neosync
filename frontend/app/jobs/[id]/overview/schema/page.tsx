@@ -7,6 +7,13 @@ import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  JobMapping,
+  UpdateJobMappingsRequest,
+  UpdateJobMappingsResponse,
+} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -19,7 +26,9 @@ const JOB_MAPPING_SCHEMA = Yup.object({
   column: Yup.string().required(),
   dataType: Yup.string().required(),
   transformer: Yup.string().required(),
+  exclude: Yup.boolean(),
 }).required();
+type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
 
 const SCHEMA_FORM_SCHEMA = Yup.object({
   mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
@@ -38,12 +47,28 @@ interface SchemaMap {
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
+  const { toast } = useToast();
 
   const form = useForm({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
     defaultValues: async () => getMappings(id),
   });
-  async function onSubmit(_values: SchemaFormValues) {}
+  async function onSubmit(values: SchemaFormValues) {
+    try {
+      await updateJobMappings(id, values.mappings);
+      toast({
+        title: 'Successfully updated job mappings!',
+        variant: 'default',
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to update job mappings',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
+  }
 
   return (
     <div className="job-details-container">
@@ -108,4 +133,35 @@ async function getMappings(jobId?: string): Promise<SchemaFormValues> {
     };
   });
   return { mappings: mappings || [] };
+}
+
+async function updateJobMappings(
+  jobId: string,
+  mappings: JobMappingFormValues[]
+): Promise<UpdateJobMappingsResponse> {
+  const res = await fetch(`/api/jobs/${jobId}/mappings`, {
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(
+      new UpdateJobMappingsRequest({
+        id: jobId,
+        mappings: mappings.map((m) => {
+          return new JobMapping({
+            schema: m.schema,
+            table: m.table,
+            column: m.column,
+            transformer: m.transformer,
+            exclude: m.exclude,
+          });
+        }),
+      })
+    ),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return UpdateJobMappingsResponse.fromJson(await res.json());
 }

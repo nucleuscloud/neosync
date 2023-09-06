@@ -17,8 +17,12 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       href: `${basePath}/overview`,
     },
     {
-      title: 'Connections',
-      href: `${basePath}/overview/connections`,
+      title: 'Source',
+      href: `${basePath}/overview/source`,
+    },
+    {
+      title: 'Destinations',
+      href: `${basePath}/overview/destinations`,
     },
     {
       title: 'Schema',
