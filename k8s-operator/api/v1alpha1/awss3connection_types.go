@@ -30,6 +30,32 @@ type AwsS3ConnectionSpec struct {
 
 	Bucket     string  `json:"bucket"`
 	PathPrefix *string `json:"pathPrefix,omitempty"`
+
+	AwsConfig *AwsConfig `json:"awsConfig,omitempty"`
+}
+
+type AwsConfig struct {
+	Region   *string `json:"region,omitempty"`
+	Endpoint *string `json:"endpoint,omitempty"`
+
+	Credentials *AwsCredentials `json:"credentials,omitempty"`
+}
+
+type AwsCredentials struct {
+	AccessKeyId     *ValueRef `json:"accessKeyId,omitempty"`
+	AccessKeySecret *ValueRef `json:"accessKeySecret,omitempty"`
+	AccessKeyToken  *ValueRef `json:"accessKeyToken,omitempty"`
+	RoleArn         *ValueRef `json:"roleArn,omitempty"`
+	RoleExternalId  *ValueRef `json:"roleExternalId,omitempty"`
+}
+
+type ValueRef struct {
+	Value     *string    `json:"value,omitempty"`
+	ValueFrom *ValueFrom `json:"valueFrom,omitempty"`
+}
+
+type ValueFrom struct {
+	SecretRef *ConfigSelector `json:"secretRef,omitempty"`
 }
 
 // AwsS3ConnectionStatus defines the observed state of AwsS3Connection

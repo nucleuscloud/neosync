@@ -78,6 +78,21 @@ type AwsS3Insert struct {
 	MaxInFlight int       `json:"max_in_flight" yaml:"max_in_flight"`
 	Path        string    `json:"path" yaml:"path"`
 	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+
+	Region   string `json:"region" yaml:"region"`
+	Endpoint string `json:"endpoint" yaml:"endpoint"`
+
+	Credentials *AwsCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
+}
+
+type AwsCredentials struct {
+	Profile        string `json:"profile" yaml:"profile"`
+	Id             string `json:"id" yaml:"id"`
+	Secret         string `json:"secret" yaml:"secret"`
+	Token          string `json:"token" yaml:"token"`
+	FromEc2Role    bool   `json:"from_ec2_role" yaml:"from_ec2_role"`
+	Role           string `json:"role" yaml:"role"`
+	RoleExternalId string `json:"role_external_id" yaml:"role_external_id"`
 }
 
 type Batching struct {

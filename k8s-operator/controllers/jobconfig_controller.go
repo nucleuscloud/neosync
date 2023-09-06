@@ -516,6 +516,95 @@ func (r *JobConfigReconciler) generateConfigs(
 						},
 					},
 				}
+				if conn.Spec.AwsConfig != nil {
+					if conn.Spec.AwsConfig.Region != nil {
+						output.Region = *conn.Spec.AwsConfig.Region
+					}
+					if conn.Spec.AwsConfig.Endpoint != nil {
+						output.Endpoint = *conn.Spec.AwsConfig.Endpoint
+					}
+					if conn.Spec.AwsConfig.Credentials != nil {
+						creds := conn.Spec.AwsConfig.Credentials
+						secretNames := getSecretNamesFromAwsCredentials(creds)
+						credSecrets := map[string]*corev1.Secret{}
+						for _, sn := range secretNames {
+							secret := &corev1.Secret{}
+							err = r.Get(ctx, types.NamespacedName{Namespace: jobconfig.Namespace, Name: sn}, secret)
+							if err != nil {
+								return nil, err
+							}
+							credSecrets[sn] = secret
+						}
+
+						valFromFn := func(valFrom *neosyncdevv1alpha1.ValueFrom) (*string, error) {
+							if valFrom != nil && valFrom.SecretRef != nil {
+								secret, ok := credSecrets[valFrom.SecretRef.Name]
+								if !ok {
+									return nil, fmt.Errorf("secret by name was not found in list")
+								}
+								valBytes, ok := secret.Data[valFrom.SecretRef.Key]
+								if !ok {
+									return nil, fmt.Errorf("key %s was not found in secret %s", valFrom.SecretRef.Key, valFrom.SecretRef.Name)
+								}
+								val := string(valBytes)
+								return &val, nil
+							}
+							return nil, fmt.Errorf("unable to retrieve value from")
+						}
+
+						if creds.AccessKeyId != nil {
+							value, err := getValueFromValRef(creds.AccessKeyId, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.Id = *value
+						}
+						if creds.AccessKeySecret != nil {
+							value, err := getValueFromValRef(creds.AccessKeySecret, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.Secret = *value
+						}
+						if creds.AccessKeyToken != nil {
+							value, err := getValueFromValRef(creds.AccessKeyToken, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.Token = *value
+						}
+						if creds.RoleArn != nil {
+							value, err := getValueFromValRef(creds.RoleArn, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.Role = *value
+						}
+						if creds.RoleExternalId != nil {
+							value, err := getValueFromValRef(creds.RoleExternalId, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.RoleExternalId = *value
+						}
+
+					}
+				}
 
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					AwsS3: output,
@@ -525,6 +614,60 @@ func (r *JobConfigReconciler) generateConfigs(
 	}
 
 	return responses, nil
+}
+
+func getValueFromValRef(
+	valRef *neosyncdevv1alpha1.ValueRef,
+	getValFrom func(valFrom *neosyncdevv1alpha1.ValueFrom) (*string, error),
+) (*string, error) {
+	if valRef == nil {
+		return nil, fmt.Errorf("valRef was nil")
+	}
+	if valRef.Value != nil {
+		return valRef.Value, nil
+	}
+	if valRef.ValueFrom != nil {
+		return getValFrom(valRef.ValueFrom)
+	}
+
+	return nil, fmt.Errorf("unable to find value as Value and ValueFrom were nil or not found")
+}
+
+func getSecretNamesFromAwsCredentials(creds *neosyncdevv1alpha1.AwsCredentials) []string {
+	if creds == nil {
+		return nil
+	}
+	uniqueSecretNames := map[string]struct{}{}
+
+	vals := []*neosyncdevv1alpha1.ValueRef{
+		creds.AccessKeyId,
+		creds.AccessKeySecret,
+		creds.AccessKeyToken,
+		creds.RoleArn,
+		creds.RoleExternalId,
+	}
+	for _, val := range vals {
+		secretName := getSecretNameFromValueRef(val)
+		if secretName != nil && *secretName != "" {
+			uniqueSecretNames[*secretName] = struct{}{}
+		}
+	}
+
+	secretNames := []string{}
+	for sn := range uniqueSecretNames {
+		secretNames = append(secretNames, sn)
+	}
+	return secretNames
+}
+
+func getSecretNameFromValueRef(valRef *neosyncdevv1alpha1.ValueRef) *string {
+	if valRef != nil &&
+		valRef.ValueFrom != nil &&
+		valRef.ValueFrom.SecretRef != nil &&
+		valRef.ValueFrom.SecretRef.Name != "" {
+		return &valRef.ValueFrom.SecretRef.Name
+	}
+	return nil
 }
 
 func buildBenthosTable(schema, table string) string {
