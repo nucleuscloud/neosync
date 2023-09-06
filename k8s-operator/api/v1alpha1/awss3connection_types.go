@@ -62,6 +62,10 @@ type ValueFrom struct {
 type AwsS3ConnectionStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// Populated based on the computed values of the AwsConfig
+	// Takes into account the actual values pulled out of any values that might be referencing secrets
+	AwsConfigHash *HashResult `json:"awsConfigHash,omitempty"`
 }
 
 //+kubebuilder:object:root=true
