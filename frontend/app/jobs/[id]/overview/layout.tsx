@@ -17,10 +17,6 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       href: `${basePath}/overview`,
     },
     {
-      title: 'Schedule',
-      href: `${basePath}/overview/schedule`,
-    },
-    {
       title: 'Connections',
       href: `${basePath}/overview/connections`,
     },

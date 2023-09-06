@@ -20,7 +20,7 @@ func ToJobDto(
 				Table:       table.Table,
 				Column:      column.Name,
 				Exclude:     *column.Exclude,
-				Transformer: getTransformer(column.Transformer.Name),
+				Transformer: getTransformer(column.Transformer),
 			})
 		}
 	}
@@ -41,7 +41,10 @@ func ToJobDto(
 	}
 }
 
-func getTransformer(transformerName string) string {
+func getTransformer(transformer *neosyncdevv1alpha1.ColumnTransformer) string {
 	// TODO @alisha handle operator to api transformer mapping
-	return transformerName
+	if transformer == nil {
+		return "passthrough"
+	}
+	return transformer.Name
 }

@@ -1,5 +1,4 @@
 'use client';
-import { useAccount } from '@/components/contexts/account-context';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -45,9 +44,8 @@ interface Props {
 }
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
-  const account = useAccount();
   const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
+    useGetConnections();
 
   const connections = connectionsData?.connections ?? [];
 

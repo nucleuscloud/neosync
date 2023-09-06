@@ -1,12 +1,11 @@
 'use client';
 import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';
-import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 
 import { ReactElement } from 'react';
+import JobScheduleCard from './components/ScheduleCard';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
@@ -28,7 +27,8 @@ export default function Page({ params }: PageProps): ReactElement {
           </div>
           <h3 className="text-2xl font-medium">{data?.job?.name}</h3>
         </div>
-        <div className="w-96">
+        <JobScheduleCard jobId={id} />
+        {/* <div className="w-96">
           <div className="flex flex-row items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
               <Label className="text-base">
@@ -43,7 +43,7 @@ export default function Page({ params }: PageProps): ReactElement {
               onCheckedChange={() => {}}
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
