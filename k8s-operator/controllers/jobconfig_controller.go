@@ -494,7 +494,7 @@ func (r *JobConfigReconciler) generateConfigs(
 					s3pathPieces,
 					"jobruns",
 					"${JOBRUN_ID}",
-					"tasks",
+					"taskruns",
 					"${TASKRUN_ID}",
 					`${!count("files")}-${!timestamp_unix_nano()}.json.gz`,
 				)
