@@ -27,6 +27,14 @@ spec:
     value: postgres://postgres:foofar@postgresql2:5432/neosync?sslmode=disable
 ---
 apiVersion: neosync.dev/v1alpha1
+kind: AwsS3Connection
+metadata:
+  name: stage
+spec:
+  bucket: neosync-test
+  pathPrefix: foobar
+---
+apiVersion: neosync.dev/v1alpha1
 kind: JobConfig
 metadata:
   name: prod-to-stage-sync
@@ -67,6 +75,9 @@ spec:
 
   destinations:
     - sql:
+        connectionRef:
+          name: stage
+    - awsS3:
         connectionRef:
           name: stage
         # truncate_before_insert: true # default

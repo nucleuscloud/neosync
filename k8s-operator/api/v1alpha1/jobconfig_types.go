@@ -32,6 +32,8 @@ type JobConfigSpec struct {
 	Source       *JobConfigSource        `json:"source"`
 	Destinations []*JobConfigDestination `json:"destinations"`
 	CronSchedule *string                 `json:"cronSchedule,omitempty"`
+
+	PodTemplate *PodTemplate `json:"podTemplate,omitempty"`
 }
 
 type JobConfigSource struct {

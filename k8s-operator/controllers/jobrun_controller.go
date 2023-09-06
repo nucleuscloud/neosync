@@ -145,6 +145,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 						Task: &neosyncdevv1alpha1.TaskRunTask{
 							TaskRef: task.TaskRef,
 						},
+						PodTemplate: jobrun.Spec.PodTemplate,
 					},
 				}
 				err = ctrl.SetControllerReference(jobrun, taskrun, r.Scheme)
