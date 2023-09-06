@@ -44,7 +44,7 @@ func (s *Service) GetConnectionSchema(
 
 	conn, err := pgx.Connect(ctx, connectionString)
 	if err != nil {
-		logger.Error("unable to connect")
+		logger.Error("unable to connect", err)
 		return nil, err
 	}
 	defer func() {

@@ -30,7 +30,9 @@ message JobMapping {
   string transformer = 5 [(validate.rules).string = {
     in: [
       "passthrough",
-      "uuidV4"
+      "uuid_v4",
+      "first_name",
+      "phone_number"
     ]
   }];
   bool exclude = 6;
