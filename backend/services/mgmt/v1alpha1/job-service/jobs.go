@@ -189,7 +189,10 @@ func (s *Service) CreateJob(
 		})
 	}
 
-	schemas := createSqlSchemas(req.Msg.Mappings)
+	schemas, err := createSqlSchemas(req.Msg.Mappings)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate job mapping: %w", err)
+	}
 	job := &neosyncdevv1alpha1.JobConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.cfg.JobConfigNamespace,
@@ -481,9 +484,12 @@ func (s *Service) UpdateJobMappings(
 		return nil, err
 	}
 
-	schemas := createSqlSchemas(req.Msg.Mappings)
 	var patch *patchUpdateJobConfigSpec
 	if job.Spec.Source.Sql != nil {
+		schemas, err := createSqlSchemas(req.Msg.Mappings)
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate SQL job mapping: %w", err)
+		}
 		patch = &patchUpdateJobConfigSpec{
 			Spec: &jobConfigSpec{
 				Source: &jobConnection{
@@ -571,21 +577,23 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 	}), nil
 }
 
-func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1.SourceSqlSchema {
+func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) ([]*neosyncdevv1alpha1.SourceSqlSchema, error) {
 	schema := []*neosyncdevv1alpha1.SourceSqlSchema{}
 	schemaMap := map[string]map[string][]*neosyncdevv1alpha1.SourceSqlColumn{}
 	for _, row := range mappings {
 		row := row
+		transformer, err := getColumnTransformer(row.Transformer)
+		if err != nil {
+			return nil, err
+		}
 		_, ok := schemaMap[row.Schema][row.Table]
 		if !ok {
 			schemaMap[row.Schema] = map[string][]*neosyncdevv1alpha1.SourceSqlColumn{
 				row.Table: {
 					{
-						Name:    row.Column,
-						Exclude: &row.Exclude,
-						Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-							Name: row.Transformer,
-						},
+						Name:        row.Column,
+						Exclude:     &row.Exclude,
+						Transformer: transformer,
 					},
 				},
 			}
@@ -593,11 +601,9 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 		}
 
 		schemaMap[row.Schema][row.Table] = append(schemaMap[row.Schema][row.Table], &neosyncdevv1alpha1.SourceSqlColumn{
-			Name:    row.Column,
-			Exclude: &row.Exclude,
-			Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-				Name: row.Transformer,
-			},
+			Name:        row.Column,
+			Exclude:     &row.Exclude,
+			Transformer: transformer,
 		})
 
 	}
@@ -612,7 +618,7 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 		}
 	}
 
-	return schema
+	return schema, nil
 }
 
 func getSourceConnectionName(jobConfig *neosyncdevv1alpha1.JobConfigSource) (string, error) {

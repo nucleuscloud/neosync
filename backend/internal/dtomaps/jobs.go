@@ -4,6 +4,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+	"github.com/nucleuscloud/neosync/k8s-operator/pkg/transformers"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -20,7 +21,7 @@ func ToJobDto(
 				Table:       table.Table,
 				Column:      column.Name,
 				Exclude:     *column.Exclude,
-				Transformer: getTransformer(column.Transformer.Name),
+				Transformer: getTransformerName(column.Transformer),
 			})
 		}
 	}
@@ -41,7 +42,20 @@ func ToJobDto(
 	}
 }
 
-func getTransformer(transformerName string) string {
-	// TODO @alisha handle operator to api transformer mapping
-	return transformerName
+func getTransformerName(transformer *neosyncdevv1alpha1.ColumnTransformer) string {
+	if transformer == nil {
+		return "passthrough"
+	}
+	switch transformer.Name {
+	case "":
+		return "passthrough"
+	case string(transformers.UuidV4):
+		return "uuidV4"
+	case string(transformers.FirstName):
+		return "firstName"
+	case string(transformers.PhoneNumber):
+		return "phoneNumber"
+	default:
+		return "unspecified"
+	}
 }

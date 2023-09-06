@@ -27,7 +27,12 @@ message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  string transformer = 5; //TODO @alisha add validation here
+  string transformer = 5 [(validate.rules).string = {
+    in: [
+      "passthrough",
+      "uuidV4"
+    ]
+  }];
   bool exclude = 6;
 }
 
@@ -118,6 +123,7 @@ message CancelJobRunRequest {
 }
 message CancelJobRunResponse {}
 
+// TODO @alisha make this oneof to depend on connection type
 message JobSourceOptions {
   bool halt_on_new_column_addition = 1;
 }
@@ -159,6 +165,7 @@ enum JobRunStatus {
 message Transformer {
   string title = 1;
   string value = 2;
+  string description = 3;
 }
 message GetTransformersRequest {}
 message GetTransformersResponse {

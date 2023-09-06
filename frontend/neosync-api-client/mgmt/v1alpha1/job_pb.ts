@@ -268,8 +268,6 @@ export class JobMapping extends Message<JobMapping> {
   column = "";
 
   /**
-   * TODO @alisha add validation here
-   *
    * @generated from field: string transformer = 5;
    */
   transformer = "";
@@ -1150,6 +1148,8 @@ export class CancelJobRunResponse extends Message<CancelJobRunResponse> {
 }
 
 /**
+ * TODO @alisha make this oneof to depend on connection type
+ *
  * @generated from message mgmt.v1alpha1.JobSourceOptions
  */
 export class JobSourceOptions extends Message<JobSourceOptions> {
@@ -1358,6 +1358,11 @@ export class Transformer extends Message<Transformer> {
    */
   value = "";
 
+  /**
+   * @generated from field: string description = 3;
+   */
+  description = "";
+
   constructor(data?: PartialMessage<Transformer>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1368,6 +1373,7 @@ export class Transformer extends Message<Transformer> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transformer {

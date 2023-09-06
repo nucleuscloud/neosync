@@ -59,10 +59,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       if (!res) {
         return { mappings: [] };
       }
+      console.log(res.schemas);
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
-          transformer: 'UNSPECIFIED',
+          transformer: 'unspecified',
         };
       });
       return { mappings };

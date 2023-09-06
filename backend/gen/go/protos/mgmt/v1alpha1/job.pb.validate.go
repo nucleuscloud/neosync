@@ -620,7 +620,16 @@ func (m *JobMapping) validate(all bool) error {
 
 	// no validation rules for Column
 
-	// no validation rules for Transformer
+	if _, ok := _JobMapping_Transformer_InLookup[m.GetTransformer()]; !ok {
+		err := JobMappingValidationError{
+			field:  "Transformer",
+			reason: "value must be in list [passthrough uuidV4]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Exclude
 
@@ -700,6 +709,11 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JobMappingValidationError{}
+
+var _JobMapping_Transformer_InLookup = map[string]struct{}{
+	"passthrough": {},
+	"uuidV4":      {},
+}
 
 // Validate checks the field values on GetJobRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -4013,6 +4027,8 @@ func (m *Transformer) validate(all bool) error {
 	// no validation rules for Title
 
 	// no validation rules for Value
+
+	// no validation rules for Description
 
 	if len(errors) > 0 {
 		return TransformerMultiError(errors)
