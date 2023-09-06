@@ -18,12 +18,15 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/google/uuid"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 )
 
@@ -47,10 +50,33 @@ type AwsS3ConnectionReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *AwsS3ConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	conn := &neosyncdevv1alpha1.AwsS3Connection{}
+	err := r.Get(ctx, req.NamespacedName, conn)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			logger.Info("awss3connection resource not found. Ignoring since object must be deleted")
+			return ctrl.Result{}, nil
+		}
+		logger.Error(err, "failed to get awss3connection resource")
+		return ctrl.Result{}, err
+	}
 
+	if _, ok := conn.Labels[neosyncIdLabel]; !ok {
+		if conn.Labels == nil {
+			conn.Labels = map[string]string{}
+		}
+		conn.Labels[neosyncIdLabel] = uuid.NewString()
+		if err := r.Update(ctx, conn); err != nil {
+			logger.Error(err, "unable to add neosync id label to resource")
+			return ctrl.Result{}, err
+		}
+		logger.Info("added neosync id label to resource")
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	logger.Info(fmt.Sprintf("reconciliation of AwsS3Connection %s finished", req.Name))
 	return ctrl.Result{}, nil
 }
 
