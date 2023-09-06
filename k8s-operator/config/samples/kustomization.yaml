@@ -7,4 +7,5 @@ resources:
 - _v1alpha1_task.yaml
 - _v1alpha1_jobconfig.yaml
 - _v1alpha1_taskrun.yaml
+- _v1alpha1_awss3connection.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples
