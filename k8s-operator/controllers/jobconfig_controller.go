@@ -35,7 +35,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	neosync_benthos "github.com/nucleuscloud/neosync/k8s-operator/internal/benthos"
@@ -104,7 +103,6 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	benthosConfigResponses, err := r.generateConfigs(
 		ctx,
 		jobconfig,
-		logger,
 	)
 	if err != nil {
 		logger.Error(err, "unable to generate benthos configs")
@@ -385,18 +383,6 @@ func (r *JobConfigReconciler) getSqlConnectionUrl(
 	return "", "", fmt.Errorf("unable to retrieve connection url from secret for sqlconnection %s", nsName.String())
 }
 
-func (r *JobConfigReconciler) getAwsS3Config(
-	ctx context.Context,
-	nsName types.NamespacedName,
-) (*neosyncdevv1alpha1.AwsS3Connection, error) {
-	conn := &neosyncdevv1alpha1.AwsS3Connection{}
-	err := r.Get(ctx, nsName, conn)
-	if err != nil {
-		return nil, err
-	}
-	return conn, nil
-}
-
 type benthosConfigResponse struct {
 	Name   string
 	Config *neosync_benthos.BenthosConfig
@@ -405,7 +391,6 @@ type benthosConfigResponse struct {
 func (r *JobConfigReconciler) generateConfigs(
 	ctx context.Context,
 	jobconfig *neosyncdevv1alpha1.JobConfig,
-	logger logr.Logger,
 ) ([]*benthosConfigResponse, error) {
 	responses := []*benthosConfigResponse{}
 
