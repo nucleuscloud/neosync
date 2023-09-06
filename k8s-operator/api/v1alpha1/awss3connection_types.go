@@ -28,8 +28,8 @@ type AwsS3ConnectionSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of AwsS3Connection. Edit awss3connection_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Bucket     string  `json:"bucket"`
+	PathPrefix *string `json:"pathPrefix,omitempty"`
 }
 
 // AwsS3ConnectionStatus defines the observed state of AwsS3Connection

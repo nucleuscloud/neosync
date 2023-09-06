@@ -113,6 +113,11 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 func (r *JobReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&neosyncdevv1alpha1.Job{}).
+		Owns(&corev1.ServiceAccount{}).
+		Owns(&corev1.ConfigMap{}).
+		Owns(&rbacv1.RoleBinding{}).
+		Owns(&rbacv1.Role{}).
+		Owns(&batchv1.CronJob{}).
 		Complete(r)
 }
 

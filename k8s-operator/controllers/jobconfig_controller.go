@@ -270,6 +270,11 @@ func (r *JobConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			handler.EnqueueRequestsFromMapFunc(r.triggerReconcileBecauseSqlConnectionChanged),
 			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 		).
+		Watches(
+			&neosyncdevv1alpha1.AwsS3Connection{},
+			handler.EnqueueRequestsFromMapFunc(r.triggerReconcileBecauseAwsS3ConnectionChanged),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
 		Complete(r)
 }
 
@@ -298,15 +303,52 @@ func (r *JobConfigReconciler) triggerReconcileBecauseSqlConnectionChanged(
 	return requests
 }
 
+func (r *JobConfigReconciler) triggerReconcileBecauseAwsS3ConnectionChanged(
+	ctx context.Context,
+	o client.Object,
+) []reconcile.Request {
+	jobconfigList := &neosyncdevv1alpha1.JobConfigList{}
+	err := r.List(ctx, jobconfigList, &client.ListOptions{
+		Namespace: o.GetNamespace(),
+		// todo: add a better filter
+	})
+	if err != nil {
+		return []reconcile.Request{}
+	}
+	requests := []reconcile.Request{}
+	for idx := range jobconfigList.Items {
+		jobconfig := jobconfigList.Items[idx]
+		if ok := doesJobConfigUseAwsS3Connection(&jobconfig, o.GetName()); ok {
+			requests = append(requests, reconcile.Request{
+				NamespacedName: types.NamespacedName{Namespace: jobconfig.Namespace, Name: jobconfig.Name},
+			})
+		}
+	}
+
+	return requests
+}
+
 func doesJobConfigUseSqlConnection(
 	jobconfig *neosyncdevv1alpha1.JobConfig,
-	sqlConnectionName string,
+	connectionName string,
 ) bool {
-	if jobconfig.Spec.Source != nil && jobconfig.Spec.Source.Sql != nil && jobconfig.Spec.Source.Sql.ConnectionRef.Name == sqlConnectionName {
+	if jobconfig.Spec.Source != nil && jobconfig.Spec.Source.Sql != nil && jobconfig.Spec.Source.Sql.ConnectionRef.Name == connectionName {
 		return true
 	}
 	for _, dest := range jobconfig.Spec.Destinations {
-		if dest.Sql != nil && dest.Sql.ConnectionRef != nil && dest.Sql.ConnectionRef.Name == sqlConnectionName {
+		if dest.Sql != nil && dest.Sql.ConnectionRef != nil && dest.Sql.ConnectionRef.Name == connectionName {
+			return true
+		}
+	}
+	return false
+}
+
+func doesJobConfigUseAwsS3Connection(
+	jobconfig *neosyncdevv1alpha1.JobConfig,
+	connectionName string,
+) bool {
+	for _, dest := range jobconfig.Spec.Destinations {
+		if dest.AwsS3 != nil && dest.AwsS3.ConnectionRef != nil && dest.AwsS3.ConnectionRef.Name == connectionName {
 			return true
 		}
 	}
@@ -341,6 +383,18 @@ func (r *JobConfigReconciler) getSqlConnectionUrl(
 		return string(sqlConn.Spec.Driver), string(value), nil
 	}
 	return "", "", fmt.Errorf("unable to retrieve connection url from secret for sqlconnection %s", nsName.String())
+}
+
+func (r *JobConfigReconciler) getAwsS3Config(
+	ctx context.Context,
+	nsName types.NamespacedName,
+) (*neosyncdevv1alpha1.AwsS3Connection, error) {
+	conn := &neosyncdevv1alpha1.AwsS3Connection{}
+	err := r.Get(ctx, nsName, conn)
+	if err != nil {
+		return nil, err
+	}
+	return conn, nil
 }
 
 type benthosConfigResponse struct {
@@ -439,7 +493,40 @@ func (r *JobConfigReconciler) generateConfigs(
 					SqlInsert: output,
 				})
 			} else if destination.AwsS3 != nil {
-				logger.Info("aws s3 destination not currently supported")
+				conn := &neosyncdevv1alpha1.AwsS3Connection{}
+				err := r.Get(ctx, types.NamespacedName{Namespace: jobconfig.Namespace, Name: destination.AwsS3.ConnectionRef.Name}, conn)
+				if err != nil {
+					return nil, err
+				}
+
+				s3pathPieces := []string{}
+				if conn.Spec.PathPrefix != nil && *conn.Spec.PathPrefix != "" {
+					s3pathPieces = append(s3pathPieces, strings.Trim(*conn.Spec.PathPrefix, "/"))
+				}
+
+				s3pathPieces = append(s3pathPieces, jobconfig.Namespace, jobconfig.Name, "tasks", resp.Name)
+
+				output := &neosync_benthos.AwsS3Insert{
+					Bucket:      conn.Spec.Bucket,
+					MaxInFlight: 64,
+					Path:        fmt.Sprintf("/%s", strings.Join(s3pathPieces, "/")),
+					Batching: &neosync_benthos.Batching{
+						Count:  100,
+						Period: "5s",
+						Processors: []*neosync_benthos.BatchProcessor{
+							{
+								Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"},
+							},
+							{
+								Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"},
+							},
+						},
+					},
+				}
+
+				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+					AwsS3: output,
+				})
 			}
 		}
 	}
