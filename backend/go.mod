@@ -8,7 +8,8 @@ require (
 	connectrpc.com/grpcreflect v1.2.0
 	connectrpc.com/otelconnect v0.5.0
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
-	github.com/google/uuid v1.3.0
+	github.com/golang-migrate/migrate/v4 v4.16.2
+	github.com/google/uuid v1.3.1
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/nucleuscloud/neosync/k8s-operator v0.0.0-20230829225820-cbcf4083ce05
 	github.com/spf13/cobra v1.7.0
@@ -120,7 +121,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
 	github.com/jackc/pgx/v4 v4.18.1 // indirect
-	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
