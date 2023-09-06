@@ -75,7 +75,7 @@ func (s *Service) GetJobs(
 
 		}
 
-		dto := dtomaps.ToJobDto(&job, sourceConnId, destConnIds)
+		dto := dtomaps.ToJobDto(fromOperatorTransformer, &job, sourceConnId, destConnIds)
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +130,7 @@ func (s *Service) GetJob(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(job, sourceConnId, destConnIds),
+		Job: dtomaps.ToJobDto(fromOperatorTransformer, job, sourceConnId, destConnIds),
 	}), nil
 }
 
@@ -225,7 +225,7 @@ func (s *Service) CreateJob(
 	logger.Info("created job")
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(job, req.Msg.ConnectionSourceId, req.Msg.ConnectionDestinationIds),
+		Job: dtomaps.ToJobDto(fromOperatorTransformer, job, req.Msg.ConnectionSourceId, req.Msg.ConnectionDestinationIds),
 	}), nil
 }
 

@@ -4,11 +4,11 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
-	"github.com/nucleuscloud/neosync/k8s-operator/pkg/transformers"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func ToJobDto(
+	getTransformerName func(value string) (string, error),
 	inputJob *neosyncdevv1alpha1.JobConfig,
 	inputSourceConnId string,
 	inputDestConnIds []string,
@@ -16,12 +16,21 @@ func ToJobDto(
 	mappings := []*mgmtv1alpha1.JobMapping{}
 	for _, table := range inputJob.Spec.Source.Sql.Schemas {
 		for _, column := range table.Columns {
+			transformerName := "passthrough"
+			if column.Transformer != nil {
+				name, err := getTransformerName(column.Transformer.Name)
+				if err != nil {
+					transformerName = "unspecified"
+				} else {
+					transformerName = name
+				}
+			}
 			mappings = append(mappings, &mgmtv1alpha1.JobMapping{
 				Schema:      table.Schema,
 				Table:       table.Table,
 				Column:      column.Name,
 				Exclude:     *column.Exclude,
-				Transformer: getTransformerName(column.Transformer),
+				Transformer: transformerName,
 			})
 		}
 	}
@@ -39,23 +48,5 @@ func ToJobDto(
 		SourceOptions: &mgmtv1alpha1.JobSourceOptions{
 			HaltOnNewColumnAddition: *inputJob.Spec.Source.Sql.HaltOnSchemaChange,
 		},
-	}
-}
-
-func getTransformerName(transformer *neosyncdevv1alpha1.ColumnTransformer) string {
-	if transformer == nil {
-		return "passthrough"
-	}
-	switch transformer.Name {
-	case "":
-		return "passthrough"
-	case string(transformers.UuidV4):
-		return "uuidV4"
-	case string(transformers.FirstName):
-		return "firstName"
-	case string(transformers.PhoneNumber):
-		return "phoneNumber"
-	default:
-		return "unspecified"
 	}
 }
