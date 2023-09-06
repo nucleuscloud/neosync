@@ -36,8 +36,6 @@ spec:
             description: AwsS3ConnectionSpec defines the desired state of AwsS3Connection
             properties:
               bucket:
-                description: Foo is an example field of AwsS3Connection. Edit awss3connection_types.go
-                  to remove/update
                 type: string
               pathPrefix:
                 type: string
