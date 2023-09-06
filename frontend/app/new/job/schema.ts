@@ -7,7 +7,7 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
     .optional()
     .test('isValidCron', 'Not a valid cron schedule', (value) => {
       if (!value) {
-        return true
+        return true;
       }
       return !!value && cron(value).isValid();
     }),
@@ -27,9 +27,11 @@ const JOB_MAPPING_SCHEMA = Yup.object({
   table: Yup.string().required(),
   column: Yup.string().required(),
   dataType: Yup.string().required(),
-  transformer: Yup.string().required().test('isValidTransformer', 'Must specify transformer', (value) => {
-    return value != "" && value != "unspecified";
-  }),
+  transformer: Yup.string()
+    .required()
+    .test('isValidTransformer', 'Must specify transformer', (value) => {
+      return value != '' && value != 'unspecified';
+    }),
   exclude: Yup.boolean(),
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
