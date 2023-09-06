@@ -45,13 +45,6 @@ spec:
             name: aws-creds
             key: secret
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: aws-creds
-stringData:
-  secret: Jzz6ZwhKIggLDLt4ZKwOmC/gSyyg/wRI41noGXuW
----
 apiVersion: neosync.dev/v1alpha1
 kind: JobConfig
 metadata:
