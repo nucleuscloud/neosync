@@ -571,6 +571,24 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 	}), nil
 }
 
+func (s *Service) IsJobNameAvailable(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest],
+) (*connect.Response[mgmtv1alpha1.IsJobNameAvailableResponse], error) {
+	job := &neosyncdevv1alpha1.JobConfig{}
+	err := s.k8sclient.CustomResourceClient.Get(ctx, types.NamespacedName{Name: req.Msg.Name, Namespace: s.cfg.JobConfigNamespace}, job)
+	if err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if err != nil && errors.IsNotFound(err) {
+		return connect.NewResponse(&mgmtv1alpha1.IsJobNameAvailableResponse{
+			IsAvailable: true,
+		}), nil
+	}
+	return connect.NewResponse(&mgmtv1alpha1.IsJobNameAvailableResponse{
+		IsAvailable: false,
+	}), nil
+}
+
 func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1.SourceSqlSchema {
 	schema := []*neosyncdevv1alpha1.SourceSqlSchema{}
 	schemaMap := map[string]map[string][]*neosyncdevv1alpha1.SourceSqlColumn{}
