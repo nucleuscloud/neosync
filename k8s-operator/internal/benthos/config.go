@@ -79,20 +79,20 @@ type AwsS3Insert struct {
 	Path        string    `json:"path" yaml:"path"`
 	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 
-	Region   string `json:"region" yaml:"region"`
-	Endpoint string `json:"endpoint" yaml:"endpoint"`
+	Region   string `json:"region,omitempty" yaml:"region,omitempty"`
+	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`
 
 	Credentials *AwsCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
 }
 
 type AwsCredentials struct {
-	Profile        string `json:"profile" yaml:"profile"`
-	Id             string `json:"id" yaml:"id"`
-	Secret         string `json:"secret" yaml:"secret"`
-	Token          string `json:"token" yaml:"token"`
-	FromEc2Role    bool   `json:"from_ec2_role" yaml:"from_ec2_role"`
-	Role           string `json:"role" yaml:"role"`
-	RoleExternalId string `json:"role_external_id" yaml:"role_external_id"`
+	Profile        string `json:"profile,omitempty" yaml:"profile,omitempty"`
+	Id             string `json:"id,omitempty" yaml:"id,omitempty"`
+	Secret         string `json:"secret,omitempty" yaml:"secret,omitempty"`
+	Token          string `json:"token,omitempty" yaml:"token,omitempty"`
+	FromEc2Role    bool   `json:"from_ec2_role,omitempty" yaml:"from_ec2_role,omitempty"`
+	Role           string `json:"role,omitempty" yaml:"role,omitempty"`
+	RoleExternalId string `json:"role_external_id,omitempty" yaml:"role_external_id,omitempty"`
 }
 
 type Batching struct {

@@ -72,6 +72,20 @@ spec:
                       type: object
                   type: object
                 type: array
+              podTemplate:
+                properties:
+                  metadata:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      labels:
+                        additionalProperties:
+                          type: string
+                        type: object
+                    type: object
+                type: object
               source:
                 description: Foo is an example field of JobConfig. Edit jobconfig_types.go
                   to remove/update

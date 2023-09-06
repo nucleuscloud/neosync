@@ -35,6 +35,141 @@ spec:
           spec:
             description: AwsS3ConnectionSpec defines the desired state of AwsS3Connection
             properties:
+              awsConfig:
+                properties:
+                  credentials:
+                    properties:
+                      accessKeyId:
+                        properties:
+                          value:
+                            type: string
+                          valueFrom:
+                            properties:
+                              secretRef:
+                                description: Represents the name and key of where
+                                  a config file lives. This could be used to represent
+                                  a ConfigMap or Secret, along with the key at which
+                                  the configuration object is stashed This selector
+                                  is intended for local use only
+                                properties:
+                                  key:
+                                    description: The key to select from the resource
+                                    type: string
+                                  name:
+                                    description: The name of the resource to be selected
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            type: object
+                        type: object
+                      accessKeySecret:
+                        properties:
+                          value:
+                            type: string
+                          valueFrom:
+                            properties:
+                              secretRef:
+                                description: Represents the name and key of where
+                                  a config file lives. This could be used to represent
+                                  a ConfigMap or Secret, along with the key at which
+                                  the configuration object is stashed This selector
+                                  is intended for local use only
+                                properties:
+                                  key:
+                                    description: The key to select from the resource
+                                    type: string
+                                  name:
+                                    description: The name of the resource to be selected
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            type: object
+                        type: object
+                      accessKeyToken:
+                        properties:
+                          value:
+                            type: string
+                          valueFrom:
+                            properties:
+                              secretRef:
+                                description: Represents the name and key of where
+                                  a config file lives. This could be used to represent
+                                  a ConfigMap or Secret, along with the key at which
+                                  the configuration object is stashed This selector
+                                  is intended for local use only
+                                properties:
+                                  key:
+                                    description: The key to select from the resource
+                                    type: string
+                                  name:
+                                    description: The name of the resource to be selected
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            type: object
+                        type: object
+                      roleArn:
+                        properties:
+                          value:
+                            type: string
+                          valueFrom:
+                            properties:
+                              secretRef:
+                                description: Represents the name and key of where
+                                  a config file lives. This could be used to represent
+                                  a ConfigMap or Secret, along with the key at which
+                                  the configuration object is stashed This selector
+                                  is intended for local use only
+                                properties:
+                                  key:
+                                    description: The key to select from the resource
+                                    type: string
+                                  name:
+                                    description: The name of the resource to be selected
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            type: object
+                        type: object
+                      roleExternalId:
+                        properties:
+                          value:
+                            type: string
+                          valueFrom:
+                            properties:
+                              secretRef:
+                                description: Represents the name and key of where
+                                  a config file lives. This could be used to represent
+                                  a ConfigMap or Secret, along with the key at which
+                                  the configuration object is stashed This selector
+                                  is intended for local use only
+                                properties:
+                                  key:
+                                    description: The key to select from the resource
+                                    type: string
+                                  name:
+                                    description: The name of the resource to be selected
+                                    type: string
+                                required:
+                                - key
+                                - name
+                                type: object
+                            type: object
+                        type: object
+                    type: object
+                  endpoint:
+                    type: string
+                  region:
+                    type: string
+                type: object
               bucket:
                 type: string
               pathPrefix:

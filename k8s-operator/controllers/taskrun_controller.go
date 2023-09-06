@@ -176,6 +176,20 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 					},
 				},
 			}
+			taskrunUuid, ok := taskRun.Labels[neosyncIdLabel]
+			if ok {
+				job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+					Name:  "TASKRUN_ID",
+					Value: taskrunUuid,
+				})
+			}
+			jobrunUuid, ok := taskRun.Labels[neoysncParentIdKey]
+			if ok {
+				job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+					Name:  "JOBRUN_ID",
+					Value: jobrunUuid,
+				})
+			}
 
 			err = ctrl.SetControllerReference(taskRun, job, r.Scheme)
 			if err != nil {

@@ -33,6 +33,24 @@ metadata:
 spec:
   bucket: neosync-test
   pathPrefix: foobar
+
+  awsConfig:
+    region: us-west-2
+    credentials:
+      accessKeyId:
+        value: AKIAUJSW44SHYN56UUVT
+      accessKeySecret:
+        valueFrom:
+          secretRef:
+            name: aws-creds
+            key: secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-creds
+stringData:
+  secret: Jzz6ZwhKIggLDLt4ZKwOmC/gSyyg/wRI41noGXuW
 ---
 apiVersion: neosync.dev/v1alpha1
 kind: JobConfig

@@ -492,10 +492,10 @@ func (r *JobConfigReconciler) generateConfigs(
 
 				s3pathPieces = append(
 					s3pathPieces,
-					jobconfig.Namespace,
-					jobconfig.Name,
+					"jobruns",
+					"${JOBRUN_ID}",
 					"tasks",
-					resp.Name,
+					"${TASKRUN_ID}",
 					`${!count("files")}-${!timestamp_unix_nano()}.json.gz`,
 				)
 
