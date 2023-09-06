@@ -504,7 +504,14 @@ func (r *JobConfigReconciler) generateConfigs(
 					s3pathPieces = append(s3pathPieces, strings.Trim(*conn.Spec.PathPrefix, "/"))
 				}
 
-				s3pathPieces = append(s3pathPieces, jobconfig.Namespace, jobconfig.Name, "tasks", resp.Name)
+				s3pathPieces = append(
+					s3pathPieces,
+					jobconfig.Namespace,
+					jobconfig.Name,
+					"tasks",
+					resp.Name,
+					`${!count("files")}-${!timestamp_unix_nano()}.json.gz`,
+				)
 
 				output := &neosync_benthos.AwsS3Insert{
 					Bucket:      conn.Spec.Bucket,
