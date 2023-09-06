@@ -1,7 +1,6 @@
 import '@/app/globals.css';
 import SiteFooter from '@/components/SiteFooter';
 import SiteHeader from '@/components/SiteHeader';
-import AccountProvider from '@/components/contexts/account-context';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { fontSans } from '@/libs/fonts';
@@ -32,9 +31,7 @@ export default function RootLayout({
         >
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />
-            <div className="flex-1 container">
-              <AccountProvider>{children}</AccountProvider>
-            </div>
+            <div className="flex-1 container">{children}</div>
             <SiteFooter />
             <Toaster />
           </div>
