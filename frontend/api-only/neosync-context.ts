@@ -1,6 +1,5 @@
 import { ConnectionService } from '@/neosync-api-client/mgmt/v1alpha1/connection_connect';
 import { JobService } from '@/neosync-api-client/mgmt/v1alpha1/job_connect';
-import { UserAccountService } from '@/neosync-api-client/mgmt/v1alpha1/user_account_connect';
 import {
   Code,
   ConnectError,
@@ -13,7 +12,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 interface NeosyncContext {
   connectionClient: PromiseClient<typeof ConnectionService>;
-  userClient: PromiseClient<typeof UserAccountService>;
   jobsClient: PromiseClient<typeof JobService>;
 }
 
@@ -58,7 +56,6 @@ async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
 
   return {
     connectionClient: createPromiseClient(ConnectionService, transport),
-    userClient: createPromiseClient(UserAccountService, transport),
     jobsClient: createPromiseClient(JobService, transport),
   };
 }
