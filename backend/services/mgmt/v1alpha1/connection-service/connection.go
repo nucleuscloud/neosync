@@ -113,10 +113,10 @@ func (s *Service) GetConnections(
 	conns := &neosyncdevv1alpha1.SqlConnectionList{}
 	err := s.k8sclient.CustomResourceClient.List(ctx, conns, runtimeclient.InNamespace(s.cfg.JobConfigNamespace))
 	if err != nil && !errors.IsNotFound(err) {
-		logger.Error("unable to retrieve connections")
+		logger.Error("unable to retrieve connections", err)
 		return nil, err
 	} else if err != nil && errors.IsNotFound(err) {
-		logger.Error("connections not found")
+		logger.Error("connections not found", err)
 		return nil, err
 	}
 	if len(conns.Items) == 0 {
@@ -340,7 +340,7 @@ func (s *Service) CreateConnection(
 			logger.Info("secret already exists, updating...")
 			createdSecret, err = s.k8sclient.K8sClient.CoreV1().Secrets(s.cfg.JobConfigNamespace).Update(errCtx, connSecret, metav1.UpdateOptions{})
 			if err != nil {
-				logger.Error("unable to update connection secret")
+				logger.Error("unable to update connection secret", err)
 				return err
 			}
 		}
@@ -365,11 +365,11 @@ func (s *Service) CreateConnection(
 	if err != nil && !errors.IsAlreadyExists(err) {
 		deleteSecretErr := s.k8sclient.K8sClient.CoreV1().Secrets(s.cfg.JobConfigNamespace).Delete(ctx, connSecret.Name, metav1.DeleteOptions{})
 		if deleteSecretErr != nil {
-			logger.Error("unable to clean up connection secret")
+			logger.Error("unable to clean up connection secret", err)
 		}
 		deleteConnErr := s.k8sclient.CustomResourceClient.Delete(ctx, connection, &runtimeclient.DeleteOptions{})
 		if deleteConnErr != nil {
-			logger.Error("unable to clean up connection")
+			logger.Error("unable to clean up connection", err)
 		}
 		return nil, err
 	} else if err != nil && errors.IsAlreadyExists(err) {
@@ -425,7 +425,7 @@ func (s *Service) UpdateConnection(
 			metav1.PatchOptions{},
 		)
 		if err != nil {
-			logger.Error("unable to update connection")
+			logger.Error("unable to update connection", err)
 			return nil, err
 		}
 	} else if connection.Connection.Spec.Url.Value != nil && *connection.Connection.Spec.Url.Value != "" {
@@ -445,7 +445,7 @@ func (s *Service) UpdateConnection(
 
 		err = s.k8sclient.CustomResourceClient.Patch(ctx, connection.Connection, runtimeclient.RawPatch(types.MergePatchType, patchBits))
 		if err != nil {
-			logger.Error("unable to update connection")
+			logger.Error("unable to update connection", err)
 			return nil, err
 		}
 
@@ -510,7 +510,7 @@ func (s *Service) DeleteConnection(
 
 	err = errs.Wait()
 	if err != nil {
-		logger.Error("unable to delete connection")
+		logger.Error("unable to delete connection", err)
 		return nil, err
 	}
 
@@ -588,7 +588,7 @@ func getConnectionSecretByName(
 	if err != nil && !errors.IsNotFound(err) {
 		return nil, err
 	} else if err != nil && errors.IsNotFound(err) {
-		logger.Error("connection secret not found", "secretName", name)
+		logger.Error("connection secret not found", "secretName", name, err)
 		return nil, err
 	}
 	return secret, nil
@@ -606,7 +606,7 @@ func getSqlConnectionById(
 		k8s_utils.NeosyncUuidLabel: id,
 	})
 	if err != nil {
-		logger.Error("unable to retrieve connection")
+		logger.Error("unable to retrieve connection", err)
 		return nil, err
 	}
 	if len(conns.Items) == 0 {
