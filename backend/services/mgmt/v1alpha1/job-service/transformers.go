@@ -13,7 +13,7 @@ import (
 type Transformation string
 
 const (
-	Unspecified Transformation = "unspecified"
+	Invalid     Transformation = "invalid"
 	Passthrough Transformation = "passthrough"
 	UuidV4      Transformation = "uuid_v4"
 	FirstName   Transformation = "first_name"
@@ -26,7 +26,6 @@ func (s *Service) GetTransformers(
 ) (*connect.Response[mgmtv1alpha1.GetTransformersResponse], error) {
 	return connect.NewResponse(&mgmtv1alpha1.GetTransformersResponse{
 		Transformers: []*mgmtv1alpha1.Transformer{
-			{Title: "Unspecified", Value: string(Unspecified)},
 			{Title: "Passthrough", Value: string(Passthrough)},
 			{Title: "Uuid V4", Value: string(UuidV4)},
 			{Title: "First Name", Value: string(FirstName)},

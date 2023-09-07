@@ -20,7 +20,7 @@ func ToJobDto(
 			if column.Transformer != nil {
 				name, err := getTransformerName(column.Transformer.Name)
 				if err != nil {
-					transformerName = "unspecified"
+					transformerName = "invalid"
 				} else {
 					transformerName = name
 				}

@@ -28,9 +28,9 @@ const JOB_MAPPING_SCHEMA = Yup.object({
   column: Yup.string().required(),
   dataType: Yup.string().required(),
   transformer: Yup.string()
-    .required()
+    .required("Tranformer is a required field")
     .test('isValidTransformer', 'Must specify transformer', (value) => {
-      return value != '' && value != 'unspecified';
+      return value != '';
     }),
   exclude: Yup.boolean(),
 }).required();

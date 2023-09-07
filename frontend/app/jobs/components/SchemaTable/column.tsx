@@ -124,16 +124,19 @@ export function getColumns(
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value == '' ? undefined : field.value}
+                    >
                       <SelectTrigger className="w-[200px]">
-                        <SelectValue />
+                        <SelectValue placeholder="select a transformer..." />
                       </SelectTrigger>
                       <SelectContent>
                         {transformers?.map((t) => (
                           <SelectItem
                             className="cursor-pointer"
                             key={t.value}
-                            value={t.value as unknown as string}
+                            value={t.value}
                           >
                             {t.title}
                           </SelectItem>
