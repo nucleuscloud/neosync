@@ -4,9 +4,11 @@ import * as Yup from 'yup';
 export const DEFINE_FORM_SCHEMA = Yup.object({
   jobName: Yup.string().required('Name is a required field').min(3).max(30),
   cronSchedule: Yup.string()
-    // .required('Cron Schedule is a required field')
     .optional()
     .test('isValidCron', 'Not a valid cron schedule', (value) => {
+      if (!value) {
+        return true;
+      }
       return !!value && cron(value).isValid();
     }),
 });
@@ -25,7 +27,11 @@ const JOB_MAPPING_SCHEMA = Yup.object({
   table: Yup.string().required(),
   column: Yup.string().required(),
   dataType: Yup.string().required(),
-  transformer: Yup.string().required(),
+  transformer: Yup.string()
+    .required('Tranformer is a required field')
+    .test('isValidTransformer', 'Must specify transformer', (value) => {
+      return value != '';
+    }),
   exclude: Yup.boolean(),
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;

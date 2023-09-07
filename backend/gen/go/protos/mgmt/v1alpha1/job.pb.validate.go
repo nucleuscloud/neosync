@@ -620,7 +620,16 @@ func (m *JobMapping) validate(all bool) error {
 
 	// no validation rules for Column
 
-	// no validation rules for Transformer
+	if _, ok := _JobMapping_Transformer_InLookup[m.GetTransformer()]; !ok {
+		err := JobMappingValidationError{
+			field:  "Transformer",
+			reason: "value must be in list [passthrough uuid_v4 first_name phone_number]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Exclude
 
@@ -700,6 +709,13 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JobMappingValidationError{}
+
+var _JobMapping_Transformer_InLookup = map[string]struct{}{
+	"passthrough":  {},
+	"uuid_v4":      {},
+	"first_name":   {},
+	"phone_number": {},
+}
 
 // Validate checks the field values on GetJobRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
