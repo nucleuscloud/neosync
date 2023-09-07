@@ -1,5 +1,4 @@
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import SwitchCard from '@/components/switches/SwitchCard';
 import { useToast } from '@/components/ui/use-toast';
 import { ReactElement, useState } from 'react';
 
@@ -29,15 +28,12 @@ export default function JobHaltNewAdditionSwitch(props: Props): ReactElement {
   }
   return (
     <div className="w-96">
-      <div className="flex flex-row items-center justify-between rounded-lg border p-4">
-        <div className="space-y-0.5">
-          <Label className="text-base">Halt Job on new column addition</Label>
-          <p className="text-sm text-muted-foreground">
-            Stops job runs if new column is detected
-          </p>
-        </div>
-        <Switch checked={halt} onCheckedChange={changeSwitch} />
-      </div>
+      <SwitchCard
+        isChecked={halt}
+        onCheckedChange={changeSwitch}
+        title="Halt Job on new column addition"
+        description="Stops job runs if new column is detected"
+      />
     </div>
   );
 }
