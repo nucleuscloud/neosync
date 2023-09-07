@@ -31,7 +31,7 @@ func (s *Service) GetJobs(
 	jobs := &neosyncdevv1alpha1.JobConfigList{}
 	err := s.k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(s.cfg.JobConfigNamespace))
 	if err != nil && !errors.IsNotFound(err) {
-		logger.Error("unable to retrieve jobs")
+		logger.Error(fmt.Errorf("unable to retrieve jobs: %w", err).Error())
 		return nil, err
 	} else if err != nil && errors.IsNotFound(err) {
 		return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
@@ -174,7 +174,7 @@ func (s *Service) CreateJob(
 	}
 	err := errs.Wait()
 	if err != nil {
-		logger.Error("unable to retrieve job connections")
+		logger.Error(fmt.Errorf("unable to retrieve job connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -218,7 +218,7 @@ func (s *Service) CreateJob(
 
 	err = s.k8sclient.CustomResourceClient.Create(ctx, job)
 	if err != nil {
-		logger.Error("unable to create job")
+		logger.Error(fmt.Errorf("unable to create job: %w", err).Error())
 		return nil, err
 	}
 
@@ -292,7 +292,7 @@ func (s *Service) UpdateJobSchedule(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -341,7 +341,7 @@ func (s *Service) UpdateJobSourceConnection(
 		Id: req.Msg.ConnectionId,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve source connection")
+		logger.Error(fmt.Errorf("unable to retrieve source connection: %w", err).Error())
 		return nil, err
 	}
 
@@ -371,7 +371,7 @@ func (s *Service) UpdateJobSourceConnection(
 
 	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
 	if err != nil {
-		logger.Error("unable to update job source connection")
+		logger.Error(fmt.Errorf("unable to update job source connection: %w", err).Error())
 		return nil, err
 	}
 
@@ -379,7 +379,7 @@ func (s *Service) UpdateJobSourceConnection(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -424,7 +424,7 @@ func (s *Service) UpdateJobDestinationConnections(
 	}
 	err := errs.Wait()
 	if err != nil {
-		logger.Error("unable to retrieve job connections")
+		logger.Error(fmt.Errorf("unable to retrieve job connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -456,7 +456,7 @@ func (s *Service) UpdateJobDestinationConnections(
 
 	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
 	if err != nil {
-		logger.Error("unable to update job destination connections")
+		logger.Error(fmt.Errorf("unable to update job destination connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -464,7 +464,7 @@ func (s *Service) UpdateJobDestinationConnections(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.UpdateJobDestinationConnectionsResponse{
@@ -509,7 +509,7 @@ func (s *Service) UpdateJobMappings(
 
 	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
 	if err != nil {
-		logger.Error("unable to update job destination connections")
+		logger.Error(fmt.Errorf("unable to update job destination connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -517,7 +517,7 @@ func (s *Service) UpdateJobMappings(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -560,7 +560,7 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 
 	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
 	if err != nil {
-		logger.Error("unable to update job destination connections")
+		logger.Error(fmt.Errorf("unable to update job destination connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -568,7 +568,7 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -647,7 +647,7 @@ func getJobById(
 		k8s_utils.NeosyncUuidLabel: id,
 	})
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 	if len(jobs.Items) == 0 {
