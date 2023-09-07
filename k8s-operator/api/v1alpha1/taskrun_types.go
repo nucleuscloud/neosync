@@ -32,6 +32,8 @@ type TaskRunSpec struct {
 	// Foo is an example field of TaskRun. Edit taskrun_types.go to remove/update
 	Task *TaskRunTask `json:"task"`
 
+	DependsOn []*TaskRunDependsOn `json:"dependsOn,omitempty"`
+
 	PodTemplate *PodTemplate `json:"podTemplate,omitempty"`
 }
 
@@ -48,12 +50,36 @@ type TaskRunTask struct {
 	TaskRef *LocalResourceRef `json:"taskRef,omitempty"`
 }
 
+type TaskRunDependsOn struct {
+	TaskName string `json:"taskName"`
+}
+
 // TaskRunStatus defines the observed state of TaskRun
 type TaskRunStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+
+	StartTime      *metav1.Time `json:"startTime,omitempty"`
+	CompletionTime *metav1.Time `json:"completionTime,omitempty"`
+
 	JobStatus *batchv1.JobStatus `json:"jobStatus,omitempty"`
 }
+
+type TaskRunConditionType string
+
+const (
+	TaskRunSucceeded        TaskRunConditionType = "Succeeded"
+	TaskRunFailed           TaskRunConditionType = "Failed"
+	TaskRunDependentWaiting TaskRunConditionType = "WaitingOnDependent"
+)
+
+// type TaskRunCondition struct {
+// 	Type               TaskRunConditionType   `json:"type"`
+// 	Status             corev1.ConditionStatus `json:"status"`
+// 	LastTransitionTime *metav1.Time           `json:"lastTransitionTime,omitempty"`
+// }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status

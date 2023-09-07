@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	neoysncParentKey   = "neosync.dev/parent"
+	neosyncParentKey   = "neosync.dev/parent"
 	neoysncParentIdKey = "neosync.dev/parent-id"
 	neosyncJobTaskName = "neoosync.dev/job-task-name"
 )
@@ -113,7 +113,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			createdTasks := map[string]struct{}{}
 			taskRuns := &neosyncdevv1alpha1.TaskRunList{}
 			err = r.List(ctx, taskRuns, client.MatchingLabels{
-				neoysncParentKey: jobrun.Name,
+				neosyncParentKey: jobrun.Name,
 			})
 			if err != nil {
 				logger.Error(err, "unable to list task runs")
@@ -138,7 +138,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 						Namespace:    req.Namespace,
 						GenerateName: fmt.Sprintf("%s-", task.TaskRef.Name),
 						Labels: map[string]string{
-							neoysncParentKey:   jobrun.Name,
+							neosyncParentKey:   jobrun.Name,
 							neosyncJobTaskName: task.Name,
 							neosyncIdLabel:     uuid.NewString(),
 						},
@@ -168,7 +168,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 			taskRuns = &neosyncdevv1alpha1.TaskRunList{}
 			err = r.List(ctx, taskRuns, client.MatchingLabels{
-				neoysncParentKey: jobrun.Name,
+				neosyncParentKey: jobrun.Name,
 			})
 			if err != nil {
 				logger.Error(err, "unable to list task runs")
