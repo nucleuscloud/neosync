@@ -111,9 +111,9 @@ func (r *SqlConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			return ctrl.Result{}, nil
 		}
 		valHash := generateSha256Hash(secretVal)
-		if conn.Status.ValueHash == nil || conn.Status.ValueHash.Value != valHash || conn.Status.ValueHash.Algorithm != "sha256" {
+		if conn.Status.ValueHash == nil || conn.Status.ValueHash.Value != valHash || conn.Status.ValueHash.Algorithm != sha256Val {
 			conn.Status.ValueHash = &neosyncdevv1alpha1.HashResult{
-				Algorithm: "sha256",
+				Algorithm: sha256Val,
 				Value:     valHash,
 			}
 		} else {
@@ -121,9 +121,9 @@ func (r *SqlConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		}
 	} else if conn.Spec.Url.Value != nil {
 		valHash := generateSha256Hash([]byte(*conn.Spec.Url.Value))
-		if conn.Status.ValueHash == nil || conn.Status.ValueHash.Value != valHash || conn.Status.ValueHash.Algorithm != "sha256" {
+		if conn.Status.ValueHash == nil || conn.Status.ValueHash.Value != valHash || conn.Status.ValueHash.Algorithm != sha256Val {
 			conn.Status.ValueHash = &neosyncdevv1alpha1.HashResult{
-				Algorithm: "sha256",
+				Algorithm: sha256Val,
 				Value:     valHash,
 			}
 		} else {

@@ -46,6 +46,20 @@ spec:
                     - name
                     type: object
                 type: object
+              podTemplate:
+                properties:
+                  metadata:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      labels:
+                        additionalProperties:
+                          type: string
+                        type: object
+                    type: object
+                type: object
             type: object
           status:
             description: JobRunStatus defines the observed state of JobRun

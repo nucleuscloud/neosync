@@ -18,8 +18,8 @@ images:
   newName: neosync-operator-controller-manager
   newTag: v1
 
-resources:
+bases:
 - ../../default
 
-patches:
-- path: deployment-patch.yaml
+patchesStrategicMerge:
+- deployment-patch.yaml

@@ -35,6 +35,7 @@ import (
 
 const (
 	neoysncParentKey   = "neosync.dev/parent"
+	neoysncParentIdKey = "neosync.dev/parent-id"
 	neosyncJobTaskName = "neoosync.dev/job-task-name"
 )
 
@@ -139,13 +140,19 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 						Labels: map[string]string{
 							neoysncParentKey:   jobrun.Name,
 							neosyncJobTaskName: task.Name,
+							neosyncIdLabel:     uuid.NewString(),
 						},
 					},
 					Spec: neosyncdevv1alpha1.TaskRunSpec{
 						Task: &neosyncdevv1alpha1.TaskRunTask{
 							TaskRef: task.TaskRef,
 						},
+						PodTemplate: jobrun.Spec.PodTemplate,
 					},
+				}
+				jobrunUuid, ok := jobrun.Labels[neosyncIdLabel]
+				if ok {
+					taskrun.Labels[neoysncParentIdKey] = jobrunUuid
 				}
 				err = ctrl.SetControllerReference(jobrun, taskrun, r.Scheme)
 				if err != nil {
