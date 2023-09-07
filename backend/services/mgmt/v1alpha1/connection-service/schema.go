@@ -3,6 +3,7 @@ package v1alpha1_connectionservice
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
@@ -48,7 +49,7 @@ func (s *Service) GetConnectionSchema(
 	}
 	defer func() {
 		if err := conn.Close(ctx); err != nil {
-			logger.Error("failed to close connection", err)
+			logger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
 		}
 	}()
 
