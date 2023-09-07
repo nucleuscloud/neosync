@@ -1,10 +1,11 @@
 'use client';
+
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
 import {
   SchemaTable,
   getConnectionSchema,
-} from '@/app/jobs/components/SchemaTable/schema-table';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
+} from '@/components/jobs/SchemaTable/schema-table';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -14,19 +15,14 @@ import {
   JobMapping,
   JobSourceOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import {
-  DefineFormValues,
-  FlowFormValues,
-  FormValues,
-  SCHEMA_FORM_SCHEMA,
-  SchemaFormValues,
-} from '../schema';
+import { DefineFormValues, FlowFormValues, FormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
