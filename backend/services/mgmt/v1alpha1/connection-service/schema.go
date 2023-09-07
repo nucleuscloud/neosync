@@ -3,6 +3,7 @@ package v1alpha1_connectionservice
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
@@ -44,11 +45,12 @@ func (s *Service) GetConnectionSchema(
 
 	conn, err := pgx.Connect(ctx, connectionString)
 	if err != nil {
-		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{}), nil
+		logger.Error("unable to connect", err)
+		return nil, err
 	}
 	defer func() {
 		if err := conn.Close(ctx); err != nil {
-			logger.Error("failed to close connection", err)
+			logger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
 		}
 	}()
 

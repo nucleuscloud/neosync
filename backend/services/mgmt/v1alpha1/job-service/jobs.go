@@ -31,7 +31,7 @@ func (s *Service) GetJobs(
 	jobs := &neosyncdevv1alpha1.JobConfigList{}
 	err := s.k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(s.cfg.JobConfigNamespace))
 	if err != nil && !errors.IsNotFound(err) {
-		logger.Error("unable to retrieve jobs")
+		logger.Error(fmt.Errorf("unable to retrieve jobs: %w", err).Error())
 		return nil, err
 	} else if err != nil && errors.IsNotFound(err) {
 		return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
@@ -75,7 +75,7 @@ func (s *Service) GetJobs(
 
 		}
 
-		dto := dtomaps.ToJobDto(&job, sourceConnId, destConnIds)
+		dto := dtomaps.ToJobDto(fromOperatorTransformer, &job, sourceConnId, destConnIds)
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +130,7 @@ func (s *Service) GetJob(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(job, sourceConnId, destConnIds),
+		Job: dtomaps.ToJobDto(fromOperatorTransformer, job, sourceConnId, destConnIds),
 	}), nil
 }
 
@@ -174,7 +174,7 @@ func (s *Service) CreateJob(
 	}
 	err := errs.Wait()
 	if err != nil {
-		logger.Error("unable to retrieve job connections")
+		logger.Error(fmt.Errorf("unable to retrieve job connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -189,7 +189,10 @@ func (s *Service) CreateJob(
 		})
 	}
 
-	schemas := createSqlSchemas(req.Msg.Mappings)
+	schemas, err := createSqlSchemas(req.Msg.Mappings)
+	if err != nil {
+		return nil, fmt.Errorf("unable to generate job mapping: %w", err)
+	}
 	job := &neosyncdevv1alpha1.JobConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.cfg.JobConfigNamespace,
@@ -215,14 +218,14 @@ func (s *Service) CreateJob(
 
 	err = s.k8sclient.CustomResourceClient.Create(ctx, job)
 	if err != nil {
-		logger.Error("unable to create job")
+		logger.Error(fmt.Errorf("unable to create job: %w", err).Error())
 		return nil, err
 	}
 
 	logger.Info("created job")
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(job, req.Msg.ConnectionSourceId, req.Msg.ConnectionDestinationIds),
+		Job: dtomaps.ToJobDto(fromOperatorTransformer, job, req.Msg.ConnectionSourceId, req.Msg.ConnectionDestinationIds),
 	}), nil
 }
 
@@ -289,7 +292,7 @@ func (s *Service) UpdateJobSchedule(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -338,7 +341,7 @@ func (s *Service) UpdateJobSourceConnection(
 		Id: req.Msg.ConnectionId,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve source connection")
+		logger.Error(fmt.Errorf("unable to retrieve source connection: %w", err).Error())
 		return nil, err
 	}
 
@@ -368,7 +371,7 @@ func (s *Service) UpdateJobSourceConnection(
 
 	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
 	if err != nil {
-		logger.Error("unable to update job source connection")
+		logger.Error(fmt.Errorf("unable to update job source connection: %w", err).Error())
 		return nil, err
 	}
 
@@ -376,7 +379,7 @@ func (s *Service) UpdateJobSourceConnection(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -421,7 +424,7 @@ func (s *Service) UpdateJobDestinationConnections(
 	}
 	err := errs.Wait()
 	if err != nil {
-		logger.Error("unable to retrieve job connections")
+		logger.Error(fmt.Errorf("unable to retrieve job connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -453,7 +456,7 @@ func (s *Service) UpdateJobDestinationConnections(
 
 	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
 	if err != nil {
-		logger.Error("unable to update job destination connections")
+		logger.Error(fmt.Errorf("unable to update job destination connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -461,7 +464,7 @@ func (s *Service) UpdateJobDestinationConnections(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.UpdateJobDestinationConnectionsResponse{
@@ -481,9 +484,12 @@ func (s *Service) UpdateJobMappings(
 		return nil, err
 	}
 
-	schemas := createSqlSchemas(req.Msg.Mappings)
 	var patch *patchUpdateJobConfigSpec
 	if job.Spec.Source.Sql != nil {
+		schemas, err := createSqlSchemas(req.Msg.Mappings)
+		if err != nil {
+			return nil, fmt.Errorf("unable to generate SQL job mapping: %w", err)
+		}
 		patch = &patchUpdateJobConfigSpec{
 			Spec: &jobConfigSpec{
 				Source: &jobConnection{
@@ -503,7 +509,7 @@ func (s *Service) UpdateJobMappings(
 
 	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
 	if err != nil {
-		logger.Error("unable to update job destination connections")
+		logger.Error(fmt.Errorf("unable to update job destination connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -511,7 +517,7 @@ func (s *Service) UpdateJobMappings(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -554,7 +560,7 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 
 	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
 	if err != nil {
-		logger.Error("unable to update job destination connections")
+		logger.Error(fmt.Errorf("unable to update job destination connections: %w", err).Error())
 		return nil, err
 	}
 
@@ -562,7 +568,7 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 
@@ -571,39 +577,23 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 	}), nil
 }
 
-func (s *Service) IsJobNameAvailable(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest],
-) (*connect.Response[mgmtv1alpha1.IsJobNameAvailableResponse], error) {
-	job := &neosyncdevv1alpha1.JobConfig{}
-	err := s.k8sclient.CustomResourceClient.Get(ctx, types.NamespacedName{Name: req.Msg.Name, Namespace: s.cfg.JobConfigNamespace}, job)
-	if err != nil && !errors.IsNotFound(err) {
-		return nil, err
-	} else if err != nil && errors.IsNotFound(err) {
-		return connect.NewResponse(&mgmtv1alpha1.IsJobNameAvailableResponse{
-			IsAvailable: true,
-		}), nil
-	}
-	return connect.NewResponse(&mgmtv1alpha1.IsJobNameAvailableResponse{
-		IsAvailable: false,
-	}), nil
-}
-
-func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1.SourceSqlSchema {
+func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) ([]*neosyncdevv1alpha1.SourceSqlSchema, error) {
 	schema := []*neosyncdevv1alpha1.SourceSqlSchema{}
 	schemaMap := map[string]map[string][]*neosyncdevv1alpha1.SourceSqlColumn{}
 	for _, row := range mappings {
 		row := row
+		transformer, err := getColumnTransformer(row.Transformer)
+		if err != nil {
+			return nil, err
+		}
 		_, ok := schemaMap[row.Schema][row.Table]
 		if !ok {
 			schemaMap[row.Schema] = map[string][]*neosyncdevv1alpha1.SourceSqlColumn{
 				row.Table: {
 					{
-						Name:    row.Column,
-						Exclude: &row.Exclude,
-						Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-							Name: row.Transformer,
-						},
+						Name:        row.Column,
+						Exclude:     &row.Exclude,
+						Transformer: transformer,
 					},
 				},
 			}
@@ -611,11 +601,9 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 		}
 
 		schemaMap[row.Schema][row.Table] = append(schemaMap[row.Schema][row.Table], &neosyncdevv1alpha1.SourceSqlColumn{
-			Name:    row.Column,
-			Exclude: &row.Exclude,
-			Transformer: &neosyncdevv1alpha1.ColumnTransformer{
-				Name: row.Transformer,
-			},
+			Name:        row.Column,
+			Exclude:     &row.Exclude,
+			Transformer: transformer,
 		})
 
 	}
@@ -630,7 +618,7 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) []*neosyncdevv1alpha1
 		}
 	}
 
-	return schema
+	return schema, nil
 }
 
 func getSourceConnectionName(jobConfig *neosyncdevv1alpha1.JobConfigSource) (string, error) {
@@ -659,7 +647,7 @@ func getJobById(
 		k8s_utils.NeosyncUuidLabel: id,
 	})
 	if err != nil {
-		logger.Error("unable to retrieve job")
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
 	if len(jobs.Items) == 0 {

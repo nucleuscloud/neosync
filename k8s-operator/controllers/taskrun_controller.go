@@ -121,6 +121,12 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			if task.Spec.RunConfig.Benthos.Image != nil {
 				image = *task.Spec.RunConfig.Benthos.Image
 			}
+			podLabels := map[string]string{}
+			podAnnotations := map[string]string{}
+			if taskRun.Spec.PodTemplate != nil {
+				podLabels = taskRun.Spec.PodTemplate.Labels
+				podAnnotations = taskRun.Spec.PodTemplate.Annotations
+			}
 			job = &batchv1.Job{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: req.Namespace,
@@ -128,6 +134,10 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				},
 				Spec: batchv1.JobSpec{
 					Template: corev1.PodTemplateSpec{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels:      podLabels,
+							Annotations: podAnnotations,
+						},
 						Spec: corev1.PodSpec{
 							Containers: []corev1.Container{
 								{
@@ -165,6 +175,20 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 						},
 					},
 				},
+			}
+			taskrunUuid, ok := taskRun.Labels[neosyncIdLabel]
+			if ok {
+				job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+					Name:  "TASKRUN_ID",
+					Value: taskrunUuid,
+				})
+			}
+			jobrunUuid, ok := taskRun.Labels[neoysncParentIdKey]
+			if ok {
+				job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env, corev1.EnvVar{
+					Name:  "JOBRUN_ID",
+					Value: jobrunUuid,
+				})
 			}
 
 			err = ctrl.SetControllerReference(taskRun, job, r.Scheme)

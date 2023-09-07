@@ -62,7 +62,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
-          transformer: 'UNSPECIFIED',
+          transformer: '',
         };
       });
       return { mappings };

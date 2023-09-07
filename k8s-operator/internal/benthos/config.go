@@ -60,7 +60,8 @@ type OutputConfig struct {
 }
 
 type Outputs struct {
-	SqlInsert *SqlInsert `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
+	SqlInsert *SqlInsert   `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
+	AwsS3     *AwsS3Insert `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
 }
 
 type SqlInsert struct {
@@ -70,6 +71,48 @@ type SqlInsert struct {
 	Columns       []string `json:"columns" yaml:"columns"`
 	ArgsMapping   string   `json:"args_mapping" yaml:"args_mapping"`
 	InitStatement string   `json:"init_statement" yaml:"init_statement"`
+}
+
+type AwsS3Insert struct {
+	Bucket      string    `json:"bucket" yaml:"bucket"`
+	MaxInFlight int       `json:"max_in_flight" yaml:"max_in_flight"`
+	Path        string    `json:"path" yaml:"path"`
+	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+
+	Region   string `json:"region,omitempty" yaml:"region,omitempty"`
+	Endpoint string `json:"endpoint,omitempty" yaml:"endpoint,omitempty"`
+
+	Credentials *AwsCredentials `json:"credentials,omitempty" yaml:"credentials,omitempty"`
+}
+
+type AwsCredentials struct {
+	Profile        string `json:"profile,omitempty" yaml:"profile,omitempty"`
+	Id             string `json:"id,omitempty" yaml:"id,omitempty"`
+	Secret         string `json:"secret,omitempty" yaml:"secret,omitempty"`
+	Token          string `json:"token,omitempty" yaml:"token,omitempty"`
+	FromEc2Role    bool   `json:"from_ec2_role,omitempty" yaml:"from_ec2_role,omitempty"`
+	Role           string `json:"role,omitempty" yaml:"role,omitempty"`
+	RoleExternalId string `json:"role_external_id,omitempty" yaml:"role_external_id,omitempty"`
+}
+
+type Batching struct {
+	Count      int               `json:"count" yaml:"count"`
+	Period     string            `json:"period" yaml:"period"`
+	Processors []*BatchProcessor `json:"processors" yaml:"processors"`
+}
+
+type BatchProcessor struct {
+	Archive  *ArchiveProcessor  `json:"archive,omitempty" yaml:"archive,omitempty"`
+	Compress *CompressProcessor `json:"compress,omitempty" yaml:"compress,omitempty"`
+}
+
+type ArchiveProcessor struct {
+	Format string  `json:"format" yaml:"format"`
+	Path   *string `json:"path,omitempty" yaml:"path,omitempty"`
+}
+
+type CompressProcessor struct {
+	Algorithm string `json:"algorithm" yaml:"algorithm"`
 }
 
 type OutputBrokerConfig struct {

@@ -31,6 +31,17 @@ type TaskRunSpec struct {
 
 	// Foo is an example field of TaskRun. Edit taskrun_types.go to remove/update
 	Task *TaskRunTask `json:"task"`
+
+	PodTemplate *PodTemplate `json:"podTemplate,omitempty"`
+}
+
+type PodTemplate struct {
+	Metadata `json:"metadata,omitempty"`
+}
+
+type Metadata struct {
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 type TaskRunTask struct {

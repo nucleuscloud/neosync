@@ -35,7 +35,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	neosync_benthos "github.com/nucleuscloud/neosync/k8s-operator/internal/benthos"
@@ -64,6 +63,7 @@ type JobConfigReconciler struct {
 //+kubebuilder:rbac:groups=neosync.dev,resources=tasks/finalizers,verbs=update
 //+kubebuilder:rbac:groups=core,resources=secrets,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=neosync.dev,resources=sqlconnections,verbs=get;list;watch
+//+kubebuilder:rbac:groups=neosync.dev,resources=awss3connections,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -104,7 +104,6 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	benthosConfigResponses, err := r.generateConfigs(
 		ctx,
 		jobconfig,
-		logger,
 	)
 	if err != nil {
 		logger.Error(err, "unable to generate benthos configs")
@@ -270,6 +269,11 @@ func (r *JobConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			handler.EnqueueRequestsFromMapFunc(r.triggerReconcileBecauseSqlConnectionChanged),
 			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 		).
+		Watches(
+			&neosyncdevv1alpha1.AwsS3Connection{},
+			handler.EnqueueRequestsFromMapFunc(r.triggerReconcileBecauseAwsS3ConnectionChanged),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
 		Complete(r)
 }
 
@@ -298,15 +302,52 @@ func (r *JobConfigReconciler) triggerReconcileBecauseSqlConnectionChanged(
 	return requests
 }
 
+func (r *JobConfigReconciler) triggerReconcileBecauseAwsS3ConnectionChanged(
+	ctx context.Context,
+	o client.Object,
+) []reconcile.Request {
+	jobconfigList := &neosyncdevv1alpha1.JobConfigList{}
+	err := r.List(ctx, jobconfigList, &client.ListOptions{
+		Namespace: o.GetNamespace(),
+		// todo: add a better filter
+	})
+	if err != nil {
+		return []reconcile.Request{}
+	}
+	requests := []reconcile.Request{}
+	for idx := range jobconfigList.Items {
+		jobconfig := jobconfigList.Items[idx]
+		if ok := doesJobConfigUseAwsS3Connection(&jobconfig, o.GetName()); ok {
+			requests = append(requests, reconcile.Request{
+				NamespacedName: types.NamespacedName{Namespace: jobconfig.Namespace, Name: jobconfig.Name},
+			})
+		}
+	}
+
+	return requests
+}
+
 func doesJobConfigUseSqlConnection(
 	jobconfig *neosyncdevv1alpha1.JobConfig,
-	sqlConnectionName string,
+	connectionName string,
 ) bool {
-	if jobconfig.Spec.Source != nil && jobconfig.Spec.Source.Sql != nil && jobconfig.Spec.Source.Sql.ConnectionRef.Name == sqlConnectionName {
+	if jobconfig.Spec.Source != nil && jobconfig.Spec.Source.Sql != nil && jobconfig.Spec.Source.Sql.ConnectionRef.Name == connectionName {
 		return true
 	}
 	for _, dest := range jobconfig.Spec.Destinations {
-		if dest.Sql != nil && dest.Sql.ConnectionRef != nil && dest.Sql.ConnectionRef.Name == sqlConnectionName {
+		if dest.Sql != nil && dest.Sql.ConnectionRef != nil && dest.Sql.ConnectionRef.Name == connectionName {
+			return true
+		}
+	}
+	return false
+}
+
+func doesJobConfigUseAwsS3Connection(
+	jobconfig *neosyncdevv1alpha1.JobConfig,
+	connectionName string,
+) bool {
+	for _, dest := range jobconfig.Spec.Destinations {
+		if dest.AwsS3 != nil && dest.AwsS3.ConnectionRef != nil && dest.AwsS3.ConnectionRef.Name == connectionName {
 			return true
 		}
 	}
@@ -351,7 +392,6 @@ type benthosConfigResponse struct {
 func (r *JobConfigReconciler) generateConfigs(
 	ctx context.Context,
 	jobconfig *neosyncdevv1alpha1.JobConfig,
-	logger logr.Logger,
 ) ([]*benthosConfigResponse, error) {
 	responses := []*benthosConfigResponse{}
 
@@ -439,12 +479,195 @@ func (r *JobConfigReconciler) generateConfigs(
 					SqlInsert: output,
 				})
 			} else if destination.AwsS3 != nil {
-				logger.Info("aws s3 destination not currently supported")
+				conn := &neosyncdevv1alpha1.AwsS3Connection{}
+				err := r.Get(ctx, types.NamespacedName{Namespace: jobconfig.Namespace, Name: destination.AwsS3.ConnectionRef.Name}, conn)
+				if err != nil {
+					return nil, err
+				}
+
+				s3pathPieces := []string{}
+				if conn.Spec.PathPrefix != nil && *conn.Spec.PathPrefix != "" {
+					s3pathPieces = append(s3pathPieces, strings.Trim(*conn.Spec.PathPrefix, "/"))
+				}
+
+				s3pathPieces = append(
+					s3pathPieces,
+					"jobruns",
+					"${JOBRUN_ID}",
+					"taskruns",
+					"${TASKRUN_ID}",
+					`${!count("files")}-${!timestamp_unix_nano()}.json.gz`,
+				)
+
+				output := &neosync_benthos.AwsS3Insert{
+					Bucket:      conn.Spec.Bucket,
+					MaxInFlight: 64,
+					Path:        fmt.Sprintf("/%s", strings.Join(s3pathPieces, "/")),
+					Batching: &neosync_benthos.Batching{
+						Count:  100,
+						Period: "5s",
+						Processors: []*neosync_benthos.BatchProcessor{
+							{
+								Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"},
+							},
+							{
+								Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"},
+							},
+						},
+					},
+				}
+				if conn.Spec.AwsConfig != nil {
+					if conn.Spec.AwsConfig.Region != nil {
+						output.Region = *conn.Spec.AwsConfig.Region
+					}
+					if conn.Spec.AwsConfig.Endpoint != nil {
+						output.Endpoint = *conn.Spec.AwsConfig.Endpoint
+					}
+					if conn.Spec.AwsConfig.Credentials != nil {
+						creds := conn.Spec.AwsConfig.Credentials
+						secretNames := getSecretNamesFromAwsCredentials(creds)
+						credSecrets := map[string]*corev1.Secret{}
+						for _, sn := range secretNames {
+							secret := &corev1.Secret{}
+							err = r.Get(ctx, types.NamespacedName{Namespace: jobconfig.Namespace, Name: sn}, secret)
+							if err != nil {
+								return nil, err
+							}
+							credSecrets[sn] = secret
+						}
+
+						valFromFn := func(valFrom *neosyncdevv1alpha1.ValueFrom) (*string, error) {
+							if valFrom != nil && valFrom.SecretRef != nil {
+								secret, ok := credSecrets[valFrom.SecretRef.Name]
+								if !ok {
+									return nil, fmt.Errorf("secret by name was not found in list")
+								}
+								valBytes, ok := secret.Data[valFrom.SecretRef.Key]
+								if !ok {
+									return nil, fmt.Errorf("key %s was not found in secret %s", valFrom.SecretRef.Key, valFrom.SecretRef.Name)
+								}
+								val := string(valBytes)
+								return &val, nil
+							}
+							return nil, fmt.Errorf("unable to retrieve value from")
+						}
+
+						if creds.AccessKeyId != nil {
+							value, err := getValueFromValRef(creds.AccessKeyId, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.Id = *value
+						}
+						if creds.AccessKeySecret != nil {
+							value, err := getValueFromValRef(creds.AccessKeySecret, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.Secret = *value
+						}
+						if creds.AccessKeyToken != nil {
+							value, err := getValueFromValRef(creds.AccessKeyToken, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.Token = *value
+						}
+						if creds.RoleArn != nil {
+							value, err := getValueFromValRef(creds.RoleArn, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.Role = *value
+						}
+						if creds.RoleExternalId != nil {
+							value, err := getValueFromValRef(creds.RoleExternalId, valFromFn)
+							if err != nil {
+								return nil, err
+							}
+							if output.Credentials == nil {
+								output.Credentials = &neosync_benthos.AwsCredentials{}
+							}
+							output.Credentials.RoleExternalId = *value
+						}
+
+					}
+				}
+
+				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+					AwsS3: output,
+				})
 			}
 		}
 	}
 
 	return responses, nil
+}
+
+func getValueFromValRef(
+	valRef *neosyncdevv1alpha1.ValueRef,
+	getValFrom func(valFrom *neosyncdevv1alpha1.ValueFrom) (*string, error),
+) (*string, error) {
+	if valRef == nil {
+		return nil, fmt.Errorf("valRef was nil")
+	}
+	if valRef.Value != nil {
+		return valRef.Value, nil
+	}
+	if valRef.ValueFrom != nil {
+		return getValFrom(valRef.ValueFrom)
+	}
+
+	return nil, fmt.Errorf("unable to find value as Value and ValueFrom were nil or not found")
+}
+
+func getSecretNamesFromAwsCredentials(creds *neosyncdevv1alpha1.AwsCredentials) []string {
+	if creds == nil {
+		return nil
+	}
+	uniqueSecretNames := map[string]struct{}{}
+
+	vals := []*neosyncdevv1alpha1.ValueRef{
+		creds.AccessKeyId,
+		creds.AccessKeySecret,
+		creds.AccessKeyToken,
+		creds.RoleArn,
+		creds.RoleExternalId,
+	}
+	for _, val := range vals {
+		secretName := getSecretNameFromValueRef(val)
+		if secretName != nil && *secretName != "" {
+			uniqueSecretNames[*secretName] = struct{}{}
+		}
+	}
+
+	secretNames := []string{}
+	for sn := range uniqueSecretNames {
+		secretNames = append(secretNames, sn)
+	}
+	return secretNames
+}
+
+func getSecretNameFromValueRef(valRef *neosyncdevv1alpha1.ValueRef) *string {
+	if valRef != nil &&
+		valRef.ValueFrom != nil &&
+		valRef.ValueFrom.SecretRef != nil &&
+		valRef.ValueFrom.SecretRef.Name != "" {
+		return &valRef.ValueFrom.SecretRef.Name
+	}
+	return nil
 }
 
 func buildBenthosTable(schema, table string) string {

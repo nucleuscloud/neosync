@@ -35,6 +35,20 @@ spec:
           spec:
             description: TaskRunSpec defines the desired state of TaskRun
             properties:
+              podTemplate:
+                properties:
+                  metadata:
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      labels:
+                        additionalProperties:
+                          type: string
+                        type: object
+                    type: object
+                type: object
               task:
                 description: Foo is an example field of TaskRun. Edit taskrun_types.go
                   to remove/update

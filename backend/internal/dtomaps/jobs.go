@@ -8,6 +8,7 @@ import (
 )
 
 func ToJobDto(
+	getTransformerName func(value string) (string, error),
 	inputJob *neosyncdevv1alpha1.JobConfig,
 	inputSourceConnId string,
 	inputDestConnIds []string,
@@ -15,12 +16,21 @@ func ToJobDto(
 	mappings := []*mgmtv1alpha1.JobMapping{}
 	for _, table := range inputJob.Spec.Source.Sql.Schemas {
 		for _, column := range table.Columns {
+			transformerName := "passthrough"
+			if column.Transformer != nil {
+				name, err := getTransformerName(column.Transformer.Name)
+				if err != nil {
+					transformerName = "invalid"
+				} else {
+					transformerName = name
+				}
+			}
 			mappings = append(mappings, &mgmtv1alpha1.JobMapping{
 				Schema:      table.Schema,
 				Table:       table.Table,
 				Column:      column.Name,
 				Exclude:     *column.Exclude,
-				Transformer: getTransformer(column.Transformer),
+				Transformer: transformerName,
 			})
 		}
 	}
@@ -39,12 +49,4 @@ func ToJobDto(
 			HaltOnNewColumnAddition: *inputJob.Spec.Source.Sql.HaltOnSchemaChange,
 		},
 	}
-}
-
-func getTransformer(transformer *neosyncdevv1alpha1.ColumnTransformer) string {
-	// TODO @alisha handle operator to api transformer mapping
-	if transformer == nil {
-		return "passthrough"
-	}
-	return transformer.Name
 }

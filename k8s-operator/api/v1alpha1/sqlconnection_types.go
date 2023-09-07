@@ -26,7 +26,7 @@ import (
 type SqlConnectionDriver string
 
 const (
-	PostgresDriver = "postgres"
+	PostgresDriver SqlConnectionDriver = "postgres"
 )
 
 // SqlConnectionSpec defines the desired state of SqlConnection

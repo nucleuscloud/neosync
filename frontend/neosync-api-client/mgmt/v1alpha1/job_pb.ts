@@ -268,8 +268,6 @@ export class JobMapping extends Message<JobMapping> {
   column = "";
 
   /**
-   * TODO @alisha add validation here
-   *
    * @generated from field: string transformer = 5;
    */
   transformer = "";
@@ -1224,6 +1222,8 @@ export class CancelJobRunResponse extends Message<CancelJobRunResponse> {
 }
 
 /**
+ * TODO @alisha make this oneof to depend on connection type
+ *
  * @generated from message mgmt.v1alpha1.JobSourceOptions
  */
 export class JobSourceOptions extends Message<JobSourceOptions> {

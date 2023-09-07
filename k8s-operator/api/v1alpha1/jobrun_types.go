@@ -26,6 +26,8 @@ import (
 // JobRunSpec defines the desired state of JobRun
 type JobRunSpec struct {
 	Job *JobRunJob `json:"job,omitempty"`
+
+	PodTemplate *PodTemplate `json:"podTemplate,omitempty"`
 }
 
 type JobRunJob struct {
