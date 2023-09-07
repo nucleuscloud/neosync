@@ -133,6 +133,12 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				if _, ok := createdTasks[task.Name]; ok {
 					continue
 				}
+				dependsOn := []*neosyncdevv1alpha1.TaskRunDependsOn{}
+				for _, do := range task.DependsOn {
+					dependsOn = append(dependsOn, &neosyncdevv1alpha1.TaskRunDependsOn{
+						TaskName: do.TaskName,
+					})
+				}
 				taskrun := &neosyncdevv1alpha1.TaskRun{
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace:    req.Namespace,
@@ -148,6 +154,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 							TaskRef: task.TaskRef,
 						},
 						PodTemplate: jobrun.Spec.PodTemplate,
+						DependsOn:   dependsOn,
 					},
 				}
 				jobrunUuid, ok := jobrun.Labels[neosyncIdLabel]
