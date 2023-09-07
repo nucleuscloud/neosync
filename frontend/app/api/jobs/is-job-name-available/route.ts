@@ -1,7 +1,5 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import {
-  IsJobNameAvailableRequest
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { IsJobNameAvailableRequest } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { RequestContext } from '@/shared';
 import { NextRequest, NextResponse } from 'next/server';
 

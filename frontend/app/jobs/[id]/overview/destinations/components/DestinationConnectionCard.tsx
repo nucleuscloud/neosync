@@ -94,9 +94,9 @@ export default function DestinationConnectionCard({
       <CardHeader>
         <CardTitle>Destination</CardTitle>
       </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardContent>
             <FormField
               control={form.control}
               name="destinationId"
@@ -136,17 +136,17 @@ export default function DestinationConnectionCard({
                 </FormItem>
               )}
             />
-          </form>
-        </Form>
-      </CardContent>
-      <CardFooter className="bg-muted">
-        <div className="flex flex-row items-center justify-between w-full mt-4">
-          <p className="text-muted-foreground text-sm">
-            It may take a minute to validate your connection
-          </p>
-          <Button type="submit">Save</Button>
-        </div>
-      </CardFooter>
+          </CardContent>
+          <CardFooter className="bg-muted">
+            <div className="flex flex-row items-center justify-between w-full mt-4">
+              <p className="text-muted-foreground text-sm">
+                It may take a minute to validate your connection
+              </p>
+              <Button type="submit">Save</Button>
+            </div>
+          </CardFooter>
+        </form>
+      </Form>
     </Card>
   );
 }
@@ -155,7 +155,7 @@ async function updateJobConnections(
   jobId: string,
   connectionIds: string[]
 ): Promise<UpdateJobDestinationConnectionsResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/schedule`, {
+  const res = await fetch(`/api/jobs/${jobId}/destination-connections`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',

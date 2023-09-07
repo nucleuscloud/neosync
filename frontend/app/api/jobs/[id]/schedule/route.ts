@@ -1,7 +1,5 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import {
-  UpdateJobScheduleRequest
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { UpdateJobScheduleRequest } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(req: NextRequest): Promise<NextResponse> {

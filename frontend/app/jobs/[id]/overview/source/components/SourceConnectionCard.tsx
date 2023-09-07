@@ -74,13 +74,13 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
     try {
       await updateJobConnection(jobId, values.sourceId);
       toast({
-        title: 'Successfully updated job schedule!',
+        title: 'Successfully updated job source connection!',
         variant: 'default',
       });
     } catch (err) {
       console.error(err);
       toast({
-        title: 'Unable to update job schedule',
+        title: 'Unable to update job source connection',
         description: getErrorMessage(err),
         variant: 'destructive',
       });
@@ -92,9 +92,9 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
       <CardHeader>
         <CardTitle>Source</CardTitle>
       </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardContent>
             <FormField
               control={form.control}
               name="sourceId"
@@ -136,17 +136,17 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
                 </FormItem>
               )}
             />
-          </form>
-        </Form>
-      </CardContent>
-      <CardFooter className="bg-muted">
-        <div className="flex flex-row items-center justify-between w-full mt-4">
-          <p className="text-muted-foreground text-sm">
-            It may take a minute to validate your connection
-          </p>
-          <Button type="submit">Save</Button>
-        </div>
-      </CardFooter>
+          </CardContent>
+          <CardFooter className="bg-muted">
+            <div className="flex flex-row items-center justify-between w-full mt-4">
+              <p className="text-muted-foreground text-sm">
+                It may take a minute to validate your connection
+              </p>
+              <Button type="submit">Save</Button>
+            </div>
+          </CardFooter>
+        </form>
+      </Form>
     </Card>
   );
 }
@@ -155,7 +155,7 @@ async function updateJobConnection(
   jobId: string,
   connectionId: string
 ): Promise<UpdateJobSourceConnectionResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/schedule`, {
+  const res = await fetch(`/api/jobs/${jobId}/source-connection`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',

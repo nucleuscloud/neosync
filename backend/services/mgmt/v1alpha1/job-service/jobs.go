@@ -258,7 +258,7 @@ type cronScheduleSpec struct {
 }
 
 type updateJobScheduleSpec struct {
-	Spec *cronScheduleSpec `json:"spec"`
+	Spec *cronScheduleSpec `json:"spec,omitempty"`
 }
 
 func (s *Service) UpdateJobSchedule(
@@ -273,9 +273,13 @@ func (s *Service) UpdateJobSchedule(
 		return nil, err
 	}
 
+	var schedule *string
+	if req.Msg.CronSchedule != nil && *req.Msg.CronSchedule != "" {
+		schedule = req.Msg.CronSchedule
+	}
 	patch := &updateJobScheduleSpec{
 		Spec: &cronScheduleSpec{
-			CronSchedule: req.Msg.CronSchedule,
+			CronSchedule: schedule,
 		},
 	}
 	patchBits, err := json.Marshal(patch)
@@ -574,6 +578,24 @@ func (s *Service) UpdateJobHaltOnNewColumnAddition(
 
 	return connect.NewResponse(&mgmtv1alpha1.UpdateJobHaltOnNewColumnAdditionResponse{
 		Job: updatedJob.Msg.Job,
+	}), nil
+}
+
+func (s *Service) IsJobNameAvailable(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest],
+) (*connect.Response[mgmtv1alpha1.IsJobNameAvailableResponse], error) {
+	job := &neosyncdevv1alpha1.JobConfig{}
+	err := s.k8sclient.CustomResourceClient.Get(ctx, types.NamespacedName{Name: req.Msg.Name, Namespace: s.cfg.JobConfigNamespace}, job)
+	if err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if err != nil && errors.IsNotFound(err) {
+		return connect.NewResponse(&mgmtv1alpha1.IsJobNameAvailableResponse{
+			IsAvailable: true,
+		}), nil
+	}
+	return connect.NewResponse(&mgmtv1alpha1.IsJobNameAvailableResponse{
+		IsAvailable: false,
 	}), nil
 }
 
