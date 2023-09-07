@@ -179,6 +179,20 @@ spec:
             type: object
           status:
             description: AwsS3ConnectionStatus defines the observed state of AwsS3Connection
+            properties:
+              awsConfigHash:
+                description: Populated based on the computed values of the AwsConfig
+                  Takes into account the actual values pulled out of any values that
+                  might be referencing secrets
+                properties:
+                  algorithm:
+                    type: string
+                  value:
+                    type: string
+                required:
+                - algorithm
+                - value
+                type: object
             type: object
         type: object
     served: true

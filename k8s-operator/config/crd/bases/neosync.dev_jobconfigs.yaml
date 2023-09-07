@@ -72,6 +72,8 @@ spec:
                       type: object
                   type: object
                 type: array
+              executionStatus:
+                type: string
               podTemplate:
                 properties:
                   metadata:

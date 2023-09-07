@@ -227,14 +227,14 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{}, err
 		}
 		logger.Info("job updated successfully")
+		err = r.Get(ctx, types.NamespacedName{Namespace: job.Namespace, Name: job.Name}, job)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	} else {
 		logger.Info("job created successfully")
 	}
 
-	err = r.Get(ctx, types.NamespacedName{Namespace: job.Namespace, Name: job.Name}, job)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
 	taskNameSet := map[string]struct{}{}
 	for _, task := range job.Spec.Tasks {
 		taskNameSet[task.Name] = struct{}{}
