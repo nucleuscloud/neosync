@@ -852,6 +852,80 @@ export class DeleteJobResponse extends Message<DeleteJobResponse> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.IsJobNameAvailableRequest
+ */
+export class IsJobNameAvailableRequest extends Message<IsJobNameAvailableRequest> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  constructor(data?: PartialMessage<IsJobNameAvailableRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.IsJobNameAvailableRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsJobNameAvailableRequest {
+    return new IsJobNameAvailableRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IsJobNameAvailableRequest {
+    return new IsJobNameAvailableRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IsJobNameAvailableRequest {
+    return new IsJobNameAvailableRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IsJobNameAvailableRequest | PlainMessage<IsJobNameAvailableRequest> | undefined, b: IsJobNameAvailableRequest | PlainMessage<IsJobNameAvailableRequest> | undefined): boolean {
+    return proto3.util.equals(IsJobNameAvailableRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.IsJobNameAvailableResponse
+ */
+export class IsJobNameAvailableResponse extends Message<IsJobNameAvailableResponse> {
+  /**
+   * @generated from field: bool is_available = 1;
+   */
+  isAvailable = false;
+
+  constructor(data?: PartialMessage<IsJobNameAvailableResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.IsJobNameAvailableResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "is_available", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IsJobNameAvailableResponse {
+    return new IsJobNameAvailableResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IsJobNameAvailableResponse {
+    return new IsJobNameAvailableResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IsJobNameAvailableResponse {
+    return new IsJobNameAvailableResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IsJobNameAvailableResponse | PlainMessage<IsJobNameAvailableResponse> | undefined, b: IsJobNameAvailableResponse | PlainMessage<IsJobNameAvailableResponse> | undefined): boolean {
+    return proto3.util.equals(IsJobNameAvailableResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.GetJobRunsRequest
  */
 export class GetJobRunsRequest extends Message<GetJobRunsRequest> {

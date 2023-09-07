@@ -2549,6 +2549,214 @@ var _ interface {
 	ErrorName() string
 } = DeleteJobResponseValidationError{}
 
+// Validate checks the field values on IsJobNameAvailableRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *IsJobNameAvailableRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on IsJobNameAvailableRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// IsJobNameAvailableRequestMultiError, or nil if none found.
+func (m *IsJobNameAvailableRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *IsJobNameAvailableRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	if len(errors) > 0 {
+		return IsJobNameAvailableRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// IsJobNameAvailableRequestMultiError is an error wrapping multiple validation
+// errors returned by IsJobNameAvailableRequest.ValidateAll() if the
+// designated constraints aren't met.
+type IsJobNameAvailableRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m IsJobNameAvailableRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m IsJobNameAvailableRequestMultiError) AllErrors() []error { return m }
+
+// IsJobNameAvailableRequestValidationError is the validation error returned by
+// IsJobNameAvailableRequest.Validate if the designated constraints aren't met.
+type IsJobNameAvailableRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e IsJobNameAvailableRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e IsJobNameAvailableRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e IsJobNameAvailableRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e IsJobNameAvailableRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e IsJobNameAvailableRequestValidationError) ErrorName() string {
+	return "IsJobNameAvailableRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e IsJobNameAvailableRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sIsJobNameAvailableRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = IsJobNameAvailableRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = IsJobNameAvailableRequestValidationError{}
+
+// Validate checks the field values on IsJobNameAvailableResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *IsJobNameAvailableResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on IsJobNameAvailableResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// IsJobNameAvailableResponseMultiError, or nil if none found.
+func (m *IsJobNameAvailableResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *IsJobNameAvailableResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for IsAvailable
+
+	if len(errors) > 0 {
+		return IsJobNameAvailableResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// IsJobNameAvailableResponseMultiError is an error wrapping multiple
+// validation errors returned by IsJobNameAvailableResponse.ValidateAll() if
+// the designated constraints aren't met.
+type IsJobNameAvailableResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m IsJobNameAvailableResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m IsJobNameAvailableResponseMultiError) AllErrors() []error { return m }
+
+// IsJobNameAvailableResponseValidationError is the validation error returned
+// by IsJobNameAvailableResponse.Validate if the designated constraints aren't met.
+type IsJobNameAvailableResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e IsJobNameAvailableResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e IsJobNameAvailableResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e IsJobNameAvailableResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e IsJobNameAvailableResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e IsJobNameAvailableResponseValidationError) ErrorName() string {
+	return "IsJobNameAvailableResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e IsJobNameAvailableResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sIsJobNameAvailableResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = IsJobNameAvailableResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = IsJobNameAvailableResponseValidationError{}
+
 // Validate checks the field values on GetJobRunsRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.

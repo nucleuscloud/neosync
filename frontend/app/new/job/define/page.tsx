@@ -9,6 +9,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -67,6 +68,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             name="jobName"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Job Name" {...field} />
                 </FormControl>
@@ -81,6 +83,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             name="cronSchedule"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Schedule</FormLabel>
                 <FormControl>
                   <Input placeholder="Cron Schedule" {...field} />
                 </FormControl>
@@ -92,7 +95,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             )}
           />
 
-          {/* <Button type="button">Back</Button> */}
           <div className="flex flex-row justify-end">
             <Button type="submit">Next</Button>
           </div>
