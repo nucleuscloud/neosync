@@ -20,8 +20,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
+	"golang.org/x/sync/errgroup"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
@@ -40,8 +42,47 @@ import (
 )
 
 const (
-	// awsS3ConnectionSecretKeyIdxField =
 	sha256Val = "sha256"
+)
+
+type awsS3ConnectionIdxField struct {
+	Key       string
+	IndexerFn func(o client.Object) []string
+}
+
+var (
+	awsS3ConnectionSecretIdxFields = []*awsS3ConnectionIdxField{
+		{
+			Key: ".spec.awsConfig.credentials.accessKeyId.valueFrom.secretRef.name",
+			IndexerFn: getAwsS3ConnSecretRefNameExtractionFn(func(creds *neosyncdevv1alpha1.AwsCredentials) *neosyncdevv1alpha1.ValueRef {
+				return creds.AccessKeyId
+			}),
+		},
+		{
+			Key: ".spec.awsConfig.credentials.accessKeySecret.valueFrom.secretRef.name",
+			IndexerFn: getAwsS3ConnSecretRefNameExtractionFn(func(creds *neosyncdevv1alpha1.AwsCredentials) *neosyncdevv1alpha1.ValueRef {
+				return creds.AccessKeySecret
+			}),
+		},
+		{
+			Key: ".spec.awsConfig.credentials.accessKeyToken.valueFrom.secretRef.name",
+			IndexerFn: getAwsS3ConnSecretRefNameExtractionFn(func(creds *neosyncdevv1alpha1.AwsCredentials) *neosyncdevv1alpha1.ValueRef {
+				return creds.AccessKeyToken
+			}),
+		},
+		{
+			Key: ".spec.awsConfig.credentials.roleArn.valueFrom.secretRef.name",
+			IndexerFn: getAwsS3ConnSecretRefNameExtractionFn(func(creds *neosyncdevv1alpha1.AwsCredentials) *neosyncdevv1alpha1.ValueRef {
+				return creds.RoleArn
+			}),
+		},
+		{
+			Key: ".spec.awsConfig.credentials.roleExternalId.valueFrom.secretRef.name",
+			IndexerFn: getAwsS3ConnSecretRefNameExtractionFn(func(creds *neosyncdevv1alpha1.AwsCredentials) *neosyncdevv1alpha1.ValueRef {
+				return creds.RoleExternalId
+			}),
+		},
+	}
 )
 
 // AwsS3ConnectionReconciler reconciles a AwsS3Connection object
@@ -123,6 +164,17 @@ func (r *AwsS3ConnectionReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *AwsS3ConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	for _, idxField := range awsS3ConnectionSecretIdxFields {
+		if err := mgr.GetFieldIndexer().IndexField(
+			context.Background(),
+			&neosyncdevv1alpha1.AwsS3Connection{},
+			idxField.Key,
+			idxField.IndexerFn,
+		); err != nil {
+			return err
+		}
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&neosyncdevv1alpha1.AwsS3Connection{}).
 		Watches(
@@ -133,25 +185,61 @@ func (r *AwsS3ConnectionReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+func getAwsS3ConnSecretRefNameExtractionFn(
+	fn func(creds *neosyncdevv1alpha1.AwsCredentials) *neosyncdevv1alpha1.ValueRef,
+) func(o client.Object) []string {
+	return func(o client.Object) []string {
+		conn, ok := o.(*neosyncdevv1alpha1.AwsS3Connection)
+		if !ok || conn.Spec.AwsConfig == nil || conn.Spec.AwsConfig.Credentials == nil {
+			return nil
+		}
+
+		secretName := getSecretNameFromValueRef(fn(conn.Spec.AwsConfig.Credentials))
+		if secretName != nil {
+			return []string{*secretName}
+		}
+		return nil
+	}
+}
+
 func (r *AwsS3ConnectionReconciler) triggerReconcileBecauseSecretChanged(
 	ctx context.Context,
 	o client.Object,
 ) []reconcile.Request {
-	sqlconnList := &neosyncdevv1alpha1.SqlConnectionList{}
-	err := r.List(ctx, sqlconnList, &client.ListOptions{
-		Namespace:     o.GetNamespace(),
-		FieldSelector: fields.OneTermEqualSelector(sqlConnectionSecretKeyIdxField, o.GetName()),
-	})
-	if err != nil {
-		return []reconcile.Request{}
-	}
-	requests := make([]reconcile.Request, len(sqlconnList.Items))
-	for idx := range sqlconnList.Items {
-		conn := sqlconnList.Items[idx]
-		requests = append(requests, reconcile.Request{
-			NamespacedName: types.NamespacedName{Namespace: conn.Namespace, Name: conn.Name},
+	errgrp, errctx := errgroup.WithContext(ctx)
+	uniqueRequestsMap := sync.Map{}
+
+	for idx := range awsS3ConnectionSecretIdxFields {
+		field := awsS3ConnectionSecretIdxFields[idx]
+		errgrp.Go(func() error {
+			sqlconnList := &neosyncdevv1alpha1.SqlConnectionList{}
+			err := r.List(errctx, sqlconnList, &client.ListOptions{
+				Namespace:     o.GetNamespace(),
+				FieldSelector: fields.OneTermEqualSelector(field.Key, o.GetName()),
+			})
+			if err != nil {
+				return err
+			}
+			for itemIdx := range sqlconnList.Items {
+				conn := sqlconnList.Items[itemIdx]
+				nsName := types.NamespacedName{Namespace: conn.Namespace, Name: conn.Name}
+				uniqueRequestsMap.Store(nsName.String(), reconcile.Request{NamespacedName: nsName})
+			}
+			return nil
 		})
 	}
+	if err := errgrp.Wait(); err != nil {
+		return nil
+	}
+
+	requests := []reconcile.Request{}
+	uniqueRequestsMap.Range(func(key, value any) bool {
+		req, ok := value.(reconcile.Request)
+		if ok {
+			requests = append(requests, req)
+		}
+		return true
+	})
 	return requests
 }
 
