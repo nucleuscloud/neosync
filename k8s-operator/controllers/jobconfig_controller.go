@@ -201,7 +201,7 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			},
 		},
 		Spec: neosyncdevv1alpha1.JobSpec{
-			ExecutionStatus: "active",
+			ExecutionStatus: jobconfig.Spec.ExecutionStatus,
 			Tasks:           jobTasks,
 			CronSchedule:    jobconfig.Spec.CronSchedule,
 		},
@@ -220,10 +220,13 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{}, err
 		}
 		job.Spec.Tasks = jobTasks
+		job.Spec.CronSchedule = jobconfig.Spec.CronSchedule
+		job.Spec.ExecutionStatus = jobconfig.Spec.ExecutionStatus
 		err = r.Update(ctx, job)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+		logger.Info("job updated successfully")
 	} else {
 		logger.Info("job created successfully")
 	}

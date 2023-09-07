@@ -97,16 +97,57 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			logger.Error(err, "unable to ensure config map for scheduled job")
 			return ctrl.Result{}, err
 		}
-		err = r.ensureCronJob(ctx, req.NamespacedName, job, *job.Spec.CronSchedule, req.Name, req.Name)
+		err = r.ensureCronJob(ctx, req.NamespacedName, job, &cronJobRequest{
+			Schedule:           *job.Spec.CronSchedule,
+			ConfigMapName:      req.Name,
+			ServiceAccountName: req.Name,
+			Suspend:            computeCjSuspend(job.Spec.ExecutionStatus),
+		})
 		if err != nil {
 			logger.Error(err, "unable to ensure cronjob for scheduled job")
 			return ctrl.Result{}, err
 		}
-
-		// ensure cronjob
+	} else {
+		err = r.suspendCronJobIfExists(ctx, req.NamespacedName)
+		if err != nil {
+			logger.Error(err, "unable to suspend cronjob when cronschedule was nil")
+			return ctrl.Result{}, err
+		}
 	}
 
+	logger.Info("job reconciliation complete")
 	return ctrl.Result{}, nil
+}
+
+func (r *JobReconciler) suspendCronJobIfExists(
+	ctx context.Context,
+	nsName types.NamespacedName,
+) error {
+	cj := &batchv1.CronJob{}
+	err := r.Get(ctx, nsName, cj)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return err
+	} else if err != nil && apierrors.IsNotFound(err) {
+		return nil
+	}
+	if cj.Spec.Suspend != nil && *cj.Spec.Suspend {
+		return nil
+	}
+
+	suspend := true
+	cj.Spec.Suspend = &suspend
+	err = r.Update(ctx, cj)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return err
+	}
+	return nil
+}
+
+func computeCjSuspend(jobExecutionStatus *neosyncdevv1alpha1.JobExecutionStatus) bool {
+	if jobExecutionStatus == nil {
+		return false
+	}
+	return *jobExecutionStatus != neosyncdevv1alpha1.JobExecutionStatus_Enabled
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -323,13 +364,18 @@ func (r *JobReconciler) ensureScheduledConfigMap(
 	return nil
 }
 
+type cronJobRequest struct {
+	Schedule           string
+	ConfigMapName      string
+	ServiceAccountName string
+	Suspend            bool
+}
+
 func (r *JobReconciler) ensureCronJob(
 	ctx context.Context,
 	nsName types.NamespacedName,
 	owner metav1.Object,
-	schedule string,
-	cmName string,
-	saName string,
+	req *cronJobRequest,
 ) error {
 	cj := &batchv1.CronJob{}
 	err := r.Get(ctx, nsName, cj)
@@ -342,13 +388,14 @@ func (r *JobReconciler) ensureCronJob(
 				Name:      nsName.Name,
 			},
 			Spec: batchv1.CronJobSpec{
-				Schedule:          schedule,
+				Suspend:           &req.Suspend,
+				Schedule:          req.Schedule,
 				ConcurrencyPolicy: batchv1.ForbidConcurrent,
 				JobTemplate: batchv1.JobTemplateSpec{
 					Spec: batchv1.JobSpec{
 						Template: corev1.PodTemplateSpec{
 							Spec: corev1.PodSpec{
-								ServiceAccountName: saName,
+								ServiceAccountName: req.ServiceAccountName,
 								RestartPolicy:      corev1.RestartPolicyNever,
 								Containers: []corev1.Container{
 									{
@@ -371,7 +418,7 @@ func (r *JobReconciler) ensureCronJob(
 										VolumeSource: corev1.VolumeSource{
 											ConfigMap: &corev1.ConfigMapVolumeSource{
 												LocalObjectReference: corev1.LocalObjectReference{
-													Name: cmName,
+													Name: req.ConfigMapName,
 												},
 											},
 										},
@@ -395,6 +442,27 @@ func (r *JobReconciler) ensureCronJob(
 			if err != nil {
 				return err
 			}
+		}
+	}
+	shouldUpdate := false
+
+	if cj.Spec.Suspend == nil || *cj.Spec.Suspend != req.Suspend {
+		cj.Spec.Suspend = &req.Suspend
+		shouldUpdate = true
+	}
+	if cj.Spec.Schedule != req.Schedule {
+		cj.Spec.Schedule = req.Schedule
+		shouldUpdate = true
+	}
+	if cj.Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName != req.ServiceAccountName {
+		cj.Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName = req.ServiceAccountName
+		shouldUpdate = true
+	}
+
+	if shouldUpdate {
+		err = r.Update(ctx, cj)
+		if err != nil {
+			return err
 		}
 	}
 
