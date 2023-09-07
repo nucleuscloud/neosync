@@ -23,9 +23,9 @@ import (
 type JobExecutionStatus string
 
 const (
-	JobExecutionStatus_Enabled  = "enabled"
-	JobExecutionStatus_Disabled = "disabled"
-	JobExecutionStatus_Paused   = "paused"
+	JobExecutionStatus_Enabled  JobExecutionStatus = "enabled"
+	JobExecutionStatus_Disabled JobExecutionStatus = "disabled"
+	JobExecutionStatus_Paused   JobExecutionStatus = "paused"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -36,10 +36,9 @@ type JobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	CronSchedule            *string            `json:"cronSchedule,omitempty"`
-	HaltOnNewColumnAddition bool               `json:"bool,omitempty"`
-	ExecutionStatus         JobExecutionStatus `json:"executionStatus"`
-	Tasks                   []JobTask          `json:"tasks"`
+	CronSchedule    *string             `json:"cronSchedule,omitempty"`
+	ExecutionStatus *JobExecutionStatus `json:"executionStatus,omitempty"`
+	Tasks           []JobTask           `json:"tasks"`
 }
 
 type JobTask struct {

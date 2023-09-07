@@ -35,8 +35,6 @@ spec:
           spec:
             description: JobSpec defines the desired state of Job
             properties:
-              bool:
-                type: boolean
               cronSchedule:
                 type: string
               executionStatus:
@@ -64,7 +62,6 @@ spec:
                   type: object
                 type: array
             required:
-            - executionStatus
             - tasks
             type: object
           status:

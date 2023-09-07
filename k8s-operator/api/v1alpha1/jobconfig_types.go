@@ -29,9 +29,10 @@ type JobConfigSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of JobConfig. Edit jobconfig_types.go to remove/update
-	Source       *JobConfigSource        `json:"source"`
-	Destinations []*JobConfigDestination `json:"destinations"`
-	CronSchedule *string                 `json:"cronSchedule,omitempty"`
+	Source          *JobConfigSource        `json:"source"`
+	Destinations    []*JobConfigDestination `json:"destinations"`
+	CronSchedule    *string                 `json:"cronSchedule,omitempty"`
+	ExecutionStatus *JobExecutionStatus     `json:"executionStatus,omitempty"`
 
 	PodTemplate *PodTemplate `json:"podTemplate,omitempty"`
 }
