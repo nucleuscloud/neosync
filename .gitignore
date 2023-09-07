@@ -14,3 +14,5 @@ node_modules
 
 Chart.lock
 charts/**/*.tgz
+
+go.work.sum
