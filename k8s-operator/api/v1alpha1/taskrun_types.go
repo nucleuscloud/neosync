@@ -75,12 +75,6 @@ const (
 	TaskRunDependentWaiting TaskRunConditionType = "WaitingOnDependent"
 )
 
-// type TaskRunCondition struct {
-// 	Type               TaskRunConditionType   `json:"type"`
-// 	Status             corev1.ConditionStatus `json:"status"`
-// 	LastTransitionTime *metav1.Time           `json:"lastTransitionTime,omitempty"`
-// }
-
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
