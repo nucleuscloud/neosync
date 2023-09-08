@@ -396,9 +396,6 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}
 
-	jsonF, _ := json.MarshalIndent(source, "", " ")
-	fmt.Printf("\n\n source: %s \n\n", string(jsonF))
-
 	patch := &patchUpdateJobConfigSpec{
 		Spec: &jobConfigSpec{
 			Source: source,
