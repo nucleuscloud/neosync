@@ -36,12 +36,24 @@ type JobRunJob struct {
 
 // JobRunStatus defines the observed state of JobRun
 type JobRunStatus struct {
+	Conditions     []metav1.Condition     `json:"conditions,omitempty"`
+	StartTime      *metav1.Time           `json:"startTime,omitempty"`
 	CompletionTime *metav1.Time           `json:"completionTime,omitempty"`
 	TaskRuns       []*JobRunStatusTaskRun `json:"taskRuns,omitempty"`
 }
 
+type JobRunConditionType string
+
+const (
+	JobRunSucceeded JobRunConditionType = "Succeeded"
+	JobRunFailed    JobRunConditionType = "Failed"
+)
+
 type JobRunStatusTaskRun struct {
+	// The static name of the task defined at the top level
 	Name string `json:"name"`
+	// The generated instance of the task run for this specific jobrun
+	// NameRef string `json:"nameRef"`
 	// ... todo:
 }
 

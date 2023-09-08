@@ -22,6 +22,7 @@ import (
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -104,9 +105,20 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if jobrun.Status.CompletionTime == nil {
 		logger.Info("reconciling jobrun")
 
+		if jobrun.Status.StartTime == nil {
+			now := metav1.Now()
+			jobrun.Status.StartTime = &now
+		}
+
 		if len(job.Spec.Tasks) == 0 {
 			currentTime := metav1.Now()
 			jobrun.Status.CompletionTime = &currentTime
+			meta.SetStatusCondition(&jobrun.Status.Conditions, metav1.Condition{
+				Type:               string(neosyncdevv1alpha1.JobRunSucceeded),
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: currentTime,
+				Reason:             "Succeeded",
+			})
 		} else {
 			/// spawn tasks
 
@@ -193,7 +205,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				isComplete := true
 				for idx := range taskRuns.Items {
 					taskRun := taskRuns.Items[idx]
-					if taskRun.Status.JobStatus == nil || taskRun.Status.JobStatus.CompletionTime == nil {
+					if !isTaskRunFinished(&taskRun) {
 						isComplete = false
 						break
 					}
@@ -201,6 +213,30 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				if isComplete {
 					now := metav1.Now()
 					jobrun.Status.CompletionTime = &now
+
+					allGood := true
+					for idx := range taskRuns.Items {
+						taskRun := taskRuns.Items[idx]
+						if !isTaskRunSuccessful(&taskRun) {
+							allGood = false
+							break
+						}
+					}
+					if allGood {
+						meta.SetStatusCondition(&jobrun.Status.Conditions, metav1.Condition{
+							Type:               string(neosyncdevv1alpha1.JobRunSucceeded),
+							Status:             metav1.ConditionTrue,
+							LastTransitionTime: now,
+							Reason:             "Succeeded",
+						})
+					} else {
+						meta.SetStatusCondition(&jobrun.Status.Conditions, metav1.Condition{
+							Type:               string(neosyncdevv1alpha1.JobRunFailed),
+							Status:             metav1.ConditionTrue,
+							LastTransitionTime: now,
+							Reason:             "Failed",
+						})
+					}
 				}
 			}
 		}
