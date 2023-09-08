@@ -145,6 +145,334 @@ export class GetJobsResponse extends Message<GetJobsResponse> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.JobSource
+ */
+export class JobSource extends Message<JobSource> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.JobSourceOptions options = 2;
+   */
+  options?: JobSourceOptions;
+
+  constructor(data?: PartialMessage<JobSource>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobSource";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "options", kind: "message", T: JobSourceOptions },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSource {
+    return new JobSource().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobSource {
+    return new JobSource().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobSource {
+    return new JobSource().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobSource | PlainMessage<JobSource> | undefined, b: JobSource | PlainMessage<JobSource> | undefined): boolean {
+    return proto3.util.equals(JobSource, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobDestination
+ */
+export class JobDestination extends Message<JobDestination> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.JobDestinationOptions options = 2;
+   */
+  options?: JobDestinationOptions;
+
+  constructor(data?: PartialMessage<JobDestination>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobDestination";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "options", kind: "message", T: JobDestinationOptions },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobDestination {
+    return new JobDestination().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobDestination {
+    return new JobDestination().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobDestination {
+    return new JobDestination().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobDestination | PlainMessage<JobDestination> | undefined, b: JobDestination | PlainMessage<JobDestination> | undefined): boolean {
+    return proto3.util.equals(JobDestination, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobSourceOptions
+ */
+export class JobSourceOptions extends Message<JobSourceOptions> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.JobSourceOptions.config
+   */
+  config: {
+    /**
+     * @generated from field: mgmt.v1alpha1.SqlSourceConnectionOptions sql_options = 1;
+     */
+    value: SqlSourceConnectionOptions;
+    case: "sqlOptions";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.AwsS3SourceConnectionOptions aws_s3_options = 2;
+     */
+    value: AwsS3SourceConnectionOptions;
+    case: "awsS3Options";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<JobSourceOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobSourceOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "sql_options", kind: "message", T: SqlSourceConnectionOptions, oneof: "config" },
+    { no: 2, name: "aws_s3_options", kind: "message", T: AwsS3SourceConnectionOptions, oneof: "config" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceOptions {
+    return new JobSourceOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobSourceOptions {
+    return new JobSourceOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobSourceOptions {
+    return new JobSourceOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobSourceOptions | PlainMessage<JobSourceOptions> | undefined, b: JobSourceOptions | PlainMessage<JobSourceOptions> | undefined): boolean {
+    return proto3.util.equals(JobSourceOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SqlSourceConnectionOptions
+ */
+export class SqlSourceConnectionOptions extends Message<SqlSourceConnectionOptions> {
+  /**
+   * @generated from field: optional bool halt_on_new_column_addition = 1;
+   */
+  haltOnNewColumnAddition?: boolean;
+
+  constructor(data?: PartialMessage<SqlSourceConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SqlSourceConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlSourceConnectionOptions {
+    return new SqlSourceConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SqlSourceConnectionOptions {
+    return new SqlSourceConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SqlSourceConnectionOptions {
+    return new SqlSourceConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SqlSourceConnectionOptions | PlainMessage<SqlSourceConnectionOptions> | undefined, b: SqlSourceConnectionOptions | PlainMessage<SqlSourceConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(SqlSourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AwsS3SourceConnectionOptions
+ */
+export class AwsS3SourceConnectionOptions extends Message<AwsS3SourceConnectionOptions> {
+  constructor(data?: PartialMessage<AwsS3SourceConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AwsS3SourceConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsS3SourceConnectionOptions {
+    return new AwsS3SourceConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AwsS3SourceConnectionOptions {
+    return new AwsS3SourceConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AwsS3SourceConnectionOptions {
+    return new AwsS3SourceConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AwsS3SourceConnectionOptions | PlainMessage<AwsS3SourceConnectionOptions> | undefined, b: AwsS3SourceConnectionOptions | PlainMessage<AwsS3SourceConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(AwsS3SourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobDestinationOptions
+ */
+export class JobDestinationOptions extends Message<JobDestinationOptions> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.JobDestinationOptions.config
+   */
+  config: {
+    /**
+     * @generated from field: mgmt.v1alpha1.SqlDestinationConnectionOptions sql_options = 1;
+     */
+    value: SqlDestinationConnectionOptions;
+    case: "sqlOptions";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.AwsS3DestinationConnectionOptions aws_s3_options = 2;
+     */
+    value: AwsS3DestinationConnectionOptions;
+    case: "awsS3Options";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<JobDestinationOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobDestinationOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "sql_options", kind: "message", T: SqlDestinationConnectionOptions, oneof: "config" },
+    { no: 2, name: "aws_s3_options", kind: "message", T: AwsS3DestinationConnectionOptions, oneof: "config" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobDestinationOptions {
+    return new JobDestinationOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobDestinationOptions {
+    return new JobDestinationOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobDestinationOptions {
+    return new JobDestinationOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobDestinationOptions | PlainMessage<JobDestinationOptions> | undefined, b: JobDestinationOptions | PlainMessage<JobDestinationOptions> | undefined): boolean {
+    return proto3.util.equals(JobDestinationOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SqlDestinationConnectionOptions
+ */
+export class SqlDestinationConnectionOptions extends Message<SqlDestinationConnectionOptions> {
+  /**
+   * @generated from field: optional bool truncate_before_insert = 1;
+   */
+  truncateBeforeInsert?: boolean;
+
+  /**
+   * @generated from field: optional bool init_db_schema = 2;
+   */
+  initDbSchema?: boolean;
+
+  constructor(data?: PartialMessage<SqlDestinationConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SqlDestinationConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "truncate_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+    { no: 2, name: "init_db_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlDestinationConnectionOptions {
+    return new SqlDestinationConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SqlDestinationConnectionOptions {
+    return new SqlDestinationConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SqlDestinationConnectionOptions {
+    return new SqlDestinationConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SqlDestinationConnectionOptions | PlainMessage<SqlDestinationConnectionOptions> | undefined, b: SqlDestinationConnectionOptions | PlainMessage<SqlDestinationConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(SqlDestinationConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AwsS3DestinationConnectionOptions
+ */
+export class AwsS3DestinationConnectionOptions extends Message<AwsS3DestinationConnectionOptions> {
+  constructor(data?: PartialMessage<AwsS3DestinationConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AwsS3DestinationConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsS3DestinationConnectionOptions {
+    return new AwsS3DestinationConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AwsS3DestinationConnectionOptions {
+    return new AwsS3DestinationConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AwsS3DestinationConnectionOptions {
+    return new AwsS3DestinationConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AwsS3DestinationConnectionOptions | PlainMessage<AwsS3DestinationConnectionOptions> | undefined, b: AwsS3DestinationConnectionOptions | PlainMessage<AwsS3DestinationConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(AwsS3DestinationConnectionOptions, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.CreateJobRequest
  */
 export class CreateJobRequest extends Message<CreateJobRequest> {
@@ -154,29 +482,24 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   jobName = "";
 
   /**
-   * @generated from field: string connection_source_id = 2;
-   */
-  connectionSourceId = "";
-
-  /**
-   * @generated from field: repeated string connection_destination_ids = 3;
-   */
-  connectionDestinationIds: string[] = [];
-
-  /**
-   * @generated from field: optional string cron_schedule = 4;
+   * @generated from field: optional string cron_schedule = 2;
    */
   cronSchedule?: string;
 
   /**
-   * @generated from field: mgmt.v1alpha1.JobSourceOptions source_options = 5;
-   */
-  sourceOptions?: JobSourceOptions;
-
-  /**
-   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 6;
+   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 3;
    */
   mappings: JobMapping[] = [];
+
+  /**
+   * @generated from field: mgmt.v1alpha1.JobSource source = 4;
+   */
+  source?: JobSource;
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobDestination destinations = 5;
+   */
+  destinations: JobDestination[] = [];
 
   constructor(data?: PartialMessage<CreateJobRequest>) {
     super();
@@ -187,11 +510,10 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   static readonly typeName = "mgmt.v1alpha1.CreateJobRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "job_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "connection_source_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "connection_destination_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
-    { no: 4, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 5, name: "source_options", kind: "message", T: JobSourceOptions },
-    { no: 6, name: "mappings", kind: "message", T: JobMapping, repeated: true },
+    { no: 2, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "mappings", kind: "message", T: JobMapping, repeated: true },
+    { no: 4, name: "source", kind: "message", T: JobSource },
+    { no: 5, name: "destinations", kind: "message", T: JobDestination, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRequest {
@@ -1222,45 +1544,6 @@ export class CancelJobRunResponse extends Message<CancelJobRunResponse> {
 }
 
 /**
- * TODO @alisha make this oneof to depend on connection type
- *
- * @generated from message mgmt.v1alpha1.JobSourceOptions
- */
-export class JobSourceOptions extends Message<JobSourceOptions> {
-  /**
-   * @generated from field: bool halt_on_new_column_addition = 1;
-   */
-  haltOnNewColumnAddition = false;
-
-  constructor(data?: PartialMessage<JobSourceOptions>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.JobSourceOptions";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceOptions {
-    return new JobSourceOptions().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobSourceOptions {
-    return new JobSourceOptions().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobSourceOptions {
-    return new JobSourceOptions().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: JobSourceOptions | PlainMessage<JobSourceOptions> | undefined, b: JobSourceOptions | PlainMessage<JobSourceOptions> | undefined): boolean {
-    return proto3.util.equals(JobSourceOptions, a, b);
-  }
-}
-
-/**
  * @generated from message mgmt.v1alpha1.Job
  */
 export class Job extends Message<Job> {
@@ -1290,14 +1573,14 @@ export class Job extends Message<Job> {
   status = JobStatus.UNSPECIFIED;
 
   /**
-   * @generated from field: string connection_source_id = 6;
+   * @generated from field: mgmt.v1alpha1.JobSource source = 6;
    */
-  connectionSourceId = "";
+  source?: JobSource;
 
   /**
-   * @generated from field: repeated string connection_destination_ids = 7;
+   * @generated from field: repeated mgmt.v1alpha1.JobDestination destinations = 7;
    */
-  connectionDestinationIds: string[] = [];
+  destinations: JobDestination[] = [];
 
   /**
    * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 8;
@@ -1308,11 +1591,6 @@ export class Job extends Message<Job> {
    * @generated from field: optional string cron_schedule = 9;
    */
   cronSchedule?: string;
-
-  /**
-   * @generated from field: mgmt.v1alpha1.JobSourceOptions source_options = 10;
-   */
-  sourceOptions?: JobSourceOptions;
 
   constructor(data?: PartialMessage<Job>) {
     super();
@@ -1327,11 +1605,10 @@ export class Job extends Message<Job> {
     { no: 3, name: "updated_at", kind: "message", T: Timestamp },
     { no: 4, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "status", kind: "enum", T: proto3.getEnumType(JobStatus) },
-    { no: 6, name: "connection_source_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "connection_destination_ids", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "source", kind: "message", T: JobSource },
+    { no: 7, name: "destinations", kind: "message", T: JobDestination, repeated: true },
     { no: 8, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 9, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 10, name: "source_options", kind: "message", T: JobSourceOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Job {

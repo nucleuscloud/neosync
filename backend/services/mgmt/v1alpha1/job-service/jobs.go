@@ -49,9 +49,9 @@ func (s *Service) GetJobs(
 		return nil, err
 	}
 
-	connsNameToIdMap := map[string]string{}
+	connsNameMap := map[string]*mgmtv1alpha1.Connection{}
 	for _, conn := range connections.Msg.Connections {
-		connsNameToIdMap[conn.Name] = conn.Id
+		connsNameMap[conn.Name] = conn
 	}
 
 	dtoJobs := []*mgmtv1alpha1.Job{}
@@ -61,21 +61,21 @@ func (s *Service) GetJobs(
 		if err != nil {
 			return nil, err
 		}
-		sourceConnId := connsNameToIdMap[sourceConnName]
-		destConnIds := []string{}
+		sourceConn := connsNameMap[sourceConnName]
+		destConns := []*mgmtv1alpha1.Connection{}
 		for _, dest := range job.Spec.Destinations {
 			destConnName, err := getDestinationConnectionName(dest)
 			if err != nil {
 				return nil, err
 			}
-			destConnId, ok := connsNameToIdMap[destConnName]
+			destConn, ok := connsNameMap[destConnName]
 			if ok {
-				destConnIds = append(destConnIds, destConnId)
+				destConns = append(destConns, destConn)
 			}
 
 		}
 
-		dto := dtomaps.ToJobDto(fromOperatorTransformer, &job, sourceConnId, destConnIds)
+		dto := dtomaps.ToJobDto(logger, fromOperatorTransformer, &job, sourceConn, destConns)
 		if err != nil {
 			return nil, err
 		}
@@ -119,18 +119,18 @@ func (s *Service) GetJob(
 		return nil, err
 	}
 
-	destConnIds := []string{}
-	var sourceConnId string
+	destConns := []*mgmtv1alpha1.Connection{}
+	var sourceConn *mgmtv1alpha1.Connection
 	for _, conn := range connections.Msg.Connections {
 		if conn.Name == sourceConnName {
-			sourceConnId = conn.Id
+			sourceConn = conn
 		} else if slices.Contains(destConnNames, conn.Name) {
-			destConnIds = append(destConnIds, conn.Id)
+			destConns = append(destConns, conn)
 		}
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(fromOperatorTransformer, job, sourceConnId, destConnIds),
+		Job: dtomaps.ToJobDto(logger, fromOperatorTransformer, job, sourceConn, destConns),
 	}), nil
 }
 
@@ -143,32 +143,34 @@ func (s *Service) CreateJob(
 	logger = logger.With("jobName", req.Msg.JobName, "jobId", jobUuid)
 	logger.Info("creating job")
 
-	var sourceConnName *string
-	destConnNames := make([]string, len(req.Msg.ConnectionDestinationIds))
+	var sourceConn *mgmtv1alpha1.Connection
+	destConns := make([]*mgmtv1alpha1.Connection, len(req.Msg.Destinations))
 
 	errs, errCtx := errgroup.WithContext(ctx)
 	errs.Go(func() error {
 		conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: req.Msg.ConnectionSourceId,
+			Id: req.Msg.Source.ConnectionId,
 		}))
 		if err != nil {
 			return err
 		}
-		sourceConnName = &conn.Msg.Connection.Name
+		sourceConn = conn.Msg.Connection
 		return nil
 	})
 
-	for index, id := range req.Msg.ConnectionDestinationIds {
-		connId := id
+	destOptionsMap := map[string]*mgmtv1alpha1.JobDestination{}
+	for index, dest := range req.Msg.Destinations {
+		dest := dest
 		index := index
+		destOptionsMap[dest.ConnectionId] = dest
 		errs.Go(func() error {
 			conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-				Id: connId,
+				Id: dest.ConnectionId,
 			}))
 			if err != nil {
 				return err
 			}
-			destConnNames[index] = conn.Msg.Connection.Name
+			destConns[index] = conn.Msg.Connection
 			return nil
 		})
 	}
@@ -179,20 +181,48 @@ func (s *Service) CreateJob(
 	}
 
 	jobDestinations := []*neosyncdevv1alpha1.JobConfigDestination{}
-	for _, name := range destConnNames {
-		jobDestinations = append(jobDestinations, &neosyncdevv1alpha1.JobConfigDestination{
-			Sql: &neosyncdevv1alpha1.DestinationSql{
-				ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
-					Name: name,
+	for _, conn := range destConns {
+		var dest *neosyncdevv1alpha1.JobConfigDestination
+		switch conn.ConnectionConfig.Config.(type) {
+		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+			dest = &neosyncdevv1alpha1.JobConfigDestination{
+				Sql: &neosyncdevv1alpha1.DestinationSql{
+					ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
+						Name: conn.Name,
+					},
 				},
-			},
-		})
+			}
+			options, ok := destOptionsMap[conn.Id]
+			if ok {
+				dest.Sql.TruncateBeforeInsert = options.Options.GetSqlOptions().TruncateBeforeInsert
+				dest.Sql.InitDbSchema = options.Options.GetSqlOptions().InitDbSchema
+			}
+		default:
+			return nil, nucleuserrors.NewNotImplemented("this destination connection config is not currently supported")
+		}
+		jobDestinations = append(jobDestinations, dest)
 	}
 
 	schemas, err := createSqlSchemas(req.Msg.Mappings)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate job mapping: %w", err)
 	}
+	var source *neosyncdevv1alpha1.JobConfigSource
+	switch sourceConn.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		source = &neosyncdevv1alpha1.JobConfigSource{
+			Sql: &neosyncdevv1alpha1.SourceSql{
+				ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
+					Name: sourceConn.Name,
+				},
+				HaltOnSchemaChange: req.Msg.Source.GetOptions().GetSqlOptions().HaltOnNewColumnAddition,
+				Schemas:            schemas,
+			},
+		}
+	default:
+		return nil, nucleuserrors.NewNotImplemented("this source connection config is not currently supported")
+	}
+
 	job := &neosyncdevv1alpha1.JobConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.cfg.JobConfigNamespace,
@@ -203,15 +233,7 @@ func (s *Service) CreateJob(
 		},
 		Spec: neosyncdevv1alpha1.JobConfigSpec{
 			CronSchedule: req.Msg.CronSchedule,
-			Source: &neosyncdevv1alpha1.JobConfigSource{
-				Sql: &neosyncdevv1alpha1.SourceSql{
-					ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
-						Name: *sourceConnName,
-					},
-					HaltOnSchemaChange: &req.Msg.SourceOptions.HaltOnNewColumnAddition,
-					Schemas:            schemas,
-				},
-			},
+			Source:       source,
 			Destinations: jobDestinations,
 		},
 	}
@@ -225,7 +247,7 @@ func (s *Service) CreateJob(
 	logger.Info("created job")
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(fromOperatorTransformer, job, req.Msg.ConnectionSourceId, req.Msg.ConnectionDestinationIds),
+		Job: dtomaps.ToJobDto(logger, fromOperatorTransformer, job, sourceConn, destConns),
 	}), nil
 }
 

@@ -1,5 +1,5 @@
 'use client';
-import PageHeader from '@/components/headers/PageHeader';
+import SubPageHeader from '@/components/headers/SubPageHeader';
 import { PageProps } from '@/components/types';
 import { ReactElement } from 'react';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
@@ -8,9 +8,9 @@ export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   return (
     <div className="job-details-container">
-      <PageHeader
+      <SubPageHeader
         header="Destination Connections"
-        description="Manage job's destination connections"
+        description={`Manage job's destination connections`}
       />
 
       <div className="space-y-10">

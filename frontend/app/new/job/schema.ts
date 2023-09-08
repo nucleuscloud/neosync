@@ -1,5 +1,5 @@
 import { IsJobNameAvailableResponse } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { SCHEMA_FORM_SCHEMA } from '@/yup-validations/jobs';
+import { DESTINATION_FORM_SCHEMA, SCHEMA_FORM_SCHEMA, SOURCE_FORM_SCHEMA } from '@/yup-validations/jobs';
 import cron from 'cron-validate';
 import * as Yup from 'yup';
 
@@ -24,16 +24,13 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
       }
       return !!value && cron(value).isValid();
     }),
-  haltOnNewColumnAddition: Yup.boolean(),
+  
 });
 
 export type DefineFormValues = Yup.InferType<typeof DEFINE_FORM_SCHEMA>;
 
-export const FLOW_FORM_SCHEMA = Yup.object({
-  sourceId: Yup.string().uuid('source is required').required(),
-  destinationId: Yup.string().uuid('destination is required').required(),
-  // destinationIds: Yup.array().of(Yup.string().required()).required(),
-});
+
+export const FLOW_FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(DESTINATION_FORM_SCHEMA);
 export type FlowFormValues = Yup.InferType<typeof FLOW_FORM_SCHEMA>;
 
 

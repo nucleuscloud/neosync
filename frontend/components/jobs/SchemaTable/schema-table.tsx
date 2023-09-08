@@ -1,10 +1,10 @@
-import { getColumns } from '@/app/jobs/components/SchemaTable/column';
-import { DataTable } from '@/app/jobs/components/SchemaTable/data-table';
-import { JobMappingFormValues } from '@/app/new/job/schema';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
 import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { ReactElement } from 'react';
+import { getColumns } from './column';
+import { DataTable } from './data-table';
 
 export interface JobTableProps {
   data: JobMappingFormValues[];

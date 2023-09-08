@@ -1,15 +1,16 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {
@@ -27,6 +28,7 @@ import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
+import DestinationOptionsForm from '../../../../components/jobs/Form/DestinationOptionsForm';
 import { FLOW_FORM_SCHEMA, FlowFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
@@ -43,6 +45,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     {
       sourceId: '',
       destinationId: '',
+      sourceOptions: {},
+      destinationOptions: {},
     }
   );
 
@@ -75,84 +79,125 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="sourceId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Source</FormLabel>
-                <FormControl>
-                  {/* <Input placeholder="Source ID" {...field} /> */}
-                  {isConnectionsLoading ? (
-                    <Skeleton />
-                  ) : (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {connections
-                          .filter(
-                            (c) => c.id !== form.getValues().destinationId
-                          )
-                          .map((connection) => (
-                            <SelectItem
-                              className="cursor-pointer"
-                              key={connection.id}
-                              value={connection.id}
-                            >
-                              {connection.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </FormControl>
-                <FormDescription>
-                  The location of the source data set.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Source</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <FormField
+                control={form.control}
+                name="sourceId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      {isConnectionsLoading ? (
+                        <Skeleton />
+                      ) : (
+                        <Select
+                          onValueChange={(value: string) => {
+                            field.onChange(value);
+                            form.setValue('sourceOptions', {
+                              haltOnNewColumnAddition: false,
+                            });
+                          }}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {connections
+                              .filter(
+                                (c) => c.id !== form.getValues().destinationId
+                              )
+                              .map((connection) => (
+                                <SelectItem
+                                  className="cursor-pointer"
+                                  key={connection.id}
+                                  value={connection.id}
+                                >
+                                  {connection.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </FormControl>
+                    <FormDescription>
+                      The location of the source data set.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <FormField
-            control={form.control}
-            name="destinationId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Destination</FormLabel>
-                <FormControl>
-                  {isConnectionsLoading ? (
-                    <Skeleton />
-                  ) : (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {connections
-                          .filter((c) => c.id !== form.getValues().sourceId)
-                          .map((connection) => (
-                            <SelectItem
-                              className="cursor-pointer"
-                              key={connection.id}
-                              value={connection.id}
-                            >
-                              {connection.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </FormControl>
-                <FormDescription>
-                  The location of the destination data set.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <SourceOptionsForm
+                formControl={form.control}
+                connection={connections.find(
+                  (c) => c.id == form.getValues().sourceId
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Destination</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              <FormField
+                control={form.control}
+                name="destinationId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      {isConnectionsLoading ? (
+                        <Skeleton />
+                      ) : (
+                        <Select
+                          onValueChange={(value: string) => {
+                            field.onChange(value);
+                            form.setValue('destinationOptions', {
+                              initDbSchema: false,
+                              truncateBeforeInsert: false,
+                            });
+                          }}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {connections
+                              .filter((c) => c.id !== form.getValues().sourceId)
+                              .map((connection) => (
+                                <SelectItem
+                                  className="cursor-pointer"
+                                  key={connection.id}
+                                  value={connection.id}
+                                >
+                                  {connection.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </FormControl>
+                    <FormDescription>
+                      The location of the destination data set.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DestinationOptionsForm
+                formControl={form.control}
+                connection={connections.find(
+                  (c) => c.id == form.getValues().destinationId
+                )}
+              />
+            </CardContent>
+          </Card>
 
           <div className="flex flex-row gap-1 justify-between">
             <Button type="button" onClick={() => router.back()}>

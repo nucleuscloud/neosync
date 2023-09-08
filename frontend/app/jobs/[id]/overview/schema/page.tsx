@@ -1,5 +1,5 @@
 'use client';
-import PageHeader from '@/components/headers/PageHeader';
+import SubPageHeader from '@/components/headers/SubPageHeader';
 import {
   SchemaTable,
   getConnectionSchema,
@@ -61,13 +61,14 @@ export default function Page({ params }: PageProps): ReactElement {
 
   return (
     <div className="job-details-container">
-      <PageHeader header="Schema" description="Manage job schema" />
+      <SubPageHeader header="Schema" description="Manage job schema" />
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable data={form.getValues().mappings} />
 
           <div className="flex flex-row gap-1 justify-end">
-            <Button key="submit" type="submit">
+            <Button disabled={!form.formState.isDirty} type="submit">
               Save
             </Button>
           </div>
@@ -87,7 +88,7 @@ async function getMappings(jobId?: string): Promise<SchemaFormValues> {
   }
   const job = jobRes?.job;
 
-  const res = await getConnectionSchema(job?.connectionSourceId);
+  const res = await getConnectionSchema(job?.source?.connectionId);
   if (!res) {
     return { mappings: [] };
   }

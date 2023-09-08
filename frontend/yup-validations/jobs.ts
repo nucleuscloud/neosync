@@ -18,3 +18,22 @@ export const SCHEMA_FORM_SCHEMA = Yup.object({
   mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
 });
 export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
+
+
+export const SOURCE_FORM_SCHEMA = Yup.object({
+  sourceId: Yup.string().uuid('source is required').required(),
+  sourceOptions: Yup.object({
+    haltOnNewColumnAddition: Yup.boolean().optional(),
+  }),
+});
+export type SourceFormValues = Yup.InferType<typeof SOURCE_FORM_SCHEMA>;
+
+export const DESTINATION_FORM_SCHEMA = Yup.object({
+  destinationId: Yup.string().uuid('destination is required').required(),
+  destinationOptions: Yup.object({
+    truncateBeforeInsert: Yup.boolean().optional(),
+    initDbSchema: Yup.boolean().optional(),
+  })
+  // destinationIds: Yup.array().of(Yup.string().required()).required(),
+});
+export type DestinationFormValues = Yup.InferType<typeof DESTINATION_FORM_SCHEMA>;

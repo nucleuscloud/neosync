@@ -12,8 +12,13 @@ import { Form } from '@/components/ui/form';
 import {
   CreateJobRequest,
   CreateJobResponse,
+  JobDestination,
+  JobDestinationOptions,
   JobMapping,
+  JobSource,
   JobSourceOptions,
+  SqlDestinationConnectionOptions,
+  SqlSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -41,7 +46,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const [flowFormValues] = useSessionStorage<FlowFormValues>(
     `${sessionPrefix}-new-job-flow`,
-    { sourceId: '', destinationId: '' }
+    {
+      sourceId: '',
+      destinationId: '',
+      sourceOptions: {},
+      destinationOptions: {},
+    }
   );
 
   useSessionStorage<SchemaFormValues>(`${sessionPrefix}-new-job-schema`, {
@@ -118,9 +128,6 @@ async function createNewJob(formData: FormValues): Promise<CreateJobResponse> {
   const body = new CreateJobRequest({
     jobName: formData.define.jobName,
     cronSchedule: formData.define.cronSchedule,
-    sourceOptions: new JobSourceOptions({
-      haltOnNewColumnAddition: false,
-    }),
     mappings: formData.schema.mappings.map((m) => {
       return new JobMapping({
         schema: m.schema,
@@ -130,8 +137,33 @@ async function createNewJob(formData: FormValues): Promise<CreateJobResponse> {
         exclude: m.exclude,
       });
     }),
-    connectionSourceId: formData.flow.sourceId,
-    connectionDestinationIds: [formData.flow.destinationId],
+    source: new JobSource({
+      connectionId: formData.flow.sourceId,
+      options: new JobSourceOptions({
+        config: {
+          case: 'sqlOptions',
+          value: new SqlSourceConnectionOptions({
+            haltOnNewColumnAddition:
+              formData.flow.sourceOptions.haltOnNewColumnAddition,
+          }),
+        },
+      }),
+    }),
+    destinations: [
+      new JobDestination({
+        connectionId: formData.flow.destinationId,
+        options: new JobDestinationOptions({
+          config: {
+            case: 'sqlOptions',
+            value: new SqlDestinationConnectionOptions({
+              truncateBeforeInsert:
+                formData.flow.destinationOptions.truncateBeforeInsert,
+              initDbSchema: formData.flow.destinationOptions.initDbSchema,
+            }),
+          },
+        }),
+      }),
+    ],
   });
   const res = await fetch(`/api/jobs`, {
     method: 'POST',
