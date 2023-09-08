@@ -29,10 +29,20 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+)
+
+const (
+	// jobRunJobKeyIdxField = ".spec.job.jobRef.name"
+	defaultSuccessfulJobRuns int32 = 3
+	defaultFailedJobRuns     int32 = 1
 )
 
 // JobReconciler reconciles a Job object
@@ -159,7 +169,28 @@ func (r *JobReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&rbacv1.RoleBinding{}).
 		Owns(&rbacv1.Role{}).
 		Owns(&batchv1.CronJob{}).
+		Watches(
+			&neosyncdevv1alpha1.JobRun{},
+			handler.EnqueueRequestsFromMapFunc(r.triggerReconcileBecauseJobRunChanges),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
 		Complete(r)
+}
+
+func (r *JobReconciler) triggerReconcileBecauseJobRunChanges(
+	ctx context.Context,
+	o client.Object,
+) []reconcile.Request {
+	jr, ok := o.(*neosyncdevv1alpha1.JobRun)
+	if !ok || jr.Spec.Job == nil || jr.Spec.Job.JobRef == nil || jr.Spec.Job.JobRef.Name == "" {
+		return nil
+	}
+	return []reconcile.Request{{
+		NamespacedName: types.NamespacedName{
+			Namespace: o.GetNamespace(),
+			Name:      jr.Spec.Job.JobRef.Name,
+		},
+	}}
 }
 
 func (r *JobReconciler) ensureScheduledServiceAccount(

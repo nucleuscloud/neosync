@@ -39,6 +39,16 @@ spec:
                 type: string
               executionStatus:
                 type: string
+              failedJobRunsHistoryLimit:
+                description: The number of failed finished job runs to retain. Value
+                  must be non-negative integer. Defaults to 1.
+                format: int32
+                type: integer
+              successfulJobRunsHistoryLimit:
+                description: The number of successful finished job runs to retain.
+                  Value must be non-negative integer. Defaults to 3.
+                format: int32
+                type: integer
               tasks:
                 items:
                   properties:

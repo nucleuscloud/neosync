@@ -39,6 +39,13 @@ type JobSpec struct {
 	CronSchedule    *string             `json:"cronSchedule,omitempty"`
 	ExecutionStatus *JobExecutionStatus `json:"executionStatus,omitempty"`
 	Tasks           []JobTask           `json:"tasks"`
+
+	// The number of successful finished job runs to retain. Value must be non-negative integer.
+	// Defaults to 3.
+	SuccessfulJobRunsHistoryLimit *int32 `json:"successfulJobRunsHistoryLimit,omitempty"`
+	// The number of failed finished job runs to retain. Value must be non-negative integer.
+	// Defaults to 1.
+	FailedJobRunsHistoryLimit *int32 `json:"failedJobRunsHistoryLimit,omitempty"`
 }
 
 type JobTask struct {
