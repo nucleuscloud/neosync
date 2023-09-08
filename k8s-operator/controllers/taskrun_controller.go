@@ -18,12 +18,14 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -85,7 +87,7 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{Requeue: true}, nil
 	}
 
-	if taskRun.Status.JobStatus == nil || taskRun.Status.JobStatus.CompletionTime == nil {
+	if !isTaskRunFinished(taskRun) {
 		logger.Info("reconciling taskrun")
 
 		task := &neosyncdevv1alpha1.Task{}
@@ -100,6 +102,39 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			}
 			logger.Error(err, "unable to retrieve task resource")
 			return ctrl.Result{}, err
+		}
+
+		depStatus, err := r.getTaskRunStatus(ctx, taskRun, logger)
+		if err != nil {
+			logger.Error(err, "unable to compute task run status")
+			return ctrl.Result{}, err
+		}
+		if *depStatus == taskRunDependentStatus_Waiting {
+			meta.SetStatusCondition(&taskRun.Status.Conditions, metav1.Condition{
+				Type:               string(neosyncdevv1alpha1.TaskRunDependentWaiting),
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: metav1.Now(),
+				Reason:             "WaitingOnDependentTaskToComplete",
+			})
+			if err = r.Status().Update(ctx, taskRun); err != nil {
+				logger.Error(err, "failed to update taskRun status")
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{RequeueAfter: 5 * time.Second}, nil
+		} else if *depStatus == taskRunDependentStatus_Failed {
+			now := metav1.Now()
+			taskRun.Status.CompletionTime = &now
+			meta.SetStatusCondition(&taskRun.Status.Conditions, metav1.Condition{
+				Type:               string(neosyncdevv1alpha1.TaskRunFailed),
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: *taskRun.Status.CompletionTime,
+				Reason:             "Failed",
+			})
+			if err = r.Status().Update(ctx, taskRun); err != nil {
+				logger.Error(err, "failed to update taskRun status")
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{}, nil
 		}
 
 		job := &batchv1.Job{}
@@ -197,6 +232,8 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 				return ctrl.Result{}, err
 			}
 			logger.Info("attempting to create job")
+			now := metav1.Now()
+			taskRun.Status.StartTime = &now
 			if err = r.Create(ctx, job); err != nil {
 				logger.Error(err, "unable to create job")
 				return ctrl.Result{}, err
@@ -205,12 +242,122 @@ func (r *TaskRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			taskRun.Status.JobStatus = &job.Status
 		}
 	}
+
+	if taskRun.Status.CompletionTime == nil && isJobFinished(taskRun.Status.JobStatus) {
+		taskRun.Status.CompletionTime = taskRun.Status.JobStatus.CompletionTime
+	}
+	if isJobStarted(taskRun.Status.JobStatus) {
+		condition := meta.FindStatusCondition(taskRun.Status.Conditions, string(neosyncdevv1alpha1.TaskRunDependentWaiting))
+		if condition != nil {
+			meta.SetStatusCondition(&taskRun.Status.Conditions, metav1.Condition{
+				Type:               string(neosyncdevv1alpha1.TaskRunDependentWaiting),
+				Status:             metav1.ConditionFalse,
+				LastTransitionTime: *taskRun.Status.JobStatus.StartTime,
+				Reason:             "DependentTaskRunCompleted",
+			})
+		}
+	}
+	if isTaskRunFinished(taskRun) {
+		if isTaskRunSuccessful(taskRun) {
+			meta.SetStatusCondition(&taskRun.Status.Conditions, metav1.Condition{
+				Type:               string(neosyncdevv1alpha1.TaskRunSucceeded),
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: *taskRun.Status.CompletionTime,
+				Reason:             "Succeeded",
+			})
+		} else {
+			meta.SetStatusCondition(&taskRun.Status.Conditions, metav1.Condition{
+				Type:               string(neosyncdevv1alpha1.TaskRunFailed),
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: *taskRun.Status.CompletionTime,
+				Reason:             "Failed",
+			})
+		}
+	}
+
 	if err = r.Status().Update(ctx, taskRun); err != nil {
 		logger.Error(err, "failed to update taskRun status")
 		return ctrl.Result{}, err
 	}
 	logger.Info(fmt.Sprintf("reconciliation of taskRun %s finished", req.Name))
 	return ctrl.Result{}, nil
+}
+
+type taskRunDependentStatus string
+
+var (
+	taskRunDependentStatus_Ready   taskRunDependentStatus = "ready"
+	taskRunDependentStatus_Waiting taskRunDependentStatus = "waiting"
+	taskRunDependentStatus_Failed  taskRunDependentStatus = "dependent-failed"
+)
+
+func (r *TaskRunReconciler) getTaskRunStatus(
+	ctx context.Context,
+	tr *neosyncdevv1alpha1.TaskRun,
+	logger logr.Logger,
+) (*taskRunDependentStatus, error) {
+	if tr == nil {
+		return nil, nil
+	}
+	if len(tr.Spec.DependsOn) == 0 {
+		return &taskRunDependentStatus_Ready, nil
+	}
+
+	parentLabel, ok := tr.Labels[neosyncParentKey]
+	if !ok {
+		return nil, errors.New("unable to find neosync parent key on task run")
+	}
+
+	for _, dependent := range tr.Spec.DependsOn {
+		trList := &neosyncdevv1alpha1.TaskRunList{}
+		matchingLabels := client.MatchingLabels{
+			neosyncParentKey:   parentLabel,
+			neosyncJobTaskName: dependent.TaskName,
+		}
+
+		err := r.List(ctx, trList, client.InNamespace(tr.Namespace), matchingLabels)
+		if err != nil {
+			return nil, err
+		}
+		if len(trList.Items) == 0 {
+			logger.Info(fmt.Sprintf("%s not found so task is not yet startable", dependent.TaskName))
+			return &taskRunDependentStatus_Waiting, nil
+		}
+		for idx := range trList.Items {
+			dTaskRun := trList.Items[idx]
+			if !isTaskRunFinished(&dTaskRun) {
+				logger.Info(fmt.Sprintf("%s not yet finished so task is not yet startable", dependent.TaskName))
+				return &taskRunDependentStatus_Waiting, nil
+			}
+			if !isTaskRunSuccessful(&dTaskRun) {
+				return &taskRunDependentStatus_Failed, nil
+			}
+		}
+	}
+
+	return &taskRunDependentStatus_Ready, nil
+}
+
+func isTaskRunFinished(tr *neosyncdevv1alpha1.TaskRun) bool {
+	if tr == nil {
+		return false
+	}
+	return tr.Status.CompletionTime != nil
+}
+
+func isTaskRunSuccessful(tr *neosyncdevv1alpha1.TaskRun) bool {
+	if !isTaskRunFinished(tr) {
+		return false
+	}
+	return isJobFinished(tr.Status.JobStatus) && tr.Status.JobStatus.Failed == 0
+}
+
+func isJobStarted(jobStatus *batchv1.JobStatus) bool {
+	return jobStatus != nil && jobStatus.StartTime != nil
+}
+
+func isJobFinished(jobStatus *batchv1.JobStatus) bool {
+	return jobStatus != nil && jobStatus.CompletionTime != nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

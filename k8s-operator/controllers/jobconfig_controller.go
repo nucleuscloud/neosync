@@ -241,7 +241,7 @@ func (r *JobConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	taskList := &neosyncdevv1alpha1.TaskList{}
-	err = r.List(ctx, taskList, client.MatchingLabels{neosyncJobConfigNameLabel: jobconfig.Name})
+	err = r.List(ctx, taskList, client.InNamespace(jobconfig.Namespace), client.MatchingLabels{neosyncJobConfigNameLabel: jobconfig.Name})
 	if err != nil {
 		return ctrl.Result{}, err
 	}

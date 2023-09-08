@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	neoysncParentKey   = "neosync.dev/parent"
+	neosyncParentKey   = "neosync.dev/parent"
 	neoysncParentIdKey = "neosync.dev/parent-id"
 	neosyncJobTaskName = "neoosync.dev/job-task-name"
 )
@@ -113,7 +113,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 			createdTasks := map[string]struct{}{}
 			taskRuns := &neosyncdevv1alpha1.TaskRunList{}
 			err = r.List(ctx, taskRuns, client.MatchingLabels{
-				neoysncParentKey: jobrun.Name,
+				neosyncParentKey: jobrun.Name,
 			})
 			if err != nil {
 				logger.Error(err, "unable to list task runs")
@@ -133,12 +133,18 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				if _, ok := createdTasks[task.Name]; ok {
 					continue
 				}
+				dependsOn := []*neosyncdevv1alpha1.TaskRunDependsOn{}
+				for _, do := range task.DependsOn {
+					dependsOn = append(dependsOn, &neosyncdevv1alpha1.TaskRunDependsOn{
+						TaskName: do.TaskName,
+					})
+				}
 				taskrun := &neosyncdevv1alpha1.TaskRun{
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace:    req.Namespace,
 						GenerateName: fmt.Sprintf("%s-", task.TaskRef.Name),
 						Labels: map[string]string{
-							neoysncParentKey:   jobrun.Name,
+							neosyncParentKey:   jobrun.Name,
 							neosyncJobTaskName: task.Name,
 							neosyncIdLabel:     uuid.NewString(),
 						},
@@ -148,6 +154,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 							TaskRef: task.TaskRef,
 						},
 						PodTemplate: jobrun.Spec.PodTemplate,
+						DependsOn:   dependsOn,
 					},
 				}
 				jobrunUuid, ok := jobrun.Labels[neosyncIdLabel]
@@ -168,7 +175,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 			taskRuns = &neosyncdevv1alpha1.TaskRunList{}
 			err = r.List(ctx, taskRuns, client.MatchingLabels{
-				neoysncParentKey: jobrun.Name,
+				neosyncParentKey: jobrun.Name,
 			})
 			if err != nil {
 				logger.Error(err, "unable to list task runs")
