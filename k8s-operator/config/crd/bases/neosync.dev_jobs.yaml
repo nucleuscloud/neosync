@@ -44,7 +44,12 @@ spec:
                   properties:
                     dependsOn:
                       items:
-                        type: string
+                        properties:
+                          taskName:
+                            type: string
+                        required:
+                        - taskName
+                        type: object
                       type: array
                     name:
                       type: string

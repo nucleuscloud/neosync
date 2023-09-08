@@ -22,6 +22,7 @@ import (
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -34,7 +35,7 @@ import (
 )
 
 const (
-	neoysncParentKey   = "neosync.dev/parent"
+	neosyncParentKey   = "neosync.dev/parent"
 	neoysncParentIdKey = "neosync.dev/parent-id"
 	neosyncJobTaskName = "neoosync.dev/job-task-name"
 )
@@ -104,16 +105,27 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if jobrun.Status.CompletionTime == nil {
 		logger.Info("reconciling jobrun")
 
+		if jobrun.Status.StartTime == nil {
+			now := metav1.Now()
+			jobrun.Status.StartTime = &now
+		}
+
 		if len(job.Spec.Tasks) == 0 {
 			currentTime := metav1.Now()
 			jobrun.Status.CompletionTime = &currentTime
+			meta.SetStatusCondition(&jobrun.Status.Conditions, metav1.Condition{
+				Type:               string(neosyncdevv1alpha1.JobRunSucceeded),
+				Status:             metav1.ConditionTrue,
+				LastTransitionTime: currentTime,
+				Reason:             "Succeeded",
+			})
 		} else {
 			/// spawn tasks
 
 			createdTasks := map[string]struct{}{}
 			taskRuns := &neosyncdevv1alpha1.TaskRunList{}
 			err = r.List(ctx, taskRuns, client.MatchingLabels{
-				neoysncParentKey: jobrun.Name,
+				neosyncParentKey: jobrun.Name,
 			})
 			if err != nil {
 				logger.Error(err, "unable to list task runs")
@@ -133,12 +145,18 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				if _, ok := createdTasks[task.Name]; ok {
 					continue
 				}
+				dependsOn := []*neosyncdevv1alpha1.TaskRunDependsOn{}
+				for _, do := range task.DependsOn {
+					dependsOn = append(dependsOn, &neosyncdevv1alpha1.TaskRunDependsOn{
+						TaskName: do.TaskName,
+					})
+				}
 				taskrun := &neosyncdevv1alpha1.TaskRun{
 					ObjectMeta: metav1.ObjectMeta{
 						Namespace:    req.Namespace,
 						GenerateName: fmt.Sprintf("%s-", task.TaskRef.Name),
 						Labels: map[string]string{
-							neoysncParentKey:   jobrun.Name,
+							neosyncParentKey:   jobrun.Name,
 							neosyncJobTaskName: task.Name,
 							neosyncIdLabel:     uuid.NewString(),
 						},
@@ -148,6 +166,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 							TaskRef: task.TaskRef,
 						},
 						PodTemplate: jobrun.Spec.PodTemplate,
+						DependsOn:   dependsOn,
 					},
 				}
 				jobrunUuid, ok := jobrun.Labels[neosyncIdLabel]
@@ -168,7 +187,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 			taskRuns = &neosyncdevv1alpha1.TaskRunList{}
 			err = r.List(ctx, taskRuns, client.MatchingLabels{
-				neoysncParentKey: jobrun.Name,
+				neosyncParentKey: jobrun.Name,
 			})
 			if err != nil {
 				logger.Error(err, "unable to list task runs")
@@ -186,7 +205,7 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				isComplete := true
 				for idx := range taskRuns.Items {
 					taskRun := taskRuns.Items[idx]
-					if taskRun.Status.JobStatus == nil || taskRun.Status.JobStatus.CompletionTime == nil {
+					if !isTaskRunFinished(&taskRun) {
 						isComplete = false
 						break
 					}
@@ -194,6 +213,30 @@ func (r *JobRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 				if isComplete {
 					now := metav1.Now()
 					jobrun.Status.CompletionTime = &now
+
+					allGood := true
+					for idx := range taskRuns.Items {
+						taskRun := taskRuns.Items[idx]
+						if !isTaskRunSuccessful(&taskRun) {
+							allGood = false
+							break
+						}
+					}
+					if allGood {
+						meta.SetStatusCondition(&jobrun.Status.Conditions, metav1.Condition{
+							Type:               string(neosyncdevv1alpha1.JobRunSucceeded),
+							Status:             metav1.ConditionTrue,
+							LastTransitionTime: now,
+							Reason:             "Succeeded",
+						})
+					} else {
+						meta.SetStatusCondition(&jobrun.Status.Conditions, metav1.Condition{
+							Type:               string(neosyncdevv1alpha1.JobRunFailed),
+							Status:             metav1.ConditionTrue,
+							LastTransitionTime: now,
+							Reason:             "Failed",
+						})
+					}
 				}
 			}
 		}

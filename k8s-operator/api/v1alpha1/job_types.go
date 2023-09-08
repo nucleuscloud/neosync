@@ -42,9 +42,13 @@ type JobSpec struct {
 }
 
 type JobTask struct {
-	Name      string            `json:"name"`
-	TaskRef   *LocalResourceRef `json:"taskRef"`
-	DependsOn []string          `json:"dependsOn,omitempty"`
+	Name      string              `json:"name"`
+	TaskRef   *LocalResourceRef   `json:"taskRef"`
+	DependsOn []*JobTaskDependsOn `json:"dependsOn,omitempty"`
+}
+
+type JobTaskDependsOn struct {
+	TaskName string `json:"taskName"`
 }
 
 // JobStatus defines the observed state of Job

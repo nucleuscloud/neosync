@@ -66,6 +66,8 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
+	leaderElectionReleaseOnCancel := os.Getenv("LEADER_ELECTION_RELEASE_ON_CANCEL")
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
 		Metrics: server.Options{
@@ -85,7 +87,7 @@ func main() {
 		// the manager stops, so would be fine to enable this option. However,
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
+		LeaderElectionReleaseOnCancel: leaderElectionReleaseOnCancel == "true",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")

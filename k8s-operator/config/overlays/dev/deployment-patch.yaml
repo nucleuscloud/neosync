@@ -10,3 +10,8 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: false # required for hot reloading in tilt
+      containers:
+        - name: manager
+          env:
+            - name: LEADER_ELECTION_RELEASE_ON_CANCEL
+              value: 'true'
