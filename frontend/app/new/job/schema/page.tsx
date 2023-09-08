@@ -1,32 +1,33 @@
 'use client';
+
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
 import {
   SchemaTable,
   getConnectionSchema,
-} from '@/app/jobs/components/SchemaTable/schema-table';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
+} from '@/components/jobs/SchemaTable/schema-table';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import {
   CreateJobRequest,
   CreateJobResponse,
+  JobDestination,
+  JobDestinationOptions,
   JobMapping,
+  JobSource,
   JobSourceOptions,
+  SqlDestinationConnectionOptions,
+  SqlSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import {
-  DefineFormValues,
-  FlowFormValues,
-  FormValues,
-  SCHEMA_FORM_SCHEMA,
-  SchemaFormValues,
-} from '../schema';
+import { DefineFormValues, FlowFormValues, FormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
@@ -45,7 +46,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const [flowFormValues] = useSessionStorage<FlowFormValues>(
     `${sessionPrefix}-new-job-flow`,
-    { sourceId: '', destinationId: '' }
+    {
+      sourceId: '',
+      destinationId: '',
+      sourceOptions: {},
+      destinationOptions: {},
+    }
   );
 
   useSessionStorage<SchemaFormValues>(`${sessionPrefix}-new-job-schema`, {
@@ -122,9 +128,6 @@ async function createNewJob(formData: FormValues): Promise<CreateJobResponse> {
   const body = new CreateJobRequest({
     jobName: formData.define.jobName,
     cronSchedule: formData.define.cronSchedule,
-    sourceOptions: new JobSourceOptions({
-      haltOnNewColumnAddition: false,
-    }),
     mappings: formData.schema.mappings.map((m) => {
       return new JobMapping({
         schema: m.schema,
@@ -134,8 +137,33 @@ async function createNewJob(formData: FormValues): Promise<CreateJobResponse> {
         exclude: m.exclude,
       });
     }),
-    connectionSourceId: formData.flow.sourceId,
-    connectionDestinationIds: [formData.flow.destinationId],
+    source: new JobSource({
+      connectionId: formData.flow.sourceId,
+      options: new JobSourceOptions({
+        config: {
+          case: 'sqlOptions',
+          value: new SqlSourceConnectionOptions({
+            haltOnNewColumnAddition:
+              formData.flow.sourceOptions.haltOnNewColumnAddition,
+          }),
+        },
+      }),
+    }),
+    destinations: [
+      new JobDestination({
+        connectionId: formData.flow.destinationId,
+        options: new JobDestinationOptions({
+          config: {
+            case: 'sqlOptions',
+            value: new SqlDestinationConnectionOptions({
+              truncateBeforeInsert:
+                formData.flow.destinationOptions.truncateBeforeInsert,
+              initDbSchema: formData.flow.destinationOptions.initDbSchema,
+            }),
+          },
+        }),
+      }),
+    ],
   });
   const res = await fetch(`/api/jobs`, {
     method: 'POST',

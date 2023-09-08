@@ -10,14 +10,49 @@ message GetJobsResponse {
   repeated Job jobs = 1;
 }
 
+message JobSource {
+  string connection_id = 1;
+  JobSourceOptions options = 2;
+}
+
+message JobDestination {
+  string connection_id = 1;
+  JobDestinationOptions options = 2;
+}
+
+message JobSourceOptions {
+  oneof config {
+    option (validate.required) = true;
+    SqlSourceConnectionOptions sql_options = 1;
+    AwsS3SourceConnectionOptions aws_s3_options = 2;
+  }
+}
+
+message SqlSourceConnectionOptions {
+  optional bool halt_on_new_column_addition = 1;
+}
+message AwsS3SourceConnectionOptions {}
+
+message JobDestinationOptions {
+  oneof config {
+    option (validate.required) = true;
+    SqlDestinationConnectionOptions sql_options = 1;
+    AwsS3DestinationConnectionOptions aws_s3_options = 2;
+  }
+}
+
+message SqlDestinationConnectionOptions {
+  optional bool truncate_before_insert = 1;
+  optional bool init_db_schema = 2;
+}
+message AwsS3DestinationConnectionOptions {}
+
 message CreateJobRequest {
   string job_name = 1;
-
-  string connection_source_id = 2 [(validate.rules).string.uuid = true];
-  repeated string connection_destination_ids = 3;
-  optional string cron_schedule = 4;
-  JobSourceOptions source_options = 5;
-  repeated JobMapping mappings = 6;
+  optional string cron_schedule = 2;
+  repeated JobMapping mappings = 3;
+  JobSource source = 4;
+  repeated JobDestination destinations = 5;
 }
 message CreateJobResponse {
   Job job = 1;
@@ -62,7 +97,7 @@ message UpdateJobScheduleResponse {
 
 message UpdateJobSourceConnectionRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  string connection_id = 2 [(validate.rules).string.uuid = true];
+  JobSource source = 2;
 }
 message UpdateJobSourceConnectionResponse {
   Job job = 1;
@@ -70,7 +105,7 @@ message UpdateJobSourceConnectionResponse {
 
 message UpdateJobDestinationConnectionsRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  repeated string connection_ids = 2 [(validate.rules).repeated = {min_items: 1}];
+  repeated JobDestination destinations = 2 [(validate.rules).repeated = {min_items: 1}];
 }
 message UpdateJobDestinationConnectionsResponse {
   Job job = 1;
@@ -81,14 +116,6 @@ message UpdateJobMappingsRequest {
   repeated JobMapping mappings = 2 [(validate.rules).repeated = {min_items: 1}];
 }
 message UpdateJobMappingsResponse {
-  Job job = 1;
-}
-
-message UpdateJobHaltOnNewColumnAdditionRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
-  bool halt_on_new_column_addition = 2;
-}
-message UpdateJobHaltOnNewColumnAdditionResponse {
   Job job = 1;
 }
 
@@ -132,11 +159,6 @@ message CancelJobRunRequest {
 }
 message CancelJobRunResponse {}
 
-// TODO @alisha make this oneof to depend on connection type
-message JobSourceOptions {
-  bool halt_on_new_column_addition = 1;
-}
-
 message Job {
   string id = 1;
 
@@ -146,11 +168,10 @@ message Job {
   string name = 4;
   JobStatus status = 5;
 
-  string connection_source_id = 6 [(validate.rules).string.uuid = true];
-  repeated string connection_destination_ids = 7;
+  JobSource source = 6;
+  repeated JobDestination destinations = 7;
   repeated JobMapping mappings = 8;
   optional string cron_schedule = 9;
-  JobSourceOptions source_options = 10;
 }
 
 message JobRun {
@@ -190,7 +211,6 @@ service JobService {
   rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
   rpc UpdateJobDestinationConnections(UpdateJobDestinationConnectionsRequest) returns (UpdateJobDestinationConnectionsResponse) {}
   rpc UpdateJobMappings(UpdateJobMappingsRequest) returns (UpdateJobMappingsResponse) {}
-  rpc UpdateJobHaltOnNewColumnAddition(UpdateJobHaltOnNewColumnAdditionRequest) returns (UpdateJobHaltOnNewColumnAdditionResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}

@@ -272,6 +272,1094 @@ var _ interface {
 	ErrorName() string
 } = GetJobsResponseValidationError{}
 
+// Validate checks the field values on JobSource with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JobSource) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobSource with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JobSourceMultiError, or nil
+// if none found.
+func (m *JobSource) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobSource) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	if all {
+		switch v := interface{}(m.GetOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobSourceValidationError{
+					field:  "Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobSourceValidationError{
+					field:  "Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobSourceValidationError{
+				field:  "Options",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return JobSourceMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobSourceMultiError is an error wrapping multiple validation errors returned
+// by JobSource.ValidateAll() if the designated constraints aren't met.
+type JobSourceMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobSourceMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobSourceMultiError) AllErrors() []error { return m }
+
+// JobSourceValidationError is the validation error returned by
+// JobSource.Validate if the designated constraints aren't met.
+type JobSourceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobSourceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobSourceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobSourceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobSourceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobSourceValidationError) ErrorName() string { return "JobSourceValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobSourceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobSource.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobSourceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobSourceValidationError{}
+
+// Validate checks the field values on JobDestination with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JobDestination) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobDestination with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JobDestinationMultiError,
+// or nil if none found.
+func (m *JobDestination) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobDestination) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	if all {
+		switch v := interface{}(m.GetOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobDestinationValidationError{
+					field:  "Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobDestinationValidationError{
+					field:  "Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobDestinationValidationError{
+				field:  "Options",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return JobDestinationMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobDestinationMultiError is an error wrapping multiple validation errors
+// returned by JobDestination.ValidateAll() if the designated constraints
+// aren't met.
+type JobDestinationMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobDestinationMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobDestinationMultiError) AllErrors() []error { return m }
+
+// JobDestinationValidationError is the validation error returned by
+// JobDestination.Validate if the designated constraints aren't met.
+type JobDestinationValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobDestinationValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobDestinationValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobDestinationValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobDestinationValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobDestinationValidationError) ErrorName() string { return "JobDestinationValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobDestinationValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobDestination.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobDestinationValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobDestinationValidationError{}
+
+// Validate checks the field values on JobSourceOptions with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *JobSourceOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobSourceOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobSourceOptionsMultiError, or nil if none found.
+func (m *JobSourceOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobSourceOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	oneofConfigPresent := false
+	switch v := m.Config.(type) {
+	case *JobSourceOptions_SqlOptions:
+		if v == nil {
+			err := JobSourceOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofConfigPresent = true
+
+		if all {
+			switch v := interface{}(m.GetSqlOptions()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "SqlOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "SqlOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetSqlOptions()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceOptionsValidationError{
+					field:  "SqlOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *JobSourceOptions_AwsS3Options:
+		if v == nil {
+			err := JobSourceOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofConfigPresent = true
+
+		if all {
+			switch v := interface{}(m.GetAwsS3Options()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "AwsS3Options",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "AwsS3Options",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetAwsS3Options()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceOptionsValidationError{
+					field:  "AwsS3Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofConfigPresent {
+		err := JobSourceOptionsValidationError{
+			field:  "Config",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return JobSourceOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobSourceOptionsMultiError is an error wrapping multiple validation errors
+// returned by JobSourceOptions.ValidateAll() if the designated constraints
+// aren't met.
+type JobSourceOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobSourceOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobSourceOptionsMultiError) AllErrors() []error { return m }
+
+// JobSourceOptionsValidationError is the validation error returned by
+// JobSourceOptions.Validate if the designated constraints aren't met.
+type JobSourceOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobSourceOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobSourceOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobSourceOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobSourceOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobSourceOptionsValidationError) ErrorName() string { return "JobSourceOptionsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobSourceOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobSourceOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobSourceOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobSourceOptionsValidationError{}
+
+// Validate checks the field values on SqlSourceConnectionOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SqlSourceConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SqlSourceConnectionOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SqlSourceConnectionOptionsMultiError, or nil if none found.
+func (m *SqlSourceConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SqlSourceConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.HaltOnNewColumnAddition != nil {
+		// no validation rules for HaltOnNewColumnAddition
+	}
+
+	if len(errors) > 0 {
+		return SqlSourceConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// SqlSourceConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by SqlSourceConnectionOptions.ValidateAll() if
+// the designated constraints aren't met.
+type SqlSourceConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SqlSourceConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SqlSourceConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// SqlSourceConnectionOptionsValidationError is the validation error returned
+// by SqlSourceConnectionOptions.Validate if the designated constraints aren't met.
+type SqlSourceConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SqlSourceConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SqlSourceConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SqlSourceConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SqlSourceConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SqlSourceConnectionOptionsValidationError) ErrorName() string {
+	return "SqlSourceConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SqlSourceConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSqlSourceConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SqlSourceConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SqlSourceConnectionOptionsValidationError{}
+
+// Validate checks the field values on AwsS3SourceConnectionOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AwsS3SourceConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AwsS3SourceConnectionOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AwsS3SourceConnectionOptionsMultiError, or nil if none found.
+func (m *AwsS3SourceConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AwsS3SourceConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AwsS3SourceConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// AwsS3SourceConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by AwsS3SourceConnectionOptions.ValidateAll() if
+// the designated constraints aren't met.
+type AwsS3SourceConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AwsS3SourceConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AwsS3SourceConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// AwsS3SourceConnectionOptionsValidationError is the validation error returned
+// by AwsS3SourceConnectionOptions.Validate if the designated constraints
+// aren't met.
+type AwsS3SourceConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AwsS3SourceConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AwsS3SourceConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AwsS3SourceConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AwsS3SourceConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AwsS3SourceConnectionOptionsValidationError) ErrorName() string {
+	return "AwsS3SourceConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AwsS3SourceConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAwsS3SourceConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AwsS3SourceConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AwsS3SourceConnectionOptionsValidationError{}
+
+// Validate checks the field values on JobDestinationOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *JobDestinationOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobDestinationOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobDestinationOptionsMultiError, or nil if none found.
+func (m *JobDestinationOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobDestinationOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	oneofConfigPresent := false
+	switch v := m.Config.(type) {
+	case *JobDestinationOptions_SqlOptions:
+		if v == nil {
+			err := JobDestinationOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofConfigPresent = true
+
+		if all {
+			switch v := interface{}(m.GetSqlOptions()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "SqlOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "SqlOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetSqlOptions()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobDestinationOptionsValidationError{
+					field:  "SqlOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *JobDestinationOptions_AwsS3Options:
+		if v == nil {
+			err := JobDestinationOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofConfigPresent = true
+
+		if all {
+			switch v := interface{}(m.GetAwsS3Options()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "AwsS3Options",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "AwsS3Options",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetAwsS3Options()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobDestinationOptionsValidationError{
+					field:  "AwsS3Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofConfigPresent {
+		err := JobDestinationOptionsValidationError{
+			field:  "Config",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return JobDestinationOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobDestinationOptionsMultiError is an error wrapping multiple validation
+// errors returned by JobDestinationOptions.ValidateAll() if the designated
+// constraints aren't met.
+type JobDestinationOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobDestinationOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobDestinationOptionsMultiError) AllErrors() []error { return m }
+
+// JobDestinationOptionsValidationError is the validation error returned by
+// JobDestinationOptions.Validate if the designated constraints aren't met.
+type JobDestinationOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobDestinationOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobDestinationOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobDestinationOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobDestinationOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobDestinationOptionsValidationError) ErrorName() string {
+	return "JobDestinationOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e JobDestinationOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobDestinationOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobDestinationOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobDestinationOptionsValidationError{}
+
+// Validate checks the field values on SqlDestinationConnectionOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SqlDestinationConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SqlDestinationConnectionOptions with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SqlDestinationConnectionOptionsMultiError, or nil if none found.
+func (m *SqlDestinationConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SqlDestinationConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.TruncateBeforeInsert != nil {
+		// no validation rules for TruncateBeforeInsert
+	}
+
+	if m.InitDbSchema != nil {
+		// no validation rules for InitDbSchema
+	}
+
+	if len(errors) > 0 {
+		return SqlDestinationConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// SqlDestinationConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by SqlDestinationConnectionOptions.ValidateAll()
+// if the designated constraints aren't met.
+type SqlDestinationConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SqlDestinationConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SqlDestinationConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// SqlDestinationConnectionOptionsValidationError is the validation error
+// returned by SqlDestinationConnectionOptions.Validate if the designated
+// constraints aren't met.
+type SqlDestinationConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SqlDestinationConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SqlDestinationConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SqlDestinationConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SqlDestinationConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SqlDestinationConnectionOptionsValidationError) ErrorName() string {
+	return "SqlDestinationConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SqlDestinationConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSqlDestinationConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SqlDestinationConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SqlDestinationConnectionOptionsValidationError{}
+
+// Validate checks the field values on AwsS3DestinationConnectionOptions with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *AwsS3DestinationConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AwsS3DestinationConnectionOptions
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// AwsS3DestinationConnectionOptionsMultiError, or nil if none found.
+func (m *AwsS3DestinationConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AwsS3DestinationConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AwsS3DestinationConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// AwsS3DestinationConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by
+// AwsS3DestinationConnectionOptions.ValidateAll() if the designated
+// constraints aren't met.
+type AwsS3DestinationConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AwsS3DestinationConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AwsS3DestinationConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// AwsS3DestinationConnectionOptionsValidationError is the validation error
+// returned by AwsS3DestinationConnectionOptions.Validate if the designated
+// constraints aren't met.
+type AwsS3DestinationConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AwsS3DestinationConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AwsS3DestinationConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AwsS3DestinationConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AwsS3DestinationConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AwsS3DestinationConnectionOptionsValidationError) ErrorName() string {
+	return "AwsS3DestinationConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AwsS3DestinationConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAwsS3DestinationConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AwsS3DestinationConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AwsS3DestinationConnectionOptionsValidationError{}
+
 // Validate checks the field values on CreateJobRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -295,47 +1383,6 @@ func (m *CreateJobRequest) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for JobName
-
-	if err := m._validateUuid(m.GetConnectionSourceId()); err != nil {
-		err = CreateJobRequestValidationError{
-			field:  "ConnectionSourceId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if all {
-		switch v := interface{}(m.GetSourceOptions()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateJobRequestValidationError{
-					field:  "SourceOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateJobRequestValidationError{
-					field:  "SourceOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetSourceOptions()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return CreateJobRequestValidationError{
-				field:  "SourceOptions",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
 
 	for idx, item := range m.GetMappings() {
 		_, _ = idx, item
@@ -371,20 +1418,75 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	}
 
+	if all {
+		switch v := interface{}(m.GetSource()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSource()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateJobRequestValidationError{
+				field:  "Source",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetDestinations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateJobRequestValidationError{
+						field:  fmt.Sprintf("Destinations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateJobRequestValidationError{
+						field:  fmt.Sprintf("Destinations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateJobRequestValidationError{
+					field:  fmt.Sprintf("Destinations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
 	}
 
 	if len(errors) > 0 {
 		return CreateJobRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *CreateJobRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1258,16 +2360,33 @@ func (m *UpdateJobSourceConnectionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetConnectionId()); err != nil {
-		err = UpdateJobSourceConnectionRequestValidationError{
-			field:  "ConnectionId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if all {
+		switch v := interface{}(m.GetSource()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateJobSourceConnectionRequestValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateJobSourceConnectionRequestValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetSource()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateJobSourceConnectionRequestValidationError{
+				field:  "Source",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -1530,15 +2649,49 @@ func (m *UpdateJobDestinationConnectionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetConnectionIds()) < 1 {
+	if len(m.GetDestinations()) < 1 {
 		err := UpdateJobDestinationConnectionsRequestValidationError{
-			field:  "ConnectionIds",
+			field:  "Destinations",
 			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetDestinations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UpdateJobDestinationConnectionsRequestValidationError{
+						field:  fmt.Sprintf("Destinations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UpdateJobDestinationConnectionsRequestValidationError{
+						field:  fmt.Sprintf("Destinations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UpdateJobDestinationConnectionsRequestValidationError{
+					field:  fmt.Sprintf("Destinations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	if len(errors) > 0 {
@@ -2063,269 +3216,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateJobMappingsResponseValidationError{}
-
-// Validate checks the field values on UpdateJobHaltOnNewColumnAdditionRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *UpdateJobHaltOnNewColumnAdditionRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on
-// UpdateJobHaltOnNewColumnAdditionRequest with the rules defined in the proto
-// definition for this message. If any rules are violated, the result is a
-// list of violation errors wrapped in
-// UpdateJobHaltOnNewColumnAdditionRequestMultiError, or nil if none found.
-func (m *UpdateJobHaltOnNewColumnAdditionRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *UpdateJobHaltOnNewColumnAdditionRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = UpdateJobHaltOnNewColumnAdditionRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	// no validation rules for HaltOnNewColumnAddition
-
-	if len(errors) > 0 {
-		return UpdateJobHaltOnNewColumnAdditionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *UpdateJobHaltOnNewColumnAdditionRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
-	}
-
-	return nil
-}
-
-// UpdateJobHaltOnNewColumnAdditionRequestMultiError is an error wrapping
-// multiple validation errors returned by
-// UpdateJobHaltOnNewColumnAdditionRequest.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateJobHaltOnNewColumnAdditionRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m UpdateJobHaltOnNewColumnAdditionRequestMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m UpdateJobHaltOnNewColumnAdditionRequestMultiError) AllErrors() []error { return m }
-
-// UpdateJobHaltOnNewColumnAdditionRequestValidationError is the validation
-// error returned by UpdateJobHaltOnNewColumnAdditionRequest.Validate if the
-// designated constraints aren't met.
-type UpdateJobHaltOnNewColumnAdditionRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) ErrorName() string {
-	return "UpdateJobHaltOnNewColumnAdditionRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUpdateJobHaltOnNewColumnAdditionRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UpdateJobHaltOnNewColumnAdditionRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UpdateJobHaltOnNewColumnAdditionRequestValidationError{}
-
-// Validate checks the field values on UpdateJobHaltOnNewColumnAdditionResponse
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *UpdateJobHaltOnNewColumnAdditionResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on
-// UpdateJobHaltOnNewColumnAdditionResponse with the rules defined in the
-// proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in
-// UpdateJobHaltOnNewColumnAdditionResponseMultiError, or nil if none found.
-func (m *UpdateJobHaltOnNewColumnAdditionResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *UpdateJobHaltOnNewColumnAdditionResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if all {
-		switch v := interface{}(m.GetJob()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateJobHaltOnNewColumnAdditionResponseValidationError{
-					field:  "Job",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateJobHaltOnNewColumnAdditionResponseValidationError{
-					field:  "Job",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetJob()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return UpdateJobHaltOnNewColumnAdditionResponseValidationError{
-				field:  "Job",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return UpdateJobHaltOnNewColumnAdditionResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// UpdateJobHaltOnNewColumnAdditionResponseMultiError is an error wrapping
-// multiple validation errors returned by
-// UpdateJobHaltOnNewColumnAdditionResponse.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateJobHaltOnNewColumnAdditionResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m UpdateJobHaltOnNewColumnAdditionResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m UpdateJobHaltOnNewColumnAdditionResponseMultiError) AllErrors() []error { return m }
-
-// UpdateJobHaltOnNewColumnAdditionResponseValidationError is the validation
-// error returned by UpdateJobHaltOnNewColumnAdditionResponse.Validate if the
-// designated constraints aren't met.
-type UpdateJobHaltOnNewColumnAdditionResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) ErrorName() string {
-	return "UpdateJobHaltOnNewColumnAdditionResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUpdateJobHaltOnNewColumnAdditionResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UpdateJobHaltOnNewColumnAdditionResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UpdateJobHaltOnNewColumnAdditionResponseValidationError{}
 
 // Validate checks the field values on DeleteJobRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -3724,108 +4614,6 @@ var _ interface {
 	ErrorName() string
 } = CancelJobRunResponseValidationError{}
 
-// Validate checks the field values on JobSourceOptions with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *JobSourceOptions) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on JobSourceOptions with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// JobSourceOptionsMultiError, or nil if none found.
-func (m *JobSourceOptions) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *JobSourceOptions) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for HaltOnNewColumnAddition
-
-	if len(errors) > 0 {
-		return JobSourceOptionsMultiError(errors)
-	}
-
-	return nil
-}
-
-// JobSourceOptionsMultiError is an error wrapping multiple validation errors
-// returned by JobSourceOptions.ValidateAll() if the designated constraints
-// aren't met.
-type JobSourceOptionsMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m JobSourceOptionsMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m JobSourceOptionsMultiError) AllErrors() []error { return m }
-
-// JobSourceOptionsValidationError is the validation error returned by
-// JobSourceOptions.Validate if the designated constraints aren't met.
-type JobSourceOptionsValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e JobSourceOptionsValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e JobSourceOptionsValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e JobSourceOptionsValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e JobSourceOptionsValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e JobSourceOptionsValidationError) ErrorName() string { return "JobSourceOptionsValidationError" }
-
-// Error satisfies the builtin error interface
-func (e JobSourceOptionsValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sJobSourceOptions.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = JobSourceOptionsValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = JobSourceOptionsValidationError{}
-
 // Validate checks the field values on Job with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
 // encountered is returned, or nil if there are no violations.
@@ -3911,16 +4699,67 @@ func (m *Job) validate(all bool) error {
 
 	// no validation rules for Status
 
-	if err := m._validateUuid(m.GetConnectionSourceId()); err != nil {
-		err = JobValidationError{
-			field:  "ConnectionSourceId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if all {
+		switch v := interface{}(m.GetSource()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetSource()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobValidationError{
+				field:  "Source",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetDestinations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobValidationError{
+						field:  fmt.Sprintf("Destinations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobValidationError{
+						field:  fmt.Sprintf("Destinations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobValidationError{
+					field:  fmt.Sprintf("Destinations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	for idx, item := range m.GetMappings() {
@@ -3957,49 +4796,12 @@ func (m *Job) validate(all bool) error {
 
 	}
 
-	if all {
-		switch v := interface{}(m.GetSourceOptions()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, JobValidationError{
-					field:  "SourceOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, JobValidationError{
-					field:  "SourceOptions",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetSourceOptions()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return JobValidationError{
-				field:  "SourceOptions",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
 	}
 
 	if len(errors) > 0 {
 		return JobMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *Job) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil

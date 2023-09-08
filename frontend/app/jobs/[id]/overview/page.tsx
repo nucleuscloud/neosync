@@ -1,9 +1,9 @@
 'use client';
-import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 
+import SubPageHeader from '@/components/headers/SubPageHeader';
 import { ReactElement } from 'react';
 import JobScheduleCard from './components/ScheduleCard';
 
@@ -17,7 +17,7 @@ export default function Page({ params }: PageProps): ReactElement {
 
   return (
     <div className="job-details-container">
-      <PageHeader header="Overview" description="View job details" />
+      <SubPageHeader header="Overview" description="View job details" />
       <div className="space-y-10">
         <div className="flex flex-col my-4 gap-2">
           <div className="flex flex-row justify-between">

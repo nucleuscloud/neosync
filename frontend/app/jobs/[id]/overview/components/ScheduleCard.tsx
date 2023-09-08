@@ -55,7 +55,7 @@ export default function JobScheduleCard({ jobId }: Props): ReactElement {
       if (!res) {
         return { cronSchedule: '' };
       }
-      return { cronSchedule: res.job?.cronSchedule };
+      return { cronSchedule: res.job?.cronSchedule || '' };
     },
   });
 

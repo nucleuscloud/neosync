@@ -49,9 +49,9 @@ func (s *Service) GetJobs(
 		return nil, err
 	}
 
-	connsNameToIdMap := map[string]string{}
+	connsNameMap := map[string]*mgmtv1alpha1.Connection{}
 	for _, conn := range connections.Msg.Connections {
-		connsNameToIdMap[conn.Name] = conn.Id
+		connsNameMap[conn.Name] = conn
 	}
 
 	dtoJobs := []*mgmtv1alpha1.Job{}
@@ -61,21 +61,21 @@ func (s *Service) GetJobs(
 		if err != nil {
 			return nil, err
 		}
-		sourceConnId := connsNameToIdMap[sourceConnName]
-		destConnIds := []string{}
+		sourceConn := connsNameMap[sourceConnName]
+		destConns := []*mgmtv1alpha1.Connection{}
 		for _, dest := range job.Spec.Destinations {
 			destConnName, err := getDestinationConnectionName(dest)
 			if err != nil {
 				return nil, err
 			}
-			destConnId, ok := connsNameToIdMap[destConnName]
+			destConn, ok := connsNameMap[destConnName]
 			if ok {
-				destConnIds = append(destConnIds, destConnId)
+				destConns = append(destConns, destConn)
 			}
 
 		}
 
-		dto := dtomaps.ToJobDto(fromOperatorTransformer, &job, sourceConnId, destConnIds)
+		dto := dtomaps.ToJobDto(logger, fromOperatorTransformer, &job, sourceConn, destConns)
 		if err != nil {
 			return nil, err
 		}
@@ -119,18 +119,18 @@ func (s *Service) GetJob(
 		return nil, err
 	}
 
-	destConnIds := []string{}
-	var sourceConnId string
+	destConns := []*mgmtv1alpha1.Connection{}
+	var sourceConn *mgmtv1alpha1.Connection
 	for _, conn := range connections.Msg.Connections {
 		if conn.Name == sourceConnName {
-			sourceConnId = conn.Id
+			sourceConn = conn
 		} else if slices.Contains(destConnNames, conn.Name) {
-			destConnIds = append(destConnIds, conn.Id)
+			destConns = append(destConns, conn)
 		}
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(fromOperatorTransformer, job, sourceConnId, destConnIds),
+		Job: dtomaps.ToJobDto(logger, fromOperatorTransformer, job, sourceConn, destConns),
 	}), nil
 }
 
@@ -143,32 +143,34 @@ func (s *Service) CreateJob(
 	logger = logger.With("jobName", req.Msg.JobName, "jobId", jobUuid)
 	logger.Info("creating job")
 
-	var sourceConnName *string
-	destConnNames := make([]string, len(req.Msg.ConnectionDestinationIds))
+	var sourceConn *mgmtv1alpha1.Connection
+	destConns := make([]*mgmtv1alpha1.Connection, len(req.Msg.Destinations))
 
 	errs, errCtx := errgroup.WithContext(ctx)
 	errs.Go(func() error {
 		conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: req.Msg.ConnectionSourceId,
+			Id: req.Msg.Source.ConnectionId,
 		}))
 		if err != nil {
 			return err
 		}
-		sourceConnName = &conn.Msg.Connection.Name
+		sourceConn = conn.Msg.Connection
 		return nil
 	})
 
-	for index, id := range req.Msg.ConnectionDestinationIds {
-		connId := id
+	destOptionsMap := map[string]*mgmtv1alpha1.JobDestination{}
+	for index, dest := range req.Msg.Destinations {
+		dest := dest
 		index := index
+		destOptionsMap[dest.ConnectionId] = dest
 		errs.Go(func() error {
 			conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-				Id: connId,
+				Id: dest.ConnectionId,
 			}))
 			if err != nil {
 				return err
 			}
-			destConnNames[index] = conn.Msg.Connection.Name
+			destConns[index] = conn.Msg.Connection
 			return nil
 		})
 	}
@@ -179,20 +181,48 @@ func (s *Service) CreateJob(
 	}
 
 	jobDestinations := []*neosyncdevv1alpha1.JobConfigDestination{}
-	for _, name := range destConnNames {
-		jobDestinations = append(jobDestinations, &neosyncdevv1alpha1.JobConfigDestination{
-			Sql: &neosyncdevv1alpha1.DestinationSql{
-				ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
-					Name: name,
+	for _, conn := range destConns {
+		var dest *neosyncdevv1alpha1.JobConfigDestination
+		switch conn.ConnectionConfig.Config.(type) {
+		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+			dest = &neosyncdevv1alpha1.JobConfigDestination{
+				Sql: &neosyncdevv1alpha1.DestinationSql{
+					ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
+						Name: conn.Name,
+					},
 				},
-			},
-		})
+			}
+			options, ok := destOptionsMap[conn.Id]
+			if ok {
+				dest.Sql.TruncateBeforeInsert = options.Options.GetSqlOptions().TruncateBeforeInsert
+				dest.Sql.InitDbSchema = options.Options.GetSqlOptions().InitDbSchema
+			}
+		default:
+			return nil, nucleuserrors.NewNotImplemented("this destination connection config is not currently supported")
+		}
+		jobDestinations = append(jobDestinations, dest)
 	}
 
 	schemas, err := createSqlSchemas(req.Msg.Mappings)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate job mapping: %w", err)
 	}
+	var source *neosyncdevv1alpha1.JobConfigSource
+	switch sourceConn.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		source = &neosyncdevv1alpha1.JobConfigSource{
+			Sql: &neosyncdevv1alpha1.SourceSql{
+				ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
+					Name: sourceConn.Name,
+				},
+				HaltOnSchemaChange: req.Msg.Source.GetOptions().GetSqlOptions().HaltOnNewColumnAddition,
+				Schemas:            schemas,
+			},
+		}
+	default:
+		return nil, nucleuserrors.NewNotImplemented("this source connection config is not currently supported")
+	}
+
 	job := &neosyncdevv1alpha1.JobConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.cfg.JobConfigNamespace,
@@ -203,15 +233,7 @@ func (s *Service) CreateJob(
 		},
 		Spec: neosyncdevv1alpha1.JobConfigSpec{
 			CronSchedule: req.Msg.CronSchedule,
-			Source: &neosyncdevv1alpha1.JobConfigSource{
-				Sql: &neosyncdevv1alpha1.SourceSql{
-					ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
-						Name: *sourceConnName,
-					},
-					HaltOnSchemaChange: &req.Msg.SourceOptions.HaltOnNewColumnAddition,
-					Schemas:            schemas,
-				},
-			},
+			Source:       source,
 			Destinations: jobDestinations,
 		},
 	}
@@ -225,7 +247,7 @@ func (s *Service) CreateJob(
 	logger.Info("created job")
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(fromOperatorTransformer, job, req.Msg.ConnectionSourceId, req.Msg.ConnectionDestinationIds),
+		Job: dtomaps.ToJobDto(logger, fromOperatorTransformer, job, sourceConn, destConns),
 	}), nil
 }
 
@@ -310,19 +332,29 @@ type patchUpdateJobConfigSpec struct {
 }
 
 type jobConfigSpec struct {
-	Source       *jobConnection   `json:"source,omitempty"`
-	Destinations []*jobConnection `json:"destinations,omitempty"`
-	CronSchedule *string          `json:"cronSchedule,omitempty"`
+	Source       *jobSourceConnection        `json:"source,omitempty"`
+	Destinations []*jobDestinationConnection `json:"destinations,omitempty"`
+	CronSchedule *string                     `json:"cronSchedule,omitempty"`
 }
 
-type jobConnection struct {
-	Sql *sqlConnection `json:"sql,omitempty"`
+type jobDestinationConnection struct {
+	Sql *sqlDestinationConnection `json:"sql,omitempty"`
 }
 
-type sqlConnection struct {
+type jobSourceConnection struct {
+	Sql *sqlSourceConnection `json:"sql,omitempty"`
+}
+
+type sqlSourceConnection struct {
 	ConnectionRef      *connectionRef                        `json:"connectionRef,omitempty"`
 	HaltOnSchemaChange *bool                                 `json:"haltOnSchemaChange,omitempty"`
 	Schemas            []*neosyncdevv1alpha1.SourceSqlSchema `json:"schemas,omitempty"`
+}
+
+type sqlDestinationConnection struct {
+	ConnectionRef        *connectionRef `json:"connectionRef,omitempty"`
+	TruncateBeforeInsert *bool          `json:"truncateBeforeInsert,omitempty"`
+	InitDbSchema         *bool          `json:"initDbSchema,omitempty"`
 }
 
 type connectionRef struct {
@@ -342,21 +374,22 @@ func (s *Service) UpdateJobSourceConnection(
 	}
 
 	conn, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
+		Id: req.Msg.Source.ConnectionId,
 	}))
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve source connection: %w", err).Error())
 		return nil, err
 	}
 
-	var source *jobConnection
+	var source *jobSourceConnection
 	switch conn.Msg.Connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		source = &jobConnection{
-			Sql: &sqlConnection{
+		source = &jobSourceConnection{
+			Sql: &sqlSourceConnection{
 				ConnectionRef: &connectionRef{
 					Name: conn.Msg.Connection.Name,
 				},
+				HaltOnSchemaChange: req.Msg.Source.Options.GetSqlOptions().HaltOnNewColumnAddition,
 			},
 		}
 	default:
@@ -401,7 +434,7 @@ func (s *Service) UpdateJobDestinationConnections(
 	logger.Info("updating job destination connections")
 
 	var job *neosyncdevv1alpha1.JobConfig
-	destConns := make([]*mgmtv1alpha1.Connection, len(req.Msg.ConnectionIds))
+	destConns := make([]*mgmtv1alpha1.Connection, len(req.Msg.Destinations))
 	errs, errCtx := errgroup.WithContext(ctx)
 	errs.Go(func() error {
 		jobConfig, err := getJobById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
@@ -412,12 +445,14 @@ func (s *Service) UpdateJobDestinationConnections(
 		return nil
 	})
 
-	for index, id := range req.Msg.ConnectionIds {
-		connId := id
+	destMap := map[string]*mgmtv1alpha1.JobDestination{}
+	for index, dest := range req.Msg.Destinations {
+		dest := dest
 		index := index
+		destMap[dest.ConnectionId] = dest
 		errs.Go(func() error {
 			conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-				Id: connId,
+				Id: dest.ConnectionId,
 			}))
 			if err != nil {
 				return err
@@ -432,15 +467,18 @@ func (s *Service) UpdateJobDestinationConnections(
 		return nil, err
 	}
 
-	jobDestinations := []*jobConnection{}
+	jobDestinations := []*jobDestinationConnection{}
 	for _, conn := range destConns {
+		destOptions := destMap[conn.Id]
 		switch conn.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-			jobDestinations = append(jobDestinations, &jobConnection{
-				Sql: &sqlConnection{
+			jobDestinations = append(jobDestinations, &jobDestinationConnection{
+				Sql: &sqlDestinationConnection{
 					ConnectionRef: &connectionRef{
 						Name: conn.Name,
 					},
+					TruncateBeforeInsert: destOptions.Options.GetSqlOptions().TruncateBeforeInsert,
+					InitDbSchema:         destOptions.Options.GetSqlOptions().InitDbSchema,
 				},
 			})
 		default:
@@ -496,8 +534,8 @@ func (s *Service) UpdateJobMappings(
 		}
 		patch = &patchUpdateJobConfigSpec{
 			Spec: &jobConfigSpec{
-				Source: &jobConnection{
-					Sql: &sqlConnection{
+				Source: &jobSourceConnection{
+					Sql: &sqlSourceConnection{
 						Schemas: schemas,
 					},
 				},
@@ -526,57 +564,6 @@ func (s *Service) UpdateJobMappings(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.UpdateJobMappingsResponse{
-		Job: updatedJob.Msg.Job,
-	}), nil
-}
-
-func (s *Service) UpdateJobHaltOnNewColumnAddition(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.UpdateJobHaltOnNewColumnAdditionRequest],
-) (*connect.Response[mgmtv1alpha1.UpdateJobHaltOnNewColumnAdditionResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.Id)
-	logger.Info("updating job halt on new column addition")
-	job, err := getJobById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
-	if err != nil {
-		return nil, err
-	}
-
-	var patch *patchUpdateJobConfigSpec
-	if job.Spec.Source.Sql != nil {
-		patch = &patchUpdateJobConfigSpec{
-			Spec: &jobConfigSpec{
-				Source: &jobConnection{
-					Sql: &sqlConnection{
-						HaltOnSchemaChange: &req.Msg.HaltOnNewColumnAddition,
-					},
-				},
-			},
-		}
-	} else {
-		return nil, nucleuserrors.NewBadRequest("this job config is not currently supported")
-	}
-
-	patchBits, err := json.Marshal(patch)
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.k8sclient.CustomResourceClient.Patch(ctx, job, runtimeclient.RawPatch(types.MergePatchType, patchBits))
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to update job destination connections: %w", err).Error())
-		return nil, err
-	}
-
-	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-		Id: req.Msg.Id,
-	}))
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
-		return nil, err
-	}
-
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobHaltOnNewColumnAdditionResponse{
 		Job: updatedJob.Msg.Job,
 	}), nil
 }

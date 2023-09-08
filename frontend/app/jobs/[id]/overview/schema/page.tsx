@@ -1,9 +1,9 @@
 'use client';
+import SubPageHeader from '@/components/headers/SubPageHeader';
 import {
   SchemaTable,
   getConnectionSchema,
-} from '@/app/jobs/components/SchemaTable/schema-table';
-import PageHeader from '@/components/headers/PageHeader';
+} from '@/components/jobs/SchemaTable/schema-table';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -14,26 +14,15 @@ import {
   UpdateJobMappingsResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
+import {
+  JobMappingFormValues,
+  SCHEMA_FORM_SCHEMA,
+  SchemaFormValues,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 import { getJob } from '../util';
-
-const JOB_MAPPING_SCHEMA = Yup.object({
-  schema: Yup.string().required(),
-  table: Yup.string().required(),
-  column: Yup.string().required(),
-  dataType: Yup.string().required(),
-  transformer: Yup.string().required(),
-  exclude: Yup.boolean(),
-}).required();
-type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
-
-const SCHEMA_FORM_SCHEMA = Yup.object({
-  mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
-});
-type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
 
 interface SchemaMap {
   [schema: string]: {
@@ -72,13 +61,14 @@ export default function Page({ params }: PageProps): ReactElement {
 
   return (
     <div className="job-details-container">
-      <PageHeader header="Schema" description="Manage job schema" />
+      <SubPageHeader header="Schema" description="Manage job schema" />
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable data={form.getValues().mappings} />
 
           <div className="flex flex-row gap-1 justify-end">
-            <Button key="submit" type="submit">
+            <Button disabled={!form.formState.isDirty} type="submit">
               Save
             </Button>
           </div>
@@ -98,7 +88,7 @@ async function getMappings(jobId?: string): Promise<SchemaFormValues> {
   }
   const job = jobRes?.job;
 
-  const res = await getConnectionSchema(job?.connectionSourceId);
+  const res = await getConnectionSchema(job?.source?.connectionId);
   if (!res) {
     return { mappings: [] };
   }
