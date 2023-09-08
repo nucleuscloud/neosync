@@ -132,7 +132,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               />
 
               <SourceOptionsForm
-                formControl={form.control}
                 connection={connections.find(
                   (c) => c.id == form.getValues().sourceId
                 )}
@@ -191,7 +190,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 )}
               />
               <DestinationOptionsForm
-                formControl={form.control}
                 connection={connections.find(
                   (c) => c.id == form.getValues().destinationId
                 )}

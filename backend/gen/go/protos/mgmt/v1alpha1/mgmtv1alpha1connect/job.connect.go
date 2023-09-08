@@ -56,9 +56,6 @@ const (
 	// JobServiceUpdateJobMappingsProcedure is the fully-qualified name of the JobService's
 	// UpdateJobMappings RPC.
 	JobServiceUpdateJobMappingsProcedure = "/mgmt.v1alpha1.JobService/UpdateJobMappings"
-	// JobServiceUpdateJobHaltOnNewColumnAdditionProcedure is the fully-qualified name of the
-	// JobService's UpdateJobHaltOnNewColumnAddition RPC.
-	JobServiceUpdateJobHaltOnNewColumnAdditionProcedure = "/mgmt.v1alpha1.JobService/UpdateJobHaltOnNewColumnAddition"
 	// JobServiceGetJobRunsProcedure is the fully-qualified name of the JobService's GetJobRuns RPC.
 	JobServiceGetJobRunsProcedure = "/mgmt.v1alpha1.JobService/GetJobRuns"
 	// JobServiceGetJobRunProcedure is the fully-qualified name of the JobService's GetJobRun RPC.
@@ -83,7 +80,6 @@ type JobServiceClient interface {
 	UpdateJobSourceConnection(context.Context, *connect.Request[v1alpha1.UpdateJobSourceConnectionRequest]) (*connect.Response[v1alpha1.UpdateJobSourceConnectionResponse], error)
 	UpdateJobDestinationConnections(context.Context, *connect.Request[v1alpha1.UpdateJobDestinationConnectionsRequest]) (*connect.Response[v1alpha1.UpdateJobDestinationConnectionsResponse], error)
 	UpdateJobMappings(context.Context, *connect.Request[v1alpha1.UpdateJobMappingsRequest]) (*connect.Response[v1alpha1.UpdateJobMappingsResponse], error)
-	UpdateJobHaltOnNewColumnAddition(context.Context, *connect.Request[v1alpha1.UpdateJobHaltOnNewColumnAdditionRequest]) (*connect.Response[v1alpha1.UpdateJobHaltOnNewColumnAdditionResponse], error)
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
@@ -146,11 +142,6 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			baseURL+JobServiceUpdateJobMappingsProcedure,
 			opts...,
 		),
-		updateJobHaltOnNewColumnAddition: connect.NewClient[v1alpha1.UpdateJobHaltOnNewColumnAdditionRequest, v1alpha1.UpdateJobHaltOnNewColumnAdditionResponse](
-			httpClient,
-			baseURL+JobServiceUpdateJobHaltOnNewColumnAdditionProcedure,
-			opts...,
-		),
 		getJobRuns: connect.NewClient[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunsProcedure,
@@ -181,21 +172,20 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 
 // jobServiceClient implements JobServiceClient.
 type jobServiceClient struct {
-	getJobs                          *connect.Client[v1alpha1.GetJobsRequest, v1alpha1.GetJobsResponse]
-	getJob                           *connect.Client[v1alpha1.GetJobRequest, v1alpha1.GetJobResponse]
-	createJob                        *connect.Client[v1alpha1.CreateJobRequest, v1alpha1.CreateJobResponse]
-	deleteJob                        *connect.Client[v1alpha1.DeleteJobRequest, v1alpha1.DeleteJobResponse]
-	isJobNameAvailable               *connect.Client[v1alpha1.IsJobNameAvailableRequest, v1alpha1.IsJobNameAvailableResponse]
-	updateJobSchedule                *connect.Client[v1alpha1.UpdateJobScheduleRequest, v1alpha1.UpdateJobScheduleResponse]
-	updateJobSourceConnection        *connect.Client[v1alpha1.UpdateJobSourceConnectionRequest, v1alpha1.UpdateJobSourceConnectionResponse]
-	updateJobDestinationConnections  *connect.Client[v1alpha1.UpdateJobDestinationConnectionsRequest, v1alpha1.UpdateJobDestinationConnectionsResponse]
-	updateJobMappings                *connect.Client[v1alpha1.UpdateJobMappingsRequest, v1alpha1.UpdateJobMappingsResponse]
-	updateJobHaltOnNewColumnAddition *connect.Client[v1alpha1.UpdateJobHaltOnNewColumnAdditionRequest, v1alpha1.UpdateJobHaltOnNewColumnAdditionResponse]
-	getJobRuns                       *connect.Client[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse]
-	getJobRun                        *connect.Client[v1alpha1.GetJobRunRequest, v1alpha1.GetJobRunResponse]
-	createJobRun                     *connect.Client[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse]
-	cancelJobRun                     *connect.Client[v1alpha1.CancelJobRunRequest, v1alpha1.CancelJobRunResponse]
-	getTransformers                  *connect.Client[v1alpha1.GetTransformersRequest, v1alpha1.GetTransformersResponse]
+	getJobs                         *connect.Client[v1alpha1.GetJobsRequest, v1alpha1.GetJobsResponse]
+	getJob                          *connect.Client[v1alpha1.GetJobRequest, v1alpha1.GetJobResponse]
+	createJob                       *connect.Client[v1alpha1.CreateJobRequest, v1alpha1.CreateJobResponse]
+	deleteJob                       *connect.Client[v1alpha1.DeleteJobRequest, v1alpha1.DeleteJobResponse]
+	isJobNameAvailable              *connect.Client[v1alpha1.IsJobNameAvailableRequest, v1alpha1.IsJobNameAvailableResponse]
+	updateJobSchedule               *connect.Client[v1alpha1.UpdateJobScheduleRequest, v1alpha1.UpdateJobScheduleResponse]
+	updateJobSourceConnection       *connect.Client[v1alpha1.UpdateJobSourceConnectionRequest, v1alpha1.UpdateJobSourceConnectionResponse]
+	updateJobDestinationConnections *connect.Client[v1alpha1.UpdateJobDestinationConnectionsRequest, v1alpha1.UpdateJobDestinationConnectionsResponse]
+	updateJobMappings               *connect.Client[v1alpha1.UpdateJobMappingsRequest, v1alpha1.UpdateJobMappingsResponse]
+	getJobRuns                      *connect.Client[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse]
+	getJobRun                       *connect.Client[v1alpha1.GetJobRunRequest, v1alpha1.GetJobRunResponse]
+	createJobRun                    *connect.Client[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse]
+	cancelJobRun                    *connect.Client[v1alpha1.CancelJobRunRequest, v1alpha1.CancelJobRunResponse]
+	getTransformers                 *connect.Client[v1alpha1.GetTransformersRequest, v1alpha1.GetTransformersResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -243,11 +233,6 @@ func (c *jobServiceClient) UpdateJobMappings(ctx context.Context, req *connect.R
 	return c.updateJobMappings.CallUnary(ctx, req)
 }
 
-// UpdateJobHaltOnNewColumnAddition calls mgmt.v1alpha1.JobService.UpdateJobHaltOnNewColumnAddition.
-func (c *jobServiceClient) UpdateJobHaltOnNewColumnAddition(ctx context.Context, req *connect.Request[v1alpha1.UpdateJobHaltOnNewColumnAdditionRequest]) (*connect.Response[v1alpha1.UpdateJobHaltOnNewColumnAdditionResponse], error) {
-	return c.updateJobHaltOnNewColumnAddition.CallUnary(ctx, req)
-}
-
 // GetJobRuns calls mgmt.v1alpha1.JobService.GetJobRuns.
 func (c *jobServiceClient) GetJobRuns(ctx context.Context, req *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error) {
 	return c.getJobRuns.CallUnary(ctx, req)
@@ -284,7 +269,6 @@ type JobServiceHandler interface {
 	UpdateJobSourceConnection(context.Context, *connect.Request[v1alpha1.UpdateJobSourceConnectionRequest]) (*connect.Response[v1alpha1.UpdateJobSourceConnectionResponse], error)
 	UpdateJobDestinationConnections(context.Context, *connect.Request[v1alpha1.UpdateJobDestinationConnectionsRequest]) (*connect.Response[v1alpha1.UpdateJobDestinationConnectionsResponse], error)
 	UpdateJobMappings(context.Context, *connect.Request[v1alpha1.UpdateJobMappingsRequest]) (*connect.Response[v1alpha1.UpdateJobMappingsResponse], error)
-	UpdateJobHaltOnNewColumnAddition(context.Context, *connect.Request[v1alpha1.UpdateJobHaltOnNewColumnAdditionRequest]) (*connect.Response[v1alpha1.UpdateJobHaltOnNewColumnAdditionResponse], error)
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
@@ -343,11 +327,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		svc.UpdateJobMappings,
 		opts...,
 	)
-	jobServiceUpdateJobHaltOnNewColumnAdditionHandler := connect.NewUnaryHandler(
-		JobServiceUpdateJobHaltOnNewColumnAdditionProcedure,
-		svc.UpdateJobHaltOnNewColumnAddition,
-		opts...,
-	)
 	jobServiceGetJobRunsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunsProcedure,
 		svc.GetJobRuns,
@@ -393,8 +372,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceUpdateJobDestinationConnectionsHandler.ServeHTTP(w, r)
 		case JobServiceUpdateJobMappingsProcedure:
 			jobServiceUpdateJobMappingsHandler.ServeHTTP(w, r)
-		case JobServiceUpdateJobHaltOnNewColumnAdditionProcedure:
-			jobServiceUpdateJobHaltOnNewColumnAdditionHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunsProcedure:
 			jobServiceGetJobRunsHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunProcedure:
@@ -448,10 +425,6 @@ func (UnimplementedJobServiceHandler) UpdateJobDestinationConnections(context.Co
 
 func (UnimplementedJobServiceHandler) UpdateJobMappings(context.Context, *connect.Request[v1alpha1.UpdateJobMappingsRequest]) (*connect.Response[v1alpha1.UpdateJobMappingsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.UpdateJobMappings is not implemented"))
-}
-
-func (UnimplementedJobServiceHandler) UpdateJobHaltOnNewColumnAddition(context.Context, *connect.Request[v1alpha1.UpdateJobHaltOnNewColumnAdditionRequest]) (*connect.Response[v1alpha1.UpdateJobHaltOnNewColumnAdditionResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.UpdateJobHaltOnNewColumnAddition is not implemented"))
 }
 
 func (UnimplementedJobServiceHandler) GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error) {

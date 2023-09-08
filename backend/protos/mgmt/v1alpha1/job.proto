@@ -97,7 +97,7 @@ message UpdateJobScheduleResponse {
 
 message UpdateJobSourceConnectionRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  string connection_id = 2 [(validate.rules).string.uuid = true];
+  JobSource source = 2;
 }
 message UpdateJobSourceConnectionResponse {
   Job job = 1;
@@ -105,7 +105,7 @@ message UpdateJobSourceConnectionResponse {
 
 message UpdateJobDestinationConnectionsRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  repeated string connection_ids = 2 [(validate.rules).repeated = {min_items: 1}];
+  repeated JobDestination destinations = 2 [(validate.rules).repeated = {min_items: 1}];
 }
 message UpdateJobDestinationConnectionsResponse {
   Job job = 1;
@@ -116,14 +116,6 @@ message UpdateJobMappingsRequest {
   repeated JobMapping mappings = 2 [(validate.rules).repeated = {min_items: 1}];
 }
 message UpdateJobMappingsResponse {
-  Job job = 1;
-}
-
-message UpdateJobHaltOnNewColumnAdditionRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
-  bool halt_on_new_column_addition = 2;
-}
-message UpdateJobHaltOnNewColumnAdditionResponse {
   Job job = 1;
 }
 
@@ -219,7 +211,6 @@ service JobService {
   rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
   rpc UpdateJobDestinationConnections(UpdateJobDestinationConnectionsRequest) returns (UpdateJobDestinationConnectionsResponse) {}
   rpc UpdateJobMappings(UpdateJobMappingsRequest) returns (UpdateJobMappingsResponse) {}
-  rpc UpdateJobHaltOnNewColumnAddition(UpdateJobHaltOnNewColumnAdditionRequest) returns (UpdateJobHaltOnNewColumnAdditionResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}

@@ -21,6 +21,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import {
+  JobSource,
+  JobSourceOptions,
+  SqlSourceConnectionOptions,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
@@ -36,39 +39,61 @@ interface Props {
   jobId: string;
 }
 
-export const FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
+const FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
   Yup.object({
     destinationId: Yup.string().required(),
   })
 );
-export type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+export type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
-  const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections();
+  const {
+    isLoading: isConnectionsLoading,
+    data: connectionsData,
+    mutate,
+  } = useGetConnections();
 
   const connections = connectionsData?.connections ?? [];
 
   const form = useForm({
-    resolver: yupResolver<FormValues>(FORM_SCHEMA),
+    resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
     defaultValues: async () => {
       const res = await getJob(jobId);
       if (!res) {
-        return { sourceId: '', sourceOptions: {}, destinationId: '' };
+        return {
+          sourceId: '',
+          sourceOptions: {
+            haltOnNewColumnAddition: false,
+          },
+          destinationId: '',
+        };
       }
       const destinationIds = res.job?.destinations.map((d) => d.connectionId);
-      return {
+      const values = {
         sourceId: res.job?.source?.connectionId || '',
         sourceOptions: {},
         destinationId: destinationIds ? destinationIds[0] : '',
       };
+      switch (res.job?.source?.options?.config.case) {
+        case 'sqlOptions':
+          return {
+            ...values,
+            sourceOptions: {
+              haltOnNewColumnAddition:
+                res.job?.source?.options?.config.value.haltOnNewColumnAddition,
+            },
+          };
+        default:
+          return values;
+      }
     },
   });
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: SourceFormValues) {
     try {
-      await updateJobConnection(jobId, values.sourceId);
+      await updateJobConnection(jobId, values);
+      mutate();
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'default',
@@ -127,7 +152,6 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
             )}
           />
           <SourceOptionsForm
-            formControl={form.control}
             connection={connections.find(
               (c) => c.id == form.getValues().sourceId
             )}
@@ -146,7 +170,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
 
 async function updateJobConnection(
   jobId: string,
-  connectionId: string
+  values: SourceFormValues
 ): Promise<UpdateJobSourceConnectionResponse> {
   const res = await fetch(`/api/jobs/${jobId}/source-connection`, {
     method: 'PUT',
@@ -156,7 +180,18 @@ async function updateJobConnection(
     body: JSON.stringify(
       new UpdateJobSourceConnectionRequest({
         id: jobId,
-        connectionId: connectionId,
+        source: new JobSource({
+          connectionId: values.sourceId,
+          options: new JobSourceOptions({
+            config: {
+              case: 'sqlOptions',
+              value: new SqlSourceConnectionOptions({
+                haltOnNewColumnAddition:
+                  values.sourceOptions.haltOnNewColumnAddition,
+              }),
+            },
+          }),
+        }),
       })
     ),
   });

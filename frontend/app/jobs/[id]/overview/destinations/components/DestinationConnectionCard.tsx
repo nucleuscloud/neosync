@@ -21,6 +21,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import {
+  JobDestination,
+  JobDestinationOptions,
+  SqlDestinationConnectionOptions,
   UpdateJobDestinationConnectionsRequest,
   UpdateJobDestinationConnectionsResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
@@ -47,8 +50,11 @@ export default function DestinationConnectionCard({
   jobId,
 }: Props): ReactElement {
   const { toast } = useToast();
-  const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections();
+  const {
+    isLoading: isConnectionsLoading,
+    data: connectionsData,
+    mutate,
+  } = useGetConnections();
 
   const connections = connectionsData?.connections ?? [];
 
@@ -59,18 +65,39 @@ export default function DestinationConnectionCard({
       if (!res) {
         return { sourceId: '', destinationOptions: {}, destinationId: '' };
       }
-      const destinationIds = res.job?.destinations.map((d) => d.connectionId);
+      const destinations = res.job?.destinations.map((d) => {
+        switch (d.options?.config.case) {
+          case 'sqlOptions':
+            return {
+              destinationId: d.connectionId,
+              destinationOptions: {
+                truncateBeforeInsert:
+                  d.options.config.value.truncateBeforeInsert,
+                initDbSchema: d.options.config.value.initDbSchema,
+              },
+            };
+          default:
+            return {
+              destinationId: d.connectionId,
+              destinationOptions: {},
+            };
+        }
+      });
+
       return {
         sourceId: res.job?.source?.connectionId || '',
-        destinationOptions: {},
-        destinationId: destinationIds ? destinationIds[0] : '',
+        destinationOptions: destinations
+          ? destinations[0].destinationOptions
+          : {},
+        destinationId: destinations ? destinations[0].destinationId : '',
       };
     },
   });
 
   async function onSubmit(values: FormValues) {
     try {
-      await updateJobConnections(jobId, [values.destinationId]);
+      await updateJobConnections(jobId, values);
+      mutate();
       toast({
         title: 'Successfully updated job destination!',
         variant: 'default',
@@ -126,9 +153,7 @@ export default function DestinationConnectionCard({
               </FormItem>
             )}
           />
-
           <DestinationOptionsForm
-            formControl={form.control}
             connection={connections.find(
               (c) => c.id == form.getValues().destinationId
             )}
@@ -147,7 +172,7 @@ export default function DestinationConnectionCard({
 
 async function updateJobConnections(
   jobId: string,
-  connectionIds: string[]
+  values: FormValues
 ): Promise<UpdateJobDestinationConnectionsResponse> {
   const res = await fetch(`/api/jobs/${jobId}/destination-connections`, {
     method: 'PUT',
@@ -157,7 +182,21 @@ async function updateJobConnections(
     body: JSON.stringify(
       new UpdateJobDestinationConnectionsRequest({
         id: jobId,
-        connectionIds: connectionIds,
+        destinations: [
+          new JobDestination({
+            connectionId: values.destinationId,
+            options: new JobDestinationOptions({
+              config: {
+                case: 'sqlOptions',
+                value: new SqlDestinationConnectionOptions({
+                  truncateBeforeInsert:
+                    values.destinationOptions.truncateBeforeInsert,
+                  initDbSchema: values.destinationOptions.initDbSchema,
+                }),
+              },
+            }),
+          }),
+        ],
       })
     ),
   });

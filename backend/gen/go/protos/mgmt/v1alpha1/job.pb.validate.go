@@ -2360,16 +2360,33 @@ func (m *UpdateJobSourceConnectionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetConnectionId()); err != nil {
-		err = UpdateJobSourceConnectionRequestValidationError{
-			field:  "ConnectionId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if all {
+		switch v := interface{}(m.GetSource()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateJobSourceConnectionRequestValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateJobSourceConnectionRequestValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
 		}
-		if !all {
-			return err
+	} else if v, ok := interface{}(m.GetSource()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateJobSourceConnectionRequestValidationError{
+				field:  "Source",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
 		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -2632,15 +2649,49 @@ func (m *UpdateJobDestinationConnectionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetConnectionIds()) < 1 {
+	if len(m.GetDestinations()) < 1 {
 		err := UpdateJobDestinationConnectionsRequestValidationError{
-			field:  "ConnectionIds",
+			field:  "Destinations",
 			reason: "value must contain at least 1 item(s)",
 		}
 		if !all {
 			return err
 		}
 		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetDestinations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UpdateJobDestinationConnectionsRequestValidationError{
+						field:  fmt.Sprintf("Destinations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UpdateJobDestinationConnectionsRequestValidationError{
+						field:  fmt.Sprintf("Destinations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UpdateJobDestinationConnectionsRequestValidationError{
+					field:  fmt.Sprintf("Destinations[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	if len(errors) > 0 {
@@ -3165,269 +3216,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdateJobMappingsResponseValidationError{}
-
-// Validate checks the field values on UpdateJobHaltOnNewColumnAdditionRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *UpdateJobHaltOnNewColumnAdditionRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on
-// UpdateJobHaltOnNewColumnAdditionRequest with the rules defined in the proto
-// definition for this message. If any rules are violated, the result is a
-// list of violation errors wrapped in
-// UpdateJobHaltOnNewColumnAdditionRequestMultiError, or nil if none found.
-func (m *UpdateJobHaltOnNewColumnAdditionRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *UpdateJobHaltOnNewColumnAdditionRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = UpdateJobHaltOnNewColumnAdditionRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	// no validation rules for HaltOnNewColumnAddition
-
-	if len(errors) > 0 {
-		return UpdateJobHaltOnNewColumnAdditionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *UpdateJobHaltOnNewColumnAdditionRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
-	}
-
-	return nil
-}
-
-// UpdateJobHaltOnNewColumnAdditionRequestMultiError is an error wrapping
-// multiple validation errors returned by
-// UpdateJobHaltOnNewColumnAdditionRequest.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateJobHaltOnNewColumnAdditionRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m UpdateJobHaltOnNewColumnAdditionRequestMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m UpdateJobHaltOnNewColumnAdditionRequestMultiError) AllErrors() []error { return m }
-
-// UpdateJobHaltOnNewColumnAdditionRequestValidationError is the validation
-// error returned by UpdateJobHaltOnNewColumnAdditionRequest.Validate if the
-// designated constraints aren't met.
-type UpdateJobHaltOnNewColumnAdditionRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) ErrorName() string {
-	return "UpdateJobHaltOnNewColumnAdditionRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e UpdateJobHaltOnNewColumnAdditionRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUpdateJobHaltOnNewColumnAdditionRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UpdateJobHaltOnNewColumnAdditionRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UpdateJobHaltOnNewColumnAdditionRequestValidationError{}
-
-// Validate checks the field values on UpdateJobHaltOnNewColumnAdditionResponse
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *UpdateJobHaltOnNewColumnAdditionResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on
-// UpdateJobHaltOnNewColumnAdditionResponse with the rules defined in the
-// proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in
-// UpdateJobHaltOnNewColumnAdditionResponseMultiError, or nil if none found.
-func (m *UpdateJobHaltOnNewColumnAdditionResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *UpdateJobHaltOnNewColumnAdditionResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if all {
-		switch v := interface{}(m.GetJob()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateJobHaltOnNewColumnAdditionResponseValidationError{
-					field:  "Job",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateJobHaltOnNewColumnAdditionResponseValidationError{
-					field:  "Job",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetJob()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return UpdateJobHaltOnNewColumnAdditionResponseValidationError{
-				field:  "Job",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return UpdateJobHaltOnNewColumnAdditionResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// UpdateJobHaltOnNewColumnAdditionResponseMultiError is an error wrapping
-// multiple validation errors returned by
-// UpdateJobHaltOnNewColumnAdditionResponse.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateJobHaltOnNewColumnAdditionResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m UpdateJobHaltOnNewColumnAdditionResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m UpdateJobHaltOnNewColumnAdditionResponseMultiError) AllErrors() []error { return m }
-
-// UpdateJobHaltOnNewColumnAdditionResponseValidationError is the validation
-// error returned by UpdateJobHaltOnNewColumnAdditionResponse.Validate if the
-// designated constraints aren't met.
-type UpdateJobHaltOnNewColumnAdditionResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) ErrorName() string {
-	return "UpdateJobHaltOnNewColumnAdditionResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e UpdateJobHaltOnNewColumnAdditionResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUpdateJobHaltOnNewColumnAdditionResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UpdateJobHaltOnNewColumnAdditionResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UpdateJobHaltOnNewColumnAdditionResponseValidationError{}
 
 // Validate checks the field values on DeleteJobRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the

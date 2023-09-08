@@ -7,19 +7,16 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { SourceFormValues } from '@/yup-validations/jobs';
 import { ReactElement } from 'react';
-import { Control } from 'react-hook-form';
 
-interface SourceOptionsProps<> {
+interface SourceOptionsProps {
   connection?: Connection;
-  formControl: Control<SourceFormValues>;
   maxColNum?: number;
 }
 export default function SourceOptionsForm(
   props: SourceOptionsProps
 ): ReactElement {
-  const { connection, formControl, maxColNum } = props;
+  const { connection, maxColNum } = props;
   const grid = maxColNum ? `lg:grid-cols-${maxColNum}` : 'lg:grid-cols-3';
 
   if (!connection) {
@@ -34,8 +31,7 @@ export default function SourceOptionsForm(
             <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
               <div>
                 <FormField
-                  control={formControl}
-                  name={'sourceOptions.haltOnNewColumnAddition'}
+                  name="sourceOptions.haltOnNewColumnAddition"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>

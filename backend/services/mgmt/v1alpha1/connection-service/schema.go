@@ -18,12 +18,6 @@ type DatabaseSchema struct {
 	DataType    string `db:"data_type,omitempty"`
 }
 
-type DatabaseTableConstraints struct {
-	Name       string `db:"name,omitempty"`
-	Type       string `db:"contype,omitempty"`
-	Definition string `db:"definition,omitempty"`
-}
-
 func (s *Service) GetConnectionSchema(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionSchemaRequest],
@@ -89,10 +83,10 @@ func getDatabaseSchema(ctx context.Context, conn *pgx.Conn) ([]DatabaseSchema, e
 			c.table_schema NOT IN('pg_catalog', 'information_schema')
 			AND t.table_type = 'BASE TABLE';
 	`)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && !isNoRows(err) {
 		return nil, err
 	}
-	if err != nil && err == sql.ErrNoRows {
+	if err != nil && isNoRows(err) {
 		return []DatabaseSchema{}, nil
 	}
 
@@ -111,4 +105,8 @@ func getDatabaseSchema(ctx context.Context, conn *pgx.Conn) ([]DatabaseSchema, e
 		output = append(output, o)
 	}
 	return output, nil
+}
+
+func isNoRows(err error) bool {
+	return err != nil && err == sql.ErrNoRows || err == pgx.ErrNoRows
 }

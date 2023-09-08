@@ -7,18 +7,17 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { DestinationFormValues } from '@/yup-validations/jobs';
 import { ReactElement } from 'react';
-import { Control } from 'react-hook-form';
 
 interface DestinationOptionsProps {
   connection?: Connection;
-  formControl: Control<DestinationFormValues>;
+  maxColNum?: number;
 }
 export default function DestinationOptionsForm(
   props: DestinationOptionsProps
 ): ReactElement {
-  const { connection, formControl } = props;
+  const { connection, maxColNum } = props;
+  const grid = maxColNum ? `lg:grid-cols-${maxColNum}` : 'lg:grid-cols-3';
 
   if (!connection) {
     return <></>;
@@ -29,10 +28,9 @@ export default function DestinationOptionsForm(
       switch (value.connectionConfig.case) {
         case 'connection':
           return (
-            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
               <div>
                 <FormField
-                  control={formControl}
                   name="destinationOptions.truncateBeforeInsert"
                   render={({ field }) => (
                     <FormItem>
@@ -51,7 +49,6 @@ export default function DestinationOptionsForm(
               </div>
               <div>
                 <FormField
-                  control={formControl}
                   name="destinationOptions.initDbSchema"
                   render={({ field }) => (
                     <FormItem>
