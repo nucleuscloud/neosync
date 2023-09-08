@@ -19,7 +19,6 @@ export const SCHEMA_FORM_SCHEMA = Yup.object({
 });
 export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
 
-
 export const SOURCE_FORM_SCHEMA = Yup.object({
   sourceId: Yup.string().uuid('source is required').required(),
   sourceOptions: Yup.object({
@@ -33,7 +32,9 @@ export const DESTINATION_FORM_SCHEMA = Yup.object({
   destinationOptions: Yup.object({
     truncateBeforeInsert: Yup.boolean().optional(),
     initDbSchema: Yup.boolean().optional(),
-  })
+  }),
   // destinationIds: Yup.array().of(Yup.string().required()).required(),
 });
-export type DestinationFormValues = Yup.InferType<typeof DESTINATION_FORM_SCHEMA>;
+export type DestinationFormValues = Yup.InferType<
+  typeof DESTINATION_FORM_SCHEMA
+>;
