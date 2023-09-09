@@ -4906,8 +4906,6 @@ func (m *JobRun) validate(all bool) error {
 
 	// no validation rules for Status
 
-	// no validation rules for CreatedByUserId
-
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:

@@ -1573,11 +1573,6 @@ export class JobRun extends Message<JobRun> {
   status = JobRunStatus.UNSPECIFIED;
 
   /**
-   * @generated from field: string created_by_user_id = 5;
-   */
-  createdByUserId = "";
-
-  /**
    * @generated from field: google.protobuf.Timestamp created_at = 6;
    */
   createdAt?: Timestamp;
@@ -1594,7 +1589,6 @@ export class JobRun extends Message<JobRun> {
     { no: 2, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(JobRunStatus) },
-    { no: 5, name: "created_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "created_at", kind: "message", T: Timestamp },
   ]);
 

@@ -18,6 +18,30 @@ rules:
   - apiGroups:
       - neosync.dev
     resources:
+      - jobruns
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - neosync.dev
+    resources:
+      - taskruns
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - neosync.dev
+    resources:
       - sqlconnections
     verbs:
       - create

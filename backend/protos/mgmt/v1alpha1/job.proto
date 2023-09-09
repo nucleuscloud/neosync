@@ -180,7 +180,6 @@ message JobRun {
   string name = 3;
   JobRunStatus status = 4;
 
-  string created_by_user_id = 5;
   google.protobuf.Timestamp created_at = 6;
 }
 
