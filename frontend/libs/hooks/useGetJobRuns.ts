@@ -5,9 +5,11 @@ import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
 export function useGetJobRuns(): HookReply<GetJobRunsResponse> {
   return useNucleusAuthenticatedFetch<
-  GetJobRunsResponse,
+    GetJobRunsResponse,
     JsonValue | GetJobRunsResponse
   >(`/api/runs`, undefined, undefined, (data) =>
-    data instanceof GetJobRunsResponse ? data : GetJobRunsResponse.fromJson(data)
+    data instanceof GetJobRunsResponse
+      ? data
+      : GetJobRunsResponse.fromJson(data)
   );
 }
