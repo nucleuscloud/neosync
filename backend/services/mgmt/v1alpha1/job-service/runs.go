@@ -74,7 +74,7 @@ func (s *Service) GetJobRun(
 
 	job, err := getJobByName(ctx, logger, s.k8sclient, jobRun.Spec.Job.JobRef.Name, s.cfg.JobConfigNamespace)
 	if err != nil {
-		logger.Error(fmt.Sprintf("unable to retrieve job config: %w", err), "jobName", jobRun.Spec.Job.JobRef.Name)
+		logger.Error(fmt.Errorf("unable to retrieve job config: %w", err).Error(), "jobName", jobRun.Spec.Job.JobRef.Name)
 		return nil, err
 	}
 

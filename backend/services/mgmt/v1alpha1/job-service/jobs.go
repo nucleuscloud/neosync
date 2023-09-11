@@ -680,7 +680,7 @@ func getJobByName(
 	if err != nil && !errors.IsNotFound(err) {
 		return nil, err
 	} else if err != nil && errors.IsNotFound(err) {
-		logger.Error(fmt.Sprintf("job confing not found: %w", err))
+		logger.Error(fmt.Errorf("job confing not found: %w", err).Error())
 		return nil, err
 	}
 	return job, nil
