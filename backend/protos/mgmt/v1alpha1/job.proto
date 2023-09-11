@@ -200,6 +200,11 @@ message GetTransformersResponse {
   repeated Transformer transformers = 1;
 }
 
+message DeleteJobRunRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+message DeleteJobRunResponse {}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -213,6 +218,7 @@ service JobService {
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}
+  rpc DeleteJobRun(DeleteJobRunRequest) returns (DeleteJobRunResponse) {}
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
   rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}
 

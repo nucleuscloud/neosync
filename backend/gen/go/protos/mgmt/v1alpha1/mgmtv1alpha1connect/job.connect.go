@@ -60,6 +60,8 @@ const (
 	JobServiceGetJobRunsProcedure = "/mgmt.v1alpha1.JobService/GetJobRuns"
 	// JobServiceGetJobRunProcedure is the fully-qualified name of the JobService's GetJobRun RPC.
 	JobServiceGetJobRunProcedure = "/mgmt.v1alpha1.JobService/GetJobRun"
+	// JobServiceDeleteJobRunProcedure is the fully-qualified name of the JobService's DeleteJobRun RPC.
+	JobServiceDeleteJobRunProcedure = "/mgmt.v1alpha1.JobService/DeleteJobRun"
 	// JobServiceCreateJobRunProcedure is the fully-qualified name of the JobService's CreateJobRun RPC.
 	JobServiceCreateJobRunProcedure = "/mgmt.v1alpha1.JobService/CreateJobRun"
 	// JobServiceCancelJobRunProcedure is the fully-qualified name of the JobService's CancelJobRun RPC.
@@ -82,6 +84,7 @@ type JobServiceClient interface {
 	UpdateJobMappings(context.Context, *connect.Request[v1alpha1.UpdateJobMappingsRequest]) (*connect.Response[v1alpha1.UpdateJobMappingsResponse], error)
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
+	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
 	GetTransformers(context.Context, *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error)
@@ -152,6 +155,11 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			baseURL+JobServiceGetJobRunProcedure,
 			opts...,
 		),
+		deleteJobRun: connect.NewClient[v1alpha1.DeleteJobRunRequest, v1alpha1.DeleteJobRunResponse](
+			httpClient,
+			baseURL+JobServiceDeleteJobRunProcedure,
+			opts...,
+		),
 		createJobRun: connect.NewClient[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse](
 			httpClient,
 			baseURL+JobServiceCreateJobRunProcedure,
@@ -183,6 +191,7 @@ type jobServiceClient struct {
 	updateJobMappings               *connect.Client[v1alpha1.UpdateJobMappingsRequest, v1alpha1.UpdateJobMappingsResponse]
 	getJobRuns                      *connect.Client[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse]
 	getJobRun                       *connect.Client[v1alpha1.GetJobRunRequest, v1alpha1.GetJobRunResponse]
+	deleteJobRun                    *connect.Client[v1alpha1.DeleteJobRunRequest, v1alpha1.DeleteJobRunResponse]
 	createJobRun                    *connect.Client[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse]
 	cancelJobRun                    *connect.Client[v1alpha1.CancelJobRunRequest, v1alpha1.CancelJobRunResponse]
 	getTransformers                 *connect.Client[v1alpha1.GetTransformersRequest, v1alpha1.GetTransformersResponse]
@@ -243,6 +252,11 @@ func (c *jobServiceClient) GetJobRun(ctx context.Context, req *connect.Request[v
 	return c.getJobRun.CallUnary(ctx, req)
 }
 
+// DeleteJobRun calls mgmt.v1alpha1.JobService.DeleteJobRun.
+func (c *jobServiceClient) DeleteJobRun(ctx context.Context, req *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error) {
+	return c.deleteJobRun.CallUnary(ctx, req)
+}
+
 // CreateJobRun calls mgmt.v1alpha1.JobService.CreateJobRun.
 func (c *jobServiceClient) CreateJobRun(ctx context.Context, req *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error) {
 	return c.createJobRun.CallUnary(ctx, req)
@@ -271,6 +285,7 @@ type JobServiceHandler interface {
 	UpdateJobMappings(context.Context, *connect.Request[v1alpha1.UpdateJobMappingsRequest]) (*connect.Response[v1alpha1.UpdateJobMappingsResponse], error)
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
+	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
 	GetTransformers(context.Context, *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error)
@@ -337,6 +352,11 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		svc.GetJobRun,
 		opts...,
 	)
+	jobServiceDeleteJobRunHandler := connect.NewUnaryHandler(
+		JobServiceDeleteJobRunProcedure,
+		svc.DeleteJobRun,
+		opts...,
+	)
 	jobServiceCreateJobRunHandler := connect.NewUnaryHandler(
 		JobServiceCreateJobRunProcedure,
 		svc.CreateJobRun,
@@ -376,6 +396,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceGetJobRunsHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunProcedure:
 			jobServiceGetJobRunHandler.ServeHTTP(w, r)
+		case JobServiceDeleteJobRunProcedure:
+			jobServiceDeleteJobRunHandler.ServeHTTP(w, r)
 		case JobServiceCreateJobRunProcedure:
 			jobServiceCreateJobRunHandler.ServeHTTP(w, r)
 		case JobServiceCancelJobRunProcedure:
@@ -433,6 +455,10 @@ func (UnimplementedJobServiceHandler) GetJobRuns(context.Context, *connect.Reque
 
 func (UnimplementedJobServiceHandler) GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetJobRun is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.DeleteJobRun is not implemented"))
 }
 
 func (UnimplementedJobServiceHandler) CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error) {

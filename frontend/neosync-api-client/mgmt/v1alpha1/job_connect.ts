@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CancelJobRunRequest, CancelJobRunResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobRequest, DeleteJobResponse, GetJobRequest, GetJobResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetTransformersRequest, GetTransformersResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, UpdateJobDestinationConnectionsRequest, UpdateJobDestinationConnectionsResponse, UpdateJobMappingsRequest, UpdateJobMappingsResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse } from "./job_pb";
+import { CancelJobRunRequest, CancelJobRunResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobRequest, DeleteJobResponse, DeleteJobRunRequest, DeleteJobRunResponse, GetJobRequest, GetJobResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetTransformersRequest, GetTransformersResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, UpdateJobDestinationConnectionsRequest, UpdateJobDestinationConnectionsResponse, UpdateJobMappingsRequest, UpdateJobMappingsResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse } from "./job_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -109,6 +109,15 @@ export const JobService = {
       name: "GetJobRun",
       I: GetJobRunRequest,
       O: GetJobRunResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.JobService.DeleteJobRun
+     */
+    deleteJobRun: {
+      name: "DeleteJobRun",
+      I: DeleteJobRunRequest,
+      O: DeleteJobRunResponse,
       kind: MethodKind.Unary,
     },
     /**

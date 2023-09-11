@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import { useRouter } from 'next/navigation';
 
@@ -25,22 +25,21 @@ export function DataTableRowActions<TData>({
   row,
   onDeleted,
 }: DataTableRowActionsProps<TData>) {
-  // const connecton = Connection.fromJson(row.original as JsonValue);
-  const connection = row.original as Connection;
+  const run = row.original as JobRun;
   const router = useRouter();
   const { toast } = useToast();
 
   async function onDelete(): Promise<void> {
     try {
-      await removeConnection(connection.id);
+      await removeJobRun(run.id);
       toast({
-        title: 'Connection removed successfully!',
+        title: 'Job run removed successfully!',
       });
       onDeleted();
     } catch (err) {
       console.error(err);
       toast({
-        title: 'Unable to remove connection',
+        title: 'Unable to remove job run',
         description: getErrorMessage(err),
       });
     }
@@ -60,7 +59,7 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/connections/${connection.id}`)}
+          onClick={() => router.push(`/run/${run.id}`)}
         >
           View
         </DropdownMenuItem>
@@ -74,8 +73,8 @@ export function DataTableRowActions<TData>({
   );
 }
 
-async function removeConnection(connectionId: string): Promise<void> {
-  const res = await fetch(`/api/connections/${connectionId}`, {
+async function removeJobRun(jobRunId: string): Promise<void> {
+  const res = await fetch(`/api/runs/${jobRunId}`, {
     method: 'DELETE',
   });
   if (!res.ok) {
