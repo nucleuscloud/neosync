@@ -4,7 +4,6 @@ import PageHeader from '@/components/headers/PageHeader';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -20,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -79,11 +79,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Source</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-8">
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
+          >
+            <div>
+              <div>
+                <div className="space-y-0.5">
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    Source
+                  </h2>
+                  <p className="text-muted-foreground">
+                    The location of the source data set.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-8 col-span-2">
               <FormField
                 control={form.control}
                 name="sourceId"
@@ -135,15 +146,28 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id == form.getValues().sourceId
                 )}
+                maxColNum={2}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+          <Separator className="my-6" />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Destination</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-8">
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
+          >
+            <div>
+              <div>
+                <div className="space-y-0.5">
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    Destination
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Where the data set should be synced.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-8 col-span-2">
               <FormField
                 control={form.control}
                 name="destinationId"
@@ -193,9 +217,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id == form.getValues().destinationId
                 )}
+                maxColNum={2}
               />
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           <div className="flex flex-row gap-1 justify-between">
             <Button type="button" onClick={() => router.back()}>
