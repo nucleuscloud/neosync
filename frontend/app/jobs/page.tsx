@@ -41,8 +41,8 @@ function JobTable(props: JobTableProps): ReactElement {
   const jobs = data?.jobs ?? [];
 
   const columns = getColumns({
-    onJobDeleted(_id) {
-      mutate(); // todo
+    onDeleted() {
+      mutate();
     },
   });
 

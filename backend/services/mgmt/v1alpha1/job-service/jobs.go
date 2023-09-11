@@ -667,3 +667,21 @@ func getJobById(
 	}
 	return &jobs.Items[0], nil
 }
+
+func getJobByName(
+	ctx context.Context,
+	logger *slog.Logger,
+	k8sclient *neosync_k8sclient.Client,
+	name string,
+	namespace string,
+) (*neosyncdevv1alpha1.JobConfig, error) {
+	job := &neosyncdevv1alpha1.JobConfig{}
+	err := k8sclient.CustomResourceClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, job)
+	if err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if err != nil && errors.IsNotFound(err) {
+		logger.Error(fmt.Errorf("job confing not found: %w", err).Error())
+		return nil, err
+	}
+	return job, nil
+}

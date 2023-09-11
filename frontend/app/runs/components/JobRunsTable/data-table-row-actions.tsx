@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import { useRouter } from 'next/navigation';
 
@@ -25,22 +25,21 @@ export function DataTableRowActions<TData>({
   row,
   onDeleted,
 }: DataTableRowActionsProps<TData>) {
-  const job = row.original as Job;
+  const run = row.original as JobRun;
   const router = useRouter();
-
   const { toast } = useToast();
 
   async function onDelete(): Promise<void> {
     try {
-      await removeJob(job.id);
+      await removeJobRun(run.id);
       toast({
-        title: 'Job removed successfully!',
+        title: 'Job run removed successfully!',
       });
       onDeleted();
     } catch (err) {
       console.error(err);
       toast({
-        title: 'Unable to remove job',
+        title: 'Unable to remove job run',
         description: getErrorMessage(err),
       });
     }
@@ -60,7 +59,7 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/jobs/${job.id}/overview`)}
+          onClick={() => router.push(`/run/${run.id}`)}
         >
           View
         </DropdownMenuItem>
@@ -73,8 +72,8 @@ export function DataTableRowActions<TData>({
   );
 }
 
-async function removeJob(jobId: string): Promise<void> {
-  const res = await fetch(`/api/jobs/${jobId}`, {
+async function removeJobRun(jobRunId: string): Promise<void> {
+  const res = await fetch(`/api/runs/${jobRunId}`, {
     method: 'DELETE',
   });
   if (!res.ok) {

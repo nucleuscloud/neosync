@@ -4906,8 +4906,6 @@ func (m *JobRun) validate(all bool) error {
 
 	// no validation rules for Status
 
-	// no validation rules for CreatedByUserId
-
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
@@ -5354,3 +5352,227 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetTransformersResponseValidationError{}
+
+// Validate checks the field values on DeleteJobRunRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteJobRunRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteJobRunRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteJobRunRequestMultiError, or nil if none found.
+func (m *DeleteJobRunRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteJobRunRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = DeleteJobRunRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return DeleteJobRunRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *DeleteJobRunRequest) _validateUuid(uuid string) error {
+	if matched := _job_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// DeleteJobRunRequestMultiError is an error wrapping multiple validation
+// errors returned by DeleteJobRunRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteJobRunRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteJobRunRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteJobRunRequestMultiError) AllErrors() []error { return m }
+
+// DeleteJobRunRequestValidationError is the validation error returned by
+// DeleteJobRunRequest.Validate if the designated constraints aren't met.
+type DeleteJobRunRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteJobRunRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteJobRunRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteJobRunRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteJobRunRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteJobRunRequestValidationError) ErrorName() string {
+	return "DeleteJobRunRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteJobRunRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteJobRunRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteJobRunRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteJobRunRequestValidationError{}
+
+// Validate checks the field values on DeleteJobRunResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteJobRunResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteJobRunResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteJobRunResponseMultiError, or nil if none found.
+func (m *DeleteJobRunResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteJobRunResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return DeleteJobRunResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteJobRunResponseMultiError is an error wrapping multiple validation
+// errors returned by DeleteJobRunResponse.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteJobRunResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteJobRunResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteJobRunResponseMultiError) AllErrors() []error { return m }
+
+// DeleteJobRunResponseValidationError is the validation error returned by
+// DeleteJobRunResponse.Validate if the designated constraints aren't met.
+type DeleteJobRunResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteJobRunResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteJobRunResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteJobRunResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteJobRunResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteJobRunResponseValidationError) ErrorName() string {
+	return "DeleteJobRunResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteJobRunResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteJobRunResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteJobRunResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteJobRunResponseValidationError{}

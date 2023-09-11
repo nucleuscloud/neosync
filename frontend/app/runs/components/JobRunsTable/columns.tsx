@@ -4,21 +4,20 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { Checkbox } from '@/components/ui/checkbox';
 
-import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
-interface GetJobsProps {
+interface GetColumnsProps {
   onDeleted(id: string): void;
 }
 
 export function getColumns(
-  props: GetJobsProps
-): ColumnDef<PlainMessage<Job>>[] {
+  props: GetColumnsProps
+): ColumnDef<PlainMessage<Connection>>[] {
   const { onDeleted } = props;
-
   return [
     {
       id: 'select',
@@ -44,7 +43,7 @@ export function getColumns(
     {
       accessorKey: 'id',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Job" />
+        <DataTableColumnHeader column={column} title="Job Run" />
       ),
       cell: ({ row }) => <div className="w-[80px]">{row.getValue('id')}</div>,
       enableSorting: false,
@@ -66,6 +65,21 @@ export function getColumns(
       },
     },
     {
+      accessorKey: 'jobId',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Job Id" />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              {row.getValue('jobId')}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: 'createdAt',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Created At" />
@@ -75,24 +89,6 @@ export function getColumns(
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
               {formatDateTime(row.getValue<Timestamp>('createdAt').toDate())}
-            </span>
-          </div>
-        );
-      },
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
-      },
-    },
-    {
-      accessorKey: 'updatedAt',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Updated At" />
-      ),
-      cell: ({ row }) => {
-        return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('updatedAt').toDate())}
             </span>
           </div>
         );
