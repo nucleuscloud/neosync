@@ -18,6 +18,26 @@ export default function Page({ params }: PageProps): ReactElement {
 
   const jobRun = data?.jobRun;
 
+  // todo @alisha
+  const items = [
+    {
+      title: 'Sync data',
+      description: 'Vitae sed mi luctus laoreet.',
+    },
+    {
+      title: 'Create schema',
+      description: 'Cursus semper viverra facilisis et et some more.',
+    },
+    {
+      title: 'Generate destination data',
+      description: 'Penatibus eu quis ante.',
+    },
+    {
+      title: 'Scan source data',
+      description: 'Iusto et officia maiores porro ad non quas.',
+    },
+  ];
+
   if (isLoading) {
     return <Skeleton />;
   }
@@ -51,7 +71,10 @@ export default function Page({ params }: PageProps): ReactElement {
             )}
           />
         </div>
-        <ProgressNav />
+        <div className="space-y-4">
+          <h1 className="text-xl font-semibold tracking-tight">Steps</h1>
+          <ProgressNav items={items} />
+        </div>
       </div>
     </OverviewContainer>
   );
