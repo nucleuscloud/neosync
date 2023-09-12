@@ -39,36 +39,36 @@ proto3.util.setEnumType(JobStatus, "mgmt.v1alpha1.JobStatus", [
 ]);
 
 /**
- * @generated from enum mgmt.v1alpha1.JobRunStatus
+ * @generated from enum mgmt.v1alpha1.JobRunStatusType
  */
-export enum JobRunStatus {
+export enum JobRunStatusType {
   /**
    * @generated from enum value: JOB_RUN_STATUS_UNSPECIFIED = 0;
    */
-  UNSPECIFIED = 0,
+  JOB_RUN_STATUS_UNSPECIFIED = 0,
 
   /**
    * @generated from enum value: JOB_RUN_STATUS_PENDING = 1;
    */
-  PENDING = 1,
+  JOB_RUN_STATUS_PENDING = 1,
 
   /**
    * @generated from enum value: JOB_RUN_STATUS_RUNNING = 2;
    */
-  RUNNING = 2,
+  JOB_RUN_STATUS_RUNNING = 2,
 
   /**
    * @generated from enum value: JOB_RUN_STATUS_COMPLETE = 3;
    */
-  COMPLETE = 3,
+  JOB_RUN_STATUS_COMPLETE = 3,
 
   /**
    * @generated from enum value: JOB_RUN_STATUS_ERROR = 4;
    */
-  ERROR = 4,
+  JOB_RUN_STATUS_ERROR = 4,
 }
-// Retrieve enum metadata with: proto3.getEnumType(JobRunStatus)
-proto3.util.setEnumType(JobRunStatus, "mgmt.v1alpha1.JobRunStatus", [
+// Retrieve enum metadata with: proto3.getEnumType(JobRunStatusType)
+proto3.util.setEnumType(JobRunStatusType, "mgmt.v1alpha1.JobRunStatusType", [
   { no: 0, name: "JOB_RUN_STATUS_UNSPECIFIED" },
   { no: 1, name: "JOB_RUN_STATUS_PENDING" },
   { no: 2, name: "JOB_RUN_STATUS_RUNNING" },
@@ -1570,10 +1570,10 @@ export class JobRun extends Message<JobRun> {
   /**
    * @generated from field: mgmt.v1alpha1.JobRunStatus status = 4;
    */
-  status = JobRunStatus.UNSPECIFIED;
+  status?: JobRunStatus;
 
   /**
-   * @generated from field: google.protobuf.Timestamp created_at = 6;
+   * @generated from field: google.protobuf.Timestamp created_at = 5;
    */
   createdAt?: Timestamp;
 
@@ -1588,8 +1588,8 @@ export class JobRun extends Message<JobRun> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "status", kind: "enum", T: proto3.getEnumType(JobRunStatus) },
-    { no: 6, name: "created_at", kind: "message", T: Timestamp },
+    { no: 4, name: "status", kind: "message", T: JobRunStatus },
+    { no: 5, name: "created_at", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRun {
@@ -1606,6 +1606,55 @@ export class JobRun extends Message<JobRun> {
 
   static equals(a: JobRun | PlainMessage<JobRun> | undefined, b: JobRun | PlainMessage<JobRun> | undefined): boolean {
     return proto3.util.equals(JobRun, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobRunStatus
+ */
+export class JobRunStatus extends Message<JobRunStatus> {
+  /**
+   * @generated from field: mgmt.v1alpha1.JobRunStatusType status = 1;
+   */
+  status = JobRunStatusType.JOB_RUN_STATUS_UNSPECIFIED;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp start_time = 2;
+   */
+  startTime?: Timestamp;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp completion_time = 3;
+   */
+  completionTime?: Timestamp;
+
+  constructor(data?: PartialMessage<JobRunStatus>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobRunStatus";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "status", kind: "enum", T: proto3.getEnumType(JobRunStatusType) },
+    { no: 2, name: "start_time", kind: "message", T: Timestamp },
+    { no: 3, name: "completion_time", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRunStatus {
+    return new JobRunStatus().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobRunStatus {
+    return new JobRunStatus().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobRunStatus {
+    return new JobRunStatus().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobRunStatus | PlainMessage<JobRunStatus> | undefined, b: JobRunStatus | PlainMessage<JobRunStatus> | undefined): boolean {
+    return proto3.util.equals(JobRunStatus, a, b);
   }
 }
 

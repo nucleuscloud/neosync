@@ -4904,7 +4904,34 @@ func (m *JobRun) validate(all bool) error {
 
 	// no validation rules for Name
 
-	// no validation rules for Status
+	if all {
+		switch v := interface{}(m.GetStatus()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunValidationError{
+					field:  "Status",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunValidationError{
+					field:  "Status",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStatus()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunValidationError{
+				field:  "Status",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
@@ -5011,6 +5038,165 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JobRunValidationError{}
+
+// Validate checks the field values on JobRunStatus with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JobRunStatus) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobRunStatus with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JobRunStatusMultiError, or
+// nil if none found.
+func (m *JobRunStatus) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobRunStatus) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Status
+
+	if all {
+		switch v := interface{}(m.GetStartTime()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunStatusValidationError{
+					field:  "StartTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunStatusValidationError{
+					field:  "StartTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStartTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunStatusValidationError{
+				field:  "StartTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetCompletionTime()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunStatusValidationError{
+					field:  "CompletionTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunStatusValidationError{
+					field:  "CompletionTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCompletionTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunStatusValidationError{
+				field:  "CompletionTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return JobRunStatusMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobRunStatusMultiError is an error wrapping multiple validation errors
+// returned by JobRunStatus.ValidateAll() if the designated constraints aren't met.
+type JobRunStatusMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobRunStatusMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobRunStatusMultiError) AllErrors() []error { return m }
+
+// JobRunStatusValidationError is the validation error returned by
+// JobRunStatus.Validate if the designated constraints aren't met.
+type JobRunStatusValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobRunStatusValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobRunStatusValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobRunStatusValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobRunStatusValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobRunStatusValidationError) ErrorName() string { return "JobRunStatusValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobRunStatusValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobRunStatus.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobRunStatusValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobRunStatusValidationError{}
 
 // Validate checks the field values on Transformer with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

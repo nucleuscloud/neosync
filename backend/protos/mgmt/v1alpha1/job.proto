@@ -180,10 +180,16 @@ message JobRun {
   string name = 3;
   JobRunStatus status = 4;
 
-  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp created_at = 5;
 }
 
-enum JobRunStatus {
+message JobRunStatus {
+  JobRunStatusType status = 1;
+  google.protobuf.Timestamp start_time = 2;
+  google.protobuf.Timestamp completion_time = 3;
+}
+
+enum JobRunStatusType {
   JOB_RUN_STATUS_UNSPECIFIED = 0;
   JOB_RUN_STATUS_PENDING = 1;
   JOB_RUN_STATUS_RUNNING = 2;
