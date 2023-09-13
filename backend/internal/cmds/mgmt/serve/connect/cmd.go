@@ -1,7 +1,6 @@
 package serve_connect
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -71,9 +70,6 @@ func serve() error {
 	if err != nil {
 		panic(err)
 	}
-	jsonF, _ := json.MarshalIndent(dbconfig, "", " ")
-	fmt.Printf("\n\n dbconfig: %s \n\n", string(jsonF))
-
 	db, err := nucleusdb.NewFromConfig(dbconfig)
 	if err != nil {
 		panic(err)
@@ -140,10 +136,10 @@ func getJobConfigNamespace() string {
 }
 
 func getDbConfig() (*nucleusdb.ConnectConfig, error) {
-	// dbHost := viper.GetString("DB_HOST")
-	// if dbHost == "" {
-	// 	return nil, fmt.Errorf("must provide DB_HOST in environment")
-	// }
+	dbHost := viper.GetString("DB_HOST")
+	if dbHost == "" {
+		return nil, fmt.Errorf("must provide DB_HOST in environment")
+	}
 
 	dbPort := viper.GetInt("DB_PORT")
 	if dbPort == 0 {
@@ -165,13 +161,13 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		return nil, fmt.Errorf("must provide DB_PASS in environment")
 	}
 
-	sslMode := "disable"
+	sslMode := "require"
 	if viper.IsSet("DB_SSL_DISABLE") && viper.GetBool("DB_SSL_DISABLE") {
 		sslMode = "disable"
 	}
 
 	return &nucleusdb.ConnectConfig{
-		Host:     "10.244.0.13",
+		Host:     dbHost,
 		Port:     dbPort,
 		Database: dbName,
 		User:     dbUser,
