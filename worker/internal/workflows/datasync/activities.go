@@ -132,13 +132,6 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 	}
 
-	// switch sourceCfg := job.Source.Options.Config.(type) {
-	// case *mgmtv1alpha1.JobSourceOptions_SqlOptions:
-	// 	// sqlOpts := sourceCfg.SqlOptions
-	// default:
-	// 	return nil, fmt.Errorf("unsupported source type")
-	// }
-
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
