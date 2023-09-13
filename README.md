@@ -14,8 +14,7 @@ Neosync is a developer-first way to create anonymized, secure test data and sync
 <p align="center">
   <a href='http://makeapullrequest.com'><img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/></a>
 <img src="https://img.shields.io/github/license/lightdash/lightdash" />
-  <img alt="Follow twitter" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow
-"/>
+  <img alt="Follow twitter" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
 </p>
 
 <p align="center">
