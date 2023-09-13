@@ -8,11 +8,11 @@ CREATE TABLE IF NOT EXISTS neosync_api.jobs (
   status smallint NOT NULL,
 
   connection_source_id uuid NOT NULL,
+  connection_options jsonb NOT NULL DEFAULT '{}'::jsonb,
 
   mappings jsonb NOT NULL DEFAULT '[]'::jsonb,
 
   cron_schedule varchar NULL,
-  halt_on_new_column_addition smallint NOT NULL DEFAULT 0,
 
   created_by_id uuid NOT NULL,
   updated_by_id uuid NOT NULL,
@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS neosync_api.job_destination_connection_associations (
 
   job_id uuid NOT NULL,
   connection_id uuid NOT NULL,
+  options jsonb NOT NULL DEFAULT '{}'::jsonb,
 
   CONSTRAINT job_destination_connection_associations_pkey PRIMARY KEY (id),
   CONSTRAINT fk_jobdstconassoc_job_id_jobs_id FOREIGN KEY (job_id) REFERENCES neosync_api.jobs(id) ON DELETE CASCADE,

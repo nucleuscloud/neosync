@@ -69,60 +69,6 @@ func (s *Service) CheckConnectionConfig(
 	}
 }
 
-func (s *Service) CheckConnectionConfig(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest],
-) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
-	switch config := req.Msg.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		var connectionString *string
-		switch connectionConfig := config.PgConfig.ConnectionConfig.(type) {
-		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-			connStr := nucleusdb.GetDbUrl(&nucleusdb.ConnectConfig{
-				Host:     connectionConfig.Connection.Host,
-				Port:     int(connectionConfig.Connection.Port),
-				Database: connectionConfig.Connection.Name,
-				User:     connectionConfig.Connection.User,
-				Pass:     connectionConfig.Connection.Pass,
-				SslMode:  connectionConfig.Connection.SslMode,
-			})
-			connectionString = &connStr
-		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
-			connectionString = &connectionConfig.Url
-		default:
-			return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
-		}
-
-		conn, err := pgx.Connect(ctx, *connectionString)
-		if err != nil {
-			msg := err.Error()
-			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-				IsConnected:     false,
-				ConnectionError: &msg,
-			}), nil
-		}
-		defer func() {
-			if err := conn.Close(ctx); err != nil {
-				log.Println("failed to close connection", err)
-			}
-		}()
-		err = conn.Ping(ctx)
-		if err != nil {
-			msg := err.Error()
-			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-				IsConnected:     false,
-				ConnectionError: &msg,
-			}), nil
-		}
-		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-			IsConnected:     true,
-			ConnectionError: nil,
-		}), nil
-	default:
-		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
-	}
-}
-
 func (s *Service) IsConnectionNameAvailable(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsConnectionNameAvailableRequest],

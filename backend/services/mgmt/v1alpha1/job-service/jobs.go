@@ -4,21 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 
 	"connectrpc.com/connect"
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
+	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
-	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
-	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -28,62 +26,57 @@ func (s *Service) GetJobs(
 	req *connect.Request[mgmtv1alpha1.GetJobsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	jobs := &neosyncdevv1alpha1.JobConfigList{}
-	err := s.k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(s.cfg.JobConfigNamespace))
-	if err != nil && !errors.IsNotFound(err) {
-		logger.Error(fmt.Errorf("unable to retrieve jobs: %w", err).Error())
-		return nil, err
-	} else if err != nil && errors.IsNotFound(err) {
-		return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
-			Jobs: []*mgmtv1alpha1.Job{},
-		}), nil
-	}
-	if len(jobs.Items) == 0 {
-		return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
-			Jobs: []*mgmtv1alpha1.Job{},
-		}), nil
-	}
 
-	connections, err := s.connectionService.GetConnections(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionsRequest{}))
-	if err != nil && !errors.IsNotFound(err) {
+	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+	jobs, err := s.db.Q.GetJobsByAccount(ctx, accountUuid)
+	if err != nil {
+		logger.Error(err.Error())
 		return nil, err
 	}
 
-	connsNameMap := map[string]*mgmtv1alpha1.Connection{}
-	for _, conn := range connections.Msg.Connections {
-		connsNameMap[conn.Name] = conn
+	jobIds := []pgtype.UUID{}
+	for idx := range jobs {
+		job := jobs[idx]
+		jobIds = append(jobIds, job.ID)
 	}
 
-	dtoJobs := []*mgmtv1alpha1.Job{}
-	for i := range jobs.Items {
-		job := jobs.Items[i]
-		sourceConnName, err := getSourceConnectionName(job.Spec.Source)
+	var destinationAssociations []db_queries.NeosyncApiJobDestinationConnectionAssociation
+	if len(jobIds) > 0 {
+		destinationAssociations, err = s.db.Q.GetJobConnectionDestinationsByJobIds(ctx, jobIds)
 		if err != nil {
+			logger.Error(err.Error())
 			return nil, err
 		}
-		sourceConn := connsNameMap[sourceConnName]
-		destConns := []*mgmtv1alpha1.Connection{}
-		for _, dest := range job.Spec.Destinations {
-			destConnName, err := getDestinationConnectionName(dest)
-			if err != nil {
-				return nil, err
-			}
-			destConn, ok := connsNameMap[destConnName]
-			if ok {
-				destConns = append(destConns, destConn)
-			}
+	}
 
-		}
+	jobMap := map[pgtype.UUID]*db_queries.NeosyncApiJob{}
+	for idx := range jobs {
+		job := jobs[idx]
+		jobMap[job.ID] = &job
+	}
 
-		dto := dtomaps.ToJobDto(logger, fromOperatorTransformer, &job, sourceConn, destConns)
-		if err != nil {
-			return nil, err
+	associationMap := map[pgtype.UUID][]db_queries.NeosyncApiJobDestinationConnectionAssociation{}
+	for _, assoc := range destinationAssociations {
+		if _, ok := associationMap[assoc.JobID]; ok {
+			associationMap[assoc.JobID] = append(associationMap[assoc.JobID], assoc)
+		} else {
+			associationMap[assoc.JobID] = append([]db_queries.NeosyncApiJobDestinationConnectionAssociation{}, assoc)
 		}
-		dtoJobs = append(dtoJobs, dto)
+	}
+
+	dtos := []*mgmtv1alpha1.Job{}
+
+	// Use jobIds to retain original query order
+	for _, jobId := range jobIds {
+		job := jobMap[jobId]
+		dtos = append(dtos, dtomaps.ToJobDto(job, associationMap[job.ID]))
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
-		Jobs: dtoJobs,
+		Jobs: dtos,
 	}), nil
 }
 
@@ -93,45 +86,46 @@ func (s *Service) GetJob(
 ) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.Id)
-	job, err := getJobById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
 	}
-	destConnNames := []string{}
-	for _, dest := range job.Spec.Destinations {
-		destConnName, err := getDestinationConnectionName(dest)
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+
+	var job db_queries.NeosyncApiJob
+	errgrp.Go(func() error {
+		j, err := s.db.Q.GetJobById(errctx, jobUuid)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		destConnNames = append(destConnNames, destConnName)
-	}
-	sourceConnName, err := getSourceConnectionName(job.Spec.Source)
-	if err != nil {
-		return nil, err
-	}
-	connNames := []string{sourceConnName}
-	connNames = append(connNames, destConnNames...)
-
-	connections, err := s.connectionService.GetConnectionsByNames(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionsByNamesRequest{
-		Names: connNames,
-	}))
-	if err != nil {
-		return nil, err
-	}
-
-	destConns := []*mgmtv1alpha1.Connection{}
-	var sourceConn *mgmtv1alpha1.Connection
-	for _, conn := range connections.Msg.Connections {
-		if conn.Name == sourceConnName {
-			sourceConn = conn
-		} else if slices.Contains(destConnNames, conn.Name) {
-			destConns = append(destConns, conn)
+		job = j
+		return nil
+	})
+	var destConnections []db_queries.NeosyncApiJobDestinationConnectionAssociation
+	errgrp.Go(func() error {
+		dcs, err := s.db.Q.GetJobConnectionDestinations(ctx, jobUuid)
+		if err != nil {
+			return err
 		}
+		destConnections = dcs
+		return nil
+	})
+	if err = errgrp.Wait(); err != nil {
+		if nucleusdb.IsNoRows(err) {
+			return nil, nucleuserrors.NewNotFound("unable to find job by id")
+		}
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(logger, fromOperatorTransformer, job, sourceConn, destConns),
+		Job: dtomaps.ToJobDto(&job, destConnections),
 	}), nil
+}
+
+type Destination struct {
+	ConnectionId pgtype.UUID
+	Options      *jsonmodels.JobDestinationOptions
 }
 
 func (s *Service) CreateJob(
@@ -139,115 +133,91 @@ func (s *Service) CreateJob(
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	jobUuid := uuid.NewString()
-	logger = logger.With("jobName", req.Msg.JobName, "jobId", jobUuid)
-	logger.Info("creating job")
+	logger = logger.With("jobName", req.Msg.JobName)
+	destinations := []*Destination{}
+	for _, dest := range req.Msg.Destinations {
+		destUuid, err := nucleusdb.ToUuid(dest.ConnectionId)
+		if err != nil {
+			return nil, err
+		}
+		options := &jsonmodels.JobDestinationOptions{}
+		err = options.FromDto(dest.Options)
+		if err != nil {
+			return nil, err
+		}
+		destinations = append(destinations, &Destination{ConnectionId: destUuid, Options: options})
+	}
 
-	var sourceConn *mgmtv1alpha1.Connection
-	destConns := make([]*mgmtv1alpha1.Connection, len(req.Msg.Destinations))
+	cron := pgtype.Text{}
+	if req.Msg.CronSchedule != nil {
+		err := cron.Scan(req.Msg.GetCronSchedule())
+		if err != nil {
+			return nil, err
+		}
+	}
+	connectionSourceUuid, err := nucleusdb.ToUuid(req.Msg.Source.ConnectionId)
+	if err != nil {
+		return nil, err
+	}
 
-	errs, errCtx := errgroup.WithContext(ctx)
-	errs.Go(func() error {
-		conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: req.Msg.Source.ConnectionId,
-		}))
+	mappings := []*jsonmodels.JobMapping{}
+	for _, mapping := range req.Msg.Mappings {
+		jm := &jsonmodels.JobMapping{}
+		err = jm.FromDto(mapping)
+		if err != nil {
+			return nil, err
+		}
+		mappings = append(mappings, jm)
+	}
+
+	connectionOptions := &jsonmodels.JobSourceOptions{}
+	err = connectionOptions.FromDto(req.Msg.Source.Options)
+	if err != nil {
+		return nil, err
+	}
+
+	var createdJob *db_queries.NeosyncApiJob
+	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
+		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
+			Name: req.Msg.JobName,
+			// AccountID:          *accountId,
+			Status:             int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
+			CronSchedule:       cron,
+			ConnectionSourceID: connectionSourceUuid,
+			ConnectionOptions:  connectionOptions,
+			Mappings:           mappings,
+		})
 		if err != nil {
 			return err
 		}
-		sourceConn = conn.Msg.Connection
-		return nil
-	})
 
-	destOptionsMap := map[string]*mgmtv1alpha1.JobDestination{}
-	for index, dest := range req.Msg.Destinations {
-		dest := dest
-		index := index
-		destOptionsMap[dest.ConnectionId] = dest
-		errs.Go(func() error {
-			conn, err := s.connectionService.GetConnection(errCtx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-				Id: dest.ConnectionId,
-			}))
+		connDestParams := []db_queries.CreateJobConnectionDestinationsParams{}
+		for _, dest := range destinations {
+			connDestParams = append(connDestParams, db_queries.CreateJobConnectionDestinationsParams{
+				JobID:        job.ID,
+				ConnectionID: dest.ConnectionId,
+				Options:      dest.Options,
+			})
+		}
+		if len(connDestParams) > 0 {
+			_, err = q.CreateJobConnectionDestinations(ctx, connDestParams)
 			if err != nil {
 				return err
 			}
-			destConns[index] = conn.Msg.Connection
-			return nil
-		})
-	}
-	err := errs.Wait()
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job connections: %w", err).Error())
+		}
+		createdJob = &job
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 
-	jobDestinations := []*neosyncdevv1alpha1.JobConfigDestination{}
-	for _, conn := range destConns {
-		var dest *neosyncdevv1alpha1.JobConfigDestination
-		switch conn.ConnectionConfig.Config.(type) {
-		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-			dest = &neosyncdevv1alpha1.JobConfigDestination{
-				Sql: &neosyncdevv1alpha1.DestinationSql{
-					ConnectionRef: &neosyncdevv1alpha1.LocalResourceRef{
-						Name: conn.Name,
-					},
-				},
-			}
-			options, ok := destOptionsMap[conn.Id]
-			if ok {
-				dest.Sql.TruncateBeforeInsert = options.Options.GetSqlOptions().TruncateBeforeInsert
-				dest.Sql.InitDbSchema = options.Options.GetSqlOptions().InitDbSchema
-			}
-		default:
-			return nil, nucleuserrors.NewNotImplemented("this destination connection config is not currently supported")
-		}
-		jobDestinations = append(jobDestinations, dest)
-	}
-
-	schemas, err := createSqlSchemas(req.Msg.Mappings)
+	destinationConnections, err := s.db.Q.GetJobConnectionDestinations(ctx, createdJob.ID)
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate job mapping: %w", err)
+		logger.Error("unable to retrieve job destination connections")
 	}
-	var source *neosyncdevv1alpha1.JobConfigSource
-	switch sourceConn.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		source = &neosyncdevv1alpha1.JobConfigSource{
-			Sql: &neosyncdevv1alpha1.SourceSql{
-				ConnectionRef: neosyncdevv1alpha1.LocalResourceRef{
-					Name: sourceConn.Name,
-				},
-				HaltOnSchemaChange: req.Msg.Source.GetOptions().GetSqlOptions().HaltOnNewColumnAddition,
-				Schemas:            schemas,
-			},
-		}
-	default:
-		return nil, nucleuserrors.NewNotImplemented("this source connection config is not currently supported")
-	}
-
-	job := &neosyncdevv1alpha1.JobConfig{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: s.cfg.JobConfigNamespace,
-			Name:      req.Msg.JobName,
-			Labels: map[string]string{
-				k8s_utils.NeosyncUuidLabel: jobUuid,
-			},
-		},
-		Spec: neosyncdevv1alpha1.JobConfigSpec{
-			CronSchedule: req.Msg.CronSchedule,
-			Source:       source,
-			Destinations: jobDestinations,
-		},
-	}
-
-	err = s.k8sclient.CustomResourceClient.Create(ctx, job)
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to create job: %w", err).Error())
-		return nil, err
-	}
-
-	logger.Info("created job")
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(logger, fromOperatorTransformer, job, sourceConn, destConns),
+		Job: dtomaps.ToJobDto(createdJob, destinationConnections),
 	}), nil
 }
 
@@ -255,23 +225,22 @@ func (s *Service) DeleteJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.DeleteJobRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteJobResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.Id)
-	logger.Info("deleting job config", "jobId", req.Msg.Id)
-	job, err := getJobById(ctx, logger, s.k8sclient, req.Msg.Id, s.cfg.JobConfigNamespace)
-	if err != nil && !errors.IsNotFound(err) {
+	idUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	if err != nil {
 		return nil, err
-	} else if err != nil && errors.IsNotFound(err) {
+	}
+
+	job, err := s.db.Q.GetJobById(ctx, idUuid)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
 		return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 	}
 
-	err = s.k8sclient.CustomResourceClient.Delete(ctx, job, &runtimeclient.DeleteOptions{})
-	if err != nil && !errors.IsNotFound(err) {
+	err = s.db.Q.RemoveJobById(ctx, job.ID)
+	if err != nil {
 		return nil, err
-	} else if err != nil && errors.IsNotFound(err) {
-		return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 	}
-
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 }
 
@@ -628,60 +597,4 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) ([]*neosyncdevv1alpha
 	}
 
 	return schema, nil
-}
-
-func getSourceConnectionName(jobConfig *neosyncdevv1alpha1.JobConfigSource) (string, error) {
-	if jobConfig.Sql != nil {
-		return jobConfig.Sql.ConnectionRef.Name, nil
-	}
-	return "", nucleuserrors.NewBadRequest("this job source connection config is not currently supported")
-}
-
-func getDestinationConnectionName(jobConfig *neosyncdevv1alpha1.JobConfigDestination) (string, error) {
-	if jobConfig.Sql != nil {
-		return jobConfig.Sql.ConnectionRef.Name, nil
-	}
-	return "", nucleuserrors.NewBadRequest("this job destination connection config is not currently supported")
-}
-
-func getJobById(
-	ctx context.Context,
-	logger *slog.Logger,
-	k8sclient *neosync_k8sclient.Client,
-	id string,
-	namespace string,
-) (*neosyncdevv1alpha1.JobConfig, error) {
-	jobs := &neosyncdevv1alpha1.JobConfigList{}
-	err := k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(namespace), &runtimeclient.MatchingLabels{
-		k8s_utils.NeosyncUuidLabel: id,
-	})
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
-		return nil, err
-	}
-	if len(jobs.Items) == 0 {
-		return nil, nucleuserrors.NewNotFound(fmt.Sprintf("job config not found. id: %s", id))
-	}
-	if len(jobs.Items) > 1 {
-		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 job config found. id: %s", id))
-	}
-	return &jobs.Items[0], nil
-}
-
-func getJobByName(
-	ctx context.Context,
-	logger *slog.Logger,
-	k8sclient *neosync_k8sclient.Client,
-	name string,
-	namespace string,
-) (*neosyncdevv1alpha1.JobConfig, error) {
-	job := &neosyncdevv1alpha1.JobConfig{}
-	err := k8sclient.CustomResourceClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, job)
-	if err != nil && !errors.IsNotFound(err) {
-		return nil, err
-	} else if err != nil && errors.IsNotFound(err) {
-		logger.Error(fmt.Errorf("job confing not found: %w", err).Error())
-		return nil, err
-	}
-	return job, nil
 }

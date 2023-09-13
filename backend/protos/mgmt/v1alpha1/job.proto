@@ -5,7 +5,9 @@ package mgmt.v1alpha1;
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
-message GetJobsRequest {}
+message GetJobsRequest {
+  string account_id = 1 [(validate.rules).string.uuid = true];
+}
 message GetJobsResponse {
   repeated Job jobs = 1;
 }
@@ -48,11 +50,12 @@ message SqlDestinationConnectionOptions {
 message AwsS3DestinationConnectionOptions {}
 
 message CreateJobRequest {
-  string job_name = 1;
-  optional string cron_schedule = 2;
-  repeated JobMapping mappings = 3;
-  JobSource source = 4;
-  repeated JobDestination destinations = 5;
+  string account_id = 1 [(validate.rules).string.uuid = true];
+  string job_name = 2;
+  optional string cron_schedule = 3;
+  repeated JobMapping mappings = 4;
+  JobSource source = 5;
+  repeated JobDestination destinations = 6;
 }
 message CreateJobResponse {
   Job job = 1;
@@ -134,6 +137,7 @@ message IsJobNameAvailableResponse {
 message GetJobRunsRequest {
   oneof id {
     string job_id = 1 [(validate.rules).string.uuid = true];
+    string account_id = 2 [(validate.rules).string.uuid = true];
   }
 }
 message GetJobRunsResponse {
@@ -162,16 +166,19 @@ message CancelJobRunResponse {}
 message Job {
   string id = 1;
 
-  google.protobuf.Timestamp created_at = 2;
-  google.protobuf.Timestamp updated_at = 3;
+  string created_by_user_id = 2;
+  google.protobuf.Timestamp created_at = 3;
 
-  string name = 4;
-  JobStatus status = 5;
+  string updated_by_user_id = 4;
+  google.protobuf.Timestamp updated_at = 5;
 
-  JobSource source = 6;
-  repeated JobDestination destinations = 7;
-  repeated JobMapping mappings = 8;
-  optional string cron_schedule = 9;
+  string name = 6;
+  JobStatus status = 7;
+
+  JobSource source = 8;
+  repeated JobDestination destinations = 9;
+  repeated JobMapping mappings = 10;
+  optional string cron_schedule = 11;
 }
 
 message JobRun {
@@ -180,6 +187,7 @@ message JobRun {
   string name = 3;
   JobRunStatus status = 4;
 
+  string created_by_user_id = 5;
   google.protobuf.Timestamp created_at = 6;
 }
 
