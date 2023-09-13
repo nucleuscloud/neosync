@@ -130,3 +130,70 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 	jm.Exclude = dto.Exclude
 	return nil
 }
+
+type JobSourceOptions struct {
+	SqlOptions *SqlSourceOptions
+}
+type SqlSourceOptions struct {
+	HaltOnNewColumnAddition bool
+}
+
+func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
+	if j.SqlOptions != nil {
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_SqlOptions{
+				SqlOptions: &mgmtv1alpha1.SqlSourceConnectionOptions{
+					HaltOnNewColumnAddition: &j.SqlOptions.HaltOnNewColumnAddition,
+				},
+			},
+		}
+	}
+	return nil
+}
+
+func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
+	switch config := dto.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_SqlOptions:
+		j.SqlOptions = &SqlSourceOptions{
+			HaltOnNewColumnAddition: *config.SqlOptions.HaltOnNewColumnAddition,
+		}
+	default:
+		return fmt.Errorf("invalid config")
+	}
+	return nil
+}
+
+type JobDestinationOptions struct {
+	SqlOptions *SqlDestinationOptions
+}
+type SqlDestinationOptions struct {
+	TruncateBeforeInsert bool
+	InitDbSchema         bool
+}
+
+func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
+	if j.SqlOptions != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_SqlOptions{
+				SqlOptions: &mgmtv1alpha1.SqlDestinationConnectionOptions{
+					TruncateBeforeInsert: &j.SqlOptions.TruncateBeforeInsert,
+					InitDbSchema:         &j.SqlOptions.InitDbSchema,
+				},
+			},
+		}
+	}
+	return nil
+}
+
+func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions) error {
+	switch config := dto.Config.(type) {
+	case *mgmtv1alpha1.JobDestinationOptions_SqlOptions:
+		j.SqlOptions = &SqlDestinationOptions{
+			TruncateBeforeInsert: *config.SqlOptions.TruncateBeforeInsert,
+			InitDbSchema:         *config.SqlOptions.InitDbSchema,
+		}
+	default:
+		return fmt.Errorf("invalid config")
+	}
+	return nil
+}

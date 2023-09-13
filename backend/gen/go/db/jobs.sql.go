@@ -14,24 +14,24 @@ import (
 
 const createJob = `-- name: CreateJob :one
 INSERT INTO neosync_api.jobs (
-  name, account_id, status, connection_source_id, mappings,
-  cron_schedule, halt_on_new_column_addition, created_by_id, updated_by_id
+  name, account_id, status, connection_source_id, connection_options, mappings,
+  cron_schedule, created_by_id, updated_by_id
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
-RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, mappings, cron_schedule, halt_on_new_column_addition, created_by_id, updated_by_id
+RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
 `
 
 type CreateJobParams struct {
-	Name                    string
-	AccountID               pgtype.UUID
-	Status                  int16
-	ConnectionSourceID      pgtype.UUID
-	Mappings                []*jsonmodels.JobMapping
-	CronSchedule            pgtype.Text
-	HaltOnNewColumnAddition int16
-	CreatedByID             pgtype.UUID
-	UpdatedByID             pgtype.UUID
+	Name               string
+	AccountID          pgtype.UUID
+	Status             int16
+	ConnectionSourceID pgtype.UUID
+	ConnectionOptions  *jsonmodels.JobSourceOptions
+	Mappings           []*jsonmodels.JobMapping
+	CronSchedule       pgtype.Text
+	CreatedByID        pgtype.UUID
+	UpdatedByID        pgtype.UUID
 }
 
 func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (NeosyncApiJob, error) {
@@ -40,9 +40,9 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (NeosyncAp
 		arg.AccountID,
 		arg.Status,
 		arg.ConnectionSourceID,
+		arg.ConnectionOptions,
 		arg.Mappings,
 		arg.CronSchedule,
-		arg.HaltOnNewColumnAddition,
 		arg.CreatedByID,
 		arg.UpdatedByID,
 	)
@@ -55,9 +55,9 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (NeosyncAp
 		&i.AccountID,
 		&i.Status,
 		&i.ConnectionSourceID,
+		&i.ConnectionOptions,
 		&i.Mappings,
 		&i.CronSchedule,
-		&i.HaltOnNewColumnAddition,
 		&i.CreatedByID,
 		&i.UpdatedByID,
 	)
@@ -66,22 +66,23 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (NeosyncAp
 
 const createJobConnectionDestination = `-- name: CreateJobConnectionDestination :one
 INSERT INTO neosync_api.job_destination_connection_associations (
-  job_id, connection_id
+  job_id, connection_id, options
 ) VALUES (
-  $1, $2
+  $1, $2, $3
 )
 ON CONFLICT(job_id, connection_id)
 DO NOTHING
-RETURNING id, created_at, updated_at, job_id, connection_id
+RETURNING id, created_at, updated_at, job_id, connection_id, options
 `
 
 type CreateJobConnectionDestinationParams struct {
 	JobID        pgtype.UUID
 	ConnectionID pgtype.UUID
+	Options      *jsonmodels.JobDestinationOptions
 }
 
 func (q *Queries) CreateJobConnectionDestination(ctx context.Context, arg CreateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
-	row := q.db.QueryRow(ctx, createJobConnectionDestination, arg.JobID, arg.ConnectionID)
+	row := q.db.QueryRow(ctx, createJobConnectionDestination, arg.JobID, arg.ConnectionID, arg.Options)
 	var i NeosyncApiJobDestinationConnectionAssociation
 	err := row.Scan(
 		&i.ID,
@@ -89,6 +90,7 @@ func (q *Queries) CreateJobConnectionDestination(ctx context.Context, arg Create
 		&i.UpdatedAt,
 		&i.JobID,
 		&i.ConnectionID,
+		&i.Options,
 	)
 	return i, err
 }
@@ -96,10 +98,11 @@ func (q *Queries) CreateJobConnectionDestination(ctx context.Context, arg Create
 type CreateJobConnectionDestinationsParams struct {
 	JobID        pgtype.UUID
 	ConnectionID pgtype.UUID
+	Options      *jsonmodels.JobDestinationOptions
 }
 
 const getJobById = `-- name: GetJobById :one
-SELECT id, created_at, updated_at, name, account_id, status, connection_source_id, mappings, cron_schedule, halt_on_new_column_addition, created_by_id, updated_by_id from neosync_api.jobs WHERE id = $1
+SELECT id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id from neosync_api.jobs WHERE id = $1
 `
 
 func (q *Queries) GetJobById(ctx context.Context, id pgtype.UUID) (NeosyncApiJob, error) {
@@ -113,9 +116,9 @@ func (q *Queries) GetJobById(ctx context.Context, id pgtype.UUID) (NeosyncApiJob
 		&i.AccountID,
 		&i.Status,
 		&i.ConnectionSourceID,
+		&i.ConnectionOptions,
 		&i.Mappings,
 		&i.CronSchedule,
-		&i.HaltOnNewColumnAddition,
 		&i.CreatedByID,
 		&i.UpdatedByID,
 	)
@@ -123,7 +126,7 @@ func (q *Queries) GetJobById(ctx context.Context, id pgtype.UUID) (NeosyncApiJob
 }
 
 const getJobByNameAndAccount = `-- name: GetJobByNameAndAccount :one
-SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_source_id, j.mappings, j.cron_schedule, j.halt_on_new_column_addition, j.created_by_id, j.updated_by_id from neosync_api.jobs j
+SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_source_id, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id from neosync_api.jobs j
 INNER JOIN neosync_api.accounts a ON a.id = j.account_id
 WHERE a.id = $1 AND j.name = $2
 `
@@ -144,9 +147,9 @@ func (q *Queries) GetJobByNameAndAccount(ctx context.Context, arg GetJobByNameAn
 		&i.AccountID,
 		&i.Status,
 		&i.ConnectionSourceID,
+		&i.ConnectionOptions,
 		&i.Mappings,
 		&i.CronSchedule,
-		&i.HaltOnNewColumnAddition,
 		&i.CreatedByID,
 		&i.UpdatedByID,
 	)
@@ -154,24 +157,31 @@ func (q *Queries) GetJobByNameAndAccount(ctx context.Context, arg GetJobByNameAn
 }
 
 const getJobConnectionDestinations = `-- name: GetJobConnectionDestinations :many
-SELECT jdca.connection_id from neosync_api.job_destination_connection_associations jdca
+SELECT jdca.id, jdca.created_at, jdca.updated_at, jdca.job_id, jdca.connection_id, jdca.options from neosync_api.job_destination_connection_associations jdca
 INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
 WHERE j.id = $1
 `
 
-func (q *Queries) GetJobConnectionDestinations(ctx context.Context, id pgtype.UUID) ([]pgtype.UUID, error) {
+func (q *Queries) GetJobConnectionDestinations(ctx context.Context, id pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error) {
 	rows, err := q.db.Query(ctx, getJobConnectionDestinations, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []pgtype.UUID
+	var items []NeosyncApiJobDestinationConnectionAssociation
 	for rows.Next() {
-		var connection_id pgtype.UUID
-		if err := rows.Scan(&connection_id); err != nil {
+		var i NeosyncApiJobDestinationConnectionAssociation
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.JobID,
+			&i.ConnectionID,
+			&i.Options,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, connection_id)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -180,7 +190,7 @@ func (q *Queries) GetJobConnectionDestinations(ctx context.Context, id pgtype.UU
 }
 
 const getJobConnectionDestinationsByJobIds = `-- name: GetJobConnectionDestinationsByJobIds :many
-SELECT jdca.id, jdca.created_at, jdca.updated_at, jdca.job_id, jdca.connection_id from neosync_api.job_destination_connection_associations jdca
+SELECT jdca.id, jdca.created_at, jdca.updated_at, jdca.job_id, jdca.connection_id, jdca.options from neosync_api.job_destination_connection_associations jdca
 INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
 WHERE j.id = ANY($1::uuid[])
 `
@@ -200,6 +210,7 @@ func (q *Queries) GetJobConnectionDestinationsByJobIds(ctx context.Context, jobi
 			&i.UpdatedAt,
 			&i.JobID,
 			&i.ConnectionID,
+			&i.Options,
 		); err != nil {
 			return nil, err
 		}
@@ -212,7 +223,7 @@ func (q *Queries) GetJobConnectionDestinationsByJobIds(ctx context.Context, jobi
 }
 
 const getJobsByAccount = `-- name: GetJobsByAccount :many
-SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_source_id, j.mappings, j.cron_schedule, j.halt_on_new_column_addition, j.created_by_id, j.updated_by_id from neosync_api.jobs j
+SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_source_id, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id from neosync_api.jobs j
 INNER JOIN neosync_api.accounts a ON a.id = j.account_id
 WHERE a.id = $1
 ORDER BY j.created_at DESC
@@ -235,9 +246,9 @@ func (q *Queries) GetJobsByAccount(ctx context.Context, accountid pgtype.UUID) (
 			&i.AccountID,
 			&i.Status,
 			&i.ConnectionSourceID,
+			&i.ConnectionOptions,
 			&i.Mappings,
 			&i.CronSchedule,
-			&i.HaltOnNewColumnAddition,
 			&i.CreatedByID,
 			&i.UpdatedByID,
 		); err != nil {

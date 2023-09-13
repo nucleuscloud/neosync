@@ -31,6 +31,7 @@ func (r iteratorForCreateJobConnectionDestinations) Values() ([]interface{}, err
 	return []interface{}{
 		r.rows[0].JobID,
 		r.rows[0].ConnectionID,
+		r.rows[0].Options,
 	}, nil
 }
 
@@ -39,5 +40,5 @@ func (r iteratorForCreateJobConnectionDestinations) Err() error {
 }
 
 func (q *Queries) CreateJobConnectionDestinations(ctx context.Context, arg []CreateJobConnectionDestinationsParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"neosync_api", "job_destination_connection_associations"}, []string{"job_id", "connection_id"}, &iteratorForCreateJobConnectionDestinations{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"neosync_api", "job_destination_connection_associations"}, []string{"job_id", "connection_id", "options"}, &iteratorForCreateJobConnectionDestinations{rows: arg})
 }

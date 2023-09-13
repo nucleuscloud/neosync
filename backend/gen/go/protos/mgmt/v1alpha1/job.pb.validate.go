@@ -60,8 +60,28 @@ func (m *GetJobsRequest) validate(all bool) error {
 
 	var errors []error
 
+	if err := m._validateUuid(m.GetAccountId()); err != nil {
+		err = GetJobsRequestValidationError{
+			field:  "AccountId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return GetJobsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetJobsRequest) _validateUuid(uuid string) error {
+	if matched := _job_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1382,6 +1402,18 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	var errors []error
 
+	if err := m._validateUuid(m.GetAccountId()); err != nil {
+		err = CreateJobRequestValidationError{
+			field:  "AccountId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	// no validation rules for JobName
 
 	for idx, item := range m.GetMappings() {
@@ -1487,6 +1519,14 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return CreateJobRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CreateJobRequest) _validateUuid(uuid string) error {
+	if matched := _job_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -3694,6 +3734,30 @@ func (m *GetJobRunsRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 
+	case *GetJobRunsRequest_AccountId:
+		if v == nil {
+			err := GetJobRunsRequestValidationError{
+				field:  "Id",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if err := m._validateUuid(m.GetAccountId()); err != nil {
+			err = GetJobRunsRequestValidationError{
+				field:  "AccountId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -4637,6 +4701,8 @@ func (m *Job) validate(all bool) error {
 
 	// no validation rules for Id
 
+	// no validation rules for CreatedByUserId
+
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
@@ -4665,6 +4731,8 @@ func (m *Job) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for UpdatedByUserId
 
 	if all {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {
@@ -4905,6 +4973,8 @@ func (m *JobRun) validate(all bool) error {
 	// no validation rules for Name
 
 	// no validation rules for Status
+
+	// no validation rules for CreatedByUserId
 
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
