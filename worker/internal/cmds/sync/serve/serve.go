@@ -1,6 +1,7 @@
 package serve_connect
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/nucleuscloud/neosync/worker/internal/workflows/datasync"
@@ -36,6 +37,11 @@ func serve() error {
 		temporalNamespace = "default"
 	}
 
+	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
+	if taskQueue == "" {
+		return errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
+	}
+
 	address := fmt.Sprintf("%s:%d", host, port)
 
 	temporalClient, err := client.Dial(client.Options{
@@ -50,7 +56,7 @@ func serve() error {
 	}
 	defer temporalClient.Close()
 
-	w := worker.New(temporalClient, "", worker.Options{})
+	w := worker.New(temporalClient, taskQueue, worker.Options{})
 	_ = w
 
 	w.RegisterWorkflow(datasync.Workflow)
