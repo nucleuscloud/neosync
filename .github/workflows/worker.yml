@@ -1,0 +1,57 @@
+on:
+  pull_request:
+    paths:
+      - worker/**
+
+name: Worker
+jobs:
+  golangci:
+    name: golang-lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.REPO_PAT }}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: worker/go.mod
+          cache-dependency-path: worker/go.sum
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m
+          working-directory: worker
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.REPO_PAT }}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: worker/go.mod
+          cache-dependency-path: worker/go.sum
+
+      - name: Test
+        run: |
+          go test -race ./...
