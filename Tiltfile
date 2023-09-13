@@ -1,8 +1,5 @@
 allow_k8s_contexts('kind-nuc-dev')
 
-operator = [
-  'neosync-operator',
-]
 backend = [
   'neosync-api',
 ]
@@ -11,7 +8,6 @@ frontend = [
 ]
 
 groups = {
-  'operator': operator,
   'backend': backend,
   'frontend': backend + frontend,
 }
@@ -26,6 +22,6 @@ for arg in cfg.get('to-run', []):
     resources.append(arg)
 config.set_enabled_resources(resources)
 
-load_dynamic('k8s-operator/Tiltfile')
+load_dynamic('tilt/temporal/Tiltfile')
 load_dynamic('backend/Tiltfile')
 load_dynamic('frontend/Tiltfile')
