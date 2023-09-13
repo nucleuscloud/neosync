@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -12,8 +13,10 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
 	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -59,7 +62,8 @@ func (s *Service) GetJobs(
 	}
 
 	associationMap := map[pgtype.UUID][]db_queries.NeosyncApiJobDestinationConnectionAssociation{}
-	for _, assoc := range destinationAssociations {
+	for i := range destinationAssociations {
+		assoc := destinationAssociations[i]
 		if _, ok := associationMap[assoc.JobID]; ok {
 			associationMap[assoc.JobID] = append(associationMap[assoc.JobID], assoc)
 		} else {
@@ -84,8 +88,6 @@ func (s *Service) GetJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.Id)
 	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
@@ -597,4 +599,46 @@ func createSqlSchemas(mappings []*mgmtv1alpha1.JobMapping) ([]*neosyncdevv1alpha
 	}
 
 	return schema, nil
+}
+
+func getJobById(
+	ctx context.Context,
+	logger *slog.Logger,
+	k8sclient *neosync_k8sclient.Client,
+	id string,
+	namespace string,
+) (*neosyncdevv1alpha1.JobConfig, error) {
+	jobs := &neosyncdevv1alpha1.JobConfigList{}
+	err := k8sclient.CustomResourceClient.List(ctx, jobs, runtimeclient.InNamespace(namespace), &runtimeclient.MatchingLabels{
+		k8s_utils.NeosyncUuidLabel: id,
+	})
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	if len(jobs.Items) == 0 {
+		return nil, nucleuserrors.NewNotFound(fmt.Sprintf("job config not found. id: %s", id))
+	}
+	if len(jobs.Items) > 1 {
+		return nil, nucleuserrors.NewInternalError(fmt.Sprintf("more than 1 job config found. id: %s", id))
+	}
+	return &jobs.Items[0], nil
+}
+
+func getJobByName(
+	ctx context.Context,
+	logger *slog.Logger,
+	k8sclient *neosync_k8sclient.Client,
+	name string,
+	namespace string,
+) (*neosyncdevv1alpha1.JobConfig, error) {
+	job := &neosyncdevv1alpha1.JobConfig{}
+	err := k8sclient.CustomResourceClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace}, job)
+	if err != nil && !errors.IsNotFound(err) {
+		return nil, err
+	} else if err != nil && errors.IsNotFound(err) {
+		logger.Error(fmt.Errorf("job confing not found: %w", err).Error())
+		return nil, err
+	}
+	return job, nil
 }

@@ -147,9 +147,17 @@ func (s *Service) CreateConnection(
 		return nil, err
 	}
 
+	accountId, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
 	connection, err := s.db.Q.CreateConnection(ctx, db_queries.CreateConnectionParams{
+		AccountID:        accountId,
 		Name:             req.Msg.Name,
 		ConnectionConfig: cc,
+		// CreatedByID:   todo @alisha
+		// UpdatedByID:   todo @alisha
 	})
 	if err != nil {
 		return nil, err

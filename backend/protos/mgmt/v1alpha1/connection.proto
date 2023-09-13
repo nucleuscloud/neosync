@@ -12,13 +12,6 @@ message GetConnectionsResponse {
   repeated Connection connections = 1;
 }
 
-message GetConnectionsByNamesRequest {
-  repeated string names = 1;
-}
-message GetConnectionsByNamesResponse {
-  repeated Connection connections = 1;
-}
-
 message GetConnectionRequest {
   string id = 1 [(validate.rules).string.uuid = true];
 }
@@ -130,7 +123,6 @@ message GetConnectionSchemaResponse {
 
 service ConnectionService {
   rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
-  rpc GetConnectionsByNames(GetConnectionsByNamesRequest) returns (GetConnectionsByNamesResponse) {}
   rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {}
   rpc CreateConnection(CreateConnectionRequest) returns (CreateConnectionResponse) {}
   rpc UpdateConnection(UpdateConnectionRequest) returns (UpdateConnectionResponse) {}

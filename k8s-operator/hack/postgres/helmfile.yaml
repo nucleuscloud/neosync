@@ -6,7 +6,7 @@ releases:
   - name: postgresql1
     chart: bitnami/postgresql
     version: 12.10.0
-    namespace: default
+    namespace: neosync
     createNamespace: false
 
     values:
