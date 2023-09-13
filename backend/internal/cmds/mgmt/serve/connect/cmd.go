@@ -14,6 +14,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 
@@ -65,6 +66,15 @@ func serve() error {
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
+	dbconfig, err := getDbConfig()
+	if err != nil {
+		panic(err)
+	}
+	db, err := nucleusdb.NewFromConfig(dbconfig)
+	if err != nil {
+		panic(err)
+	}
+
 	neosyncK8sClient, err := neosync_k8sclient.New()
 	if err != nil {
 		return err
@@ -81,7 +91,7 @@ func serve() error {
 
 	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{
 		JobConfigNamespace: jobConfigNamespace,
-	}, neosyncK8sClient)
+	}, db, neosyncK8sClient)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -91,7 +101,7 @@ func serve() error {
 
 	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{
 		JobConfigNamespace: jobConfigNamespace,
-	}, neosyncK8sClient, connectionService)
+	}, db, neosyncK8sClient, connectionService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
@@ -123,4 +133,45 @@ func getJobConfigNamespace() string {
 		jobConfigNamespace = "default"
 	}
 	return jobConfigNamespace
+}
+
+func getDbConfig() (*nucleusdb.ConnectConfig, error) {
+	dbHost := viper.GetString("DB_HOST")
+	if dbHost == "" {
+		return nil, fmt.Errorf("must provide DB_HOST in environment")
+	}
+
+	dbPort := viper.GetInt("DB_PORT")
+	if dbPort == 0 {
+		return nil, fmt.Errorf("must provide DB_PORT in environment")
+	}
+
+	dbName := viper.GetString("DB_NAME")
+	if dbName == "" {
+		return nil, fmt.Errorf("must provide DB_NAME in environment")
+	}
+
+	dbUser := viper.GetString("DB_USER")
+	if dbUser == "" {
+		return nil, fmt.Errorf("must provide DB_USER in environment")
+	}
+
+	dbPass := viper.GetString("DB_PASS")
+	if dbPass == "" {
+		return nil, fmt.Errorf("must provide DB_PASS in environment")
+	}
+
+	sslMode := "require"
+	if viper.IsSet("DB_SSL_DISABLE") && viper.GetBool("DB_SSL_DISABLE") {
+		sslMode = "disable"
+	}
+
+	return &nucleusdb.ConnectConfig{
+		Host:     dbHost,
+		Port:     dbPort,
+		Database: dbName,
+		User:     dbUser,
+		Pass:     dbPass,
+		SslMode:  &sslMode,
+	}, nil
 }

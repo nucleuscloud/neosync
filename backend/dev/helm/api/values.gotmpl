@@ -5,6 +5,21 @@ api:
   serviceAccount:
     create: true
 
+  db:
+    host: postgresql
+    name: nucleus
+    port: 5432
+    username: postgres
+    password: foofar
+
+  migrations:
+    skipSchemaCreation: false
+    image:
+      repository: db-migration
+    db:
+      username: postgres
+      password: foofar
+
   terminationGracePeriodSeconds: 300
   shutdownTimeoutSeconds: 5
 

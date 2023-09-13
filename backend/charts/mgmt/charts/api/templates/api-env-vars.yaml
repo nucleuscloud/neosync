@@ -5,6 +5,12 @@ metadata:
     namespace: {{ .Release.Namespace }}
 type: Opaque
 stringData:
+    DB_HOST: {{ .Values.db.host }}
+    DB_PORT: {{ .Values.db.port | quote }}
+    DB_NAME: {{ .Values.db.name }}
+    DB_USER: {{ .Values.db.username }}
+    DB_PASS: {{ .Values.db.password }}
+
     {{- if .Values.host }}
     HOST: {{ .Values.host | quote}}
     {{- end }}

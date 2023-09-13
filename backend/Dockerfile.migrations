@@ -1,0 +1,23 @@
+FROM alpine:3.17.1
+
+WORKDIR /workspace
+
+RUN mkdir migrations && \
+  mkdir hack && \
+  mkdir bin
+
+ENV PATH="${PATH}:/workspace/bin"
+
+COPY migrations/* migrations/
+COPY hack/migrate.sh hack/
+COPY hack/migrate-download.sh hack/
+
+RUN apk add --no-cache \
+  curl \
+  postgresql14 \
+  ca-certificates
+
+RUN hack/migrate-download.sh
+
+ENTRYPOINT ["/workspace/hack/migrate.sh"]
+CMD ["up"]
