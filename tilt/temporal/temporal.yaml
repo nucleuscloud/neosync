@@ -1,0 +1,448 @@
+apiVersion: v1
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: elasticsearch
+      name: elasticsearch
+    spec:
+      ports:
+        - name: "9200"
+          port: 9200
+          targetPort: 9200
+      selector:
+        io.kompose.service: elasticsearch
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: postgresql
+      name: postgresql
+    spec:
+      ports:
+        - name: "5432"
+          port: 5432
+          targetPort: 5432
+      selector:
+        io.kompose.service: postgresql
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+        kompose.volume.type: configMap
+      creationTimestamp: null
+      labels:
+        io.kompose.service: temporal
+      name: temporal
+    spec:
+      ports:
+        - name: "7233"
+          port: 7233
+          targetPort: 7233
+      selector:
+        io.kompose.service: temporal
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: temporal-ui
+      name: temporal-ui
+    spec:
+      ports:
+        - name: "8080"
+          port: 8080
+          targetPort: 8080
+      selector:
+        io.kompose.service: temporal-ui
+    status:
+      loadBalancer: {}
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: temporal-web
+      name: temporal-web
+    spec:
+      ports:
+        - name: "8088"
+          port: 8088
+          targetPort: 8088
+      selector:
+        io.kompose.service: temporal-web
+    status:
+      loadBalancer: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: elasticsearch
+      name: elasticsearch
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: elasticsearch
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+            kompose.version: 1.26.1 (1b040dd2)
+          creationTimestamp: null
+          labels:
+            io.kompose.network/temporal-network: "true"
+            io.kompose.service: elasticsearch
+        spec:
+          containers:
+            - env:
+                - name: ES_JAVA_OPTS
+                  value: -Xms256m -Xmx256m
+                - name: cluster.routing.allocation.disk.threshold_enabled
+                  value: "true"
+                - name: cluster.routing.allocation.disk.watermark.flood_stage
+                  value: 128mb
+                - name: cluster.routing.allocation.disk.watermark.high
+                  value: 256mb
+                - name: cluster.routing.allocation.disk.watermark.low
+                  value: 512mb
+                - name: discovery.type
+                  value: single-node
+                - name: xpack.security.enabled
+                  value: "false"
+              image: elasticsearch:7.16.2
+              name: temporal-elasticsearch
+              ports:
+                - containerPort: 9200
+              resources: {}
+          restartPolicy: Always
+          enableServiceLinks: false
+    status: {}
+  - apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      creationTimestamp: null
+      name: temporal-network
+    spec:
+      ingress:
+        - from:
+            - podSelector:
+                matchLabels:
+                  io.kompose.network/temporal-network: "true"
+      podSelector:
+        matchLabels:
+          io.kompose.network/temporal-network: "true"
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: postgresql
+      name: postgresql
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: postgresql
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+            kompose.version: 1.26.1 (1b040dd2)
+          creationTimestamp: null
+          labels:
+            io.kompose.network/temporal-network: "true"
+            io.kompose.service: postgresql
+        spec:
+          containers:
+            - env:
+                - name: POSTGRES_PASSWORD
+                  value: temporal
+                - name: POSTGRES_USER
+                  value: temporal
+              image: postgres:13
+              name: temporal-postgresql
+              ports:
+                - containerPort: 5432
+              resources: {}
+          restartPolicy: Always
+          enableServiceLinks: false
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+        kompose.volume.type: configMap
+      creationTimestamp: null
+      labels:
+        io.kompose.service: temporal
+      name: temporal
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: temporal
+      strategy:
+        type: Recreate
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+            kompose.version: 1.26.1 (1b040dd2)
+            kompose.volume.type: configMap
+          creationTimestamp: null
+          labels:
+            io.kompose.network/temporal-network: "true"
+            io.kompose.service: temporal
+        spec:
+          containers:
+            - env:
+                - name: DB
+                  value: postgresql
+                - name: DB_PORT
+                  value: "5432"
+                - name: DYNAMIC_CONFIG_FILE_PATH
+                  value: config/dynamicconfig/development-sql.yaml
+                - name: ENABLE_ES
+                  value: "true"
+                - name: ES_SEEDS
+                  value: elasticsearch
+                - name: ES_VERSION
+                  value: v7
+                - name: POSTGRES_PWD
+                  value: temporal
+                - name: POSTGRES_SEEDS
+                  value: postgresql
+                - name: POSTGRES_USER
+                  value: temporal
+              image: temporalio/auto-setup:1.21.1
+              name: temporal
+              ports:
+                - containerPort: 7233
+              resources: {}
+              volumeMounts:
+                - mountPath: /etc/temporal/config/dynamicconfig
+                  name: temporal-cm0
+          restartPolicy: Always
+          volumes:
+            - configMap:
+                name: temporal-cm0
+              name: temporal-cm0
+          enableServiceLinks: false
+    status: {}
+  - apiVersion: v1
+    data:
+      README.md: |
+        Use `docker.yaml` file to override the default dynamic config value (they are specified
+        when creating the service config).
+
+        Each key can have zero or more values and each value can have zero or more
+        constraints. There are only three types of constraint:
+        1. `namespace`: `string`
+        2. `taskQueueName`: `string`
+        3. `taskType`: `int` (`1`:`Workflow`, `2`:`Activity`)
+        A value will be selected and returned if all its has exactly the same constraints
+        as the ones specified in query filters (including the number of constraints).
+
+        Please use the following format:
+        ```
+        testGetBoolPropertyKey:
+          - value: false
+          - value: true
+            constraints:
+              namespace: "global-samples-namespace"
+          - value: false
+            constraints:
+              namespace: "samples-namespace"
+        testGetDurationPropertyKey:
+          - value: "1m"
+            constraints:
+              namespace: "samples-namespace"
+              taskQueueName: "longIdleTimeTaskqueue"
+        testGetFloat64PropertyKey:
+          - value: 12.0
+            constraints:
+              namespace: "samples-namespace"
+        testGetMapPropertyKey:
+          - value:
+              key1: 1
+              key2: "value 2"
+              key3:
+                - false
+                - key4: true
+                  key5: 2.0
+        ```
+      development-cass.yaml: |
+        system.forceSearchAttributesCacheRefreshOnRead:
+          - value: true # Dev setup only. Please don't turn this on in production.
+            constraints: {}
+      development-sql.yaml: |
+        limit.maxIDLength:
+          - value: 255
+            constraints: {}
+        system.forceSearchAttributesCacheRefreshOnRead:
+          - value: true # Dev setup only. Please don't turn this on in production.
+            constraints: {}
+      docker.yaml: ""
+    kind: ConfigMap
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: temporal
+      name: temporal-cm0
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: temporal-admin-tools
+      name: temporal-admin-tools
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: temporal-admin-tools
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+            kompose.version: 1.26.1 (1b040dd2)
+          creationTimestamp: null
+          labels:
+            io.kompose.network/temporal-network: "true"
+            io.kompose.service: temporal-admin-tools
+        spec:
+          containers:
+            - env:
+                - name: TEMPORAL_ADDRESS
+                  value: temporal:7233
+                - name: TEMPORAL_CLI_ADDRESS
+                  value: temporal:7233
+              image: temporalio/admin-tools:1.21.1
+              name: temporal-admin-tools
+              resources: {}
+              stdin: true
+              tty: true
+          restartPolicy: Always
+          enableServiceLinks: false
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: temporal-ui
+      name: temporal-ui
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: temporal-ui
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+            kompose.version: 1.26.1 (1b040dd2)
+          creationTimestamp: null
+          labels:
+            io.kompose.network/temporal-network: "true"
+            io.kompose.service: temporal-ui
+        spec:
+          containers:
+            - env:
+                - name: TEMPORAL_ADDRESS
+                  value: temporal:7233
+                - name: TEMPORAL_CORS_ORIGINS
+                  value: http://localhost:3000
+              image: temporalio/ui:2.16.2
+              name: temporal-ui
+              ports:
+                - containerPort: 8080
+              resources: {}
+          restartPolicy: Always
+          enableServiceLinks: false
+    status: {}
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+        kompose.version: 1.26.1 (1b040dd2)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: temporal-web
+      name: temporal-web
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          io.kompose.service: temporal-web
+      strategy: {}
+      template:
+        metadata:
+          annotations:
+            kompose.cmd: kompose convert -f docker-compose.yml -o k8s/temporal.yaml
+            kompose.version: 1.26.1 (1b040dd2)
+          creationTimestamp: null
+          labels:
+            io.kompose.network/temporal-network: "true"
+            io.kompose.service: temporal-web
+        spec:
+          containers:
+            - env:
+                - name: TEMPORAL_GRPC_ENDPOINT
+                  value: temporal:7233
+                - name: TEMPORAL_PERMIT_WRITE_API
+                  value: "true"
+              image: temporalio/web:1.15.0
+              name: temporal-web
+              ports:
+                - containerPort: 8088
+              resources: {}
+          restartPolicy: Always
+          enableServiceLinks: false
+    status: {}
+kind: List
+metadata: {}
