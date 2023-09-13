@@ -3,6 +3,7 @@ package serve_connect
 import (
 	"fmt"
 
+	"github.com/nucleuscloud/neosync/worker/internal/workflows/datasync"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/client"
@@ -52,7 +53,8 @@ func serve() error {
 	w := worker.New(temporalClient, "", worker.Options{})
 	_ = w
 
-	// todo: register workflows and activites
+	w.RegisterWorkflow(datasync.Workflow)
+	w.RegisterActivity(&datasync.Activities{})
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
