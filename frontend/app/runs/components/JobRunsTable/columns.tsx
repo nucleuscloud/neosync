@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { Checkbox } from '@/components/ui/checkbox';
 
-import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -16,7 +16,7 @@ interface GetColumnsProps {
 
 export function getColumns(
   props: GetColumnsProps
-): ColumnDef<PlainMessage<Connection>>[] {
+): ColumnDef<PlainMessage<JobRun>>[] {
   const { onDeleted } = props;
   return [
     {

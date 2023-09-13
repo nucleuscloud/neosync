@@ -60,15 +60,15 @@ func toOperatorTransformer(value string) (string, error) {
 	}
 }
 
-func fromOperatorTransformer(value string) (string, error) {
-	switch value {
-	case string(operator_transformers.UuidV4):
-		return string(UuidV4), nil
-	case string(operator_transformers.FirstName):
-		return string(FirstName), nil
-	case string(operator_transformers.PhoneNumber):
-		return string(PhoneNumber), nil
-	default:
-		return "", fmt.Errorf("unsupported transformer")
-	}
-}
+// func fromOperatorTransformer(value string) (string, error) {
+// 	switch value {
+// 	case string(operator_transformers.UuidV4):
+// 		return string(UuidV4), nil
+// 	case string(operator_transformers.FirstName):
+// 		return string(FirstName), nil
+// 	case string(operator_transformers.PhoneNumber):
+// 		return string(PhoneNumber), nil
+// 	default:
+// 		return "", fmt.Errorf("unsupported transformer")
+// 	}
+// }

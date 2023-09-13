@@ -16,8 +16,9 @@ func ToJobDto(
 		mappings = append(mappings, mapping.ToDto())
 	}
 	destinations := []*mgmtv1alpha1.JobDestination{}
-	for _, dest := range inputDestConnections {
-		destinations = append(destinations, toDestinationDto(dest))
+	for i := range inputDestConnections {
+		dest := inputDestConnections[i]
+		destinations = append(destinations, toDestinationDto(&dest))
 	}
 	return &mgmtv1alpha1.Job{
 		Id:              nucleusdb.UUIDString(inputJob.ID),
@@ -35,7 +36,7 @@ func ToJobDto(
 
 }
 
-func toDestinationDto(input db_queries.NeosyncApiJobDestinationConnectionAssociation) *mgmtv1alpha1.JobDestination {
+func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssociation) *mgmtv1alpha1.JobDestination {
 	return &mgmtv1alpha1.JobDestination{
 		ConnectionId: nucleusdb.UUIDString(input.ConnectionID),
 		Options:      input.Options.ToDto(),
