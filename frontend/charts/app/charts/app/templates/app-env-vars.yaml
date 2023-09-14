@@ -20,3 +20,25 @@ stringData:
     SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
 
     NEOSYNC_API_BASE_URL: {{ .Values.neosyncApi.url }}
+
+    NEXTAUTH_SECRET: {{ .Values.nextAuthSecret }}
+
+    {{ if .Values.nextAuthUrl }}
+    NEXTAUTH_URL: {{ .Values.nextAuthUrl }}
+    {{- end }}
+
+    {{ if .Values.auth0.clientId }}
+    AUTH0_CLIENT_ID: {{ .Values.auth0.clientId }}
+    {{-end }}
+    {{ if .Values.auth0.clientSecret }}
+    AUTH0_CLIENT_SECRET: {{ .Values.auth0.clientSecret }}
+    {{-end }}
+    {{ if .Values.auth0.issuer }}
+    AUTH0_ISSUER: {{ .Values.auth0.issuer }}
+    {{-end }}
+    {{ if .Values.auth0.scope }}
+    AUTH0_SCOPE: {{ .Values.auth0.scope }}
+    {{-end }}
+    {{ if .Values.auth0.audience }}
+    AUTH0_AUDIENCE: {{ .Values.auth0.audience }}
+    {{-end }}
