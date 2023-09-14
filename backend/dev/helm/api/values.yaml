@@ -36,3 +36,7 @@ api:
 
   jobConfig:
     namespace: neosync
+
+  auth:
+    baseUrl: https://auth.nucleuscloud.dev
+    audience: https://api.nucleuscloud.com

@@ -50,3 +50,7 @@ shutdownTimeoutSeconds:
 
 jobConfig:
   namespace:
+
+auth0:
+  baseUrl:
+  audience:

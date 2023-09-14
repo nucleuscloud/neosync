@@ -25,3 +25,6 @@ stringData:
 
     SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
     JOB_CONFIG_NAMESPACE: {{ .Values.jobConfig.namespace }}
+
+    AUTH_BASEURL: {{ .Values.auth.baseUrl }}
+    AUTH_AUDIENCE: {{ .Values.auth.audience }}
