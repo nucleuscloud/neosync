@@ -46,6 +46,15 @@ spec:
       {{- end }}
       terminationGracePeriod: {{ .Values.terminationGracePeriod }}
 
+      initContainers:
+        - name: db-migration
+          image: '{{ .Values.migrations.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          envFrom:
+            - secretRef:
+                name: {{ template "neosync-api.fullname" . }}-migration-evs
+
       containers:
         - name: user-container
           image: '{{ .Values.image.repository | default "ghcr.io/nucleuscloud/neosync/backend" }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'

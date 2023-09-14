@@ -8,6 +8,8 @@ helmfile = helpers['helmfile']
 
 allow_k8s_contexts('kind-nuc-dev')
 
+base_dir = os.path.dirname(__file__)
+
 # when debugging can be handy to disable scrub
 secret_settings(disable_scrub=True)
 
@@ -50,12 +52,14 @@ local_resource(
   labels=['build']
 )
 
-# docker_build(
-#   'db-migration',
-#   '.',
-#   dockerfile='./Dockerfile.migrations',
-#   only=['hack', 'migrations'],
-# )
+docker_build(
+  ref='db-migration',
+  context='.',
+  dockerfile='./Dockerfile.migrations',
+  only=['hack/', 'migrations/'],
+)
+k8s_yaml(helmfile('./dev/helm/db', helmfileDir=base_dir+'/dev/helm/db'))
+k8s_resource('neosync-postgresql', labels=['db'], port_forwards=5432)
 
 # for namespace in [ "nucleus" ]:
 #   k8s_yaml(configmap_from_dict("dev-config", namespace=namespace, inputs = {
@@ -71,17 +75,12 @@ local_resource(
 #       'EVENTS_TOPIC_ARN' : os.getenv('NUCLEUS_DEV_EVENTS_TOPIC_ARN'),
 # }))
 
-base_dir = os.path.dirname(__file__)
-helmfileDir = base_dir + '/dev/helm/api'
-k8s_yaml(helmfile_with_local_chart('neosync-api', base_dir + '/charts/mgmt', helmfileDir=helmfileDir))
+k8s_yaml(helmfile_with_local_chart('neosync-api', base_dir + '/charts/mgmt', helmfileDir=base_dir + '/dev/helm/api'))
 # References the deployment
 k8s_resource(
   'neosync-api',
-  resource_deps=[],
+  resource_deps=['neosync-postgresql'],
   labels=['backend'],
-  links=[
-    'http://localhost:8080',
-  ],
   port_forwards="8080:8080",
 )
 docker_build_with_restart(
