@@ -16,3 +16,5 @@ Chart.lock
 charts/**/*.tgz
 
 go.work.sum
+
+.data

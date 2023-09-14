@@ -13,3 +13,6 @@ releases:
       - auth:
           postgresPassword: foofar
           database: nucleus
+      - primary:
+          persistence:
+            existingClaim: neosync-postgres # see pvc in ../yaml/neosync-postgres-pvc.yaml
