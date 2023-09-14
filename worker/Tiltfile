@@ -1,0 +1,3 @@
+load('ext://restart_process', 'docker_build_with_restart')
+load('ext://configmap', 'configmap_from_dict')
+load('ext://namespace', 'namespace_create')

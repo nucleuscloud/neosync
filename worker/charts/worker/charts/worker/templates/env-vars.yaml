@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: {{ template "neosync-worker.fullname" . }}-service-evs
+    namespace: {{ .Release.Namespace }}
+type: Opaque
+stringData:
+    {{- if .Values.host }}
+    HOST: {{ .Values.host | quote}}
+    {{- end }}
+
+    PORT: {{ .Values.port | quote }}
+
+    {{- if ne .Values.nucleusEnv "dev" }}
+    OTEL_EXPORTER_OTLP_PORT: "4317" # sends to gRPC receiver on port 4317
+    {{- end }}
+
+    NUCLEUS_ENV: {{ .Values.nucleusEnv }}
+
+    SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
