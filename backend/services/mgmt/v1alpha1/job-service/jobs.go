@@ -14,7 +14,8 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
-	"github.com/nucleuscloud/neosync/worker/internal/workflos/datasync"
+
+	"github.com/nucleuscloud/neosync/worker/internal/workflows/datasync"
 	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
 )
