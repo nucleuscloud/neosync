@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -13,6 +14,8 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	"github.com/nucleuscloud/neosync/worker/internal/workflos/datasync"
+	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -208,6 +211,32 @@ func (s *Service) CreateJob(
 		return nil
 	}); err != nil {
 		return nil, err
+	}
+
+	schedule := nucleusdb.ToNullableString(createdJob.CronSchedule)
+	if schedule != nil && *schedule != "" {
+		// create scheduled
+
+	} else {
+		// create one off
+
+		workflowUuid := uuid.New().String()
+		jobUuid := nucleusdb.UUIDString(createdJob.ID)
+		workflowOptions := temporalclient.StartWorkflowOptions{
+			ID:        workflowUuid,
+			TaskQueue: s.cfg.TemporalTaskQueue,
+			SearchAttributes: map[string]interface{}{ // optional search attributes when start workflow
+				"JobId": jobUuid,
+			},
+		}
+
+		we, err := s.temporalClient.ExecuteWorkflow(context.Background(), workflowOptions, datasync.Workflow, &datasync.WorkflowRequest{JobId: jobUuid})
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to execute workflow: %w", err).Error())
+			return nil, err
+		}
+		logger.Info("started workflow", "workflowId", we.GetID(), "runId", we.GetRunID())
+
 	}
 
 	destinationConnections, err := s.db.Q.GetJobConnectionDestinations(ctx, createdJob.ID)

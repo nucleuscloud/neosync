@@ -1,6 +1,7 @@
 package serve_connect
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -16,6 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
+	temporalclient "go.temporal.io/sdk/client"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -74,6 +76,18 @@ func serve() error {
 		panic(err)
 	}
 
+	temporalConfig := getTemporalConfig()
+	temporalClient, err := temporalclient.Dial(*temporalConfig)
+	if err != nil {
+		panic(err)
+	}
+	defer temporalClient.Close()
+
+	temporalTaskQueue, err := getTemporalTaskQueue()
+	if err != nil {
+		panic(err)
+	}
+
 	stdInterceptors := connect.WithInterceptors(
 		otelconnect.NewInterceptor(),
 		logger_interceptor.NewInterceptor(logger),
@@ -89,7 +103,7 @@ func serve() error {
 		),
 	)
 
-	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{}, db, connectionService)
+	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{TemporalTaskQueue: temporalTaskQueue}, db, temporalClient, connectionService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
@@ -154,4 +168,38 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		Pass:     dbPass,
 		SslMode:  &sslMode,
 	}, nil
+}
+
+func getTemporalConfig() *temporalclient.Options {
+	port := viper.GetInt32("PORT")
+	if port == 0 {
+		port = 7233
+	}
+	host := viper.GetString("HOST")
+	if host == "" {
+		host = "127.0.0.1"
+	}
+
+	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
+	if temporalNamespace == "" {
+		temporalNamespace = "default"
+	}
+
+	address := fmt.Sprintf("%s:%d", host, port)
+
+	return &temporalclient.Options{
+		// Logger: ,
+		HostPort:  address,
+		Namespace: temporalNamespace,
+		// Interceptors: ,
+		// HeadersProvider: ,
+	}, nil
+}
+
+func getTemporalTaskQueue() (string, error) {
+	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
+	if taskQueue == "" {
+		return "", errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
+	}
+	return taskQueue, nil
 }
