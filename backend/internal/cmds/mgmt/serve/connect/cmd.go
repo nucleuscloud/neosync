@@ -12,7 +12,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
@@ -75,11 +74,6 @@ func serve() error {
 		panic(err)
 	}
 
-	neosyncK8sClient, err := neosync_k8sclient.New()
-	if err != nil {
-		return err
-	}
-
 	stdInterceptors := connect.WithInterceptors(
 		otelconnect.NewInterceptor(),
 		logger_interceptor.NewInterceptor(logger),
@@ -87,11 +81,7 @@ func serve() error {
 
 	api := http.NewServeMux()
 
-	jobConfigNamespace := getJobConfigNamespace()
-
-	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{
-		JobConfigNamespace: jobConfigNamespace,
-	}, db, neosyncK8sClient)
+	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -99,9 +89,7 @@ func serve() error {
 		),
 	)
 
-	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{
-		JobConfigNamespace: jobConfigNamespace,
-	}, db, neosyncK8sClient, connectionService)
+	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{}, db, connectionService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
@@ -125,14 +113,6 @@ func serve() error {
 		logger.Error(err.Error())
 	}
 	return nil
-}
-
-func getJobConfigNamespace() string {
-	jobConfigNamespace := viper.GetString("JOB_CONFIG_NAMESPACE")
-	if jobConfigNamespace == "" {
-		jobConfigNamespace = "default"
-	}
-	return jobConfigNamespace
 }
 
 func getDbConfig() (*nucleusdb.ConnectConfig, error) {

@@ -106,11 +106,11 @@ message UpdateJobSourceConnectionResponse {
   Job job = 1;
 }
 
-message UpdateJobDestinationConnectionsRequest {
+message UpdateJobDestinationConnectionRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  repeated JobDestination destinations = 2 [(validate.rules).repeated = {min_items: 1}];
+  JobDestination destination = 2;
 }
-message UpdateJobDestinationConnectionsResponse {
+message UpdateJobDestinationConnectionResponse {
   Job job = 1;
 }
 
@@ -129,6 +129,7 @@ message DeleteJobResponse {}
 
 message IsJobNameAvailableRequest {
   string name = 1;
+  string account_id = 2 [(validate.rules).string.uuid = true];
 }
 message IsJobNameAvailableResponse {
   bool is_available = 1;
@@ -221,7 +222,7 @@ service JobService {
   rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {}
   rpc UpdateJobSchedule(UpdateJobScheduleRequest) returns (UpdateJobScheduleResponse) {}
   rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
-  rpc UpdateJobDestinationConnections(UpdateJobDestinationConnectionsRequest) returns (UpdateJobDestinationConnectionsResponse) {}
+  rpc UpdateJobDestinationConnection(UpdateJobDestinationConnectionRequest) returns (UpdateJobDestinationConnectionResponse) {}
   rpc UpdateJobMappings(UpdateJobMappingsRequest) returns (UpdateJobMappingsResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}

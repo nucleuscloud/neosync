@@ -24,8 +24,8 @@ import {
   JobDestination,
   JobDestinationOptions,
   SqlDestinationConnectionOptions,
-  UpdateJobDestinationConnectionsRequest,
-  UpdateJobDestinationConnectionsResponse,
+  UpdateJobDestinationConnectionRequest,
+  UpdateJobDestinationConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import { DESTINATION_FORM_SCHEMA } from '@/yup-validations/jobs';
@@ -173,30 +173,28 @@ export default function DestinationConnectionCard({
 async function updateJobConnections(
   jobId: string,
   values: FormValues
-): Promise<UpdateJobDestinationConnectionsResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/destination-connections`, {
+): Promise<UpdateJobDestinationConnectionResponse> {
+  const res = await fetch(`/api/jobs/${jobId}/destination-connection`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',
     },
     body: JSON.stringify(
-      new UpdateJobDestinationConnectionsRequest({
+      new UpdateJobDestinationConnectionRequest({
         id: jobId,
-        destinations: [
-          new JobDestination({
-            connectionId: values.destinationId,
-            options: new JobDestinationOptions({
-              config: {
-                case: 'sqlOptions',
-                value: new SqlDestinationConnectionOptions({
-                  truncateBeforeInsert:
-                    values.destinationOptions.truncateBeforeInsert,
-                  initDbSchema: values.destinationOptions.initDbSchema,
-                }),
-              },
-            }),
+        destination: new JobDestination({
+          connectionId: values.destinationId,
+          options: new JobDestinationOptions({
+            config: {
+              case: 'sqlOptions',
+              value: new SqlDestinationConnectionOptions({
+                truncateBeforeInsert:
+                  values.destinationOptions.truncateBeforeInsert,
+                initDbSchema: values.destinationOptions.initDbSchema,
+              }),
+            },
           }),
-        ],
+        }),
       })
     ),
   });
@@ -204,5 +202,5 @@ async function updateJobConnections(
     const body = await res.json();
     throw new Error(body.message);
   }
-  return UpdateJobDestinationConnectionsResponse.fromJson(await res.json());
+  return UpdateJobDestinationConnectionResponse.fromJson(await res.json());
 }

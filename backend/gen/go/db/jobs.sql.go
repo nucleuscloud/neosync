@@ -298,3 +298,139 @@ func (q *Queries) RemoveJobConnectionDestinations(ctx context.Context, jobids []
 	_, err := q.db.Exec(ctx, removeJobConnectionDestinations, jobids)
 	return err
 }
+
+const updateJobDestination = `-- name: UpdateJobDestination :one
+UPDATE neosync_api.job_destination_connection_associations
+SET options = $1
+WHERE job_id = $2 AND connection_id = $3
+RETURNING id, created_at, updated_at, job_id, connection_id, options
+`
+
+type UpdateJobDestinationParams struct {
+	Options      *jsonmodels.JobDestinationOptions
+	JobID        pgtype.UUID
+	ConnectionID pgtype.UUID
+}
+
+func (q *Queries) UpdateJobDestination(ctx context.Context, arg UpdateJobDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
+	row := q.db.QueryRow(ctx, updateJobDestination, arg.Options, arg.JobID, arg.ConnectionID)
+	var i NeosyncApiJobDestinationConnectionAssociation
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.JobID,
+		&i.ConnectionID,
+		&i.Options,
+	)
+	return i, err
+}
+
+const updateJobMappings = `-- name: UpdateJobMappings :one
+UPDATE neosync_api.jobs
+SET mappings = $1,
+updated_by_id = $2
+WHERE id = $3
+RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
+`
+
+type UpdateJobMappingsParams struct {
+	Mappings    []*jsonmodels.JobMapping
+	UpdatedByID pgtype.UUID
+	ID          pgtype.UUID
+}
+
+func (q *Queries) UpdateJobMappings(ctx context.Context, arg UpdateJobMappingsParams) (NeosyncApiJob, error) {
+	row := q.db.QueryRow(ctx, updateJobMappings, arg.Mappings, arg.UpdatedByID, arg.ID)
+	var i NeosyncApiJob
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.AccountID,
+		&i.Status,
+		&i.ConnectionSourceID,
+		&i.ConnectionOptions,
+		&i.Mappings,
+		&i.CronSchedule,
+		&i.CreatedByID,
+		&i.UpdatedByID,
+	)
+	return i, err
+}
+
+const updateJobSchedule = `-- name: UpdateJobSchedule :one
+UPDATE neosync_api.jobs
+SET cron_schedule = $1,
+updated_by_id = $2
+WHERE id = $3
+RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
+`
+
+type UpdateJobScheduleParams struct {
+	CronSchedule pgtype.Text
+	UpdatedByID  pgtype.UUID
+	ID           pgtype.UUID
+}
+
+func (q *Queries) UpdateJobSchedule(ctx context.Context, arg UpdateJobScheduleParams) (NeosyncApiJob, error) {
+	row := q.db.QueryRow(ctx, updateJobSchedule, arg.CronSchedule, arg.UpdatedByID, arg.ID)
+	var i NeosyncApiJob
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.AccountID,
+		&i.Status,
+		&i.ConnectionSourceID,
+		&i.ConnectionOptions,
+		&i.Mappings,
+		&i.CronSchedule,
+		&i.CreatedByID,
+		&i.UpdatedByID,
+	)
+	return i, err
+}
+
+const updateJobSource = `-- name: UpdateJobSource :one
+UPDATE neosync_api.jobs
+SET connection_source_id = $1,
+connection_options = $2,
+updated_by_id = $3
+WHERE id = $4
+RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
+`
+
+type UpdateJobSourceParams struct {
+	ConnectionSourceID pgtype.UUID
+	ConnectionOptions  *jsonmodels.JobSourceOptions
+	UpdatedByID        pgtype.UUID
+	ID                 pgtype.UUID
+}
+
+func (q *Queries) UpdateJobSource(ctx context.Context, arg UpdateJobSourceParams) (NeosyncApiJob, error) {
+	row := q.db.QueryRow(ctx, updateJobSource,
+		arg.ConnectionSourceID,
+		arg.ConnectionOptions,
+		arg.UpdatedByID,
+		arg.ID,
+	)
+	var i NeosyncApiJob
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.AccountID,
+		&i.Status,
+		&i.ConnectionSourceID,
+		&i.ConnectionOptions,
+		&i.Mappings,
+		&i.CronSchedule,
+		&i.CreatedByID,
+		&i.UpdatedByID,
+	)
+	return i, err
+}
