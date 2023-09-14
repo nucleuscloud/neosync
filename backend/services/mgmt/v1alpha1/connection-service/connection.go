@@ -73,13 +73,13 @@ func (s *Service) IsConnectionNameAvailable(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsConnectionNameAvailableRequest],
 ) (*connect.Response[mgmtv1alpha1.IsConnectionNameAvailableResponse], error) {
-	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
 	count, err := s.db.Q.IsConnectionNameAvailable(ctx, db_queries.IsConnectionNameAvailableParams{
-		AccountId:      accountUuid,
+		AccountId:      *accountUuid,
 		ConnectionName: req.Msg.ConnectionName,
 	})
 	if err != nil {
@@ -95,12 +95,12 @@ func (s *Service) GetConnections(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionsResponse], error) {
-	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
-	connections, err := s.db.Q.GetConnectionsByAccount(ctx, accountUuid)
+	connections, err := s.db.Q.GetConnectionsByAccount(ctx, *accountUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,6 @@ func (s *Service) GetConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
-
 	idUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
@@ -131,6 +130,11 @@ func (s *Service) GetConnection(
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
@@ -147,13 +151,13 @@ func (s *Service) CreateConnection(
 		return nil, err
 	}
 
-	accountId, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
 	connection, err := s.db.Q.CreateConnection(ctx, db_queries.CreateConnectionParams{
-		AccountID:        accountId,
+		AccountID:        *accountUuid,
 		Name:             req.Msg.Name,
 		ConnectionConfig: cc,
 		// CreatedByID:   todo @alisha
@@ -181,6 +185,11 @@ func (s *Service) UpdateConnection(
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
+	if err != nil {
+		return nil, err
 	}
 
 	cc := &jsonmodels.ConnectionConfig{}
@@ -217,6 +226,11 @@ func (s *Service) DeleteConnection(
 		return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
 	}
 
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(connection.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
 	err = s.db.Q.RemoveConnectionById(ctx, connection.ID)
 	if err != nil {
 		return nil, err
@@ -224,7 +238,7 @@ func (s *Service) DeleteConnection(
 	return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
 }
 
-func (s *Service) GetConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) {
+func (s *Service) getConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) {
 	switch config := c.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		var connectionString *string
