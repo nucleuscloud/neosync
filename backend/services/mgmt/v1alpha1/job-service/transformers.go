@@ -2,12 +2,9 @@ package v1alpha1_jobservice
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
-	operator_transformers "github.com/nucleuscloud/neosync/k8s-operator/pkg/transformers"
 )
 
 type Transformation string
@@ -34,31 +31,31 @@ func (s *Service) GetTransformers(
 	}), nil
 }
 
-func getColumnTransformer(value string) (*neosyncdevv1alpha1.ColumnTransformer, error) {
-	if value == "passthrough" {
-		return nil, nil
-	}
-	name, err := toOperatorTransformer(value)
-	if err != nil {
-		return nil, err
-	}
-	return &neosyncdevv1alpha1.ColumnTransformer{
-		Name: name,
-	}, nil
-}
+// func getColumnTransformer(value string) (*neosyncdevv1alpha1.ColumnTransformer, error) {
+// 	if value == "passthrough" {
+// 		return nil, nil
+// 	}
+// 	name, err := toOperatorTransformer(value)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &neosyncdevv1alpha1.ColumnTransformer{
+// 		Name: name,
+// 	}, nil
+// }
 
-func toOperatorTransformer(value string) (string, error) {
-	switch value {
-	case string(UuidV4):
-		return string(operator_transformers.UuidV4), nil
-	case string(FirstName):
-		return string(operator_transformers.FirstName), nil
-	case string(PhoneNumber):
-		return string(operator_transformers.PhoneNumber), nil
-	default:
-		return "", fmt.Errorf("unsupported transformer")
-	}
-}
+// func toOperatorTransformer(value string) (string, error) {
+// 	switch value {
+// 	case string(UuidV4):
+// 		return string(operator_transformers.UuidV4), nil
+// 	case string(FirstName):
+// 		return string(operator_transformers.FirstName), nil
+// 	case string(PhoneNumber):
+// 		return string(operator_transformers.PhoneNumber), nil
+// 	default:
+// 		return "", fmt.Errorf("unsupported transformer")
+// 	}
+// }
 
 // func fromOperatorTransformer(value string) (string, error) {
 // 	switch value {
