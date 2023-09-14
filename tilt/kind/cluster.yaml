@@ -17,9 +17,9 @@ kindV1Alpha4Cluster:
       nodeRegistration:
         kubeletExtraArgs:
           node-labels: "ingress-ready=true"
-    # extraMounts:
-    # - hostPath: {NUCLEUS_DEV_HOSTPATH}
-    #   containerPath: /nucleus
+    extraMounts:
+    - hostPath: {NEOSYNC_DEV_HOSTPATH}
+      containerPath: /neosync
     # extraPortMappings:
     # # These port mappings work in conjunction with the node port
     # # configuration on the istio-ingressgateway.
