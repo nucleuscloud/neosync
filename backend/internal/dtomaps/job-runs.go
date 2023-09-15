@@ -3,13 +3,12 @@ package dtomaps
 import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	k8s_utils "github.com/nucleuscloud/neosync/backend/internal/utils/k8s"
-	neosyncdevv1alpha1 "github.com/nucleuscloud/neosync/k8s-operator/api/v1alpha1"
+	workflowpb "go.temporal.io/api/workflow/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func ToJobRunDto(
-	input *neosyncdevv1alpha1.JobRun,
-	jobId *string,
+	input *workflowpb.WorkflowExecutionInfo,
 ) *mgmtv1alpha1.JobRun {
 
 	return &mgmtv1alpha1.JobRun{

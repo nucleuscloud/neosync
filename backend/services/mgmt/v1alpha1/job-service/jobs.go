@@ -301,7 +301,7 @@ func (s *Service) DeleteJob(
 	}
 
 	logger.Info("deleting schedule's workflow executions")
-	workflows, err := getWorkflowExecutionsByJobId(ctx, s.temporalClient, logger, req.Msg.Id)
+	workflows, err := getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, []string{req.Msg.Id})
 	if err != nil {
 		return nil, err
 	}
@@ -340,29 +340,6 @@ func (s *Service) DeleteJob(
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
-}
-
-func getWorkflowExecutionsByJobId(ctx context.Context, temporalclient temporalclient.Client, logger *slog.Logger, jobId string) ([]*workflowpb.WorkflowExecutionInfo, error) {
-	query := fmt.Sprintf("TemporalScheduledById = %s", jobId)
-	executions := []*workflowpb.WorkflowExecutionInfo{}
-	var nextPageToken []byte
-	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
-		resp, err := temporalclient.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
-			// Namespace:     namespace,
-			PageSize:      20,
-			NextPageToken: nextPageToken,
-			Query:         query,
-		})
-		if err != nil {
-			logger.Error(fmt.Errorf("unable to retrieve workflow executions: %w", err).Error())
-			return nil, err
-		}
-
-		executions = append(executions, resp.Executions...)
-		nextPageToken = resp.NextPageToken
-	}
-
-	return executions, nil
 }
 
 func (s *Service) UpdateJobSchedule(
@@ -692,4 +669,31 @@ func (s *Service) verifyConnectionInAccount(
 		return nucleuserrors.NewForbidden("provided connection id is not in account")
 	}
 	return nil
+}
+
+func getWorkflowExecutionsByJobIds(ctx context.Context, temporalclient temporalclient.Client, logger *slog.Logger, jobIds []string) ([]*workflowpb.WorkflowExecutionInfo, error) {
+	jobIdStr := ""
+	for _, id := range jobIds {
+		jobIdStr = jobIdStr + fmt.Sprintf(`"%s, "`, id)
+	}
+	query := fmt.Sprintf("TemporalScheduledById IN (%s)", jobIdStr)
+	executions := []*workflowpb.WorkflowExecutionInfo{}
+	var nextPageToken []byte
+	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
+		resp, err := temporalclient.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
+			// Namespace:     namespace,
+			PageSize:      20,
+			NextPageToken: nextPageToken,
+			Query:         query,
+		})
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to retrieve workflow executions: %w", err).Error())
+			return nil, err
+		}
+
+		executions = append(executions, resp.Executions...)
+		nextPageToken = resp.NextPageToken
+	}
+
+	return executions, nil
 }
