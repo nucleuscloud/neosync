@@ -46,7 +46,8 @@ func (s *Service) GetJobRuns(
 			return nil, err
 		}
 		jobIds := []string{}
-		for _, job := range jobs {
+		for i := range jobs {
+			job := jobs[i]
 			jobIds = append(jobIds, nucleusdb.UUIDString(job.ID))
 		}
 		workflows, err = getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, jobIds)

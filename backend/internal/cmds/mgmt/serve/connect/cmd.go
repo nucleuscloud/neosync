@@ -92,13 +92,12 @@ func serve() error {
 		panic(err)
 	}
 
-	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
-
 	stdInterceptors := []connect.Interceptor{
 		otelconnect.NewInterceptor(),
 		logger_interceptor.NewInterceptor(logger),
 	}
 
+	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
 		jwtClientCfg, err := getJwtClientConfig()
 		if err != nil {

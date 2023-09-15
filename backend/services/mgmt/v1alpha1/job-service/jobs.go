@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -307,6 +308,7 @@ func (s *Service) DeleteJob(
 
 	group := new(errgroup.Group)
 	for _, w := range workflows {
+		w := w
 		group.Go(func() error {
 			_, err := s.temporalClient.WorkflowService().DeleteWorkflowExecution(ctx, &workflowservice.DeleteWorkflowExecutionRequest{
 				// Namespace: namespace,
@@ -673,9 +675,9 @@ func (s *Service) verifyConnectionInAccount(
 func getWorkflowExecutionsByJobIds(ctx context.Context, temporalclient temporalclient.Client, logger *slog.Logger, jobIds []string) ([]*workflowpb.WorkflowExecutionInfo, error) {
 	jobIdStr := ""
 	for _, id := range jobIds {
-		jobIdStr = jobIdStr + fmt.Sprintf(`"%s, "`, id)
+		jobIdStr += fmt.Sprintf(`%q,`, id)
 	}
-	query := fmt.Sprintf("TemporalScheduledById IN (%s)", jobIdStr)
+	query := fmt.Sprintf("TemporalScheduledById IN (%s)", strings.TrimSuffix(jobIdStr, ","))
 	executions := []*workflowpb.WorkflowExecutionInfo{}
 	var nextPageToken []byte
 	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
