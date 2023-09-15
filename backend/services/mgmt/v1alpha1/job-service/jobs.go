@@ -138,6 +138,12 @@ func (s *Service) CreateJob(
 	if err != nil {
 		return nil, err
 	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	destinations := []*Destination{}
 	for _, dest := range req.Msg.Destinations {
 		destUuid, err := nucleusdb.ToUuid(dest.ConnectionId)
@@ -192,6 +198,8 @@ func (s *Service) CreateJob(
 			ConnectionSourceID: connectionSourceUuid,
 			ConnectionOptions:  connectionOptions,
 			Mappings:           mappings,
+			CreatedByID:        *userUuid,
+			UpdatedByID:        *userUuid,
 		})
 		if err != nil {
 			return err
@@ -278,6 +286,11 @@ func (s *Service) UpdateJobSchedule(
 		return nil, err
 	}
 
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	cron := pgtype.Text{}
 	if req.Msg.CronSchedule != nil {
 		err := cron.Scan(req.Msg.GetCronSchedule())
@@ -289,7 +302,7 @@ func (s *Service) UpdateJobSchedule(
 	_, err = s.db.Q.UpdateJobSchedule(ctx, db_queries.UpdateJobScheduleParams{
 		ID:           job.ID,
 		CronSchedule: cron,
-		// UpdatedByID:      "", TODO @alisha
+		UpdatedByID:  *userUuid,
 	})
 	if err != nil {
 		return nil, err
@@ -330,6 +343,10 @@ func (s *Service) UpdateJobSourceConnection(
 	if err != nil {
 		return nil, err
 	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Source.ConnectionId)
 	if err != nil {
@@ -351,7 +368,7 @@ func (s *Service) UpdateJobSourceConnection(
 		ConnectionSourceID: connectionUuid,
 		ConnectionOptions:  connectionOptions,
 
-		// UpdatedByID:      "", TODO @alisha
+		UpdatedByID: *userUuid,
 	})
 	if err != nil {
 		return nil, err
@@ -465,6 +482,11 @@ func (s *Service) UpdateJobMappings(
 		return nil, err
 	}
 
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	mappings := []*jsonmodels.JobMapping{}
 	for _, mapping := range req.Msg.Mappings {
 		jm := &jsonmodels.JobMapping{}
@@ -476,9 +498,9 @@ func (s *Service) UpdateJobMappings(
 	}
 
 	_, err = s.db.Q.UpdateJobMappings(ctx, db_queries.UpdateJobMappingsParams{
-		ID:       job.ID,
-		Mappings: mappings,
-		// UpdatedByID:      "", TODO @alisha
+		ID:          job.ID,
+		Mappings:    mappings,
+		UpdatedByID: *userUuid,
 	})
 	if err != nil {
 		return nil, err
@@ -537,6 +559,9 @@ func (s *Service) verifyConnectionInAccount(
 		AccountId:    accountUuid,
 		ConnectionId: connectionUuid,
 	})
+	if err != nil {
+		return err
+	}
 	if count == 0 {
 		return nucleuserrors.NewForbidden("provided connection id is not in account")
 	}

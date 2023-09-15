@@ -156,12 +156,17 @@ func (s *Service) CreateConnection(
 		return nil, err
 	}
 
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	connection, err := s.db.Q.CreateConnection(ctx, db_queries.CreateConnectionParams{
 		AccountID:        *accountUuid,
 		Name:             req.Msg.Name,
 		ConnectionConfig: cc,
-		// CreatedByID:   todo @alisha
-		// UpdatedByID:   todo @alisha
+		CreatedByID:      *userUuid,
+		UpdatedByID:      *userUuid,
 	})
 	if err != nil {
 		return nil, err
