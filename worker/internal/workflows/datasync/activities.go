@@ -13,10 +13,12 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
+	"github.com/jackc/pgx/v5"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
 type GenerateBenthosConfigsRequest struct {
@@ -116,14 +118,20 @@ func (a *Activities) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
+				// todo: make this more efficient to reduce amount of times we have to connect to the source database
+				initStmt, err := a.getInitStatementFromPostgres(ctx, resp.Config.Input.SqlSelect.Dsn, resp.Config.Input.SqlSelect.Table)
+				if err != nil {
+					return nil, err
+				}
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					SqlInsert: &neosync_benthos.SqlInsert{
 						Driver: "postgres",
 						Dsn:    dsn,
 
-						Table:       resp.Config.Input.SqlSelect.Table,
-						Columns:     resp.Config.Input.SqlSelect.Columns,
-						ArgsMapping: buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+						Table:         resp.Config.Input.SqlSelect.Table,
+						Columns:       resp.Config.Input.SqlSelect.Columns,
+						ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+						InitStatement: initStmt,
 					},
 				})
 			default:
@@ -136,6 +144,23 @@ func (a *Activities) GenerateBenthosConfigs(
 		BenthosConfigs: responses,
 	}, nil
 }
+
+func (a *Activities) getInitStatementFromPostgres(
+	ctx context.Context,
+	dsn string,
+	table string,
+) (string, error) {
+	conn, err := pgx.Connect(ctx, dsn)
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close(ctx)
+
+	return dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
+		Table: table,
+	})
+}
+
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
 	columns := []string{}
 
