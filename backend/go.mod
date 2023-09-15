@@ -15,7 +15,7 @@ require (
 	github.com/spf13/viper v1.16.0
 	golang.org/x/net v0.15.0
 	golang.org/x/sync v0.3.0
-	google.golang.org/grpc v1.58.0
+	google.golang.org/grpc v1.58.1
 	google.golang.org/protobuf v1.31.0
 )
 
