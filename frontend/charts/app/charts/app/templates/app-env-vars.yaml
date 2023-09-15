@@ -42,3 +42,5 @@ stringData:
     {{ if .Values.auth0.audience }}
     AUTH0_AUDIENCE: {{ .Values.auth0.audience }}
     {{- end }}
+
+    AUTH_ENABLED: {{ .Values.auth.enabled | default "false" | quote }}

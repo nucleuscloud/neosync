@@ -92,30 +92,38 @@ func serve() error {
 		panic(err)
 	}
 
-	jwtClientCfg, err := getJwtClientConfig()
-	if err != nil {
-		return err
-	}
-	jwtclient, err := auth_jwt.New(jwtClientCfg)
-	if err != nil {
-		return err
-	}
+	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 
-	authMiddleware := authmw.New(jwtclient)
-
-	stdInterceptors := connect.WithInterceptors(
+	stdInterceptors := []connect.Interceptor{
 		otelconnect.NewInterceptor(),
-		auth_interceptor.NewInterceptor(authMiddleware.ValidateAndInjectAll),
 		logger_interceptor.NewInterceptor(logger),
+	}
+
+	if isAuthEnabled {
+		jwtClientCfg, err := getJwtClientConfig()
+		if err != nil {
+			return err
+		}
+		jwtclient, err := auth_jwt.New(jwtClientCfg)
+		if err != nil {
+			return err
+		}
+		stdInterceptors = append(stdInterceptors, auth_interceptor.NewInterceptor(authmw.New(jwtclient).ValidateAndInjectAll))
+	}
+
+	stdInterceptorConnectOpt := connect.WithInterceptors(
+		stdInterceptors...,
 	)
 
 	api := http.NewServeMux()
 
-	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{}, db)
+	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
+		IsAuthEnabled: isAuthEnabled,
+	}, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
-			stdInterceptors,
+			stdInterceptorConnectOpt,
 		),
 	)
 
@@ -123,7 +131,7 @@ func serve() error {
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
-			stdInterceptors,
+			stdInterceptorConnectOpt,
 		),
 	)
 
@@ -132,7 +140,7 @@ func serve() error {
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
-			stdInterceptors,
+			stdInterceptorConnectOpt,
 		),
 	)
 

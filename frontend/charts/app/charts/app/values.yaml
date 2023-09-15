@@ -38,6 +38,9 @@ neosyncApi:
 nextAuthSecret: 'This is an example'
 nextAuthUrl: 'http://localhost:3000'
 
+auth:
+  enabled: false
+
 auth0:
   clientId:
   clientSecret:

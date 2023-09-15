@@ -179,6 +179,18 @@ func (q *Queries) GetAccountsByUser(ctx context.Context, id pgtype.UUID) ([]Neos
 	return items, nil
 }
 
+const getAnonymousUser = `-- name: GetAnonymousUser :one
+SELECT id, created_at, updated_at from neosync_api.users
+WHERE id = '00000000-0000-0000-0000-000000000000'
+`
+
+func (q *Queries) GetAnonymousUser(ctx context.Context) (NeosyncApiUser, error) {
+	row := q.db.QueryRow(ctx, getAnonymousUser)
+	var i NeosyncApiUser
+	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
+	return i, err
+}
+
 const getPersonalAccountByUserId = `-- name: GetPersonalAccountByUserId :one
 SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug from neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
@@ -259,4 +271,23 @@ func (q *Queries) IsUserInAccount(ctx context.Context, arg IsUserInAccountParams
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const setAnonymousUser = `-- name: SetAnonymousUser :one
+INSERT INTO neosync_api.users (
+  id, created_at, updated_at
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', DEFAULT, DEFAULT
+)
+ON CONFLICT (id)
+DO
+  UPDATE SET updated_at = current_timestamp
+RETURNING id, created_at, updated_at
+`
+
+func (q *Queries) SetAnonymousUser(ctx context.Context) (NeosyncApiUser, error) {
+	row := q.db.QueryRow(ctx, setAnonymousUser)
+	var i NeosyncApiUser
+	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
+	return i, err
 }

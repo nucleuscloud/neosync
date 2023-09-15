@@ -15,6 +15,18 @@ func (s *Service) GetUser(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetUserRequest],
 ) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
+	if !s.cfg.IsAuthEnabled {
+		user, err := s.db.Q.GetAnonymousUser(ctx)
+		if err != nil && !nucleusdb.IsNoRows(err) {
+			return nil, nucleuserrors.New(err)
+		} else if err != nil && nucleusdb.IsNoRows(err) {
+			return nil, nucleuserrors.NewNotFound("unable to find user")
+		}
+		return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
+			UserId: nucleusdb.UUIDString(user.ID),
+		}), nil
+	}
+
 	tokenCtxData, err := authjwt.GetTokenDataFromCtx(ctx)
 	if err != nil {
 		return nil, nucleuserrors.New(err)
@@ -36,6 +48,16 @@ func (s *Service) SetUser(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetUserRequest],
 ) (*connect.Response[mgmtv1alpha1.SetUserResponse], error) {
+	if !s.cfg.IsAuthEnabled {
+		user, err := s.db.Q.SetAnonymousUser(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
+			UserId: nucleusdb.UUIDString(user.ID),
+		}), nil
+	}
+
 	tokenCtxData, err := authjwt.GetTokenDataFromCtx(ctx)
 	if err != nil {
 		return nil, nucleuserrors.New(err)
