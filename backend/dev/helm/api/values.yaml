@@ -34,9 +34,11 @@ api:
 
   port: 8080
 
-  jobConfig:
-    namespace: neosync
-
   auth:
     baseUrl: https://auth.nucleuscloud.dev
     audience: https://api.nucleuscloud.com
+
+  temporal:
+    url: temporal.temporal:7233
+    namespace: default
+    taskQueue: 'sync-job'

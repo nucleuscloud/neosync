@@ -15,7 +15,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 
-	"github.com/nucleuscloud/neosync/worker/internal/workflows/datasync"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
@@ -243,7 +242,7 @@ func (s *Service) CreateJob(
 			Spec:   spec,
 			Paused: paused,
 			Action: &temporalclient.ScheduleWorkflowAction{
-				Workflow:  datasync.Workflow,
+				Workflow:  "Workflow",
 				TaskQueue: s.cfg.TemporalTaskQueue,
 			},
 		})

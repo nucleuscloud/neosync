@@ -57,6 +57,7 @@ spec:
           livenessProbe:
             httpGet:
               port: {{ .Values.port}}
+            initialDelaySeconds: 60
             periodSeconds: 2
             failureThreshold: 2
             successThreshold: 1

@@ -127,7 +127,8 @@ func serve() error {
 		),
 	)
 
-	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{TemporalTaskQueue: temporalTaskQueue}, db, temporalClient, connectionService, useraccountService)
+	jobServiceConfig := &v1alpha1_jobservice.Config{TemporalTaskQueue: temporalTaskQueue}
+	jobService := v1alpha1_jobservice.New(jobServiceConfig, db, temporalClient, connectionService, useraccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
@@ -195,13 +196,9 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 }
 
 func getTemporalConfig() *temporalclient.Options {
-	port := viper.GetInt32("PORT")
-	if port == 0 {
-		port = 7233
-	}
-	host := viper.GetString("HOST")
-	if host == "" {
-		host = "127.0.0.1"
+	temporalUrl := viper.GetString("TEMPORAL_URL")
+	if temporalUrl == "" {
+		temporalUrl = "localhost:7233"
 	}
 
 	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
@@ -209,15 +206,13 @@ func getTemporalConfig() *temporalclient.Options {
 		temporalNamespace = "default"
 	}
 
-	address := fmt.Sprintf("%s:%d", host, port)
-
 	return &temporalclient.Options{
 		// Logger: ,
-		HostPort:  address,
+		HostPort:  temporalUrl,
 		Namespace: temporalNamespace,
 		// Interceptors: ,
 		// HeadersProvider: ,
-	}, nil
+	}
 }
 
 func getTemporalTaskQueue() (string, error) {
