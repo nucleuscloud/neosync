@@ -1,6 +1,7 @@
 package serve_connect
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,11 +12,15 @@ import (
 	"connectrpc.com/otelconnect"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	"github.com/nucleuscloud/neosync/backend/internal/authmw"
+	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
+	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -67,21 +72,41 @@ func serve() error {
 
 	dbconfig, err := getDbConfig()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	db, err := nucleusdb.NewFromConfig(dbconfig)
 	if err != nil {
-		panic(err)
+		return err
 	}
+
+	jwtClientCfg, err := getJwtClientConfig()
+	if err != nil {
+		return err
+	}
+	jwtclient, err := auth_jwt.New(jwtClientCfg)
+	if err != nil {
+		return err
+	}
+
+	authMiddleware := authmw.New(jwtclient)
 
 	stdInterceptors := connect.WithInterceptors(
 		otelconnect.NewInterceptor(),
+		auth_interceptor.NewInterceptor(authMiddleware.ValidateAndInjectAll),
 		logger_interceptor.NewInterceptor(logger),
 	)
 
 	api := http.NewServeMux()
 
-	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db)
+	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{}, db)
+	api.Handle(
+		mgmtv1alpha1connect.NewUserAccountServiceHandler(
+			useraccountService,
+			stdInterceptors,
+		),
+	)
+
+	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -89,7 +114,7 @@ func serve() error {
 		),
 	)
 
-	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{}, db, connectionService)
+	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{}, db, connectionService, useraccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
@@ -153,5 +178,22 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		User:     dbUser,
 		Pass:     dbPass,
 		SslMode:  &sslMode,
+	}, nil
+}
+
+func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
+	authBaseUrl := viper.GetString("AUTH_BASEURL")
+	if authBaseUrl == "" {
+		return nil, errors.New("must provide AUTH_BASEURL in environment")
+	}
+
+	authAudiences := viper.GetStringSlice("AUTH_AUDIENCE")
+	if len(authAudiences) == 0 {
+		return nil, errors.New("must provide AUTH_AUDIENCE with at least one audience in environment")
+	}
+
+	return &auth_jwt.ClientConfig{
+		BaseUrl:      authBaseUrl,
+		ApiAudiences: authAudiences,
 	}, nil
 }

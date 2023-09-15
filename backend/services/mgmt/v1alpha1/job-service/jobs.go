@@ -22,11 +22,11 @@ func (s *Service) GetJobs(
 ) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
-	jobs, err := s.db.Q.GetJobsByAccount(ctx, accountUuid)
+	jobs, err := s.db.Q.GetJobsByAccount(ctx, *accountUuid)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -112,6 +112,11 @@ func (s *Service) GetJob(
 		return nil, err
 	}
 
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 		Job: dtomaps.ToJobDto(&job, destConnections),
 	}), nil
@@ -129,10 +134,16 @@ func (s *Service) CreateJob(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobName", req.Msg.JobName)
 
-	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	destinations := []*Destination{}
 	for _, dest := range req.Msg.Destinations {
 		destUuid, err := nucleusdb.ToUuid(dest.ConnectionId)
@@ -175,16 +186,20 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
+	// todo: verify connection ids are all in this account
+
 	var createdJob *db_queries.NeosyncApiJob
 	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
 		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
 			Name:               req.Msg.JobName,
-			AccountID:          accountUuid,
+			AccountID:          *accountUuid,
 			Status:             int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
 			CronSchedule:       cron,
 			ConnectionSourceID: connectionSourceUuid,
 			ConnectionOptions:  connectionOptions,
 			Mappings:           mappings,
+			CreatedByID:        *userUuid,
+			UpdatedByID:        *userUuid,
 		})
 		if err != nil {
 			return err
@@ -236,6 +251,11 @@ func (s *Service) DeleteJob(
 		return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 	}
 
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
 	err = s.db.Q.RemoveJobById(ctx, job.ID)
 	if err != nil {
 		return nil, err
@@ -261,6 +281,16 @@ func (s *Service) UpdateJobSchedule(
 		return nil, nucleuserrors.NewNotFound("unable to find job by id")
 	}
 
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	cron := pgtype.Text{}
 	if req.Msg.CronSchedule != nil {
 		err := cron.Scan(req.Msg.GetCronSchedule())
@@ -272,7 +302,7 @@ func (s *Service) UpdateJobSchedule(
 	_, err = s.db.Q.UpdateJobSchedule(ctx, db_queries.UpdateJobScheduleParams{
 		ID:           job.ID,
 		CronSchedule: cron,
-		// UpdatedByID:      "", TODO @alisha
+		UpdatedByID:  *userUuid,
 	})
 	if err != nil {
 		return nil, err
@@ -309,8 +339,21 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, nucleuserrors.NewNotFound("unable to find job by id")
 	}
 
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Source.ConnectionId)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := s.verifyConnectionInAccount(ctx, req.Msg.Source.ConnectionId, nucleusdb.UUIDString(job.AccountID)); err != nil {
 		return nil, err
 	}
 
@@ -325,7 +368,7 @@ func (s *Service) UpdateJobSourceConnection(
 		ConnectionSourceID: connectionUuid,
 		ConnectionOptions:  connectionOptions,
 
-		// UpdatedByID:      "", TODO @alisha
+		UpdatedByID: *userUuid,
 	})
 	if err != nil {
 		return nil, err
@@ -371,6 +414,9 @@ func (s *Service) UpdateJobDestinationConnection(
 
 	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Destination.ConnectionId)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.verifyConnectionInAccount(ctx, req.Msg.Destination.ConnectionId, job.Msg.Job.AccountId); err != nil {
 		return nil, err
 	}
 	options := &jsonmodels.JobDestinationOptions{}
@@ -431,6 +477,16 @@ func (s *Service) UpdateJobMappings(
 		return nil, nucleuserrors.NewNotFound("unable to find job by id")
 	}
 
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	mappings := []*jsonmodels.JobMapping{}
 	for _, mapping := range req.Msg.Mappings {
 		jm := &jsonmodels.JobMapping{}
@@ -442,9 +498,9 @@ func (s *Service) UpdateJobMappings(
 	}
 
 	_, err = s.db.Q.UpdateJobMappings(ctx, db_queries.UpdateJobMappingsParams{
-		ID:       job.ID,
-		Mappings: mappings,
-		// UpdatedByID:      "", TODO @alisha
+		ID:          job.ID,
+		Mappings:    mappings,
+		UpdatedByID: *userUuid,
 	})
 	if err != nil {
 		return nil, err
@@ -467,13 +523,13 @@ func (s *Service) IsJobNameAvailable(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest],
 ) (*connect.Response[mgmtv1alpha1.IsJobNameAvailableResponse], error) {
-	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
 	count, err := s.db.Q.IsJobNameAvailable(ctx, db_queries.IsJobNameAvailableParams{
-		AccountId: accountUuid,
+		AccountId: *accountUuid,
 		JobName:   req.Msg.Name,
 	})
 	if err != nil {
@@ -483,4 +539,31 @@ func (s *Service) IsJobNameAvailable(
 	return connect.NewResponse(&mgmtv1alpha1.IsJobNameAvailableResponse{
 		IsAvailable: count == 0,
 	}), nil
+}
+
+func (s *Service) verifyConnectionInAccount(
+	ctx context.Context,
+	connectionId string,
+	accountId string,
+) error {
+	accountUuid, err := nucleusdb.ToUuid(accountId)
+	if err != nil {
+		return err
+	}
+	connectionUuid, err := nucleusdb.ToUuid(connectionId)
+	if err != nil {
+		return err
+	}
+
+	count, err := s.db.Q.IsConnectionInAccount(ctx, db_queries.IsConnectionInAccountParams{
+		AccountId:    accountUuid,
+		ConnectionId: connectionUuid,
+	})
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return nucleuserrors.NewForbidden("provided connection id is not in account")
+	}
+	return nil
 }

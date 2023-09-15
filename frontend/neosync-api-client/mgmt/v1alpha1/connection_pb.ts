@@ -507,6 +507,11 @@ export class Connection extends Message<Connection> {
    */
   updatedAt?: Timestamp;
 
+  /**
+   * @generated from field: string account_id = 8;
+   */
+  accountId = "";
+
   constructor(data?: PartialMessage<Connection>) {
     super();
     proto3.util.initPartial(data, this);
@@ -522,6 +527,7 @@ export class Connection extends Message<Connection> {
     { no: 5, name: "created_at", kind: "message", T: Timestamp },
     { no: 6, name: "updated_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "updated_at", kind: "message", T: Timestamp },
+    { no: 8, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Connection {

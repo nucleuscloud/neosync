@@ -34,3 +34,13 @@ shutdownTimeoutSeconds:
 
 neosyncApi:
   url:
+
+nextAuthSecret: 'This is an example'
+nextAuthUrl: 'http://localhost:3000'
+
+auth0:
+  clientId:
+  clientSecret:
+  issuer:
+  scope:
+  audience:

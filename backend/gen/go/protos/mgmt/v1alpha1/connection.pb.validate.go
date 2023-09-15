@@ -1708,6 +1708,8 @@ func (m *Connection) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for AccountId
+
 	if len(errors) > 0 {
 		return ConnectionMultiError(errors)
 	}

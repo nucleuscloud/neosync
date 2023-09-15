@@ -48,6 +48,8 @@ linters-settings:
       - '1'
       - '2'
       - '3'
+      - '4'
+      - '5'
     ignored-functions:
       - strings.SplitN
 

@@ -1547,6 +1547,11 @@ export class Job extends Message<Job> {
    */
   cronSchedule?: string;
 
+  /**
+   * @generated from field: string account_id = 12;
+   */
+  accountId = "";
+
   constructor(data?: PartialMessage<Job>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1566,6 +1571,7 @@ export class Job extends Message<Job> {
     { no: 9, name: "destinations", kind: "message", T: JobDestination, repeated: true },
     { no: 10, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 11, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 12, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Job {

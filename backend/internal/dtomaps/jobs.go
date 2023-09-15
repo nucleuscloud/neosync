@@ -32,6 +32,7 @@ func ToJobDto(
 		Mappings:        mappings,
 		Source:          &mgmtv1alpha1.JobSource{},
 		Destinations:    destinations,
+		AccountId:       nucleusdb.UUIDString(inputJob.AccountID),
 	}
 
 }

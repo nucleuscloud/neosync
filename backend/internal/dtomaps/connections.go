@@ -18,5 +18,6 @@ func ToConnectionDto(
 		UpdatedAt:        timestamppb.New(input.UpdatedAt.Time),
 		CreatedByUserId:  nucleusdb.UUIDString(input.CreatedByID),
 		UpdatedByUserId:  nucleusdb.UUIDString(input.UpdatedByID),
+		AccountId:        nucleusdb.UUIDString(input.AccountID),
 	}
 }

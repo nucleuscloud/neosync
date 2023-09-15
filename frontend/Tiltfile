@@ -20,10 +20,6 @@ k8s_yaml(helmfile_with_local_chart('neosync-app', base_dir + '/charts/app', helm
 k8s_resource(
   'neosync-app',
   labels=['frontend'],
-  links=[
-    'https://app.nucleuscloud.dev',
-    'http://localhost:3000',
-  ],
   port_forwards='3000:3000',
 )
 
