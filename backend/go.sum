@@ -1373,6 +1373,8 @@ github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 h1:NHrXEjTNQY7P0Zfx1a
 github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249/go.mod h1:mpRZBD8SJ55OIICQ3iWH0Yz3cjzA61JdqMLoWXeB2+8=
 github.com/nucleuscloud/neosync/worker v0.0.0-20230915222531-0d586666d222 h1:bHYoCqz8HfZfAPmamzJhgvpd+no3lLaxyOqtV2Rt2kA=
 github.com/nucleuscloud/neosync/worker v0.0.0-20230915222531-0d586666d222/go.mod h1:hQ0Sdjwc9y+H6E4heGAG9zCuC9hoJPenb5jBDIUfy+o=
+github.com/nucleuscloud/neosync/worker v0.0.0-20230915225136-85c2a685d311 h1:X8Y7cqwSOkdZ5tuAk7t3yP12BOCoJswfGBWGvAt+l70=
+github.com/nucleuscloud/neosync/worker v0.0.0-20230915225136-85c2a685d311/go.mod h1:hQ0Sdjwc9y+H6E4heGAG9zCuC9hoJPenb5jBDIUfy+o=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
 github.com/oklog/ulid v1.3.1 h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=
