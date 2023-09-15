@@ -276,7 +276,6 @@ func (s *Service) CreateJob(
 	}), nil
 }
 
-// do we remove history or just remove schedule
 func (s *Service) DeleteJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.DeleteJobRequest],
@@ -672,7 +671,12 @@ func (s *Service) verifyConnectionInAccount(
 	return nil
 }
 
-func getWorkflowExecutionsByJobIds(ctx context.Context, temporalclient temporalclient.Client, logger *slog.Logger, jobIds []string) ([]*workflowpb.WorkflowExecutionInfo, error) {
+func getWorkflowExecutionsByJobIds(
+	ctx context.Context,
+	tc temporalclient.Client,
+	logger *slog.Logger,
+	jobIds []string,
+) ([]*workflowpb.WorkflowExecutionInfo, error) {
 	jobIdStr := ""
 	for _, id := range jobIds {
 		jobIdStr += fmt.Sprintf(`%q,`, id)
@@ -681,7 +685,7 @@ func getWorkflowExecutionsByJobIds(ctx context.Context, temporalclient temporalc
 	executions := []*workflowpb.WorkflowExecutionInfo{}
 	var nextPageToken []byte
 	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
-		resp, err := temporalclient.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
+		resp, err := tc.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
 			// Namespace:     namespace,
 			PageSize:      20,
 			NextPageToken: nextPageToken,
