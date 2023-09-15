@@ -6,7 +6,7 @@ api:
     create: true
 
   db:
-    host: postgresql
+    host: neosync-postgresql
     name: nucleus
     port: 5432
     username: postgres
@@ -17,6 +17,7 @@ api:
     image:
       repository: db-migration
     db:
+      host: neosync-postgresql:5432/nucleus
       username: postgres
       password: foofar
 
@@ -35,3 +36,7 @@ api:
 
   jobConfig:
     namespace: neosync
+
+  auth:
+    baseUrl: https://auth.nucleuscloud.dev
+    audience: https://api.nucleuscloud.com

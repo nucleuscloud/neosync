@@ -4,5 +4,11 @@ kind: Kustomization
 
 namespace: temporal
 
-bases:
+resources:
   - temporal.yaml
+  - temporal-postgres-pvc.yaml
+patches:
+  - path: temporal-postgres-patch.yaml
+    target:
+      kind: Deployment
+      name: postgresql

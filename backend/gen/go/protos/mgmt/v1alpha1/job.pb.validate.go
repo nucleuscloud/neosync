@@ -4867,6 +4867,8 @@ func (m *Job) validate(all bool) error {
 
 	}
 
+	// no validation rules for AccountId
+
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
 	}

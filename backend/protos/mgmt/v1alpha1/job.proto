@@ -180,6 +180,8 @@ message Job {
   repeated JobDestination destinations = 9;
   repeated JobMapping mappings = 10;
   optional string cron_schedule = 11;
+
+  string account_id = 12;
 }
 
 message JobRun {

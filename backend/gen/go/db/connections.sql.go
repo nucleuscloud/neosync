@@ -134,6 +134,24 @@ func (q *Queries) GetConnectionsByAccount(ctx context.Context, accountid pgtype.
 	return items, nil
 }
 
+const isConnectionInAccount = `-- name: IsConnectionInAccount :one
+SELECT cout(c.id) from neosync_api.connections c
+INNER JOIN neosync_api.accounts a ON a.id = c.account_id
+WHERE a.id = $1 and c.id = $2
+`
+
+type IsConnectionInAccountParams struct {
+	AccountId    pgtype.UUID
+	ConnectionId pgtype.UUID
+}
+
+func (q *Queries) IsConnectionInAccount(ctx context.Context, arg IsConnectionInAccountParams) (interface{}, error) {
+	row := q.db.QueryRow(ctx, isConnectionInAccount, arg.AccountId, arg.ConnectionId)
+	var cout interface{}
+	err := row.Scan(&cout)
+	return cout, err
+}
+
 const isConnectionNameAvailable = `-- name: IsConnectionNameAvailable :one
 SELECT count(c.id) from neosync_api.connections c
 INNER JOIN neosync_api.accounts a ON a.id = c.account_id

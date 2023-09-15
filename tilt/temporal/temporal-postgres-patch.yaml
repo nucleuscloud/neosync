@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+spec:
+  template:
+    spec:
+      containers:
+          - name: temporal-postgresql
+            volumeMounts:
+              - name: data
+                mountPath: /var/lib/postgresql/data
+            env:
+              - name: PGDATA
+                value: /var/lib/postgresql/data/pgdata
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: temporal-postgres

@@ -6,4 +6,4 @@ releases:
     createNamespace: false
 
     values:
-      - values.gotmpl
+      - values.yaml

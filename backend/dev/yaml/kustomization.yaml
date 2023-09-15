@@ -1,0 +1,6 @@
+# kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - neosync-postgres-pvc.yaml
