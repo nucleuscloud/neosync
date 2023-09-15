@@ -10,6 +10,7 @@ type Service struct {
 }
 
 type Config struct {
+	IsAuthEnabled bool
 }
 
 func New(
