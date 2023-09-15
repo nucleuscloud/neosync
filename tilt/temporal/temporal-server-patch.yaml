@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal
+spec:
+  template:
+    spec:
+      containers:
+          - name: temporal
+            env:
+              # This is necessary for the k8s port forwarding to work properly so we can connect to the temporal server outside of the cluster
+              # https://github.com/temporalio/temporal/issues/471#issuecomment-999011873
+              - name: BIND_ON_IP
+                value: 0.0.0.0
+              - name: TEMPORAL_BROADCAST_ADDRESS
+                value: 127.0.0.1

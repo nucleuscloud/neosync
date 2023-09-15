@@ -12,3 +12,7 @@ patches:
     target:
       kind: Deployment
       name: postgresql
+  - path: temporal-server-patch.yaml
+    target:
+      kind: Deployment
+      name: temporal
