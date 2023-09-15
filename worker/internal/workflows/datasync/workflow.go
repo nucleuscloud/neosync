@@ -3,6 +3,7 @@ package datasync
 import (
 	"time"
 
+	"github.com/spf13/viper"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -13,6 +14,11 @@ type WorkflowRequest struct {
 type WorkflowResponse struct{}
 
 func Workflow(ctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
+	neosyncUrl := viper.GetString("NEOSYNC_URL")
+	if neosyncUrl == "" {
+		neosyncUrl = "localhost:8080"
+	}
+
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
 	}
@@ -22,7 +28,7 @@ func Workflow(ctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, er
 	var wfActivites *Activities
 	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &GenerateBenthosConfigsRequest{
 		JobId:      req.JobId,
-		BackendUrl: "http://localhost:8080",
+		BackendUrl: neosyncUrl,
 	}).Get(ctx, bcResp)
 	if err != nil {
 		return nil, err
