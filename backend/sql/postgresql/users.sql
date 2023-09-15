@@ -70,3 +70,18 @@ SELECT count(aua.id) from neosync_api.account_user_associations aua
 INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE a.id = sqlc.arg('accountId') AND u.id = sqlc.arg('userId');
+
+-- name: GetAnonymousUser :one
+SELECT * from neosync_api.users
+WHERE id = '00000000-0000-0000-0000-000000000000';
+
+-- name: SetAnonymousUser :one
+INSERT INTO neosync_api.users (
+  id, created_at, updated_at
+) VALUES (
+  '00000000-0000-0000-0000-000000000000', DEFAULT, DEFAULT
+)
+ON CONFLICT (id)
+DO
+  UPDATE SET updated_at = current_timestamp
+RETURNING *;

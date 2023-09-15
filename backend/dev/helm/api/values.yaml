@@ -11,6 +11,7 @@ api:
     port: 5432
     username: postgres
     password: foofar
+    disableSsl: true
 
   migrations:
     skipSchemaCreation: false
