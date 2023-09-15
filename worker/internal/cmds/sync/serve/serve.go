@@ -2,7 +2,6 @@ package serve_connect
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/nucleuscloud/neosync/worker/internal/workflows/datasync"
 	"github.com/spf13/cobra"
@@ -23,13 +22,9 @@ func NewCmd() *cobra.Command {
 }
 
 func serve() error {
-	port := viper.GetInt32("PORT")
-	if port == 0 {
-		port = 7233
-	}
-	host := viper.GetString("HOST")
-	if host == "" {
-		host = "127.0.0.1"
+	temporalUrl := viper.GetString("TEMPORAL_URL")
+	if temporalUrl == "" {
+		temporalUrl = "localhost:7233"
 	}
 
 	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
@@ -42,11 +37,9 @@ func serve() error {
 		return errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
 	}
 
-	address := fmt.Sprintf("%s:%d", host, port)
-
 	temporalClient, err := client.Dial(client.Options{
 		// Logger: ,
-		HostPort:  address,
+		HostPort:  temporalUrl,
 		Namespace: temporalNamespace,
 		// Interceptors: ,
 		// HeadersProvider: , // todo: set auth headers

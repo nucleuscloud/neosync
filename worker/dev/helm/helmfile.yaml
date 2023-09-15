@@ -7,7 +7,26 @@ releases:
 
     values:
       - worker:
+          image:
+            repository: neosync-worker
+          serviceAccount:
+
+          terminationGracePeriodSeconds: 300
+          shutdownTimeoutSeconds: 5
+
+          istio:
+            enabled: false
+
+          datadog:
+            enabled: false
+
+          nucleusEnv: dev
+
+          port: 8080
+
           neosync:
             url: neosync-api:8080
           temporal:
-            url: temporal-api.temporal
+            url: temporal.temporal:7233
+            namespace: default
+            taskQueue: "sync-job"

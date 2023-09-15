@@ -45,7 +45,7 @@ k8s_resource(
 docker_build_with_restart(
   ref='neosync-worker',
   context='.',
-  # entrypoint=['/app/mgmt', 'serve', 'connect'],
+  entrypoint=['/app/sync', 'serve'],
   dockerfile='./dev/build/Dockerfile.dev',
   only=['.env.dev', 'bin'],
   live_update=[

@@ -18,3 +18,17 @@ stringData:
     NUCLEUS_ENV: {{ .Values.nucleusEnv }}
 
     SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
+
+    {{- if .Values.temporal.url }}
+    TEMPORAL_URL: {{ .Values.temporal.url }}
+    {{- end }}
+
+    {{- if .Values.temporal.namespace }}
+    TEMPORAL_NAMESPACE: {{ .Values.temporal.namespace }}
+    {{- end }}
+
+    {{- if .Values.temporal.taskQueue }}
+    TEMPORAL_TASK_QUEUE: {{ .Values.temporal.taskQueue }}
+    {{- end }}
+
+    NEOSYNC_URL: {{ .Values.neosync.url }}
