@@ -50,23 +50,23 @@ spec:
         - name: user-container
           image: '{{ .Values.image.repository | default "ghcr.io/nucleuscloud/neosync/worker" }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - containerPort: {{ .Values.port }}
-              name: http
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              port: {{ .Values.port}}
-            periodSeconds: 2
-            failureThreshold: 2
-            successThreshold: 1
-          readinessProbe:
-            httpGet:
-              port: {{ .Values.port }}
-            periodSeconds: 2
-            failureThreshold: 2
-            successThreshold: 1
-            initialDelaySeconds: 1
+          # ports:
+          #   - containerPort: {{ .Values.port }}
+          #     name: http
+          #     protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     port: {{ .Values.port}}
+          #   periodSeconds: 2
+          #   failureThreshold: 2
+          #   successThreshold: 1
+          # readinessProbe:
+          #   httpGet:
+          #     port: {{ .Values.port }}
+          #   periodSeconds: 2
+          #   failureThreshold: 2
+          #   successThreshold: 1
+          #   initialDelaySeconds: 1
           env:
             - name: HOST_IP
               valueFrom:

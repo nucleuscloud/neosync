@@ -22,8 +22,6 @@ releases:
 
           nucleusEnv: dev
 
-          port: 8080
-
           neosync:
             url: neosync-api:8080
           temporal:
