@@ -6,6 +6,7 @@ import {
   SchemaTable,
   getConnectionSchema,
 } from '@/components/jobs/SchemaTable/schema-table';
+import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -30,6 +31,7 @@ import { useSessionStorage } from 'usehooks-ts';
 import { DefineFormValues, FlowFormValues, FormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
+  const account = useAccount();
   const router = useRouter();
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -81,12 +83,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   async function onSubmit(values: SchemaFormValues) {
+    if (!account) {
+      return;
+    }
     try {
-      const job = await createNewJob({
-        define: defineFormValues,
-        flow: flowFormValues,
-        schema: values,
-      });
+      const job = await createNewJob(
+        {
+          define: defineFormValues,
+          flow: flowFormValues,
+          schema: values,
+        },
+        account.id
+      );
       if (job.job?.id) {
         router.push(`/jobs/${job.job.id}/overview`);
       } else {
@@ -124,8 +132,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 }
 
-async function createNewJob(formData: FormValues): Promise<CreateJobResponse> {
+async function createNewJob(
+  formData: FormValues,
+  accountId: string
+): Promise<CreateJobResponse> {
   const body = new CreateJobRequest({
+    accountId,
     jobName: formData.define.jobName,
     cronSchedule: formData.define.cronSchedule,
     mappings: formData.schema.mappings.map((m) => {
