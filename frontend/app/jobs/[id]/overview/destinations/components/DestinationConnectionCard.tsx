@@ -1,5 +1,6 @@
 'use client';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -50,11 +51,12 @@ export default function DestinationConnectionCard({
   jobId,
 }: Props): ReactElement {
   const { toast } = useToast();
+  const account = useAccount();
   const {
     isLoading: isConnectionsLoading,
     data: connectionsData,
     mutate,
-  } = useGetConnections();
+  } = useGetConnections(account?.id ?? '');
 
   const connections = connectionsData?.connections ?? [];
 

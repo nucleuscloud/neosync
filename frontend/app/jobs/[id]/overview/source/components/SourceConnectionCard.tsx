@@ -1,5 +1,6 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -48,11 +49,12 @@ export type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
+  const account = useAccount();
   const {
     isLoading: isConnectionsLoading,
     data: connectionsData,
     mutate,
-  } = useGetConnections();
+  } = useGetConnections(account?.id ?? '');
 
   const connections = connectionsData?.connections ?? [];
 

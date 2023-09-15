@@ -2,6 +2,7 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
+import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +33,7 @@ import DestinationOptionsForm from '../../../../components/jobs/Form/Destination
 import { FLOW_FORM_SCHEMA, FlowFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
+  const account = useAccount();
   const router = useRouter();
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -60,7 +62,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     storage: window.sessionStorage,
   });
   const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections();
+    useGetConnections(account?.id ?? '');
 
   const connections = connectionsData?.connections ?? [];
 
