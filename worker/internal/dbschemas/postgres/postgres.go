@@ -85,7 +85,7 @@ type GetTableCreateStatementRequest struct {
 const (
 	getTableCreateStatementSql = `--getTableCreateStatmentSql
 	SELECT
-    'CREATE TABLE ' || a.attrelid::regclass::TEXT || '(' ||
+    'CREATE TABLE IF NOT EXISTS ' || a.attrelid::regclass::TEXT || '(' ||
 string_agg(
         a.attname || ' ' || pg_catalog.format_type(
             a.atttypid,
