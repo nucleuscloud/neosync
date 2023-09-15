@@ -54,3 +54,8 @@ jobConfig:
 auth0:
   baseUrl:
   audience:
+
+temporal:
+  url:
+  namespace:
+  taskQueue:

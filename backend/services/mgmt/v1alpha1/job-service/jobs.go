@@ -3,6 +3,8 @@ package v1alpha1_jobservice
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -13,6 +15,10 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+
+	workflowpb "go.temporal.io/api/workflow/v1"
+	"go.temporal.io/api/workflowservice/v1"
+	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -220,6 +226,41 @@ func (s *Service) CreateJob(
 			}
 		}
 		createdJob = &job
+
+		jobUuid := nucleusdb.UUIDString(createdJob.ID)
+		logger = logger.With("jobId", jobUuid)
+		schedule := nucleusdb.ToNullableString(createdJob.CronSchedule)
+		paused := true
+		spec := temporalclient.ScheduleSpec{}
+		if schedule != nil && *schedule != "" {
+			spec.CronExpressions = []string{*schedule}
+			paused = false
+		}
+
+		// schedule will not run if no spec is defined
+		scheduleHandle, err := s.temporalClient.ScheduleClient().Create(ctx, temporalclient.ScheduleOptions{
+			ID:     jobUuid,
+			Spec:   spec,
+			Paused: paused,
+			Action: &temporalclient.ScheduleWorkflowAction{
+				Workflow:  "Workflow",
+				TaskQueue: s.cfg.TemporalTaskQueue,
+			},
+		})
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to create schedule workflow: %w", err).Error())
+			return err
+		}
+		logger.Info("scheduled workflow", "workflowId", scheduleHandle.GetID())
+
+		if paused {
+			// one off job, manually trigger run
+			err := scheduleHandle.Trigger(ctx, temporalclient.ScheduleTriggerOptions{})
+			if err != nil {
+				logger.Error(fmt.Errorf("unable to trigger job: %w", err).Error())
+				return err
+			}
+		}
 		return nil
 	}); err != nil {
 		return nil, err
@@ -239,6 +280,8 @@ func (s *Service) DeleteJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.DeleteJobRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteJobResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
 	idUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
@@ -256,6 +299,42 @@ func (s *Service) DeleteJob(
 		return nil, err
 	}
 
+	logger.Info("deleting schedule's workflow executions")
+	workflows, err := getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, []string{req.Msg.Id})
+	if err != nil {
+		return nil, err
+	}
+
+	group := new(errgroup.Group)
+	for _, w := range workflows {
+		w := w
+		group.Go(func() error {
+			_, err := s.temporalClient.WorkflowService().DeleteWorkflowExecution(ctx, &workflowservice.DeleteWorkflowExecutionRequest{
+				// Namespace: namespace,
+				WorkflowExecution: w.Execution,
+			})
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+	}
+
+	err = group.Wait()
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to delete schedule's workflow executions: %w", err).Error())
+		return nil, err
+	}
+
+	logger.Info("deleting schedule")
+	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	err = scheduleHandle.Delete(ctx)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to delete schedule: %w", err).Error())
+		return nil, err
+	}
+
+	logger.Info("deleting job")
 	err = s.db.Q.RemoveJobById(ctx, job.ID)
 	if err != nil {
 		return nil, err
@@ -305,6 +384,30 @@ func (s *Service) UpdateJobSchedule(
 		UpdatedByID:  *userUuid,
 	})
 	if err != nil {
+		return nil, err
+	}
+
+	spec := &temporalclient.ScheduleSpec{}
+	paused := true
+	if req.Msg.CronSchedule != nil && *req.Msg.CronSchedule != "" {
+		paused = false
+		spec.CronExpressions = []string{*req.Msg.CronSchedule}
+	}
+
+	// update temporal scheduled job
+	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	err = scheduleHandle.Update(ctx, temporalclient.ScheduleUpdateOptions{
+		DoUpdate: func(schedule temporalclient.ScheduleUpdateInput) (*temporalclient.ScheduleUpdate, error) {
+			schedule.Description.Schedule.Spec = spec
+			schedule.Description.Schedule.State.Paused = paused
+			return &temporalclient.ScheduleUpdate{
+				Schedule: &schedule.Description.Schedule,
+			}, nil
+		},
+	})
+	// todo handle roll back if this fails
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to update schedule: %w", err).Error())
 		return nil, err
 	}
 
@@ -566,4 +669,36 @@ func (s *Service) verifyConnectionInAccount(
 		return nucleuserrors.NewForbidden("provided connection id is not in account")
 	}
 	return nil
+}
+
+func getWorkflowExecutionsByJobIds(
+	ctx context.Context,
+	tc temporalclient.Client,
+	logger *slog.Logger,
+	jobIds []string,
+) ([]*workflowpb.WorkflowExecutionInfo, error) {
+	jobIdStr := ""
+	for _, id := range jobIds {
+		jobIdStr += fmt.Sprintf(`%q,`, id)
+	}
+	query := fmt.Sprintf("TemporalScheduledById IN (%s)", strings.TrimSuffix(jobIdStr, ","))
+	executions := []*workflowpb.WorkflowExecutionInfo{}
+	var nextPageToken []byte
+	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
+		resp, err := tc.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
+			// Namespace:     namespace,
+			PageSize:      20,
+			NextPageToken: nextPageToken,
+			Query:         query,
+		})
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to retrieve workflow executions: %w", err).Error())
+			return nil, err
+		}
+
+		executions = append(executions, resp.Executions...)
+		nextPageToken = resp.NextPageToken
+	}
+
+	return executions, nil
 }

@@ -21,6 +21,7 @@ import (
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
+	temporalclient "go.temporal.io/sdk/client"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -79,13 +80,24 @@ func serve() error {
 		return err
 	}
 
-	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
+	temporalConfig := getTemporalConfig()
+	temporalClient, err := temporalclient.Dial(*temporalConfig)
+	if err != nil {
+		panic(err)
+	}
+	defer temporalClient.Close()
+
+	temporalTaskQueue, err := getTemporalTaskQueue()
+	if err != nil {
+		panic(err)
+	}
 
 	stdInterceptors := []connect.Interceptor{
 		otelconnect.NewInterceptor(),
 		logger_interceptor.NewInterceptor(logger),
 	}
 
+	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
 		jwtClientCfg, err := getJwtClientConfig()
 		if err != nil {
@@ -122,7 +134,8 @@ func serve() error {
 		),
 	)
 
-	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{}, db, connectionService, useraccountService)
+	jobServiceConfig := &v1alpha1_jobservice.Config{TemporalTaskQueue: temporalTaskQueue}
+	jobService := v1alpha1_jobservice.New(jobServiceConfig, db, temporalClient, connectionService, useraccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
@@ -187,6 +200,34 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		Pass:     dbPass,
 		SslMode:  &sslMode,
 	}, nil
+}
+
+func getTemporalConfig() *temporalclient.Options {
+	temporalUrl := viper.GetString("TEMPORAL_URL")
+	if temporalUrl == "" {
+		temporalUrl = "localhost:7233"
+	}
+
+	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
+	if temporalNamespace == "" {
+		temporalNamespace = "default"
+	}
+
+	return &temporalclient.Options{
+		// Logger: ,
+		HostPort:  temporalUrl,
+		Namespace: temporalNamespace,
+		// Interceptors: ,
+		// HeadersProvider: ,
+	}
+}
+
+func getTemporalTaskQueue() (string, error) {
+	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
+	if taskQueue == "" {
+		return "", errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
+	}
+	return taskQueue, nil
 }
 
 func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
