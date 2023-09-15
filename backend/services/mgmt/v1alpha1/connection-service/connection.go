@@ -197,6 +197,11 @@ func (s *Service) UpdateConnection(
 		return nil, err
 	}
 
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	cc := &jsonmodels.ConnectionConfig{}
 	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
 		return nil, err
@@ -205,6 +210,7 @@ func (s *Service) UpdateConnection(
 	connection, err = s.db.Q.UpdateConnection(ctx, db_queries.UpdateConnectionParams{
 		ID:               connection.ID,
 		ConnectionConfig: cc,
+		UpdatedByID:      *userUuid,
 	})
 	if err != nil {
 		return nil, err

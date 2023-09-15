@@ -14,19 +14,19 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   const sidebarNavItems = [
     {
       title: 'Overview',
-      href: `${basePath}/overview`,
+      href: `${basePath}`,
     },
     {
       title: 'Source',
-      href: `${basePath}/overview/source`,
+      href: `${basePath}/source`,
     },
     {
       title: 'Destinations',
-      href: `${basePath}/overview/destinations`,
+      href: `${basePath}/destinations`,
     },
     {
       title: 'Schema',
-      href: `${basePath}/overview/schema`,
+      href: `${basePath}/schema`,
     },
   ];
 

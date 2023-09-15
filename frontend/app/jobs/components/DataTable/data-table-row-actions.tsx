@@ -60,7 +60,7 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/jobs/${job.id}/overview`)}
+          onClick={() => router.push(`/jobs/${job.id}`)}
         >
           View
         </DropdownMenuItem>
