@@ -1,0 +1,12 @@
+releases:
+  - name: neosync-worker
+    chart: ../../charts/worker
+    version: 'v0.0.0'
+    namespace: neosync
+    createNamespace: false
+
+    values:
+      - neosync:
+          url: neosync-api:8080
+      - temporal:
+          url: temporal-api.temporal

@@ -1,3 +1,55 @@
 load('ext://restart_process', 'docker_build_with_restart')
 load('ext://configmap', 'configmap_from_dict')
 load('ext://namespace', 'namespace_create')
+
+helpers = load_dynamic("../tilt/extensions/Tiltfile")
+helmfile_with_local_chart = helpers['helmfile_with_local_chart']
+helmfile = helpers['helmfile']
+
+allow_k8s_contexts('kind-nuc-dev')
+
+base_dir = os.path.dirname(__file__)
+
+# when debugging can be handy to disable scrub
+secret_settings(disable_scrub=True)
+
+namespace_create('neosync', allow_duplicates=True)
+
+# Watches and rebuilds Go code
+local_resource(
+  'neosync-worker-build',
+  'hack/build.sh',
+  deps=['.'],
+  ignore=[
+    '.git',
+    'bin',
+    '.gitignore',
+    '.vscode',
+    'README.md',
+    '.github',
+    'charts',
+    'Makefile',
+    'Dockerfile',
+  ],
+  labels=['build']
+)
+
+k8s_yaml(helmfile_with_local_chart('neosync-worker', base_dir + '/charts/worker', helmfileDir=base_dir + '/dev/helm'))
+# References the deployment
+k8s_resource(
+  'neosync-worker',
+  resource_deps=[],
+  labels=['backend'],
+  # port_forwards="8080:8080",
+)
+docker_build_with_restart(
+  ref='neosync-worker',
+  context='.',
+  # entrypoint=['/app/mgmt', 'serve', 'connect'],
+  dockerfile='./dev/build/Dockerfile.dev',
+  only=['.env.dev', 'bin'],
+  live_update=[
+    sync('bin', '/app'),
+    sync('.env.dev', '/app'),
+  ],
+)
