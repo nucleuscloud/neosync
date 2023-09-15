@@ -96,7 +96,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         account.id
       );
       if (job.job?.id) {
-        router.push(`/jobs/${job.job.id}/overview`);
+        router.push(`/jobs/${job.job.id}`);
       } else {
         router.push(`/jobs`);
       }
