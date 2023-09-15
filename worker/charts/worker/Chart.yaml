@@ -19,6 +19,6 @@ version: 'v0'
 appVersion: 'v0'
 
 dependencies:
-  - name: api
+  - name: worker
     repository: file://charts/worker
     version: 'v0'

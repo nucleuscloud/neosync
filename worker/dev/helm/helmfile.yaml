@@ -6,7 +6,8 @@ releases:
     createNamespace: false
 
     values:
-      - neosync:
-          url: neosync-api:8080
-      - temporal:
-          url: temporal-api.temporal
+      - worker:
+          neosync:
+            url: neosync-api:8080
+          temporal:
+            url: temporal-api.temporal
