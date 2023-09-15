@@ -245,6 +245,7 @@ func (s *Service) CreateJob(
 			Action: &temporalclient.ScheduleWorkflowAction{
 				Workflow:  "Workflow",
 				TaskQueue: s.cfg.TemporalTaskQueue,
+				Args:      []any{},
 			},
 		})
 		if err != nil {
