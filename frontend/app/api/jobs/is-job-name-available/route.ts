@@ -9,10 +9,12 @@ export async function GET(
 ): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
   const name = searchParams.get('name') ?? '';
+  const accountId = searchParams.get('accountId') ?? '';
   return withNeosyncContext(async (ctx) => {
     return ctx.jobsClient.isJobNameAvailable(
       new IsJobNameAvailableRequest({
         name,
+        accountId,
       })
     );
   })(req);
