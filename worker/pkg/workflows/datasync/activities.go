@@ -46,7 +46,6 @@ func (a *Activities) GenerateBenthosConfigs(
 		return nil, err
 	}
 	responses := []*benthosConfigResponse{}
-	_ = responses
 
 	sourceConnection, err := a.getConnectionById(ctx, req.BackendUrl, job.Source.ConnectionId)
 	if err != nil {

@@ -64,7 +64,7 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 				Host:    pgcfg.Connection.Host,
 				Port:    pgcfg.Connection.Port,
 				Name:    pgcfg.Connection.Name,
-				User:    pgcfg.Connection.Name,
+				User:    pgcfg.Connection.User,
 				Pass:    pgcfg.Connection.Pass,
 				SslMode: pgcfg.Connection.SslMode,
 			}

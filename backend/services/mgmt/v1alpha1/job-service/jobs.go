@@ -20,6 +20,8 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
+
+	wf_datasync "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync"
 )
 
 func (s *Service) GetJobs(
@@ -243,8 +245,9 @@ func (s *Service) CreateJob(
 			Spec:   spec,
 			Paused: paused,
 			Action: &temporalclient.ScheduleWorkflowAction{
-				Workflow:  "Workflow",
+				Workflow:  wf_datasync.Workflow,
 				TaskQueue: s.cfg.TemporalTaskQueue,
+				Args:      []any{&wf_datasync.WorkflowRequest{JobId: jobUuid}},
 			},
 		})
 		if err != nil {

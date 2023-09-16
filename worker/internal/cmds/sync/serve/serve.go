@@ -3,7 +3,7 @@ package serve_connect
 import (
 	"errors"
 
-	"github.com/nucleuscloud/neosync/worker/internal/workflows/datasync"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/client"
