@@ -23,7 +23,7 @@ releases:
           nucleusEnv: dev
 
           neosync:
-            url: neosync-api:8080
+            url: http://neosync-api:80
           temporal:
             url: temporal.temporal:7233
             namespace: default

@@ -46,7 +46,6 @@ func (a *Activities) GenerateBenthosConfigs(
 		return nil, err
 	}
 	responses := []*benthosConfigResponse{}
-	_ = responses
 
 	sourceConnection, err := a.getConnectionById(ctx, req.BackendUrl, job.Source.ConnectionId)
 	if err != nil {
@@ -180,6 +179,8 @@ type SyncResponse struct{}
 
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
 	streambldr := service.NewStreamBuilder()
+
+	fmt.Println("BENTHOS CONFIG", req.BenthosConfig)
 
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
