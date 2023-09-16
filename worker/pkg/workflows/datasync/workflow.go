@@ -37,6 +37,7 @@ func Workflow(ctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, er
 
 	// todo: figure this out as we want to parallelize this
 
+	//nolint:gocritic
 	// futures := make([]workflow.Future, len(bcResp.BenthosConfigs))
 	for idx := range bcResp.BenthosConfigs {
 		bc := bcResp.BenthosConfigs[idx]
@@ -49,7 +50,8 @@ func Workflow(ctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, er
 		if err != nil {
 			return nil, err
 		}
-		// future := workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)})
+		//nolint:gocritic
+		//future := workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)})
 		// futures = append(futures, future)
 	}
 
