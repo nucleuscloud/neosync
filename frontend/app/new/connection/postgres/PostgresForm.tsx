@@ -1,4 +1,5 @@
 'use client';
+import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,6 +42,7 @@ const FORM_SCHEMA = Yup.object({
 type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function PostgresForm() {
+  const account = useAccount();
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
     defaultValues: {
@@ -60,10 +62,14 @@ export default function PostgresForm() {
   >();
 
   async function onSubmit(values: FormValues) {
+    if (!account) {
+      return;
+    }
     try {
       const connection = await createPostgresConnection(
         values.db,
-        values.connectionName
+        values.connectionName,
+        account.id
       );
       if (connection.connection?.id) {
         router.push(`/connections/${connection.connection.id}`);
@@ -249,7 +255,8 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 }
 async function createPostgresConnection(
   db: FormValues['db'],
-  name: string
+  name: string,
+  accountId: string
 ): Promise<CreateConnectionResponse> {
   const res = await fetch(`/api/connections`, {
     method: 'POST',
@@ -258,6 +265,7 @@ async function createPostgresConnection(
     },
     body: JSON.stringify(
       new CreateConnectionRequest({
+        accountId,
         name: name,
         connectionConfig: new ConnectionConfig({
           config: {

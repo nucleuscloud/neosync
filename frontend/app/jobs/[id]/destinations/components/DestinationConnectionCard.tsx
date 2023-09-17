@@ -1,5 +1,6 @@
 'use client';
-import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
+import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -21,87 +22,92 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import {
-  JobSource,
-  JobSourceOptions,
-  SqlSourceConnectionOptions,
-  UpdateJobSourceConnectionRequest,
-  UpdateJobSourceConnectionResponse,
+  JobDestination,
+  JobDestinationOptions,
+  SqlDestinationConnectionOptions,
+  UpdateJobDestinationConnectionRequest,
+  UpdateJobDestinationConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
-import { SOURCE_FORM_SCHEMA } from '@/yup-validations/jobs';
+import { DESTINATION_FORM_SCHEMA } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { getJob } from '../../util';
 
+export const FORM_SCHEMA = DESTINATION_FORM_SCHEMA.concat(
+  Yup.object({
+    sourceId: Yup.string().required(),
+  })
+);
+export type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+
 interface Props {
   jobId: string;
 }
 
-const FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
-  Yup.object({
-    destinationId: Yup.string().required(),
-  })
-);
-export type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
-
-export default function SourceConnectionCard({ jobId }: Props): ReactElement {
+export default function DestinationConnectionCard({
+  jobId,
+}: Props): ReactElement {
   const { toast } = useToast();
+  const account = useAccount();
   const {
     isLoading: isConnectionsLoading,
     data: connectionsData,
     mutate,
-  } = useGetConnections();
+  } = useGetConnections(account?.id ?? '');
 
   const connections = connectionsData?.connections ?? [];
 
   const form = useForm({
-    resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
+    resolver: yupResolver<FormValues>(FORM_SCHEMA),
     defaultValues: async () => {
       const res = await getJob(jobId);
       if (!res) {
-        return {
-          sourceId: '',
-          sourceOptions: {
-            haltOnNewColumnAddition: false,
-          },
-          destinationId: '',
-        };
+        return { sourceId: '', destinationOptions: {}, destinationId: '' };
       }
-      const destinationIds = res.job?.destinations.map((d) => d.connectionId);
-      const values = {
+      const destinations = res.job?.destinations.map((d) => {
+        switch (d.options?.config.case) {
+          case 'sqlOptions':
+            return {
+              destinationId: d.connectionId,
+              destinationOptions: {
+                truncateBeforeInsert:
+                  d.options.config.value.truncateBeforeInsert,
+                initDbSchema: d.options.config.value.initDbSchema,
+              },
+            };
+          default:
+            return {
+              destinationId: d.connectionId,
+              destinationOptions: {},
+            };
+        }
+      });
+
+      return {
         sourceId: res.job?.source?.connectionId || '',
-        sourceOptions: {},
-        destinationId: destinationIds ? destinationIds[0] : '',
+        destinationOptions: destinations
+          ? destinations[0].destinationOptions
+          : {},
+        destinationId: destinations ? destinations[0].destinationId : '',
       };
-      switch (res.job?.source?.options?.config.case) {
-        case 'sqlOptions':
-          return {
-            ...values,
-            sourceOptions: {
-              haltOnNewColumnAddition:
-                res.job?.source?.options?.config.value.haltOnNewColumnAddition,
-            },
-          };
-        default:
-          return values;
-      }
     },
   });
 
-  async function onSubmit(values: SourceFormValues) {
+  async function onSubmit(values: FormValues) {
     try {
-      await updateJobConnection(jobId, values);
+      await updateJobConnections(jobId, values);
       mutate();
       toast({
-        title: 'Successfully updated job source connection!',
+        title: 'Successfully updated job destination!',
         variant: 'default',
       });
     } catch (err) {
       console.error(err);
       toast({
-        title: 'Unable to update job source connection',
+        title: 'Unable to update job destination',
         description: getErrorMessage(err),
         variant: 'destructive',
       });
@@ -114,10 +120,10 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
         <div className="space-y-8">
           <FormField
             control={form.control}
-            name="sourceId"
+            name="destinationId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Source</FormLabel>
+                <FormLabel>Destination</FormLabel>
                 <FormControl>
                   {isConnectionsLoading ? (
                     <Skeleton />
@@ -128,9 +134,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
                       </SelectTrigger>
                       <SelectContent>
                         {connections
-                          .filter(
-                            (c) => c.id !== form.getValues().destinationId
-                          )
+                          .filter((c) => c.id !== form.getValues().sourceId)
                           .map((connection) => (
                             <SelectItem
                               className="cursor-pointer"
@@ -145,15 +149,15 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
                   )}
                 </FormControl>
                 <FormDescription>
-                  The location of the source data set.
+                  The location of the destination data set.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <SourceOptionsForm
+          <DestinationOptionsForm
             connection={connections.find(
-              (c) => c.id == form.getValues().sourceId
+              (c) => c.id == form.getValues().destinationId
             )}
             maxColNum={2}
           />
@@ -168,26 +172,27 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   );
 }
 
-async function updateJobConnection(
+async function updateJobConnections(
   jobId: string,
-  values: SourceFormValues
-): Promise<UpdateJobSourceConnectionResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/source-connection`, {
+  values: FormValues
+): Promise<UpdateJobDestinationConnectionResponse> {
+  const res = await fetch(`/api/jobs/${jobId}/destination-connection`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',
     },
     body: JSON.stringify(
-      new UpdateJobSourceConnectionRequest({
+      new UpdateJobDestinationConnectionRequest({
         id: jobId,
-        source: new JobSource({
-          connectionId: values.sourceId,
-          options: new JobSourceOptions({
+        destination: new JobDestination({
+          connectionId: values.destinationId,
+          options: new JobDestinationOptions({
             config: {
               case: 'sqlOptions',
-              value: new SqlSourceConnectionOptions({
-                haltOnNewColumnAddition:
-                  values.sourceOptions.haltOnNewColumnAddition,
+              value: new SqlDestinationConnectionOptions({
+                truncateBeforeInsert:
+                  values.destinationOptions.truncateBeforeInsert,
+                initDbSchema: values.destinationOptions.initDbSchema,
               }),
             },
           }),
@@ -199,5 +204,5 @@ async function updateJobConnection(
     const body = await res.json();
     throw new Error(body.message);
   }
-  return UpdateJobSourceConnectionResponse.fromJson(await res.json());
+  return UpdateJobDestinationConnectionResponse.fromJson(await res.json());
 }

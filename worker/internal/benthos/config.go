@@ -1,7 +1,7 @@
 package neosync_benthos
 
 type BenthosConfig struct {
-	HTTP         HTTPConfig `json:"http" yaml:"http"`
+	// HTTP         HTTPConfig `json:"http" yaml:"http"`
 	StreamConfig `json:",inline" yaml:",inline"`
 }
 
@@ -25,7 +25,7 @@ type StreamConfig struct {
 
 type InputConfig struct {
 	Label  string `json:"label" yaml:"label"`
-	Inputs `json:"inline" yaml:",inline"`
+	Inputs `json:",inline" yaml:",inline"`
 }
 
 type Inputs struct {

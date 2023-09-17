@@ -12,6 +12,8 @@ import { useLocalStorage } from 'usehooks-ts';
 
 export const AccountContext = createContext<UserAccount | undefined>(undefined);
 
+const USER_ACCOUNT_KEY = 'user-account';
+
 interface Props {
   children: ReactNode;
 }
@@ -22,7 +24,7 @@ export default function AccountProvider(props: Props): ReactElement {
 
   const [userAccount, setUserAccount] = useLocalStorage<
     UserAccount | undefined
-  >('user-account', undefined);
+  >(USER_ACCOUNT_KEY, undefined);
 
   useEffect(() => {
     if (
@@ -50,4 +52,22 @@ export default function AccountProvider(props: Props): ReactElement {
 export function useAccount(): UserAccount | undefined {
   const account = useContext(AccountContext);
   return account;
+}
+
+// Retrieves the account from local storage. Useful if need to retrieve outside of a hook
+export function getAccount(): UserAccount | undefined {
+  if (!localStorage) {
+    return undefined;
+  }
+  const item = localStorage.getItem(USER_ACCOUNT_KEY);
+  if (!item) {
+    return undefined;
+  }
+  try {
+    const val = JSON.parse(item) as UserAccount;
+    return val;
+  } catch (err) {
+    console.error(err);
+    return undefined;
+  }
 }

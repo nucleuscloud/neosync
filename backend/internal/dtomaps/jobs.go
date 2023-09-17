@@ -20,6 +20,7 @@ func ToJobDto(
 		dest := inputDestConnections[i]
 		destinations = append(destinations, toDestinationDto(&dest))
 	}
+
 	return &mgmtv1alpha1.Job{
 		Id:              nucleusdb.UUIDString(inputJob.ID),
 		Name:            inputJob.Name,
@@ -30,9 +31,12 @@ func ToJobDto(
 		Status:          mgmtv1alpha1.JobStatus(inputJob.Status),
 		CronSchedule:    nucleusdb.ToNullableString(inputJob.CronSchedule),
 		Mappings:        mappings,
-		Source:          &mgmtv1alpha1.JobSource{},
-		Destinations:    destinations,
-		AccountId:       nucleusdb.UUIDString(inputJob.AccountID),
+		Source: &mgmtv1alpha1.JobSource{
+			ConnectionId: nucleusdb.UUIDString(inputJob.ConnectionSourceID),
+			Options:      inputJob.ConnectionOptions.ToDto(),
+		},
+		Destinations: destinations,
+		AccountId:    nucleusdb.UUIDString(inputJob.AccountID),
 	}
 
 }

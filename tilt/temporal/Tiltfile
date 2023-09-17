@@ -10,13 +10,13 @@ k8s_yaml(kustomize('.'))
 
 k8s_resource(
   'temporal-web',
-  port_forwards="8088:8088",
   labels=['temporal'],
 )
 
 k8s_resource(
   'temporal-ui',
   labels=['temporal'],
+  port_forwards="8233:8080",
 )
 
 k8s_resource(

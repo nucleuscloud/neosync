@@ -6,8 +6,14 @@ import {
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
+  const { searchParams } = new URL(req.url);
+  const accountId = searchParams.get('accountId') ?? '';
   return withNeosyncContext(async (ctx) => {
-    return ctx.connectionClient.getConnections(new GetConnectionsRequest({}));
+    return ctx.connectionClient.getConnections(
+      new GetConnectionsRequest({
+        accountId,
+      })
+    );
   })(req);
 }
 

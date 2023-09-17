@@ -1,3 +1,4 @@
+import { getAccount } from '@/components/providers/account-provider';
 import { IsJobNameAvailableResponse } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import {
   DESTINATION_FORM_SCHEMA,
@@ -17,7 +18,11 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
       if (!value || value.length == 0) {
         return false;
       }
-      const res = await isJobNameAvailable(value);
+      const account = getAccount();
+      if (!account) {
+        return false;
+      }
+      const res = await isJobNameAvailable(value, account.id);
       return res.isAvailable;
     }),
   cronSchedule: Yup.string()
@@ -46,14 +51,18 @@ export const FORM_SCHEMA = Yup.object({
 export type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 async function isJobNameAvailable(
-  name: string
+  name: string,
+  accountId: string
 ): Promise<IsJobNameAvailableResponse> {
-  const res = await fetch(`/api/jobs/is-job-name-available?name=${name}`, {
-    method: 'GET',
-    headers: {
-      'content-type': 'application/json',
-    },
-  });
+  const res = await fetch(
+    `/api/jobs/is-job-name-available?name=${name}&accountId=${accountId}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json',
+      },
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);
