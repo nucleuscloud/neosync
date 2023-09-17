@@ -133,6 +133,10 @@ type Destination struct {
 	Options      *jsonmodels.JobDestinationOptions
 }
 
+type WorkflowRequest struct {
+	JobId string
+}
+
 func (s *Service) CreateJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
@@ -245,6 +249,9 @@ func (s *Service) CreateJob(
 			Action: &temporalclient.ScheduleWorkflowAction{
 				Workflow:  "Workflow",
 				TaskQueue: s.cfg.TemporalTaskQueue,
+				Args: []interface{}{
+					&WorkflowRequest{JobId: jobUuid},
+				},
 			},
 		})
 		if err != nil {
