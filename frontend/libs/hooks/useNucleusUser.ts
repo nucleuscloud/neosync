@@ -1,6 +1,7 @@
 'use client';
 import useSWR, { KeyedMutator } from 'swr';
 
+import { IS_AUTH_ENABLED } from '@/api-only/auth-config';
 import { SetUserResponse } from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
 import { JsonValue } from '@bufbuild/protobuf';
 import { useSession } from 'next-auth/react';
@@ -14,7 +15,7 @@ import { useGenericErrorToast } from './useGenericErrorToast';
  */
 export function useNucleusUser(suspense?: boolean): HookReply<SetUserResponse> {
   const { status } = useSession();
-  const isReady = status === 'authenticated';
+  const isReady = isReadyStatus(status);
   const {
     data,
     error,
@@ -43,4 +44,11 @@ export function useNucleusUser(suspense?: boolean): HookReply<SetUserResponse> {
     isLoading: false,
     mutate: mutate as unknown as KeyedMutator<SetUserResponse>,
   };
+}
+
+function isReadyStatus(status: string): boolean {
+  if (!IS_AUTH_ENABLED) {
+    return true;
+  }
+  return status === 'authenticated';
 }
