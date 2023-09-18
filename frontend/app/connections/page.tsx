@@ -32,6 +32,7 @@ interface ConnectionTableProps {}
 function ConnectionTable(props: ConnectionTableProps): ReactElement {
   const {} = props;
   const account = useAccount();
+  console.log(account);
   const { isLoading, data, mutate } = useGetConnections(account?.id ?? '');
 
   if (isLoading) {
