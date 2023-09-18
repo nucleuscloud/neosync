@@ -1,8 +1,0 @@
-apiVersion: neosync.dev/v1alpha1
-kind: JobRun
-metadata:
-  name: testjob-2
-spec:
-  job:
-    jobRef:
-      name: testjob

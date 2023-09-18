@@ -6,7 +6,7 @@ helpers = load_dynamic("../tilt/extensions/Tiltfile")
 helmfile_with_local_chart = helpers['helmfile_with_local_chart']
 helmfile = helpers['helmfile']
 
-allow_k8s_contexts('kind-nuc-dev')
+allow_k8s_contexts('kind-neosync-dev')
 
 # when debugging can be handy to disable scrub
 secret_settings(disable_scrub=True)
