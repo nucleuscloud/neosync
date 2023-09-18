@@ -1,0 +1,56 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #101010;
+  --ifm-color-primary-dark: #101010;
+  --ifm-color-primary-darker: #101010;
+  --ifm-color-primary-darkest: #101010;
+  --ifm-color-primary-light: #101010;
+  --ifm-color-primary-lighter: #101010;
+  --ifm-color-primary-lightest: #101010;
+  --ifm-code-font-size: 95%;
+  --ifm-font-family: "Inter";
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+html[data-theme="dark"] {
+  --ifm-background-color: #101010;
+  --ifm-background-surface-color: #101010;
+  --ifm-color-primary: #acc7f9;
+  --ifm-color-primary-dark: #9bb3de;
+  --ifm-color-primary-darker: #586c91;
+  --ifm-color-primary-darkest: #37455f;
+  --ifm-color-primary-light: #b3cdff;
+  --ifm-color-primary-lighter: #b3cdff;
+  --ifm-color-primary-lightest: #b3cdff;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+@layer base {
+  body {
+    @apply mx-20;
+  }
+}
+
+.navbar .dark {
+  border-bottom-color: #25c2a0;
+}
+
+@layer components {
+  .navbar {
+    @apply py-[16px] px-[48px] shadow-none border-b border-gray-200;
+  }
+  [data-theme="dark"] .navbar {
+    @apply border-gray-800;
+  }
+}
