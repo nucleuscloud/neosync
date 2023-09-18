@@ -133,6 +133,12 @@ Each dependency in the `neosync` repo is split into sub-Tiltfiles so that they c
 
 Once everything is up and running, the app can be accessed at locally at `http://localhost:3000`.
 
+### Setup with Docker Compose
+We've spent time making the development process smooth with kind and Tilt.
+However, we understand not everyone wants to develop or is comfortable working inside of a Kubernetes cluster.
+
+We'd like to support a pure docker compose flow, but haven't had the time to invest into providing that experience yet.
+If this is a killer development feature for you, let us know by submitting a feature request!
 
 ## Resources
 
