@@ -110,7 +110,7 @@ It's of course possible run everything on bare metal without Kuberentes or Tilt,
 ### Brew Install
 Each tool above can be straightforwardly installed with brew if on Linux/MacOS
 ```
-brew install kind tilt-dev/tap/tilt ctlptl kubernetes-cli kustomize helm helmfile go sqlc buf golangci-lint node
+brew install kind tilt-dev/tap/tilt tilt-dev/tap/ctlptl kubernetes-cli kustomize helm helmfile go sqlc buf golangci-lint node
 ```
 
 ### Setup with Tilt
