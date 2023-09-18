@@ -1,4 +1,4 @@
-VALID_CONTEXTS=("kind-nuc-dev")
+VALID_CONTEXTS=("kind-neosync-dev")
 
 assert_context()
 {

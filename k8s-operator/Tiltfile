@@ -1,6 +1,6 @@
 load('ext://restart_process', 'docker_build_with_restart')
 
-allow_k8s_contexts('kind-nuc-dev')
+allow_k8s_contexts('kind-neosync-dev')
 
 secret_settings(disable_scrub=True)
 
