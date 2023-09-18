@@ -1,4 +1,4 @@
-allow_k8s_contexts('kind-nuc-dev')
+allow_k8s_contexts('kind-neosync-dev')
 
 backend = [
   'neosync-api',
