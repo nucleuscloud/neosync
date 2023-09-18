@@ -3,10 +3,24 @@
 {
 	"name": "Go",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/go:1-1.21-bullseye"
+	// "image": "mcr.microsoft.com/devcontainers/go:1-1.21-bullseye",
+	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers/features/go:1": {},
+		"ghcr.io/mpriscella/features/kind:1": {},
+		"ghcr.io/lentzi90/features/tilt:0": {},
+		"ghcr.io/rio/features/kustomize:1": {},
+		"ghcr.io/marcozac/devcontainer-features/buf:1": {},
+		"ghcr.io/guiyomh/features/golangci-lint:0": {},
+		"ghcr.io/devcontainers/features/node:1": {},
+		"ghcr.io/devcontainers-contrib/features/temporal-cli:1": {},
+		"ghcr.io/devcontainers-contrib/features/kubectl-asdf:2": {},
+		"ghcr.io/devcontainers-contrib/features/grpcurl-asdf:2": {},
+		// todo: helm, helmfile, sqlc, ctlptl, benthos
+	}
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
