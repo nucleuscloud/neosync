@@ -10,8 +10,9 @@ import {
   createPromiseClient,
 } from '@connectrpc/connect';
 import { createConnectTransport } from '@connectrpc/connect-node';
-import { getToken } from 'next-auth/jwt';
+import { GetTokenParams, getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
+import { IS_AUTH_ENABLED } from './auth-config';
 
 interface NeosyncContext {
   connectionClient: PromiseClient<typeof ConnectionService>;
@@ -56,15 +57,7 @@ export function withNeosyncContext<T = unknown>(
 async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
   // const res = new NextResponse();
 
-  const jwt = await getToken({ req: req, raw: true });
-  if (!jwt) {
-    throw new Error('no session provided');
-  }
-
-  const transport = getAuthenticatedConnectTransport(
-    getApiBaseUrlFromEnv(),
-    () => jwt
-  );
+  const transport = await getTransport({ req: req, raw: true });
 
   return {
     connectionClient: createPromiseClient(ConnectionService, transport),
@@ -73,9 +66,21 @@ async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
   };
 }
 
+async function getTransport(params: GetTokenParams<true>): Promise<Transport> {
+  if (!IS_AUTH_ENABLED) {
+    return getAuthenticatedConnectTransport(getApiBaseUrlFromEnv());
+  }
+  const jwt = await getToken(params);
+  if (!jwt) {
+    throw new Error('no session provided');
+  }
+
+  return getAuthenticatedConnectTransport(getApiBaseUrlFromEnv(), () => jwt);
+}
+
 function getAuthenticatedConnectTransport(
   baseUrl: string,
-  getAccessToken: () => Promise<string> | string
+  getAccessToken?: () => Promise<string> | string
 ): Transport {
   return createConnectTransport({
     baseUrl,
@@ -85,11 +90,13 @@ function getAuthenticatedConnectTransport(
 }
 
 function getAuthInterceptor(
-  getAccessToken: () => Promise<string> | string
+  getAccessToken?: () => Promise<string> | string
 ): Interceptor {
   return (next) => async (req) => {
-    const accessToken = await getAccessToken();
-    req.header.set('Authorization', `Bearer ${accessToken}`);
+    if (getAccessToken) {
+      const accessToken = await getAccessToken();
+      req.header.set('Authorization', `Bearer ${accessToken}`);
+    }
     return next(req);
   };
 }
