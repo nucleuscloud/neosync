@@ -1,6 +1,0 @@
-auth:
-  postgresPassword: foofar
-  database: nucleus
-# primary:
-#   persistence:
-#     existingClaim: postgres

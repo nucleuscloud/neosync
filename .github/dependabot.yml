@@ -7,7 +7,7 @@ updates:
       interval: 'daily'
 
   - package-ecosystem: 'gomod'
-    directory: 'k8s-operator'
+    directory: 'worker'
     schedule:
       interval: 'daily'
 

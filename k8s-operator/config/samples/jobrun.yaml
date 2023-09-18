@@ -1,8 +1,0 @@
-apiVersion: neosync.dev/v1alpha1
-kind: JobRun
-metadata:
-  generateName: stage-sync-1
-spec:
-  job:
-    jobRef:
-      name: prod-to-stage-sync
