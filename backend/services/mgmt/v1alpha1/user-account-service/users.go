@@ -2,6 +2,8 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -22,6 +24,7 @@ func (s *Service) GetUser(
 		} else if err != nil && nucleusdb.IsNoRows(err) {
 			return nil, nucleuserrors.NewNotFound("unable to find user")
 		}
+
 		return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
 			UserId: nucleusdb.UUIDString(user.ID),
 		}), nil
@@ -81,6 +84,8 @@ func (s *Service) GetUserAccounts(
 	if err != nil {
 		return nil, err
 	}
+	jsonF, _ := json.MarshalIndent(user, "", " ")
+	fmt.Printf("\n\n user: %s \n\n", string(jsonF))
 	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
 	if err != nil {
 		return nil, err

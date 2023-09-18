@@ -75,6 +75,7 @@ func serve() error {
 	if err != nil {
 		return err
 	}
+
 	db, err := nucleusdb.NewFromConfig(dbconfig)
 	if err != nil {
 		return err
