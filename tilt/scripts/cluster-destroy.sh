@@ -3,7 +3,7 @@
 FILE=$(readlink -f "$0")
 NEOSYNC_ROOT="$(dirname "$FILE")/../../"
 
-ctlptl_create()
+cluster_destroy()
 {
   if ! command -v ctlptl > /dev/null ; then
     echo "requires ctptl to run, see https://github.com/tilt-dev/ctlptl"
@@ -17,4 +17,4 @@ ctlptl_create()
   sed 's|{NEOSYNC_DEV_HOSTPATH}|'"$NEOSYNC_DEV_HOSTPATH"'|' < "$NEOSYNC_ROOT/tilt/kind/cluster.yaml" | ctlptl delete -f -
 }
 
-ctlptl_create
+cluster_destroy
