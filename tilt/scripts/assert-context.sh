@@ -19,3 +19,5 @@ assert_context()
         exit 1
     fi
 }
+
+assert_context
