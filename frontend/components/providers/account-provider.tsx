@@ -21,7 +21,6 @@ interface Props {
 export default function AccountProvider(props: Props): ReactElement {
   const { children } = props;
   const { data: accountsResponse, isLoading } = useGetUserAccounts();
-  console.log('account', accountsResponse);
 
   const [userAccount, setUserAccount] = useLocalStorage<
     UserAccount | undefined
