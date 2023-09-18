@@ -24,6 +24,7 @@ import (
 type GenerateBenthosConfigsRequest struct {
 	JobId      string
 	BackendUrl string
+	WorkflowId string
 }
 type GenerateBenthosConfigsResponse struct {
 	BenthosConfigs []*benthosConfigResponse
@@ -133,6 +134,37 @@ func (a *Activities) GenerateBenthosConfigs(
 						InitStatement: initStmt,
 					},
 				})
+			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+				s3pathpieces := []string{}
+				if connection.AwsS3Config.PathPrefix != nil && *connection.AwsS3Config.PathPrefix != "" {
+					s3pathpieces = append(s3pathpieces, strings.Trim(*connection.AwsS3Config.PathPrefix, "/"))
+				}
+				s3pathpieces = append(
+					s3pathpieces,
+					"workflows",
+					req.WorkflowId,
+					"activities",
+					resp.Name, // may need to do more here
+					"data",
+					`${!count("files")}.json.gz}`,
+				)
+
+				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+					AwsS3: &neosync_benthos.AwsS3Insert{
+						Bucket:      connection.AwsS3Config.BucketArn,
+						MaxInFlight: 64,
+						Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
+						Batching: &neosync_benthos.Batching{
+							Count:  100,
+							Period: "5s",
+							Processors: []*neosync_benthos.BatchProcessor{
+								{Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"}},
+								{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
+							},
+						},
+					},
+				})
+				// todo: configure provided aws creds
 			default:
 				return nil, fmt.Errorf("unsupported destination connection config")
 			}
