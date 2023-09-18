@@ -19,11 +19,11 @@
 
 		/* Protobuf */
 		"ghcr.io/marcozac/devcontainer-features/buf:1": {},
+		"ghcr.io/devcontainers-contrib/features/grpcurl-asdf:2": {},
 
 		/* Golang */
 		"ghcr.io/devcontainers/features/go:1": {},
 		"ghcr.io/guiyomh/features/golangci-lint:0": {},
-		"ghcr.io/devcontainers-contrib/features/grpcurl-asdf:2": {},
 
 		/* NodeJS/Browser */
 		"ghcr.io/devcontainers/features/node:1": {},
