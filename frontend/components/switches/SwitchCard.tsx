@@ -14,9 +14,9 @@ export default function SwitchCard(props: Props): ReactElement {
   return (
     <div className="flex flex-row items-center justify-between rounded-lg border p-4">
       <div className="space-y-0.5">
-        <Label className="text-base">{title}</Label>
+        <Label className="text-sm">{title}</Label>
         {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
         )}
       </div>
       <Switch checked={isChecked} onCheckedChange={onCheckedChange} />

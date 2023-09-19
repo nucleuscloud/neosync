@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from enum mgmt.v1alpha1.JobStatus
@@ -1816,14 +1816,19 @@ export class JobRunEvent extends Message<JobRunEvent> {
   name = "";
 
   /**
-   * @generated from field: google.protobuf.Timestamp started_at = 2;
+   * @generated from field: google.protobuf.Timestamp created_at = 2;
    */
-  startedAt?: Timestamp;
+  createdAt?: Timestamp;
 
   /**
-   * @generated from field: google.protobuf.Timestamp completed_at = 3;
+   * @generated from field: string type = 3;
    */
-  completedAt?: Timestamp;
+  type = "";
+
+  /**
+   * @generated from field: int64 id = 4;
+   */
+  id = protoInt64.zero;
 
   constructor(data?: PartialMessage<JobRunEvent>) {
     super();
@@ -1834,8 +1839,9 @@ export class JobRunEvent extends Message<JobRunEvent> {
   static readonly typeName = "mgmt.v1alpha1.JobRunEvent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "started_at", kind: "message", T: Timestamp },
-    { no: 3, name: "completed_at", kind: "message", T: Timestamp },
+    { no: 2, name: "created_at", kind: "message", T: Timestamp },
+    { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "id", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRunEvent {
@@ -1852,49 +1858,6 @@ export class JobRunEvent extends Message<JobRunEvent> {
 
   static equals(a: JobRunEvent | PlainMessage<JobRunEvent> | undefined, b: JobRunEvent | PlainMessage<JobRunEvent> | undefined): boolean {
     return proto3.util.equals(JobRunEvent, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.JobRunEvents
- */
-export class JobRunEvents extends Message<JobRunEvents> {
-  /**
-   * @generated from field: mgmt.v1alpha1.JobRunEvent workflow = 1;
-   */
-  workflow?: JobRunEvent;
-
-  /**
-   * @generated from field: repeated mgmt.v1alpha1.JobRunEvent activities = 2;
-   */
-  activities: JobRunEvent[] = [];
-
-  constructor(data?: PartialMessage<JobRunEvents>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.JobRunEvents";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "workflow", kind: "message", T: JobRunEvent },
-    { no: 2, name: "activities", kind: "message", T: JobRunEvent, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRunEvents {
-    return new JobRunEvents().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobRunEvents {
-    return new JobRunEvents().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobRunEvents {
-    return new JobRunEvents().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: JobRunEvents | PlainMessage<JobRunEvents> | undefined, b: JobRunEvents | PlainMessage<JobRunEvents> | undefined): boolean {
-    return proto3.util.equals(JobRunEvents, a, b);
   }
 }
 
@@ -1940,9 +1903,9 @@ export class GetJobRunEventsRequest extends Message<GetJobRunEventsRequest> {
  */
 export class GetJobRunEventsResponse extends Message<GetJobRunEventsResponse> {
   /**
-   * @generated from field: mgmt.v1alpha1.JobRunEvents events = 1;
+   * @generated from field: repeated mgmt.v1alpha1.JobRunEvent events = 1;
    */
-  events?: JobRunEvents;
+  events: JobRunEvent[] = [];
 
   constructor(data?: PartialMessage<GetJobRunEventsResponse>) {
     super();
@@ -1952,7 +1915,7 @@ export class GetJobRunEventsResponse extends Message<GetJobRunEventsResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetJobRunEventsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "events", kind: "message", T: JobRunEvents },
+    { no: 1, name: "events", kind: "message", T: JobRunEvent, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunEventsResponse {

@@ -5,7 +5,9 @@ import (
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/history/v1"
 	"go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/converter"
@@ -18,13 +20,6 @@ func ToJobRunDto(
 ) *mgmtv1alpha1.JobRun {
 	executionInfo := input.GetWorkflowExecutionInfo()
 
-	scheduledByIDPayload := executionInfo.GetSearchAttributes().IndexedFields["TemporalScheduledById"]
-	var scheduledByID string
-	err := converter.GetDefaultDataConverter().FromPayload(scheduledByIDPayload, &scheduledByID)
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to get job id from workflow: %w", err).Error())
-	}
-
 	closeTime := executionInfo.GetCloseTime()
 	var completedTime *timestamppb.Timestamp
 	if closeTime != nil {
@@ -33,12 +28,31 @@ func ToJobRunDto(
 
 	return &mgmtv1alpha1.JobRun{
 		Id:                executionInfo.Execution.WorkflowId,
-		JobId:             scheduledByID,
+		JobId:             GetJobIdFromWorkflow(logger, executionInfo.GetSearchAttributes()),
 		Name:              executionInfo.Type.Name,
-		Status:            toWorfklowStatus(input), // TODO @alisha implement
+		Status:            toWorfklowStatus(input),
 		StartedAt:         timestamppb.New(*executionInfo.StartTime),
-		CompletedAt:       completedTime, // todo get this from events???
+		CompletedAt:       completedTime,
 		PendingActivities: toPendingActivitiesDto(input.GetPendingActivities()),
+	}
+}
+
+func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *common.SearchAttributes) string {
+	scheduledByIDPayload := searchAttributes.IndexedFields["TemporalScheduledById"]
+	var scheduledByID string
+	err := converter.GetDefaultDataConverter().FromPayload(scheduledByIDPayload, &scheduledByID)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to get job id from workflow: %w", err).Error())
+	}
+	return scheduledByID
+}
+
+func ToJobRunEventDto(event *history.HistoryEvent, name, eventType string) *mgmtv1alpha1.JobRunEvent {
+	return &mgmtv1alpha1.JobRunEvent{
+		Id:        event.EventId,
+		Name:      name,
+		CreatedAt: timestamppb.New(*event.EventTime),
+		Type:      eventType,
 	}
 }
 

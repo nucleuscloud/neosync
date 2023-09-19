@@ -146,7 +146,7 @@ message GetJobRunsResponse {
 }
 
 message GetJobRunRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1;
 }
 message GetJobRunResponse {
   JobRun job_run = 1;
@@ -226,21 +226,17 @@ enum JobRunStatus {
 
 message JobRunEvent {
   string name = 1;
-  google.protobuf.Timestamp started_at = 2;
-  google.protobuf.Timestamp completed_at = 3;
-}
-
-message JobRunEvents {
-  JobRunEvent workflow = 1;
-  repeated JobRunEvent activities = 2;
+  google.protobuf.Timestamp created_at = 2;
+  string type = 3;
+  int64 id = 4;
 }
 
 message GetJobRunEventsRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1;
 }
 
 message GetJobRunEventsResponse {
-  JobRunEvents events = 1;
+  repeated JobRunEvent events = 1;
 }
 
 message Transformer {
