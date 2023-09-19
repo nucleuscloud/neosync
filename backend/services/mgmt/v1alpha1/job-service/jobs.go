@@ -19,6 +19,7 @@ import (
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 	"golang.org/x/sync/errgroup"
 
 	wf_datasync "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync"
@@ -252,6 +253,9 @@ func (s *Service) CreateJob(
 				Workflow:  wf_datasync.Workflow,
 				TaskQueue: s.cfg.TemporalTaskQueue,
 				Args:      []any{&wf_datasync.WorkflowRequest{JobId: jobUuid}},
+				RetryPolicy: &temporal.RetryPolicy{
+					MaximumAttempts: 4,
+				},
 			},
 		})
 		if err != nil {

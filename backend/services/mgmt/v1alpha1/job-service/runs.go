@@ -2,7 +2,6 @@ package v1alpha1_jobservice
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -10,9 +9,8 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/api/history/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
+	"golang.org/x/sync/errgroup"
 )
 
 func (s *Service) GetJobRuns(
@@ -66,34 +64,36 @@ func (s *Service) GetJobRuns(
 		return nil, err
 	}
 
-	var workflowStartedEvent *history.WorkflowExecutionStartedEventAttributes
-	runs := []*mgmtv1alpha1.JobRun{}
-	for _, w := range workflows {
-		jsonF, _ := json.MarshalIndent(w, "", " ")
-		fmt.Printf("\n\n w: %s \n\n", string(jsonF))
-		iter := s.temporalClient.GetWorkflowHistory(ctx, w.Execution.WorkflowId, w.Execution.RunId, false, enums.HISTORY_EVENT_FILTER_TYPE_ALL_EVENT)
-		for iter.HasNext() {
-			event, _ := iter.Next()
-			if event.GetWorkflowExecutionStartedEventAttributes() != nil {
-				workflowStartedEvent = event.GetWorkflowExecutionStartedEventAttributes()
+	runs := make([]*mgmtv1alpha1.JobRun, len(workflows))
+	errGrp, errCtx := errgroup.WithContext(ctx)
+	for index, workflow := range workflows {
+		index := index
+		workflow := workflow
+		errGrp.Go(func() error {
+			res, err := s.temporalClient.DescribeWorkflowExecution(errCtx, workflow.Execution.WorkflowId, workflow.Execution.RunId)
+			if err != nil {
+				return err
 			}
-
-			jsonF, _ := json.MarshalIndent(event, "", " ")
-			fmt.Printf("\n\n event: %s \n\n", string(jsonF))
-		}
-		res, err := s.temporalClient.DescribeWorkflowExecution(ctx, w.Execution.WorkflowId, w.Execution.RunId)
-		if err != nil {
-			return nil, err
-		}
-		d, _ := json.MarshalIndent(res, "", " ")
-		fmt.Printf("\n\n res: %s \n\n", string(d))
-		runs = append(runs, dtomaps.ToJobRunDto(w))
+			runs[index] = dtomaps.ToJobRunDto(logger, res)
+			return nil
+		})
 	}
-	fmt.Println(workflowStartedEvent)
+
+	err = errGrp.Wait()
+	if err != nil {
+		return nil, err
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRunsResponse{
 		JobRuns: runs,
 	}), nil
+}
+
+func (s *Service) GetJobRunEvents(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRunEventsRequest],
+) (*connect.Response[mgmtv1alpha1.GetJobRunEventsResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.GetJobRunEventsResponse{}), nil
 }
 
 func (s *Service) GetJobRun(

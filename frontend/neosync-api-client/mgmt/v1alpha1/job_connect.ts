@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CancelJobRunRequest, CancelJobRunResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobRequest, DeleteJobResponse, DeleteJobRunRequest, DeleteJobRunResponse, GetJobRequest, GetJobResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetTransformersRequest, GetTransformersResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, UpdateJobDestinationConnectionRequest, UpdateJobDestinationConnectionResponse, UpdateJobMappingsRequest, UpdateJobMappingsResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse } from "./job_pb";
+import { CancelJobRunRequest, CancelJobRunResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobRequest, DeleteJobResponse, DeleteJobRunRequest, DeleteJobRunResponse, GetJobRequest, GetJobResponse, GetJobRunEventsRequest, GetJobRunEventsResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetTransformersRequest, GetTransformersResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, UpdateJobDestinationConnectionRequest, UpdateJobDestinationConnectionResponse, UpdateJobMappingsRequest, UpdateJobMappingsResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse } from "./job_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -100,6 +100,15 @@ export const JobService = {
       name: "GetJobRuns",
       I: GetJobRunsRequest,
       O: GetJobRunsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.JobService.GetJobRunEvents
+     */
+    getJobRunEvents: {
+      name: "GetJobRunEvents",
+      I: GetJobRunEventsRequest,
+      O: GetJobRunEventsResponse,
       kind: MethodKind.Unary,
     },
     /**
