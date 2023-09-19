@@ -102,26 +102,3 @@ func toWorfklowStatus(input *workflowservice.DescribeWorkflowExecutionResponse) 
 		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_UNSPECIFIED
 	}
 }
-
-func toJobStatusDto(input *neosyncdevv1alpha1.JobRun) *mgmtv1alpha1.JobRunStatus {
-	var status *mgmtv1alpha1.JobRunStatusType
-	if len(input.Status.Conditions) > 0 {
-		s := getStatus(input.Status.Conditions[0].Type)
-		status = &s
-	}
-
-	return &mgmtv1alpha1.JobRunStatus{
-		Status:         *status,
-		StartTime:      timestamppb.New(input.Status.StartTime.Time),
-		CompletionTime: timestamppb.New(input.Status.CompletionTime.Time),
-	}
-}
-
-func getStatus(status string) mgmtv1alpha1.JobRunStatusType {
-	switch status {
-	case "Succeeded":
-		return mgmtv1alpha1.JobRunStatusType_JOB_RUN_STATUS_COMPLETE
-	default:
-		return mgmtv1alpha1.JobRunStatusType_JOB_RUN_STATUS_UNSPECIFIED
-	}
-}

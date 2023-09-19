@@ -213,13 +213,7 @@ message JobRun {
   repeated PendingActivity pending_activities = 8;
 }
 
-message JobRunStatus {
-  JobRunStatusType status = 1;
-  google.protobuf.Timestamp start_time = 2;
-  google.protobuf.Timestamp completion_time = 3;
-}
-
-enum JobRunStatusType {
+enum JobRunStatus {
   JOB_RUN_STATUS_UNSPECIFIED = 0;
   JOB_RUN_STATUS_PENDING = 1;
   JOB_RUN_STATUS_RUNNING = 2;
