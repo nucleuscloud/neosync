@@ -11,7 +11,7 @@ plugins:
     out: gen/go/protos
     opt:
       - paths=source_relative
-  - plugin: buf.build/connectrpc/go:v1.11.0
+  - plugin: buf.build/connectrpc/go:v1.11.1
     out: gen/go/protos
     opt:
       - paths=source_relative

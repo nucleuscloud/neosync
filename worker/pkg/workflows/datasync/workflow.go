@@ -14,7 +14,7 @@ type WorkflowRequest struct {
 
 type WorkflowResponse struct{}
 
-func Workflow(ctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
+func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
 	neosyncUrl := viper.GetString("NEOSYNC_URL")
 	if neosyncUrl == "" {
 		neosyncUrl = "localhost:8080"
@@ -23,13 +23,17 @@ func Workflow(ctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, er
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
 	}
-	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	wfinfo := workflow.GetInfo(wfctx)
+
+	ctx := workflow.WithActivityOptions(wfctx, ao)
 
 	var wfActivites *Activities
 	var bcResp *GenerateBenthosConfigsResponse
 	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &GenerateBenthosConfigsRequest{
 		JobId:      req.JobId,
 		BackendUrl: neosyncUrl,
+		WorkflowId: wfinfo.WorkflowExecution.ID,
 	}).Get(ctx, &bcResp)
 	if err != nil {
 		return nil, err
