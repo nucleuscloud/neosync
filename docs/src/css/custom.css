@@ -33,6 +33,7 @@ html[data-theme="dark"] {
   --ifm-color-primary-light: #b3cdff;
   --ifm-color-primary-lighter: #b3cdff;
   --ifm-color-primary-lightest: #b3cdff;
+  --ifm-toc-border-color: #252525;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
@@ -42,15 +43,66 @@ html[data-theme="dark"] {
   }
 }
 
-.navbar .dark {
-  border-bottom-color: #25c2a0;
+/*
+this is the class for the sidebar categories that section headers
+*/
+.sidebarcategory {
+  padding-left: 11px;
+  padding-bottom: 10px;
+  padding-top: 30px;
 }
+
+.menu__link {
+  border-radius: 10px;
+}
+
+/*
+side bar drop down category 
+*/
+.menu__list-item-collapsible {
+  border-radius: 10px;
+  font-weight: 400;
+}
+
+/*
+sidebar menu item when active
+*/
+/* .menu__link--active {
+} */
+
+/*
+the prev and next nav links at the bottom of the page
+*/
+.pagination-nav__link {
+  border-width: 0px;
+}
+
+.pagination-nav__sublabel {
+  font-size: 12px;
+}
+
+/*
+each sidebar nav item
+.menu__list-item {
+}
+*/
+
+/*
+the entire nav menu list
+.menu__list {
+}
+*/
 
 @layer components {
   .navbar {
-    @apply py-[16px] px-[48px] shadow-none border-b border-gray-200;
+    @apply py-[16px] px-[18px] shadow-none border-b border-gray-200;
   }
+
   [data-theme="dark"] .navbar {
     @apply border-gray-800;
+  }
+
+  .footer {
+    @apply bg-transparent border-t border-t-gray-800 text-gray-600 text-sm;
   }
 }
