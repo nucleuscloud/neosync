@@ -37,8 +37,8 @@ func ToJobRunDto(
 	}
 }
 
-func GetJobIdFromWorkflow(logger *slog.Logger, SearchAttributes *common.SearchAttributes) string {
-	scheduledByIDPayload := SearchAttributes.IndexedFields["TemporalScheduledById"]
+func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *common.SearchAttributes) string {
+	scheduledByIDPayload := searchAttributes.IndexedFields["TemporalScheduledById"]
 	var scheduledByID string
 	err := converter.GetDefaultDataConverter().FromPayload(scheduledByIDPayload, &scheduledByID)
 	if err != nil {

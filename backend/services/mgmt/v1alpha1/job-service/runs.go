@@ -158,7 +158,13 @@ func (s *Service) GetJobRunEvents(
 
 	activityNameMap := map[int64]string{}
 	events := []*mgmtv1alpha1.JobRunEvent{}
-	iter := s.temporalClient.GetWorkflowHistory(ctx, run.Execution.WorkflowId, run.Execution.RunId, false, enums.HISTORY_EVENT_FILTER_TYPE_ALL_EVENT)
+	iter := s.temporalClient.GetWorkflowHistory(
+		ctx,
+		run.Execution.WorkflowId,
+		run.Execution.RunId,
+		false,
+		enums.HISTORY_EVENT_FILTER_TYPE_ALL_EVENT,
+	)
 	for iter.HasNext() {
 		event, err := iter.Next()
 		if err != nil {
