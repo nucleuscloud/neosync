@@ -14,12 +14,14 @@ Neosync is a developer-first way to create anonymized, secure test data and sync
 <p align="center">
   <a href='http://makeapullrequest.com'><img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/></a>
 <img src="https://img.shields.io/github/license/lightdash/lightdash" />
-  <img alt="Follow twitter" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
+  <!-- <img alt="Follow twitter" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/> -->
 </p>
 
-<p align="center">
+<!-- <p align="center">
   <a href="https://docs.neosync.dev">Docs</a> - <a href="https://neosync.dev/slack">Community</a> - <a href="https://neosync.dev/roadmap">Roadmap</a> - <a href="https://neosync.dev/changelog">Changelog</a>
-</p>
+</p> -->
+
+<strong>Heads up! This repo is still in development mode while we continue to build out the first stable version. In the mean-time, we'll happily accept PRs and support! </strong>
 
 ## Introduction
 
@@ -60,8 +62,8 @@ You can also check out our [Docs](https://docs.neosync.dev) for more guides incl
 
 To set up and run Neosync locally, make sure you have Git and Docker installed on your system.
 
-
 ### Tools
+
 Currently, the primary development environment is done by deploying the app and its dependent resources into a `kind` cluster using `tilt`.
 We utilize `helm` charts to wrap up deployable artifacts and have `tilt` install these to closely mimic a production environment.
 Due to this, there are a number of dependencies that must be installed on a host system prior to being able to run `neosync` locally.
@@ -70,36 +72,39 @@ We are working on making this smoother by providing a `devcontainer` that comes 
 Detailed below are the main dependencies are descriptions of how they are utilized:
 
 #### Kubernetes
+
 Kubernetes is used today as our primary development environment. Tilt is a great tool that lets you define your environment in code.
 This lets us develop quickly, locally, while closely mimicking a real production environment.
-* [kind](https://github.com/kubernetes-sigs/kind)
-  * Kubernetes in Docker. We use this to spin up a barebones kubernetes cluster that deploys all of the `neosync` resources.
-* [tilt](https://github.com/tilt-dev/tilt)
-  * Allows us to define our development environment as code.
-* [ctlptl](https://github.com/tilt-dev/ctlptl)
-  * CLI provided by the Tilt-team to make it easy to declaratively define the kind cluster that is used for development
-* [kubectl](https://github.com/kubernetes/kubectl)
-  * Allows for observability and management into the spun-up kind cluster.
-* [kustomize](https://github.com/kubernetes-sigs/kustomize)
-  * yaml templating tool for ad-hoc patches to kubernetes configurations
-* [helm](https://github.com/helm/helm)
-  * Kubernetes package manager. All of our app deployables come with a helm-chart for easy installation into kubernetes
-* [helmfile](https://github.com/helmfile/helmfile)
-  * Declaratively define a helmfile in code! We have all of our dev charts defined as a helmfile, of which Tilt points directly to.
+
+- [kind](https://github.com/kubernetes-sigs/kind)
+  - Kubernetes in Docker. We use this to spin up a barebones kubernetes cluster that deploys all of the `neosync` resources.
+- [tilt](https://github.com/tilt-dev/tilt)
+  - Allows us to define our development environment as code.
+- [ctlptl](https://github.com/tilt-dev/ctlptl)
+  - CLI provided by the Tilt-team to make it easy to declaratively define the kind cluster that is used for development
+- [kubectl](https://github.com/kubernetes/kubectl)
+  - Allows for observability and management into the spun-up kind cluster.
+- [kustomize](https://github.com/kubernetes-sigs/kustomize)
+  - yaml templating tool for ad-hoc patches to kubernetes configurations
+- [helm](https://github.com/helm/helm)
+  - Kubernetes package manager. All of our app deployables come with a helm-chart for easy installation into kubernetes
+- [helmfile](https://github.com/helmfile/helmfile)
+  - Declaratively define a helmfile in code! We have all of our dev charts defined as a helmfile, of which Tilt points directly to.
 
 #### Golang + Protobuf
-* Golang
-  * The language of choice for our backend and worker packages
-* [sqlc](https://github.com/sqlc-dev/sqlc)
-  * Our tool of choice for the data-layer. This lets us write pure SQL and let sqlc generate the rest.
-* [buf](https://github.com/bufbuild/buf)
-  * Our tool of choice for interfacing with protobuf
-* [golangci-ci](https://github.com/golangci/golangci-lint)
-  * The golang linter of choice
+
+- Golang
+  - The language of choice for our backend and worker packages
+- [sqlc](https://github.com/sqlc-dev/sqlc)
+  - Our tool of choice for the data-layer. This lets us write pure SQL and let sqlc generate the rest.
+- [buf](https://github.com/bufbuild/buf)
+  - Our tool of choice for interfacing with protobuf
+- [golangci-ci](https://github.com/golangci/golangci-lint)
+  - The golang linter of choice
 
 #### Npm/Nodejs
-* Node/Npm
 
+- Node/Npm
 
 All of these tools can be easily installed with `brew` if on a Mac.
 Today, `sqlc` and `buf` don't need to be installed locally as we exec docker images for running them.
@@ -108,7 +113,9 @@ This lets us declare the versions in code and docker takes care of the rest.
 It's of course possible run everything on bare metal without Kuberentes or Tilt, but there will be more work getting everything up and running (at least today).
 
 ### Brew Install
+
 Each tool above can be straightforwardly installed with brew if on Linux/MacOS
+
 ```
 brew install kind tilt-dev/tap/tilt tilt-dev/tap/ctlptl kubernetes-cli kustomize helm helmfile go sqlc buf golangci-lint node
 ```
@@ -123,6 +130,7 @@ Note: Because databases are installed into the Kubernetes cluster, we like to pe
 We mount a container path locally in a `.data` folder. If on a Mac, ensure that you've allowed wherever this repository has been cloned into the allow-list in Docker Desktop.
 
 The below command invokes the cluster-create script that can be found [here](./tilt/scripts/cluster-create.sh)
+
 ```
 make cluster-create
 ```
@@ -134,6 +142,7 @@ Each dependency in the `neosync` repo is split into sub-Tiltfiles so that they c
 Once everything is up and running, the app can be accessed at locally at `http://localhost:3000`.
 
 ### Setup with Docker Compose
+
 We've spent time making the development process smooth with kind and Tilt.
 However, we understand not everyone wants to develop or is comfortable working inside of a Kubernetes cluster.
 
