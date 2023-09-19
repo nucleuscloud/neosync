@@ -60,8 +60,28 @@ func (m *GetJobsRequest) validate(all bool) error {
 
 	var errors []error
 
+	if err := m._validateUuid(m.GetAccountId()); err != nil {
+		err = GetJobsRequestValidationError{
+			field:  "AccountId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return GetJobsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetJobsRequest) _validateUuid(uuid string) error {
+	if matched := _job_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1382,6 +1402,18 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	var errors []error
 
+	if err := m._validateUuid(m.GetAccountId()); err != nil {
+		err = CreateJobRequestValidationError{
+			field:  "AccountId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	// no validation rules for JobName
 
 	for idx, item := range m.GetMappings() {
@@ -1487,6 +1519,14 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return CreateJobRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CreateJobRequest) _validateUuid(uuid string) error {
+	if matched := _job_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -2613,24 +2653,23 @@ var _ interface {
 	ErrorName() string
 } = UpdateJobSourceConnectionResponseValidationError{}
 
-// Validate checks the field values on UpdateJobDestinationConnectionsRequest
+// Validate checks the field values on UpdateJobDestinationConnectionRequest
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if
 // there are no violations.
-func (m *UpdateJobDestinationConnectionsRequest) Validate() error {
+func (m *UpdateJobDestinationConnectionRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on
-// UpdateJobDestinationConnectionsRequest with the rules defined in the proto
-// definition for this message. If any rules are violated, the result is a
-// list of violation errors wrapped in
-// UpdateJobDestinationConnectionsRequestMultiError, or nil if none found.
-func (m *UpdateJobDestinationConnectionsRequest) ValidateAll() error {
+// ValidateAll checks the field values on UpdateJobDestinationConnectionRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// UpdateJobDestinationConnectionRequestMultiError, or nil if none found.
+func (m *UpdateJobDestinationConnectionRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateJobDestinationConnectionsRequest) validate(all bool) error {
+func (m *UpdateJobDestinationConnectionRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -2638,7 +2677,7 @@ func (m *UpdateJobDestinationConnectionsRequest) validate(all bool) error {
 	var errors []error
 
 	if err := m._validateUuid(m.GetId()); err != nil {
-		err = UpdateJobDestinationConnectionsRequestValidationError{
+		err = UpdateJobDestinationConnectionRequestValidationError{
 			field:  "Id",
 			reason: "value must be a valid UUID",
 			cause:  err,
@@ -2649,59 +2688,43 @@ func (m *UpdateJobDestinationConnectionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if len(m.GetDestinations()) < 1 {
-		err := UpdateJobDestinationConnectionsRequestValidationError{
-			field:  "Destinations",
-			reason: "value must contain at least 1 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	for idx, item := range m.GetDestinations() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, UpdateJobDestinationConnectionsRequestValidationError{
-						field:  fmt.Sprintf("Destinations[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, UpdateJobDestinationConnectionsRequestValidationError{
-						field:  fmt.Sprintf("Destinations[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return UpdateJobDestinationConnectionsRequestValidationError{
-					field:  fmt.Sprintf("Destinations[%v]", idx),
+	if all {
+		switch v := interface{}(m.GetDestination()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateJobDestinationConnectionRequestValidationError{
+					field:  "Destination",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateJobDestinationConnectionRequestValidationError{
+					field:  "Destination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
 		}
-
+	} else if v, ok := interface{}(m.GetDestination()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateJobDestinationConnectionRequestValidationError{
+				field:  "Destination",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
-		return UpdateJobDestinationConnectionsRequestMultiError(errors)
+		return UpdateJobDestinationConnectionRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-func (m *UpdateJobDestinationConnectionsRequest) _validateUuid(uuid string) error {
+func (m *UpdateJobDestinationConnectionRequest) _validateUuid(uuid string) error {
 	if matched := _job_uuidPattern.MatchString(uuid); !matched {
 		return errors.New("invalid uuid format")
 	}
@@ -2709,14 +2732,14 @@ func (m *UpdateJobDestinationConnectionsRequest) _validateUuid(uuid string) erro
 	return nil
 }
 
-// UpdateJobDestinationConnectionsRequestMultiError is an error wrapping
+// UpdateJobDestinationConnectionRequestMultiError is an error wrapping
 // multiple validation errors returned by
-// UpdateJobDestinationConnectionsRequest.ValidateAll() if the designated
+// UpdateJobDestinationConnectionRequest.ValidateAll() if the designated
 // constraints aren't met.
-type UpdateJobDestinationConnectionsRequestMultiError []error
+type UpdateJobDestinationConnectionRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateJobDestinationConnectionsRequestMultiError) Error() string {
+func (m UpdateJobDestinationConnectionRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -2725,12 +2748,12 @@ func (m UpdateJobDestinationConnectionsRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateJobDestinationConnectionsRequestMultiError) AllErrors() []error { return m }
+func (m UpdateJobDestinationConnectionRequestMultiError) AllErrors() []error { return m }
 
-// UpdateJobDestinationConnectionsRequestValidationError is the validation
-// error returned by UpdateJobDestinationConnectionsRequest.Validate if the
+// UpdateJobDestinationConnectionRequestValidationError is the validation error
+// returned by UpdateJobDestinationConnectionRequest.Validate if the
 // designated constraints aren't met.
-type UpdateJobDestinationConnectionsRequestValidationError struct {
+type UpdateJobDestinationConnectionRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -2738,24 +2761,24 @@ type UpdateJobDestinationConnectionsRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateJobDestinationConnectionsRequestValidationError) Field() string { return e.field }
+func (e UpdateJobDestinationConnectionRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateJobDestinationConnectionsRequestValidationError) Reason() string { return e.reason }
+func (e UpdateJobDestinationConnectionRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateJobDestinationConnectionsRequestValidationError) Cause() error { return e.cause }
+func (e UpdateJobDestinationConnectionRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateJobDestinationConnectionsRequestValidationError) Key() bool { return e.key }
+func (e UpdateJobDestinationConnectionRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateJobDestinationConnectionsRequestValidationError) ErrorName() string {
-	return "UpdateJobDestinationConnectionsRequestValidationError"
+func (e UpdateJobDestinationConnectionRequestValidationError) ErrorName() string {
+	return "UpdateJobDestinationConnectionRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateJobDestinationConnectionsRequestValidationError) Error() string {
+func (e UpdateJobDestinationConnectionRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -2767,14 +2790,14 @@ func (e UpdateJobDestinationConnectionsRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateJobDestinationConnectionsRequest.%s: %s%s",
+		"invalid %sUpdateJobDestinationConnectionRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateJobDestinationConnectionsRequestValidationError{}
+var _ error = UpdateJobDestinationConnectionRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -2782,26 +2805,26 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateJobDestinationConnectionsRequestValidationError{}
+} = UpdateJobDestinationConnectionRequestValidationError{}
 
-// Validate checks the field values on UpdateJobDestinationConnectionsResponse
+// Validate checks the field values on UpdateJobDestinationConnectionResponse
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if
 // there are no violations.
-func (m *UpdateJobDestinationConnectionsResponse) Validate() error {
+func (m *UpdateJobDestinationConnectionResponse) Validate() error {
 	return m.validate(false)
 }
 
 // ValidateAll checks the field values on
-// UpdateJobDestinationConnectionsResponse with the rules defined in the proto
+// UpdateJobDestinationConnectionResponse with the rules defined in the proto
 // definition for this message. If any rules are violated, the result is a
 // list of violation errors wrapped in
-// UpdateJobDestinationConnectionsResponseMultiError, or nil if none found.
-func (m *UpdateJobDestinationConnectionsResponse) ValidateAll() error {
+// UpdateJobDestinationConnectionResponseMultiError, or nil if none found.
+func (m *UpdateJobDestinationConnectionResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateJobDestinationConnectionsResponse) validate(all bool) error {
+func (m *UpdateJobDestinationConnectionResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -2812,7 +2835,7 @@ func (m *UpdateJobDestinationConnectionsResponse) validate(all bool) error {
 		switch v := interface{}(m.GetJob()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateJobDestinationConnectionsResponseValidationError{
+				errors = append(errors, UpdateJobDestinationConnectionResponseValidationError{
 					field:  "Job",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -2820,7 +2843,7 @@ func (m *UpdateJobDestinationConnectionsResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateJobDestinationConnectionsResponseValidationError{
+				errors = append(errors, UpdateJobDestinationConnectionResponseValidationError{
 					field:  "Job",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -2829,7 +2852,7 @@ func (m *UpdateJobDestinationConnectionsResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetJob()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return UpdateJobDestinationConnectionsResponseValidationError{
+			return UpdateJobDestinationConnectionResponseValidationError{
 				field:  "Job",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -2838,20 +2861,20 @@ func (m *UpdateJobDestinationConnectionsResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return UpdateJobDestinationConnectionsResponseMultiError(errors)
+		return UpdateJobDestinationConnectionResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateJobDestinationConnectionsResponseMultiError is an error wrapping
+// UpdateJobDestinationConnectionResponseMultiError is an error wrapping
 // multiple validation errors returned by
-// UpdateJobDestinationConnectionsResponse.ValidateAll() if the designated
+// UpdateJobDestinationConnectionResponse.ValidateAll() if the designated
 // constraints aren't met.
-type UpdateJobDestinationConnectionsResponseMultiError []error
+type UpdateJobDestinationConnectionResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateJobDestinationConnectionsResponseMultiError) Error() string {
+func (m UpdateJobDestinationConnectionResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -2860,12 +2883,12 @@ func (m UpdateJobDestinationConnectionsResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateJobDestinationConnectionsResponseMultiError) AllErrors() []error { return m }
+func (m UpdateJobDestinationConnectionResponseMultiError) AllErrors() []error { return m }
 
-// UpdateJobDestinationConnectionsResponseValidationError is the validation
-// error returned by UpdateJobDestinationConnectionsResponse.Validate if the
+// UpdateJobDestinationConnectionResponseValidationError is the validation
+// error returned by UpdateJobDestinationConnectionResponse.Validate if the
 // designated constraints aren't met.
-type UpdateJobDestinationConnectionsResponseValidationError struct {
+type UpdateJobDestinationConnectionResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -2873,24 +2896,24 @@ type UpdateJobDestinationConnectionsResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateJobDestinationConnectionsResponseValidationError) Field() string { return e.field }
+func (e UpdateJobDestinationConnectionResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateJobDestinationConnectionsResponseValidationError) Reason() string { return e.reason }
+func (e UpdateJobDestinationConnectionResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateJobDestinationConnectionsResponseValidationError) Cause() error { return e.cause }
+func (e UpdateJobDestinationConnectionResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateJobDestinationConnectionsResponseValidationError) Key() bool { return e.key }
+func (e UpdateJobDestinationConnectionResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateJobDestinationConnectionsResponseValidationError) ErrorName() string {
-	return "UpdateJobDestinationConnectionsResponseValidationError"
+func (e UpdateJobDestinationConnectionResponseValidationError) ErrorName() string {
+	return "UpdateJobDestinationConnectionResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateJobDestinationConnectionsResponseValidationError) Error() string {
+func (e UpdateJobDestinationConnectionResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -2902,14 +2925,14 @@ func (e UpdateJobDestinationConnectionsResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateJobDestinationConnectionsResponse.%s: %s%s",
+		"invalid %sUpdateJobDestinationConnectionResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateJobDestinationConnectionsResponseValidationError{}
+var _ error = UpdateJobDestinationConnectionResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -2917,7 +2940,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateJobDestinationConnectionsResponseValidationError{}
+} = UpdateJobDestinationConnectionResponseValidationError{}
 
 // Validate checks the field values on UpdateJobMappingsRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -3463,8 +3486,28 @@ func (m *IsJobNameAvailableRequest) validate(all bool) error {
 
 	// no validation rules for Name
 
+	if err := m._validateUuid(m.GetAccountId()); err != nil {
+		err = IsJobNameAvailableRequestValidationError{
+			field:  "AccountId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return IsJobNameAvailableRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *IsJobNameAvailableRequest) _validateUuid(uuid string) error {
+	if matched := _job_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -3685,6 +3728,30 @@ func (m *GetJobRunsRequest) validate(all bool) error {
 		if err := m._validateUuid(m.GetJobId()); err != nil {
 			err = GetJobRunsRequestValidationError{
 				field:  "JobId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	case *GetJobRunsRequest_AccountId:
+		if v == nil {
+			err := GetJobRunsRequestValidationError{
+				field:  "Id",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if err := m._validateUuid(m.GetAccountId()); err != nil {
+			err = GetJobRunsRequestValidationError{
+				field:  "AccountId",
 				reason: "value must be a valid UUID",
 				cause:  err,
 			}
@@ -4637,6 +4704,8 @@ func (m *Job) validate(all bool) error {
 
 	// no validation rules for Id
 
+	// no validation rules for CreatedByUserId
+
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
@@ -4665,6 +4734,8 @@ func (m *Job) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for UpdatedByUserId
 
 	if all {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {
@@ -4795,6 +4866,8 @@ func (m *Job) validate(all bool) error {
 		}
 
 	}
+
+	// no validation rules for AccountId
 
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
@@ -4932,6 +5005,8 @@ func (m *JobRun) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for CreatedByUserId
 
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {

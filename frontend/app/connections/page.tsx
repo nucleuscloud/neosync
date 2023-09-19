@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
@@ -30,7 +31,8 @@ interface ConnectionTableProps {}
 
 function ConnectionTable(props: ConnectionTableProps): ReactElement {
   const {} = props;
-  const { isLoading, data, mutate } = useGetConnections();
+  const account = useAccount();
+  const { isLoading, data, mutate } = useGetConnections(account?.id ?? '');
 
   if (isLoading) {
     return <Skeleton />;

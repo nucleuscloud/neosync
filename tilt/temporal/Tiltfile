@@ -1,0 +1,44 @@
+load('ext://namespace', 'namespace_create')
+
+allow_k8s_contexts("kind-neosync-dev")
+
+secret_settings(disable_scrub=True)
+
+namespace_create('temporal')
+
+k8s_yaml(kustomize('.'))
+
+k8s_resource(
+  'temporal-web',
+  labels=['temporal'],
+)
+
+k8s_resource(
+  'temporal-ui',
+  labels=['temporal'],
+  port_forwards="8233:8080",
+)
+
+k8s_resource(
+  'elasticsearch',
+  labels=['temporal'],
+  new_name='temporal-elasticsearch',
+)
+
+k8s_resource(
+  'temporal',
+  labels=['temporal'],
+  new_name='temporal-api',
+  port_forwards="7233:7233",
+)
+
+k8s_resource(
+  'postgresql',
+  labels=['temporal'],
+  new_name='temporal-postgresql',
+)
+
+k8s_resource(
+  'temporal-admin-tools',
+  labels=['temporal'],
+)

@@ -1,0 +1,18 @@
+# kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: temporal
+
+resources:
+  - temporal.yaml
+  - temporal-postgres-pvc.yaml
+patches:
+  - path: temporal-postgres-patch.yaml
+    target:
+      kind: Deployment
+      name: postgresql
+  - path: temporal-server-patch.yaml
+    target:
+      kind: Deployment
+      name: temporal

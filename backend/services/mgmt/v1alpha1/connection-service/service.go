@@ -1,25 +1,28 @@
 package v1alpha1_connectionservice
 
 import (
-	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 )
 
 type Service struct {
-	cfg       *Config
-	k8sclient *neosync_k8sclient.Client
+	cfg                *Config
+	db                 *nucleusdb.NucleusDb
+	useraccountService *v1alpha1_useraccountservice.Service
 }
 
 type Config struct {
-	JobConfigNamespace string
 }
 
 func New(
 	cfg *Config,
-	k8sclient *neosync_k8sclient.Client,
+	db *nucleusdb.NucleusDb,
+	useraccountService *v1alpha1_useraccountservice.Service,
 ) *Service {
 
 	return &Service{
-		cfg:       cfg,
-		k8sclient: k8sclient,
+		cfg:                cfg,
+		db:                 db,
+		useraccountService: useraccountService,
 	}
 }

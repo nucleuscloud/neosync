@@ -7,12 +7,17 @@ updates:
       interval: 'daily'
 
   - package-ecosystem: 'gomod'
-    directory: 'k8s-operator'
+    directory: 'worker'
     schedule:
       interval: 'daily'
 
   - package-ecosystem: 'npm'
     directory: 'frontend'
+    schedule:
+      interval: 'daily'
+
+  - package-ecosystem: 'npm'
+    directory: 'docs'
     schedule:
       interval: 'daily'
 

@@ -1,14 +1,13 @@
 apiVersion: ctlptl.dev/v1alpha1
 kind: Registry
-name: ctlptl-registry
+name: neosync-dev-registry
 ---
 apiVersion: ctlptl.dev/v1alpha1
 kind: Cluster
 product: kind
-registry: ctlptl-registry
-name: kind-nuc-dev
+registry: neosync-dev-registry
+name: kind-neosync-dev # must have kind- prefix
 kindV1Alpha4Cluster:
-  name: kind-nuc-dev
   nodes:
   - role: control-plane
     kubeadmConfigPatches:
@@ -17,22 +16,6 @@ kindV1Alpha4Cluster:
       nodeRegistration:
         kubeletExtraArgs:
           node-labels: "ingress-ready=true"
-    # extraMounts:
-    # - hostPath: {NUCLEUS_DEV_HOSTPATH}
-    #   containerPath: /nucleus
-    # extraPortMappings:
-    # # These port mappings work in conjunction with the node port
-    # # configuration on the istio-ingressgateway.
-    # #
-    # # port forward 443 on the host to 30950 on this node
-    # - containerPort: 30950
-    #   hostPort: 443
-    #   # optional: set the bind address on the host
-    #   # 0.0.0.0 is the default
-    #   # listenAddress: "127.0.0.1"
-    #   protocol: TCP
-
-    # # port forward 50051 on the host to 30951 on this node
-    # - containerPort: 30951
-    #   hostPort: 50051
-    #   protocol: TCP
+    extraMounts:
+    - hostPath: {NEOSYNC_DEV_HOSTPATH}
+      containerPath: /neosync

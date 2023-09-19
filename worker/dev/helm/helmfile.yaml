@@ -1,0 +1,30 @@
+releases:
+  - name: neosync-worker
+    chart: ../../charts/worker
+    version: 'v0.0.0'
+    namespace: neosync
+    createNamespace: false
+
+    values:
+      - worker:
+          image:
+            repository: neosync-worker
+          serviceAccount:
+
+          terminationGracePeriodSeconds: 300
+          shutdownTimeoutSeconds: 5
+
+          istio:
+            enabled: false
+
+          datadog:
+            enabled: false
+
+          nucleusEnv: dev
+
+          neosync:
+            url: http://neosync-api:80
+          temporal:
+            url: temporal.temporal:7233
+            namespace: default
+            taskQueue: "sync-job"

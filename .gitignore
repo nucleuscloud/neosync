@@ -13,6 +13,8 @@ bin
 node_modules
 
 Chart.lock
-charts/**/*.tgz
+**/*.tgz
 
 go.work.sum
+
+.data

@@ -32,7 +32,7 @@ func (s *Service) GetConnectionSchema(
 	}
 
 	connCfg := connection.Msg.Connection.ConnectionConfig
-	connectionString, err := s.GetConnectionUrl(connCfg)
+	connectionString, err := s.getConnectionUrl(connCfg)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,45 @@
+api:
+  image:
+    repository: neosync-api
+
+  serviceAccount:
+    create: true
+
+  db:
+    host: neosync-postgresql
+    name: nucleus
+    port: 5432
+    username: postgres
+    password: foofar
+    disableSsl: true
+
+  migrations:
+    skipSchemaCreation: false
+    image:
+      repository: db-migration
+    db:
+      host: neosync-postgresql:5432/nucleus
+      username: postgres
+      password: foofar
+
+  terminationGracePeriodSeconds: 300
+  shutdownTimeoutSeconds: 5
+
+  istio:
+    enabled: false
+
+  datadog:
+    enabled: false
+
+  nucleusEnv: dev
+
+  port: 8080
+
+  auth:
+    baseUrl: https://auth.nucleuscloud.dev
+    audience: https://api.nucleuscloud.com
+
+  temporal:
+    url: temporal.temporal:7233
+    namespace: default
+    taskQueue: 'sync-job'

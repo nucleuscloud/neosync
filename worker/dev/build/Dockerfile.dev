@@ -1,0 +1,12 @@
+FROM alpine:3.18
+
+RUN mkdir -p .config/helm/registry
+RUN mkdir /app
+
+WORKDIR /app
+
+COPY /bin/sync /app
+
+RUN echo 'NUCLEUS_ENV=dev' > /app/.env
+
+ENTRYPOINT ["/app/sync", "serve"]

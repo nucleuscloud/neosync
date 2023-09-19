@@ -19,6 +19,22 @@ serviceAccount:
 
 nucleusEnv:
 
+db:
+  host:
+  name:
+  port: 5432
+  username:
+  password:
+
+migrations:
+  skipSchemaCreation:
+  image:
+    repository:
+  db:
+    host:
+    username:
+    password:
+
 istio:
   enabled: false
 
@@ -34,3 +50,12 @@ shutdownTimeoutSeconds:
 
 jobConfig:
   namespace:
+
+auth0:
+  baseUrl:
+  audience:
+
+temporal:
+  url:
+  namespace:
+  taskQueue:

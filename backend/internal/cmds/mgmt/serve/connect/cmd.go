@@ -1,6 +1,7 @@
 package serve_connect
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,11 +12,16 @@ import (
 	"connectrpc.com/otelconnect"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	"github.com/nucleuscloud/neosync/backend/internal/authmw"
+	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	neosync_k8sclient "github.com/nucleuscloud/neosync/backend/internal/k8s/client"
+	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
+	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
+	temporalclient "go.temporal.io/sdk/client"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -65,37 +71,75 @@ func serve() error {
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
-	neosyncK8sClient, err := neosync_k8sclient.New()
+	dbconfig, err := getDbConfig()
+	if err != nil {
+		return err
+	}
+	db, err := nucleusdb.NewFromConfig(dbconfig)
 	if err != nil {
 		return err
 	}
 
-	stdInterceptors := connect.WithInterceptors(
+	temporalConfig := getTemporalConfig()
+	temporalClient, err := temporalclient.Dial(*temporalConfig)
+	if err != nil {
+		panic(err)
+	}
+	defer temporalClient.Close()
+
+	temporalTaskQueue, err := getTemporalTaskQueue()
+	if err != nil {
+		panic(err)
+	}
+
+	stdInterceptors := []connect.Interceptor{
 		otelconnect.NewInterceptor(),
 		logger_interceptor.NewInterceptor(logger),
+	}
+
+	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
+	if isAuthEnabled {
+		jwtClientCfg, err := getJwtClientConfig()
+		if err != nil {
+			return err
+		}
+		jwtclient, err := auth_jwt.New(jwtClientCfg)
+		if err != nil {
+			return err
+		}
+		stdInterceptors = append(stdInterceptors, auth_interceptor.NewInterceptor(authmw.New(jwtclient).ValidateAndInjectAll))
+	}
+
+	stdInterceptorConnectOpt := connect.WithInterceptors(
+		stdInterceptors...,
 	)
 
 	api := http.NewServeMux()
 
-	jobConfigNamespace := getJobConfigNamespace()
-
-	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{
-		JobConfigNamespace: jobConfigNamespace,
-	}, neosyncK8sClient)
+	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
+		IsAuthEnabled: isAuthEnabled,
+	}, db)
 	api.Handle(
-		mgmtv1alpha1connect.NewConnectionServiceHandler(
-			connectionService,
-			stdInterceptors,
+		mgmtv1alpha1connect.NewUserAccountServiceHandler(
+			useraccountService,
+			stdInterceptorConnectOpt,
 		),
 	)
 
-	jobService := v1alpha1_jobservice.New(&v1alpha1_jobservice.Config{
-		JobConfigNamespace: jobConfigNamespace,
-	}, neosyncK8sClient, connectionService)
+	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService)
+	api.Handle(
+		mgmtv1alpha1connect.NewConnectionServiceHandler(
+			connectionService,
+			stdInterceptorConnectOpt,
+		),
+	)
+
+	jobServiceConfig := &v1alpha1_jobservice.Config{TemporalTaskQueue: temporalTaskQueue}
+	jobService := v1alpha1_jobservice.New(jobServiceConfig, db, temporalClient, connectionService, useraccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
-			stdInterceptors,
+			stdInterceptorConnectOpt,
 		),
 	)
 
@@ -117,10 +161,88 @@ func serve() error {
 	return nil
 }
 
-func getJobConfigNamespace() string {
-	jobConfigNamespace := viper.GetString("JOB_CONFIG_NAMESPACE")
-	if jobConfigNamespace == "" {
-		jobConfigNamespace = "default"
+func getDbConfig() (*nucleusdb.ConnectConfig, error) {
+	dbHost := viper.GetString("DB_HOST")
+	if dbHost == "" {
+		return nil, fmt.Errorf("must provide DB_HOST in environment")
 	}
-	return jobConfigNamespace
+
+	dbPort := viper.GetInt("DB_PORT")
+	if dbPort == 0 {
+		return nil, fmt.Errorf("must provide DB_PORT in environment")
+	}
+
+	dbName := viper.GetString("DB_NAME")
+	if dbName == "" {
+		return nil, fmt.Errorf("must provide DB_NAME in environment")
+	}
+
+	dbUser := viper.GetString("DB_USER")
+	if dbUser == "" {
+		return nil, fmt.Errorf("must provide DB_USER in environment")
+	}
+
+	dbPass := viper.GetString("DB_PASS")
+	if dbPass == "" {
+		return nil, fmt.Errorf("must provide DB_PASS in environment")
+	}
+
+	sslMode := "require"
+	if viper.IsSet("DB_SSL_DISABLE") && viper.GetBool("DB_SSL_DISABLE") {
+		sslMode = "disable"
+	}
+
+	return &nucleusdb.ConnectConfig{
+		Host:     dbHost,
+		Port:     dbPort,
+		Database: dbName,
+		User:     dbUser,
+		Pass:     dbPass,
+		SslMode:  &sslMode,
+	}, nil
+}
+
+func getTemporalConfig() *temporalclient.Options {
+	temporalUrl := viper.GetString("TEMPORAL_URL")
+	if temporalUrl == "" {
+		temporalUrl = "localhost:7233"
+	}
+
+	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
+	if temporalNamespace == "" {
+		temporalNamespace = "default"
+	}
+
+	return &temporalclient.Options{
+		// Logger: ,
+		HostPort:  temporalUrl,
+		Namespace: temporalNamespace,
+		// Interceptors: ,
+		// HeadersProvider: ,
+	}
+}
+
+func getTemporalTaskQueue() (string, error) {
+	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
+	if taskQueue == "" {
+		return "", errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
+	}
+	return taskQueue, nil
+}
+
+func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
+	authBaseUrl := viper.GetString("AUTH_BASEURL")
+	if authBaseUrl == "" {
+		return nil, errors.New("must provide AUTH_BASEURL in environment")
+	}
+
+	authAudiences := viper.GetStringSlice("AUTH_AUDIENCE")
+	if len(authAudiences) == 0 {
+		return nil, errors.New("must provide AUTH_AUDIENCE with at least one audience in environment")
+	}
+
+	return &auth_jwt.ClientConfig{
+		BaseUrl:      authBaseUrl,
+		ApiAudiences: authAudiences,
+	}, nil
 }

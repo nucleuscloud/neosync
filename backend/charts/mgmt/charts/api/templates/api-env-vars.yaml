@@ -5,6 +5,13 @@ metadata:
     namespace: {{ .Release.Namespace }}
 type: Opaque
 stringData:
+    DB_HOST: {{ .Values.db.host }}
+    DB_PORT: {{ .Values.db.port | quote }}
+    DB_NAME: {{ .Values.db.name }}
+    DB_USER: {{ .Values.db.username }}
+    DB_PASS: {{ .Values.db.password }}
+    DB_SSL_DISABLE: {{ .Values.db.disableSsl | quote}}
+
     {{- if .Values.host }}
     HOST: {{ .Values.host | quote}}
     {{- end }}
@@ -18,4 +25,18 @@ stringData:
     NUCLEUS_ENV: {{ .Values.nucleusEnv }}
 
     SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
-    JOB_CONFIG_NAMESPACE: {{ .Values.jobConfig.namespace }}
+
+    AUTH_BASEURL: {{ .Values.auth.baseUrl }}
+    AUTH_AUDIENCE: {{ .Values.auth.audience }}
+    
+    {{- if .Values.temporal.url }}
+    TEMPORAL_URL: {{ .Values.temporal.url }}
+    {{- end }}
+
+    {{- if .Values.temporal.namespace }}
+    TEMPORAL_NAMESPACE: {{ .Values.temporal.namespace }}
+    {{- end }}
+
+    {{- if .Values.temporal.taskQueue }}
+    TEMPORAL_TASK_QUEUE: {{ .Values.temporal.taskQueue }}
+    {{- end }}
