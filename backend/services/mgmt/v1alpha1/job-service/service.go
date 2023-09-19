@@ -17,6 +17,7 @@ type Service struct {
 
 type Config struct {
 	TemporalTaskQueue string
+	TemporalNamespace string
 }
 
 func New(
