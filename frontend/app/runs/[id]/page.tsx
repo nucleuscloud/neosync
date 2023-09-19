@@ -84,7 +84,11 @@ export default function Page({ params }: PageProps): ReactElement {
         </div>
         <div className="space-y-4">
           <h1 className="text-xl font-semibold tracking-tight">Steps</h1>
-          <ProgressNav items={progressNavItems} />
+          {jobRunEventsLoading ? (
+            <Skeleton />
+          ) : (
+            <ProgressNav items={progressNavItems} />
+          )}
         </div>
       </div>
     </OverviewContainer>
