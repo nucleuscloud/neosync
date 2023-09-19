@@ -3,11 +3,13 @@ import { JsonValue } from '@bufbuild/protobuf';
 import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
-export function useGetJobRuns(): HookReply<GetJobRunsResponse> {
+export function useGetJobRuns(
+  accountId: string
+): HookReply<GetJobRunsResponse> {
   return useNucleusAuthenticatedFetch<
     GetJobRunsResponse,
     JsonValue | GetJobRunsResponse
-  >(`/api/runs`, undefined, undefined, (data) =>
+  >(`/api/runs?accountId=${accountId}`, !!accountId, undefined, (data) =>
     data instanceof GetJobRunsResponse
       ? data
       : GetJobRunsResponse.fromJson(data)

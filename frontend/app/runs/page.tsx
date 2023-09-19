@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetJobRuns } from '@/libs/hooks/useGetJobRuns';
 import { ReactElement } from 'react';
@@ -27,13 +28,15 @@ interface TableProps {}
 
 function JobRunsTable(props: TableProps): ReactElement {
   const {} = props;
-  const { isLoading, data, mutate } = useGetJobRuns();
+  const account = useAccount();
+  const { isLoading, data, mutate } = useGetJobRuns(account?.id ?? '');
 
   if (isLoading) {
     return <Skeleton />;
   }
 
   const runs = data?.jobRuns ?? [];
+  console.log(runs);
 
   const columns = getColumns({
     onDeleted() {
