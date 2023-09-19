@@ -303,7 +303,7 @@ func (s *Service) DeleteJob(
 	}
 
 	logger.Info("deleting schedule's workflow executions")
-	workflows, err := getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, []string{req.Msg.Id})
+	workflows, err := getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, s.cfg.TemporalNamespace, []string{req.Msg.Id})
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +313,7 @@ func (s *Service) DeleteJob(
 		w := w
 		group.Go(func() error {
 			_, err := s.temporalClient.WorkflowService().DeleteWorkflowExecution(ctx, &workflowservice.DeleteWorkflowExecutionRequest{
-				// Namespace: namespace,
+				Namespace:         s.cfg.TemporalNamespace,
 				WorkflowExecution: w.Execution,
 			})
 			if err != nil {
@@ -678,6 +678,7 @@ func getWorkflowExecutionsByJobIds(
 	ctx context.Context,
 	tc temporalclient.Client,
 	logger *slog.Logger,
+	namespace string,
 	jobIds []string,
 ) ([]*workflowpb.WorkflowExecutionInfo, error) {
 	jobIdStr := ""
@@ -686,10 +687,13 @@ func getWorkflowExecutionsByJobIds(
 	}
 	query := fmt.Sprintf("TemporalScheduledById IN (%s)", strings.TrimSuffix(jobIdStr, ","))
 	executions := []*workflowpb.WorkflowExecutionInfo{}
+	if len(jobIds) == 0 {
+		return executions, nil
+	}
 	var nextPageToken []byte
 	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
 		resp, err := tc.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
-			// Namespace:     namespace,
+			Namespace:     namespace,
 			PageSize:      20,
 			NextPageToken: nextPageToken,
 			Query:         query,

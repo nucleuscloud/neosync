@@ -4950,6 +4950,245 @@ var _ interface {
 	ErrorName() string
 } = JobValidationError{}
 
+// Validate checks the field values on ActivityFailure with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ActivityFailure) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ActivityFailure with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ActivityFailureMultiError, or nil if none found.
+func (m *ActivityFailure) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ActivityFailure) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Message
+
+	if len(errors) > 0 {
+		return ActivityFailureMultiError(errors)
+	}
+
+	return nil
+}
+
+// ActivityFailureMultiError is an error wrapping multiple validation errors
+// returned by ActivityFailure.ValidateAll() if the designated constraints
+// aren't met.
+type ActivityFailureMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ActivityFailureMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ActivityFailureMultiError) AllErrors() []error { return m }
+
+// ActivityFailureValidationError is the validation error returned by
+// ActivityFailure.Validate if the designated constraints aren't met.
+type ActivityFailureValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ActivityFailureValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ActivityFailureValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ActivityFailureValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ActivityFailureValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ActivityFailureValidationError) ErrorName() string { return "ActivityFailureValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ActivityFailureValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sActivityFailure.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ActivityFailureValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ActivityFailureValidationError{}
+
+// Validate checks the field values on PendingActivity with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *PendingActivity) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PendingActivity with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PendingActivityMultiError, or nil if none found.
+func (m *PendingActivity) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PendingActivity) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Status
+
+	// no validation rules for ActivityName
+
+	if m.LastFailure != nil {
+
+		if all {
+			switch v := interface{}(m.GetLastFailure()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, PendingActivityValidationError{
+						field:  "LastFailure",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, PendingActivityValidationError{
+						field:  "LastFailure",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetLastFailure()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return PendingActivityValidationError{
+					field:  "LastFailure",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return PendingActivityMultiError(errors)
+	}
+
+	return nil
+}
+
+// PendingActivityMultiError is an error wrapping multiple validation errors
+// returned by PendingActivity.ValidateAll() if the designated constraints
+// aren't met.
+type PendingActivityMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PendingActivityMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PendingActivityMultiError) AllErrors() []error { return m }
+
+// PendingActivityValidationError is the validation error returned by
+// PendingActivity.Validate if the designated constraints aren't met.
+type PendingActivityValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PendingActivityValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PendingActivityValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PendingActivityValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PendingActivityValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PendingActivityValidationError) ErrorName() string { return "PendingActivityValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PendingActivityValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPendingActivity.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PendingActivityValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PendingActivityValidationError{}
+
 // Validate checks the field values on JobRun with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -5006,14 +5245,12 @@ func (m *JobRun) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for CreatedByUserId
-
 	if all {
-		switch v := interface{}(m.GetCreatedAt()).(type) {
+		switch v := interface{}(m.GetStartedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, JobRunValidationError{
-					field:  "CreatedAt",
+					field:  "StartedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -5021,20 +5258,87 @@ func (m *JobRun) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, JobRunValidationError{
-					field:  "CreatedAt",
+					field:  "StartedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetStartedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return JobRunValidationError{
-				field:  "CreatedAt",
+				field:  "StartedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
+	}
+
+	for idx, item := range m.GetPendingActivities() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobRunValidationError{
+						field:  fmt.Sprintf("PendingActivities[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobRunValidationError{
+						field:  fmt.Sprintf("PendingActivities[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobRunValidationError{
+					field:  fmt.Sprintf("PendingActivities[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if m.CompletedAt != nil {
+
+		if all {
+			switch v := interface{}(m.GetCompletedAt()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobRunValidationError{
+						field:  "CompletedAt",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobRunValidationError{
+						field:  "CompletedAt",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetCompletedAt()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobRunValidationError{
+					field:  "CompletedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	if len(errors) > 0 {
@@ -5272,6 +5576,580 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JobRunStatusValidationError{}
+
+// Validate checks the field values on JobRunEvent with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JobRunEvent) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobRunEvent with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JobRunEventMultiError, or
+// nil if none found.
+func (m *JobRunEvent) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobRunEvent) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	if all {
+		switch v := interface{}(m.GetStartedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunEventValidationError{
+					field:  "StartedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunEventValidationError{
+					field:  "StartedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStartedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunEventValidationError{
+				field:  "StartedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetCompletedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunEventValidationError{
+					field:  "CompletedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunEventValidationError{
+					field:  "CompletedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCompletedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunEventValidationError{
+				field:  "CompletedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return JobRunEventMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobRunEventMultiError is an error wrapping multiple validation errors
+// returned by JobRunEvent.ValidateAll() if the designated constraints aren't met.
+type JobRunEventMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobRunEventMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobRunEventMultiError) AllErrors() []error { return m }
+
+// JobRunEventValidationError is the validation error returned by
+// JobRunEvent.Validate if the designated constraints aren't met.
+type JobRunEventValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobRunEventValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobRunEventValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobRunEventValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobRunEventValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobRunEventValidationError) ErrorName() string { return "JobRunEventValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobRunEventValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobRunEvent.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobRunEventValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobRunEventValidationError{}
+
+// Validate checks the field values on JobRunEvents with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JobRunEvents) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobRunEvents with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JobRunEventsMultiError, or
+// nil if none found.
+func (m *JobRunEvents) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobRunEvents) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetWorkflow()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunEventsValidationError{
+					field:  "Workflow",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunEventsValidationError{
+					field:  "Workflow",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetWorkflow()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunEventsValidationError{
+				field:  "Workflow",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetActivities() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobRunEventsValidationError{
+						field:  fmt.Sprintf("Activities[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobRunEventsValidationError{
+						field:  fmt.Sprintf("Activities[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobRunEventsValidationError{
+					field:  fmt.Sprintf("Activities[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return JobRunEventsMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobRunEventsMultiError is an error wrapping multiple validation errors
+// returned by JobRunEvents.ValidateAll() if the designated constraints aren't met.
+type JobRunEventsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobRunEventsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobRunEventsMultiError) AllErrors() []error { return m }
+
+// JobRunEventsValidationError is the validation error returned by
+// JobRunEvents.Validate if the designated constraints aren't met.
+type JobRunEventsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobRunEventsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobRunEventsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobRunEventsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobRunEventsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobRunEventsValidationError) ErrorName() string { return "JobRunEventsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobRunEventsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobRunEvents.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobRunEventsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobRunEventsValidationError{}
+
+// Validate checks the field values on GetJobRunEventsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetJobRunEventsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetJobRunEventsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetJobRunEventsRequestMultiError, or nil if none found.
+func (m *GetJobRunEventsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetJobRunEventsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = GetJobRunEventsRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetJobRunEventsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetJobRunEventsRequest) _validateUuid(uuid string) error {
+	if matched := _job_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// GetJobRunEventsRequestMultiError is an error wrapping multiple validation
+// errors returned by GetJobRunEventsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetJobRunEventsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetJobRunEventsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetJobRunEventsRequestMultiError) AllErrors() []error { return m }
+
+// GetJobRunEventsRequestValidationError is the validation error returned by
+// GetJobRunEventsRequest.Validate if the designated constraints aren't met.
+type GetJobRunEventsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetJobRunEventsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetJobRunEventsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetJobRunEventsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetJobRunEventsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetJobRunEventsRequestValidationError) ErrorName() string {
+	return "GetJobRunEventsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetJobRunEventsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetJobRunEventsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetJobRunEventsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetJobRunEventsRequestValidationError{}
+
+// Validate checks the field values on GetJobRunEventsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetJobRunEventsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetJobRunEventsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetJobRunEventsResponseMultiError, or nil if none found.
+func (m *GetJobRunEventsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetJobRunEventsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetEvents()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetJobRunEventsResponseValidationError{
+					field:  "Events",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetJobRunEventsResponseValidationError{
+					field:  "Events",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEvents()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetJobRunEventsResponseValidationError{
+				field:  "Events",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetJobRunEventsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetJobRunEventsResponseMultiError is an error wrapping multiple validation
+// errors returned by GetJobRunEventsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetJobRunEventsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetJobRunEventsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetJobRunEventsResponseMultiError) AllErrors() []error { return m }
+
+// GetJobRunEventsResponseValidationError is the validation error returned by
+// GetJobRunEventsResponse.Validate if the designated constraints aren't met.
+type GetJobRunEventsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetJobRunEventsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetJobRunEventsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetJobRunEventsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetJobRunEventsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetJobRunEventsResponseValidationError) ErrorName() string {
+	return "GetJobRunEventsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetJobRunEventsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetJobRunEventsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetJobRunEventsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetJobRunEventsResponseValidationError{}
 
 // Validate checks the field values on Transformer with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

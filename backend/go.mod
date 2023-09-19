@@ -11,7 +11,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/jackc/pgx/v5 v5.4.3
-	github.com/nucleuscloud/neosync/worker v0.0.0-20230916005704-ddab32b5c3c6
+	github.com/nucleuscloud/neosync/worker v0.0.0-20230918232714-bdbc13aae39a
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
 	go.temporal.io/api v1.24.0

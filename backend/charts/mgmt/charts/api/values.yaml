@@ -48,9 +48,6 @@ port: 80
 terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
-jobConfig:
-  namespace:
-
 auth0:
   baseUrl:
   audience:

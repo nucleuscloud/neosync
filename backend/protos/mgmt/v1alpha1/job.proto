@@ -184,14 +184,33 @@ message Job {
   string account_id = 12;
 }
 
+enum ActivityStatus {
+  ACTIVITY_STATUS_UNSPECIFIED = 0;
+  ACTIVITY_STATUS_SCHEDULED = 1;
+  ACTIVITY_STATUS_STARTED = 2;
+  ACTIVITY_STATUS_CANCELED = 3;
+  ACTIVITY_STATUS_FAILED = 4;
+}
+
+message ActivityFailure {
+  string message = 1;
+}
+
+message PendingActivity {
+  ActivityStatus status = 1;
+  string activity_name = 2;
+  optional ActivityFailure last_failure = 3;
+}
+
 message JobRun {
   string id = 1;
   string job_id = 2;
   string name = 3;
   JobRunStatus status = 4;
 
-  string created_by_user_id = 5;
-  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp started_at = 6;
+  optional google.protobuf.Timestamp completed_at = 7;
+  repeated PendingActivity pending_activities = 8;
 }
 
 message JobRunStatus {
@@ -206,6 +225,28 @@ enum JobRunStatusType {
   JOB_RUN_STATUS_RUNNING = 2;
   JOB_RUN_STATUS_COMPLETE = 3;
   JOB_RUN_STATUS_ERROR = 4;
+  JOB_RUN_STATUS_CANCELED = 5;
+  JOB_RUN_STATUS_TERMINATED = 6;
+  JOB_RUN_STATUS_FAILED = 7;
+}
+
+message JobRunEvent {
+  string name = 1;
+  google.protobuf.Timestamp started_at = 2;
+  google.protobuf.Timestamp completed_at = 3;
+}
+
+message JobRunEvents {
+  JobRunEvent workflow = 1;
+  repeated JobRunEvent activities = 2;
+}
+
+message GetJobRunEventsRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetJobRunEventsResponse {
+  JobRunEvents events = 1;
 }
 
 message Transformer {
@@ -234,6 +275,7 @@ service JobService {
   rpc UpdateJobMappings(UpdateJobMappingsRequest) returns (UpdateJobMappingsResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
+  rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}
   rpc DeleteJobRun(DeleteJobRunRequest) returns (DeleteJobRunResponse) {}
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}

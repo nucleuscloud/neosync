@@ -10,6 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	workflowpb "go.temporal.io/api/workflow/v1"
+	"golang.org/x/sync/errgroup"
 )
 
 func (s *Service) GetJobRuns(
@@ -31,7 +32,7 @@ func (s *Service) GetJobRuns(
 			return nil, err
 		}
 		accountId = nucleusdb.UUIDString(job.AccountID)
-		workflows, err = getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, []string{id.JobId})
+		workflows, err = getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, s.cfg.TemporalNamespace, []string{id.JobId})
 		if err != nil {
 			return nil, err
 		}
@@ -50,7 +51,7 @@ func (s *Service) GetJobRuns(
 			job := jobs[i]
 			jobIds = append(jobIds, nucleusdb.UUIDString(job.ID))
 		}
-		workflows, err = getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, jobIds)
+		workflows, err = getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, s.cfg.TemporalNamespace, jobIds)
 		if err != nil {
 			return nil, err
 		}
@@ -63,14 +64,36 @@ func (s *Service) GetJobRuns(
 		return nil, err
 	}
 
-	runs := []*mgmtv1alpha1.JobRun{}
-	for _, w := range workflows {
-		runs = append(runs, dtomaps.ToJobRunDto(w))
+	runs := make([]*mgmtv1alpha1.JobRun, len(workflows))
+	errGrp, errCtx := errgroup.WithContext(ctx)
+	for index, workflow := range workflows {
+		index := index
+		workflow := workflow
+		errGrp.Go(func() error {
+			res, err := s.temporalClient.DescribeWorkflowExecution(errCtx, workflow.Execution.WorkflowId, workflow.Execution.RunId)
+			if err != nil {
+				return err
+			}
+			runs[index] = dtomaps.ToJobRunDto(logger, res)
+			return nil
+		})
+	}
+
+	err = errGrp.Wait()
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRunsResponse{
 		JobRuns: runs,
 	}), nil
+}
+
+func (s *Service) GetJobRunEvents(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRunEventsRequest],
+) (*connect.Response[mgmtv1alpha1.GetJobRunEventsResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.GetJobRunEventsResponse{}), nil
 }
 
 func (s *Service) GetJobRun(

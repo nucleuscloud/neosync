@@ -75,6 +75,7 @@ func serve() error {
 	if err != nil {
 		return err
 	}
+
 	db, err := nucleusdb.NewFromConfig(dbconfig)
 	if err != nil {
 		return err
@@ -91,6 +92,7 @@ func serve() error {
 	if err != nil {
 		panic(err)
 	}
+	temporalNamespace := getTemporalNamespace()
 
 	stdInterceptors := []connect.Interceptor{
 		otelconnect.NewInterceptor(),
@@ -134,7 +136,7 @@ func serve() error {
 		),
 	)
 
-	jobServiceConfig := &v1alpha1_jobservice.Config{TemporalTaskQueue: temporalTaskQueue}
+	jobServiceConfig := &v1alpha1_jobservice.Config{TemporalTaskQueue: temporalTaskQueue, TemporalNamespace: temporalNamespace}
 	jobService := v1alpha1_jobservice.New(jobServiceConfig, db, temporalClient, connectionService, useraccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
@@ -208,10 +210,7 @@ func getTemporalConfig() *temporalclient.Options {
 		temporalUrl = "localhost:7233"
 	}
 
-	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
-	if temporalNamespace == "" {
-		temporalNamespace = "default"
-	}
+	temporalNamespace := getTemporalNamespace()
 
 	return &temporalclient.Options{
 		// Logger: ,
@@ -220,6 +219,14 @@ func getTemporalConfig() *temporalclient.Options {
 		// Interceptors: ,
 		// HeadersProvider: ,
 	}
+}
+
+func getTemporalNamespace() string {
+	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
+	if temporalNamespace == "" {
+		temporalNamespace = "default"
+	}
+	return temporalNamespace
 }
 
 func getTemporalTaskQueue() (string, error) {
