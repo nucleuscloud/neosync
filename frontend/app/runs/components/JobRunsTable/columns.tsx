@@ -2,15 +2,12 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 
-import {
-  JobRun,
-  JobRunStatus,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { JOB_RUN_STATUS } from '../status';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
@@ -50,7 +47,7 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => {
-        const status = statuses.find(
+        const status = JOB_RUN_STATUS.find(
           (status) => status.value === row.getValue('status')
         );
 
@@ -59,13 +56,7 @@ export function getColumns(
         }
 
         return (
-          <div className="flex w-[100px] items-center">
-            {/* {status.icon && (
-              <status.icon className="mr-2 h-4 w-4 text-muted-foreground bg-red-700" />
-            )}
-            <span>{status.label}</span> */}
-            {status.badge}
-          </div>
+          <div className="flex w-[100px] items-center">{status.badge}</div>
         );
       },
       filterFn: (row, id, value) => {
@@ -155,38 +146,3 @@ export function getColumns(
     },
   ];
 }
-
-export const statuses = [
-  {
-    value: JobRunStatus.ERROR,
-    badge: <Badge variant="destructive">Error</Badge>,
-  },
-  {
-    value: JobRunStatus.COMPLETE,
-    badge: <Badge className="bg-green-600">Complete</Badge>,
-  },
-  {
-    value: JobRunStatus.FAILED,
-    badge: <Badge variant="destructive">Error</Badge>,
-  },
-  {
-    value: JobRunStatus.RUNNING,
-    badge: <Badge className="bg-blue-600">Running</Badge>,
-  },
-  {
-    value: JobRunStatus.PENDING,
-    badge: <Badge className="bg-purple-600">Running</Badge>,
-  },
-  {
-    value: JobRunStatus.TERMINATED,
-    badge: <Badge variant="destructive">Terminated</Badge>,
-  },
-  {
-    value: JobRunStatus.CANCELED,
-    badge: <Badge className="bg-yellow-600">Terminated</Badge>,
-  },
-  {
-    value: JobRunStatus.UNSPECIFIED,
-    badge: <Badge variant="outline">Unknown</Badge>,
-  },
-];

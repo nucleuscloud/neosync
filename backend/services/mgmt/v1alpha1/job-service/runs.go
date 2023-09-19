@@ -8,8 +8,12 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"go.temporal.io/api/enums/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
+	"go.temporal.io/api/workflowservice/v1"
+	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -89,18 +93,119 @@ func (s *Service) GetJobRuns(
 	}), nil
 }
 
-func (s *Service) GetJobRunEvents(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetJobRunEventsRequest],
-) (*connect.Response[mgmtv1alpha1.GetJobRunEventsResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.GetJobRunEventsResponse{}), nil
-}
-
 func (s *Service) GetJobRun(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRunRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobRunResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.GetJobRunResponse{}), nil
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("runId", req.Msg.Id)
+	run, err := getWorkflowExecutionsByRunId(ctx, s.temporalClient, s.cfg.TemporalNamespace, req.Msg.Id)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job run: %w", err).Error())
+		return nil, err
+	}
+	jobId := dtomaps.GetJobIdFromWorkflow(logger, run.GetSearchAttributes())
+	jobUuid, err := nucleusdb.ToUuid(jobId)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	if err != nil {
+		return nil, err
+	}
+	accountId := nucleusdb.UUIDString(job.AccountID)
+	_, err = s.verifyUserInAccount(ctx, accountId)
+	if err != nil {
+		return nil, err
+	}
+	res, err := s.temporalClient.DescribeWorkflowExecution(ctx, run.Execution.WorkflowId, run.Execution.RunId)
+	if err != nil {
+		return nil, err
+	}
+
+	dto := dtomaps.ToJobRunDto(logger, res)
+	return connect.NewResponse(&mgmtv1alpha1.GetJobRunResponse{
+		JobRun: dto,
+	}), nil
+}
+
+func (s *Service) GetJobRunEvents(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRunEventsRequest],
+) (*connect.Response[mgmtv1alpha1.GetJobRunEventsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("runId", req.Msg.Id)
+	run, err := getWorkflowExecutionsByRunId(ctx, s.temporalClient, s.cfg.TemporalNamespace, req.Msg.Id)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job run: %w", err).Error())
+		return nil, err
+	}
+
+	jobId := dtomaps.GetJobIdFromWorkflow(logger, run.GetSearchAttributes())
+	jobUuid, err := nucleusdb.ToUuid(jobId)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	if err != nil {
+		return nil, err
+	}
+	accountId := nucleusdb.UUIDString(job.AccountID)
+	_, err = s.verifyUserInAccount(ctx, accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	activityNameMap := map[int64]string{}
+	events := []*mgmtv1alpha1.JobRunEvent{}
+	iter := s.temporalClient.GetWorkflowHistory(ctx, run.Execution.WorkflowId, run.Execution.RunId, false, enums.HISTORY_EVENT_FILTER_TYPE_ALL_EVENT)
+	for iter.HasNext() {
+		event, err := iter.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		// workflow events
+		if event.GetWorkflowExecutionStartedEventAttributes() != nil {
+			workflowEvent := event.GetWorkflowExecutionStartedEventAttributes()
+			events = append(events, dtomaps.ToJobRunEventDto(event, workflowEvent.WorkflowType.Name, "Workflow Started"))
+			activityNameMap[event.EventId] = workflowEvent.WorkflowType.Name
+		}
+		if event.GetWorkflowExecutionCompletedEventAttributes() != nil {
+			workflowEvent := event.GetWorkflowExecutionCompletedEventAttributes()
+			name := activityNameMap[workflowEvent.WorkflowTaskCompletedEventId]
+			events = append(events, dtomaps.ToJobRunEventDto(event, name, "Workflow Completed"))
+		}
+
+		// activity events
+		if event.GetActivityTaskScheduledEventAttributes() != nil {
+			attributes := event.GetActivityTaskScheduledEventAttributes()
+			events = append(events, dtomaps.ToJobRunEventDto(event, attributes.ActivityType.Name, "Activity Scheduled"))
+			activityNameMap[event.EventId] = attributes.ActivityType.Name
+		}
+
+		if event.GetActivityTaskFailedEventAttributes() != nil {
+			attributes := event.GetActivityTaskFailedEventAttributes()
+			name := activityNameMap[attributes.ScheduledEventId]
+			events = append(events, dtomaps.ToJobRunEventDto(event, name, "Activity Failed"))
+		}
+
+		if event.GetActivityTaskStartedEventAttributes() != nil {
+			attributes := event.GetActivityTaskStartedEventAttributes()
+			name := activityNameMap[attributes.ScheduledEventId]
+			events = append(events, dtomaps.ToJobRunEventDto(event, name, "Activity Started"))
+		}
+
+		if event.GetActivityTaskCompletedEventAttributes() != nil {
+			attributes := event.GetActivityTaskCompletedEventAttributes()
+			name := activityNameMap[attributes.ScheduledEventId]
+			events = append(events, dtomaps.ToJobRunEventDto(event, name, "Activity Completed"))
+		}
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetJobRunEventsResponse{
+		Events: events,
+	}), nil
 }
 
 func (s *Service) CreateJobRun(
@@ -124,4 +229,25 @@ func (s *Service) DeleteJobRun(
 	req *connect.Request[mgmtv1alpha1.DeleteJobRunRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteJobRunResponse], error) {
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobRunResponse{}), nil
+}
+
+func getWorkflowExecutionsByRunId(
+	ctx context.Context,
+	tc temporalclient.Client,
+	namespace string,
+	runId string,
+) (*workflowpb.WorkflowExecutionInfo, error) {
+	query := fmt.Sprintf("WorkflowId = %q", runId)
+	request := &workflowservice.ListWorkflowExecutionsRequest{Query: query, Namespace: namespace}
+	resp, err := tc.ListWorkflow(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	if len(resp.Executions) == 0 {
+		return nil, nucleuserrors.NewNotFound("job run not found")
+	}
+	if len(resp.Executions) > 1 {
+		return nil, nucleuserrors.NewInternalError("found more than 1 job run")
+	}
+	return resp.Executions[0], nil
 }

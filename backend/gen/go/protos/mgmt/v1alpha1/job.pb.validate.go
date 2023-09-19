@@ -4011,28 +4011,10 @@ func (m *GetJobRunRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = GetJobRunRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return GetJobRunRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetJobRunRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -5416,11 +5398,11 @@ func (m *JobRunEvent) validate(all bool) error {
 	// no validation rules for Name
 
 	if all {
-		switch v := interface{}(m.GetStartedAt()).(type) {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, JobRunEventValidationError{
-					field:  "StartedAt",
+					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -5428,50 +5410,25 @@ func (m *JobRunEvent) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, JobRunEventValidationError{
-					field:  "StartedAt",
+					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetStartedAt()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return JobRunEventValidationError{
-				field:  "StartedAt",
+				field:  "CreatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	if all {
-		switch v := interface{}(m.GetCompletedAt()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, JobRunEventValidationError{
-					field:  "CompletedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, JobRunEventValidationError{
-					field:  "CompletedAt",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetCompletedAt()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return JobRunEventValidationError{
-				field:  "CompletedAt",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	// no validation rules for Type
+
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return JobRunEventMultiError(errors)
@@ -5550,168 +5507,6 @@ var _ interface {
 	ErrorName() string
 } = JobRunEventValidationError{}
 
-// Validate checks the field values on JobRunEvents with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *JobRunEvents) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on JobRunEvents with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in JobRunEventsMultiError, or
-// nil if none found.
-func (m *JobRunEvents) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *JobRunEvents) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if all {
-		switch v := interface{}(m.GetWorkflow()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, JobRunEventsValidationError{
-					field:  "Workflow",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, JobRunEventsValidationError{
-					field:  "Workflow",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetWorkflow()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return JobRunEventsValidationError{
-				field:  "Workflow",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	for idx, item := range m.GetActivities() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobRunEventsValidationError{
-						field:  fmt.Sprintf("Activities[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, JobRunEventsValidationError{
-						field:  fmt.Sprintf("Activities[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return JobRunEventsValidationError{
-					field:  fmt.Sprintf("Activities[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	if len(errors) > 0 {
-		return JobRunEventsMultiError(errors)
-	}
-
-	return nil
-}
-
-// JobRunEventsMultiError is an error wrapping multiple validation errors
-// returned by JobRunEvents.ValidateAll() if the designated constraints aren't met.
-type JobRunEventsMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m JobRunEventsMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m JobRunEventsMultiError) AllErrors() []error { return m }
-
-// JobRunEventsValidationError is the validation error returned by
-// JobRunEvents.Validate if the designated constraints aren't met.
-type JobRunEventsValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e JobRunEventsValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e JobRunEventsValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e JobRunEventsValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e JobRunEventsValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e JobRunEventsValidationError) ErrorName() string { return "JobRunEventsValidationError" }
-
-// Error satisfies the builtin error interface
-func (e JobRunEventsValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sJobRunEvents.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = JobRunEventsValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = JobRunEventsValidationError{}
-
 // Validate checks the field values on GetJobRunEventsRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -5734,28 +5529,10 @@ func (m *GetJobRunEventsRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = GetJobRunEventsRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return GetJobRunEventsRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetJobRunEventsRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -5856,33 +5633,38 @@ func (m *GetJobRunEventsResponse) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetEvents()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetJobRunEventsResponseValidationError{
-					field:  "Events",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
+	for idx, item := range m.GetEvents() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetJobRunEventsResponseValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetJobRunEventsResponseValidationError{
+						field:  fmt.Sprintf("Events[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-		case interface{ Validate() error }:
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				errors = append(errors, GetJobRunEventsResponseValidationError{
-					field:  "Events",
+				return GetJobRunEventsResponseValidationError{
+					field:  fmt.Sprintf("Events[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
-				})
+				}
 			}
 		}
-	} else if v, ok := interface{}(m.GetEvents()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return GetJobRunEventsResponseValidationError{
-				field:  "Events",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
+
 	}
 
 	if len(errors) > 0 {
