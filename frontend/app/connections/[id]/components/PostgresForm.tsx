@@ -156,6 +156,20 @@ export default function PostgresForm(props: Props) {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="db.sslMode"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="ssl mode" {...field} />
+              </FormControl>
+              <FormDescription>SSL Mode</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <TestConnectionResult resp={checkResp} />
         <div className="flex flex-row gap-3 justify-end">
           <Button
