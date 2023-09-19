@@ -1,10 +1,10 @@
-import React from "react";
-import {
-  useSidebarBreadcrumbs,
-  useHomePageRoute,
-} from "@docusaurus/theme-common/internal";
 import Link from "@docusaurus/Link";
+import {
+  useHomePageRoute,
+  useSidebarBreadcrumbs,
+} from "@docusaurus/theme-common/internal";
 import { ChevronRightIcon, HomeIcon } from "@radix-ui/react-icons";
+import React from "react";
 
 export default function DocBreadcrumbs() {
   const breadcrumbs = useSidebarBreadcrumbs();
@@ -18,7 +18,7 @@ export default function DocBreadcrumbs() {
     <div className="inline-flex flex-row items-center mb-10 rounded-full text-gray-800 p-2 space-x-2">
       <div className="flex flex-row items-center space-x-2">
         <Link href={homePageRoute.path}>
-          <HomeIcon className="dark:text-gray-100 text-gray-800" />
+          <HomeIcon className="text-gray-100" />
         </Link>
         <ChevronRightIcon className="dark:text-gray-100 text-gray-800" />
       </div>
