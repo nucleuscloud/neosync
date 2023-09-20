@@ -7,9 +7,17 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
@@ -18,6 +26,7 @@ import {
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { SSL_MODES } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ExclamationTriangleIcon, RocketIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
@@ -162,10 +171,28 @@ export default function PostgresForm(props: Props) {
           name="db.sslMode"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>SSL Mode</FormLabel>
               <FormControl>
-                <Input placeholder="ssl mode" {...field} />
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SSL_MODES.map((mode) => (
+                      <SelectItem
+                        className="cursor-pointer"
+                        key={mode}
+                        value={mode}
+                      >
+                        {mode}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
-              <FormDescription>SSL Mode</FormDescription>
+              <FormDescription>
+                The location of the source data set.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

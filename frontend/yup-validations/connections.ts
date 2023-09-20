@@ -28,3 +28,12 @@ export const EXISTING_POSTGRES_CONNECTION = Yup.object({
 export type YupExistingPostgresConnection = Yup.InferType<
   typeof EXISTING_POSTGRES_CONNECTION
 >;
+
+export const SSL_MODES = [
+  'disable',
+  'allow',
+  'prefer',
+  'require',
+  'verify-ca',
+  'verify-full',
+];
