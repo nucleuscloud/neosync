@@ -10,6 +10,9 @@ import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { useToast } from '@/components/ui/use-toast';
+import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
   CreateJobResponse,
@@ -21,6 +24,7 @@ import {
   SqlDestinationConnectionOptions,
   SqlSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { getErrorMessage } from '@/util/util';
 import {
   DestinationFormValues,
   SCHEMA_FORM_SCHEMA,
@@ -37,6 +41,10 @@ import { DefineFormValues, FlowFormValues, FormValues } from '../schema';
 export default function Page({ searchParams }: PageProps): ReactElement {
   const account = useAccount();
   const router = useRouter();
+  const { toast } = useToast();
+  const { data: connectionsData } = useGetConnections(account?.id ?? '');
+
+  const connections = connectionsData?.connections ?? [];
   useEffect(() => {
     if (!searchParams?.sessionId) {
       router.push(`/new/job`);
@@ -55,8 +63,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     {
       sourceId: '',
       sourceOptions: {},
-      sourceType: '',
-      destinations: [{ destinationId: '', destinationOptions: {}, type: '' }],
+      destinations: [{ destinationId: '', destinationOptions: {} }],
     }
   );
 
@@ -64,9 +71,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     mappings: [],
   });
 
-  const form = useForm({
-    resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
-    defaultValues: async () => {
+  async function getSchema() {
+    try {
       const res = await getConnectionSchema(flowFormValues.sourceId);
       if (!res) {
         return { mappings: [] };
@@ -78,6 +84,21 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         };
       });
       return { mappings };
+    } catch (err) {
+      console.log(err);
+      toast({
+        title: 'Unable to get connection schema',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+      return { mappings: [] };
+    }
+  }
+
+  const form = useForm({
+    resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
+    defaultValues: async () => {
+      return getSchema();
     },
   });
   useFormPersist(`${sessionPrefix}-new-job-schema`, {
@@ -97,7 +118,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           flow: flowFormValues,
           schema: values,
         },
-        account.id
+        account.id,
+        connections
       );
       if (job.job?.id) {
         router.push(`/jobs/${job.job.id}`);
@@ -106,6 +128,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
     } catch (err) {
       console.error(err);
+      toast({
+        title: 'Unable to create job',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
     }
   }
 
@@ -138,7 +165,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
 async function createNewJob(
   formData: FormValues,
-  accountId: string
+  accountId: string,
+  connections: Connection[]
 ): Promise<CreateJobResponse> {
   const body = new CreateJobRequest({
     accountId,
@@ -168,7 +196,10 @@ async function createNewJob(
     destinations: formData.flow.destinations.map((d) => {
       return new JobDestination({
         connectionId: d.destinationId,
-        options: toJobDestinationOptions(d),
+        options: toJobDestinationOptions(
+          d,
+          connections.find((c) => c.id == d.destinationId)
+        ),
       });
     }),
   });
@@ -187,17 +218,21 @@ async function createNewJob(
 }
 
 function toJobDestinationOptions(
-  destination: DestinationFormValues
+  values: DestinationFormValues,
+  connection?: Connection
 ): JobDestinationOptions {
-  switch (destination.type) {
-    case 'sql': {
+  if (!connection) {
+    return new JobDestinationOptions();
+  }
+  switch (connection.connectionConfig?.config.case) {
+    case 'pgConfig': {
       return new JobDestinationOptions({
         config: {
           case: 'sqlOptions',
           value: new SqlDestinationConnectionOptions({
             truncateBeforeInsert:
-              destination.destinationOptions.truncateBeforeInsert,
-            initDbSchema: destination.destinationOptions.initDbSchema,
+              values.destinationOptions.truncateBeforeInsert,
+            initDbSchema: values.destinationOptions.initDbSchema,
           }),
         },
       });

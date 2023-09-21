@@ -38,7 +38,7 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
 export type DefineFormValues = Yup.InferType<typeof DEFINE_FORM_SCHEMA>;
 
 export const FLOW_FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
-  Yup.object({ destinations: Yup.array(DESTINATION_FORM_SCHEMA) })
+  Yup.object({ destinations: Yup.array(DESTINATION_FORM_SCHEMA).required() })
 );
 export type FlowFormValues = Yup.InferType<typeof FLOW_FORM_SCHEMA>;
 

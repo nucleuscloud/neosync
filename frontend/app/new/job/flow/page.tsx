@@ -23,7 +23,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { getConnectionType } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
@@ -49,7 +48,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     {
       sourceId: '',
       sourceOptions: {},
-      sourceType: '',
       destinations: [{ destinationId: '', destinationOptions: {} }],
     }
   );
@@ -116,12 +114,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <Select
                           onValueChange={(value: string) => {
                             field.onChange(value);
-                            form.setValue(
-                              `sourceType`,
-                              getConnectionType(
-                                connections.find((c) => c.id == value)
-                              )
-                            );
                             form.setValue('sourceOptions', {
                               haltOnNewColumnAddition: false,
                             });
@@ -191,7 +183,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 ) : (
                                   <Select
                                     onValueChange={(value: string) => {
-                                      field.onChange(value);
                                       form.setValue(
                                         `destinations.${index}.destinationOptions`,
                                         {
@@ -199,6 +190,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                           initDbSchema: false,
                                         }
                                       );
+                                      field.onChange(value);
                                     }}
                                     value={field.value}
                                   >
@@ -231,7 +223,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <Button
                           type="button"
                           variant="outline"
+                          disabled={fields.length == 1}
                           onClick={() => {
+                            console.log('index', index);
                             if (fields.length != 1) {
                               remove(index);
                             }
@@ -261,7 +255,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   append({
                     destinationId: '',
                     destinationOptions: {},
-                    type: '',
                   });
                 }}
               >

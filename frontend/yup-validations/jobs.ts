@@ -24,7 +24,6 @@ export const SOURCE_FORM_SCHEMA = Yup.object({
   sourceOptions: Yup.object({
     haltOnNewColumnAddition: Yup.boolean().optional(),
   }),
-  sourceType: Yup.string().required(),
 });
 export type SourceFormValues = Yup.InferType<typeof SOURCE_FORM_SCHEMA>;
 

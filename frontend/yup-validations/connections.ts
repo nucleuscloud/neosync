@@ -1,4 +1,3 @@
-import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import * as Yup from 'yup';
 
 export const POSTGRES_CONNECTION = Yup.object({
@@ -38,20 +37,3 @@ export const SSL_MODES = [
   'verify-ca',
   'verify-full',
 ];
-
-export function getConnectionType(connection?: Connection): string {
-  if (!connection) {
-    return '';
-  }
-  switch (connection.connectionConfig?.config.case) {
-    case 'pgConfig': {
-      return 'sql';
-    }
-    case 'awsS3Config': {
-      return 'awsS3';
-    }
-    default: {
-      return '';
-    }
-  }
-}

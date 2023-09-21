@@ -152,6 +152,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
+	connectionIds := []string{req.Msg.Source.ConnectionId}
 	destinations := []*Destination{}
 	for _, dest := range req.Msg.Destinations {
 		destUuid, err := nucleusdb.ToUuid(dest.ConnectionId)
@@ -164,6 +165,11 @@ func (s *Service) CreateJob(
 			return nil, err
 		}
 		destinations = append(destinations, &Destination{ConnectionId: destUuid, Options: options})
+		connectionIds = append(connectionIds, dest.ConnectionId)
+	}
+
+	if !verifyConnectionIdsUnique(connectionIds) {
+		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
 	}
 
 	cron := pgtype.Text{}
@@ -765,4 +771,16 @@ func getWorkflowExecutionsByJobIds(
 	}
 
 	return executions, nil
+}
+
+func verifyConnectionIdsUnique(connectionIds []string) bool {
+	occurrenceMap := make(map[string]bool)
+
+	for _, id := range connectionIds {
+		if occurrenceMap[id] {
+			return false
+		}
+		occurrenceMap[id] = true
+	}
+	return true
 }
