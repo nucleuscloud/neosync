@@ -107,7 +107,7 @@ message UpdateJobSourceConnectionResponse {
 }
 
 message SetJobDestinationConnectionRequest {
-  string jobId = 1 [(validate.rules).string.uuid = true];
+  string job_id = 1 [(validate.rules).string.uuid = true];
   string connection_id = 2 [(validate.rules).string.uuid = true];
   JobDestinationOptions options = 3;
 }

@@ -938,7 +938,7 @@ export class UpdateJobSourceConnectionResponse extends Message<UpdateJobSourceCo
  */
 export class SetJobDestinationConnectionRequest extends Message<SetJobDestinationConnectionRequest> {
   /**
-   * @generated from field: string jobId = 1;
+   * @generated from field: string job_id = 1;
    */
   jobId = "";
 
@@ -960,7 +960,7 @@ export class SetJobDestinationConnectionRequest extends Message<SetJobDestinatio
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.SetJobDestinationConnectionRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "jobId", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "options", kind: "message", T: JobDestinationOptions },
   ]);
