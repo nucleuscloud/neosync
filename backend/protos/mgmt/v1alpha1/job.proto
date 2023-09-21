@@ -13,17 +13,11 @@ message GetJobsResponse {
 }
 
 message JobSource {
-  string connection_id = 2;
-  JobSourceOptions options = 3;
+  string connection_id = 1;
+  JobSourceOptions options = 2;
 }
 
 message JobDestination {
-  string id = 1;
-  string connection_id = 2;
-  JobDestinationOptions options = 3;
-}
-
-message CreateJobDestination {
   string connection_id = 1;
   JobDestinationOptions options = 2;
 }
@@ -61,7 +55,7 @@ message CreateJobRequest {
   optional string cron_schedule = 3;
   repeated JobMapping mappings = 4;
   JobSource source = 5;
-  repeated CreateJobDestination destinations = 6;
+  repeated JobDestination destinations = 6;
 }
 message CreateJobResponse {
   Job job = 1;
@@ -113,18 +107,17 @@ message UpdateJobSourceConnectionResponse {
 }
 
 message SetJobDestinationConnectionRequest {
-  optional string id = 1 [(validate.rules).string.uuid = true];
-  string jobId = 2 [(validate.rules).string.uuid = true];
-  string connection_id = 3;
-  JobDestinationOptions options = 4;
+  string jobId = 1 [(validate.rules).string.uuid = true];
+  string connection_id = 2 [(validate.rules).string.uuid = true];
+  JobDestinationOptions options = 3;
 }
 message SetJobDestinationConnectionResponse {
-  JobDestination destination = 1;
+  Job job = 1;
 }
 
 message DeleteJobDestinationConnectionRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
-  string destinationId = 2 [(validate.rules).string.uuid = true];
+  string jobId = 1 [(validate.rules).string.uuid = true];
+  string connection_id = 2 [(validate.rules).string.uuid = true];
 }
 message DeleteJobDestinationConnectionResponse {}
 
