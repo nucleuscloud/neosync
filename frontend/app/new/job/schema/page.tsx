@@ -85,7 +85,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       });
       return { mappings };
     } catch (err) {
-      console.log(err);
+      console.error(err);
       toast({
         title: 'Unable to get connection schema',
         description: getErrorMessage(err),

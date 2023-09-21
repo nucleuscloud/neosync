@@ -225,7 +225,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           variant="outline"
                           disabled={fields.length == 1}
                           onClick={() => {
-                            console.log('index', index);
                             if (fields.length != 1) {
                               remove(index);
                             }

@@ -78,7 +78,6 @@ export default function DestinationConnectionCard({
   }
 
   async function onDelete() {
-    console.log('HERE');
     try {
       await deleteJobConnection(jobId, destination.connectionId);
       mutate();
