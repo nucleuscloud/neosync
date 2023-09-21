@@ -21,7 +21,11 @@ import {
   SqlDestinationConnectionOptions,
   SqlSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
+import {
+  DestinationFormValues,
+  SCHEMA_FORM_SCHEMA,
+  SchemaFormValues,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
@@ -50,9 +54,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     `${sessionPrefix}-new-job-flow`,
     {
       sourceId: '',
-      destinationId: '',
       sourceOptions: {},
-      destinationOptions: {},
+      sourceType: '',
+      destinations: [{ destinationId: '', destinationOptions: {}, type: '' }],
     }
   );
 
@@ -161,21 +165,12 @@ async function createNewJob(
         },
       }),
     }),
-    destinations: [
-      new JobDestination({
-        connectionId: formData.flow.destinationId,
-        options: new JobDestinationOptions({
-          config: {
-            case: 'sqlOptions',
-            value: new SqlDestinationConnectionOptions({
-              truncateBeforeInsert:
-                formData.flow.destinationOptions.truncateBeforeInsert,
-              initDbSchema: formData.flow.destinationOptions.initDbSchema,
-            }),
-          },
-        }),
-      }),
-    ],
+    destinations: formData.flow.destinations.map((d) => {
+      return new JobDestination({
+        connectionId: d.destinationId,
+        options: toJobDestinationOptions(d),
+      });
+    }),
   });
   const res = await fetch(`/api/jobs`, {
     method: 'POST',
@@ -189,4 +184,26 @@ async function createNewJob(
     throw new Error(body.message);
   }
   return CreateJobResponse.fromJson(await res.json());
+}
+
+function toJobDestinationOptions(
+  destination: DestinationFormValues
+): JobDestinationOptions {
+  switch (destination.type) {
+    case 'sql': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'sqlOptions',
+          value: new SqlDestinationConnectionOptions({
+            truncateBeforeInsert:
+              destination.destinationOptions.truncateBeforeInsert,
+            initDbSchema: destination.destinationOptions.initDbSchema,
+          }),
+        },
+      });
+    }
+    default: {
+      return new JobDestinationOptions();
+    }
+  }
 }

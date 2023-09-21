@@ -23,10 +23,12 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { getConnectionType } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../components/jobs/Form/DestinationOptionsForm';
@@ -46,15 +48,20 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     `${sessionPrefix}-new-job-flow`,
     {
       sourceId: '',
-      destinationId: '',
       sourceOptions: {},
-      destinationOptions: {},
+      sourceType: '',
+      destinations: [{ destinationId: '', destinationOptions: {}, type: '' }],
     }
   );
 
   const form = useForm({
     resolver: yupResolver<FlowFormValues>(FLOW_FORM_SCHEMA),
     defaultValues,
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'destinations',
   });
   useFormPersist(`${sessionPrefix}-new-job-flow`, {
     watch: form.watch,
@@ -96,7 +103,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 </div>
               </div>
             </div>
-            <div className="space-y-8 col-span-2">
+            <div className="space-y-4 col-span-2">
               <FormField
                 control={form.control}
                 name="sourceId"
@@ -109,6 +116,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <Select
                           onValueChange={(value: string) => {
                             field.onChange(value);
+                            form.setValue(
+                              `sourceType`,
+                              getConnectionType(
+                                connections.find((c) => c.id == value)
+                              )
+                            );
                             form.setValue('sourceOptions', {
                               haltOnNewColumnAddition: false,
                             });
@@ -119,19 +132,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {connections
-                              .filter(
-                                (c) => c.id !== form.getValues().destinationId
-                              )
-                              .map((connection) => (
-                                <SelectItem
-                                  className="cursor-pointer"
-                                  key={connection.id}
-                                  value={connection.id}
-                                >
-                                  {connection.name}
-                                </SelectItem>
-                              ))}
+                            {connections.map((connection) => (
+                              <SelectItem
+                                className="cursor-pointer"
+                                key={connection.id}
+                                value={connection.id}
+                              >
+                                {connection.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       )}
@@ -157,70 +166,114 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <div
             className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
           >
-            <div>
-              <div>
-                <div className="space-y-0.5">
-                  <h2 className="text-xl font-semibold tracking-tight">
-                    Destination
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Where the data set should be synced.
-                  </p>
-                </div>
-              </div>
+            <div className="space-y-0.5">
+              <h2 className="text-xl font-semibold tracking-tight">
+                Destination
+              </h2>
+              <p className="text-muted-foreground">
+                Where the data set should be synced.
+              </p>
             </div>
-            <div className="space-y-8 col-span-2">
-              <FormField
-                control={form.control}
-                name="destinationId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      {isConnectionsLoading ? (
-                        <Skeleton />
-                      ) : (
-                        <Select
-                          onValueChange={(value: string) => {
-                            field.onChange(value);
-                            form.setValue('destinationOptions', {
-                              initDbSchema: false,
-                              truncateBeforeInsert: false,
-                            });
+            <div className="space-y-12 col-span-2">
+              {fields.map(({}, index) => {
+                return (
+                  <div className="space-y-4 col-span-2" key={index}>
+                    <div className="flex flew-row space-x-4">
+                      <div className="basis-11/12">
+                        <FormField
+                          control={form.control}
+                          name={`destinations.${index}.destinationId`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                {isConnectionsLoading ? (
+                                  <Skeleton />
+                                ) : (
+                                  <Select
+                                    onValueChange={(value: string) => {
+                                      field.onChange(value);
+                                      form.setValue(
+                                        `destinations.${index}.type`,
+                                        getConnectionType(
+                                          connections.find((c) => c.id == value)
+                                        )
+                                      );
+                                      form.setValue(
+                                        `destinations.${index}.destinationOptions`,
+                                        {
+                                          truncateBeforeInsert: false,
+                                          initDbSchema: false,
+                                        }
+                                      );
+                                    }}
+                                    value={field.value}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {connections.map((connection) => (
+                                        <SelectItem
+                                          className="cursor-pointer"
+                                          key={connection.id}
+                                          value={connection.id}
+                                        >
+                                          {connection.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                              </FormControl>
+                              <FormDescription>
+                                The location of the destination data set.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            if (fields.length != 1) {
+                              remove(index);
+                            }
                           }}
-                          value={field.value}
                         >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {connections
-                              .filter((c) => c.id !== form.getValues().sourceId)
-                              .map((connection) => (
-                                <SelectItem
-                                  className="cursor-pointer"
-                                  key={connection.id}
-                                  value={connection.id}
-                                >
-                                  {connection.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
+                          <Cross2Icon className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <DestinationOptionsForm
+                      index={index}
+                      connection={connections.find(
+                        (c) =>
+                          c.id ==
+                          form.getValues().destinations[index].destinationId
                       )}
-                    </FormControl>
-                    <FormDescription>
-                      The location of the destination data set.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DestinationOptionsForm
-                connection={connections.find(
-                  (c) => c.id == form.getValues().destinationId
-                )}
-                maxColNum={2}
-              />
+                      maxColNum={2}
+                    />
+                  </div>
+                );
+              })}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  append({
+                    destinationId: '',
+                    destinationOptions: {},
+                    type: '',
+                  });
+                }}
+              >
+                Add
+                <PlusIcon className="ml-2 w-4 h-4" />
+              </Button>
             </div>
           </div>
 
