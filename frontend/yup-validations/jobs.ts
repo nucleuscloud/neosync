@@ -33,8 +33,7 @@ export const DESTINATION_FORM_SCHEMA = Yup.object({
     truncateBeforeInsert: Yup.boolean().optional(),
     initDbSchema: Yup.boolean().optional(),
   }),
-  // destinationIds: Yup.array().of(Yup.string().required()).required(),
-});
+}).required();
 export type DestinationFormValues = Yup.InferType<
   typeof DESTINATION_FORM_SCHEMA
 >;

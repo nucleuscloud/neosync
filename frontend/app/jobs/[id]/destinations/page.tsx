@@ -1,11 +1,22 @@
 'use client';
 import SubPageHeader from '@/components/headers/SubPageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { useGetJob } from '@/libs/hooks/useGetJob';
 import { ReactElement } from 'react';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
+  const account = useAccount();
+  const { data, isLoading, mutate } = useGetJob(id);
+  const { isLoading: isConnectionsLoading, data: connectionsData } =
+    useGetConnections(account?.id ?? '');
+
+  const connections = connectionsData?.connections ?? [];
+  const destinationIds = data?.job?.destinations.map((d) => d.connectionId);
   return (
     <div className="job-details-container">
       <SubPageHeader
@@ -13,9 +24,29 @@ export default function Page({ params }: PageProps): ReactElement {
         description={`Manage job's destination connections`}
       />
 
-      <div className="space-y-10">
-        <DestinationConnectionCard jobId={id} />
-      </div>
+      {isLoading || isConnectionsLoading ? (
+        <Skeleton />
+      ) : (
+        <div className="space-y-10">
+          {data?.job?.destinations.map((destination) => {
+            return (
+              <DestinationConnectionCard
+                key={destination.connectionId}
+                jobId={id}
+                destination={destination}
+                mutate={mutate}
+                connections={connections}
+                availableConnections={connections.filter(
+                  (c) =>
+                    c.id == destination.connectionId ||
+                    (c.id != data?.job?.source?.connectionId &&
+                      !destinationIds?.includes(c.id))
+                )}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -11,12 +11,13 @@ import { ReactElement } from 'react';
 
 interface DestinationOptionsProps {
   connection?: Connection;
+  index?: number;
   maxColNum?: number;
 }
 export default function DestinationOptionsForm(
   props: DestinationOptionsProps
 ): ReactElement {
-  const { connection, maxColNum } = props;
+  const { connection, maxColNum, index } = props;
   const grid = maxColNum ? `lg:grid-cols-${maxColNum}` : 'lg:grid-cols-3';
 
   if (!connection) {
@@ -31,7 +32,11 @@ export default function DestinationOptionsForm(
             <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
               <div>
                 <FormField
-                  name="destinationOptions.truncateBeforeInsert"
+                  name={
+                    index
+                      ? `destinations.${index}.destinationOptions.truncateBeforeInsert`
+                      : `destinationOptions.truncateBeforeInsert`
+                  }
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
@@ -49,7 +54,11 @@ export default function DestinationOptionsForm(
               </div>
               <div>
                 <FormField
-                  name="destinationOptions.initDbSchema"
+                  name={
+                    index
+                      ? `destinations.${index}.destinationOptions.initDbSchema`
+                      : `destinationOptions.initDbSchema`
+                  }
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>

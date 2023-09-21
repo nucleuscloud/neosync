@@ -36,7 +36,6 @@ function JobRunsTable(props: TableProps): ReactElement {
   }
 
   const runs = data?.jobRuns ?? [];
-  console.log(runs);
 
   const columns = getColumns({
     onDeleted() {

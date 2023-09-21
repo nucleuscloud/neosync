@@ -106,13 +106,20 @@ message UpdateJobSourceConnectionResponse {
   Job job = 1;
 }
 
-message UpdateJobDestinationConnectionRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
-  JobDestination destination = 2;
+message SetJobDestinationConnectionRequest {
+  string job_id = 1 [(validate.rules).string.uuid = true];
+  string connection_id = 2 [(validate.rules).string.uuid = true];
+  JobDestinationOptions options = 3;
 }
-message UpdateJobDestinationConnectionResponse {
+message SetJobDestinationConnectionResponse {
   Job job = 1;
 }
+
+message DeleteJobDestinationConnectionRequest {
+  string job_id = 1 [(validate.rules).string.uuid = true];
+  string connection_id = 2 [(validate.rules).string.uuid = true];
+}
+message DeleteJobDestinationConnectionResponse {}
 
 message UpdateJobMappingsRequest {
   string id = 1 [(validate.rules).string.uuid = true];
@@ -261,7 +268,8 @@ service JobService {
   rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {}
   rpc UpdateJobSchedule(UpdateJobScheduleRequest) returns (UpdateJobScheduleResponse) {}
   rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
-  rpc UpdateJobDestinationConnection(UpdateJobDestinationConnectionRequest) returns (UpdateJobDestinationConnectionResponse) {}
+  rpc SetJobDestinationConnection(SetJobDestinationConnectionRequest) returns (SetJobDestinationConnectionResponse) {}
+  rpc DeleteJobDestinationConnection(DeleteJobDestinationConnectionRequest) returns (DeleteJobDestinationConnectionResponse) {}
   rpc UpdateJobMappings(UpdateJobMappingsRequest) returns (UpdateJobMappingsResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}

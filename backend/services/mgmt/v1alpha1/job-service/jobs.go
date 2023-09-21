@@ -152,6 +152,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
+	connectionIds := []string{req.Msg.Source.ConnectionId}
 	destinations := []*Destination{}
 	for _, dest := range req.Msg.Destinations {
 		destUuid, err := nucleusdb.ToUuid(dest.ConnectionId)
@@ -164,6 +165,11 @@ func (s *Service) CreateJob(
 			return nil, err
 		}
 		destinations = append(destinations, &Destination{ConnectionId: destUuid, Options: options})
+		connectionIds = append(connectionIds, dest.ConnectionId)
+	}
+
+	if !verifyConnectionIdsUnique(connectionIds) {
+		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
 	}
 
 	cron := pgtype.Text{}
@@ -493,55 +499,57 @@ func (s *Service) UpdateJobSourceConnection(
 	}), nil
 }
 
-func (s *Service) UpdateJobDestinationConnection(
+func (s *Service) SetJobDestinationConnection(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.UpdateJobDestinationConnectionRequest],
-) (*connect.Response[mgmtv1alpha1.UpdateJobDestinationConnectionResponse], error) {
+	req *connect.Request[mgmtv1alpha1.SetJobDestinationConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.SetJobDestinationConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.Id)
-	logger.Info("updating job destination connections")
+	logger = logger.With("jobId", req.Msg.JobId, "connectionId", req.Msg.ConnectionId)
 
-	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
 	if err != nil {
 		return nil, err
 	}
 	job, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-		Id: req.Msg.Id,
+		Id: req.Msg.JobId,
 	}))
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
-
-	jobDestOptionsMap := map[string]*mgmtv1alpha1.JobDestinationOptions{}
-	for _, dest := range job.Msg.Job.Destinations {
-		jobDestOptionsMap[dest.ConnectionId] = dest.Options
-	}
-
-	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Destination.ConnectionId)
+	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.verifyConnectionInAccount(ctx, req.Msg.Destination.ConnectionId, job.Msg.Job.AccountId); err != nil {
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("userId", userUuid)
+
+	connectionUuid, err := nucleusdb.ToUuid(req.Msg.ConnectionId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.verifyConnectionInAccount(ctx, req.Msg.ConnectionId, job.Msg.Job.AccountId); err != nil {
 		return nil, err
 	}
 	options := &jsonmodels.JobDestinationOptions{}
-	err = options.FromDto(req.Msg.Destination.Options)
+	err = options.FromDto(req.Msg.Options)
 	if err != nil {
 		return nil, err
 	}
-	_, ok := jobDestOptionsMap[req.Msg.Destination.ConnectionId]
-	if ok {
-		_, err = s.db.Q.UpdateJobDestination(ctx, db_queries.UpdateJobDestinationParams{
-			JobID:        jobUuid,
-			ConnectionID: connectionUuid,
-			Options:      options,
-		})
-		if err != nil {
-			return nil, err
-		}
 
-	} else {
+	logger.Info("updating job destination connection")
+	_, err = s.db.Q.UpdateJobConnectionDestination(ctx, db_queries.UpdateJobConnectionDestinationParams{
+		JobID:        jobUuid,
+		ConnectionID: connectionUuid,
+		Options:      options,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		logger.Info("destination not found. creating job destination connection")
 		_, err = s.db.Q.CreateJobConnectionDestination(ctx, db_queries.CreateJobConnectionDestinationParams{
 			JobID:        jobUuid,
 			ConnectionID: connectionUuid,
@@ -553,15 +561,69 @@ func (s *Service) UpdateJobDestinationConnection(
 	}
 
 	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-		Id: req.Msg.Id,
+		Id: job.Msg.Job.Id,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobDestinationConnectionResponse{
+
+	return connect.NewResponse(&mgmtv1alpha1.SetJobDestinationConnectionResponse{
 		Job: updatedJob.Msg.Job,
 	}), nil
+}
+
+func (s *Service) DeleteJobDestinationConnection(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.DeleteJobDestinationConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.DeleteJobDestinationConnectionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.JobId, "connectionId", req.Msg.ConnectionId)
+
+	connectionUuid, err := nucleusdb.ToUuid(req.Msg.ConnectionId)
+	if err != nil {
+		return nil, err
+	}
+
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("unable to find job by id")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("userId", userUuid, "jobId", job.ID)
+
+	if err := s.verifyConnectionInAccount(
+		ctx,
+		req.Msg.ConnectionId,
+		nucleusdb.UUIDString(job.AccountID)); err != nil {
+		return nil, err
+	}
+
+	logger.Info("deleting job destination connection")
+	err = s.db.Q.RemoveJobConnectionDestination(ctx, db_queries.RemoveJobConnectionDestinationParams{
+		JobID:        jobUuid,
+		ConnectionID: connectionUuid,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		logger.Info("destination not found")
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.DeleteJobDestinationConnectionResponse{}), nil
 }
 
 func (s *Service) UpdateJobMappings(
@@ -708,4 +770,16 @@ func getWorkflowExecutionsByJobIds(
 	}
 
 	return executions, nil
+}
+
+func verifyConnectionIdsUnique(connectionIds []string) bool {
+	occurrenceMap := make(map[string]bool)
+
+	for _, id := range connectionIds {
+		if occurrenceMap[id] {
+			return false
+		}
+		occurrenceMap[id] = true
+	}
+	return true
 }
