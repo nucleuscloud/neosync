@@ -570,6 +570,7 @@ func (s *Service) DeleteJobDestinationConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.DeleteJobDestinationConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteJobDestinationConnectionResponse], error) {
+	fmt.Println("HERE HERE HERE")
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.JobId, "connectionId", req.Msg.ConnectionId)
 

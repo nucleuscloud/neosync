@@ -39,6 +39,6 @@ INNER JOIN neosync_api.accounts a ON a.id = c.account_id
 WHERE a.id = sqlc.arg('accountId') and c.name = sqlc.arg('connectionName');
 
 -- name: IsConnectionInAccount :one
-SELECT cout(c.id) from neosync_api.connections c
+SELECT count(c.id) from neosync_api.connections c
 INNER JOIN neosync_api.accounts a ON a.id = c.account_id
 WHERE a.id = sqlc.arg('accountId') and c.id = sqlc.arg('connectionId');

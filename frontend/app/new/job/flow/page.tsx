@@ -50,7 +50,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       sourceId: '',
       sourceOptions: {},
       sourceType: '',
-      destinations: [{ destinationId: '', destinationOptions: {}, type: '' }],
+      destinations: [{ destinationId: '', destinationOptions: {} }],
     }
   );
 
@@ -192,12 +192,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   <Select
                                     onValueChange={(value: string) => {
                                       field.onChange(value);
-                                      form.setValue(
-                                        `destinations.${index}.type`,
-                                        getConnectionType(
-                                          connections.find((c) => c.id == value)
-                                        )
-                                      );
                                       form.setValue(
                                         `destinations.${index}.destinationOptions`,
                                         {

@@ -11,7 +11,7 @@ import { ReactElement } from 'react';
 
 interface DestinationOptionsProps {
   connection?: Connection;
-  index: number;
+  index?: number;
   maxColNum?: number;
 }
 export default function DestinationOptionsForm(
@@ -32,7 +32,11 @@ export default function DestinationOptionsForm(
             <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
               <div>
                 <FormField
-                  name={`destinations.${index}.destinationOptions.truncateBeforeInsert`}
+                  name={
+                    index
+                      ? `destinations.${index}.destinationOptions.truncateBeforeInsert`
+                      : `destinationOptions.truncateBeforeInsert`
+                  }
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
@@ -50,7 +54,11 @@ export default function DestinationOptionsForm(
               </div>
               <div>
                 <FormField
-                  name={`destinations.${index}.destinationOptions.initDbSchema`}
+                  name={
+                    index
+                      ? `destinations.${index}.destinationOptions.initDbSchema`
+                      : `destinationOptions.initDbSchema`
+                  }
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>

@@ -29,17 +29,12 @@ export const SOURCE_FORM_SCHEMA = Yup.object({
 export type SourceFormValues = Yup.InferType<typeof SOURCE_FORM_SCHEMA>;
 
 export const DESTINATION_FORM_SCHEMA = Yup.object({
-  destinations: Yup.array(
-    Yup.object({
-      destinationId: Yup.string().uuid('destination is required').required(),
-      destinationOptions: Yup.object({
-        truncateBeforeInsert: Yup.boolean().optional(),
-        initDbSchema: Yup.boolean().optional(),
-      }),
-      type: Yup.string().required(),
-    }).required()
-  ).required(),
-});
+  destinationId: Yup.string().uuid('destination is required').required(),
+  destinationOptions: Yup.object({
+    truncateBeforeInsert: Yup.boolean().optional(),
+    initDbSchema: Yup.boolean().optional(),
+  }),
+}).required();
 export type DestinationFormValues = Yup.InferType<
   typeof DESTINATION_FORM_SCHEMA
 >;
