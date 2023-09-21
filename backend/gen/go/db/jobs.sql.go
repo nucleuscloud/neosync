@@ -156,6 +156,25 @@ func (q *Queries) GetJobByNameAndAccount(ctx context.Context, arg GetJobByNameAn
 	return i, err
 }
 
+const getJobConnectionDestination = `-- name: GetJobConnectionDestination :one
+SELECT jdca.id, jdca.created_at, jdca.updated_at, jdca.job_id, jdca.connection_id, jdca.options from neosync_api.job_destination_connection_associations jdca
+WHERE jdca.id = $1
+`
+
+func (q *Queries) GetJobConnectionDestination(ctx context.Context, id pgtype.UUID) (NeosyncApiJobDestinationConnectionAssociation, error) {
+	row := q.db.QueryRow(ctx, getJobConnectionDestination, id)
+	var i NeosyncApiJobDestinationConnectionAssociation
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.JobID,
+		&i.ConnectionID,
+		&i.Options,
+	)
+	return i, err
+}
+
 const getJobConnectionDestinations = `-- name: GetJobConnectionDestinations :many
 SELECT jdca.id, jdca.created_at, jdca.updated_at, jdca.job_id, jdca.connection_id, jdca.options from neosync_api.job_destination_connection_associations jdca
 INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
@@ -289,6 +308,15 @@ func (q *Queries) RemoveJobById(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
+const removeJobConnectionDestinationById = `-- name: RemoveJobConnectionDestinationById :exec
+DELETE FROM neosync_api.job_destination_connection_associations WHERE id = $1
+`
+
+func (q *Queries) RemoveJobConnectionDestinationById(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, removeJobConnectionDestinationById, id)
+	return err
+}
+
 const removeJobConnectionDestinations = `-- name: RemoveJobConnectionDestinations :exec
 DELETE FROM neosync_api.job_destination_connection_associations
 WHERE id = ANY($1::uuid[])
@@ -299,21 +327,20 @@ func (q *Queries) RemoveJobConnectionDestinations(ctx context.Context, jobids []
 	return err
 }
 
-const updateJobDestination = `-- name: UpdateJobDestination :one
+const updateJobConnectionDestination = `-- name: UpdateJobConnectionDestination :one
 UPDATE neosync_api.job_destination_connection_associations
 SET options = $1
-WHERE job_id = $2 AND connection_id = $3
+WHERE id = $2
 RETURNING id, created_at, updated_at, job_id, connection_id, options
 `
 
-type UpdateJobDestinationParams struct {
-	Options      *jsonmodels.JobDestinationOptions
-	JobID        pgtype.UUID
-	ConnectionID pgtype.UUID
+type UpdateJobConnectionDestinationParams struct {
+	Options *jsonmodels.JobDestinationOptions
+	ID      pgtype.UUID
 }
 
-func (q *Queries) UpdateJobDestination(ctx context.Context, arg UpdateJobDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
-	row := q.db.QueryRow(ctx, updateJobDestination, arg.Options, arg.JobID, arg.ConnectionID)
+func (q *Queries) UpdateJobConnectionDestination(ctx context.Context, arg UpdateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
+	row := q.db.QueryRow(ctx, updateJobConnectionDestination, arg.Options, arg.ID)
 	var i NeosyncApiJobDestinationConnectionAssociation
 	err := row.Scan(
 		&i.ID,

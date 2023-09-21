@@ -68,6 +68,10 @@ INSERT INTO neosync_api.job_destination_connection_associations (
   $1, $2, $3
 );
 
+-- name: GetJobConnectionDestination :one
+SELECT jdca.* from neosync_api.job_destination_connection_associations jdca
+WHERE jdca.id = $1;
+
 -- name: GetJobConnectionDestinations :many
 SELECT jdca.* from neosync_api.job_destination_connection_associations jdca
 INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
@@ -82,8 +86,12 @@ WHERE j.id = ANY(sqlc.arg('jobIds')::uuid[]);
 DELETE FROM neosync_api.job_destination_connection_associations
 WHERE id = ANY(sqlc.arg('jobIds')::uuid[]);
 
--- name: UpdateJobDestination :one
+-- name: UpdateJobConnectionDestination :one
 UPDATE neosync_api.job_destination_connection_associations
 SET options = $1
-WHERE job_id = $2 AND connection_id = $3
+WHERE id = $2
 RETURNING *;
+
+
+-- name: RemoveJobConnectionDestinationById :exec
+DELETE FROM neosync_api.job_destination_connection_associations WHERE id = $1;

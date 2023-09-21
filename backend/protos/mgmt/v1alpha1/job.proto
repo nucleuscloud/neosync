@@ -13,11 +13,17 @@ message GetJobsResponse {
 }
 
 message JobSource {
-  string connection_id = 1;
-  JobSourceOptions options = 2;
+  string connection_id = 2;
+  JobSourceOptions options = 3;
 }
 
 message JobDestination {
+  string id = 1;
+  string connection_id = 2;
+  JobDestinationOptions options = 3;
+}
+
+message CreateJobDestination {
   string connection_id = 1;
   JobDestinationOptions options = 2;
 }
@@ -55,7 +61,7 @@ message CreateJobRequest {
   optional string cron_schedule = 3;
   repeated JobMapping mappings = 4;
   JobSource source = 5;
-  repeated JobDestination destinations = 6;
+  repeated CreateJobDestination destinations = 6;
 }
 message CreateJobResponse {
   Job job = 1;
@@ -106,13 +112,21 @@ message UpdateJobSourceConnectionResponse {
   Job job = 1;
 }
 
-message UpdateJobDestinationConnectionRequest {
+message SetJobDestinationConnectionRequest {
+  optional string id = 1 [(validate.rules).string.uuid = true];
+  string jobId = 2 [(validate.rules).string.uuid = true];
+  string connection_id = 3;
+  JobDestinationOptions options = 4;
+}
+message SetJobDestinationConnectionResponse {
+  JobDestination destination = 1;
+}
+
+message DeleteJobDestinationConnectionRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  JobDestination destination = 2;
+  string destinationId = 2 [(validate.rules).string.uuid = true];
 }
-message UpdateJobDestinationConnectionResponse {
-  Job job = 1;
-}
+message DeleteJobDestinationConnectionResponse {}
 
 message UpdateJobMappingsRequest {
   string id = 1 [(validate.rules).string.uuid = true];
@@ -261,7 +275,8 @@ service JobService {
   rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {}
   rpc UpdateJobSchedule(UpdateJobScheduleRequest) returns (UpdateJobScheduleResponse) {}
   rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
-  rpc UpdateJobDestinationConnection(UpdateJobDestinationConnectionRequest) returns (UpdateJobDestinationConnectionResponse) {}
+  rpc SetJobDestinationConnection(SetJobDestinationConnectionRequest) returns (SetJobDestinationConnectionResponse) {}
+  rpc DeleteJobDestinationConnection(DeleteJobDestinationConnectionRequest) returns (DeleteJobDestinationConnectionResponse) {}
   rpc UpdateJobMappings(UpdateJobMappingsRequest) returns (UpdateJobMappingsResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}

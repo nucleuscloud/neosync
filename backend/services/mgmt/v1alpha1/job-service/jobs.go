@@ -493,56 +493,74 @@ func (s *Service) UpdateJobSourceConnection(
 	}), nil
 }
 
-func (s *Service) UpdateJobDestinationConnection(
+func (s *Service) SetJobDestinationConnection(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.UpdateJobDestinationConnectionRequest],
-) (*connect.Response[mgmtv1alpha1.UpdateJobDestinationConnectionResponse], error) {
+	req *connect.Request[mgmtv1alpha1.SetJobDestinationConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.SetJobDestinationConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.Id)
-	logger.Info("updating job destination connections")
+	logger = logger.With("jobId", req.Msg.JobId)
 
-	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
 	if err != nil {
 		return nil, err
 	}
 	job, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-		Id: req.Msg.Id,
+		Id: req.Msg.JobId,
 	}))
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
-
-	jobDestOptionsMap := map[string]*mgmtv1alpha1.JobDestinationOptions{}
-	for _, dest := range job.Msg.Job.Destinations {
-		jobDestOptionsMap[dest.ConnectionId] = dest.Options
-	}
-
-	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Destination.ConnectionId)
+	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.verifyConnectionInAccount(ctx, req.Msg.Destination.ConnectionId, job.Msg.Job.AccountId); err != nil {
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("userId", userUuid)
+
+	connectionUuid, err := nucleusdb.ToUuid(req.Msg.ConnectionId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.verifyConnectionInAccount(ctx, req.Msg.ConnectionId, job.Msg.Job.AccountId); err != nil {
 		return nil, err
 	}
 	options := &jsonmodels.JobDestinationOptions{}
-	err = options.FromDto(req.Msg.Destination.Options)
+	err = options.FromDto(req.Msg.Options)
 	if err != nil {
 		return nil, err
 	}
-	_, ok := jobDestOptionsMap[req.Msg.Destination.ConnectionId]
-	if ok {
-		_, err = s.db.Q.UpdateJobDestination(ctx, db_queries.UpdateJobDestinationParams{
-			JobID:        jobUuid,
-			ConnectionID: connectionUuid,
-			Options:      options,
-		})
+
+	var destination db_queries.NeosyncApiJobDestinationConnectionAssociation
+	if req.Msg.Id != nil && *req.Msg.Id != "" {
+		logger.Info("updating job destination connection", "destinationId", req.Msg.Id)
+		uuid, err := nucleusdb.ToUuid(*req.Msg.Id)
 		if err != nil {
 			return nil, err
 		}
-
+		destination, err = s.db.Q.UpdateJobConnectionDestination(ctx, db_queries.UpdateJobConnectionDestinationParams{
+			ID:      uuid,
+			Options: options,
+		})
+		if err != nil && !nucleusdb.IsNoRows(err) {
+			return nil, err
+		} else if err != nil && nucleusdb.IsNoRows(err) {
+			logger.Info("destination not found. creating job destination connection", "destinationId", req.Msg.Id)
+			destination, err = s.db.Q.CreateJobConnectionDestination(ctx, db_queries.CreateJobConnectionDestinationParams{
+				JobID:        jobUuid,
+				ConnectionID: connectionUuid,
+				Options:      options,
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
 	} else {
-		_, err = s.db.Q.CreateJobConnectionDestination(ctx, db_queries.CreateJobConnectionDestinationParams{
+		logger.Info("creating job destination connection", "destinationId", req.Msg.Id)
+		destination, err = s.db.Q.CreateJobConnectionDestination(ctx, db_queries.CreateJobConnectionDestinationParams{
 			JobID:        jobUuid,
 			ConnectionID: connectionUuid,
 			Options:      options,
@@ -552,16 +570,62 @@ func (s *Service) UpdateJobDestinationConnection(
 		}
 	}
 
-	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-		Id: req.Msg.Id,
-	}))
+	return connect.NewResponse(&mgmtv1alpha1.SetJobDestinationConnectionResponse{
+		Destination: dtomaps.ToDestinationDto(&destination),
+	}), nil
+}
+
+func (s *Service) DeleteJobDestinationConnection(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.DeleteJobDestinationConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.DeleteJobDestinationConnectionResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("destinationId", req.Msg.Id)
+	destinationUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobDestinationConnectionResponse{
-		Job: updatedJob.Msg.Job,
-	}), nil
+	destination, err := s.db.Q.GetJobConnectionDestination(ctx, destinationUuid)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		logger.Info("destination not found")
+		return connect.NewResponse(&mgmtv1alpha1.DeleteJobDestinationConnectionResponse{}), nil
+	}
+
+	job, err := s.db.Q.GetJobById(ctx, destination.JobID)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("unable to find job by id")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("userId", userUuid, "jobId", job.ID)
+
+	if err := s.verifyConnectionInAccount(
+		ctx,
+		nucleusdb.UUIDString(destination.ConnectionID),
+		nucleusdb.UUIDString(job.AccountID)); err != nil {
+		return nil, err
+	}
+
+	logger.Info("deleting job destination connection")
+	err = s.db.Q.RemoveJobConnectionDestinationById(ctx, destinationUuid)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		logger.Info("destination not found")
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.DeleteJobDestinationConnectionResponse{}), nil
 }
 
 func (s *Service) UpdateJobMappings(
