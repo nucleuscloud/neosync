@@ -116,7 +116,7 @@ message SetJobDestinationConnectionResponse {
 }
 
 message DeleteJobDestinationConnectionRequest {
-  string jobId = 1 [(validate.rules).string.uuid = true];
+  string job_id = 1 [(validate.rules).string.uuid = true];
   string connection_id = 2 [(validate.rules).string.uuid = true];
 }
 message DeleteJobDestinationConnectionResponse {}
