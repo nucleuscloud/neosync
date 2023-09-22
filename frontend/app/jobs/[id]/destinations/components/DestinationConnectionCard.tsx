@@ -24,17 +24,19 @@ import {
   JobDestinationOptions,
   SetJobDestinationConnectionRequest,
   SetJobDestinationConnectionResponse,
-  SqlDestinationConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
-import { DESTINATION_FORM_SCHEMA } from '@/yup-validations/jobs';
+import {
+  DESTINATION_FORM_SCHEMA,
+  toJobDestinationOptions,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export const FORM_SCHEMA = DESTINATION_FORM_SCHEMA;
-export type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+const FORM_SCHEMA = DESTINATION_FORM_SCHEMA;
+type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 interface Props {
   jobId: string;
@@ -206,32 +208,6 @@ async function setJobConnection(
     throw new Error(body.message);
   }
   return SetJobDestinationConnectionResponse.fromJson(await res.json());
-}
-
-function toJobDestinationOptions(
-  values: FormValues,
-  connection?: Connection
-): JobDestinationOptions {
-  if (!connection) {
-    return new JobDestinationOptions();
-  }
-  switch (connection.connectionConfig?.config.case) {
-    case 'pgConfig': {
-      return new JobDestinationOptions({
-        config: {
-          case: 'sqlOptions',
-          value: new SqlDestinationConnectionOptions({
-            truncateBeforeInsert:
-              values.destinationOptions.truncateBeforeInsert,
-            initDbSchema: values.destinationOptions.initDbSchema,
-          }),
-        },
-      });
-    }
-    default: {
-      return new JobDestinationOptions();
-    }
-  }
 }
 
 function getDefaultValues(d: JobDestination): FormValues {

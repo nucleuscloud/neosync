@@ -1,3 +1,8 @@
+import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import {
+  JobDestinationOptions,
+  SqlDestinationConnectionOptions,
+} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
 export const JOB_MAPPING_SCHEMA = Yup.object({
@@ -37,3 +42,29 @@ export const DESTINATION_FORM_SCHEMA = Yup.object({
 export type DestinationFormValues = Yup.InferType<
   typeof DESTINATION_FORM_SCHEMA
 >;
+
+export function toJobDestinationOptions(
+  values: DestinationFormValues,
+  connection?: Connection
+): JobDestinationOptions {
+  if (!connection) {
+    return new JobDestinationOptions();
+  }
+  switch (connection.connectionConfig?.config.case) {
+    case 'pgConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'sqlOptions',
+          value: new SqlDestinationConnectionOptions({
+            truncateBeforeInsert:
+              values.destinationOptions.truncateBeforeInsert,
+            initDbSchema: values.destinationOptions.initDbSchema,
+          }),
+        },
+      });
+    }
+    default: {
+      return new JobDestinationOptions();
+    }
+  }
+}

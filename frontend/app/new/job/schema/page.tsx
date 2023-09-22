@@ -17,18 +17,16 @@ import {
   CreateJobRequest,
   CreateJobResponse,
   JobDestination,
-  JobDestinationOptions,
   JobMapping,
   JobSource,
   JobSourceOptions,
-  SqlDestinationConnectionOptions,
   SqlSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import {
-  DestinationFormValues,
   SCHEMA_FORM_SCHEMA,
   SchemaFormValues,
+  toJobDestinationOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
@@ -215,30 +213,4 @@ async function createNewJob(
     throw new Error(body.message);
   }
   return CreateJobResponse.fromJson(await res.json());
-}
-
-function toJobDestinationOptions(
-  values: DestinationFormValues,
-  connection?: Connection
-): JobDestinationOptions {
-  if (!connection) {
-    return new JobDestinationOptions();
-  }
-  switch (connection.connectionConfig?.config.case) {
-    case 'pgConfig': {
-      return new JobDestinationOptions({
-        config: {
-          case: 'sqlOptions',
-          value: new SqlDestinationConnectionOptions({
-            truncateBeforeInsert:
-              values.destinationOptions.truncateBeforeInsert,
-            initDbSchema: values.destinationOptions.initDbSchema,
-          }),
-        },
-      });
-    }
-    default: {
-      return new JobDestinationOptions();
-    }
-  }
 }

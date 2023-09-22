@@ -1,0 +1,251 @@
+'use client';
+import PageHeader from '@/components/headers/PageHeader';
+import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
+import { useAccount } from '@/components/providers/account-provider';
+import { PageProps } from '@/components/types';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
+import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { useGetJob } from '@/libs/hooks/useGetJob';
+import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import {
+  CreateJobDestinationConnectionsRequest,
+  CreateJobDestinationConnectionsResponse,
+  JobDestination,
+} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { getErrorMessage } from '@/util/util';
+import {
+  DESTINATION_FORM_SCHEMA,
+  toJobDestinationOptions,
+} from '@/yup-validations/jobs';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Cross1Icon, PlusIcon } from '@radix-ui/react-icons';
+import { useRouter } from 'next/navigation';
+import { ReactElement, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
+
+export const FORM_SCHEMA = Yup.object({
+  jobId: Yup.string().required(),
+  destinations: Yup.array(DESTINATION_FORM_SCHEMA).required(),
+});
+export type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+
+export default function Page({ params }: PageProps): ReactElement {
+  const id = params?.id ?? '';
+  const account = useAccount();
+  const { toast } = useToast();
+  const router = useRouter();
+  const { data, isLoading } = useGetJob(id);
+  const { isLoading: isConnectionsLoading, data: connectionsData } =
+    useGetConnections(account?.id ?? '');
+
+  const [currConnection, setCurrConnection] = useState<
+    Connection | undefined
+  >();
+
+  const connections = connectionsData?.connections ?? [];
+  const destinationIds = data?.job?.destinations.map((d) => d.connectionId);
+  const form = useForm({
+    resolver: yupResolver<FormValues>(FORM_SCHEMA),
+    defaultValues: {
+      jobId: id,
+      destinations: [{ destinationId: '', destinationOptions: {} }],
+    },
+  });
+
+  const availableConnections = connections.filter(
+    (c) =>
+      c.id != data?.job?.source?.connectionId && !destinationIds?.includes(c.id)
+  );
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'destinations',
+  });
+
+  async function onSubmit(values: FormValues) {
+    try {
+      const job = await createJobConnections(id, values, connections);
+      if (job.job?.id) {
+        router.push(`/jobs/${job.job.id}/destinations`);
+      } else {
+        router.push(`/jobs`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to create job destinations',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
+  }
+
+  return (
+    <div className="job-details-container">
+      <div className="mt-10">
+        <PageHeader
+          header="Create new Destination Connections"
+          description={`Connect new destination datasources.`}
+        />
+      </div>
+
+      {isLoading || isConnectionsLoading ? (
+        <Skeleton />
+      ) : (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="space-y-12">
+              {fields.map((_, index) => {
+                return (
+                  <div key={index} className="space-y-4">
+                    <div className="flex flex-row space-x-8">
+                      <div className="basis-11/12">
+                        <FormField
+                          control={form.control}
+                          name={`destinations.${index}.destinationId`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Select
+                                  onValueChange={(value: string) => {
+                                    field.onChange(value);
+                                    setCurrConnection(
+                                      connections.find(
+                                        (c) =>
+                                          c.id ==
+                                          form.getValues().destinations[index]
+                                            .destinationId
+                                      )
+                                    );
+                                    form.setValue(
+                                      `destinations.${index}.destinationOptions`,
+                                      {
+                                        truncateBeforeInsert: false,
+                                        initDbSchema: false,
+                                      }
+                                    );
+                                  }}
+                                  value={field.value}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {availableConnections.map((connection) => (
+                                      <SelectItem
+                                        className="cursor-pointer"
+                                        key={connection.id}
+                                        value={connection.id}
+                                      >
+                                        {connection.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormDescription>
+                                The location of the destination data set.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => {
+                          remove(index);
+                        }}
+                      >
+                        <Cross1Icon />
+                      </Button>
+                    </div>
+
+                    <DestinationOptionsForm
+                      index={index}
+                      connection={currConnection}
+                      maxColNum={3}
+                    />
+                  </div>
+                );
+              })}
+              <div className="flex flex-row items-center justify-between w-full mt-4">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => {
+                    append({ destinationId: '', destinationOptions: {} });
+                  }}
+                >
+                  Add
+                  <PlusIcon className="ml-2" />
+                </Button>
+                <Button
+                  disabled={
+                    !form.formState.isDirty ||
+                    form.getValues().destinations.length == 0
+                  }
+                  type="submit"
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          </form>
+        </Form>
+      )}
+    </div>
+  );
+}
+
+async function createJobConnections(
+  jobId: string,
+  values: FormValues,
+  connections: Connection[]
+): Promise<CreateJobDestinationConnectionsResponse> {
+  const res = await fetch(`/api/jobs/${jobId}/destination-connections`, {
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(
+      new CreateJobDestinationConnectionsRequest({
+        jobId: jobId,
+        destinations: values.destinations.map((d) => {
+          return new JobDestination({
+            connectionId: d.destinationId,
+            options: toJobDestinationOptions(
+              d,
+              connections.find((c) => c.id == d.destinationId)
+            ),
+          });
+        }),
+      })
+    ),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return CreateJobDestinationConnectionsResponse.fromJson(await res.json());
+}
