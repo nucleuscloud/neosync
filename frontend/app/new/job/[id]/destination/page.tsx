@@ -41,11 +41,11 @@ import { ReactElement, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export const FORM_SCHEMA = Yup.object({
+const FORM_SCHEMA = Yup.object({
   jobId: Yup.string().required(),
   destinations: Yup.array(DESTINATION_FORM_SCHEMA).required(),
 });
-export type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
