@@ -2429,6 +2429,51 @@ func (m *UpdateJobSourceConnectionRequest) validate(all bool) error {
 		}
 	}
 
+	if len(m.GetMappings()) < 1 {
+		err := UpdateJobSourceConnectionRequestValidationError{
+			field:  "Mappings",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetMappings() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UpdateJobSourceConnectionRequestValidationError{
+						field:  fmt.Sprintf("Mappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UpdateJobSourceConnectionRequestValidationError{
+						field:  fmt.Sprintf("Mappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UpdateJobSourceConnectionRequestValidationError{
+					field:  fmt.Sprintf("Mappings[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return UpdateJobSourceConnectionRequestMultiError(errors)
 	}

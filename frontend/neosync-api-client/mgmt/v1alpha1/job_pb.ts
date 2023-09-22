@@ -867,6 +867,11 @@ export class UpdateJobSourceConnectionRequest extends Message<UpdateJobSourceCon
    */
   source?: JobSource;
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 3;
+   */
+  mappings: JobMapping[] = [];
+
   constructor(data?: PartialMessage<UpdateJobSourceConnectionRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -877,6 +882,7 @@ export class UpdateJobSourceConnectionRequest extends Message<UpdateJobSourceCon
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "source", kind: "message", T: JobSource },
+    { no: 3, name: "mappings", kind: "message", T: JobMapping, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobSourceConnectionRequest {
