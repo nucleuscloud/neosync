@@ -351,6 +351,82 @@ func (s *Service) DeleteJob(
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobResponse{}), nil
 }
 
+func (s *Service) CreateJobDestinationConnections(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CreateJobDestinationConnectionsRequest],
+) (*connect.Response[mgmtv1alpha1.CreateJobDestinationConnectionsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.JobId)
+
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.JobId,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+	logger = logger.With("userId", userUuid)
+
+	connectionIds := []string{}
+	destinations := []*Destination{}
+	for _, dest := range req.Msg.Destinations {
+		destUuid, err := nucleusdb.ToUuid(dest.ConnectionId)
+		if err != nil {
+			return nil, err
+		}
+		options := &jsonmodels.JobDestinationOptions{}
+		err = options.FromDto(dest.Options)
+		if err != nil {
+			return nil, err
+		}
+		destinations = append(destinations, &Destination{ConnectionId: destUuid, Options: options})
+		connectionIds = append(connectionIds, dest.ConnectionId)
+	}
+
+	if !verifyConnectionIdsUnique(connectionIds) {
+		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
+	}
+
+	logger.Info("creating job destination connections", "connectionIds", connectionIds)
+	connDestParams := []db_queries.CreateJobConnectionDestinationsParams{}
+	for _, dest := range destinations {
+		connDestParams = append(connDestParams, db_queries.CreateJobConnectionDestinationsParams{
+			JobID:        jobUuid,
+			ConnectionID: dest.ConnectionId,
+			Options:      dest.Options,
+		})
+	}
+	if len(connDestParams) > 0 {
+		_, err = s.db.Q.CreateJobConnectionDestinations(ctx, connDestParams)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.JobId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.CreateJobDestinationConnectionsResponse{
+		Job: updatedJob.Msg.Job,
+	}), nil
+}
+
 func (s *Service) UpdateJobSchedule(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobScheduleRequest],

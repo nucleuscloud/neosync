@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CancelJobRunRequest, CancelJobRunResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobDestinationConnectionRequest, DeleteJobDestinationConnectionResponse, DeleteJobRequest, DeleteJobResponse, DeleteJobRunRequest, DeleteJobRunResponse, GetJobRequest, GetJobResponse, GetJobRunEventsRequest, GetJobRunEventsResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetTransformersRequest, GetTransformersResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, SetJobDestinationConnectionRequest, SetJobDestinationConnectionResponse, UpdateJobMappingsRequest, UpdateJobMappingsResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse } from "./job_pb";
+import { CancelJobRunRequest, CancelJobRunResponse, CreateJobDestinationConnectionsRequest, CreateJobDestinationConnectionsResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobDestinationConnectionRequest, DeleteJobDestinationConnectionResponse, DeleteJobRequest, DeleteJobResponse, DeleteJobRunRequest, DeleteJobRunResponse, GetJobRequest, GetJobResponse, GetJobRunEventsRequest, GetJobRunEventsResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetTransformersRequest, GetTransformersResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, SetJobDestinationConnectionRequest, SetJobDestinationConnectionResponse, UpdateJobMappingsRequest, UpdateJobMappingsResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse } from "./job_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -91,6 +91,15 @@ export const JobService = {
       name: "DeleteJobDestinationConnection",
       I: DeleteJobDestinationConnectionRequest,
       O: DeleteJobDestinationConnectionResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.JobService.CreateJobDestinationConnections
+     */
+    createJobDestinationConnections: {
+      name: "CreateJobDestinationConnections",
+      I: CreateJobDestinationConnectionsRequest,
+      O: CreateJobDestinationConnectionsResponse,
       kind: MethodKind.Unary,
     },
     /**

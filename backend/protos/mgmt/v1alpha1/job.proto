@@ -121,6 +121,14 @@ message DeleteJobDestinationConnectionRequest {
 }
 message DeleteJobDestinationConnectionResponse {}
 
+message CreateJobDestinationConnectionsRequest {
+  string job_id = 1;
+  repeated JobDestination destinations = 2;
+}
+message CreateJobDestinationConnectionsResponse {
+  Job job = 1;
+}
+
 message UpdateJobMappingsRequest {
   string id = 1 [(validate.rules).string.uuid = true];
   repeated JobMapping mappings = 2 [(validate.rules).repeated = {min_items: 1}];
@@ -270,6 +278,7 @@ service JobService {
   rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
   rpc SetJobDestinationConnection(SetJobDestinationConnectionRequest) returns (SetJobDestinationConnectionResponse) {}
   rpc DeleteJobDestinationConnection(DeleteJobDestinationConnectionRequest) returns (DeleteJobDestinationConnectionResponse) {}
+  rpc CreateJobDestinationConnections(CreateJobDestinationConnectionsRequest) returns (CreateJobDestinationConnectionsResponse) {}
   rpc UpdateJobMappings(UpdateJobMappingsRequest) returns (UpdateJobMappingsResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}

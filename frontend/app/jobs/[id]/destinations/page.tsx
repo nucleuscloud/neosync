@@ -2,9 +2,11 @@
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
 
@@ -22,6 +24,7 @@ export default function Page({ params }: PageProps): ReactElement {
       <SubPageHeader
         header="Destination Connections"
         description={`Manage job's destination connections`}
+        extraHeading={<NewDestinationButton jobId={id} />}
       />
 
       {isLoading || isConnectionsLoading ? (
@@ -48,5 +51,18 @@ export default function Page({ params }: PageProps): ReactElement {
         </div>
       )}
     </div>
+  );
+}
+
+interface NewDestinationButtonProps {
+  jobId: string;
+}
+
+function NewDestinationButton(props: NewDestinationButtonProps): ReactElement {
+  const { jobId } = props;
+  return (
+    <NextLink href={`/new/job/${jobId}/destination`}>
+      <Button>New Destination</Button>
+    </NextLink>
   );
 }
