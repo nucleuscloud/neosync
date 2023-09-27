@@ -25,6 +25,8 @@ Neosync is a developer-first way to create anonymized, secure test data and sync
 
 ## Introduction
 
+![neosync-data-flow](https://assets.nucleuscloud.com/neosync/readmeheader.svg)
+
 [Neosync](https://neosync.dev) is an open source platform that connects to a snapshot of your proudction database and allows teams to either generate synthetic data from that production schema or anonymize production-data . generate synthetic data from their produteams use to generate anonymized, production-like data and sync it across all of their environments for high-quality local, stage and CI testing.
 
 Our mission is to help developers build better, more resilient applications while protecting sensitive data. To do that, we built Neosync to give teams three things:
