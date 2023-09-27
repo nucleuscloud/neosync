@@ -19,7 +19,7 @@ export default function Page({ params }: PageProps): ReactElement {
     <div className="job-details-container">
       <SubPageHeader
         header={data?.job?.name || ''}
-        description="View job details"
+        description={data?.job?.id || ''}
       />
       <div className="space-y-10">
         <JobScheduleCard jobId={id} />

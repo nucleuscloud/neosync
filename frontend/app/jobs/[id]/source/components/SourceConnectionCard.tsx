@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import {
+  JobMapping,
   JobSource,
   JobSourceOptions,
   SqlSourceConnectionOptions,
@@ -168,6 +169,15 @@ async function updateJobConnection(
     body: JSON.stringify(
       new UpdateJobSourceConnectionRequest({
         id: jobId,
+        mappings: values.mappings.map((m) => {
+          return new JobMapping({
+            schema: m.schema,
+            table: m.table,
+            column: m.column,
+            transformer: m.transformer,
+            exclude: m.exclude,
+          });
+        }),
         source: new JobSource({
           connectionId: values.sourceId,
           options: new JobSourceOptions({

@@ -24,10 +24,6 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       title: 'Destinations',
       href: `${basePath}/destinations`,
     },
-    {
-      title: 'Schema',
-      href: `${basePath}/schema`,
-    },
   ];
 
   return (
