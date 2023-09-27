@@ -2,7 +2,7 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
-import { Skeleton } from '@/components/ui/skeleton';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetJobRuns } from '@/libs/hooks/useGetJobRuns';
 import { ReactElement } from 'react';
 import { getColumns } from './components/JobRunsTable/columns';
@@ -32,7 +32,7 @@ function JobRunsTable(props: TableProps): ReactElement {
   const { isLoading, data, mutate } = useGetJobRuns(account?.id ?? '');
 
   if (isLoading) {
-    return <Skeleton />;
+    return <SkeletonTable />;
   }
 
   const runs = data?.jobRuns ?? [];

@@ -4,6 +4,7 @@ import { PageProps } from '@/components/types';
 import ProgressNav from '@/components/Progress';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import SkeletonProgress from '@/components/skeleton/SkeletonProgress';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,9 +33,6 @@ export default function Page({ params }: PageProps): ReactElement {
     };
   });
 
-  if (isLoading) {
-    return <Skeleton />;
-  }
   const status = JOB_RUN_STATUS.find(
     (status) => status.value === jobRun?.status
   );
@@ -50,47 +48,64 @@ export default function Page({ params }: PageProps): ReactElement {
       }
       containerClassName="runs-page"
     >
-      <div className="space-y-8">
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4`}>
-          <StatCard header="Status" content={status?.badge} />
-          <StatCard
-            header="Start Time"
-            content={formatDateTime(jobRun?.startedAt?.toDate())}
-          />
-          <StatCard
-            header="Completion Time"
-            content={formatDateTime(jobRun?.completedAt?.toDate())}
-          />
-          <StatCard
-            header="Duration"
-            content={getDuration(
-              jobRun?.completedAt?.toDate(),
-              jobRun?.startedAt?.toDate()
+      {isLoading ? (
+        <div className="space-y-24">
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4`}
+          >
+            <Skeleton className="w-full h-24 rounded-lg" />
+            <Skeleton className="w-full h-24 rounded-lg" />
+            <Skeleton className="w-full h-24 rounded-lg" />
+            <Skeleton className="w-full h-24 rounded-lg" />
+          </div>
+
+          <SkeletonProgress />
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4`}
+          >
+            <StatCard header="Status" content={status?.badge} />
+            <StatCard
+              header="Start Time"
+              content={formatDateTime(jobRun?.startedAt?.toDate())}
+            />
+            <StatCard
+              header="Completion Time"
+              content={formatDateTime(jobRun?.completedAt?.toDate())}
+            />
+            <StatCard
+              header="Duration"
+              content={getDuration(
+                jobRun?.completedAt?.toDate(),
+                jobRun?.startedAt?.toDate()
+              )}
+            />
+          </div>
+          <div className="space-y-4">
+            {jobRun?.pendingActivities.map((a) => {
+              if (a.lastFailure) {
+                return (
+                  <AlertDestructive
+                    key={a.activityName}
+                    title={a.activityName}
+                    description={a.lastFailure?.message || ''}
+                  />
+                );
+              }
+            })}
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-xl font-semibold tracking-tight">Steps</h1>
+            {jobRunEventsLoading ? (
+              <SkeletonProgress />
+            ) : (
+              <ProgressNav items={progressNavItems} />
             )}
-          />
+          </div>
         </div>
-        <div className="space-y-4">
-          {jobRun?.pendingActivities.map((a) => {
-            if (a.lastFailure) {
-              return (
-                <AlertDestructive
-                  key={a.activityName}
-                  title={a.activityName}
-                  description={a.lastFailure?.message || ''}
-                />
-              );
-            }
-          })}
-        </div>
-        <div className="space-y-4">
-          <h1 className="text-xl font-semibold tracking-tight">Steps</h1>
-          {jobRunEventsLoading ? (
-            <Skeleton />
-          ) : (
-            <ProgressNav items={progressNavItems} />
-          )}
-        </div>
-      </div>
+      )}
     </OverviewContainer>
   );
 }

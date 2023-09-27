@@ -16,7 +16,7 @@ import {
 } from '@tanstack/react-table';
 import * as React from 'react';
 
-import { Skeleton } from '@/components/ui/skeleton';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
   Table,
   TableBody,
@@ -68,7 +68,7 @@ export function DataTable<TData, TValue>({
   });
 
   if (!data) {
-    return <Skeleton></Skeleton>;
+    return <SkeletonTable />;
   }
 
   return (

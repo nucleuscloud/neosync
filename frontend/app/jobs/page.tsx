@@ -2,8 +2,8 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useGetJobs } from '@/libs/hooks/useGetJobs';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -37,7 +37,7 @@ function JobTable(props: JobTableProps): ReactElement {
   const { isLoading, data, mutate } = useGetJobs(account?.id ?? '');
 
   if (isLoading) {
-    return <Skeleton />;
+    return <SkeletonTable />;
   }
 
   const jobs = data?.jobs ?? [];
