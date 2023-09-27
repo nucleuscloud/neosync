@@ -59,9 +59,6 @@ const (
 	// JobServiceCreateJobDestinationConnectionsProcedure is the fully-qualified name of the
 	// JobService's CreateJobDestinationConnections RPC.
 	JobServiceCreateJobDestinationConnectionsProcedure = "/mgmt.v1alpha1.JobService/CreateJobDestinationConnections"
-	// JobServiceUpdateJobMappingsProcedure is the fully-qualified name of the JobService's
-	// UpdateJobMappings RPC.
-	JobServiceUpdateJobMappingsProcedure = "/mgmt.v1alpha1.JobService/UpdateJobMappings"
 	// JobServiceGetJobRunsProcedure is the fully-qualified name of the JobService's GetJobRuns RPC.
 	JobServiceGetJobRunsProcedure = "/mgmt.v1alpha1.JobService/GetJobRuns"
 	// JobServiceGetJobRunEventsProcedure is the fully-qualified name of the JobService's
@@ -92,7 +89,6 @@ type JobServiceClient interface {
 	SetJobDestinationConnection(context.Context, *connect.Request[v1alpha1.SetJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.SetJobDestinationConnectionResponse], error)
 	DeleteJobDestinationConnection(context.Context, *connect.Request[v1alpha1.DeleteJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.DeleteJobDestinationConnectionResponse], error)
 	CreateJobDestinationConnections(context.Context, *connect.Request[v1alpha1.CreateJobDestinationConnectionsRequest]) (*connect.Response[v1alpha1.CreateJobDestinationConnectionsResponse], error)
-	UpdateJobMappings(context.Context, *connect.Request[v1alpha1.UpdateJobMappingsRequest]) (*connect.Response[v1alpha1.UpdateJobMappingsResponse], error)
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
@@ -162,11 +158,6 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			baseURL+JobServiceCreateJobDestinationConnectionsProcedure,
 			opts...,
 		),
-		updateJobMappings: connect.NewClient[v1alpha1.UpdateJobMappingsRequest, v1alpha1.UpdateJobMappingsResponse](
-			httpClient,
-			baseURL+JobServiceUpdateJobMappingsProcedure,
-			opts...,
-		),
 		getJobRuns: connect.NewClient[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunsProcedure,
@@ -217,7 +208,6 @@ type jobServiceClient struct {
 	setJobDestinationConnection     *connect.Client[v1alpha1.SetJobDestinationConnectionRequest, v1alpha1.SetJobDestinationConnectionResponse]
 	deleteJobDestinationConnection  *connect.Client[v1alpha1.DeleteJobDestinationConnectionRequest, v1alpha1.DeleteJobDestinationConnectionResponse]
 	createJobDestinationConnections *connect.Client[v1alpha1.CreateJobDestinationConnectionsRequest, v1alpha1.CreateJobDestinationConnectionsResponse]
-	updateJobMappings               *connect.Client[v1alpha1.UpdateJobMappingsRequest, v1alpha1.UpdateJobMappingsResponse]
 	getJobRuns                      *connect.Client[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse]
 	getJobRunEvents                 *connect.Client[v1alpha1.GetJobRunEventsRequest, v1alpha1.GetJobRunEventsResponse]
 	getJobRun                       *connect.Client[v1alpha1.GetJobRunRequest, v1alpha1.GetJobRunResponse]
@@ -277,11 +267,6 @@ func (c *jobServiceClient) CreateJobDestinationConnections(ctx context.Context, 
 	return c.createJobDestinationConnections.CallUnary(ctx, req)
 }
 
-// UpdateJobMappings calls mgmt.v1alpha1.JobService.UpdateJobMappings.
-func (c *jobServiceClient) UpdateJobMappings(ctx context.Context, req *connect.Request[v1alpha1.UpdateJobMappingsRequest]) (*connect.Response[v1alpha1.UpdateJobMappingsResponse], error) {
-	return c.updateJobMappings.CallUnary(ctx, req)
-}
-
 // GetJobRuns calls mgmt.v1alpha1.JobService.GetJobRuns.
 func (c *jobServiceClient) GetJobRuns(ctx context.Context, req *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error) {
 	return c.getJobRuns.CallUnary(ctx, req)
@@ -329,7 +314,6 @@ type JobServiceHandler interface {
 	SetJobDestinationConnection(context.Context, *connect.Request[v1alpha1.SetJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.SetJobDestinationConnectionResponse], error)
 	DeleteJobDestinationConnection(context.Context, *connect.Request[v1alpha1.DeleteJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.DeleteJobDestinationConnectionResponse], error)
 	CreateJobDestinationConnections(context.Context, *connect.Request[v1alpha1.CreateJobDestinationConnectionsRequest]) (*connect.Response[v1alpha1.CreateJobDestinationConnectionsResponse], error)
-	UpdateJobMappings(context.Context, *connect.Request[v1alpha1.UpdateJobMappingsRequest]) (*connect.Response[v1alpha1.UpdateJobMappingsResponse], error)
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
@@ -395,11 +379,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		svc.CreateJobDestinationConnections,
 		opts...,
 	)
-	jobServiceUpdateJobMappingsHandler := connect.NewUnaryHandler(
-		JobServiceUpdateJobMappingsProcedure,
-		svc.UpdateJobMappings,
-		opts...,
-	)
 	jobServiceGetJobRunsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunsProcedure,
 		svc.GetJobRuns,
@@ -457,8 +436,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceDeleteJobDestinationConnectionHandler.ServeHTTP(w, r)
 		case JobServiceCreateJobDestinationConnectionsProcedure:
 			jobServiceCreateJobDestinationConnectionsHandler.ServeHTTP(w, r)
-		case JobServiceUpdateJobMappingsProcedure:
-			jobServiceUpdateJobMappingsHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunsProcedure:
 			jobServiceGetJobRunsHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunEventsProcedure:
@@ -520,10 +497,6 @@ func (UnimplementedJobServiceHandler) DeleteJobDestinationConnection(context.Con
 
 func (UnimplementedJobServiceHandler) CreateJobDestinationConnections(context.Context, *connect.Request[v1alpha1.CreateJobDestinationConnectionsRequest]) (*connect.Response[v1alpha1.CreateJobDestinationConnectionsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.CreateJobDestinationConnections is not implemented"))
-}
-
-func (UnimplementedJobServiceHandler) UpdateJobMappings(context.Context, *connect.Request[v1alpha1.UpdateJobMappingsRequest]) (*connect.Response[v1alpha1.UpdateJobMappingsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.UpdateJobMappings is not implemented"))
 }
 
 func (UnimplementedJobServiceHandler) GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error) {

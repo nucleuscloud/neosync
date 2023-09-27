@@ -1,5 +1,9 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
+import {
+  SchemaTable,
+  getConnectionSchema,
+} from '@/components/jobs/SchemaTable/schema-table';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import {
+  JobMapping,
   JobSource,
   JobSourceOptions,
   SqlSourceConnectionOptions,
@@ -29,7 +34,7 @@ import {
   UpdateJobSourceConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
-import { SOURCE_FORM_SCHEMA } from '@/yup-validations/jobs';
+import { SCHEMA_FORM_SCHEMA, SOURCE_FORM_SCHEMA } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -44,8 +49,17 @@ const FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
   Yup.object({
     destinationId: Yup.string().required(),
   })
-);
-export type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
+).concat(SCHEMA_FORM_SCHEMA);
+type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
+interface SchemaMap {
+  [schema: string]: {
+    [table: string]: {
+      [column: string]: {
+        dataType: string;
+      };
+    };
+  };
+}
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
@@ -60,36 +74,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
 
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
-    defaultValues: async () => {
-      const res = await getJob(jobId);
-      if (!res) {
-        return {
-          sourceId: '',
-          sourceOptions: {
-            haltOnNewColumnAddition: false,
-          },
-          destinationId: '',
-        };
-      }
-      const destinationIds = res.job?.destinations.map((d) => d.connectionId);
-      const values = {
-        sourceId: res.job?.source?.connectionId || '',
-        sourceOptions: {},
-        destinationId: destinationIds ? destinationIds[0] : '',
-      };
-      switch (res.job?.source?.options?.config.case) {
-        case 'sqlOptions':
-          return {
-            ...values,
-            sourceOptions: {
-              haltOnNewColumnAddition:
-                res.job?.source?.options?.config.value.haltOnNewColumnAddition,
-            },
-          };
-        default:
-          return values;
-      }
-    },
+    defaultValues: async () => getJobSource(jobId),
   });
 
   async function onSubmit(values: SourceFormValues) {
@@ -159,6 +144,8 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
             )}
             maxColNum={2}
           />
+
+          <SchemaTable data={form.getValues().mappings} />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button disabled={!form.formState.isDirty} type="submit">
               Save
@@ -182,6 +169,15 @@ async function updateJobConnection(
     body: JSON.stringify(
       new UpdateJobSourceConnectionRequest({
         id: jobId,
+        mappings: values.mappings.map((m) => {
+          return new JobMapping({
+            schema: m.schema,
+            table: m.table,
+            column: m.column,
+            transformer: m.transformer,
+            exclude: m.exclude,
+          });
+        }),
         source: new JobSource({
           connectionId: values.sourceId,
           options: new JobSourceOptions({
@@ -202,4 +198,90 @@ async function updateJobConnection(
     throw new Error(body.message);
   }
   return UpdateJobSourceConnectionResponse.fromJson(await res.json());
+}
+
+async function getJobSource(jobId?: string): Promise<SourceFormValues> {
+  if (!jobId) {
+    return {
+      sourceId: '',
+      sourceOptions: {
+        haltOnNewColumnAddition: false,
+      },
+      destinationId: '',
+      mappings: [],
+    };
+  }
+  const jobRes = await getJob(jobId);
+  if (!jobRes) {
+    return {
+      sourceId: '',
+      sourceOptions: {
+        haltOnNewColumnAddition: false,
+      },
+      destinationId: '',
+      mappings: [],
+    };
+  }
+  const job = jobRes?.job;
+
+  const res = await getConnectionSchema(job?.source?.connectionId);
+  if (!res) {
+    return {
+      sourceId: '',
+      sourceOptions: {
+        haltOnNewColumnAddition: false,
+      },
+      destinationId: '',
+      mappings: [],
+    };
+  }
+
+  const schemaMap: SchemaMap = {};
+  res.schemas.forEach((c) => {
+    if (!schemaMap[c.schema]) {
+      schemaMap[c.schema] = {
+        [c.table]: {
+          [c.column]: {
+            dataType: c.dataType,
+          },
+        },
+      };
+    } else if (!schemaMap[c.schema][c.table]) {
+      schemaMap[c.schema][c.table] = {
+        [c.column]: {
+          dataType: c.dataType,
+        },
+      };
+    } else {
+      schemaMap[c.schema][c.table][c.column] = { dataType: c.dataType };
+    }
+  });
+
+  const mappings = job?.mappings.map((r) => {
+    const datatype = schemaMap[r.schema][r.table][r.column].dataType;
+    return {
+      ...r,
+      transformer: r.transformer as unknown as string,
+      dataType: datatype || '',
+    };
+  });
+  const destinationIds = jobRes.job?.destinations.map((d) => d.connectionId);
+  const values = {
+    sourceId: jobRes.job?.source?.connectionId || '',
+    sourceOptions: {},
+    destinationId: destinationIds ? destinationIds[0] : '',
+    mappings: mappings || [],
+  };
+  switch (jobRes.job?.source?.options?.config.case) {
+    case 'sqlOptions':
+      return {
+        ...values,
+        sourceOptions: {
+          haltOnNewColumnAddition:
+            jobRes.job?.source?.options?.config.value.haltOnNewColumnAddition,
+        },
+      };
+    default:
+      return values;
+  }
 }

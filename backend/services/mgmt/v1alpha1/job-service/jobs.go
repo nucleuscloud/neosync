@@ -515,7 +515,7 @@ func (s *Service) UpdateJobSourceConnection(
 ) (*connect.Response[mgmtv1alpha1.UpdateJobSourceConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.Id)
-	logger.Info("updating job source connection")
+	logger.Info("updating job source connection and mappings")
 	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
@@ -551,14 +551,41 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, err
 	}
 
-	_, err = s.db.Q.UpdateJobSource(ctx, db_queries.UpdateJobSourceParams{
-		ID:                 job.ID,
-		ConnectionSourceID: connectionUuid,
-		ConnectionOptions:  connectionOptions,
+	mappings := []*jsonmodels.JobMapping{}
+	for _, mapping := range req.Msg.Mappings {
+		jm := &jsonmodels.JobMapping{}
+		err = jm.FromDto(mapping)
+		if err != nil {
+			return nil, err
+		}
+		mappings = append(mappings, jm)
+	}
 
-		UpdatedByID: *userUuid,
-	})
-	if err != nil {
+	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
+		_, err = q.UpdateJobSource(ctx, db_queries.UpdateJobSourceParams{
+			ID:                 job.ID,
+			ConnectionSourceID: connectionUuid,
+			ConnectionOptions:  connectionOptions,
+
+			UpdatedByID: *userUuid,
+		})
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to update job source: %w", err).Error())
+			return err
+		}
+
+		_, err = q.UpdateJobMappings(ctx, db_queries.UpdateJobMappingsParams{
+			ID:          job.ID,
+			Mappings:    mappings,
+			UpdatedByID: *userUuid,
+		})
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to update job mappings: %w", err).Error())
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 
@@ -700,67 +727,6 @@ func (s *Service) DeleteJobDestinationConnection(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.DeleteJobDestinationConnectionResponse{}), nil
-}
-
-func (s *Service) UpdateJobMappings(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.UpdateJobMappingsRequest],
-) (*connect.Response[mgmtv1alpha1.UpdateJobMappingsResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.Id)
-	logger.Info("updating job mappings")
-
-	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
-	if err != nil {
-		return nil, err
-	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find job by id")
-	}
-
-	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
-	if err != nil {
-		return nil, err
-	}
-
-	userUuid, err := s.getUserUuid(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	mappings := []*jsonmodels.JobMapping{}
-	for _, mapping := range req.Msg.Mappings {
-		jm := &jsonmodels.JobMapping{}
-		err = jm.FromDto(mapping)
-		if err != nil {
-			return nil, err
-		}
-		mappings = append(mappings, jm)
-	}
-
-	_, err = s.db.Q.UpdateJobMappings(ctx, db_queries.UpdateJobMappingsParams{
-		ID:          job.ID,
-		Mappings:    mappings,
-		UpdatedByID: *userUuid,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-		Id: req.Msg.Id,
-	}))
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
-		return nil, err
-	}
-
-	return connect.NewResponse(&mgmtv1alpha1.UpdateJobMappingsResponse{
-		Job: updatedJob.Msg.Job,
-	}), nil
 }
 
 func (s *Service) IsJobNameAvailable(

@@ -44,7 +44,7 @@ export default function Page({ params }: PageProps): ReactElement {
       Header={
         <PageHeader
           header="Job Run Details"
-          description={jobRun?.name || ''}
+          description={jobRun?.id || ''}
           extraHeading={<ButtonLink jobId={jobRun?.jobId} />}
         />
       }

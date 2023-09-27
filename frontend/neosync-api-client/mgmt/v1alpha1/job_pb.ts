@@ -867,6 +867,11 @@ export class UpdateJobSourceConnectionRequest extends Message<UpdateJobSourceCon
    */
   source?: JobSource;
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 3;
+   */
+  mappings: JobMapping[] = [];
+
   constructor(data?: PartialMessage<UpdateJobSourceConnectionRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -877,6 +882,7 @@ export class UpdateJobSourceConnectionRequest extends Message<UpdateJobSourceCon
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "source", kind: "message", T: JobSource },
+    { no: 3, name: "mappings", kind: "message", T: JobMapping, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobSourceConnectionRequest {
@@ -1170,86 +1176,6 @@ export class CreateJobDestinationConnectionsResponse extends Message<CreateJobDe
 
   static equals(a: CreateJobDestinationConnectionsResponse | PlainMessage<CreateJobDestinationConnectionsResponse> | undefined, b: CreateJobDestinationConnectionsResponse | PlainMessage<CreateJobDestinationConnectionsResponse> | undefined): boolean {
     return proto3.util.equals(CreateJobDestinationConnectionsResponse, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.UpdateJobMappingsRequest
- */
-export class UpdateJobMappingsRequest extends Message<UpdateJobMappingsRequest> {
-  /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 2;
-   */
-  mappings: JobMapping[] = [];
-
-  constructor(data?: PartialMessage<UpdateJobMappingsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.UpdateJobMappingsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "mappings", kind: "message", T: JobMapping, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobMappingsRequest {
-    return new UpdateJobMappingsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateJobMappingsRequest {
-    return new UpdateJobMappingsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateJobMappingsRequest {
-    return new UpdateJobMappingsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: UpdateJobMappingsRequest | PlainMessage<UpdateJobMappingsRequest> | undefined, b: UpdateJobMappingsRequest | PlainMessage<UpdateJobMappingsRequest> | undefined): boolean {
-    return proto3.util.equals(UpdateJobMappingsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.UpdateJobMappingsResponse
- */
-export class UpdateJobMappingsResponse extends Message<UpdateJobMappingsResponse> {
-  /**
-   * @generated from field: mgmt.v1alpha1.Job job = 1;
-   */
-  job?: Job;
-
-  constructor(data?: PartialMessage<UpdateJobMappingsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.UpdateJobMappingsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "job", kind: "message", T: Job },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobMappingsResponse {
-    return new UpdateJobMappingsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateJobMappingsResponse {
-    return new UpdateJobMappingsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateJobMappingsResponse {
-    return new UpdateJobMappingsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: UpdateJobMappingsResponse | PlainMessage<UpdateJobMappingsResponse> | undefined, b: UpdateJobMappingsResponse | PlainMessage<UpdateJobMappingsResponse> | undefined): boolean {
-    return proto3.util.equals(UpdateJobMappingsResponse, a, b);
   }
 }
 
