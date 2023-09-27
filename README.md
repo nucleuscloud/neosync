@@ -56,7 +56,7 @@ Our mission is to help developers build better, more resilient applications whil
 
 ## Getting started
 
-You can also check out our [Docs](https://docs.neosync.dev) for more guides including a production-ready guide.
+You can also check out our [Docs](https://docs.neosync.dev) for more guides including a production-ready guide. Note: these are still a work in progress.
 
 ## Run Neosync locally
 
@@ -153,19 +153,20 @@ If this is a killer development feature for you, let us know by submitting a fea
 
 Some resources to help you along the way:
 
-- [Docs](https://docs.neosync.dev) for comprehensive documentation and guides
-- [Slack](https://neosync.dev) for discussion with the community and Neosync team
-- [Github](https://github.com/nucleuscloud/neosync)
+- [Docs](https://docs.neosync.dev) for comprehensive documentation and guides: Note these are still a work in progress.
+  - [Slack](https://join.slack.com/t/neosynccommunity/shared_invite/zt-1o3g7cned-OTBKzNj3InDm1YmpYdqRXg) for discussion with the community and Neosync team
+  <!-- - [Github](https://github.com/nucleuscloud/neosync) -->
 - [Twitter](https://twitter.com/neosyncloud) for the latest updates
-- [Blog](https://neosync.com/blog) for insights, articles and more
-- [Roadmap](https://neosync.dev/roadmap) for future development
+<!-- - [Blog](https://neosync.com/blog) for insights, articles and more
+- [Roadmap](https://neosync.dev/roadmap) for future development -->
 
 ## Contributing
 
 We love contributions big and small. Here are just a few ways that you can contirbute to Neosync.
 
-- Vote on features or get early access to beta functionality in our [roadmap](https://neosync.dev/roadmap)
-- Join our [Slack](https://neosync.dev) channel and ask us any questions there
+<!-- - Vote on features or get early access to beta functionality in our [roadmap](https://neosync.dev/roadmap) -->
+
+- Join our [Slack](https://join.slack.com/t/neosynccommunity/shared_invite/zt-1o3g7cned-OTBKzNj3InDm1YmpYdqRXg) channel and ask us any questions there
 - Open a PR (see our instructions on [developing with Neosync locally](https://docs.neosync.dev/developing-locally))
 - Submit a [feature request](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=enhancement%2C+feature&template=feature_request.md) or [bug report](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md)
 
