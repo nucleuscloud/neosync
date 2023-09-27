@@ -28,7 +28,7 @@ export default function Page({ params }: PageProps): ReactElement {
       />
 
       {isLoading || isConnectionsLoading ? (
-        <Skeleton />
+        <Skeleton className="w-full h-48 rounded-lg" />
       ) : (
         <div className="space-y-10">
           {data?.job?.destinations.map((destination) => {

@@ -1,7 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
+import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnection } from '@/libs/hooks/useGetConnection';
 import { GetConnectionResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
@@ -17,7 +17,11 @@ export default function ConnectionPage({ params }: PageProps) {
     return <div>Not Found</div>;
   }
   if (isLoading) {
-    return <Skeleton className="w-[100px] h-[20px] rounded-full" />;
+    return (
+      <div className="mt-10">
+        <SkeletonForm />
+      </div>
+    );
   }
   const connectionComponent = getConnectionComponentDetails({
     connection: data?.connection!,

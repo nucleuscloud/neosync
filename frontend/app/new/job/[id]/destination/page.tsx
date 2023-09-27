@@ -2,6 +2,7 @@
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
@@ -108,7 +108,7 @@ export default function Page({ params }: PageProps): ReactElement {
       </div>
 
       {isLoading || isConnectionsLoading ? (
-        <Skeleton />
+        <SkeletonTable />
       ) : (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>

@@ -109,7 +109,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   <FormItem>
                     <FormControl>
                       {isConnectionsLoading ? (
-                        <Skeleton />
+                        <Skeleton className="w-full h-12 rounded-lg" />
                       ) : (
                         <Select
                           onValueChange={(value: string) => {
@@ -179,7 +179,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             <FormItem>
                               <FormControl>
                                 {isConnectionsLoading ? (
-                                  <Skeleton />
+                                  <Skeleton className="w-full h-12 rounded-lg" />
                                 ) : (
                                   <Select
                                     onValueChange={(value: string) => {

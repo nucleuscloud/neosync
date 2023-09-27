@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
 import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
@@ -16,7 +16,7 @@ export function SchemaTable(props: JobTableProps): ReactElement {
     useGetTransformers();
 
   if (transformersIsLoading) {
-    return <Skeleton />;
+    return <SkeletonTable />;
   }
 
   const columns = getColumns({ transformers: transformers?.transformers });

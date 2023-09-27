@@ -1,9 +1,9 @@
 'use client';
 import { PageProps } from '@/components/types';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 
 import SubPageHeader from '@/components/headers/SubPageHeader';
+import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { ReactElement } from 'react';
 import JobScheduleCard from './components/ScheduleCard';
 
@@ -12,7 +12,11 @@ export default function Page({ params }: PageProps): ReactElement {
   const { data, isLoading } = useGetJob(id);
 
   if (isLoading) {
-    return <Skeleton />;
+    return (
+      <div className="mt-10">
+        <SkeletonForm />
+      </div>
+    );
   }
 
   return (

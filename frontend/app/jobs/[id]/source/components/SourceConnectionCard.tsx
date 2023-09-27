@@ -5,6 +5,7 @@ import {
   getConnectionSchema,
 } from '@/components/jobs/SchemaTable/schema-table';
 import { useAccount } from '@/components/providers/account-provider';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -95,6 +96,16 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
+  if (isConnectionsLoading) {
+    return (
+      <div className="space-y-10">
+        <Skeleton className="w-full h-12" />
+        <Skeleton className="w-1/2 h-12" />
+        <SkeletonTable />
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -106,30 +117,24 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
               <FormItem>
                 <FormLabel>Source</FormLabel>
                 <FormControl>
-                  {isConnectionsLoading ? (
-                    <Skeleton />
-                  ) : (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {connections
-                          .filter(
-                            (c) => c.id !== form.getValues().destinationId
-                          )
-                          .map((connection) => (
-                            <SelectItem
-                              className="cursor-pointer"
-                              key={connection.id}
-                              value={connection.id}
-                            >
-                              {connection.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {connections
+                        .filter((c) => c.id !== form.getValues().destinationId)
+                        .map((connection) => (
+                          <SelectItem
+                            className="cursor-pointer"
+                            key={connection.id}
+                            value={connection.id}
+                          >
+                            {connection.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormDescription>
                   The location of the source data set.
