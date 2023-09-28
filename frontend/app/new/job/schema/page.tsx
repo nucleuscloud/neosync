@@ -61,7 +61,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     {
       sourceId: '',
       sourceOptions: {},
-      destinations: [{ destinationId: '', destinationOptions: {} }],
+      destinations: [{ connectionId: '', destinationOptions: {} }],
     }
   );
 
@@ -193,10 +193,10 @@ async function createNewJob(
     }),
     destinations: formData.flow.destinations.map((d) => {
       return new JobDestination({
-        connectionId: d.destinationId,
+        connectionId: d.connectionId,
         options: toJobDestinationOptions(
           d,
-          connections.find((c) => c.id == d.destinationId)
+          connections.find((c) => c.id == d.connectionId)
         ),
       });
     }),

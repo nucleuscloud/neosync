@@ -45,5 +45,6 @@ func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssoci
 	return &mgmtv1alpha1.JobDestination{
 		ConnectionId: nucleusdb.UUIDString(input.ConnectionID),
 		Options:      input.Options.ToDto(),
+		Id:           nucleusdb.UUIDString(input.ID),
 	}
 }

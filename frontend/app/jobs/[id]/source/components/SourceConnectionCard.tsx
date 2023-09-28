@@ -40,7 +40,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { getJob } from '../../util';
+import { getConnection, getJob } from '../../util';
 
 interface Props {
   jobId: string;
@@ -117,7 +117,17 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
               <FormItem>
                 <FormLabel>Source</FormLabel>
                 <FormControl>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    value={field.value}
+                    onValueChange={async (value) => {
+                      field.onChange(value);
+                      const newValues = await getUpdatedValues(
+                        value,
+                        form.getValues()
+                      );
+                      form.reset(newValues);
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -284,6 +294,46 @@ async function getJobSource(jobId?: string): Promise<SourceFormValues> {
         sourceOptions: {
           haltOnNewColumnAddition:
             jobRes.job?.source?.options?.config.value.haltOnNewColumnAddition,
+        },
+      };
+    default:
+      return values;
+  }
+}
+
+async function getUpdatedValues(
+  connectionId: string,
+  originalValues: SourceFormValues
+): Promise<SourceFormValues> {
+  const [schemaRes, connRes] = await Promise.all([
+    getConnectionSchema(connectionId),
+    getConnection(connectionId),
+  ]);
+
+  if (!schemaRes || !connRes) {
+    return originalValues;
+  }
+
+  const mappings = schemaRes.schemas.map((r) => {
+    return {
+      ...r,
+      transformer: '',
+    };
+  });
+
+  const values = {
+    sourceId: connectionId || '',
+    sourceOptions: {},
+    destinationId: originalValues.destinationId,
+    mappings: mappings || [],
+  };
+
+  switch (connRes.connection?.connectionConfig?.config.case) {
+    case 'pgConfig':
+      return {
+        ...values,
+        sourceOptions: {
+          haltOnNewColumnAddition: false,
         },
       };
     default:

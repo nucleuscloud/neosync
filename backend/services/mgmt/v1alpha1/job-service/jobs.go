@@ -602,14 +602,18 @@ func (s *Service) UpdateJobSourceConnection(
 	}), nil
 }
 
-func (s *Service) SetJobDestinationConnection(
+func (s *Service) UpdateJobDestinationConnection(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.SetJobDestinationConnectionRequest],
-) (*connect.Response[mgmtv1alpha1.SetJobDestinationConnectionResponse], error) {
+	req *connect.Request[mgmtv1alpha1.UpdateJobDestinationConnectionRequest],
+) (*connect.Response[mgmtv1alpha1.UpdateJobDestinationConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobId", req.Msg.JobId, "connectionId", req.Msg.ConnectionId)
 
 	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
+	if err != nil {
+		return nil, err
+	}
+	destinationUuid, err := nucleusdb.ToUuid(req.Msg.DestinationId)
 	if err != nil {
 		return nil, err
 	}
@@ -645,7 +649,7 @@ func (s *Service) SetJobDestinationConnection(
 
 	logger.Info("updating job destination connection")
 	_, err = s.db.Q.UpdateJobConnectionDestination(ctx, db_queries.UpdateJobConnectionDestinationParams{
-		JobID:        jobUuid,
+		ID:           destinationUuid,
 		ConnectionID: connectionUuid,
 		Options:      options,
 	})
@@ -670,7 +674,7 @@ func (s *Service) SetJobDestinationConnection(
 		return nil, err
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.SetJobDestinationConnectionResponse{
+	return connect.NewResponse(&mgmtv1alpha1.UpdateJobDestinationConnectionResponse{
 		Job: updatedJob.Msg.Job,
 	}), nil
 }
@@ -680,18 +684,21 @@ func (s *Service) DeleteJobDestinationConnection(
 	req *connect.Request[mgmtv1alpha1.DeleteJobDestinationConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteJobDestinationConnectionResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.JobId, "connectionId", req.Msg.ConnectionId)
+	logger = logger.With("destinationId", req.Msg.DestinationId)
 
-	connectionUuid, err := nucleusdb.ToUuid(req.Msg.ConnectionId)
+	destinationUuid, err := nucleusdb.ToUuid(req.Msg.DestinationId)
 	if err != nil {
 		return nil, err
 	}
 
-	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
-	if err != nil {
+	destination, err := s.db.Q.GetJobConnectionDestination(ctx, destinationUuid)
+	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("unable to find job destination by id")
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+
+	job, err := s.db.Q.GetJobById(ctx, destination.JobID)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -710,16 +717,13 @@ func (s *Service) DeleteJobDestinationConnection(
 
 	if err := s.verifyConnectionInAccount(
 		ctx,
-		req.Msg.ConnectionId,
+		nucleusdb.UUIDString(destination.ConnectionID),
 		nucleusdb.UUIDString(job.AccountID)); err != nil {
 		return nil, err
 	}
 
 	logger.Info("deleting job destination connection")
-	err = s.db.Q.RemoveJobConnectionDestination(ctx, db_queries.RemoveJobConnectionDestinationParams{
-		JobID:        jobUuid,
-		ConnectionID: connectionUuid,
-	})
+	err = s.db.Q.RemoveJobConnectionDestination(ctx, destinationUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {

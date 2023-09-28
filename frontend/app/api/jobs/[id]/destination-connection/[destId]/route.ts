@@ -10,8 +10,7 @@ export async function DELETE(
   return withNeosyncContext(async (ctx) => {
     return ctx.jobsClient.deleteJobDestinationConnection(
       new DeleteJobDestinationConnectionRequest({
-        jobId: params.id,
-        connectionId: params.connId,
+        destinationId: params.destId,
       })
     );
   })(req);
