@@ -26,7 +26,7 @@ export default function Page({ params }: PageProps): ReactElement {
         description={data?.job?.id || ''}
       />
       <div className="space-y-10">
-        <JobScheduleCard jobId={id} />
+        <JobScheduleCard jobId={data?.job?.id || ''} />
       </div>
     </div>
   );

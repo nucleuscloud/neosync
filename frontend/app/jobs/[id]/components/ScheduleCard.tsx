@@ -52,10 +52,7 @@ export default function JobScheduleCard({ jobId }: Props): ReactElement {
     resolver: yupResolver<ScheduleFormValues>(SCHEDULE_FORM_SCHEMA),
     defaultValues: async () => {
       const res = await getJob(jobId);
-      if (!res) {
-        return { cronSchedule: '' };
-      }
-      return { cronSchedule: res.job?.cronSchedule || '' };
+      return { cronSchedule: res?.job?.cronSchedule || '' };
     },
   });
 
@@ -95,7 +92,11 @@ export default function JobScheduleCard({ jobId }: Props): ReactElement {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="Cron Schedule" {...field} />
+                    <Input
+                      placeholder="Cron Schedule"
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormDescription>
                     The schedule to run the job against if not a oneoff.
