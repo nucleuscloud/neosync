@@ -22,8 +22,8 @@ import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   JobDestination,
   JobDestinationOptions,
-  SetJobDestinationConnectionRequest,
-  SetJobDestinationConnectionResponse,
+  UpdateJobDestinationConnectionRequest,
+  UpdateJobDestinationConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -44,6 +44,7 @@ interface Props {
   connections: Connection[];
   availableConnections: Connection[];
   mutate: () => {};
+  isDeleteDisabled?: boolean;
 }
 
 export default function DestinationConnectionCard({
@@ -52,10 +53,10 @@ export default function DestinationConnectionCard({
   connections,
   availableConnections,
   mutate,
+  isDeleteDisabled,
 }: Props): ReactElement {
   const { toast } = useToast();
 
-  const connection = connections.find((c) => c.id == destination.connectionId);
   const form = useForm({
     resolver: yupResolver<FormValues>(FORM_SCHEMA),
     defaultValues: getDefaultValues(destination),
@@ -63,7 +64,8 @@ export default function DestinationConnectionCard({
 
   async function onSubmit(values: FormValues) {
     try {
-      await setJobConnection(jobId, values, connection);
+      const connection = connections.find((c) => c.id == values.connectionId);
+      await setJobConnection(jobId, values, destination.id, connection);
       mutate();
       toast({
         title: 'Successfully updated job destination!',
@@ -81,7 +83,7 @@ export default function DestinationConnectionCard({
 
   async function onDelete() {
     try {
-      await deleteJobConnection(jobId, destination.connectionId);
+      await deleteJobConnection(jobId, destination.id);
       mutate();
       toast({
         title: 'Successfully deleted job destination!',
@@ -105,7 +107,7 @@ export default function DestinationConnectionCard({
             <div className="space-y-4">
               <FormField
                 control={form.control}
-                name="destinationId"
+                name="connectionId"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
@@ -144,7 +146,7 @@ export default function DestinationConnectionCard({
               />
               <DestinationOptionsForm
                 connection={connections.find(
-                  (c) => c.id == form.getValues().destinationId
+                  (c) => c.id == form.getValues().connectionId
                 )}
                 maxColNum={2}
               />
@@ -152,7 +154,12 @@ export default function DestinationConnectionCard({
           </CardContent>
           <CardFooter>
             <div className="flex flex-row items-center justify-between w-full mt-4">
-              <Button type="button" variant="destructive" onClick={onDelete}>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={onDelete}
+                disabled={isDeleteDisabled}
+              >
                 Delete
               </Button>
               <Button disabled={!form.formState.isDirty} type="submit">
@@ -168,10 +175,10 @@ export default function DestinationConnectionCard({
 
 async function deleteJobConnection(
   jobId: string,
-  connectionId: string
+  destinationId: string
 ): Promise<void> {
   const res = await fetch(
-    `/api/jobs/${jobId}/destination-connection/${connectionId}`,
+    `/api/jobs/${jobId}/destination-connection/${destinationId}`,
     {
       method: 'DELETE',
     }
@@ -186,17 +193,19 @@ async function deleteJobConnection(
 async function setJobConnection(
   jobId: string,
   values: FormValues,
+  destinationId: string,
   connection?: Connection
-): Promise<SetJobDestinationConnectionResponse> {
+): Promise<UpdateJobDestinationConnectionResponse> {
   const res = await fetch(`/api/jobs/${jobId}/destination-connection`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',
     },
     body: JSON.stringify(
-      new SetJobDestinationConnectionRequest({
+      new UpdateJobDestinationConnectionRequest({
         jobId: jobId,
-        connectionId: values.destinationId,
+        connectionId: values.connectionId,
+        destinationId: destinationId,
         options: new JobDestinationOptions(
           toJobDestinationOptions(values, connection)
         ),
@@ -207,14 +216,14 @@ async function setJobConnection(
     const body = await res.json();
     throw new Error(body.message);
   }
-  return SetJobDestinationConnectionResponse.fromJson(await res.json());
+  return UpdateJobDestinationConnectionResponse.fromJson(await res.json());
 }
 
 function getDefaultValues(d: JobDestination): FormValues {
   switch (d.options?.config.case) {
     case 'sqlOptions':
       return {
-        destinationId: d.connectionId,
+        connectionId: d.connectionId,
         destinationOptions: {
           truncateBeforeInsert: d.options.config.value.truncateBeforeInsert,
           initDbSchema: d.options.config.value.initDbSchema,
@@ -222,7 +231,7 @@ function getDefaultValues(d: JobDestination): FormValues {
       };
     default:
       return {
-        destinationId: d.connectionId,
+        connectionId: d.connectionId,
         destinationOptions: {},
       };
   }

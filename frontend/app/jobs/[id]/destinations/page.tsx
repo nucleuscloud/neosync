@@ -34,7 +34,7 @@ export default function Page({ params }: PageProps): ReactElement {
           {data?.job?.destinations.map((destination) => {
             return (
               <DestinationConnectionCard
-                key={destination.connectionId}
+                key={destination.id}
                 jobId={id}
                 destination={destination}
                 mutate={mutate}
@@ -45,6 +45,7 @@ export default function Page({ params }: PageProps): ReactElement {
                     (c.id != data?.job?.source?.connectionId &&
                       !destinationIds?.includes(c.id))
                 )}
+                isDeleteDisabled={data?.job?.destinations.length == 1}
               />
             );
           })}

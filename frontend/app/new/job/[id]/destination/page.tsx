@@ -66,7 +66,7 @@ export default function Page({ params }: PageProps): ReactElement {
     resolver: yupResolver<FormValues>(FORM_SCHEMA),
     defaultValues: {
       jobId: id,
-      destinations: [{ destinationId: '', destinationOptions: {} }],
+      destinations: [{ connectionId: '', destinationOptions: {} }],
     },
   });
 
@@ -120,7 +120,7 @@ export default function Page({ params }: PageProps): ReactElement {
                       <div className="basis-11/12">
                         <FormField
                           control={form.control}
-                          name={`destinations.${index}.destinationId`}
+                          name={`destinations.${index}.connectionId`}
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
@@ -132,7 +132,7 @@ export default function Page({ params }: PageProps): ReactElement {
                                         (c) =>
                                           c.id ==
                                           form.getValues().destinations[index]
-                                            .destinationId
+                                            .connectionId
                                       )
                                     );
                                     form.setValue(
@@ -194,7 +194,7 @@ export default function Page({ params }: PageProps): ReactElement {
                   variant="outline"
                   type="button"
                   onClick={() => {
-                    append({ destinationId: '', destinationOptions: {} });
+                    append({ connectionId: '', destinationOptions: {} });
                   }}
                 >
                   Add
@@ -233,10 +233,10 @@ async function createJobConnections(
         jobId: jobId,
         destinations: values.destinations.map((d) => {
           return new JobDestination({
-            connectionId: d.destinationId,
+            connectionId: d.connectionId,
             options: toJobDestinationOptions(
               d,
-              connections.find((c) => c.id == d.destinationId)
+              connections.find((c) => c.id == d.connectionId)
             ),
           });
         }),

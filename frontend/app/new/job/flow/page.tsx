@@ -48,7 +48,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     {
       sourceId: '',
       sourceOptions: {},
-      destinations: [{ destinationId: '', destinationOptions: {} }],
+      destinations: [{ connectionId: '', destinationOptions: {} }],
     }
   );
 
@@ -174,7 +174,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       <div className="basis-11/12">
                         <FormField
                           control={form.control}
-                          name={`destinations.${index}.destinationId`}
+                          name={`destinations.${index}.connectionId`}
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
@@ -239,7 +239,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       connection={connections.find(
                         (c) =>
                           c.id ==
-                          form.getValues().destinations[index].destinationId
+                          form.getValues().destinations[index].connectionId
                       )}
                       maxColNum={2}
                     />
@@ -252,7 +252,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 variant="outline"
                 onClick={() => {
                   append({
-                    destinationId: '',
+                    connectionId: '',
                     destinationOptions: {},
                   });
                 }}

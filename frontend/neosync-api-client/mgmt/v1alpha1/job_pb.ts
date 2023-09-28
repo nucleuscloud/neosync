@@ -250,6 +250,49 @@ export class JobSource extends Message<JobSource> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.CreateJobDestination
+ */
+export class CreateJobDestination extends Message<CreateJobDestination> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.JobDestinationOptions options = 2;
+   */
+  options?: JobDestinationOptions;
+
+  constructor(data?: PartialMessage<CreateJobDestination>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.CreateJobDestination";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "options", kind: "message", T: JobDestinationOptions },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobDestination {
+    return new CreateJobDestination().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateJobDestination {
+    return new CreateJobDestination().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateJobDestination {
+    return new CreateJobDestination().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateJobDestination | PlainMessage<CreateJobDestination> | undefined, b: CreateJobDestination | PlainMessage<CreateJobDestination> | undefined): boolean {
+    return proto3.util.equals(CreateJobDestination, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.JobDestination
  */
 export class JobDestination extends Message<JobDestination> {
@@ -263,6 +306,11 @@ export class JobDestination extends Message<JobDestination> {
    */
   options?: JobDestinationOptions;
 
+  /**
+   * @generated from field: string id = 3;
+   */
+  id = "";
+
   constructor(data?: PartialMessage<JobDestination>) {
     super();
     proto3.util.initPartial(data, this);
@@ -273,6 +321,7 @@ export class JobDestination extends Message<JobDestination> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "options", kind: "message", T: JobDestinationOptions },
+    { no: 3, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobDestination {
@@ -564,9 +613,9 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   source?: JobSource;
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.JobDestination destinations = 6;
+   * @generated from field: repeated mgmt.v1alpha1.CreateJobDestination destinations = 6;
    */
-  destinations: JobDestination[] = [];
+  destinations: CreateJobDestination[] = [];
 
   constructor(data?: PartialMessage<CreateJobRequest>) {
     super();
@@ -581,7 +630,7 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
     { no: 3, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 4, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 5, name: "source", kind: "message", T: JobSource },
-    { no: 6, name: "destinations", kind: "message", T: JobDestination, repeated: true },
+    { no: 6, name: "destinations", kind: "message", T: CreateJobDestination, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRequest {
@@ -940,9 +989,9 @@ export class UpdateJobSourceConnectionResponse extends Message<UpdateJobSourceCo
 }
 
 /**
- * @generated from message mgmt.v1alpha1.SetJobDestinationConnectionRequest
+ * @generated from message mgmt.v1alpha1.UpdateJobDestinationConnectionRequest
  */
-export class SetJobDestinationConnectionRequest extends Message<SetJobDestinationConnectionRequest> {
+export class UpdateJobDestinationConnectionRequest extends Message<UpdateJobDestinationConnectionRequest> {
   /**
    * @generated from field: string job_id = 1;
    */
@@ -958,70 +1007,76 @@ export class SetJobDestinationConnectionRequest extends Message<SetJobDestinatio
    */
   options?: JobDestinationOptions;
 
-  constructor(data?: PartialMessage<SetJobDestinationConnectionRequest>) {
+  /**
+   * @generated from field: string destination_id = 4;
+   */
+  destinationId = "";
+
+  constructor(data?: PartialMessage<UpdateJobDestinationConnectionRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.SetJobDestinationConnectionRequest";
+  static readonly typeName = "mgmt.v1alpha1.UpdateJobDestinationConnectionRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "options", kind: "message", T: JobDestinationOptions },
+    { no: 4, name: "destination_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobDestinationConnectionRequest {
-    return new SetJobDestinationConnectionRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobDestinationConnectionRequest {
+    return new UpdateJobDestinationConnectionRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobDestinationConnectionRequest {
-    return new SetJobDestinationConnectionRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateJobDestinationConnectionRequest {
+    return new UpdateJobDestinationConnectionRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobDestinationConnectionRequest {
-    return new SetJobDestinationConnectionRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateJobDestinationConnectionRequest {
+    return new UpdateJobDestinationConnectionRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: SetJobDestinationConnectionRequest | PlainMessage<SetJobDestinationConnectionRequest> | undefined, b: SetJobDestinationConnectionRequest | PlainMessage<SetJobDestinationConnectionRequest> | undefined): boolean {
-    return proto3.util.equals(SetJobDestinationConnectionRequest, a, b);
+  static equals(a: UpdateJobDestinationConnectionRequest | PlainMessage<UpdateJobDestinationConnectionRequest> | undefined, b: UpdateJobDestinationConnectionRequest | PlainMessage<UpdateJobDestinationConnectionRequest> | undefined): boolean {
+    return proto3.util.equals(UpdateJobDestinationConnectionRequest, a, b);
   }
 }
 
 /**
- * @generated from message mgmt.v1alpha1.SetJobDestinationConnectionResponse
+ * @generated from message mgmt.v1alpha1.UpdateJobDestinationConnectionResponse
  */
-export class SetJobDestinationConnectionResponse extends Message<SetJobDestinationConnectionResponse> {
+export class UpdateJobDestinationConnectionResponse extends Message<UpdateJobDestinationConnectionResponse> {
   /**
    * @generated from field: mgmt.v1alpha1.Job job = 1;
    */
   job?: Job;
 
-  constructor(data?: PartialMessage<SetJobDestinationConnectionResponse>) {
+  constructor(data?: PartialMessage<UpdateJobDestinationConnectionResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.SetJobDestinationConnectionResponse";
+  static readonly typeName = "mgmt.v1alpha1.UpdateJobDestinationConnectionResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "job", kind: "message", T: Job },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobDestinationConnectionResponse {
-    return new SetJobDestinationConnectionResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobDestinationConnectionResponse {
+    return new UpdateJobDestinationConnectionResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobDestinationConnectionResponse {
-    return new SetJobDestinationConnectionResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateJobDestinationConnectionResponse {
+    return new UpdateJobDestinationConnectionResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobDestinationConnectionResponse {
-    return new SetJobDestinationConnectionResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateJobDestinationConnectionResponse {
+    return new UpdateJobDestinationConnectionResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: SetJobDestinationConnectionResponse | PlainMessage<SetJobDestinationConnectionResponse> | undefined, b: SetJobDestinationConnectionResponse | PlainMessage<SetJobDestinationConnectionResponse> | undefined): boolean {
-    return proto3.util.equals(SetJobDestinationConnectionResponse, a, b);
+  static equals(a: UpdateJobDestinationConnectionResponse | PlainMessage<UpdateJobDestinationConnectionResponse> | undefined, b: UpdateJobDestinationConnectionResponse | PlainMessage<UpdateJobDestinationConnectionResponse> | undefined): boolean {
+    return proto3.util.equals(UpdateJobDestinationConnectionResponse, a, b);
   }
 }
 
@@ -1030,14 +1085,9 @@ export class SetJobDestinationConnectionResponse extends Message<SetJobDestinati
  */
 export class DeleteJobDestinationConnectionRequest extends Message<DeleteJobDestinationConnectionRequest> {
   /**
-   * @generated from field: string job_id = 1;
+   * @generated from field: string destination_id = 1;
    */
-  jobId = "";
-
-  /**
-   * @generated from field: string connection_id = 2;
-   */
-  connectionId = "";
+  destinationId = "";
 
   constructor(data?: PartialMessage<DeleteJobDestinationConnectionRequest>) {
     super();
@@ -1047,8 +1097,7 @@ export class DeleteJobDestinationConnectionRequest extends Message<DeleteJobDest
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.DeleteJobDestinationConnectionRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "destination_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteJobDestinationConnectionRequest {
@@ -1109,9 +1158,9 @@ export class CreateJobDestinationConnectionsRequest extends Message<CreateJobDes
   jobId = "";
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.JobDestination destinations = 2;
+   * @generated from field: repeated mgmt.v1alpha1.CreateJobDestination destinations = 2;
    */
-  destinations: JobDestination[] = [];
+  destinations: CreateJobDestination[] = [];
 
   constructor(data?: PartialMessage<CreateJobDestinationConnectionsRequest>) {
     super();
@@ -1122,7 +1171,7 @@ export class CreateJobDestinationConnectionsRequest extends Message<CreateJobDes
   static readonly typeName = "mgmt.v1alpha1.CreateJobDestinationConnectionsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "destinations", kind: "message", T: JobDestination, repeated: true },
+    { no: 2, name: "destinations", kind: "message", T: CreateJobDestination, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobDestinationConnectionsRequest {
