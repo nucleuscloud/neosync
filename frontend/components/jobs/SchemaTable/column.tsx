@@ -52,6 +52,7 @@ export function getColumns(
       ),
       enableSorting: false,
       enableHiding: false,
+      enableColumnFilter: false,
     },
     {
       accessorKey: 'schema',
@@ -62,6 +63,7 @@ export function getColumns(
         <div className="w-[80px]">{row.getValue('schema')}</div>
       ),
       enableSorting: true,
+      enableColumnFilter: true,
     },
     {
       accessorKey: 'table',
@@ -77,6 +79,7 @@ export function getColumns(
           </div>
         );
       },
+      enableColumnFilter: true,
     },
     {
       accessorKey: 'column',
@@ -92,6 +95,7 @@ export function getColumns(
           </div>
         );
       },
+      enableColumnFilter: true,
     },
     {
       accessorKey: 'dataType',
@@ -107,9 +111,10 @@ export function getColumns(
           </div>
         );
       },
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
-      },
+      enableColumnFilter: true,
+      // filterFn: (row, id, value) => {
+      //   return value.includes(row.getValue(id));
+      // },
     },
     {
       accessorKey: 'transformer',
@@ -152,6 +157,7 @@ export function getColumns(
           </div>
         );
       },
+      enableColumnFilter: true,
     },
     {
       accessorKey: 'exclude',
@@ -202,6 +208,11 @@ export function getColumns(
             />
           </div>
         );
+      },
+      enableColumnFilter: true,
+      filterFn: (row, id, value) => {
+        const filter = row.getValue(id) ? 'exclude' : 'include';
+        return filter.includes(value);
       },
     },
   ];

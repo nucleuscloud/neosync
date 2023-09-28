@@ -17,6 +17,7 @@ import {
 import * as React from 'react';
 
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -88,6 +89,22 @@ export function DataTable<TData, TValue>({
                             header.column.columnDef.header,
                             header.getContext()
                           )}
+                      {header.column.getCanFilter() ? (
+                        <div>
+                          <div className="flex items-center py-4">
+                            <Input
+                              placeholder="Filter..."
+                              value={
+                                (header.column.getFilterValue() as string) ?? ''
+                              }
+                              onChange={(event) =>
+                                header.column.setFilterValue(event.target.value)
+                              }
+                              className="max-w-sm"
+                            />
+                          </div>
+                        </div>
+                      ) : null}
                     </TableHead>
                   );
                 })}
