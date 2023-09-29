@@ -65,12 +65,6 @@ side bar drop down category
 }
 
 /*
-sidebar menu item when active
-*/
-/* .menu__link--active {
-} */
-
-/*
 the prev and next nav links at the bottom of the page
 */
 .pagination-nav__link {
@@ -121,6 +115,31 @@ the entire nav menu list
 
   h2 {
     @apply text-gray-900 text-2xl font-semibold;
+  }
+
+  .card {
+    @apply rounded-xl shadow-lg;
+  }
+
+  /*
+  sidebar menu item when active
+  */
+  /* [data-theme="light"] .menu__link.menu__link--active {
+    @apply bg-[#dce3f2];
+  } */
+
+  .custom-card-list {
+    @apply grid grid-cols-3 gap-2;
+  }
+  .custom-card {
+    @apply border border-gray-200 hover:border-2 hover:border-[#acc7f9] hover:shadow-md rounded-xl p-4 flex flex-col justify-between space-y-2;
+  }
+  .card-title {
+    @apply font-semibold text-lg;
+  }
+
+  .card-text {
+    @apply font-light;
   }
 
   .footer {

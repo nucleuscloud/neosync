@@ -7,6 +7,10 @@ slug: /
 
 import { DocPageHeader } from "@site/src/components/HomepageFeatures/DocPageHeader.tsx";
 import { HeroImage } from "@site/src/components/HomepageFeatures/HeroImage.tsx";
+import { CustomCardList } from "@site/src/components/HomepageFeatures/CustomCardList.tsx";
+import { FaSync } from "react-icons/fa";
+import { GrConnect } from "react-icons/gr";
+import { LightningBoltIcon } from "@radix-ui/react-icons";
 
 <DocPageHeader
   title="Welcome to the Neosync Docs"
@@ -17,16 +21,56 @@ import { HeroImage } from "@site/src/components/HomepageFeatures/HeroImage.tsx";
 
 ## Core Concepts
 
-The best way to understand Neosync is to check out our core concepts and familiarize yourself with jobs, connections and transformers.
+The best way to understand Neosync is to check out our core concepts and familiarize yourself with Jobs, Connections and Transformers.
 
-//put in cards here
+<CustomCardList
+  cards={[
+    {
+      title: "Job",
+      description:
+        "Jobs are async workflows that tranform data and sync it between connections.",
+      link: "jobs",
+      icon: <FaSync />,
+    },
+    {
+      title: "Connections",
+      description:
+        "Connections are sources of data or destinations that you sync using Jobs such as databases.",
+      link: "connections",
+      icon: <GrConnect />,
+    },
+    {
+      title: "Transformers",
+      description:
+        "Transformers are data type specific modules that anonymize or generate data.",
+      link: "transformers",
+      icon: <LightningBoltIcon />,
+    },
+  ]}
+/>
 
-## Quick installation
+## Quick Deployment
 
-Check out our Installation guide to review your deployment options and deploy Neosync Deployment and onboarding only take a few minutes.
+Check out our Deployment guide to see how you can deploy Neosync with Docker compose on a server or on Kubernetes with a helm chart.
+Deployment only takes a few minutes.
 
-## Getting started
+## Use cases
 
-Once neosync has been successfully installed, check out our First Time User Guide which will get you started with connecting to your cluster's cloud service provider, review your data, and setting up multi-cluster environments.
-If your Kubecost installation was not successful, go to our Troubleshoot Install doc which will work you through some of the most common installation-related issues.
-Additionally, check out our blog to learn more about best practices with Kubecost's cost monitoring.
+Neosync can be used in many different ways to support different use-cases. Check out the most common use-cases below.
+
+1. Anonymizing sensitive data for testing
+2. Generating synthetic data for testing
+3. Anonymizing data for AI/ML
+4. Generating synthetic data for AI/ML
+
+## Contributing to Neosync
+
+We love contributors and are happy to accept PRs. Here is how you can contribute to Neosync:
+
+- Go ahead and try out MindsDB by following our tutorials. If you find something is not right, you can report an issue here.
+
+- Are you familiar with Python? You can then help us out in resolving open issues. Have a look at issues labeled with the help wanted tag.
+
+- You can also help us with documentation and tutorials. Here is how you can contribute by writing documentation and tutorials. Don’t forget to follow the style guide.
+
+- Share with your friends and spread the word about MindsDB.
