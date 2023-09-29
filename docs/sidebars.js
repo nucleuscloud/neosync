@@ -16,7 +16,7 @@
 const sidebars = {
   // By default, Docusaurus generates a sidebar from the docs folder structure
 
-  tutorialSidebar: [
+  mainSideBar: [
     {
       type: "html",
       value: "<div>Overview</div>",
@@ -33,29 +33,27 @@ const sidebars = {
       label: "Platform",
     },
     {
-      type: "doc",
-      id: "overview/architecture",
-      label: "Architecture",
-    },
-    {
-      type: "html",
-      value: "<div>Concepts</div>",
-      className: "sidebarcategory",
-    },
-    {
-      type: "doc",
-      id: "concepts/jobs",
-      label: "Jobs",
-    },
-    {
-      type: "doc",
-      id: "concepts/connections",
-      label: "Connections",
-    },
-    {
-      type: "doc",
-      id: "concepts/transformers",
-      label: "Transformers",
+      type: "category",
+      label: "Concepts",
+      collapsible: true,
+      collapsed: true,
+      items: [
+        {
+          type: "doc",
+          id: "overview/concepts/jobs",
+          label: "Jobs",
+        },
+        {
+          type: "doc",
+          id: "overview/concepts/connections",
+          label: "Connections",
+        },
+        {
+          type: "doc",
+          id: "overview/concepts/transformers",
+          label: "Transformers",
+        },
+      ],
     },
     {
       type: "html",

@@ -12,10 +12,11 @@ import IconExternalLink from "@theme/Icon/ExternalLink";
 import clsx from "clsx";
 import React from "react";
 import { AiOutlineMail, AiOutlinePhone } from "react-icons/ai";
-import { BiLogoPostgresql } from "react-icons/bi";
+import { BiAtom, BiLogoPostgresql } from "react-icons/bi";
 import { FaAws, FaDocker, FaRegAddressCard, FaSync } from "react-icons/fa";
 import { GoCode } from "react-icons/go";
 import { GrConnect, GrMysql } from "react-icons/gr";
+import { IoBuildOutline } from "react-icons/io5";
 import { MdPassword } from "react-icons/md";
 import { SiKubernetes } from "react-icons/si";
 import styles from "./styles.module.css";
@@ -70,7 +71,7 @@ export default function DocSidebarItemLink({
 
 //when adding new side links, add an icon to the switch here
 
-const RenderIcon = (name) => {
+export const RenderIcon = (name) => {
   switch (name) {
     case "Platform":
       return <LayersIcon />;
@@ -104,6 +105,10 @@ const RenderIcon = (name) => {
       return <GrConnect />;
     case "Transformers":
       return <LightningBoltIcon />;
+    case "Concepts":
+      return <BiAtom />;
+    case "Pre-built":
+      return <IoBuildOutline />;
     default:
       return <LayersIcon />;
   }

@@ -87,6 +87,11 @@ the entire nav menu list
 }
 */
 
+/* .menu__link--sublist-caret:after {
+  width: 3px;
+  height: 3px;
+} */
+
 @layer components {
   .navbar {
     @apply py-[16px] px-[18px] shadow-none border-b border-gray-200;
@@ -94,6 +99,13 @@ the entire nav menu list
 
   [data-theme="dark"] .navbar {
     @apply border-gray-800;
+  }
+  /* .menu__link--sublist-caret::after {
+    @apply;
+  } */
+
+  .clean-btn.menu__caret {
+    @apply bg-red-300;
   }
 
   [data-theme="light"] .home-icon {
@@ -109,6 +121,10 @@ the entire nav menu list
   [data-theme="light"] .breadcrumb-label {
     @apply text-gray-900 cursor-pointer text-sm  rounded-full;
   }
+  .doc-page-header {
+    @apply flex flex-col text-left pb-10 font-bold text-3xl;
+  }
+
   .heroImage {
     @apply py-10;
   }

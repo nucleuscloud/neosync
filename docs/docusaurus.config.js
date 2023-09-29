@@ -84,12 +84,6 @@ const config = {
         },
         items: [
           {
-            type: "docSidebar",
-            sidebarId: "tutorialSidebar",
-            position: "left",
-            label: "Tutorial",
-          },
-          {
             type: "custom-Gitlink",
             position: "right",
           },
