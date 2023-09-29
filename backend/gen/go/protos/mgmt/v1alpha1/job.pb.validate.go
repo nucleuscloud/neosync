@@ -5428,6 +5428,136 @@ var _ interface {
 	ErrorName() string
 } = JobPauseStatusValidationError{}
 
+// Validate checks the field values on JobRecentRun with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JobRecentRun) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobRecentRun with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JobRecentRunMultiError, or
+// nil if none found.
+func (m *JobRecentRun) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobRecentRun) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetStartTime()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRecentRunValidationError{
+					field:  "StartTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRecentRunValidationError{
+					field:  "StartTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStartTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRecentRunValidationError{
+				field:  "StartTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for JobRunId
+
+	if len(errors) > 0 {
+		return JobRecentRunMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobRecentRunMultiError is an error wrapping multiple validation errors
+// returned by JobRecentRun.ValidateAll() if the designated constraints aren't met.
+type JobRecentRunMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobRecentRunMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobRecentRunMultiError) AllErrors() []error { return m }
+
+// JobRecentRunValidationError is the validation error returned by
+// JobRecentRun.Validate if the designated constraints aren't met.
+type JobRecentRunValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobRecentRunValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobRecentRunValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobRecentRunValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobRecentRunValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobRecentRunValidationError) ErrorName() string { return "JobRecentRunValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobRecentRunValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobRecentRun.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobRecentRunValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobRecentRunValidationError{}
+
 // Validate checks the field values on JobRecentRuns with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -5450,36 +5580,39 @@ func (m *JobRecentRuns) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetStartTime()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, JobRecentRunsValidationError{
-					field:  "StartTime",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, JobRecentRunsValidationError{
-					field:  "StartTime",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetStartTime()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return JobRecentRunsValidationError{
-				field:  "StartTime",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
+	for idx, item := range m.GetRuns() {
+		_, _ = idx, item
 
-	// no validation rules for JobRunId
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobRecentRunsValidationError{
+						field:  fmt.Sprintf("Runs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobRecentRunsValidationError{
+						field:  fmt.Sprintf("Runs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobRecentRunsValidationError{
+					field:  fmt.Sprintf("Runs[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	if len(errors) > 0 {
 		return JobRecentRunsMultiError(errors)
@@ -5907,38 +6040,33 @@ func (m *Job) validate(all bool) error {
 		}
 	}
 
-	for idx, item := range m.GetRecentRuns() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobValidationError{
-						field:  fmt.Sprintf("RecentRuns[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, JobValidationError{
-						field:  fmt.Sprintf("RecentRuns[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return JobValidationError{
-					field:  fmt.Sprintf("RecentRuns[%v]", idx),
+	if all {
+		switch v := interface{}(m.GetRecentRuns()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "RecentRuns",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "RecentRuns",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
 		}
-
+	} else if v, ok := interface{}(m.GetRecentRuns()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobValidationError{
+				field:  "RecentRuns",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if all {

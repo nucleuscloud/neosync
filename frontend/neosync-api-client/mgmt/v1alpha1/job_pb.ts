@@ -1770,7 +1770,7 @@ export class CancelJobRunResponse extends Message<CancelJobRunResponse> {
  */
 export class JobPauseStatus extends Message<JobPauseStatus> {
   /**
-   * @generated from field: bool isPaused = 1;
+   * @generated from field: bool is_paused = 1;
    */
   isPaused = false;
 
@@ -1787,7 +1787,7 @@ export class JobPauseStatus extends Message<JobPauseStatus> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.JobPauseStatus";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "isPaused", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "is_paused", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
@@ -1809,9 +1809,9 @@ export class JobPauseStatus extends Message<JobPauseStatus> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.JobRecentRuns
+ * @generated from message mgmt.v1alpha1.JobRecentRun
  */
-export class JobRecentRuns extends Message<JobRecentRuns> {
+export class JobRecentRun extends Message<JobRecentRun> {
   /**
    * @generated from field: google.protobuf.Timestamp start_time = 1;
    */
@@ -1822,6 +1822,44 @@ export class JobRecentRuns extends Message<JobRecentRuns> {
    */
   jobRunId = "";
 
+  constructor(data?: PartialMessage<JobRecentRun>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobRecentRun";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start_time", kind: "message", T: Timestamp },
+    { no: 2, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRecentRun {
+    return new JobRecentRun().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobRecentRun {
+    return new JobRecentRun().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobRecentRun {
+    return new JobRecentRun().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobRecentRun | PlainMessage<JobRecentRun> | undefined, b: JobRecentRun | PlainMessage<JobRecentRun> | undefined): boolean {
+    return proto3.util.equals(JobRecentRun, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobRecentRuns
+ */
+export class JobRecentRuns extends Message<JobRecentRuns> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobRecentRun runs = 1;
+   */
+  runs: JobRecentRun[] = [];
+
   constructor(data?: PartialMessage<JobRecentRuns>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1830,8 +1868,7 @@ export class JobRecentRuns extends Message<JobRecentRuns> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.JobRecentRuns";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "start_time", kind: "message", T: Timestamp },
-    { no: 2, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "runs", kind: "message", T: JobRecentRun, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRecentRuns {
@@ -1953,9 +1990,9 @@ export class Job extends Message<Job> {
   pauseStatus?: JobPauseStatus;
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.JobRecentRuns recent_runs = 13;
+   * @generated from field: mgmt.v1alpha1.JobRecentRuns recent_runs = 13;
    */
-  recentRuns: JobRecentRuns[] = [];
+  recentRuns?: JobRecentRuns;
 
   /**
    * @generated from field: mgmt.v1alpha1.JobNextRuns next_runs = 14;
@@ -1987,7 +2024,7 @@ export class Job extends Message<Job> {
     { no: 10, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 11, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 12, name: "pause_status", kind: "message", T: JobPauseStatus },
-    { no: 13, name: "recent_runs", kind: "message", T: JobRecentRuns, repeated: true },
+    { no: 13, name: "recent_runs", kind: "message", T: JobRecentRuns },
     { no: 14, name: "next_runs", kind: "message", T: JobNextRuns },
     { no: 15, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
