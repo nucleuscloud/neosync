@@ -24,7 +24,7 @@ export const JOB_RUN_STATUS = [
   },
   {
     value: JobRunStatus.TERMINATED,
-    badge: <Badge variant="destructive">Terminated</Badge>,
+    badge: <Badge className="bg-gray-600">Terminated</Badge>,
   },
   {
     value: JobRunStatus.CANCELED,
