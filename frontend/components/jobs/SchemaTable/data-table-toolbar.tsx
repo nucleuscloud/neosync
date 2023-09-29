@@ -1,44 +1,92 @@
 'use client';
 
-import { Cross2Icon } from '@radix-ui/react-icons';
 import { Table } from '@tanstack/react-table';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { DataTableViewOptions } from './data-table-view-options';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
+  transformers?: Transformer[];
 }
 
 export function DataTableToolbar<TData>({
   table,
+  transformers,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const form = useFormContext();
+  const [transformer, setTransformer] = useState<string>('');
+  const [exclude, setExclude] = useState<string>('');
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
-        <Input
-          placeholder="Filter connections..."
-          value={(table.getColumn('schema')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('schema')?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[150px] lg:w-[250px]"
-        />
-        {isFiltered && (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => table.resetColumnFilters()}
-            className="h-8 px-2 lg:px-3"
-          >
-            Reset
-            <Cross2Icon className="ml-2 h-4 w-4" />
-          </Button>
-        )}
+        <Select
+          onValueChange={(value) => {
+            const rows = table.getSelectedRowModel();
+            rows.rows.forEach((r) => {
+              form.setValue(`mappings.${r.index}.transformer`, value, {
+                shouldDirty: true,
+              });
+            });
+
+            table.resetRowSelection();
+            setTransformer('');
+          }}
+          value={transformer}
+        >
+          <SelectTrigger className="w-[250px]">
+            <SelectValue placeholder="bulk update transformer..." />
+          </SelectTrigger>
+          <SelectContent>
+            {transformers?.map((t) => (
+              <SelectItem
+                className="cursor-pointer"
+                key={t.value}
+                value={t.value}
+              >
+                {t.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={exclude}
+          onValueChange={(value) => {
+            const rows = table.getSelectedRowModel();
+
+            rows.rows.forEach((r) => {
+              form.setValue(`mappings.${r.index}.exclude`, value, {
+                shouldDirty: true,
+              });
+            });
+
+            table.resetRowSelection();
+            setExclude('');
+          }}
+        >
+          <SelectTrigger className="w-[250px]">
+            <SelectValue placeholder="bulk update exclude..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem className="cursor-pointer" key="exclude" value="true">
+              Exclude
+            </SelectItem>
+
+            <SelectItem className="cursor-pointer" key="include" value="false">
+              Include
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <DataTableViewOptions table={table} />
     </div>

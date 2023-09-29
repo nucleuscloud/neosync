@@ -17,6 +17,7 @@ import {
 import * as React from 'react';
 
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -25,17 +26,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  transformers?: Transformer[];
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  transformers,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -73,7 +77,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar table={table} transformers={transformers} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -88,6 +92,22 @@ export function DataTable<TData, TValue>({
                             header.column.columnDef.header,
                             header.getContext()
                           )}
+                      {header.column.getCanFilter() ? (
+                        <div>
+                          <div className="flex items-center py-4">
+                            <Input
+                              placeholder="Filter..."
+                              value={
+                                (header.column.getFilterValue() as string) ?? ''
+                              }
+                              onChange={(event) =>
+                                header.column.setFilterValue(event.target.value)
+                              }
+                              className="max-w-sm"
+                            />
+                          </div>
+                        </div>
+                      ) : null}
                     </TableHead>
                   );
                 })}
