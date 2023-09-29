@@ -2,6 +2,7 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"connectrpc.com/connect"
@@ -78,6 +79,8 @@ func (s *Service) GetJobRuns(
 			if err != nil {
 				return err
 			}
+			jsonF, _ := json.MarshalIndent(res, "", " ")
+			fmt.Printf("\n\n res: %s \n\n", string(jsonF))
 			runs[index] = dtomaps.ToJobRunDto(logger, res)
 			return nil
 		})

@@ -127,7 +127,7 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         const completedAt = row.getValue('completedAt')
-          ? formatDateTime(row.getValue<Timestamp>('closedAt').toDate())
+          ? formatDateTime(row.getValue<Timestamp>('completedAt').toDate())
           : undefined;
         return (
           <div className="flex space-x-2">

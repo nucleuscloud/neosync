@@ -903,6 +903,92 @@ export class UpdateJobScheduleResponse extends Message<UpdateJobScheduleResponse
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.PauseJobRequest
+ */
+export class PauseJobRequest extends Message<PauseJobRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: bool pause = 2;
+   */
+  pause = false;
+
+  /**
+   * @generated from field: optional string note = 3;
+   */
+  note?: string;
+
+  constructor(data?: PartialMessage<PauseJobRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PauseJobRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "pause", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PauseJobRequest {
+    return new PauseJobRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PauseJobRequest {
+    return new PauseJobRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PauseJobRequest {
+    return new PauseJobRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PauseJobRequest | PlainMessage<PauseJobRequest> | undefined, b: PauseJobRequest | PlainMessage<PauseJobRequest> | undefined): boolean {
+    return proto3.util.equals(PauseJobRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PauseJobResponse
+ */
+export class PauseJobResponse extends Message<PauseJobResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.Job job = 1;
+   */
+  job?: Job;
+
+  constructor(data?: PartialMessage<PauseJobResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PauseJobResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job", kind: "message", T: Job },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PauseJobResponse {
+    return new PauseJobResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PauseJobResponse {
+    return new PauseJobResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PauseJobResponse {
+    return new PauseJobResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PauseJobResponse | PlainMessage<PauseJobResponse> | undefined, b: PauseJobResponse | PlainMessage<PauseJobResponse> | undefined): boolean {
+    return proto3.util.equals(PauseJobResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.UpdateJobSourceConnectionRequest
  */
 export class UpdateJobSourceConnectionRequest extends Message<UpdateJobSourceConnectionRequest> {
@@ -1680,6 +1766,129 @@ export class CancelJobRunResponse extends Message<CancelJobRunResponse> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.JobPauseStatus
+ */
+export class JobPauseStatus extends Message<JobPauseStatus> {
+  /**
+   * @generated from field: bool isPaused = 1;
+   */
+  isPaused = false;
+
+  /**
+   * @generated from field: optional string note = 2;
+   */
+  note?: string;
+
+  constructor(data?: PartialMessage<JobPauseStatus>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobPauseStatus";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "isPaused", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "note", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobPauseStatus {
+    return new JobPauseStatus().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobPauseStatus {
+    return new JobPauseStatus().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobPauseStatus {
+    return new JobPauseStatus().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobPauseStatus | PlainMessage<JobPauseStatus> | undefined, b: JobPauseStatus | PlainMessage<JobPauseStatus> | undefined): boolean {
+    return proto3.util.equals(JobPauseStatus, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobRecentRuns
+ */
+export class JobRecentRuns extends Message<JobRecentRuns> {
+  /**
+   * @generated from field: google.protobuf.Timestamp start_time = 1;
+   */
+  startTime?: Timestamp;
+
+  /**
+   * @generated from field: string job_run_id = 2;
+   */
+  jobRunId = "";
+
+  constructor(data?: PartialMessage<JobRecentRuns>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobRecentRuns";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start_time", kind: "message", T: Timestamp },
+    { no: 2, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRecentRuns {
+    return new JobRecentRuns().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobRecentRuns {
+    return new JobRecentRuns().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobRecentRuns {
+    return new JobRecentRuns().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobRecentRuns | PlainMessage<JobRecentRuns> | undefined, b: JobRecentRuns | PlainMessage<JobRecentRuns> | undefined): boolean {
+    return proto3.util.equals(JobRecentRuns, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobNextRuns
+ */
+export class JobNextRuns extends Message<JobNextRuns> {
+  /**
+   * @generated from field: repeated google.protobuf.Timestamp next_run_times = 1;
+   */
+  nextRunTimes: Timestamp[] = [];
+
+  constructor(data?: PartialMessage<JobNextRuns>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobNextRuns";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "next_run_times", kind: "message", T: Timestamp, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobNextRuns {
+    return new JobNextRuns().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobNextRuns {
+    return new JobNextRuns().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobNextRuns {
+    return new JobNextRuns().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobNextRuns | PlainMessage<JobNextRuns> | undefined, b: JobNextRuns | PlainMessage<JobNextRuns> | undefined): boolean {
+    return proto3.util.equals(JobNextRuns, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.Job
  */
 export class Job extends Message<Job> {
@@ -1739,7 +1948,22 @@ export class Job extends Message<Job> {
   cronSchedule?: string;
 
   /**
-   * @generated from field: string account_id = 12;
+   * @generated from field: mgmt.v1alpha1.JobPauseStatus pause_status = 12;
+   */
+  pauseStatus?: JobPauseStatus;
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobRecentRuns recent_runs = 13;
+   */
+  recentRuns: JobRecentRuns[] = [];
+
+  /**
+   * @generated from field: mgmt.v1alpha1.JobNextRuns next_runs = 14;
+   */
+  nextRuns?: JobNextRuns;
+
+  /**
+   * @generated from field: string account_id = 15;
    */
   accountId = "";
 
@@ -1762,7 +1986,10 @@ export class Job extends Message<Job> {
     { no: 9, name: "destinations", kind: "message", T: JobDestination, repeated: true },
     { no: 10, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 11, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 12, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "pause_status", kind: "message", T: JobPauseStatus },
+    { no: 13, name: "recent_runs", kind: "message", T: JobRecentRuns, repeated: true },
+    { no: 14, name: "next_runs", kind: "message", T: JobNextRuns },
+    { no: 15, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Job {

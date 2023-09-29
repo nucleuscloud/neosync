@@ -104,6 +104,15 @@ message UpdateJobScheduleResponse {
   Job job = 1;
 }
 
+message PauseJobRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  bool pause = 2;
+  optional string note = 3;
+}
+message PauseJobResponse {
+  Job job = 1;
+}
+
 message UpdateJobSourceConnectionRequest {
   string id = 1 [(validate.rules).string.uuid = true];
   JobSource source = 2;
@@ -178,6 +187,19 @@ message CancelJobRunRequest {
 }
 message CancelJobRunResponse {}
 
+message JobPauseStatus {
+  bool is_paused = 1;
+  optional string note = 2;
+}
+
+message JobRecentRuns {
+  google.protobuf.Timestamp start_time = 1;
+  string job_run_id = 2;
+}
+message JobNextRuns {
+  repeated google.protobuf.Timestamp next_run_times = 1;
+}
+
 message Job {
   string id = 1;
 
@@ -194,8 +216,11 @@ message Job {
   repeated JobDestination destinations = 9;
   repeated JobMapping mappings = 10;
   optional string cron_schedule = 11;
+  JobPauseStatus pause_status = 12;
+  repeated JobRecentRuns recent_runs = 13;
+  JobNextRuns next_runs = 14;
 
-  string account_id = 12;
+  string account_id = 15;
 }
 
 enum ActivityStatus {
@@ -278,6 +303,7 @@ service JobService {
   rpc UpdateJobDestinationConnection(UpdateJobDestinationConnectionRequest) returns (UpdateJobDestinationConnectionResponse) {}
   rpc DeleteJobDestinationConnection(DeleteJobDestinationConnectionRequest) returns (DeleteJobDestinationConnectionResponse) {}
   rpc CreateJobDestinationConnections(CreateJobDestinationConnectionsRequest) returns (CreateJobDestinationConnectionsResponse) {}
+  rpc PauseJob(PauseJobRequest) returns (PauseJobResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}

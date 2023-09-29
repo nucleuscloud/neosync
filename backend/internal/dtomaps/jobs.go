@@ -4,12 +4,14 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	temporalclient "go.temporal.io/sdk/client"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func ToJobDto(
 	inputJob *db_queries.NeosyncApiJob,
 	inputDestConnections []db_queries.NeosyncApiJobDestinationConnectionAssociation,
+	inputSchedule *temporalclient.ScheduleDescription,
 ) *mgmtv1alpha1.Job {
 	mappings := []*mgmtv1alpha1.JobMapping{}
 	for _, mapping := range inputJob.Mappings {
@@ -37,6 +39,9 @@ func ToJobDto(
 		},
 		Destinations: destinations,
 		AccountId:    nucleusdb.UUIDString(inputJob.AccountID),
+		PauseStatus:  toPauseStatusDto(inputSchedule),
+		RecentRuns:   toRecentRunsDto(inputSchedule),
+		NextRuns:     toNextRunsDto(inputSchedule),
 	}
 
 }
@@ -46,5 +51,42 @@ func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssoci
 		ConnectionId: nucleusdb.UUIDString(input.ConnectionID),
 		Options:      input.Options.ToDto(),
 		Id:           nucleusdb.UUIDString(input.ID),
+	}
+}
+
+func toPauseStatusDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobPauseStatus {
+	if inputSchedule == nil {
+		return nil
+	}
+	return &mgmtv1alpha1.JobPauseStatus{
+		IsPaused: inputSchedule.Schedule.State.Paused,
+		Note:     &inputSchedule.Schedule.State.Note,
+	}
+}
+
+func toRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) []*mgmtv1alpha1.JobRecentRuns {
+	recentRuns := []*mgmtv1alpha1.JobRecentRuns{}
+	if inputSchedule == nil {
+		return nil
+	}
+	for _, run := range inputSchedule.Info.RecentActions {
+		recentRuns = append(recentRuns, &mgmtv1alpha1.JobRecentRuns{
+			StartTime: timestamppb.New(run.ActualTime),
+			JobRunId:  run.StartWorkflowResult.WorkflowID,
+		})
+	}
+	return recentRuns
+}
+
+func toNextRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobNextRuns {
+	nextRunTimes := []*timestamppb.Timestamp{}
+	if inputSchedule == nil {
+		return nil
+	}
+	for _, t := range inputSchedule.Info.NextActionTimes {
+		nextRunTimes = append(nextRunTimes, timestamppb.New(t))
+	}
+	return &mgmtv1alpha1.JobNextRuns{
+		NextRunTimes: nextRunTimes,
 	}
 }

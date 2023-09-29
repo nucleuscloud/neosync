@@ -72,11 +72,25 @@ func (s *Service) GetJobs(
 	}
 
 	dtos := []*mgmtv1alpha1.Job{}
-
+	group := new(errgroup.Group)
 	// Use jobIds to retain original query order
 	for _, jobId := range jobIds {
-		job := jobMap[jobId]
-		dtos = append(dtos, dtomaps.ToJobDto(job, associationMap[job.ID]))
+		jobId := jobId
+		group.Go(func() error {
+			job := jobMap[jobId]
+			scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+			schedule, err := scheduleHandle.Describe(ctx)
+			if err != nil {
+				logger.Error(fmt.Errorf("unable to get schedule: %w", err).Error(), "jobId", jobId)
+			}
+			dtos = append(dtos, dtomaps.ToJobDto(job, associationMap[job.ID], schedule))
+			return nil
+		})
+	}
+
+	err = group.Wait()
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve jobs: %w", err).Error())
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
@@ -88,6 +102,8 @@ func (s *Service) GetJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
 	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
@@ -124,9 +140,14 @@ func (s *Service) GetJob(
 	if err != nil {
 		return nil, err
 	}
+	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	schedule, err := scheduleHandle.Describe(ctx)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(&job, destConnections),
+		Job: dtomaps.ToJobDto(&job, destConnections, schedule),
 	}), nil
 }
 
@@ -203,6 +224,7 @@ func (s *Service) CreateJob(
 	// todo: verify connection ids are all in this account
 
 	var createdJob *db_queries.NeosyncApiJob
+	var ScheduleDescription *temporalclient.ScheduleDescription
 	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
 		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
 			Name:               req.Msg.JobName,
@@ -270,6 +292,10 @@ func (s *Service) CreateJob(
 				return err
 			}
 		}
+		ScheduleDescription, err = scheduleHandle.Describe(ctx)
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to get schedule: %w", err).Error())
+		}
 		return nil
 	}); err != nil {
 		return nil, err
@@ -281,7 +307,7 @@ func (s *Service) CreateJob(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(createdJob, destinationConnections),
+		Job: dtomaps.ToJobDto(createdJob, destinationConnections, ScheduleDescription),
 	}), nil
 }
 
@@ -337,10 +363,17 @@ func (s *Service) DeleteJob(
 
 	logger.Info("deleting schedule")
 	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
-	err = scheduleHandle.Delete(ctx)
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to delete schedule: %w", err).Error())
+	description, err := scheduleHandle.Describe(ctx)
+	if err != nil && !strings.Contains(err.Error(), "schedule not found") {
 		return nil, err
+	}
+
+	if description != nil {
+		err = scheduleHandle.Delete(ctx)
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to delete schedule: %w", err).Error())
+			return nil, err
+		}
 	}
 
 	logger.Info("deleting job")
@@ -463,36 +496,40 @@ func (s *Service) UpdateJobSchedule(
 		}
 	}
 
-	_, err = s.db.Q.UpdateJobSchedule(ctx, db_queries.UpdateJobScheduleParams{
-		ID:           job.ID,
-		CronSchedule: cron,
-		UpdatedByID:  *userUuid,
-	})
-	if err != nil {
-		return nil, err
-	}
+	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
+		_, err = q.UpdateJobSchedule(ctx, db_queries.UpdateJobScheduleParams{
+			ID:           job.ID,
+			CronSchedule: cron,
+			UpdatedByID:  *userUuid,
+		})
+		if err != nil {
+			return err
+		}
 
-	spec := &temporalclient.ScheduleSpec{}
-	paused := true
-	if req.Msg.CronSchedule != nil && *req.Msg.CronSchedule != "" {
-		paused = false
-		spec.CronExpressions = []string{*req.Msg.CronSchedule}
-	}
+		spec := &temporalclient.ScheduleSpec{}
+		paused := true
+		if req.Msg.CronSchedule != nil && *req.Msg.CronSchedule != "" {
+			paused = false
+			spec.CronExpressions = []string{*req.Msg.CronSchedule}
+		}
 
-	// update temporal scheduled job
-	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
-	err = scheduleHandle.Update(ctx, temporalclient.ScheduleUpdateOptions{
-		DoUpdate: func(schedule temporalclient.ScheduleUpdateInput) (*temporalclient.ScheduleUpdate, error) {
-			schedule.Description.Schedule.Spec = spec
-			schedule.Description.Schedule.State.Paused = paused
-			return &temporalclient.ScheduleUpdate{
-				Schedule: &schedule.Description.Schedule,
-			}, nil
-		},
-	})
-	// todo handle roll back if this fails
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to update schedule: %w", err).Error())
+		// update temporal scheduled job
+		scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+		err = scheduleHandle.Update(ctx, temporalclient.ScheduleUpdateOptions{
+			DoUpdate: func(schedule temporalclient.ScheduleUpdateInput) (*temporalclient.ScheduleUpdate, error) {
+				schedule.Description.Schedule.Spec = spec
+				schedule.Description.Schedule.State.Paused = paused
+				return &temporalclient.ScheduleUpdate{
+					Schedule: &schedule.Description.Schedule,
+				}, nil
+			},
+		})
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to update schedule: %w", err).Error())
+			return err
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 
@@ -505,6 +542,56 @@ func (s *Service) UpdateJobSchedule(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.UpdateJobScheduleResponse{
+		Job: updatedJob.Msg.Job,
+	}), nil
+}
+
+func (s *Service) PauseJob(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.PauseJobRequest],
+) (*connect.Response[mgmtv1alpha1.PauseJobResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("unable to find job by id")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
+	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	if req.Msg.Pause {
+		logger.Info("pausing job")
+		err = scheduleHandle.Pause(ctx, temporalclient.SchedulePauseOptions{Note: *req.Msg.Note})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		logger.Info("unpausing job")
+		err = scheduleHandle.Unpause(ctx, temporalclient.ScheduleUnpauseOptions{Note: *req.Msg.Note})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.PauseJobResponse{
 		Job: updatedJob.Msg.Job,
 	}), nil
 }

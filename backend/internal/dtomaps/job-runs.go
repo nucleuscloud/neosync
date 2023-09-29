@@ -89,18 +89,18 @@ func toActivityStatus(state enums.PendingActivityState) mgmtv1alpha1.ActivitySta
 }
 
 func toWorfklowStatus(input *workflowservice.DescribeWorkflowExecutionResponse) mgmtv1alpha1.JobRunStatus {
-	if input.PendingActivities != nil {
-		for _, activity := range input.PendingActivities {
-			if activity.LastFailure != nil {
-				return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_ERROR
-			}
-		}
-	}
 
 	switch input.GetWorkflowExecutionInfo().Status {
 	case enums.WORKFLOW_EXECUTION_STATUS_COMPLETED:
 		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_COMPLETE
 	case enums.WORKFLOW_EXECUTION_STATUS_RUNNING:
+		if input.PendingActivities != nil {
+			for _, activity := range input.PendingActivities {
+				if activity.LastFailure != nil {
+					return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_ERROR
+				}
+			}
+		}
 		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_RUNNING
 	case enums.WORKFLOW_EXECUTION_STATUS_CONTINUED_AS_NEW:
 		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_RUNNING

@@ -2500,6 +2500,261 @@ var _ interface {
 	ErrorName() string
 } = UpdateJobScheduleResponseValidationError{}
 
+// Validate checks the field values on PauseJobRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *PauseJobRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PauseJobRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PauseJobRequestMultiError, or nil if none found.
+func (m *PauseJobRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PauseJobRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = PauseJobRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Pause
+
+	if m.Note != nil {
+		// no validation rules for Note
+	}
+
+	if len(errors) > 0 {
+		return PauseJobRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *PauseJobRequest) _validateUuid(uuid string) error {
+	if matched := _job_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// PauseJobRequestMultiError is an error wrapping multiple validation errors
+// returned by PauseJobRequest.ValidateAll() if the designated constraints
+// aren't met.
+type PauseJobRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PauseJobRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PauseJobRequestMultiError) AllErrors() []error { return m }
+
+// PauseJobRequestValidationError is the validation error returned by
+// PauseJobRequest.Validate if the designated constraints aren't met.
+type PauseJobRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PauseJobRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PauseJobRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PauseJobRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PauseJobRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PauseJobRequestValidationError) ErrorName() string { return "PauseJobRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PauseJobRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPauseJobRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PauseJobRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PauseJobRequestValidationError{}
+
+// Validate checks the field values on PauseJobResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *PauseJobResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PauseJobResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PauseJobResponseMultiError, or nil if none found.
+func (m *PauseJobResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PauseJobResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetJob()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PauseJobResponseValidationError{
+					field:  "Job",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PauseJobResponseValidationError{
+					field:  "Job",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetJob()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PauseJobResponseValidationError{
+				field:  "Job",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return PauseJobResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// PauseJobResponseMultiError is an error wrapping multiple validation errors
+// returned by PauseJobResponse.ValidateAll() if the designated constraints
+// aren't met.
+type PauseJobResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PauseJobResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PauseJobResponseMultiError) AllErrors() []error { return m }
+
+// PauseJobResponseValidationError is the validation error returned by
+// PauseJobResponse.Validate if the designated constraints aren't met.
+type PauseJobResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PauseJobResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PauseJobResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PauseJobResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PauseJobResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PauseJobResponseValidationError) ErrorName() string { return "PauseJobResponseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PauseJobResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPauseJobResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PauseJobResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PauseJobResponseValidationError{}
+
 // Validate checks the field values on UpdateJobSourceConnectionRequest with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the first error encountered is returned, or nil if there are
@@ -5067,6 +5322,376 @@ var _ interface {
 	ErrorName() string
 } = CancelJobRunResponseValidationError{}
 
+// Validate checks the field values on JobPauseStatus with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JobPauseStatus) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobPauseStatus with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JobPauseStatusMultiError,
+// or nil if none found.
+func (m *JobPauseStatus) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobPauseStatus) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for IsPaused
+
+	if m.Note != nil {
+		// no validation rules for Note
+	}
+
+	if len(errors) > 0 {
+		return JobPauseStatusMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobPauseStatusMultiError is an error wrapping multiple validation errors
+// returned by JobPauseStatus.ValidateAll() if the designated constraints
+// aren't met.
+type JobPauseStatusMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobPauseStatusMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobPauseStatusMultiError) AllErrors() []error { return m }
+
+// JobPauseStatusValidationError is the validation error returned by
+// JobPauseStatus.Validate if the designated constraints aren't met.
+type JobPauseStatusValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobPauseStatusValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobPauseStatusValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobPauseStatusValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobPauseStatusValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobPauseStatusValidationError) ErrorName() string { return "JobPauseStatusValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobPauseStatusValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobPauseStatus.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobPauseStatusValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobPauseStatusValidationError{}
+
+// Validate checks the field values on JobRecentRuns with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JobRecentRuns) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobRecentRuns with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JobRecentRunsMultiError, or
+// nil if none found.
+func (m *JobRecentRuns) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobRecentRuns) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetStartTime()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRecentRunsValidationError{
+					field:  "StartTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRecentRunsValidationError{
+					field:  "StartTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStartTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRecentRunsValidationError{
+				field:  "StartTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for JobRunId
+
+	if len(errors) > 0 {
+		return JobRecentRunsMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobRecentRunsMultiError is an error wrapping multiple validation errors
+// returned by JobRecentRuns.ValidateAll() if the designated constraints
+// aren't met.
+type JobRecentRunsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobRecentRunsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobRecentRunsMultiError) AllErrors() []error { return m }
+
+// JobRecentRunsValidationError is the validation error returned by
+// JobRecentRuns.Validate if the designated constraints aren't met.
+type JobRecentRunsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobRecentRunsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobRecentRunsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobRecentRunsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobRecentRunsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobRecentRunsValidationError) ErrorName() string { return "JobRecentRunsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobRecentRunsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobRecentRuns.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobRecentRunsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobRecentRunsValidationError{}
+
+// Validate checks the field values on JobNextRuns with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *JobNextRuns) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobNextRuns with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in JobNextRunsMultiError, or
+// nil if none found.
+func (m *JobNextRuns) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobNextRuns) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetNextRunTimes() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobNextRunsValidationError{
+						field:  fmt.Sprintf("NextRunTimes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobNextRunsValidationError{
+						field:  fmt.Sprintf("NextRunTimes[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobNextRunsValidationError{
+					field:  fmt.Sprintf("NextRunTimes[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return JobNextRunsMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobNextRunsMultiError is an error wrapping multiple validation errors
+// returned by JobNextRuns.ValidateAll() if the designated constraints aren't met.
+type JobNextRunsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobNextRunsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobNextRunsMultiError) AllErrors() []error { return m }
+
+// JobNextRunsValidationError is the validation error returned by
+// JobNextRuns.Validate if the designated constraints aren't met.
+type JobNextRunsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobNextRunsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobNextRunsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobNextRunsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobNextRunsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobNextRunsValidationError) ErrorName() string { return "JobNextRunsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobNextRunsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobNextRuns.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobNextRunsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobNextRunsValidationError{}
+
 // Validate checks the field values on Job with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
 // encountered is returned, or nil if there are no violations.
@@ -5251,6 +5876,98 @@ func (m *Job) validate(all bool) error {
 			}
 		}
 
+	}
+
+	if all {
+		switch v := interface{}(m.GetPauseStatus()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "PauseStatus",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "PauseStatus",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPauseStatus()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobValidationError{
+				field:  "PauseStatus",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetRecentRuns() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobValidationError{
+						field:  fmt.Sprintf("RecentRuns[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobValidationError{
+						field:  fmt.Sprintf("RecentRuns[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobValidationError{
+					field:  fmt.Sprintf("RecentRuns[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetNextRuns()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "NextRuns",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "NextRuns",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetNextRuns()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobValidationError{
+				field:  "NextRuns",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	// no validation rules for AccountId
