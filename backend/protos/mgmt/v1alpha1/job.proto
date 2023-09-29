@@ -188,7 +188,7 @@ message CancelJobRunRequest {
 message CancelJobRunResponse {}
 
 message JobPauseStatus {
-  bool isPaused = 1;
+  bool is_paused = 1;
   optional string note = 2;
 }
 
