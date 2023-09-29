@@ -507,9 +507,7 @@ func (s *Service) UpdateJobSchedule(
 		}
 
 		spec := &temporalclient.ScheduleSpec{}
-		paused := true
 		if req.Msg.CronSchedule != nil && *req.Msg.CronSchedule != "" {
-			paused = false
 			spec.CronExpressions = []string{*req.Msg.CronSchedule}
 		}
 
@@ -518,7 +516,6 @@ func (s *Service) UpdateJobSchedule(
 		err = scheduleHandle.Update(ctx, temporalclient.ScheduleUpdateOptions{
 			DoUpdate: func(schedule temporalclient.ScheduleUpdateInput) (*temporalclient.ScheduleUpdate, error) {
 				schedule.Description.Schedule.Spec = spec
-				schedule.Description.Schedule.State.Paused = paused
 				return &temporalclient.ScheduleUpdate{
 					Schedule: &schedule.Description.Schedule,
 				}, nil

@@ -1,6 +1,8 @@
 package dtomaps
 
 import (
+	"strings"
+
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -58,24 +60,30 @@ func toPauseStatusDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1
 	if inputSchedule == nil {
 		return nil
 	}
+	note := inputSchedule.Schedule.State.Note
+	if strings.Contains(note, "aused via Go SDK") {
+		note = ""
+	}
 	return &mgmtv1alpha1.JobPauseStatus{
 		IsPaused: inputSchedule.Schedule.State.Paused,
-		Note:     &inputSchedule.Schedule.State.Note,
+		Note:     &note,
 	}
 }
 
-func toRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) []*mgmtv1alpha1.JobRecentRuns {
-	recentRuns := []*mgmtv1alpha1.JobRecentRuns{}
+func toRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobRecentRuns {
+	recentRuns := []*mgmtv1alpha1.JobRecentRun{}
 	if inputSchedule == nil {
 		return nil
 	}
 	for _, run := range inputSchedule.Info.RecentActions {
-		recentRuns = append(recentRuns, &mgmtv1alpha1.JobRecentRuns{
+		recentRuns = append(recentRuns, &mgmtv1alpha1.JobRecentRun{
 			StartTime: timestamppb.New(run.ActualTime),
 			JobRunId:  run.StartWorkflowResult.WorkflowID,
 		})
 	}
-	return recentRuns
+	return &mgmtv1alpha1.JobRecentRuns{
+		Runs: recentRuns,
+	}
 }
 
 func toNextRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobNextRuns {

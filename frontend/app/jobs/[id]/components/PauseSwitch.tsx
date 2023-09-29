@@ -57,7 +57,7 @@ export default function JobPauseSwitch({ job, mutate }: Props): ReactElement {
     try {
       await pauseJob(job.id, values.isPaused, values.note);
       toast({
-        title: 'Successfully updated paused job!',
+        title: `Successfully ${values.isPaused ? 'paused' : 'unpaused'}  job!`,
         variant: 'default',
       });
       mutate();

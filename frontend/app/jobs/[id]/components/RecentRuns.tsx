@@ -21,7 +21,7 @@ interface Props {
 export default function JobRecentRuns({ job }: Props): ReactElement {
   return (
     <Card>
-      {!job.recentRuns ? (
+      {!job.recentRuns || !job.recentRuns.runs ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
         </Alert>
@@ -36,7 +36,7 @@ export default function JobRecentRuns({ job }: Props): ReactElement {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {job.recentRuns?.map((r) => {
+            {job.recentRuns?.runs.map((r) => {
               return (
                 <TableRow key={r.jobRunId}>
                   <TableCell>

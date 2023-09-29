@@ -192,9 +192,12 @@ message JobPauseStatus {
   optional string note = 2;
 }
 
-message JobRecentRuns {
+message JobRecentRun {
   google.protobuf.Timestamp start_time = 1;
   string job_run_id = 2;
+}
+message JobRecentRuns {
+  repeated JobRecentRun runs = 1;
 }
 message JobNextRuns {
   repeated google.protobuf.Timestamp next_run_times = 1;
@@ -217,7 +220,7 @@ message Job {
   repeated JobMapping mappings = 10;
   optional string cron_schedule = 11;
   JobPauseStatus pause_status = 12;
-  repeated JobRecentRuns recent_runs = 13;
+  JobRecentRuns recent_runs = 13;
   JobNextRuns next_runs = 14;
 
   string account_id = 15;
