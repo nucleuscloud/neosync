@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import {
+  Job,
   UpdateJobScheduleRequest,
   UpdateJobScheduleResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
@@ -27,7 +28,6 @@ import cron from 'cron-validate';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { getJob } from '../util';
 
 const SCHEDULE_FORM_SCHEMA = Yup.object({
   cronSchedule: Yup.string()
@@ -43,26 +43,25 @@ const SCHEDULE_FORM_SCHEMA = Yup.object({
 export type ScheduleFormValues = Yup.InferType<typeof SCHEDULE_FORM_SCHEMA>;
 
 interface Props {
-  jobId: string;
+  job: Job;
+  mutate: () => void;
 }
 
-export default function JobScheduleCard({ jobId }: Props): ReactElement {
+export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
   const { toast } = useToast();
   const form = useForm({
     resolver: yupResolver<ScheduleFormValues>(SCHEDULE_FORM_SCHEMA),
-    defaultValues: async () => {
-      const res = await getJob(jobId);
-      return { cronSchedule: res?.job?.cronSchedule || '' };
-    },
+    defaultValues: { cronSchedule: job?.cronSchedule || '' },
   });
 
   async function onSubmit(values: ScheduleFormValues) {
     try {
-      await updateJobSchedule(jobId, values.cronSchedule);
+      await updateJobSchedule(job.id, values.cronSchedule);
       toast({
         title: 'Successfully updated job schedule!',
         variant: 'default',
       });
+      mutate();
     } catch (err) {
       console.error(err);
       toast({
@@ -109,7 +108,9 @@ export default function JobScheduleCard({ jobId }: Props): ReactElement {
           <CardFooter className="bg-muted">
             <div className="flex flex-row items-center justify-between w-full mt-4">
               <p className="text-muted-foreground text-sm">{msg}</p>
-              <Button type="submit">Save</Button>
+              <Button type="submit" disabled={!form.formState.isDirty}>
+                Save
+              </Button>
             </div>
           </CardFooter>
         </form>
