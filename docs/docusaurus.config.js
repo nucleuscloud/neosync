@@ -80,7 +80,8 @@ const config = {
         title: "Neosync",
         logo: {
           alt: "My Site Logo",
-          src: "img/white-logo.png",
+          srcDark: "img/white-logo.png",
+          src: "img/neosync_just_logo.png",
         },
         items: [
           {

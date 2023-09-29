@@ -110,10 +110,10 @@ the entire nav menu list
   }
 
   [data-theme="dark"] .breadcrumb-label {
-    @apply text-gray-100 cursor-pointer text-sm p-2 rounded-full;
+    @apply text-gray-100 cursor-pointer text-sm rounded-full;
   }
   [data-theme="light"] .breadcrumb-label {
-    @apply text-gray-900 cursor-pointer text-sm p-2 rounded-full;
+    @apply text-gray-900 cursor-pointer text-sm  rounded-full;
   }
 
   .footer {
