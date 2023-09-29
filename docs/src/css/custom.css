@@ -65,17 +65,6 @@ side bar drop down category
 }
 
 /*
-the prev and next nav links at the bottom of the page
-*/
-.pagination-nav__link {
-  border-width: 0px;
-}
-
-.pagination-nav__sublabel {
-  font-size: 12px;
-}
-
-/*
 each sidebar nav item
 .menu__list-item {
 }
@@ -145,7 +134,7 @@ the entire nav menu list
   } */
 
   .custom-card-list {
-    @apply grid grid-cols-3 gap-2;
+    @apply grid grid-cols-4 gap-2;
   }
   .custom-card {
     @apply border border-gray-200 hover:border-2 hover:border-[#acc7f9] hover:shadow-md rounded-xl p-4 flex flex-col justify-between space-y-2;
@@ -159,6 +148,16 @@ the entire nav menu list
   }
 
   .footer {
-    @apply bg-transparent border-t border-t-gray-800 text-gray-600 text-sm;
+    @apply bg-transparent border-t border-t-gray-300 text-gray-600 text-sm;
+  }
+  /*
+the prev and next nav links at the bottom of the page
+*/
+
+  .pagination-nav__link {
+    @apply border border-gray-100 hover:border-[#acc7f9] hover:shadow-md;
+  }
+  .pagination-nav__sublabel {
+    @apply text-xs;
   }
 }

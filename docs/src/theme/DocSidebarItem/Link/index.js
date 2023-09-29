@@ -6,18 +6,23 @@ import {
   HomeIcon,
   LayersIcon,
   LightningBoltIcon,
+  LinkBreak1Icon,
   Share1Icon,
+  StackIcon,
+  TokensIcon,
 } from "@radix-ui/react-icons";
 import IconExternalLink from "@theme/Icon/ExternalLink";
 import clsx from "clsx";
 import React from "react";
 import { AiOutlineMail, AiOutlinePhone } from "react-icons/ai";
 import { BiAtom, BiLogoPostgresql } from "react-icons/bi";
-import { FaAws, FaDocker, FaRegAddressCard, FaSync } from "react-icons/fa";
+import { BsFunnel, BsShieldCheck } from "react-icons/bs";
+import { FaAws, FaDocker, FaRegAddressCard } from "react-icons/fa";
 import { GoCode } from "react-icons/go";
 import { GrConnect, GrMysql } from "react-icons/gr";
 import { IoBuildOutline } from "react-icons/io5";
 import { MdPassword } from "react-icons/md";
+import { PiArrowsSplitLight, PiFlaskLight } from "react-icons/pi";
 import { SiKubernetes } from "react-icons/si";
 import styles from "./styles.module.css";
 
@@ -74,7 +79,7 @@ export default function DocSidebarItemLink({
 export const RenderIcon = (name) => {
   switch (name) {
     case "Platform":
-      return <LayersIcon />;
+      return <TokensIcon />;
     case "Introduction":
       return <HomeIcon />;
     case "Architecture":
@@ -100,7 +105,7 @@ export const RenderIcon = (name) => {
     case "Custom":
       return <GoCode />;
     case "Jobs":
-      return <FaSync />;
+      return <StackIcon />;
     case "Connections":
       return <GrConnect />;
     case "Transformers":
@@ -109,6 +114,19 @@ export const RenderIcon = (name) => {
       return <BiAtom />;
     case "Pre-built":
       return <IoBuildOutline />;
+    case "Use cases":
+      return <BsShieldCheck />;
+    case "Runs":
+      return <LayersIcon />;
+    case "Anonymize Data":
+      return <LinkBreak1Icon />;
+    case "Replicate Data":
+      return <PiArrowsSplitLight />;
+    case "Synthetic Data":
+      return <PiFlaskLight />;
+    case "Subset Data":
+      return <BsFunnel />;
+
     default:
       return <LayersIcon />;
   }

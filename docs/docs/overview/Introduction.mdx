@@ -8,6 +8,7 @@ slug: /
 import { DocPageHeader } from "@site/src/components/HomepageFeatures/DocPageHeader.tsx";
 import { HeroImage } from "@site/src/components/HomepageFeatures/HeroImage.tsx";
 import { CustomCardList } from "@site/src/components/HomepageFeatures/CustomCardList.tsx";
+import { CustomCard } from "@site/src/components/HomepageFeatures/CustomCard.tsx";
 import { FaSync } from "react-icons/fa";
 import { GrConnect } from "react-icons/gr";
 import { LightningBoltIcon } from "@radix-ui/react-icons";
@@ -18,9 +19,9 @@ Neosync is an open-source, developer-first way to create safe, anonymized test d
 
 <HeroImage />
 
-## Core Concepts
+## Learn about Neosync
 
-The best way to understand Neosync is to check out our core concepts and familiarize yourself with Jobs, Connections and Transformers.
+The best way to learn Neosync is to check out our core concepts and familiarize yourself with Jobs, Runs, Connections and Transformers.
 
 <CustomCardList
   cards={[
@@ -28,48 +29,81 @@ The best way to understand Neosync is to check out our core concepts and familia
       title: "Jobs",
       description:
         "Jobs are async workflows that tranform data and sync it between connections.",
-      link: "jobs",
+      link: "overview/concepts/jobs",
       icon: <FaSync />,
+    },
+    {
+      title: "Runs",
+      description:
+        "Runs are instances of a job that can be started, paused and played back.",
+      link: "overview/concepts/runs",
+      icon: <LightningBoltIcon />,
     },
     {
       title: "Connections",
       description:
         "Connections are sources of data or destinations that you sync using Jobs such as databases.",
-      link: "connections",
+      link: "overview/concepts/connections",
       icon: <GrConnect />,
     },
     {
       title: "Transformers",
       description:
         "Transformers are data type specific modules that anonymize or generate data.",
-      link: "transformers",
+      link: "overview/concepts/transformers",
       icon: <LightningBoltIcon />,
     },
   ]}
 />
 
-## Quick Deployment
+## Deploying Neosync
 
-Check out our Deployment guide to see how you can deploy Neosync with Docker compose on a server or on Kubernetes with a helm chart.
-Deployment only takes a few minutes.
+Once you're ready to deploy Neosync, check out our Deployment guide to see the available deployment options.
+
+<CustomCard
+  title="Deploy"
+  description="Learn how to deploy Neosync using Docker Compose or Kubernetes. "
+  link="/deploy/intro"
+  icon={<FaSync />}
+/>
 
 ## Use cases
 
 Neosync can be used in many different ways to support different use-cases. Check out the most common use-cases below.
 
-1. Anonymizing sensitive data for testing
-2. Generating synthetic data for testing
-3. Anonymizing data for AI/ML
-4. Generating synthetic data for AI/ML
+<CustomCardList
+  cards={[
+    {
+      title: "Anonymize Data",
+      description:
+        "Anonymize sensitive data from any source environment for testing in any other environment",
+      link: "overview/use-cases/anonymization",
+      icon: <FaSync />,
+    },
+    {
+      title: "Generate Data",
+      description:
+        "Generate high-quality, production-like synthetic data from existing data or from scratch.",
+      link: "overview/use-cases/synthetic-data",
+      icon: <GrConnect />,
+    },
+    {
+      title: "Subset Data",
+      description:
+        "Create smaller subset of your existing data to fit local and stage environments.",
+      link: "overview/use-cases/subsetting",
+      icon: <LightningBoltIcon />,
+    },
+    {
+      title: "Replicate data",
+      description:
+        "Esaily replicate source data to multiple environments with one or multiple jobs.",
+      link: "overview/use-cases/replication",
+      icon: <LightningBoltIcon />,
+    },
+  ]}
+/>
 
 ## Contributing to Neosync
 
-We love contributors and are happy to accept PRs. Here is how you can contribute to Neosync:
-
-- Go ahead and try out Neosync by following our tutorials. If you find something is not right, you can report an issue here.
-
-- Are you familiar with Python? You can then help us out in resolving open issues. Have a look at issues labeled with the help wanted tag.
-
-- You can also help us with documentation and tutorials. Here is how you can contribute by writing documentation and tutorials. Don’t forget to follow the style guide.
-
-- Share with your friends and spread the word about MindsDB.
+We love contributors and are happy to accept PRs. The best way to contribute to Neosync is to go ahead and try out it. If you find something is not right, you can report an issue [here](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md).

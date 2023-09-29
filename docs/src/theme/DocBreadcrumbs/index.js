@@ -22,32 +22,28 @@ export default function DocBreadcrumbs() {
         </Link>
         <ChevronRightIcon className="dark:text-gray-100 text-gray-800" />
       </div>
-      <div className="flex flex-row items-center">
+      <div className="flex flex-row items-center space-x-2">
         {breadcrumbs.map((item, idx) => {
           const isLast = idx === breadcrumbs.length - 1;
           if (isLast) {
             return (
-              <div className="flex flex-row items-center" key={item.docId}>
-                <span
-                  className="breadcrumb-label"
-                  itemProp="name"
-                  key={item.label}
-                >
-                  {item.label}
-                </span>
+              <div
+                className="breadcrumb-label"
+                itemProp="name"
+                key={item.label}
+              >
+                {item.label}
               </div>
             );
           } else {
             return (
               <div
-                className="cursor-pointer flex-row items-center flex"
+                className="cursor-pointer flex-row items-center flex space-x-2"
                 key={item.label}
               >
-                <Link href={item.href} itemProp="item">
-                  <span itemProp="name" className="breadcrumb-label">
-                    {item.label}
-                  </span>
-                </Link>
+                <span itemProp="name" className="breadcrumb-label">
+                  {item.label}
+                </span>
                 <ChevronRightIcon className="dark:text-gray-100 text-gray-800" />
               </div>
             );

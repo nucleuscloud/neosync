@@ -117,9 +117,9 @@ export default function DocSidebarItemCategory({
 
   const handleCollapsible = () => {
     if (collapsible && !collapsed) {
-      return <CaretRightIcon />;
-    } else if (collapsed && collapsible) {
       return <CaretDownIcon />;
+    } else if (collapsed && collapsible) {
+      return <CaretRightIcon />;
     }
   };
 
