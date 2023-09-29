@@ -1,19 +1,24 @@
-import React from "react";
-import clsx from "clsx";
-import { ThemeClassNames } from "@docusaurus/theme-common";
-import { isActiveSidebarItem } from "@docusaurus/theme-common/internal";
 import Link from "@docusaurus/Link";
 import isInternalUrl from "@docusaurus/isInternalUrl";
+import { ThemeClassNames } from "@docusaurus/theme-common";
+import { isActiveSidebarItem } from "@docusaurus/theme-common/internal";
+import {
+  HomeIcon,
+  LayersIcon,
+  LightningBoltIcon,
+  Share1Icon,
+} from "@radix-ui/react-icons";
 import IconExternalLink from "@theme/Icon/ExternalLink";
-import styles from "./styles.module.css";
-import { HomeIcon, LayersIcon, Share1Icon } from "@radix-ui/react-icons";
-import { FaAws, FaDocker, FaRegAddressCard } from "react-icons/fa";
-import { SiKubernetes } from "react-icons/si";
-import { BiLogoPostgresql } from "react-icons/bi";
-import { GrMysql, GrSecure } from "react-icons/gr";
+import clsx from "clsx";
+import React from "react";
 import { AiOutlineMail, AiOutlinePhone } from "react-icons/ai";
+import { BiLogoPostgresql } from "react-icons/bi";
+import { FaAws, FaDocker, FaRegAddressCard, FaSync } from "react-icons/fa";
 import { GoCode } from "react-icons/go";
+import { GrConnect, GrMysql } from "react-icons/gr";
 import { MdPassword } from "react-icons/md";
+import { SiKubernetes } from "react-icons/si";
+import styles from "./styles.module.css";
 
 export default function DocSidebarItemLink({
   item,
@@ -93,6 +98,12 @@ const RenderIcon = (name) => {
       return <FaRegAddressCard />;
     case "Custom":
       return <GoCode />;
+    case "Jobs":
+      return <FaSync />;
+    case "Connections":
+      return <GrConnect />;
+    case "Transformers":
+      return <LightningBoltIcon />;
     default:
       return <LayersIcon />;
   }

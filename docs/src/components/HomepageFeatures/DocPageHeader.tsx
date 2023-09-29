@@ -10,7 +10,7 @@ export const DocPageHeader = (props: Props) => {
   return (
     <div className="flex flex-col text-left gap-[8px]">
       <div className="font-bold text-3xl">{title}</div>
-      <div className="font-light text-xl text-[#94a3b8]">{subtitle}</div>
+      <div className="font-light text-xl text-[#666e7a]">{subtitle}</div>
     </div>
   );
 };

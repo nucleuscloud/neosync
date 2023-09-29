@@ -39,6 +39,26 @@ const sidebars = {
     },
     {
       type: "html",
+      value: "<div>Concepts</div>",
+      className: "sidebarcategory",
+    },
+    {
+      type: "doc",
+      id: "concepts/jobs",
+      label: "Jobs",
+    },
+    {
+      type: "doc",
+      id: "concepts/connections",
+      label: "Connections",
+    },
+    {
+      type: "doc",
+      id: "concepts/transformers",
+      label: "Transformers",
+    },
+    {
+      type: "html",
       value: "<div>Self-host Neosync</div>",
       className: "sidebarcategory",
     },

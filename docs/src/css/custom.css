@@ -115,6 +115,13 @@ the entire nav menu list
   [data-theme="light"] .breadcrumb-label {
     @apply text-gray-900 cursor-pointer text-sm  rounded-full;
   }
+  .heroImage {
+    @apply py-10;
+  }
+
+  h2 {
+    @apply text-gray-900 text-2xl font-semibold;
+  }
 
   .footer {
     @apply bg-transparent border-t border-t-gray-800 text-gray-600 text-sm;
