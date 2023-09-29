@@ -112,9 +112,6 @@ export function getColumns(
         );
       },
       enableColumnFilter: true,
-      // filterFn: (row, id, value) => {
-      //   return value.includes(row.getValue(id));
-      // },
     },
     {
       accessorKey: 'transformer',

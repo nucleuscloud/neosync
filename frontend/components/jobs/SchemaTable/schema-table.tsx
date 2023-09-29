@@ -23,7 +23,11 @@ export function SchemaTable(props: JobTableProps): ReactElement {
 
   return (
     <div>
-      <DataTable columns={columns} data={data} />
+      <DataTable
+        columns={columns}
+        data={data}
+        transformers={transformers?.transformers}
+      />
     </div>
   );
 }
