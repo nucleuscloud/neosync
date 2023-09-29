@@ -102,6 +102,20 @@ the entire nav menu list
     @apply border-gray-800;
   }
 
+  [data-theme="light"] .home-icon {
+    @apply text-gray-900;
+  }
+  [data-theme="dark"] .home-icon {
+    @apply text-gray-100;
+  }
+
+  [data-theme="dark"] .breadcrumb-label {
+    @apply text-gray-100 cursor-pointer text-sm p-2 rounded-full;
+  }
+  [data-theme="light"] .breadcrumb-label {
+    @apply text-gray-900 cursor-pointer text-sm p-2 rounded-full;
+  }
+
   .footer {
     @apply bg-transparent border-t border-t-gray-800 text-gray-600 text-sm;
   }

@@ -73,8 +73,8 @@ const config = {
       image: "img/docusaurus-social-card.jpg",
       colorMode: {
         defaultMode: "dark",
-        disableSwitch: true,
-        // respectPrefersColorScheme: false,
+        disableSwitch: false,
+        respectPrefersColorScheme: false,
       },
       navbar: {
         title: "Neosync",
