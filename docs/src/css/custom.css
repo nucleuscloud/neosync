@@ -39,7 +39,7 @@ html[data-theme="dark"] {
 
 @layer base {
   body {
-    @apply mx-80;
+    @apply mx-60;
   }
 }
 
