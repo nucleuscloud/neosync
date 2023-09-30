@@ -39,7 +39,7 @@ html[data-theme="dark"] {
 
 @layer base {
   body {
-    @apply mx-20;
+    @apply mx-80;
   }
 }
 
@@ -51,35 +51,6 @@ this is the class for the sidebar categories that section headers
   padding-bottom: 10px;
   padding-top: 30px;
 }
-
-.menu__link {
-  border-radius: 10px;
-}
-
-/*
-side bar drop down category 
-*/
-.menu__list-item-collapsible {
-  border-radius: 10px;
-  font-weight: 400;
-}
-
-/*
-each sidebar nav item
-.menu__list-item {
-}
-*/
-
-/*
-the entire nav menu list
-.menu__list {
-}
-*/
-
-/* .menu__link--sublist-caret:after {
-  width: 3px;
-  height: 3px;
-} */
 
 @layer components {
   .navbar {
@@ -117,7 +88,13 @@ the entire nav menu list
   .heroImage {
     @apply py-10;
   }
+  .menu__list-item-collapsible {
+    @apply rounded-xl font-normal;
+  }
 
+  .menu__link {
+    @apply rounded-xl;
+  }
   h2 {
     @apply text-gray-900 text-2xl font-semibold;
   }
@@ -151,9 +128,8 @@ the entire nav menu list
     @apply bg-transparent border-t border-t-gray-300 text-gray-600 text-sm;
   }
   /*
-the prev and next nav links at the bottom of the page
-*/
-
+    the prev and next nav links at the bottom of the page
+    */
   .pagination-nav__link {
     @apply border border-gray-100 hover:border-[#acc7f9] hover:shadow-md;
   }
