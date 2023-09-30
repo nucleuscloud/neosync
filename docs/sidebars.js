@@ -16,7 +16,7 @@
 const sidebars = {
   // By default, Docusaurus generates a sidebar from the docs folder structure
 
-  tutorialSidebar: [
+  mainSideBar: [
     {
       type: "html",
       value: "<div>Overview</div>",
@@ -33,28 +33,79 @@ const sidebars = {
       label: "Platform",
     },
     {
-      type: "doc",
-      id: "overview/architecture",
-      label: "Architecture",
+      type: "category",
+      label: "Concepts",
+      collapsible: true,
+      collapsed: true,
+      items: [
+        {
+          type: "doc",
+          id: "overview/concepts/jobs",
+          label: "Jobs",
+        },
+        {
+          type: "doc",
+          id: "overview/concepts/runs",
+          label: "Runs",
+        },
+        {
+          type: "doc",
+          id: "overview/concepts/connections",
+          label: "Connections",
+        },
+        {
+          type: "doc",
+          id: "overview/concepts/transformers",
+          label: "Transformers",
+        },
+      ],
+    },
+    {
+      type: "category",
+      label: "Use cases",
+      collapsible: true,
+      collapsed: true,
+      items: [
+        {
+          type: "doc",
+          id: "overview/use-cases/anonymization",
+          label: "Anonymize Data",
+        },
+        {
+          type: "doc",
+          id: "overview/use-cases/synthetic-data",
+          label: "Synthetic Data",
+        },
+        {
+          type: "doc",
+          id: "overview/use-cases/subsetting",
+          label: "Subset Data",
+        },
+        {
+          type: "doc",
+          id: "overview/use-cases/replication",
+          label: "Replicate Data",
+        },
+      ],
     },
     {
       type: "html",
-      value: "<div>Self-host Neosync</div>",
+      value: "<div>Deploy Neosync</div>",
       className: "sidebarcategory",
     },
     {
       type: "doc",
-      id: "self-host/intro",
+      id: "deploy/intro",
       label: "Introduction",
     },
     {
       type: "doc",
-      id: "self-host/kubernetes",
+      id: "deploy/kubernetes",
       label: "Kubernetes",
     },
     {
       type: "doc",
-      id: "self-host/docker-compose",
+      id: "deploy/docker-compose",
       label: "Docker Compose",
     },
     {

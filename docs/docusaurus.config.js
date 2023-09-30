@@ -69,26 +69,20 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      // Replace with your project's social card
       image: "img/docusaurus-social-card.jpg",
       colorMode: {
-        defaultMode: "dark",
+        defaultMode: "light",
         disableSwitch: true,
-        // respectPrefersColorScheme: false,
+        respectPrefersColorScheme: false,
       },
       navbar: {
         title: "Neosync",
         logo: {
           alt: "My Site Logo",
-          src: "img/white-logo.png",
+          srcDark: "img/white-logo.png",
+          src: "img/neosync_just_logo.png",
         },
         items: [
-          {
-            type: "docSidebar",
-            sidebarId: "tutorialSidebar",
-            position: "left",
-            label: "Tutorial",
-          },
           {
             type: "custom-Gitlink",
             position: "right",
@@ -97,26 +91,6 @@ const config = {
       },
       footer: {
         style: "dark",
-        // links: [
-        //   {
-        //     title: "Community",
-        //     items: [
-        //       {
-        //         label: "Stack Overflow",
-        //         href: "https://stackoverflow.com/questions/tagged/docusaurus",
-        //       },
-        //     ],
-        //   },
-        //   {
-        //     title: "More",
-        //     items: [
-        //       {
-        //         label: "GitHub",
-        //         href: "https://github.com/facebook/docusaurus",
-        //       },
-        //     ],
-        //   },
-        // ],
         copyright: `Copyright © Nucleus Cloud Corp ${new Date().getFullYear()}`,
       },
       prism: {
