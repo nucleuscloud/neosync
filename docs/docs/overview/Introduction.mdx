@@ -9,9 +9,9 @@ import { DocPageHeader } from "@site/src/components/HomepageFeatures/DocPageHead
 import { HeroImage } from "@site/src/components/HomepageFeatures/HeroImage.tsx";
 import { CustomCardList } from "@site/src/components/HomepageFeatures/CustomCardList.tsx";
 import { CustomCard } from "@site/src/components/HomepageFeatures/CustomCard.tsx";
-import { FaSync } from "react-icons/fa";
-import { GrConnect } from "react-icons/gr";
-import { LightningBoltIcon } from "@radix-ui/react-icons";
+import { PiArrowsSplitLight, PiFlaskLight } from "react-icons/pi";
+import { BsFunnel } from "react-icons/bs";
+import { LinkBreak1Icon } from "@radix-ui/react-icons";
 
 <DocPageHeader title="Welcome to the Neosync Docs" />
 
@@ -75,31 +75,28 @@ Neosync can be used in many different ways to support different use-cases. Check
   cards={[
     {
       title: "Anonymize Data",
-      description:
-        "Anonymize sensitive data from any source environment for testing in any other environment",
+      description: "Anonymize sensitive data for safe testing and development",
       link: "overview/use-cases/anonymization",
-      icon: <FaSync />,
+      icon: <LinkBreak1Icon />,
     },
     {
       title: "Generate Data",
       description:
-        "Generate high-quality, production-like synthetic data from existing data or from scratch.",
+        "Generate high-quality synthetic data from existing data or from scratch.",
       link: "overview/use-cases/synthetic-data",
-      icon: <GrConnect />,
+      icon: <PiFlaskLight />,
     },
     {
       title: "Subset Data",
-      description:
-        "Create smaller subset of your existing data to fit local and stage environments.",
+      description: "Subset your data to fit local and stage environments.",
       link: "overview/use-cases/subsetting",
-      icon: <LightningBoltIcon />,
+      icon: <BsFunnel />,
     },
     {
       title: "Replicate data",
-      description:
-        "Esaily replicate source data to multiple environments with one or multiple jobs.",
+      description: "Easily replicate source data to multiple environments.",
       link: "overview/use-cases/replication",
-      icon: <LightningBoltIcon />,
+      icon: <PiArrowsSplitLight />,
     },
   ]}
 />
