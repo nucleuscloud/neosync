@@ -9,9 +9,17 @@ import { DocPageHeader } from "@site/src/components/HomepageFeatures/DocPageHead
 import { HeroImage } from "@site/src/components/HomepageFeatures/HeroImage.tsx";
 import { CustomCardList } from "@site/src/components/HomepageFeatures/CustomCardList.tsx";
 import { CustomCard } from "@site/src/components/HomepageFeatures/CustomCard.tsx";
-import { PiArrowsSplitLight, PiFlaskLight } from "react-icons/pi";
+import { PiArrowsSplitLight, PiFlaskLight, PiPlugsLight } from "react-icons/pi";
 import { BsFunnel } from "react-icons/bs";
-import { LinkBreak1Icon } from "@radix-ui/react-icons";
+import { FaSync } from "react-icons/fa";
+import { GrConnect } from "react-icons/gr";
+import {
+  LightningBoltIcon,
+  LayersIcon,
+  LinkBreak1Icon,
+  StackIcon,
+} from "@radix-ui/react-icons";
+import { LuNetwork } from "react-icons/lu";
 
 <DocPageHeader title="Welcome to the Neosync Docs" />
 
@@ -30,21 +38,21 @@ The best way to learn Neosync is to check out our core concepts and familiarize 
       description:
         "Jobs are async workflows that tranform data and sync it between connections.",
       link: "overview/concepts/jobs",
-      icon: <FaSync />,
+      icon: <StackIcon />,
     },
     {
       title: "Runs",
       description:
         "Runs are instances of a job that can be started, paused and played back.",
       link: "overview/concepts/runs",
-      icon: <LightningBoltIcon />,
+      icon: <LayersIcon />,
     },
     {
       title: "Connections",
       description:
         "Connections are sources of data or destinations that you sync using Jobs such as databases.",
       link: "overview/concepts/connections",
-      icon: <GrConnect />,
+      icon: <PiPlugsLight />,
     },
     {
       title: "Transformers",

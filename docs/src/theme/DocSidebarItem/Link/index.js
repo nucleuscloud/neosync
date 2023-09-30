@@ -19,10 +19,10 @@ import { BiAtom, BiLogoPostgresql } from "react-icons/bi";
 import { BsFunnel, BsShieldCheck } from "react-icons/bs";
 import { FaAws, FaDocker, FaRegAddressCard } from "react-icons/fa";
 import { GoCode } from "react-icons/go";
-import { GrConnect, GrMysql } from "react-icons/gr";
+import { GrMysql } from "react-icons/gr";
 import { IoBuildOutline } from "react-icons/io5";
 import { MdPassword } from "react-icons/md";
-import { PiArrowsSplitLight, PiFlaskLight } from "react-icons/pi";
+import { PiArrowsSplitLight, PiFlaskLight, PiPlugsLight } from "react-icons/pi";
 import { SiKubernetes } from "react-icons/si";
 import styles from "./styles.module.css";
 
@@ -107,7 +107,7 @@ export const RenderIcon = (name) => {
     case "Jobs":
       return <StackIcon />;
     case "Connections":
-      return <GrConnect />;
+      return <PiPlugsLight />;
     case "Transformers":
       return <LightningBoltIcon />;
     case "Concepts":
