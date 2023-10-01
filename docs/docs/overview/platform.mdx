@@ -10,6 +10,8 @@ import { HeroImage } from "@site/src/components/HomepageFeatures/HeroImage.tsx";
 
 <DocPageHeader title="Platform Overview" />
 
+## Introduction
+
 Neosync is an open-source, test data management platform that enables teams to easily anonymize sensitive data and generate synthetic data for use in lower level environments. From a platform perspective, Neosync is an async data synchronization and replication pipeline with built-in data anonymization and synthetic data generation features.
 
 <HeroImage />
@@ -55,46 +57,48 @@ Neosync is a cloud-native distributed platform that is built to be highly reliab
 
 Starting from the bottom and working our way up:
 
-<ul>
-  <li>
-    1. The <b>infrastructure layer</b> is where you decide to deploy Nesync.
-    This could be on Kubernets, cloud VMs or even bare metal. This provides the
-    Neosync platform with the core memory and compute resources it needs to
-    function.
-  </li>
-  <li>
-    2. The next layer is the <b>job orchestration layer</b>. We currently use
-    Temporal to power this layer. We abstract a lot of Temporal from the end
-    developer or admin and make it easy to use. With that beind said, Temporal
-    has a lot of great functionality which, over time, we will incorporate more
-    and more into the Neosync platform.
-  </li>
-  <li>
-    3. The next layer up is the{" "}
-    <b>data synchronization and transfromation layer</b>. We leverage Benthos
-    here to connect to upstream and downstream systems and anonymize and
-    generate synthetic data. This layer works closely with the job orchestration
-    layer to start a run, pull data, transform it, and then push it downstream.
-    Benthos scales horizontally so depending on your infrastructure layer and
-    set up, you may have multiple instances of benthos working to move and
-    transform data.
-  </li>
-  <li>
-    4. The next layer up is the <b>Neosync API</b>. The Neosync API communicates
-    between the control plane and data plane and is written in Go and deployed
-    as single binary or container.
-  </li>
-  <li>
-    5. The top-most layer is the <b>Neosync control plane</b>. This where
-    administrators can manage their Neosync deployments and enable security
-    features such as RBAC, auditing and more.
-  </li>
-  <li>
-    6. The database layer is a <b>postgres database</b> where Neosync stores all
-    of the metadata and user accounts of your deployment.
-  </li>
-  <li>
-    7. Neosync also ships with a <b>CLI and access to APIs and SDKs</b>. The
-    CLI, APIs and SDKs talk directly to the Neosync API.
-  </li>
-</ul>
+### Infrastructure layer
+
+The <b>infrastructure layer</b> is where you decide to deploy Nesync.
+This could be on Kubernets, cloud VMs or even bare metal. This provides the
+Neosync platform with the core memory and compute resources it needs to
+function.
+
+### Job Orchestration layer
+
+The next layer is the <b>job orchestration layer</b>. We currently use
+Temporal to power this layer. We abstract a lot of Temporal from the end
+developer or admin and make it easy to use. With that beind said, Temporal
+has a lot of great functionality which, over time, we will incorporate more
+and more into the Neosync platform.
+
+### Data synchronization and tranformation layer
+
+The next layer up is the <b>data synchronization and transfromation layer</b>. We leverage Benthos here
+to connect to upstream and downstream systems and anonymize and generate
+synthetic data. This layer works closely with the job orchestration layer to
+start a run, pull data, transform it, and then push it downstream. Benthos
+scales horizontally so depending on your infrastructure layer and set up, you
+may have multiple instances of benthos working to move and transform data.
+
+### Neosync API
+
+The next layer up is the <b>Neosync API</b>. The Neosync API communicates
+between the control plane and data plane and is written in Go and deployed
+as single binary or container.
+
+### Neosync Control Plane
+
+The top-most layer is the <b>Neosync control plane</b>. This where
+administrators can manage their Neosync deployments and enable security
+features such as RBAC, auditing and more.
+
+### Storage Layer
+
+The database layer is a <b>postgres database</b> where Neosync stores all
+of the metadata and user accounts of your deployment.
+
+### CLI, APIs and SDKs
+
+Neosync also ships with a <b>CLI and access to APIs and SDKs</b>. The
+CLI, APIs and SDKs talk directly to the Neosync API.
