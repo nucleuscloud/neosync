@@ -5,24 +5,22 @@ import { isActiveSidebarItem } from "@docusaurus/theme-common/internal";
 import {
   HomeIcon,
   LayersIcon,
-  LightningBoltIcon,
   LinkBreak1Icon,
   Share1Icon,
-  StackIcon,
   TokensIcon,
 } from "@radix-ui/react-icons";
 import IconExternalLink from "@theme/Icon/ExternalLink";
 import clsx from "clsx";
 import React from "react";
 import { AiOutlineMail, AiOutlinePhone } from "react-icons/ai";
-import { BiAtom, BiLogoPostgresql } from "react-icons/bi";
+import { BiLogoPostgresql } from "react-icons/bi";
 import { BsFunnel, BsShieldCheck } from "react-icons/bs";
 import { FaAws, FaDocker, FaRegAddressCard } from "react-icons/fa";
 import { GoCode } from "react-icons/go";
 import { GrMysql } from "react-icons/gr";
 import { IoBuildOutline } from "react-icons/io5";
 import { MdPassword } from "react-icons/md";
-import { PiArrowsSplitLight, PiFlaskLight, PiPlugsLight } from "react-icons/pi";
+import { PiArrowsSplitLight, PiFlaskLight } from "react-icons/pi";
 import { SiKubernetes } from "react-icons/si";
 import styles from "./styles.module.css";
 
@@ -104,20 +102,10 @@ export const RenderIcon = (name) => {
       return <FaRegAddressCard />;
     case "Custom":
       return <GoCode />;
-    case "Jobs":
-      return <StackIcon />;
-    case "Connections":
-      return <PiPlugsLight />;
-    case "Transformers":
-      return <LightningBoltIcon />;
-    case "Concepts":
-      return <BiAtom />;
     case "Pre-built":
       return <IoBuildOutline />;
     case "Use cases":
       return <BsShieldCheck />;
-    case "Runs":
-      return <LayersIcon />;
     case "Anonymize Data":
       return <LinkBreak1Icon />;
     case "Replicate Data":
@@ -126,7 +114,6 @@ export const RenderIcon = (name) => {
       return <PiFlaskLight />;
     case "Subset Data":
       return <BsFunnel />;
-
     default:
       return <LayersIcon />;
   }

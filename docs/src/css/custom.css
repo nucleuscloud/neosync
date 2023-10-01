@@ -102,6 +102,10 @@ this is the class for the sidebar categories that section headers
     @apply text-gray-900 text-2xl font-semibold;
   }
 
+  h3 {
+    @apply text-gray-900 text-xl font-semibold;
+  }
+
   /*
   sidebar menu item when active
   */

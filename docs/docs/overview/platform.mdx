@@ -6,10 +6,28 @@ slug: /platform
 ---
 
 import { DocPageHeader } from "@site/src/components/HomepageFeatures/DocPageHeader.tsx";
+import { HeroImage } from "@site/src/components/HomepageFeatures/HeroImage.tsx";
 
-<DocPageHeader
-  title="Platform Overview"
-  subtitle="The Neosync platform is an open-source composable platform that is built to scale horizontally and vertically. "
-/>
+<DocPageHeader title="Platform Overview" />
 
-## More coming soon!
+Neosync is an open-source, test data management platform that enables teams to easily anonymize sensitive data and generate synthetic data for use in lower level environments. From a platform perspective, Neosync is an async data synchronization and replication pipeline with built-in data anonymization and synthetic data generation features.
+
+<HeroImage />
+
+## Core concepts
+
+Neosync follows an event-driven architecture and has three core concepts which power the platform.
+
+### Jobs
+
+//insert job diagram here
+
+Jobs are async workflows that transform data and sync it between source and destination systems. They can run on a set schedule orrun ad-hoc and can be paused at any time. Under the covers, Neosync uses [Temporal](https://github.com/temporalio/temporal) as our job scheduling and execution engine and [Benthos](https://github.com/benthosdev/benthos) as our data transformation engine. Temporal handles all of the execution, retries, backoffs and the coordination of tasks within a job. While Benthos handle the data sync'ing and transformation logic.
+
+Jobs also have <strong>types</strong>. Today, we only have <strong>data-generation</strong> job types but in the future we will other job types such as privacy-scans and schema migrations.
+
+Every time a job is executed it creates a <strong>run</strong>. <strong>Runs</strong> are instances of a job that have been executed. Neosync exposes a lot of useful metadata for each run which can help teams understand if a run completed successfully and if not, what exactly went wrong.
+
+### Connections
+
+### Transformers
