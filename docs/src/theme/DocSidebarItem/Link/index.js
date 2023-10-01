@@ -64,7 +64,7 @@ export default function DocSidebarItemLink({
         })}
         {...props}
       >
-        <div className="gap-4 flex flex-row items-center font-normal">
+        <div className="gap-4 flex flex-row items-center font-normal text-gray-800">
           {RenderIcon(item.label)}
           {label}
           {!isInternalLink && <IconExternalLink />}
