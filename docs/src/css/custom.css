@@ -106,13 +106,6 @@ this is the class for the sidebar categories that section headers
     @apply text-gray-900 text-xl font-semibold;
   }
 
-  /*
-  sidebar menu item when active
-  */
-  /* [data-theme="light"] .menu__link.menu__link--active {
-    @apply bg-[#dce3f2];
-  } */
-
   .card {
     @apply rounded-xl shadow-lg;
   }
