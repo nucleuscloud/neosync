@@ -16,7 +16,7 @@ Neosync is an open-source, test data management platform that enables teams to e
 
 ## Core concepts
 
-Neosync follows an event-driven architecture and has three core concepts which power the platform.
+The best way to learn about Neosync is to understand the core concepts of the platform.
 
 ### Jobs
 
@@ -39,10 +39,32 @@ exactly went wrong.
 
 //insert connections screenshort
 
-Connections are integrations with upstream and/or downstream systems. Jobs use connections to move data across systems. Connections are created outside of jobs so that you can re-use connections across multiple jobs without re-creating it every time. We plan to continue to expand the number of connections we offer so that we can cover most major systems. As we mentioned above, we use Benthos for our core data sync'ing and transformation. Benthos ships with a number of pre-built [connections](https://www.benthos.dev/docs/components/inputs/about) that we will work to support. If there is a connection that you'd like to see in Neosync but we haven't developer first-class support for it yet, feel free to submit a PR!
+Connections are integrations with upstream and/or downstream systems such as Postgres, S3, Mysql and many more. Jobs use connections to move data across systems. Connections are created outside of jobs so that you can re-use connections across multiple jobs without re-creating it every time. We plan to continue to expand the number of connections we offer so that we can cover most major systems. As we mentioned above, we use Benthos for our core data sync'ing and transformation. Benthos ships with a number of pre-built [connections](https://www.benthos.dev/docs/components/inputs/about) that we will work to support. If there is a connection that you'd like to see in Neosync but we haven't developer first-class support for it yet, feel free to submit a PR!
 
 ### Transformers
 
 //add in transformers screenshot
 
 Transformers are data-type specific modules that anonymize or generate data. Tranformers are defined in the job workflow and are applied to every piece of data in the column they are assigned. Neosync ships with a number of transformers already built that handle common data types such as email, physical addresses, ssn, strings, integers and more. You can also create your own custom transformers using a regular expression or by writing javascript code.
+
+## Component module
+
+Neosync is a cloud-native distributed platform that is built to be highly reliable and scalable. As mentioned in the previous sections, Neosync leverages other open source tools such as Temporal and Benthos to power the core job orchestration and data transformation workflows. Here is an component module diagram showing how the core Neosync components.
+
+//enter in a platform layercake diagram here
+
+Starting from the bottom and working our way up:
+
+1. The infrastructure layer is where you decide to deploy Nesync. This could be on Kubernets, cloud VMs or even bare metal. This provides the Neosync platform with the core memory and compute resources it needs to function.
+
+2. The next layer is the job orchestration layer. We currently use Temporal to power this layer. We abstract a lot of Temporal from the end developer or admin and make it easy to use. With that beind said, Temporal has a lot of great functionality which, over time, we will incorporate more and more into the Neosync platform.
+
+3. The next layer up is the data synchronization and transfromation layer. We leverage Benthos here to connect to upstream and downstream systems and anonymize and generate synthetic data. This layer works closely with the job orchestration layer to start a run, pull data, transform it, and then push it downstream. Benthos scales horizontally so depending on your infrastructure layer and set up, you may have multiple instances of benthos working to move and transform data.
+
+4. The next layer up is the Neosync API. The Neosync API communicates between the control plane and data plane and is written in Go and deployed as single binary or container.
+
+5. The top-most layer is the Neosync control plane. This where administrators can manage their Neosync deployments and enable security features such as RBAC, auditing and more.
+
+6. The database layer is a postgres database where Neosync stores all of the metadata and user accounts of your deployment.
+
+7. Neosync also ships with a CLI and access to APIs and SDKs. The CLI, APIs and SDKs talk directly to the Neosync API.
