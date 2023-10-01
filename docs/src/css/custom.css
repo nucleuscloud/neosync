@@ -17,7 +17,7 @@
   --ifm-color-primary-light: #101010;
   --ifm-color-primary-lighter: #101010;
   --ifm-color-primary-lightest: #101010;
-  --ifm-code-font-size: 70%;
+  --ifm-code-font-size: 90%;
   --ifm-font-family: "Inter";
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
@@ -39,7 +39,7 @@ html[data-theme="dark"] {
 
 @layer base {
   body {
-    @apply mx-60;
+    @apply mx-60 text-sm;
   }
 }
 
@@ -88,6 +88,10 @@ this is the class for the sidebar categories that section headers
   .heroImage {
     @apply py-10;
   }
+
+  .menu__list {
+    @apply pr-10;
+  }
   .menu__list-item-collapsible {
     @apply rounded-xl font-normal;
   }
@@ -99,16 +103,16 @@ this is the class for the sidebar categories that section headers
     @apply text-gray-900 text-2xl font-semibold;
   }
 
-  .card {
-    @apply rounded-xl shadow-lg;
-  }
-
   /*
   sidebar menu item when active
   */
   /* [data-theme="light"] .menu__link.menu__link--active {
     @apply bg-[#dce3f2];
   } */
+
+  .card {
+    @apply rounded-xl shadow-lg;
+  }
 
   .custom-card-list {
     @apply grid grid-cols-4 gap-2;
