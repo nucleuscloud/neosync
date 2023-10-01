@@ -9,9 +9,22 @@ import { DocPageHeader } from "@site/src/components/HomepageFeatures/DocPageHead
 import { HeroImage } from "@site/src/components/HomepageFeatures/HeroImage.tsx";
 import { CustomCardList } from "@site/src/components/HomepageFeatures/CustomCardList.tsx";
 import { CustomCard } from "@site/src/components/HomepageFeatures/CustomCard.tsx";
+import {
+  PiArrowsSplitLight,
+  PiFlaskLight,
+  PiPlugsLight,
+  PiRocketLaunchLight,
+} from "react-icons/pi";
+import { BsFunnel } from "react-icons/bs";
 import { FaSync } from "react-icons/fa";
 import { GrConnect } from "react-icons/gr";
-import { LightningBoltIcon } from "@radix-ui/react-icons";
+import {
+  LightningBoltIcon,
+  LayersIcon,
+  LinkBreak1Icon,
+  StackIcon,
+} from "@radix-ui/react-icons";
+import { LuNetwork } from "react-icons/lu";
 
 <DocPageHeader title="Welcome to the Neosync Docs" />
 
@@ -30,21 +43,21 @@ The best way to learn Neosync is to check out our core concepts and familiarize 
       description:
         "Jobs are async workflows that tranform data and sync it between connections.",
       link: "overview/concepts/jobs",
-      icon: <FaSync />,
+      icon: <StackIcon />,
     },
     {
       title: "Runs",
       description:
         "Runs are instances of a job that can be started, paused and played back.",
       link: "overview/concepts/runs",
-      icon: <LightningBoltIcon />,
+      icon: <LayersIcon />,
     },
     {
       title: "Connections",
       description:
         "Connections are sources of data or destinations that you sync using Jobs such as databases.",
       link: "overview/concepts/connections",
-      icon: <GrConnect />,
+      icon: <PiPlugsLight />,
     },
     {
       title: "Transformers",
@@ -64,7 +77,7 @@ Once you're ready to deploy Neosync, check out our Deployment guide to see the a
   title="Deploy"
   description="Learn how to deploy Neosync using Docker Compose or Kubernetes. "
   link="/deploy/intro"
-  icon={<FaSync />}
+  icon={<PiRocketLaunchLight />}
 />
 
 ## Use cases
@@ -75,31 +88,28 @@ Neosync can be used in many different ways to support different use-cases. Check
   cards={[
     {
       title: "Anonymize Data",
-      description:
-        "Anonymize sensitive data from any source environment for testing in any other environment",
+      description: "Anonymize sensitive data for safe testing and development",
       link: "overview/use-cases/anonymization",
-      icon: <FaSync />,
+      icon: <LinkBreak1Icon />,
     },
     {
       title: "Generate Data",
       description:
-        "Generate high-quality, production-like synthetic data from existing data or from scratch.",
+        "Generate high-quality synthetic data from existing data or from scratch.",
       link: "overview/use-cases/synthetic-data",
-      icon: <GrConnect />,
+      icon: <PiFlaskLight />,
     },
     {
       title: "Subset Data",
-      description:
-        "Create smaller subset of your existing data to fit local and stage environments.",
+      description: "Subset your data to fit local and stage environments.",
       link: "overview/use-cases/subsetting",
-      icon: <LightningBoltIcon />,
+      icon: <BsFunnel />,
     },
     {
       title: "Replicate data",
-      description:
-        "Esaily replicate source data to multiple environments with one or multiple jobs.",
+      description: "Easily replicate source data to multiple environments.",
       link: "overview/use-cases/replication",
-      icon: <LightningBoltIcon />,
+      icon: <PiArrowsSplitLight />,
     },
   ]}
 />
