@@ -165,7 +165,7 @@ export default function DocSidebarItemCategory({
           href={collapsible ? hrefWithSSRFallback ?? "#" : hrefWithSSRFallback}
           {...props}
         >
-          <div className="gap-4 flex flex-row items-center font-normal">
+          <div className="gap-4 flex flex-row items-center font-normal text-gray-800">
             {RenderIcon(label)}
             {label}
             {handleCollapsible()}

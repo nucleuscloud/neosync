@@ -34,34 +34,6 @@ const sidebars = {
     },
     {
       type: "category",
-      label: "Concepts",
-      collapsible: true,
-      collapsed: true,
-      items: [
-        {
-          type: "doc",
-          id: "overview/concepts/jobs",
-          label: "Jobs",
-        },
-        {
-          type: "doc",
-          id: "overview/concepts/runs",
-          label: "Runs",
-        },
-        {
-          type: "doc",
-          id: "overview/concepts/connections",
-          label: "Connections",
-        },
-        {
-          type: "doc",
-          id: "overview/concepts/transformers",
-          label: "Transformers",
-        },
-      ],
-    },
-    {
-      type: "category",
       label: "Use cases",
       collapsible: true,
       collapsed: true,
