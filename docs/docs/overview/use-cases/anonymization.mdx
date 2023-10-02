@@ -11,4 +11,26 @@ import { DocPageHeader } from "@site/src/components/HomepageFeatures/DocPageHead
 
 ## Introduction
 
-Neosync is a great way to anonymize senstive data and sync it across multiple environments for testing locally, in stage or your CI pipeline.
+Neosync is a great way to anonymize senstive data and sync it across multiple environments for testing locally, in stage or your CI pipeline. Typically, teams will point Neosync to a snapshot of their production database and anonymize their production data to make it usable in lower level environments. This is a great way to get production-like data without the risk of security and compliance challenges.
+
+## Anonymization
+
+Neosync provides the core anonymization functionlity through [transformers](/platform#transformers). Transformers anonymize or mask source data in any way you'd like. Neosync ships with a number of pre-built tranformers to help you get started or you can write your own custom transformer. For ex. say that you have a users table with the following columns:
+
+- id, first_name, last_name, email and age
+
+You can use the prebuilt Neosync transformers in order to anonymize the PII in this table (first_name, last_name, email and age). Here's what that would look like:
+
+//insert screenshot showing schema and transformers
+
+We've mapped each transformer to the right column which means that every time the job is executed, the value in that column will be tranformed based on the transformer's settings. The output will be transformed source data without any of the PII which makes it usable in lower level environments.
+
+//screenshot of the output here
+
+Since the transformers are customizable, you can anonymize or mask any source data by writing your own custom tranformer. This gives you ultimate flexibility to control your data.
+
+Lastly, you can decide to subset this data to reduce the size of it to make it fit in lower level environments like your local database.
+
+## Conclusion
+
+Anonymization is a powerful way to protect sensitive production data while making it usable for testing in lower level environments. You can use the transformers that Neosync ships with to anonymize your data or create your own to fit your use-case.
