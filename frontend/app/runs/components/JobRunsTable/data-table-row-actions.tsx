@@ -45,6 +45,22 @@ export function DataTableRowActions<TData>({
     }
   }
 
+  async function onCancel(): Promise<void> {
+    try {
+      await cancelJobRun(run.id);
+      toast({
+        title: 'Job run canceled successfully!',
+      });
+      onDeleted();
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to cancel job run',
+        description: getErrorMessage(err),
+      });
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -64,6 +80,10 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        <DropdownMenuItem className="cursor-pointer" onClick={() => onCancel()}>
+          Cancel
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem className="cursor-pointer" onClick={() => onDelete()}>
           Delete
         </DropdownMenuItem>
@@ -75,6 +95,17 @@ export function DataTableRowActions<TData>({
 async function removeJobRun(jobRunId: string): Promise<void> {
   const res = await fetch(`/api/runs/${jobRunId}`, {
     method: 'DELETE',
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  await res.json();
+}
+
+async function cancelJobRun(jobRunId: string): Promise<void> {
+  const res = await fetch(`/api/runs/${jobRunId}/cancel`, {
+    method: 'PUT',
   });
   if (!res.ok) {
     const body = await res.json();

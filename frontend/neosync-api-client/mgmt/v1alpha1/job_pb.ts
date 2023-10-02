@@ -1554,9 +1554,9 @@ export class GetJobRunsResponse extends Message<GetJobRunsResponse> {
  */
 export class GetJobRunRequest extends Message<GetJobRunRequest> {
   /**
-   * @generated from field: string id = 1;
+   * @generated from field: string job_run_id = 1;
    */
-  id = "";
+  jobRunId = "";
 
   constructor(data?: PartialMessage<GetJobRunRequest>) {
     super();
@@ -1566,7 +1566,7 @@ export class GetJobRunRequest extends Message<GetJobRunRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetJobRunRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunRequest {
@@ -2265,9 +2265,9 @@ export class JobRunEvent extends Message<JobRunEvent> {
  */
 export class GetJobRunEventsRequest extends Message<GetJobRunEventsRequest> {
   /**
-   * @generated from field: string id = 1;
+   * @generated from field: string job_run_id = 1;
    */
-  id = "";
+  jobRunId = "";
 
   constructor(data?: PartialMessage<GetJobRunEventsRequest>) {
     super();
@@ -2277,7 +2277,7 @@ export class GetJobRunEventsRequest extends Message<GetJobRunEventsRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetJobRunEventsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunEventsRequest {
@@ -2450,9 +2450,9 @@ export class GetTransformersResponse extends Message<GetTransformersResponse> {
  */
 export class DeleteJobRunRequest extends Message<DeleteJobRunRequest> {
   /**
-   * @generated from field: string id = 1;
+   * @generated from field: string job_run_id = 1;
    */
-  id = "";
+  jobRunId = "";
 
   constructor(data?: PartialMessage<DeleteJobRunRequest>) {
     super();
@@ -2462,7 +2462,7 @@ export class DeleteJobRunRequest extends Message<DeleteJobRunRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.DeleteJobRunRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteJobRunRequest {
