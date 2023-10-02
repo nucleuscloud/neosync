@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+message GetTransformersRequest {}
+
+message GetTransformersResponse {
+  repeated Transformers transformers = 1;
+}
+
+message Transformers {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 2;
+  string description = 3;
+  TransformerConfig config = 4;
+}
+
+message TransformerConfig {
+  oneof config {
+    option (validate.required) = true;
+
+    EmailConfig email_config = 1;
+  }
+}
+
+message EmailConfig {
+  bool preserve_domain = 1;
+  bool preserve_length = 2;
+}
+
+service TransformersService {
+  rpc GetTransformers(GetTransformersRequest) returns (GetTransformersResponse) {}
+}

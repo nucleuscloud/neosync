@@ -48,7 +48,7 @@ fi
 cmd="$1"
 
 if ! command -v migrate > /dev/null ; then
-    echo "Must have golang-migrate installed. Run 'make install' if OSX or consult your package manager."
+    echo "Must have golang-migrate installed. Run 'make install-tools' if OSX or consult your package manager."
     exit 1
 fi
 

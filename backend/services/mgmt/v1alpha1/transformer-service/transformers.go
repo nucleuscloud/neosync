@@ -1,4 +1,4 @@
-package v1alpha1_jobservice
+package v1alpha1_transformerservice
 
 import (
 	"context"
@@ -15,6 +15,7 @@ const (
 	UuidV4      Transformation = "uuid_v4"
 	FirstName   Transformation = "first_name"
 	PhoneNumber Transformation = "phone_number"
+	Email       Transformation = "email "
 )
 
 func (s *Service) GetTransformers(
@@ -27,6 +28,7 @@ func (s *Service) GetTransformers(
 			{Title: "Uuid V4", Value: string(UuidV4)},
 			{Title: "First Name", Value: string(FirstName)},
 			{Title: "Phone Number", Value: string(PhoneNumber)},
+			{Title: "Email", Value: string(Email)},
 		},
 	}), nil
 }
