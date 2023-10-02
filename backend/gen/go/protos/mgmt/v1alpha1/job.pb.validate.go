@@ -4670,7 +4670,7 @@ func (m *GetJobRunRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	// no validation rules for JobRunId
 
 	if len(errors) > 0 {
 		return GetJobRunRequestMultiError(errors)
@@ -6778,7 +6778,7 @@ func (m *GetJobRunEventsRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	// no validation rules for JobRunId
 
 	if len(errors) > 0 {
 		return GetJobRunEventsRequestMultiError(errors)
@@ -7359,9 +7359,9 @@ func (m *DeleteJobRunRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
+	if err := m._validateUuid(m.GetJobRunId()); err != nil {
 		err = DeleteJobRunRequestValidationError{
-			field:  "Id",
+			field:  "JobRunId",
 			reason: "value must be a valid UUID",
 			cause:  err,
 		}

@@ -364,7 +364,7 @@ func (s *Service) DeleteJob(
 	logger.Info("deleting schedule")
 	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	description, err := scheduleHandle.Describe(ctx)
-	if err != nil && !strings.Contains(err.Error(), "schedule not found") {
+	if err != nil && !strings.Contains(err.Error(), "schedule not found") && !strings.Contains(err.Error(), "no rows in result set") {
 		return nil, err
 	}
 

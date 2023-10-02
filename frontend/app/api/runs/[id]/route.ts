@@ -13,7 +13,7 @@ export async function GET(
   return withNeosyncContext(async (ctx) => {
     return ctx.jobsClient.getJobRun(
       new GetJobRunRequest({
-        id: params.id,
+        jobRunId: params.id,
       })
     );
   })(req);
@@ -26,7 +26,7 @@ export async function DELETE(
   return withNeosyncContext(async (ctx) => {
     return ctx.jobsClient.deleteJobRun(
       new DeleteJobRunRequest({
-        id: params.id,
+        jobRunId: params.id,
       })
     );
   })(req);

@@ -169,7 +169,7 @@ message GetJobRunsResponse {
 }
 
 message GetJobRunRequest {
-  string id = 1;
+  string job_run_id = 1;
 }
 message GetJobRunResponse {
   JobRun job_run = 1;
@@ -274,7 +274,7 @@ message JobRunEvent {
 }
 
 message GetJobRunEventsRequest {
-  string id = 1;
+  string job_run_id = 1;
 }
 
 message GetJobRunEventsResponse {
@@ -291,7 +291,7 @@ message GetTransformersResponse {
 }
 
 message DeleteJobRunRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string job_run_id = 1 [(validate.rules).string.uuid = true];
 }
 message DeleteJobRunResponse {}
 
