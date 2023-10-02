@@ -61,6 +61,7 @@ export default function JobPauseSwitch({ job, mutate }: Props): ReactElement {
         variant: 'default',
       });
       mutate();
+      form.reset();
     } catch (err) {
       console.error(err);
       toast({

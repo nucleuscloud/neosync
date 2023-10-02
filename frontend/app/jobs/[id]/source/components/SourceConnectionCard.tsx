@@ -86,6 +86,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
         title: 'Successfully updated job source connection!',
         variant: 'default',
       });
+      form.reset();
     } catch (err) {
       console.error(err);
       toast({

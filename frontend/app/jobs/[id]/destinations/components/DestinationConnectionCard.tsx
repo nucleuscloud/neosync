@@ -71,6 +71,7 @@ export default function DestinationConnectionCard({
         title: 'Successfully updated job destination!',
         variant: 'default',
       });
+      form.reset();
     } catch (err) {
       console.error(err);
       toast({

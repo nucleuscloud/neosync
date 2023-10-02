@@ -62,6 +62,7 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
         variant: 'default',
       });
       mutate();
+      form.reset();
     } catch (err) {
       console.error(err);
       toast({
