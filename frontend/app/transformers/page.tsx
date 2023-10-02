@@ -35,9 +35,9 @@ function TransformersTable(): ReactElement {
     return <SkeletonTable />;
   }
 
-  // const columns = getColumns({ transformers: transformers });
-
   const columns = getColumns();
+
+  console.log('golumns', columns);
   return (
     <div>
       <DataTable columns={columns} data={transformers} />

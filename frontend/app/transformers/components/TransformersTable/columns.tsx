@@ -38,15 +38,15 @@ export function getColumns(): ColumnDef<PlainMessage<Transformer>>[] {
       enableSorting: false,
       enableHiding: false,
     },
-    {
-      accessorKey: 'id',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Transformer id" />
-      ),
-      cell: ({ row }) => <div className="w-[80px]">{row.getValue('id')}</div>,
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   accessorKey: 'id',
+    //   header: ({ column }) => (
+    //     <DataTableColumnHeader column={column} title="Transformer id" />
+    //   ),
+    //   cell: ({ row }) => <div className="w-[80px]">{row.getValue('id')}</div>,
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
     {
       accessorKey: 'title',
       header: ({ column }) => (
@@ -59,39 +59,43 @@ export function getColumns(): ColumnDef<PlainMessage<Transformer>>[] {
           <div className="flex space-x-2">
             {/* {label && <Badge variant="outline">{label.label}</Badge>} */}
             <span className="max-w-[500px] truncate font-medium">
-              {row.getValue('title')}
+              {/* {row.getValue('title')} */}
+              {row.original.title}
             </span>
           </div>
         );
       },
     },
-    // {
-    //   accessorKey: 'status',
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader column={column} title="Status" />
-    //   ),
-    //   cell: ({ row }) => {
-    //     const status = statuses.find(
-    //       (status) => status.value === row.getValue('status')
-    //     );
+    {
+      accessorKey: 'status',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Status" />
+      ),
+      cell: ({ row }) => {
+        // const status = statuses.find(
+        //   (status) => status.value === row.getValue('status')
+        // );
 
-    //     if (!status) {
-    //       return null;
-    //     }
+        const status = { icon: 'fagit', label: 'status' };
 
-    //     return (
-    //       <div className="flex w-[100px] items-center">
-    //         {status.icon && (
-    //           <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-    //         )}
-    //         <span>{status.label}</span>
-    //       </div>
-    //     );
-    //   },
-    //   filterFn: (row, id, value) => {
-    //     return value.includes(row.getValue(id));
-    //   },
-    // },
+        if (!status) {
+          return null;
+        }
+
+        return (
+          <div className="flex w-[100px] items-center">
+            {status.icon && (
+              // <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+              <div>{row.original.title}</div>
+            )}
+            {/* <span>{status.label}</span> */}
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
     // {
     //   accessorKey: 'category',
     //   header: ({ column }) => (

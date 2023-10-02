@@ -3,15 +3,16 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetConnection } from '@/libs/hooks/useGetConnection';
+import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
 import { GetConnectionResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { getErrorMessage } from '@/util/util';
-import RemoveConnectionButton from './components/RemoveConnectionButton';
-import { getConnectionComponentDetails } from './components/connection-component';
+import RemoveTransformerButton from './components/RemoveTransformerButton';
+import { getTransformerComponentDetails } from './components/transformer-component';
 
-export default function ConnectionPage({ params }: PageProps) {
+export default function TransformerPage({ params }: PageProps) {
   const id = params?.id ?? '';
-  const { data, isLoading, mutate } = useGetConnection(id);
+  const { data, isLoading, mutate } = useGetTransformers(); //udpate with tranformesr
+
   const { toast } = useToast();
   if (!id) {
     return <div>Not Found</div>;
@@ -23,8 +24,8 @@ export default function ConnectionPage({ params }: PageProps) {
       </div>
     );
   }
-  const connectionComponent = getConnectionComponentDetails({
-    connection: data?.connection!,
+  const tranformerComponent = getTransformerComponentDetails({
+    transformer: data?.transformers[0]!,
     onSaved: (resp) => {
       mutate(
         new GetConnectionResponse({
@@ -44,16 +45,16 @@ export default function ConnectionPage({ params }: PageProps) {
       }),
     extraPageHeading: (
       <div>
-        <RemoveConnectionButton connectionId={id} />
+        <RemoveTransformerButton transformerID={id} />
       </div>
     ),
   });
   return (
-    <OverviewContainer Header={connectionComponent.header}>
+    <OverviewContainer Header={tranformerComponent.header}>
       <div className="connection-details-container">
         <div>
           <div className="flex flex-col">
-            <div>{connectionComponent.body}</div>
+            <div>{tranformerComponent.body}</div>
           </div>
         </div>
       </div>
