@@ -29,7 +29,6 @@ export function DataTableRowActions<TData>({
   const router = useRouter();
   const { toast } = useToast();
 
-  console.log('transformer row', transformer);
   async function onDelete(): Promise<void> {
     try {
       await removeTransformer(transformer.title); //TODO: this should be transformer.id,

@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 
 interface Props {
-  connectionId: string;
+  transformerID: string;
 }
 
-export default function RemoveConnectionButton(props: Props): ReactElement {
-  const { connectionId } = props;
+export default function RemoveTransformerButton(props: Props): ReactElement {
+  const { transformerID } = props;
   const router = useRouter();
   const { toast } = useToast();
   return (
@@ -18,16 +18,16 @@ export default function RemoveConnectionButton(props: Props): ReactElement {
       variant="destructive"
       onClick={async () => {
         try {
-          await removeConnection(connectionId);
+          await removeTransformer(transformerID);
           toast({
-            title: 'Successfully removed connection!',
+            title: 'Successfully removed transformer!',
             variant: 'default',
           });
-          router.push(`/connections`);
+          router.push(`/transformers`);
         } catch (err) {
           console.error(err);
           toast({
-            title: 'Unable to remove connection',
+            title: 'Unable to remove transformer',
             description: getErrorMessage(err),
             variant: 'destructive',
           });
@@ -36,14 +36,14 @@ export default function RemoveConnectionButton(props: Props): ReactElement {
     >
       <div className="flex flex-row gap-1 items-center">
         <TrashIcon />
-        <p>Delete Connection</p>
+        <p>Delete Transformer</p>
       </div>
     </Button>
   );
 }
 
-async function removeConnection(connectionId: string): Promise<void> {
-  const res = await fetch(`/api/connections/${connectionId}`, {
+async function removeTransformer(transformerID: string): Promise<void> {
+  const res = await fetch(`/api/transformer/${transformerID}`, {
     method: 'DELETE',
   });
   if (!res.ok) {
