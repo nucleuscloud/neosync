@@ -3,6 +3,7 @@ package dbschemas_postgres
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -155,7 +156,12 @@ func GetTableCreateStatement(
 	conn *pgx.Conn,
 	req *GetTableCreateStatementRequest,
 ) (string, error) {
-	row := conn.QueryRow(ctx, getTableCreateStatementSql, req.Table)
+	// hack to fix tables in public schema
+	table := req.Table
+	if strings.HasPrefix(req.Table, "public.") {
+		table = strings.TrimPrefix(req.Table, "public.")
+	}
+	row := conn.QueryRow(ctx, getTableCreateStatementSql, table)
 
 	var createStmt string
 
