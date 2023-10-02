@@ -5,6 +5,10 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
+import { getErrorMessage } from '@/util/util';
+import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import JobNextRuns from './components/NextRuns';
 import JobPauseSwitch from './components/PauseSwitch';
@@ -14,6 +18,24 @@ import JobScheduleCard from './components/ScheduleCard';
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { data, isLoading, mutate } = useGetJob(id);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  async function onTriggerJobRun(): Promise<void> {
+    try {
+      await triggerJobRun(id);
+      toast({
+        title: 'Job run triggered successfully!',
+      });
+      router.push(`/runs`);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to trigger job run',
+        description: getErrorMessage(err),
+      });
+    }
+  }
 
   if (isLoading) {
     return (
@@ -38,6 +60,9 @@ export default function Page({ params }: PageProps): ReactElement {
       <SubPageHeader
         header={data?.job?.name || ''}
         description={data?.job?.id || ''}
+        extraHeading={
+          <Button onClick={() => onTriggerJobRun()}>Trigger Run</Button>
+        }
       />
       <div className="space-y-10">
         <JobPauseSwitch job={data?.job} mutate={mutate} />
@@ -53,4 +78,16 @@ export default function Page({ params }: PageProps): ReactElement {
       </div>
     </div>
   );
+}
+
+async function triggerJobRun(jobId: string): Promise<void> {
+  const res = await fetch(`/api/jobs/${jobId}/create-run`, {
+    method: 'POST',
+    body: JSON.stringify({ jobId }),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  await res.json();
 }

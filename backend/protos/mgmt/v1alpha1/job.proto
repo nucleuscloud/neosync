@@ -178,9 +178,7 @@ message GetJobRunResponse {
 message CreateJobRunRequest {
   string job_id = 1;
 }
-message CreateJobRunResponse {
-  JobRun job_run = 1;
-}
+message CreateJobRunResponse {}
 
 message CancelJobRunRequest {
   string job_run_id = 1;

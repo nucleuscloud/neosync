@@ -1664,11 +1664,6 @@ export class CreateJobRunRequest extends Message<CreateJobRunRequest> {
  * @generated from message mgmt.v1alpha1.CreateJobRunResponse
  */
 export class CreateJobRunResponse extends Message<CreateJobRunResponse> {
-  /**
-   * @generated from field: mgmt.v1alpha1.JobRun job_run = 1;
-   */
-  jobRun?: JobRun;
-
   constructor(data?: PartialMessage<CreateJobRunResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1677,7 +1672,6 @@ export class CreateJobRunResponse extends Message<CreateJobRunResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.CreateJobRunResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "job_run", kind: "message", T: JobRun },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRunResponse {
