@@ -23,69 +23,43 @@ export function getTransformerComponentDetails(
 ): TransformerComponent {
   const { transformer } = props;
 
-  // switch (transformer?.title) {
-  //   case 'Passthrough':
-  //     return {
-  //       name: transformer.title,
-  //       summary: (
-  //         <div>
-  //           <p>No summary found.</p>
-  //         </div>
-  //       ),
-  //       header: (
-  //         <PageHeader
-  //           header="Unknown Transformer"
-  //           description="Update this transformer"
-  //         />
-  //       ),
-  //       body: (
-  //         <div>
-  //           No connection component found for: (
-  //           {transformer?.title ?? 'unknown name'})
-  //         </div>
-  //       ),
-  //     };
-  //   default:
-  //     return {
-  //       name: 'Invalid Connection',
-  //       summary: (
-  //         <div>
-  //           <p>No summary found.</p>
-  //         </div>
-  //       ),
-  //       header: (
-  //         <PageHeader
-  //           header="Unknown Transformer"
-  //           description="Update this transformer"
-  //         />
-  //       ),
-  //       body: (
-  //         <div>
-  //           No connection component found for: (
-  //           {transformer?.title ?? 'unknown name'})
-  //         </div>
-  //       ),
-  //     };
-  // }
-
-  return {
-    name: 'Invalid Connection',
-    summary: (
-      <div>
-        <p>No summary found.</p>
-      </div>
-    ),
-    header: (
-      <PageHeader
-        header="Unknown Transformer"
-        description="Update this transformer"
-      />
-    ),
-    body: (
-      <div>
-        No connection component found for: (
-        {transformer?.title ?? 'unknown name'})
-      </div>
-    ),
-  };
+  switch (transformer?.title) {
+    case 'Passthrough':
+      return {
+        name: transformer.title,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: (
+          <PageHeader
+            header={`${transformer.title} Transformer`}
+            description="This transformer is a passthrough."
+          />
+        ),
+        body: <div>{transformer?.title} transformer for right now</div>,
+      };
+    default:
+      return {
+        name: 'Invalid Connection',
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: (
+          <PageHeader
+            header="Unknown Transformer"
+            description="Update this transformer"
+          />
+        ),
+        body: (
+          <div>
+            No connection component found for: (
+            {transformer?.title ?? 'unknown name'})
+          </div>
+        ),
+      };
+  }
 }
