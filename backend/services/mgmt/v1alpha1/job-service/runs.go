@@ -197,6 +197,29 @@ func (s *Service) CreateJobRun(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateJobRunRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobRunResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.JobId)
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	if err != nil {
+		return nil, err
+	}
+	accountId := nucleusdb.UUIDString(job.AccountID)
+	_, err = s.verifyUserInAccount(ctx, accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	logger.Info("creating job run")
+	err = scheduleHandle.Trigger(ctx, temporalclient.ScheduleTriggerOptions{})
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to create job run: %w", err).Error())
+		return nil, err
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobRunResponse{}), nil
 }
