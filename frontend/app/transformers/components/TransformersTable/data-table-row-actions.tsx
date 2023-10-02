@@ -59,7 +59,7 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/transformer/${transformer.title}`)} //this should be id
+          onClick={() => router.push(`/transformers/${transformer.title}`)} //this should be id
         >
           View
         </DropdownMenuItem>
@@ -74,7 +74,7 @@ export function DataTableRowActions<TData>({
 }
 
 async function removeTransformer(transformerId: string): Promise<void> {
-  const res = await fetch(`/api/transformer/${transformerId}`, {
+  const res = await fetch(`/api/transformers/${transformerId}`, {
     method: 'DELETE',
   });
   if (!res.ok) {
