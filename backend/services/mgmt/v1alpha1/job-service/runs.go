@@ -12,6 +12,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
@@ -71,7 +72,7 @@ func (s *Service) GetJobRuns(
 		return nil, err
 	}
 
-	runs := []*mgmtv1alpha1.JobRun{}
+	runs := make([]*mgmtv1alpha1.JobRun, len(workflows))
 	errGrp, errCtx := errgroup.WithContext(ctx)
 	for index, workflow := range workflows {
 		index := index
@@ -93,8 +94,12 @@ func (s *Service) GetJobRuns(
 		return nil, err
 	}
 
+	filteredRuns := utils.FilterSlice[*mgmtv1alpha1.JobRun](runs, func(run *mgmtv1alpha1.JobRun) bool {
+		return run != nil && run.Id != ""
+	})
+
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRunsResponse{
-		JobRuns: runs,
+		JobRuns: filteredRuns,
 	}), nil
 }
 
