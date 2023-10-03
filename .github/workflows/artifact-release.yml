@@ -256,7 +256,7 @@ jobs:
       - name: Helm | Publish
         shell: bash
         run: |
-          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm/api"
+          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm"
           for d in ./*.tgz ; do
               helm push "$d" "$OCI_URL"
           done
@@ -311,7 +311,7 @@ jobs:
       - name: Helm | Publish
         shell: bash
         run: |
-          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm/app"
+          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm"
           for d in ./*.tgz ; do
               helm push "$d" "$OCI_URL"
           done
@@ -366,7 +366,7 @@ jobs:
       - name: Helm | Publish
         shell: bash
         run: |
-          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm/worker"
+          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm"
           for d in ./*.tgz ; do
               helm push "$d" "$OCI_URL"
           done
@@ -424,7 +424,7 @@ jobs:
       - name: Helm | Publish
         shell: bash
         run: |
-          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm/neosync"
+          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm"
           for d in ./*.tgz ; do
               helm push "$d" "$OCI_URL"
           done
