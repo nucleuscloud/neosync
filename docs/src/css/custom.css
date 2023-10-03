@@ -111,10 +111,10 @@ this is the class for the sidebar categories that section headers
   }
 
   .custom-card-list {
-    @apply grid grid-cols-4 gap-2;
+    @apply grid grid-cols-2 gap-2;
   }
   .custom-card {
-    @apply border border-gray-200 hover:border-2 hover:border-[#acc7f9] hover:shadow-md rounded-xl p-4 flex flex-col justify-between space-y-2;
+    @apply border border-gray-200  hover:border-[#acc7f9] hover:shadow-md rounded-xl p-4 flex flex-col justify-between space-y-2;
   }
   .card-title {
     @apply font-semibold text-base;
