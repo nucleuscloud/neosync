@@ -47,7 +47,7 @@
     "next-themes": "^0.2.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-hook-form": "^7.46.1",
+    "react-hook-form": "^7.47.0",
     "react-hook-form-persist": "^3.0.0",
     "react-icons": "^4.11.0",
     "reactflow": "^11.8.3",
