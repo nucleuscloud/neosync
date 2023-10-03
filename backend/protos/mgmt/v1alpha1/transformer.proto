@@ -5,17 +5,28 @@ package mgmt.v1alpha1;
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
-message GetTransformersRequest {}
-
-message GetTransformersResponse {
-  repeated Transformers transformers = 1;
+message GetTransformersRequest {
+  string account_id = 1 [(validate.rules).string.uuid = true];
 }
 
-message Transformers {
+message GetTransformersResponse {
+  repeated Transformer transformers = 1;
+}
+
+message Transformer {
   string id = 1 [(validate.rules).string.uuid = true];
   string name = 2;
   string description = 3;
-  TransformerConfig config = 4;
+
+  string created_by_user_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+
+  string updated_by_user_id = 6;
+  google.protobuf.Timestamp updated_at = 7;
+
+  TransformerConfig config = 8;
+
+  string account_id = 9;
 }
 
 message TransformerConfig {

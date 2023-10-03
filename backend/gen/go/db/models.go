@@ -66,7 +66,7 @@ type NeosyncApiTransformer struct {
 	UpdatedAt         pgtype.Timestamp
 	Name              string
 	AccountID         pgtype.UUID
-	TransformerConfig []byte
+	TransformerConfig *jsonmodels.TransformerConfig
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
 }

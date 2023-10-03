@@ -11,12 +11,15 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const getTransformers = `-- name: GetTransformers :many
-SELECT id, created_at, updated_at, name, account_id, transformer_config, created_by_id, updated_by_id from neosync_api.transformers
+const getTransformersByAccount = `-- name: GetTransformersByAccount :many
+SELECT t.id, t.created_at, t.updated_at, t.name, t.account_id, t.transformer_config, t.created_by_id, t.updated_by_id from neosync_api.transformers t
+INNER JOIN neosync_api.accounts a ON a.id = t.account_id
+WHERE a.id = $1
+ORDER BY t.created_at DESC
 `
 
-func (q *Queries) GetTransformers(ctx context.Context) ([]NeosyncApiTransformer, error) {
-	rows, err := q.db.Query(ctx, getTransformers)
+func (q *Queries) GetTransformersByAccount(ctx context.Context, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
+	rows, err := q.db.Query(ctx, getTransformersByAccount, accountid)
 	if err != nil {
 		return nil, err
 	}

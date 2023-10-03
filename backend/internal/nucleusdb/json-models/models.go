@@ -221,3 +221,29 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 	}
 	return nil
 }
+
+type TransformerConfig struct {
+	EmailConfig *EmailConfig
+}
+
+type EmailConfig struct {
+	PreserveDomain bool
+	PreserveLength bool
+}
+
+func (t *TransformerConfig) ToDto() *mgmtv1alpha1.TransformerConfig {
+
+	if t.EmailConfig != nil {
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
+				EmailConfig: &mgmtv1alpha1.EmailConfig{
+					PreserveDomain: t.EmailConfig.PreserveDomain,
+					PreserveLength: t.EmailConfig.PreserveLength,
+				},
+			},
+		}
+	}
+
+	return nil
+
+}
