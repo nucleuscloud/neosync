@@ -8,32 +8,21 @@ COPY go.sum go.sum
 
 RUN go mod download
 
-# COPY tools.go tools.go
-# COPY Makefile Makefile
-# RUN make install-go-tools
-
-# ENV PATH="$PATH:$(go env GOPATH)/bin"
-# ENV GOBIN="$PWD/bin"
-# ENV PATH="$PATH:$GOBIN"
-
-# Copy in generated code
-COPY gen/ gen/
-
 # Copy the go source
 COPY cmd/ cmd/
 COPY internal/ internal/
-COPY services/ services/
+COPY pkg/ pkg/
 
 # Build
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
-COPY --from=builder /workspace/bin/mgmt .
+COPY --from=builder /workspace/bin/worker .
 USER 65532:65532
 
-ENTRYPOINT ["/mgmt"]
+ENTRYPOINT ["/worker"]
 
-CMD ["serve", "connect"]
+CMD ["serve"]
