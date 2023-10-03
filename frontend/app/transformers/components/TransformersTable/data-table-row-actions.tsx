@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { useRouter } from 'next/navigation';
 
@@ -31,7 +31,7 @@ export function DataTableRowActions<TData>({
 
   async function onDelete(): Promise<void> {
     try {
-      await removeTransformer(transformer.title); //TODO: this should be transformer.id,
+      await removeTransformer(transformer.name);
       toast({
         title: 'Transformer removed successfully!',
       });
@@ -59,7 +59,7 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/transformers/${transformer.title}`)} //this should be id
+          onClick={() => router.push(`/transformers/${transformer.name}`)}
         >
           View
         </DropdownMenuItem>

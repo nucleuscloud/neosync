@@ -1,7 +1,7 @@
 'use client';
 import PageHeader from '@/components/headers/PageHeader';
 import { UpdateConnectionResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
 
 interface TransformerComponent {
@@ -23,10 +23,12 @@ export function getTransformerComponentDetails(
 ): TransformerComponent {
   const { transformer } = props;
 
-  switch (transformer?.title) {
-    case 'Passthrough':
+  console.log('t', transformer);
+
+  switch (transformer?.name) {
+    case 'email':
       return {
-        name: transformer.title,
+        name: transformer.name,
         summary: (
           <div>
             <p>No summary found.</p>
@@ -34,11 +36,11 @@ export function getTransformerComponentDetails(
         ),
         header: (
           <PageHeader
-            header={`${transformer.title} Transformer`}
+            header={`${transformer.name} Transformer`}
             description="This transformer is a passthrough."
           />
         ),
-        body: <div>{transformer?.title} transformer for right now</div>,
+        body: <div>{transformer?.name} transformer for right now</div>,
       };
     default:
       return {
@@ -57,7 +59,7 @@ export function getTransformerComponentDetails(
         body: (
           <div>
             No connection component found for: (
-            {transformer?.title ?? 'unknown name'})
+            {transformer?.name ?? 'unknown name'})
           </div>
         ),
       };

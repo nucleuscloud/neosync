@@ -1,5 +1,6 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -9,15 +10,17 @@ import RemoveTransformerButton from './components/RemoveTransformerButton';
 import { getTransformerComponentDetails } from './components/transformer-component';
 
 export default function TransformerPage({ params }: PageProps) {
-  const id = params?.id ?? '';
-  const { data, isLoading, mutate } = useGetTransformers(); //udpate with tranformesr
+  const name = params?.name ?? '';
+  const account = useAccount();
+  const { data, isLoading, mutate } = useGetTransformers(account?.id ?? ''); //udpate with tranformesr
+
+  const transformer = data?.transformers.find((item) => item.name == name);
 
   const { toast } = useToast();
 
-  console.log('id', id);
-  // if (id) {
-  //   return <div>Not Found ... yet</div>;
-  // }
+  if (!name) {
+    return <div>Can&apos;t find transformer ${name}</div>;
+  }
   if (isLoading) {
     return (
       <div className="mt-10">
@@ -26,15 +29,13 @@ export default function TransformerPage({ params }: PageProps) {
     );
   }
   const tranformerComponent = getTransformerComponentDetails({
-    transformer: data?.transformers[0]!,
+    transformer: transformer,
     onSaved: (resp) => {
-      mutate(
-        // new GetConnectionResponse({
-        //   //udpate this to transformer
-        //   connection: resp.connection,
-        // })
-        console.log('resp', resp)
-      );
+      mutate();
+      // new GetTransformersResponse({
+      //   connection: resp.connection,
+      // })
+      console.log('resp', resp);
       toast({
         title: 'Successfully updated transformer!',
         variant: 'default',
@@ -48,7 +49,7 @@ export default function TransformerPage({ params }: PageProps) {
       }),
     extraPageHeading: (
       <div>
-        <RemoveTransformerButton transformerID={id} />
+        <RemoveTransformerButton transformerID={transformer?.id ?? ''} />
       </div>
     ),
   });
