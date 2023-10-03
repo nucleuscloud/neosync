@@ -124,15 +124,21 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {connections.map((connection) => (
-                              <SelectItem
-                                className="cursor-pointer"
-                                key={connection.id}
-                                value={connection.id}
-                              >
-                                {connection.name}
-                              </SelectItem>
-                            ))}
+                            {connections
+                              .filter(
+                                (c) =>
+                                  c.connectionConfig?.config.case !=
+                                  'awsS3Config'
+                              )
+                              .map((connection) => (
+                                <SelectItem
+                                  className="cursor-pointer"
+                                  key={connection.id}
+                                  value={connection.id}
+                                >
+                                  {connection.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       )}

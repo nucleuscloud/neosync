@@ -97,6 +97,13 @@ message PostgresConnection {
 message AwsS3ConnectionConfig {
   string bucket_arn = 1;
   optional string path_prefix = 2;
+  optional string role_arn = 3;
+  optional AwsS3Credentials credentials = 4;
+}
+
+message AwsS3Credentials {
+  string access_key_id = 1;
+  string access_key = 2;
 }
 
 message IsConnectionNameAvailableRequest {
