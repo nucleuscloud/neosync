@@ -1,0 +1,418 @@
+name: Artifact Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  docker-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ghcr.io/nucleuscloud/neosync/api
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=semver,pattern={{raw}}
+            type=sha
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/nucleuscloud/neosync/api-buildcache
+          cache-to: type=registry,ref=ghcr.io/nucleuscloud/neosync/api-buildcache,mode=max
+
+  docker-backend-migrations:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ghcr.io/nucleuscloud/neosync/api-migrations
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=semver,pattern={{raw}}
+            type=sha
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          file: backend/Dockerfile.migrations
+          context: backend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Other cache examples here: https://docs.docker.com/build/ci/github-actions/examples/#cache
+          # If GHA stops working well, we can just move to using a registry cache
+          cache-from: type=registry,ref=ghcr.io/nucleuscloud/neosync/api-migrations-buildcache
+          cache-to: type=registry,ref=ghcr.io/nucleuscloud/neosync/api-migrations-buildcache,mode=max
+
+  docker-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ghcr.io/nucleuscloud/neosync/app
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=semver,pattern={{raw}}
+            type=sha
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/nucleuscloud/neosync/app-buildcache
+          cache-to: type=registry,ref=ghcr.io/nucleuscloud/neosync/app-buildcache,mode=max
+
+  docker-worker:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ghcr.io/nucleuscloud/neosync/worker
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=semver,pattern={{raw}}
+            type=sha
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/nucleuscloud/neosync/worker-buildcache
+          cache-to: type=registry,ref=ghcr.io/nucleuscloud/neosync/worker-buildcache,mode=max
+
+  helm-backend:
+    runs-on: ubuntu-latest
+    needs:
+      - docker-backend
+      - docker-backend-migrations
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Chart.yaml
+        uses: mikefarah/yq@v4.34.2
+        with:
+          cmd: |
+            # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
+            for filepath in $(find backend/charts/** -type f -name 'Chart.yaml') ; do
+              echo "$filepath"
+              yq -i '.version = "${{ github.ref_name }}"' "$filepath"
+              yq -i '.appVersion = "${{ github.ref_name }}"' "$filepath"
+            done
+
+            for filepath in $(find backend/charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
+              has_deps=$(yq -r '.dependencies[0].version' "$filepath")
+              if [ $has_deps != null ]; then
+                yq -i '.dependencies[].version = "${{ github.ref_name }}"' "$filepath"
+              fi
+            done
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Login to Helm Registry
+        run: |
+          echo ${{secrets.GITHUB_TOKEN}} | helm registry login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+      - name: Package Helm Charts
+        shell: bash
+        run: |
+          # Finds all root charts and packages up their dependencies
+          find backend/charts/*/Chart.yaml -type f -name 'Chart.yaml' | sed -r 's|/[^/]+$||' | sort | uniq | xargs -L 1 helm dep up
+
+          # Runs through root charts and packages them
+          for filedir in backend/charts/*/ ; do
+            echo "$filedir"
+            helm package "$filedir"
+          done
+
+      - name: Helm | Publish
+        shell: bash
+        run: |
+          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm/api"
+          for d in ./*.tgz ; do
+              helm push "$d" "$OCI_URL"
+          done
+
+  helm-frontend:
+    runs-on: ubuntu-latest
+    needs:
+      - docker-frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Chart.yaml
+        uses: mikefarah/yq@v4.34.2
+        with:
+          cmd: |
+            # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
+            for filepath in $(find frontend/charts/** -type f -name 'Chart.yaml') ; do
+              echo "$filepath"
+              yq -i '.version = "${{ github.ref_name }}"' "$filepath"
+              yq -i '.appVersion = "${{ github.ref_name }}"' "$filepath"
+            done
+
+            for filepath in $(find frontend/charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
+              has_deps=$(yq -r '.dependencies[0].version' "$filepath")
+              if [ $has_deps != null ]; then
+                yq -i '.dependencies[].version = "${{ github.ref_name }}"' "$filepath"
+              fi
+            done
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Login to Helm Registry
+        run: |
+          echo ${{secrets.GITHUB_TOKEN}} | helm registry login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+      - name: Package Helm Charts
+        shell: bash
+        run: |
+          # Finds all root charts and packages up their dependencies
+          find frontend/charts/*/Chart.yaml -type f -name 'Chart.yaml' | sed -r 's|/[^/]+$||' | sort | uniq | xargs -L 1 helm dep up
+
+          # Runs through root charts and packages them
+          for filedir in frontend/charts/*/ ; do
+            echo "$filedir"
+            helm package "$filedir"
+          done
+
+      - name: Helm | Publish
+        shell: bash
+        run: |
+          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm/app"
+          for d in ./*.tgz ; do
+              helm push "$d" "$OCI_URL"
+          done
+
+  helm-worker:
+    runs-on: ubuntu-latest
+    needs:
+      - docker-worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Chart.yaml
+        uses: mikefarah/yq@v4.34.2
+        with:
+          cmd: |
+            # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
+            for filepath in $(find worker/charts/** -type f -name 'Chart.yaml') ; do
+              echo "$filepath"
+              yq -i '.version = "${{ github.ref_name }}"' "$filepath"
+              yq -i '.appVersion = "${{ github.ref_name }}"' "$filepath"
+            done
+
+            for filepath in $(find worker/charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
+              has_deps=$(yq -r '.dependencies[0].version' "$filepath")
+              if [ $has_deps != null ]; then
+                yq -i '.dependencies[].version = "${{ github.ref_name }}"' "$filepath"
+              fi
+            done
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Login to Helm Registry
+        run: |
+          echo ${{secrets.GITHUB_TOKEN}} | helm registry login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+      - name: Package Helm Charts
+        shell: bash
+        run: |
+          # Finds all root charts and packages up their dependencies
+          find worker/charts/*/Chart.yaml -type f -name 'Chart.yaml' | sed -r 's|/[^/]+$||' | sort | uniq | xargs -L 1 helm dep up
+
+          # Runs through root charts and packages them
+          for filedir in worker/charts/*/ ; do
+            echo "$filedir"
+            helm package "$filedir"
+          done
+
+      - name: Helm | Publish
+        shell: bash
+        run: |
+          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm/worker"
+          for d in ./*.tgz ; do
+              helm push "$d" "$OCI_URL"
+          done
+
+  helm-top:
+    runs-on: ubuntu-latest
+    needs:
+      - docker-backend
+      - docker-backend-migrations
+      - docker-frontend
+      - docker-worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Chart.yaml
+        uses: mikefarah/yq@v4.34.2
+        with:
+          cmd: |
+            # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
+            for filepath in $(find charts/** -type f -name 'Chart.yaml') ; do
+              echo "$filepath"
+              yq -i '.version = "${{ github.ref_name }}"' "$filepath"
+              yq -i '.appVersion = "${{ github.ref_name }}"' "$filepath"
+            done
+
+            # for filepath in $(find charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
+            #   has_deps=$(yq -r '.dependencies[0].version' "$filepath")
+            #   if [ $has_deps != null ]; then
+            #     yq -i '.dependencies[].version = "${{ github.ref_name }}"' "$filepath"
+            #   fi
+            # done
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Login to Helm Registry
+        run: |
+          echo ${{secrets.GITHUB_TOKEN}} | helm registry login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+      - name: Package Helm Charts
+        shell: bash
+        run: |
+          # Finds all root charts and packages up their dependencies
+          find charts/*/Chart.yaml -type f -name 'Chart.yaml' | sed -r 's|/[^/]+$||' | sort | uniq | xargs -L 1 helm dep up
+
+          # Runs through root charts and packages them
+          for filedir in charts/*/ ; do
+            echo "$filedir"
+            helm package "$filedir"
+          done
+
+      - name: Helm | Publish
+        shell: bash
+        run: |
+          OCI_URL="oci://ghcr.io/$GITHUB_REPOSITORY/helm/neosync"
+          for d in ./*.tgz ; do
+              helm push "$d" "$OCI_URL"
+          done
