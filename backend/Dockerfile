@@ -36,4 +36,4 @@ USER 65532:65532
 
 ENTRYPOINT ["/mgmt"]
 
-CMD ["serve"]
+CMD ["serve", "connect"]
