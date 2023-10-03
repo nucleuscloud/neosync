@@ -1,0 +1,24 @@
+name: Tag repo
+
+on:
+  workflow_dispatch:
+    inputs:
+      tagname:
+        type: string
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Tag
+        uses: actions/github-script
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: '/refs/tags/${{ github.event.inputs.tagname }}',
+              sha: context.sha,
+            })
