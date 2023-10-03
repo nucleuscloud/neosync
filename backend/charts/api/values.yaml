@@ -48,9 +48,10 @@ port: 80
 terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
-auth0:
-  baseUrl:
-  audience:
+# auth:
+#   enabled: false
+#   baseUrl:
+#   audience:
 
 temporal:
   url:
