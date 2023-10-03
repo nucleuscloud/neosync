@@ -23,8 +23,6 @@ export function getTransformerComponentDetails(
 ): TransformerComponent {
   const { transformer } = props;
 
-  console.log('t', transformer);
-
   switch (transformer?.name) {
     case 'email':
       return {

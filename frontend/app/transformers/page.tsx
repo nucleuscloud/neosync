@@ -37,8 +37,6 @@ function TransformersTable(): ReactElement {
 
   const transformers = data?.transformers ?? [];
 
-  console.log('transformer', transformers);
-
   if (transformersIsLoading) {
     return <SkeletonTable />;
   }
