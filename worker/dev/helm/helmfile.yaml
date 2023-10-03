@@ -10,6 +10,7 @@ releases:
         image:
           repository: neosync-worker
         serviceAccount:
+          create: true
 
         terminationGracePeriodSeconds: 300
         shutdownTimeoutSeconds: 5
