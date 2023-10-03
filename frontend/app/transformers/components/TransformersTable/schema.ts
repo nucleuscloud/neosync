@@ -1,24 +1,23 @@
-import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
+import { CubeIcon, GearIcon } from '@radix-ui/react-icons';
 import { z } from 'zod';
-export const connectionSchema = z.object({
-  id: z.string(),
+export const tranformerSchema = z.object({
   name: z.string(),
+  type: z.string(),
   createdAt: z.date(),
-  category: z.string(),
-  status: z.string(),
+  updatedAt: z.date(),
 });
 
-export type Connection = z.infer<typeof connectionSchema>;
+export type Transformer = z.infer<typeof tranformerSchema>;
 
-export const statuses = [
+export const tranformerTypes = [
   {
-    value: 'disconnected',
-    label: 'D/C',
-    icon: CrossCircledIcon,
+    value: 'system',
+    label: 'System',
+    icon: CubeIcon,
   },
   {
-    value: 'connected',
-    label: 'Connected',
-    icon: CheckCircledIcon,
+    value: 'custom',
+    label: 'Custom',
+    icon: GearIcon,
   },
 ];

@@ -4,12 +4,17 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from message mgmt.v1alpha1.GetTransformersRequest
  */
 export class GetTransformersRequest extends Message<GetTransformersRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
   constructor(data?: PartialMessage<GetTransformersRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -18,6 +23,7 @@ export class GetTransformersRequest extends Message<GetTransformersRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetTransformersRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTransformersRequest {
@@ -42,9 +48,9 @@ export class GetTransformersRequest extends Message<GetTransformersRequest> {
  */
 export class GetTransformersResponse extends Message<GetTransformersResponse> {
   /**
-   * @generated from field: repeated mgmt.v1alpha1.Transformers transformers = 1;
+   * @generated from field: repeated mgmt.v1alpha1.Transformer transformers = 1;
    */
-  transformers: Transformers[] = [];
+  transformers: Transformer[] = [];
 
   constructor(data?: PartialMessage<GetTransformersResponse>) {
     super();
@@ -54,7 +60,7 @@ export class GetTransformersResponse extends Message<GetTransformersResponse> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetTransformersResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "transformers", kind: "message", T: Transformers, repeated: true },
+    { no: 1, name: "transformers", kind: "message", T: Transformer, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTransformersResponse {
@@ -75,9 +81,9 @@ export class GetTransformersResponse extends Message<GetTransformersResponse> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.Transformers
+ * @generated from message mgmt.v1alpha1.Transformer
  */
-export class Transformers extends Message<Transformers> {
+export class Transformer extends Message<Transformer> {
   /**
    * @generated from field: string id = 1;
    */
@@ -94,38 +100,68 @@ export class Transformers extends Message<Transformers> {
   description = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 4;
+   * @generated from field: string created_by_user_id = 4;
+   */
+  createdByUserId = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 5;
+   */
+  createdAt?: Timestamp;
+
+  /**
+   * @generated from field: string updated_by_user_id = 6;
+   */
+  updatedByUserId = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp updated_at = 7;
+   */
+  updatedAt?: Timestamp;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 8;
    */
   config?: TransformerConfig;
 
-  constructor(data?: PartialMessage<Transformers>) {
+  /**
+   * @generated from field: string account_id = 9;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<Transformer>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.Transformers";
+  static readonly typeName = "mgmt.v1alpha1.Transformer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "config", kind: "message", T: TransformerConfig },
+    { no: 4, name: "created_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "created_at", kind: "message", T: Timestamp },
+    { no: 6, name: "updated_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "updated_at", kind: "message", T: Timestamp },
+    { no: 8, name: "config", kind: "message", T: TransformerConfig },
+    { no: 9, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transformers {
-    return new Transformers().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transformer {
+    return new Transformer().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Transformers {
-    return new Transformers().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Transformer {
+    return new Transformer().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Transformers {
-    return new Transformers().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Transformer {
+    return new Transformer().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Transformers | PlainMessage<Transformers> | undefined, b: Transformers | PlainMessage<Transformers> | undefined): boolean {
-    return proto3.util.equals(Transformers, a, b);
+  static equals(a: Transformer | PlainMessage<Transformer> | undefined, b: Transformer | PlainMessage<Transformer> | undefined): boolean {
+    return proto3.util.equals(Transformer, a, b);
   }
 }
 

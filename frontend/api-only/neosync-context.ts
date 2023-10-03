@@ -1,5 +1,6 @@
 import { ConnectionService } from '@/neosync-api-client/mgmt/v1alpha1/connection_connect';
 import { JobService } from '@/neosync-api-client/mgmt/v1alpha1/job_connect';
+import { TransformersService } from '@/neosync-api-client/mgmt/v1alpha1/transformer_connect';
 import { UserAccountService } from '@/neosync-api-client/mgmt/v1alpha1/user_account_connect';
 import {
   Code,
@@ -18,6 +19,7 @@ interface NeosyncContext {
   connectionClient: PromiseClient<typeof ConnectionService>;
   userClient: PromiseClient<typeof UserAccountService>;
   jobsClient: PromiseClient<typeof JobService>;
+  transformersClient: PromiseClient<typeof TransformersService>;
 }
 
 type NeosyncApiHandler<T = unknown> = (ctx: NeosyncContext) => Promise<T>;
@@ -63,6 +65,7 @@ async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
     connectionClient: createPromiseClient(ConnectionService, transport),
     userClient: createPromiseClient(UserAccountService, transport),
     jobsClient: createPromiseClient(JobService, transport),
+    transformersClient: createPromiseClient(TransformersService, transport),
   };
 }
 

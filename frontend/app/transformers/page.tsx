@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
@@ -27,17 +28,26 @@ export default function Transformers(): ReactElement {
 }
 
 function TransformersTable(): ReactElement {
-  const { data, isLoading: transformersIsLoading } = useGetTransformers();
+  const account = useAccount();
+  const {
+    data,
+    isLoading: transformersIsLoading,
+    mutate,
+  } = useGetTransformers(account?.id ?? '');
 
   const transformers = data?.transformers ?? [];
 
-  console.log('tranformer', transformers);
+  console.log('transformer', transformers);
 
   if (transformersIsLoading) {
     return <SkeletonTable />;
   }
 
-  const columns = getColumns();
+  const columns = getColumns({
+    onTransformerDeleted() {
+      mutate();
+    },
+  });
 
   return (
     <div>
