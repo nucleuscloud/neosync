@@ -728,6 +728,16 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
    */
   pathPrefix?: string;
 
+  /**
+   * @generated from field: optional string role_arn = 3;
+   */
+  roleArn?: string;
+
+  /**
+   * @generated from field: optional mgmt.v1alpha1.AwsS3Credentials credentials = 4;
+   */
+  credentials?: AwsS3Credentials;
+
   constructor(data?: PartialMessage<AwsS3ConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -738,6 +748,8 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "bucket_arn", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "path_prefix", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "role_arn", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "credentials", kind: "message", T: AwsS3Credentials, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsS3ConnectionConfig {
@@ -754,6 +766,49 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
 
   static equals(a: AwsS3ConnectionConfig | PlainMessage<AwsS3ConnectionConfig> | undefined, b: AwsS3ConnectionConfig | PlainMessage<AwsS3ConnectionConfig> | undefined): boolean {
     return proto3.util.equals(AwsS3ConnectionConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AwsS3Credentials
+ */
+export class AwsS3Credentials extends Message<AwsS3Credentials> {
+  /**
+   * @generated from field: string access_key_id = 1;
+   */
+  accessKeyId = "";
+
+  /**
+   * @generated from field: string access_key = 2;
+   */
+  accessKey = "";
+
+  constructor(data?: PartialMessage<AwsS3Credentials>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AwsS3Credentials";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "access_key_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "access_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsS3Credentials {
+    return new AwsS3Credentials().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AwsS3Credentials {
+    return new AwsS3Credentials().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AwsS3Credentials {
+    return new AwsS3Credentials().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AwsS3Credentials | PlainMessage<AwsS3Credentials> | undefined, b: AwsS3Credentials | PlainMessage<AwsS3Credentials> | undefined): boolean {
+    return proto3.util.equals(AwsS3Credentials, a, b);
   }
 }
 

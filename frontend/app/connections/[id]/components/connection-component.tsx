@@ -6,6 +6,7 @@ import {
   UpdateConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { ReactElement } from 'react';
+import AwsS3Form from './AwsS3Form';
 import PostgresForm from './PostgresForm';
 
 interface ConnectionComponent {
@@ -104,10 +105,25 @@ export function getConnectionComponentDetails(
           />
         ),
         body: (
-          <div>
-            No connection component found for: (
-            {connection?.name ?? 'unknown name'})
-          </div>
+          <AwsS3Form
+            connectionId={connection.id}
+            defaultValues={{
+              connectionName: connection.name,
+              s3: {
+                bucketArn: connection.connectionConfig.config.value.bucketArn,
+                pathPrefix: connection.connectionConfig.config.value.pathPrefix,
+                roleArn: connection.connectionConfig.config.value.roleArn,
+                accessKey:
+                  connection.connectionConfig.config.value.credentials
+                    ?.accessKey || '',
+                accessKeyId:
+                  connection.connectionConfig.config.value.credentials
+                    ?.accessKeyId,
+              },
+            }}
+            onSaved={(resp) => onSaved(resp)}
+            onSaveFailed={onSaveFailed}
+          />
         ),
       };
     default:

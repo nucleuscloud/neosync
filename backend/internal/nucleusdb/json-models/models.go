@@ -42,11 +42,20 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 			}
 		}
 	} else if c.AwsS3Config != nil {
+		var credentials *mgmtv1alpha1.AwsS3Credentials
+		if c.AwsS3Config.Credentials != nil {
+			credentials = &mgmtv1alpha1.AwsS3Credentials{
+				AccessKeyId: c.AwsS3Config.Credentials.AccessKeyId,
+				AccessKey:   c.AwsS3Config.Credentials.AccessKey,
+			}
+		}
 		return &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
 				AwsS3Config: &mgmtv1alpha1.AwsS3ConnectionConfig{
-					BucketArn:  c.AwsS3Config.BucketArn,
-					PathPrefix: c.AwsS3Config.PathPrefix,
+					BucketArn:   c.AwsS3Config.BucketArn,
+					PathPrefix:  c.AwsS3Config.PathPrefix,
+					RoleArn:     c.AwsS3Config.RoleArn,
+					Credentials: credentials,
 				},
 			},
 		}
@@ -74,9 +83,18 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 			return fmt.Errorf("invalid postgres format")
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		var credentials *AwsS3Credentials
+		if config.AwsS3Config.Credentials != nil {
+			credentials = &AwsS3Credentials{
+				AccessKeyId: config.AwsS3Config.Credentials.AccessKeyId,
+				AccessKey:   config.AwsS3Config.Credentials.AccessKey,
+			}
+		}
 		c.AwsS3Config = &AwsS3ConnectionConfig{
-			BucketArn:  config.AwsS3Config.BucketArn,
-			PathPrefix: config.AwsS3Config.PathPrefix,
+			BucketArn:   config.AwsS3Config.BucketArn,
+			PathPrefix:  config.AwsS3Config.PathPrefix,
+			RoleArn:     config.AwsS3Config.RoleArn,
+			Credentials: credentials,
 		}
 	default:
 		return fmt.Errorf("invalid config")
@@ -99,9 +117,15 @@ type PostgresConnection struct {
 	SslMode *string
 }
 
+type AwsS3Credentials struct {
+	AccessKeyId string
+	AccessKey   string
+}
 type AwsS3ConnectionConfig struct {
-	BucketArn  string
-	PathPrefix *string
+	BucketArn   string
+	PathPrefix  *string
+	RoleArn     *string
+	Credentials *AwsS3Credentials
 }
 
 type JobMapping struct {
