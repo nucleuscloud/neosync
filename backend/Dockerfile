@@ -6,18 +6,15 @@ WORKDIR /workspace
 COPY go.mod go.mod
 COPY go.sum go.sum
 
-RUN \
-  --mount=type=secret,id=GITHUB_TOKEN \
-  GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN) && git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@github.com/nucleuscloud".insteadOf "https://github.com/nucleuscloud"
 RUN go mod download
 
-COPY tools.go tools.go
-COPY Makefile Makefile
-RUN make install-go-tools
+# COPY tools.go tools.go
+# COPY Makefile Makefile
+# RUN make install-go-tools
 
-ENV PATH="$PATH:$(go env GOPATH)/bin"
-ENV GOBIN="$PWD/bin"
-ENV PATH="$PATH:$GOBIN"
+# ENV PATH="$PATH:$(go env GOPATH)/bin"
+# ENV GOBIN="$PWD/bin"
+# ENV PATH="$PATH:$GOBIN"
 
 # Copy in generated code
 COPY gen/ gen/
