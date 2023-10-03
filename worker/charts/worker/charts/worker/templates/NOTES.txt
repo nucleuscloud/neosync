@@ -1,1 +1,0 @@
-Nucleus Api Successfully installed!
