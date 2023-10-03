@@ -26,17 +26,26 @@ stringData:
 
     SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
 
+    {{- if and .Values.auth .Values.auth.enabled }}
+    AUTH_ENABLED: {{ .Values.auth.enabled | default "false" | quote}}
+    {{- end }}
+
+    {{- if and .Values.auth .Values.auth.baseUrl }}
     AUTH_BASEURL: {{ .Values.auth.baseUrl }}
+    {{- end }}
+
+    {{- if and .Values.auth .Values.auth.audience }}
     AUTH_AUDIENCE: {{ .Values.auth.audience }}
-    
-    {{- if .Values.temporal.url }}
+    {{- end }}
+
+    {{- if and .Values.temporal .Values.temporal.url }}
     TEMPORAL_URL: {{ .Values.temporal.url }}
     {{- end }}
 
-    {{- if .Values.temporal.namespace }}
+    {{- if and .Values.temporal .Values.temporal.namespace }}
     TEMPORAL_NAMESPACE: {{ .Values.temporal.namespace }}
     {{- end }}
 
-    {{- if .Values.temporal.taskQueue }}
+    {{- if and .Values.temporal .Values.temporal.taskQueue }}
     TEMPORAL_TASK_QUEUE: {{ .Values.temporal.taskQueue }}
     {{- end }}

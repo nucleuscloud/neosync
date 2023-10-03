@@ -6,25 +6,26 @@ releases:
     createNamespace: false
 
     values:
-      - worker:
-          image:
-            repository: neosync-worker
-          serviceAccount:
+      -
+        image:
+          repository: neosync-worker
+        serviceAccount:
+          create: true
 
-          terminationGracePeriodSeconds: 300
-          shutdownTimeoutSeconds: 5
+        terminationGracePeriodSeconds: 300
+        shutdownTimeoutSeconds: 5
 
-          istio:
-            enabled: false
+        istio:
+          enabled: false
 
-          datadog:
-            enabled: false
+        datadog:
+          enabled: false
 
-          nucleusEnv: dev
+        nucleusEnv: dev
 
-          neosync:
-            url: http://neosync-api:80
-          temporal:
-            url: temporal.temporal:7233
-            namespace: default
-            taskQueue: "sync-job"
+        neosync:
+          url: http://neosync-api:80
+        temporal:
+          url: temporal.temporal:7233
+          namespace: default
+          taskQueue: "sync-job"

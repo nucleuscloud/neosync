@@ -6,4 +6,20 @@ releases:
     createNamespace: false
 
     values:
-      - values.gotmpl
+      -
+        image:
+          repository: neosync-app
+
+        serviceAccount:
+          create: true
+
+        nucleusEnv: dev
+
+        port: 3000
+
+        neosyncApi:
+          url: http://neosync-api
+
+        auth:
+          enabled: false
+

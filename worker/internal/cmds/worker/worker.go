@@ -1,9 +1,9 @@
-package mgmt_cmd
+package worker_cmd
 
 import (
 	"fmt"
 
-	serve_connect "github.com/nucleuscloud/neosync/worker/internal/cmds/sync/serve"
+	serve_connect "github.com/nucleuscloud/neosync/worker/internal/cmds/worker/serve"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -13,7 +13,7 @@ func Execute() {
 	cobra.OnInitialize(func() { initConfig() })
 
 	rootCmd := &cobra.Command{
-		Use:   "sync",
+		Use:   "worker",
 		Short: "Terminal UI that interfaces with the Nucleus system.",
 		Long:  "",
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {

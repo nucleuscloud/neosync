@@ -47,7 +47,7 @@
     "next-themes": "^0.2.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-hook-form": "^7.46.1",
+    "react-hook-form": "^7.47.0",
     "react-hook-form-persist": "^3.0.0",
     "react-icons": "^4.11.0",
     "reactflow": "^11.8.3",
@@ -56,7 +56,7 @@
     "tailwindcss-animate": "^1.0.7",
     "usehooks-ts": "^2.9.1",
     "yup": "^1.2.0",
-    "zod": "^3.22.2"
+    "zod": "^3.22.3"
   },
   "devDependencies": {
     "@types/node": "20.6.3",
@@ -64,11 +64,11 @@
     "@types/react-dom": "18.2.7",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.2",
-    "autoprefixer": "^10.4.15",
+    "autoprefixer": "^10.4.16",
     "eslint": "8.49.0",
-    "eslint-config-next": "13.5.2",
+    "eslint-config-next": "13.5.4",
     "knip": "^2.25.2",
-    "postcss": "^8.4.30",
+    "postcss": "^8.4.31",
     "prettier": "^3.0.3",
     "tailwindcss": "^3.3.3",
     "typescript": "5.2.2"
