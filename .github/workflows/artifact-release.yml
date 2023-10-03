@@ -32,6 +32,9 @@ jobs:
             type=semver,pattern={{raw}}
             type=sha
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -46,6 +49,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: backend
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
