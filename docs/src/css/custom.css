@@ -38,7 +38,7 @@ html[data-theme="dark"] {
 
 @layer base {
   body {
-    @apply mx-60 text-sm;
+    @apply mx-40 text-sm;
   }
 }
 
@@ -81,7 +81,7 @@ this is the class for the sidebar categories that section headers
     @apply text-gray-900 cursor-pointer text-sm  rounded-full;
   }
   .doc-page-header {
-    @apply flex flex-col text-left pb-10 font-bold text-3xl;
+    @apply flex flex-col text-left font-bold text-3xl;
   }
 
   .heroImage {

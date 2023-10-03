@@ -7,9 +7,22 @@ slug: replication
 
 import { DocPageHeader } from "@site/src/components/HomepageFeatures/DocPageHeader.tsx";
 
-<DocPageHeader
-  title="Replicate Data"
-  subtitle="The Neosync platform is an open-source composable platform that is built to scale horizontally and vertically. "
-/>
+<DocPageHeader title="Replicate Data" />
 
-## More coming soon!
+## Introduction
+
+Neosync is a great way to replicate data from one source location to one of multiple destination locations. Typically, teams will point Neosync to a snapshot of their production database and use our replication functionality to push a copy of that data other envirornments. While we've built Neosync to also include anonymization and synthetic data generation features, you can use Neosync simply for handling data replication.
+
+## Replication
+
+The first step to defining your replication process is to define your source data set. This is typicallty a snapshot of production but it can really be anything. Neosync has integrations with most source systems and makes it easy to connect to them.
+
+Next, you'll want to define a new job. [Jobs](/platform#jobs) are async workflows that replicate data from one source to multiple destinations. In the job config, you'll want to define the schedule that you want to the job to run on. This can be on any cadence and Neosync will execute it accordingly.
+
+Next, you'll want to define the schema and mappings. If you're using Neosync simply as a replication engine then you can just leave everything as "Passthrough". This means that we won't transform the data in any way and instead just **pass** the value through.
+
+Lastly, you'll want to define subsetting rules if there are any. [Subsetting](/platform#subset) allows you to **select** (no pun intended) a subset of data from your source data set and send it to a destination. This makes it easy to reduce the size of the dataset, filter the dataset using a specific `WHERE` clause and do much more.
+
+## Conclusion
+
+Data replication is a core functionality of the Neosync platform. For teams that don't need to transform some or all of the data, they can easily use the Neosync platform to replicate data from one source to multiple destinations.
