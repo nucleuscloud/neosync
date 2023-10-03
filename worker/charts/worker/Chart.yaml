@@ -1,6 +1,6 @@
 apiVersion: v2
 name: neosync-worker
-description: A Helm chart for the Nucleus Management Api
+description: A Helm chart for the Neosync Temporal Worker
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
@@ -17,8 +17,3 @@ type: application
 version: 'v0'
 
 appVersion: 'v0'
-
-dependencies:
-  - name: worker
-    repository: file://charts/worker
-    version: 'v0'

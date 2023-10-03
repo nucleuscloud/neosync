@@ -17,8 +17,3 @@ type: application
 version: 'v0'
 
 appVersion: 'v0'
-
-dependencies:
-  - name: app
-    repository: file://charts/app
-    version: 'v0'
