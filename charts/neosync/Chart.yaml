@@ -18,7 +18,13 @@ version: 'v0'
 
 appVersion: 'v0'
 
-# dependencies:
-#   - name: api
-#     repository: file://charts/api
-#     version: 'v0'
+dependencies:
+  - name: api
+    repository: file://../../backend/charts/api
+    version: 'v0'
+  - name: app
+    repository: file://../../frontend/charts/app
+    version: 'v0'
+  - name: worker
+    repository: file://../../worker/charts/worker
+    version: 'v0'
