@@ -181,7 +181,6 @@ async function updateAwsS3Connection(
   s3: FormValues['s3'],
   connectionId: string
 ): Promise<UpdateConnectionResponse> {
-  console.log(s3);
   const credentials =
     s3.accessKeyId && s3.accessKey
       ? new AwsS3Credentials({
