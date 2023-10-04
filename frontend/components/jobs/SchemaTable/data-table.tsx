@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
 
@@ -74,6 +74,8 @@ export function DataTable<TData, TValue>({
   if (!data) {
     return <SkeletonTable />;
   }
+
+  // console.log('transformers', transformers);
 
   return (
     <div className="space-y-4">

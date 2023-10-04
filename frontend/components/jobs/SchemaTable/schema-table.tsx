@@ -1,3 +1,4 @@
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
 import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
@@ -12,8 +13,9 @@ export interface JobTableProps {
 
 export function SchemaTable(props: JobTableProps): ReactElement {
   const { data } = props;
+  const account = useAccount();
   const { data: transformers, isLoading: transformersIsLoading } =
-    useGetTransformers();
+    useGetTransformers(account?.id ?? '');
 
   if (transformersIsLoading) {
     return <SkeletonTable />;

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { DataTableViewOptions } from './data-table-view-options';
@@ -26,6 +26,8 @@ export function DataTableToolbar<TData>({
   const form = useFormContext();
   const [transformer, setTransformer] = useState<string>('');
   const [exclude, setExclude] = useState<string>('');
+
+  // console.log('tr', transformers);
 
   return (
     <div className="flex items-center justify-between">
@@ -49,12 +51,8 @@ export function DataTableToolbar<TData>({
           </SelectTrigger>
           <SelectContent>
             {transformers?.map((t) => (
-              <SelectItem
-                className="cursor-pointer"
-                key={t.value}
-                value={t.value}
-              >
-                {t.title}
+              <SelectItem className="cursor-pointer" key={t.id} value={t.name}>
+                {t.name}
               </SelectItem>
             ))}
           </SelectContent>
