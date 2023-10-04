@@ -762,8 +762,8 @@ cloud.google.com/go/workflows v1.10.0/go.mod h1:fZ8LmRmZQWacon9UCX1r/g/DfAXx5VcP
 cloud.google.com/go/workflows v1.11.1/go.mod h1:Z+t10G1wF7h8LgdY/EmRcQY8ptBD/nvofaL6FqlET6g=
 connectrpc.com/connect v1.11.1 h1:dqRwblixqkVh+OFBOOL1yIf1jS/yP0MSJLijRj29bFg=
 connectrpc.com/connect v1.11.1/go.mod h1:3AGaO6RRGMx5IKFfqbe3hvK1NqLosFNP2BxDYTPmNPo=
-connectrpc.com/grpchealth v1.2.0 h1:aHP33Bki+F2jPNI1mFVSFG7v0qJrgmfbg7X7nOdSj0M=
-connectrpc.com/grpchealth v1.2.0/go.mod h1:fZos12C4p/ZaZC6OwBGZUM+i/fhnRhv75ax/6V/zIeM=
+connectrpc.com/grpchealth v1.3.0 h1:FA3OIwAvuMokQIXQrY5LbIy8IenftksTP/lG4PbYN+E=
+connectrpc.com/grpchealth v1.3.0/go.mod h1:3vpqmX25/ir0gVgW6RdnCPPZRcR6HvqtXX5RNPmDXHM=
 connectrpc.com/grpcreflect v1.2.0 h1:Q6og1S7HinmtbEuBvARLNwYmTbhEGRpHDhqrPNlmK+U=
 connectrpc.com/grpcreflect v1.2.0/go.mod h1:nwSOKmE8nU5u/CidgHtPYk1PFI3U9ignz7iDMxOYkSY=
 connectrpc.com/otelconnect v0.5.0 h1:K7xQKFbgeaHx563B+IIbd1EJe856AanueIYtGEtdnH8=
@@ -1539,8 +1539,6 @@ github.com/neo4j/neo4j-go-driver v1.8.1-0.20200803113522-b626aa943eba/go.mod h1:
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 h1:NHrXEjTNQY7P0Zfx1aMrNhpgxHmow66XQtm0aQLY0AE=
 github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249/go.mod h1:mpRZBD8SJ55OIICQ3iWH0Yz3cjzA61JdqMLoWXeB2+8=
-github.com/nucleuscloud/neosync/worker v0.0.0-20230916005704-ddab32b5c3c6 h1:gLOfzx1nZc/pFu7dKFYtivph3QjDPCj3gwkHkgIk8xY=
-github.com/nucleuscloud/neosync/worker v0.0.0-20230916005704-ddab32b5c3c6/go.mod h1:BPAoQWDYnwRtdLHATaZrFM/EJYh2VqGU9yTJ1F7Kmq8=
 github.com/nucleuscloud/neosync/worker v0.0.0-20230918232714-bdbc13aae39a h1:GRd9+PKzLGwRFIcxsZMM9X2t3lONjf7isIfEDkG+5wY=
 github.com/nucleuscloud/neosync/worker v0.0.0-20230918232714-bdbc13aae39a/go.mod h1:3tKr01v32xAJdNf6qxkJw/k9S099JmEcfsTCgr7st1U=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
