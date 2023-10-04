@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { DataTableColumnHeader } from './data-table-column-header';
 
@@ -137,10 +137,10 @@ export function getColumns(
                         {transformers?.map((t) => (
                           <SelectItem
                             className="cursor-pointer"
-                            key={t.value}
-                            value={t.value}
+                            key={t.id}
+                            value={t.name}
                           >
-                            {t.title}
+                            {t.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
