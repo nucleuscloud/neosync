@@ -38,6 +38,84 @@ type benthosConfigResponse struct {
 
 type Activities struct{}
 
+// type GenerateSyncDependenciesRequest struct {
+// 	JobId      string
+// 	BackendUrl string
+// 	WorkflowId string
+// }
+
+// func (a *Activities) GenerateSyncDependencies(
+// 	ctx context.Context,
+// 	req *GenerateSyncDependenciesRequest,
+// ) (any, error) {
+// 	job, err := a.getJobById(ctx, req.BackendUrl, req.JobId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// responses := []*benthosConfigResponse{}
+
+// 	sourceConnection, err := a.getConnectionById(ctx, req.BackendUrl, job.Source.ConnectionId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	switch connection := sourceConnection.ConnectionConfig.Config.(type) {
+// 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+// 		dsn, err := getPgDsn(connection.PgConfig)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+
+// 		groupedMappings := groupMappingsByTable(job.Mappings)
+// 		for key, mappings := range groupedMappings {
+// 			bc := &neosync_benthos.BenthosConfig{
+// 				StreamConfig: neosync_benthos.StreamConfig{
+// 					Input: &neosync_benthos.InputConfig{
+// 						Inputs: neosync_benthos.Inputs{
+// 							SqlSelect: &neosync_benthos.SqlSelect{
+// 								Driver: "postgres",
+// 								Dsn:    dsn,
+
+// 								Table:   key,
+// 								Columns: buildPlainColumns(mappings),
+// 							},
+// 						},
+// 					},
+// 					Pipeline: &neosync_benthos.PipelineConfig{
+// 						Threads:    -1,
+// 						Processors: []neosync_benthos.ProcessorConfig{},
+// 					},
+// 					Output: &neosync_benthos.OutputConfig{
+// 						Broker: &neosync_benthos.OutputBrokerConfig{
+// 							Pattern: "fan_out",
+// 							Outputs: []neosync_benthos.Outputs{},
+// 						},
+// 					},
+// 				},
+// 			}
+// 			mutation, err := buildProcessorMutation(job.Mappings)
+// 			if err != nil {
+// 				return nil, err
+// 			}
+// 			if mutation != "" {
+// 				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
+// 					Mutation: mutation,
+// 				})
+// 			}
+// 			// responses = append(responses, &benthosConfigResponse{
+// 			// 	Name:      key, // todo: may need to expand on this
+// 			// 	Config:    bc,
+// 			// 	DependsOn: []string{},
+// 			// })
+// 		}
+
+// 	default:
+// 		return nil, fmt.Errorf("unsupported source connection")
+// 	}
+
+// 	return nil, nil
+// }
+
 func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
@@ -97,9 +175,35 @@ func (a *Activities) GenerateBenthosConfigs(
 				})
 			}
 			responses = append(responses, &benthosConfigResponse{
-				Name:   key, // todo: may need to expand on this
-				Config: bc,
+				Name:      key, // todo: may need to expand on this
+				Config:    bc,
+				DependsOn: []string{},
 			})
+		}
+
+		uniqueSchemas := getUniqueSchemasFromMappings(job.Mappings)
+		allConstraints := []*dbschemas_postgres.ForeignKeyConstraint{}
+		conn, err := pgx.Connect(ctx, dsn)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close(ctx)
+		// todo: parallelize
+		for _, schema := range uniqueSchemas {
+			constraints, err := dbschemas_postgres.GetForeignKeyConstraints(ctx, conn, schema)
+			if err != nil {
+				return nil, err
+			}
+			allConstraints = append(allConstraints, constraints...)
+		}
+
+		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+
+		for _, resp := range responses {
+			dependsOn, ok := td[resp.Name]
+			if ok {
+				resp.DependsOn = dependsOn
+			}
 		}
 
 	default:
@@ -134,6 +238,8 @@ func (a *Activities) GenerateBenthosConfigs(
 						InitStatement: initStmt,
 					},
 				})
+				// resp.DependsOn
+
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 				s3pathpieces := []string{}
 				if connection.AwsS3Config.PathPrefix != nil && *connection.AwsS3Config.PathPrefix != "" {
@@ -236,6 +342,20 @@ func groupMappingsByTable(
 	for _, mapping := range mappings {
 		key := buildBenthosTable(mapping.Schema, mapping.Table)
 		output[key] = append(output[key], mapping)
+	}
+	return output
+}
+
+func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
+	schemas := map[string]struct{}{}
+	for _, mapping := range mappings {
+		schemas[mapping.Schema] = struct{}{}
+	}
+
+	output := make([]string, 0, len(schemas))
+
+	for schema := range schemas {
+		output = append(output, schema)
 	}
 	return output
 }

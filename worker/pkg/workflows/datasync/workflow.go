@@ -39,25 +39,68 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, err
 	}
 
+	completed := map[string]struct{}{}
+	// for _, bc := range bcResp.BenthosConfigs {
+	// 	completed[bc.Name] = false
+	// }
+
 	// todo: figure this out as we want to parallelize this
+	bchan := workflow.NewChannel(wfctx)
+
+	numwaits := 1 + len(bcResp.BenthosConfigs)*2
+
+	selector := workflow.NewSelector(ctx)
+	selector.AddReceive(bchan, func(c workflow.ReceiveChannel, more bool) {
+		var key string
+		c.Receive(ctx, &key)
+		completed[key] = struct{}{}
+
+		for _, bc := range bcResp.BenthosConfigs {
+			if _, ok := completed[bc.Name]; ok {
+				continue
+			}
+			isReady := true
+			for _, dep := range bc.DependsOn {
+				if _, ok := completed[dep]; !ok {
+					isReady = false
+					break
+				}
+			}
+			if isReady {
+				// spawn activity
+				bits, _ := yaml.Marshal(bc.Config)
+				// if err != nil {
+				// 	return nil, err
+				// }
+				future := workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)})
+				selector.AddFuture(future, func(f workflow.Future) {
+					bchan.Send(ctx, bc.Name)
+				})
+			}
+		}
+	})
+
+	for i := 0; i < numwaits; i++ {
+		selector.Select(ctx)
+	}
 
 	//nolint:gocritic
 	// futures := make([]workflow.Future, len(bcResp.BenthosConfigs))
-	for idx := range bcResp.BenthosConfigs {
-		bc := bcResp.BenthosConfigs[idx]
-		bits, err := yaml.Marshal(bc.Config)
-		if err != nil {
-			return nil, err
-		}
-		var resp *SyncResponse
-		err = workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)}).Get(ctx, &resp)
-		if err != nil {
-			return nil, err
-		}
-		//nolint:gocritic
-		//future := workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)})
-		// futures = append(futures, future)
-	}
+	// for idx := range bcResp.BenthosConfigs {
+	// 	bc := bcResp.BenthosConfigs[idx]
+	// 	bits, err := yaml.Marshal(bc.Config)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	var resp *SyncResponse
+	// 	err = workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)}).Get(ctx, &resp)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	//nolint:gocritic
+	//future := workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)})
+	// futures = append(futures, future)
+	// }
 
 	// todo: for some reason the future in the list is nil. We must be doing something here we shouldn't be
 

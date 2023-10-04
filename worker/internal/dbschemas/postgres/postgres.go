@@ -22,11 +22,11 @@ func (d *DatabaseSchema) GetTableKey() string {
 	return fmt.Sprintf("%s.%s", d.TableSchema, d.TableName)
 }
 
-type DatabaseTableConstraints struct {
-	Name       string `db:"name,omitempty"`
-	Type       string `db:"contype,omitempty"`
-	Definition string `db:"definition,omitempty"`
-}
+// type DatabaseTableConstraints struct {
+// 	Name       string `db:"name,omitempty"`
+// 	Type       string `db:"contype,omitempty"`
+// 	Definition string `db:"definition,omitempty"`
+// }
 
 func GetDatabaseSchemas(
 	ctx context.Context,
@@ -196,3 +196,183 @@ func GetTableCreateStatement(
 
 // 	return output
 // }
+
+const (
+	fkConstraintSql = `--getForeignKeyConstraints
+SELECT
+    rc.constraint_name
+    ,
+    kcu.table_schema AS schema_name
+    ,
+    kcu.table_name
+    ,
+    kcu.column_name
+    ,
+    kcu2.table_schema AS foreign_schema_name
+    ,
+    kcu2.table_name AS foreign_table_name
+    ,
+    kcu2.column_name AS foreign_column_name
+FROM
+    information_schema.referential_constraints rc
+JOIN information_schema.key_column_usage kcu
+    ON
+    kcu.constraint_name = rc.constraint_name
+JOIN information_schema.key_column_usage kcu2
+    ON
+    kcu2.ordinal_position = kcu.position_in_unique_constraint
+    AND kcu2.constraint_name = rc.unique_constraint_name
+WHERE
+    kcu.table_schema = $1
+ORDER BY
+    rc.constraint_name,
+    kcu.ordinal_position;
+	`
+)
+
+type ForeignKeyConstraint struct {
+	ConstraintName    string `db:"constraint_name"`
+	SchemaName        string `db:"schema_name"`
+	TableName         string `db:"table_name"`
+	ColumnName        string `db:"column_name"`
+	ForeignSchemaName string `db:"foreign_schema_name"`
+	ForeignTableName  string `db:"foreign_table_name"`
+	ForeignColumnName string `db:"foreign_column_name"`
+}
+
+func GetForeignKeyConstraints(
+	ctx context.Context,
+	conn *pgx.Conn,
+	tableSchema string,
+) ([]*ForeignKeyConstraint, error) {
+
+	rows, err := conn.Query(ctx, fkConstraintSql, tableSchema)
+	if err != nil && !isNoRows(err) {
+		return nil, err
+	} else if err != nil && isNoRows(err) {
+		return []*ForeignKeyConstraint{}, nil
+	}
+
+	output := []*ForeignKeyConstraint{}
+	for rows.Next() {
+		var o ForeignKeyConstraint
+		err := rows.Scan(
+			&o.ConstraintName,
+			&o.SchemaName,
+			&o.TableName,
+			&o.ColumnName,
+			&o.ForeignSchemaName,
+			&o.ForeignTableName,
+			&o.ForeignColumnName,
+		)
+		if err != nil {
+			return nil, err
+		}
+		output = append(output, &o)
+	}
+	return output, nil
+}
+
+type TableDependency = map[string][]string
+
+// Key is schema.table value is list of tables that key depends on
+func GetPostgresTableDependencies(
+	constraints []*ForeignKeyConstraint,
+) TableDependency {
+	tdmap := map[string][]string{}
+	for _, constraint := range constraints {
+		tdmap[buildTableKey(constraint.SchemaName, constraint.TableName)] = []string{}
+	}
+
+	for _, constraint := range constraints {
+		key := buildTableKey(constraint.SchemaName, constraint.TableName)
+		tdmap[key] = append(tdmap[key], buildTableKey(constraint.ForeignSchemaName, constraint.ForeignTableName))
+	}
+
+	for k, v := range tdmap {
+		tdmap[k] = UniqueSlice[string](func(val string) string { return val }, v)
+	}
+	return tdmap
+}
+
+func GetTableSeedQueue(
+	schemas []*DatabaseSchema,
+	constraints []*ForeignKeyConstraint,
+) [][]string {
+	tables := []string{}
+	for _, schema := range schemas {
+		tables = append(tables, buildTableKey(schema.TableSchema, schema.TableName))
+	}
+
+	td := GetPostgresTableDependencies(constraints)
+
+	roots := []string{}
+	for _, table := range tables {
+		if _, ok := td[table]; !ok {
+			roots = append(roots, table)
+		}
+	}
+
+	output := append([][]string{}, roots)
+	queuedTables := map[string]struct{}{}
+	for _, root := range roots {
+		queuedTables[root] = struct{}{}
+	}
+
+	for len(tables) != len(queuedTables) {
+		nextRound := []string{}
+		for table, deps := range td {
+			if _, ok := queuedTables[table]; ok {
+				continue
+			}
+			if ok := isTableReady(queuedTables, deps); ok {
+				nextRound = append(nextRound, table)
+			}
+		}
+		if len(nextRound) == 0 {
+			fmt.Println("infinite loop!")
+			break
+		}
+		output = append(output, nextRound)
+		for _, table := range nextRound {
+			queuedTables[table] = struct{}{}
+		}
+	}
+
+	return output
+}
+
+func isTableReady(
+	queue map[string]struct{},
+	deps []string,
+) bool {
+	for _, dep := range deps {
+		if _, ok := queue[dep]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func UniqueSlice[T any](keyFn func(T) string, genSlices ...[]T) []T {
+	uniqueSet := map[string]T{}
+
+	for _, genSlice := range genSlices {
+		for _, val := range genSlice {
+			uniqueSet[keyFn(val)] = val
+		}
+	}
+
+	result := make([]T, 0, len(uniqueSet))
+	for _, val := range uniqueSet {
+		result = append(result, val)
+	}
+	return result
+}
+
+func buildTableKey(
+	schemaName string,
+	tableName string,
+) string {
+	return fmt.Sprintf("%s.%s", schemaName, tableName)
+}
