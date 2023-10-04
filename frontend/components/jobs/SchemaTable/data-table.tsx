@@ -17,7 +17,19 @@ import {
 import * as React from 'react';
 
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Table,
   TableBody,
@@ -26,21 +38,27 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/libs/utils';
+import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { JobMappingFormValues } from '@/yup-validations/jobs';
+import { PlainMessage } from '@bufbuild/protobuf';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+interface DataTableProps {
+  columns: ColumnDef<PlainMessage<DatabaseColumn>>[];
+  data: JobMappingFormValues[];
   transformers?: Transformer[];
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-  transformers,
-}: DataTableProps<TData, TValue>) {
+interface FilterItem {
+  value: string;
+  label: string;
+}
+
+export function DataTable({ columns, data, transformers }: DataTableProps) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -48,7 +66,6 @@ export function DataTable<TData, TValue>({
     []
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
-
   const table = useReactTable({
     data,
     columns,
@@ -70,6 +87,68 @@ export function DataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
+
+  function toFilterItems(items: Record<string, string>): FilterItem[] {
+    return Object.keys(items)
+      .sort()
+      .map((d) => {
+        return { value: d, label: d };
+      });
+  }
+
+  function getFilterItems(
+    colFilters: ColumnFiltersState
+  ): Record<string, FilterItem[]> {
+    console.log(JSON.stringify(colFilters));
+    const setMap: Record<string, Record<string, string>> = {
+      schema: {},
+      table: {},
+      column: {},
+      dataType: {},
+      transformer: {},
+    };
+
+    data.forEach((row) => {
+      var shouldAdd = true;
+      for (const [_, value] of Object.entries(colFilters)) {
+        if (row[value.id as keyof JobMappingFormValues] != value.value) {
+          shouldAdd = false;
+          break;
+        }
+      }
+
+      if (shouldAdd) {
+        setMap.schema[row.schema] = row.schema;
+        setMap.table[row.table] = row.table;
+        setMap.column[row.column] = row.column;
+        setMap.dataType[row.dataType] = row.dataType;
+        setMap.transformer[row.transformer] = row.transformer;
+      }
+    });
+
+    const uniqueTransformers = Object.keys(setMap.transformer);
+    const filtersMap: Record<string, FilterItem[]> = {
+      exclude: [
+        { value: 'include', label: 'Include' },
+        { value: 'exclude', label: 'Exclude' },
+      ],
+      transformer:
+        transformers
+          ?.filter((t) => uniqueTransformers.includes(t.value))
+          .map((t) => {
+            return { value: t.value, label: t.title };
+          }) || [],
+      schema: toFilterItems(setMap.schema),
+      table: toFilterItems(setMap.table),
+      column: toFilterItems(setMap.column),
+      dataType: toFilterItems(setMap.dataType),
+    };
+    return filtersMap;
+  }
+
+  const [filterItems, setFilterItems] = React.useState<
+    Record<string, FilterItem[]>
+  >(getFilterItems([]));
 
   if (!data) {
     return <SkeletonTable />;
@@ -94,18 +173,33 @@ export function DataTable<TData, TValue>({
                           )}
                       {header.column.getCanFilter() ? (
                         <div>
-                          <div className="flex items-center py-4">
-                            <Input
-                              placeholder="Filter..."
-                              value={
-                                (header.column.getFilterValue() as string) ?? ''
-                              }
-                              onChange={(event) =>
-                                header.column.setFilterValue(event.target.value)
-                              }
-                              className="max-w-sm"
-                            />
-                          </div>
+                          <FilterSelect
+                            setFilterValue={(value: string) => {
+                              header.column.setFilterValue(value);
+                              setFilterItems(
+                                getFilterItems([
+                                  ...columnFilters,
+                                  { id: header.column.id, value },
+                                ])
+                              );
+                              // if (value == '') {
+                              //   setFilterItems(
+                              //     getFilterItems([...columnFilters])
+                              //   );
+                              // } else {
+                              //   setFilterItems(
+                              //     getFilterItems([
+                              //       ...columnFilters,
+                              //       { id: header.column.id, value },
+                              //     ])
+                              //   );
+                              // }
+                            }}
+                            items={
+                              (filterItems && filterItems[header.column.id]) ||
+                              []
+                            }
+                          />
                         </div>
                       ) : null}
                     </TableHead>
@@ -146,5 +240,59 @@ export function DataTable<TData, TValue>({
       </div>
       <DataTablePagination table={table} />
     </div>
+  );
+}
+
+interface FilterSelectProps {
+  setFilterValue: (value: string) => void;
+  items: FilterItem[];
+}
+
+function FilterSelect(props: FilterSelectProps) {
+  const { items, setFilterValue } = props;
+  const [open, setOpen] = React.useState(false);
+  const [value, setValue] = React.useState('');
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-[200px] justify-between"
+        >
+          {value ? items.find((i) => i.value === value)?.label : 'Filter...'}
+          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          <CommandInput placeholder="Search framework..." />
+          <CommandEmpty>No filters found.</CommandEmpty>
+          <CommandGroup>
+            {items.map((i) => (
+              <CommandItem
+                key={i.value}
+                onSelect={(currentValue) => {
+                  const newValue = currentValue === value ? '' : currentValue;
+                  setValue(newValue);
+                  setFilterValue(newValue);
+                  setOpen(false);
+                }}
+                value={i.value}
+              >
+                <CheckIcon
+                  className={cn(
+                    'mr-2 h-4 w-4',
+                    value === i.value ? 'opacity-100' : 'opacity-0'
+                  )}
+                />
+                {i.label}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
