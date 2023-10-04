@@ -1539,8 +1539,6 @@ github.com/neo4j/neo4j-go-driver v1.8.1-0.20200803113522-b626aa943eba/go.mod h1:
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 h1:NHrXEjTNQY7P0Zfx1aMrNhpgxHmow66XQtm0aQLY0AE=
 github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249/go.mod h1:mpRZBD8SJ55OIICQ3iWH0Yz3cjzA61JdqMLoWXeB2+8=
-github.com/nucleuscloud/neosync/worker v0.0.0-20230916005704-ddab32b5c3c6 h1:gLOfzx1nZc/pFu7dKFYtivph3QjDPCj3gwkHkgIk8xY=
-github.com/nucleuscloud/neosync/worker v0.0.0-20230916005704-ddab32b5c3c6/go.mod h1:BPAoQWDYnwRtdLHATaZrFM/EJYh2VqGU9yTJ1F7Kmq8=
 github.com/nucleuscloud/neosync/worker v0.0.0-20230918232714-bdbc13aae39a h1:GRd9+PKzLGwRFIcxsZMM9X2t3lONjf7isIfEDkG+5wY=
 github.com/nucleuscloud/neosync/worker v0.0.0-20230918232714-bdbc13aae39a/go.mod h1:3tKr01v32xAJdNf6qxkJw/k9S099JmEcfsTCgr7st1U=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
