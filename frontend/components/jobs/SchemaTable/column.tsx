@@ -138,7 +138,7 @@ export function getColumns(
                           <SelectItem
                             className="cursor-pointer"
                             key={t.id}
-                            value={t.name}
+                            value={t.name} //this is what gets sent to the backend, change to t.id to send the transformer id
                           >
                             {t.name}
                           </SelectItem>

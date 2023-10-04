@@ -75,8 +75,6 @@ export function DataTable<TData, TValue>({
     return <SkeletonTable />;
   }
 
-  // console.log('transformers', transformers);
-
   return (
     <div className="space-y-4">
       <DataTableToolbar table={table} transformers={transformers} />

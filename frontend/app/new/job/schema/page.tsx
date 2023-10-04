@@ -134,6 +134,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
+  console.log('values', form.getValues());
+
   return (
     <OverviewContainer
       Header={

@@ -53,6 +53,7 @@ func (a *Activities) GenerateBenthosConfigs(
 		return nil, err
 	}
 
+
 	switch connection := sourceConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		dsn, err := getPgDsn(connection.PgConfig)
