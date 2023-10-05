@@ -27,8 +27,6 @@ export function DataTableToolbar<TData>({
   const [transformer, setTransformer] = useState<string>('');
   const [exclude, setExclude] = useState<string>('');
 
-  // console.log('tr', transformers);
-
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">

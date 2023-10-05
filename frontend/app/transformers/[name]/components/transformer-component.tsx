@@ -1,6 +1,5 @@
 'use client';
 import PageHeader from '@/components/headers/PageHeader';
-import { UpdateConnectionResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
 
@@ -13,7 +12,7 @@ interface TransformerComponent {
 
 interface GetTransformerComponentDetailsProps {
   transformer?: Transformer;
-  onSaved(updatedConnResp: UpdateConnectionResponse): void;
+  // onSaved(updatedConnResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
   extraPageHeading?: ReactElement;
 }

@@ -12,7 +12,7 @@ import { getTransformerComponentDetails } from './components/transformer-compone
 export default function TransformerPage({ params }: PageProps) {
   const name = params?.name ?? '';
   const account = useAccount();
-  const { data, isLoading, mutate } = useGetTransformers(account?.id ?? ''); //udpate with tranformesr
+  const { data, isLoading } = useGetTransformers(account?.id ?? ''); //udpate with tranformesr
 
   const transformer = data?.transformers.find((item) => item.name == name);
 
@@ -30,17 +30,16 @@ export default function TransformerPage({ params }: PageProps) {
   }
   const tranformerComponent = getTransformerComponentDetails({
     transformer: transformer,
-    onSaved: (resp) => {
-      mutate();
-      // new GetTransformersResponse({
-      //   connection: resp.connection,
-      // })
-      console.log('resp', resp);
-      toast({
-        title: 'Successfully updated transformer!',
-        variant: 'default',
-      });
-    },
+    // onSaved: (resp) => {
+    //   mutate();
+    //   new GetTransformersResponse({
+    //     transformers: resp,
+    //   });
+    //   toast({
+    //     title: 'Successfully updated transformer!',
+    //     variant: 'default',
+    //   });
+    // },
     onSaveFailed: (err) =>
       toast({
         title: 'Unable to update transformer',
