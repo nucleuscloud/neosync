@@ -19,7 +19,7 @@
     "@docusaurus/preset-classic": "2.4.1",
     "@mdx-js/react": "^1.6.22",
     "@radix-ui/react-icons": "^1.3.0",
-    "autoprefixer": "^10.4.15",
+    "autoprefixer": "^10.4.16",
     "clsx": "^1.2.1",
     "postcss": "^8.4.31",
     "prism-react-renderer": "^1.3.5",
