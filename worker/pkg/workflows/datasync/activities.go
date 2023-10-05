@@ -150,15 +150,16 @@ func (a *Activities) GenerateBenthosConfigs(
 					return nil, err
 				}
 
-				truncateBeforeInsert := true
+				truncateBeforeInsert := false
 				initSchema := true
 				sqlOpts := destination.Options.GetSqlOptions()
 				if sqlOpts != nil && sqlOpts.InitDbSchema != nil {
 					initSchema = *sqlOpts.InitDbSchema
 				}
-				if sqlOpts != nil && sqlOpts.TruncateBeforeInsert != nil {
-					initSchema = *sqlOpts.TruncateBeforeInsert
-				}
+				// todo: figure out how to efficiently truncate a table
+				// if sqlOpts != nil && sqlOpts.TruncateBeforeInsert != nil {
+				// 	truncateBeforeInsert = *sqlOpts.TruncateBeforeInsert
+				// }
 
 				// todo: make this more efficient to reduce amount of times we have to connect to the source database
 				initStmt, err := a.getInitStatementFromPostgres(
