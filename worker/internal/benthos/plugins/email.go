@@ -1,4 +1,4 @@
-package neosync_plugins
+package neosync_benthos
 
 import (
 	"fmt"
@@ -41,9 +41,6 @@ func emailtransformer() {
 	if err != nil {
 		panic(err)
 	}
-
-	// //executes the plugin
-	// service.RunCLI(context.Background())
 
 }
 

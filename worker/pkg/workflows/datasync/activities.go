@@ -3,7 +3,6 @@ package datasync
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -19,6 +18,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
@@ -94,24 +94,10 @@ func (a *Activities) GenerateBenthosConfigs(
 				},
 			}
 
-			//instead of mutation this is oing to be the processor
-
-			// plugin, err := buildProcessorPlugin(job.Mappings, transformerConfigs)
-			// if err != nil {
-			// 	return nil, err
-			// }
-
 			mutation, err := buildProcessorMutation(job.Mappings, transformerConfigs)
 			if err != nil {
 				return nil, err
 			}
-			// //instead of mutation this is going to be the plugin name
-			// //TODO: update this to just append the processor itself instead of assigning it to the processor plugin
-			// if plugin != "" {
-			// 	bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
-			// 		Processor: plugin,
-			// 	})
-			// }
 
 			if mutation != "" {
 				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
@@ -234,6 +220,8 @@ type SyncResponse struct{}
 
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
 	streambldr := service.NewStreamBuilder()
+
+	fmt.Println("the config", req.BenthosConfig)
 
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
@@ -358,16 +346,15 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping, transformerConfigs 
 		if col.Transformer != "" {
 
 			if value, ok := transformerConfigMap[col.Transformer]; ok {
-
-				// mutation, err := computeMutationFunction(col.Transformer)
-				// if err != nil {
-				// 	return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
-				// }
+				mutation, err := computeMutationFunction(col, value)
+				if err != nil {
+					return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
+				}
 
 				if value.Name == "email" {
-					pieces = append(pieces, fmt.Sprintf("root.%s = %s.emailtransformer(%s, true, true)", col.Column, col.Column, `{"email":"evis@gmail.com"}`))
+					pieces = append(pieces, mutation)
 				} else if value.Name == "passthrough" {
-					pieces = append(pieces, fmt.Sprintf("root.%s = %s", col.Column, col.Column))
+					pieces = append(pieces, mutation)
 
 				} else {
 					return "", fmt.Errorf("unsupported transformer")
@@ -378,7 +365,10 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping, transformerConfigs 
 			return "", fmt.Errorf("%s is not a supported transformation", col.Transformer)
 		}
 
-		//else build configs
+		// mutation, err := computeMutationFunction(col.Transformer)
+		// if err != nil {
+		// 	return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
+		// }
 
 		// if col.Transformer != "" && col.Transformer != "passthrough" {
 		// 	mutation, err := computeMutationFunction(col.Transformer)
@@ -392,12 +382,14 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping, transformerConfigs 
 	return strings.Join(pieces, "\n"), nil
 }
 
-func computeMutationFunction(transformer string, logger log.Logger) (string, error) {
+func computeMutationFunction(col *mgmtv1alpha1.JobMapping, transformer *mgmtv1alpha1.Transformer) (string, error) {
 
-	logger.Println("this is the transformer in the switch", transformer)
-	switch transformer {
+	switch transformer.Name {
+	//handle options here later
 	case "email":
-		return fmt.Sprintf("emailtransformer"), nil
+		return fmt.Sprintf("root.%s = %s.emailtransformer(root.%s, true, true)", col.Column, col.Column, col.Column), nil
+	case "passthrough":
+		return fmt.Sprintf("root.%s = %s", col.Column, col.Column), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
