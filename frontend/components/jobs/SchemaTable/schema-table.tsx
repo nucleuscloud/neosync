@@ -21,12 +21,22 @@ export function SchemaTable(props: JobTableProps): ReactElement {
 
   const columns = getColumns({ transformers: transformers?.transformers });
 
+  const schemaMap: Record<string, Record<string, string>> = {};
+  data.forEach((row) => {
+    if (!schemaMap[row.schema]) {
+      schemaMap[row.schema] = { [row.table]: row.table };
+    } else {
+      schemaMap[row.schema][row.table] = row.table;
+    }
+  });
+
   return (
     <div>
       <DataTable
         columns={columns}
         data={data}
         transformers={transformers?.transformers}
+        schemaMap={schemaMap}
       />
     </div>
   );

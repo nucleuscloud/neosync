@@ -40,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tree } from '@/components/ui/tree';
 import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
@@ -49,12 +50,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   transformers?: Transformer[];
+  schemaMap: Record<string, Record<string, string>>;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   transformers,
+  schemaMap,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -62,6 +65,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  const [content, setContent] = React.useState('Admin Page');
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const table = useReactTable({
     data,
@@ -84,73 +88,158 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  const treedata = Object.keys(schemaMap).map((schema) => {
+    return {
+      id: schema,
+      name: schema,
+      isSelected: true,
+      children: Object.keys(schemaMap[schema]).map((table) => {
+        return {
+          id: table,
+          name: table,
+          isSelected: true,
+        };
+      }),
+    };
+  });
+
+  const other = [
+    { id: '1', name: '1', isSelected: false },
+    { id: '2', name: '2', isSelected: false },
+    {
+      id: '3',
+      name: '3',
+      isSelected: false,
+      children: [
+        { id: 'c1', name: 'c1', isSelected: false },
+        { id: 'c2', name: 'c2', isSelected: false },
+        { id: 'c3', name: 'c3', isSelected: false },
+      ],
+    },
+    {
+      id: '4',
+      name: '4',
+      isSelected: false,
+      children: [
+        {
+          id: 'd1',
+          name: 'd1',
+          isSelected: false,
+          children: [
+            { id: 'd11', name: 'd11', isSelected: false },
+            { id: 'd12', name: 'd12', isSelected: false },
+            { id: 'd13', name: 'd13', isSelected: false },
+          ],
+        },
+        { id: 'd2', name: 'd2', isSelected: false },
+        { id: 'd3', name: 'd3', isSelected: false },
+      ],
+    },
+    {
+      id: '5',
+      name: '5',
+      isSelected: false,
+      children: [
+        {
+          id: 'e1',
+          name: 'e1',
+          isSelected: false,
+          children: [
+            { id: 'e11', name: 'e11', isSelected: false },
+            { id: 'e12', name: 'e12', isSelected: false },
+            { id: 'e13', name: 'e13', isSelected: false },
+          ],
+        },
+        { id: 'e2', name: 'e2', isSelected: false },
+        { id: 'e3', name: 'e3', isSelected: false },
+      ],
+    },
+  ];
+
   if (!data) {
     return <SkeletonTable />;
   }
 
   return (
-    <div className="space-y-4">
-      <DataTableToolbar table={table} transformers={transformers} />
-      <div className="rounded-md border">
-        <ScrollArea className="h-[700px]">
-          <Table>
-            <TableHeader className="sticky top-0">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
+    <div className="flex flex-row">
+      <div className="basis-1/3">
+        <div className="flex min-h-full space-x-2">
+          <Tree
+            data={other}
+            className="flex-shrink-0 w-[200px] h-[460px] border-[1px]"
+            onSelectChange={(item) => setContent(item?.name ?? '')}
+          />
+        </div>
+      </div>
+      <div className="basis-2/3">
+        <div className="space-y-4">
+          <DataTableToolbar table={table} transformers={transformers} />
+          <div className="rounded-md border">
+            <ScrollArea className="h-[700px]">
+              <Table>
+                <TableHeader className="sticky top-0">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead key={header.id}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                            {header.column.getCanFilter() ? (
+                              <div>
+                                <FilterSelect
+                                  column={header.column}
+                                  table={table}
+                                  transformers={transformers || []}
+                                />
+                              </div>
+                            ) : null}
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
                             )}
-                        {header.column.getCanFilter() ? (
-                          <div>
-                            <FilterSelect
-                              column={header.column}
-                              table={table}
-                              transformers={transformers || []}
-                            />
-                          </div>
-                        ) : null}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        No results.
                       </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </div>
+          <div className="flex-1 text-sm text-muted-foreground">
+            {table.getFilteredSelectedRowModel().rows.length} of{' '}
+            {table.getFilteredRowModel().rows.length} row(s) selected.
+          </div>
+        </div>
       </div>
     </div>
   );
