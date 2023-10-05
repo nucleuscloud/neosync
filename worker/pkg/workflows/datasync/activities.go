@@ -150,8 +150,8 @@ func (a *Activities) GenerateBenthosConfigs(
 					return nil, err
 				}
 
-				truncateBeforeInsert := false
-				initSchema := false
+				truncateBeforeInsert := true
+				initSchema := true
 				sqlOpts := destination.Options.GetSqlOptions()
 				if sqlOpts != nil && sqlOpts.InitDbSchema != nil {
 					initSchema = *sqlOpts.InitDbSchema
