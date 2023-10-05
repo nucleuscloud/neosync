@@ -18,7 +18,7 @@ require (
 	go.temporal.io/sdk v1.24.0
 	golang.org/x/net v0.15.0
 	golang.org/x/sync v0.4.0
-	google.golang.org/grpc v1.58.1
+	google.golang.org/grpc v1.58.2
 	google.golang.org/protobuf v1.31.0
 )
 
