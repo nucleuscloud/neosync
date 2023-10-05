@@ -1,4 +1,4 @@
-package neosync_benthos
+package neosync_plugins
 
 import (
 	"fmt"
@@ -10,17 +10,14 @@ import (
 	"github.com/bxcodec/faker/v4"
 )
 
-func emailtransformer() {
+func Emailtransformer() {
 
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam("email")).Param(bloblang.NewBoolParam("preserve_length")).Param(bloblang.NewBoolParam("preserve_domain"))
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewBoolParam("preserve_length")).
+		Param(bloblang.NewBoolParam("preserve_domain"))
 
 	//register the plugin
 	err := bloblang.RegisterMethodV2("emailtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
-
-		email, err := args.GetString("email")
-		if err != nil {
-			return nil, err
-		}
 
 		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
@@ -32,10 +29,10 @@ func emailtransformer() {
 			return nil, err
 		}
 
-		return func(v interface{}) (interface{}, error) {
-			res, err := ProcessEmail(email, preserveLength, preserveDomain)
+		return bloblang.StringMethod(func(s string) (interface{}, error) {
+			res, err := ProcessEmail(s, preserveLength, preserveDomain)
 			return res, err
-		}, nil
+		}), nil
 	})
 
 	if err != nil {
@@ -56,7 +53,7 @@ func ProcessEmail(email string, preserveLength bool, preserveDomain bool) (strin
 
 	if preserveDomain && !preserveLength {
 
-		returnValue = faker.Username() + "@" + parsedEmail[1]
+		returnValue = strings.ToLower(faker.Username()) + "@" + parsedEmail[1]
 
 	} else if preserveLength && !preserveDomain {
 

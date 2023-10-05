@@ -19,6 +19,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins"
+	neosync_plugins "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
@@ -59,6 +60,7 @@ func (a *Activities) GenerateBenthosConfigs(
 		return nil, err
 	}
 
+	//ED:add more connection types here as we build more out and probably refactor cases into a separate file
 	switch connection := sourceConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		dsn, err := getPgDsn(connection.PgConfig)
@@ -99,9 +101,13 @@ func (a *Activities) GenerateBenthosConfigs(
 				return nil, err
 			}
 
+			/*ED:when the component here is Mutation: benthos throws this error:
+			field processor is invalid when the component type is mutation (processor)
+			switching it to Bloblang makes it pass */
+
 			if mutation != "" {
 				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
-					Mutation: mutation,
+					Bloblang: mutation,
 				})
 			}
 
@@ -121,6 +127,7 @@ func (a *Activities) GenerateBenthosConfigs(
 			return nil, err
 		}
 		for _, resp := range responses {
+			//ED:add more destination cases here and evntually probably refactor the case statements out into a separate file
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 				dsn, err := getPgDsn(connection.PgConfig)
@@ -337,61 +344,40 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping, transformerConfigs 
 		transformerConfigMap[val.Name] = val
 	}
 
-	pieces := []string{}
+	//ED: have to register the custom method, should build this list based on the selected transformers
+	//so we're not calling and registering transformers that aren't being used
+	neosync_plugins.Emailtransformer()
+
+	mutations := []string{}
 
 	for _, col := range cols {
-
-		fmt.Println("the col", col)
-
-		if col.Transformer != "" {
-
-			if value, ok := transformerConfigMap[col.Transformer]; ok {
-				mutation, err := computeMutationFunction(col, value)
-				if err != nil {
-					return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
-				}
-
-				if value.Name == "email" {
-					pieces = append(pieces, mutation)
-				} else if value.Name == "passthrough" {
-					pieces = append(pieces, mutation)
-
-				} else {
-					return "", fmt.Errorf("unsupported transformer")
-				}
+		//ED: checks that the user-selected transformer is defined and in the transfomer map from the db
+		if value, ok := transformerConfigMap[col.Transformer]; ok {
+			mutation, err := computeMutationFunction(col, value)
+			if err != nil {
+				return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
 			}
 
+			mutations = append(mutations, mutation)
+
 		} else {
-			return "", fmt.Errorf("%s is not a supported transformation", col.Transformer)
+			return "", fmt.Errorf("unable to recognize transformer")
 		}
-
-		// mutation, err := computeMutationFunction(col.Transformer)
-		// if err != nil {
-		// 	return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
-		// }
-
-		// if col.Transformer != "" && col.Transformer != "passthrough" {
-		// 	mutation, err := computeMutationFunction(col.Transformer)
-		// 	if err != nil {
-		// 		return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
-		// 	}
-		// 	pieces = append(pieces, fmt.Sprintf("root.%s = %s()", col.Column, mutation))
-		// }
 	}
-	fmt.Println(" the mutation string", strings.Join(pieces, "\n"))
-	return strings.Join(pieces, "\n"), nil
+
+	return strings.Join(mutations, "\n"), nil
 }
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping, transformer *mgmtv1alpha1.Transformer) (string, error) {
 
 	switch transformer.Name {
-	//handle options here later
 	case "email":
-		return fmt.Sprintf("root.%s = %s.emailtransformer(root.%s, true, true)", col.Column, col.Column, col.Column), nil
+		option := transformer.Config.GetEmailConfig()
+		return fmt.Sprintf("root.%s = this.email.emailtransformer(%t, %t)", col.Column, option.PreserveLength, option.PreserveDomain), nil
 	case "passthrough":
 		return fmt.Sprintf("root.%s = %s", col.Column, col.Column), nil
 	default:
-		return "", fmt.Errorf("unsupported transformer")
+		return "", fmt.Errorf("unable to recognize transformer")
 	}
 }
 

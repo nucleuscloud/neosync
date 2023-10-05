@@ -5,8 +5,8 @@ export const siteConfig = {
   description:
     'Beautifully designed components built with Radix UI and Tailwind CSS.',
   links: {
-    twitter: 'https://twitter.com/nucleuscloud',
-    github: 'https://github.com/nucleuscloud',
+    twitter: 'https://twitter.com/neosynccloud',
+    github: 'https://github.com/nucleuscloud/neosync',
   },
 };
 

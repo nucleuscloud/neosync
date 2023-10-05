@@ -138,7 +138,7 @@ require (
 	github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 // indirect
-	github.com/nucleuscloud/neosync v0.0.4-0.20231005035458-2ac96ab0c67d // indirect
+	github.com/nucleuscloud/neosync v0.0.4-0.20231005051742-764d8fa3955c // indirect
 	github.com/olivere/elastic/v7 v7.0.32 // indirect
 	github.com/onsi/gomega v1.27.10 // indirect
 	github.com/paulmach/orb v0.10.0 // indirect
