@@ -20,8 +20,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
+	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformer-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
-	v1alpha1_transformerservice  "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformer-service"
 	temporalclient "go.temporal.io/sdk/client"
 
 	"github.com/spf13/cobra"
