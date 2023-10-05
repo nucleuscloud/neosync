@@ -232,7 +232,6 @@ type EmailConfig struct {
 }
 
 func (t *TransformerConfig) ToDto() *mgmtv1alpha1.TransformerConfig {
-
 	if t.EmailConfig != nil {
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{

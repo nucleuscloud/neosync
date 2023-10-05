@@ -2,7 +2,6 @@ package v1alpha1_transformerservice
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -29,8 +28,6 @@ func (s *Service) GetTransformers(
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("getting through to the API")
 
 	transformers, err := s.db.Q.GetTransformersByAccount(ctx, *accountUuid)
 	if err != nil {
