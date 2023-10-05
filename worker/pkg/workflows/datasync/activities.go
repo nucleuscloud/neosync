@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
+	"golang.org/x/sync/errgroup"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
@@ -62,6 +63,11 @@ func (a *Activities) GenerateBenthosConfigs(
 
 		groupedMappings := groupMappingsByTable(job.Mappings)
 		for key, mappings := range groupedMappings {
+			cols := buildPlainColumns(mappings)
+			if len(cols) == 0 {
+				// skipping table as no columns are mapped
+				continue
+			}
 			bc := &neosync_benthos.BenthosConfig{
 				StreamConfig: neosync_benthos.StreamConfig{
 					Input: &neosync_benthos.InputConfig{
@@ -97,9 +103,23 @@ func (a *Activities) GenerateBenthosConfigs(
 				})
 			}
 			responses = append(responses, &benthosConfigResponse{
-				Name:   key, // todo: may need to expand on this
-				Config: bc,
+				Name:      key, // todo: may need to expand on this
+				Config:    bc,
+				DependsOn: []string{},
 			})
+		}
+
+		allConstraints, err := a.getAllFkConstraintsFromMappings(ctx, dsn, job.Mappings)
+		if err != nil {
+			return nil, err
+		}
+		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+
+		for _, resp := range responses {
+			dependsOn, ok := td[resp.Name]
+			if ok {
+				resp.DependsOn = dependsOn
+			}
 		}
 
 	default:
@@ -118,8 +138,28 @@ func (a *Activities) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
+
+				truncateBeforeInsert := false
+				initSchema := true
+				sqlOpts := destination.Options.GetSqlOptions()
+				if sqlOpts != nil && sqlOpts.InitDbSchema != nil {
+					initSchema = *sqlOpts.InitDbSchema
+				}
+				// todo: figure out how to efficiently truncate a table
+				// if sqlOpts != nil && sqlOpts.TruncateBeforeInsert != nil {
+				// 	truncateBeforeInsert = *sqlOpts.TruncateBeforeInsert
+				// }
+
 				// todo: make this more efficient to reduce amount of times we have to connect to the source database
-				initStmt, err := a.getInitStatementFromPostgres(ctx, resp.Config.Input.SqlSelect.Dsn, resp.Config.Input.SqlSelect.Table)
+				initStmt, err := a.getInitStatementFromPostgres(
+					ctx,
+					resp.Config.Input.SqlSelect.Dsn,
+					resp.Config.Input.SqlSelect.Table,
+					&initStatementOpts{
+						TruncateBeforeInsert: truncateBeforeInsert,
+						InitSchema:           initSchema,
+					},
+				)
 				if err != nil {
 					return nil, err
 				}
@@ -134,6 +174,7 @@ func (a *Activities) GenerateBenthosConfigs(
 						InitStatement: initStmt,
 					},
 				})
+
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 				s3pathpieces := []string{}
 				if connection.AwsS3Config.PathPrefix != nil && *connection.AwsS3Config.PathPrefix != "" {
@@ -176,10 +217,54 @@ func (a *Activities) GenerateBenthosConfigs(
 	}, nil
 }
 
+func (a *Activities) getAllFkConstraintsFromMappings(
+	ctx context.Context,
+	dsn string,
+	mappings []*mgmtv1alpha1.JobMapping,
+) ([]*dbschemas_postgres.ForeignKeyConstraint, error) {
+	conn, err := pgx.Connect(ctx, dsn)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close(ctx)
+
+	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
+	holder := make([][]*dbschemas_postgres.ForeignKeyConstraint, len(uniqueSchemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range uniqueSchemas {
+		idx := idx
+		schema := uniqueSchemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := dbschemas_postgres.GetForeignKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*dbschemas_postgres.ForeignKeyConstraint{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
+}
+
+type initStatementOpts struct {
+	TruncateBeforeInsert bool
+	InitSchema           bool
+}
+
 func (a *Activities) getInitStatementFromPostgres(
 	ctx context.Context,
 	dsn string,
 	table string,
+	opts *initStatementOpts,
 ) (string, error) {
 	conn, err := pgx.Connect(ctx, dsn)
 	if err != nil {
@@ -187,9 +272,20 @@ func (a *Activities) getInitStatementFromPostgres(
 	}
 	defer conn.Close(ctx)
 
-	return dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
-		Table: table,
-	})
+	statements := []string{}
+	if opts != nil && opts.TruncateBeforeInsert {
+		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s;", table))
+	}
+	if opts != nil && opts.InitSchema {
+		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
+			Table: table,
+		})
+		if err != nil {
+			return "", err
+		}
+		statements = append(statements, stmt)
+	}
+	return strings.Join(statements, "\n"), nil
 }
 
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
@@ -236,6 +332,20 @@ func groupMappingsByTable(
 	for _, mapping := range mappings {
 		key := buildBenthosTable(mapping.Schema, mapping.Table)
 		output[key] = append(output[key], mapping)
+	}
+	return output
+}
+
+func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
+	schemas := map[string]struct{}{}
+	for _, mapping := range mappings {
+		schemas[mapping.Schema] = struct{}{}
+	}
+
+	output := make([]string, 0, len(schemas))
+
+	for schema := range schemas {
+		output = append(output, schema)
 	}
 	return output
 }
