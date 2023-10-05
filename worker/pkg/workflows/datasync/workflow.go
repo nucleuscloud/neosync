@@ -80,6 +80,23 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		}
 	})
 
+	for _, bc := range bcResp.BenthosConfigs {
+		if _, ok := completed[bc.Name]; ok {
+			continue
+		}
+		if len(bc.DependsOn) != 0 {
+			continue
+		}
+		bits, _ := yaml.Marshal(bc.Config)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		future := workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)})
+		selector.AddFuture(future, func(f workflow.Future) {
+			bchan.Send(ctx, bc.Name)
+		})
+	}
+
 	for i := 0; i < numwaits; i++ {
 		selector.Select(ctx)
 	}

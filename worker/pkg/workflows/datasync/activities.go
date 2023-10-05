@@ -62,6 +62,11 @@ func (a *Activities) GenerateBenthosConfigs(
 
 		groupedMappings := groupMappingsByTable(job.Mappings)
 		for key, mappings := range groupedMappings {
+			cols := buildPlainColumns(mappings)
+			if len(cols) == 0 {
+				// skipping table as no columns are mapped
+				continue
+			}
 			bc := &neosync_benthos.BenthosConfig{
 				StreamConfig: neosync_benthos.StreamConfig{
 					Input: &neosync_benthos.InputConfig{
@@ -144,8 +149,27 @@ func (a *Activities) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
+
+				truncateBeforeInsert := false
+				initSchema := false
+				sqlOpts := destination.Options.GetSqlOptions()
+				if sqlOpts != nil && sqlOpts.InitDbSchema != nil {
+					initSchema = *sqlOpts.InitDbSchema
+				}
+				if sqlOpts != nil && sqlOpts.TruncateBeforeInsert != nil {
+					initSchema = *sqlOpts.TruncateBeforeInsert
+				}
+
 				// todo: make this more efficient to reduce amount of times we have to connect to the source database
-				initStmt, err := a.getInitStatementFromPostgres(ctx, resp.Config.Input.SqlSelect.Dsn, resp.Config.Input.SqlSelect.Table)
+				initStmt, err := a.getInitStatementFromPostgres(
+					ctx,
+					resp.Config.Input.SqlSelect.Dsn,
+					resp.Config.Input.SqlSelect.Table,
+					&initStatementOpts{
+						TruncateBeforeInsert: truncateBeforeInsert,
+						InitSchema:           initSchema,
+					},
+				)
 				if err != nil {
 					return nil, err
 				}
@@ -160,7 +184,6 @@ func (a *Activities) GenerateBenthosConfigs(
 						InitStatement: initStmt,
 					},
 				})
-				// resp.DependsOn
 
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 				s3pathpieces := []string{}
@@ -204,10 +227,16 @@ func (a *Activities) GenerateBenthosConfigs(
 	}, nil
 }
 
+type initStatementOpts struct {
+	TruncateBeforeInsert bool
+	InitSchema           bool
+}
+
 func (a *Activities) getInitStatementFromPostgres(
 	ctx context.Context,
 	dsn string,
 	table string,
+	opts *initStatementOpts,
 ) (string, error) {
 	conn, err := pgx.Connect(ctx, dsn)
 	if err != nil {
@@ -215,9 +244,20 @@ func (a *Activities) getInitStatementFromPostgres(
 	}
 	defer conn.Close(ctx)
 
-	return dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
-		Table: table,
-	})
+	statements := []string{}
+	if opts != nil && opts.TruncateBeforeInsert {
+		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s;", table))
+	}
+	if opts != nil && opts.InitSchema {
+		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
+			Table: table,
+		})
+		if err != nil {
+			return "", err
+		}
+		statements = append(statements, stmt)
+	}
+	return strings.Join(statements, "\n"), nil
 }
 
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
