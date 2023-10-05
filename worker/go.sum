@@ -1335,6 +1335,8 @@ github.com/nucleuscloud/neosync v0.0.0-20231002185125-dac18b4ca4de h1:eH5oRiqnbm
 github.com/nucleuscloud/neosync v0.0.0-20231002185125-dac18b4ca4de/go.mod h1:NoXfa9HP5+LJlajQ/TW7n7GiFBXAbcxqogxcLQMJrFs=
 github.com/nucleuscloud/neosync v0.0.4-0.20231005034638-b26950b62732 h1:5XwhpeTsH4PFW2XSR7k7UzOCK6g886Am//Ted9CwINQ=
 github.com/nucleuscloud/neosync v0.0.4-0.20231005034638-b26950b62732/go.mod h1:NoXfa9HP5+LJlajQ/TW7n7GiFBXAbcxqogxcLQMJrFs=
+github.com/nucleuscloud/neosync v0.0.4-0.20231005035458-2ac96ab0c67d h1:cPAnYQbrAL8DTCM7yNYFdoQ1gp7itlNMiqAxsA3lU5w=
+github.com/nucleuscloud/neosync v0.0.4-0.20231005035458-2ac96ab0c67d/go.mod h1:NoXfa9HP5+LJlajQ/TW7n7GiFBXAbcxqogxcLQMJrFs=
 github.com/nucleuscloud/neosync/backend v0.0.0-20230911182806-f8b250e84872 h1:hdRUERAmuS/oaGIodyF5sxD0Gh9Uc3CAaGWypfDlDKY=
 github.com/nucleuscloud/neosync/backend v0.0.0-20230911182806-f8b250e84872/go.mod h1:Gp7yVdwZR5RehR3XpIgPfbWEYCfrzKVRxUk7BoGP4go=
 github.com/oklog/ulid v1.3.1 h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=

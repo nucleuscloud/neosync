@@ -1,4 +1,4 @@
-package neosync_benthos
+package neosync_plugins
 
 import (
 	"fmt"

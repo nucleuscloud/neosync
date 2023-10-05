@@ -365,7 +365,7 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping, transformerConfigs 
 				// }
 
 				if value.Name == "email" {
-					pieces = append(pieces, fmt.Sprintf("root.%s = %s.emailtransformer(%s, true, true)", col.Column, "evis@gmail.com", col.Column))
+					pieces = append(pieces, fmt.Sprintf("root.%s = %s.emailtransformer(%s, true, true)", col.Column, col.Column, `{"email":"evis@gmail.com"}`))
 				} else if value.Name == "passthrough" {
 					pieces = append(pieces, fmt.Sprintf("root.%s = %s", col.Column, col.Column))
 
