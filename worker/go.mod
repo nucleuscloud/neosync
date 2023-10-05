@@ -5,6 +5,7 @@ go 1.21.1
 require (
 	connectrpc.com/connect v1.11.1
 	github.com/benthosdev/benthos/v4 v4.21.0
+	github.com/google/uuid v1.3.1
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/nucleuscloud/neosync/backend v0.0.0-20230911182806-f8b250e84872
 	github.com/spf13/cobra v1.7.0
@@ -87,7 +88,6 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/uuid v1.3.1 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
