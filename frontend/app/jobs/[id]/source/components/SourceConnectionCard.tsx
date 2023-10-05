@@ -195,7 +195,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
             maxColNum={2}
           />
 
-          <SchemaTable data={form.getValues().mappings} />
+          <SchemaTable data={form.getValues().mappings || []} />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button disabled={!form.formState.isDirty} type="submit">
               Save

@@ -78,7 +78,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
-          transformer: '',
+          transformer: 'passthrough',
         };
       });
       return { mappings };
@@ -145,7 +145,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <SchemaTable data={form.getValues().mappings} />
+          <SchemaTable data={form.getValues().mappings || []} />
 
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
