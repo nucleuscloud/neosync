@@ -148,10 +148,10 @@ func (a *Activities) GenerateBenthosConfigs(
 				if sqlOpts != nil && sqlOpts.InitDbSchema != nil {
 					initSchema = *sqlOpts.InitDbSchema
 				}
-				// todo: figure out how to efficiently truncate a table
-				// if sqlOpts != nil && sqlOpts.TruncateBeforeInsert != nil {
-				// 	truncateBeforeInsert = *sqlOpts.TruncateBeforeInsert
-				// }
+
+				if sqlOpts != nil && sqlOpts.TruncateBeforeInsert != nil {
+					truncateBeforeInsert = *sqlOpts.TruncateBeforeInsert
+				}
 
 				// todo: make this more efficient to reduce amount of times we have to connect to the source database
 				initStmt, err := a.getInitStatementFromPostgres(
@@ -277,7 +277,7 @@ func (a *Activities) getInitStatementFromPostgres(
 
 	statements := []string{}
 	if opts != nil && opts.TruncateBeforeInsert {
-		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s;", table))
+		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s CASCADE;", table))
 	}
 	if opts != nil && opts.InitSchema {
 		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
