@@ -295,79 +295,21 @@ func GetPostgresTableDependencies(
 	return tdmap
 }
 
-func GetTableSeedQueue(
-	schemas []*DatabaseSchema,
-	constraints []*ForeignKeyConstraint,
-) [][]string {
-	tables := []string{}
-	for _, schema := range schemas {
-		tables = append(tables, buildTableKey(schema.TableSchema, schema.TableName))
-	}
-
-	td := GetPostgresTableDependencies(constraints)
-
-	roots := []string{}
-	for _, table := range tables {
-		if _, ok := td[table]; !ok {
-			roots = append(roots, table)
-		}
-	}
-
-	output := append([][]string{}, roots)
-	queuedTables := map[string]struct{}{}
-	for _, root := range roots {
-		queuedTables[root] = struct{}{}
-	}
-
-	for len(tables) != len(queuedTables) {
-		nextRound := []string{}
-		for table, deps := range td {
-			if _, ok := queuedTables[table]; ok {
-				continue
-			}
-			if ok := isTableReady(queuedTables, deps); ok {
-				nextRound = append(nextRound, table)
-			}
-		}
-		if len(nextRound) == 0 {
-			fmt.Println("infinite loop!")
-			break
-		}
-		output = append(output, nextRound)
-		for _, table := range nextRound {
-			queuedTables[table] = struct{}{}
-		}
-	}
-
-	return output
-}
-
-func isTableReady(
-	queue map[string]struct{},
-	deps []string,
-) bool {
-	for _, dep := range deps {
-		if _, ok := queue[dep]; !ok {
-			return false
-		}
-	}
-	return true
-}
-
 func UniqueSlice[T any](keyFn func(T) string, genSlices ...[]T) []T {
-	uniqueSet := map[string]T{}
+	seen := map[string]struct{}{}
+	output := []T{}
 
-	for _, genSlice := range genSlices {
-		for _, val := range genSlice {
-			uniqueSet[keyFn(val)] = val
+	for genIdx := range genSlices {
+		for idx := range genSlices[genIdx] {
+			val := genSlices[genIdx][idx]
+			key := keyFn(val)
+			if _, ok := seen[key]; !ok {
+				output = append(output, val)
+				seen[key] = struct{}{}
+			}
 		}
 	}
-
-	result := make([]T, 0, len(uniqueSet))
-	for _, val := range uniqueSet {
-		result = append(result, val)
-	}
-	return result
+	return output
 }
 
 func buildTableKey(
