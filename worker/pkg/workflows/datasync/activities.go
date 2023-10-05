@@ -15,7 +15,6 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/jackc/pgx/v5"
-	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins/email"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"

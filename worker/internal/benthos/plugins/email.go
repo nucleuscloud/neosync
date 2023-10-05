@@ -1,14 +1,12 @@
-package main
+package neosync_benthos
 
 import (
-	"context"
 	"fmt"
 	"net/mail"
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/bxcodec/faker/v4"
 )
 
@@ -44,8 +42,8 @@ func emailtransformer() {
 		panic(err)
 	}
 
-	//executes the plugin
-	service.RunCLI(context.Background())
+	// //executes the plugin
+	// service.RunCLI(context.Background())
 
 }
 
