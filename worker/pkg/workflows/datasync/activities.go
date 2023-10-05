@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
+	"golang.org/x/sync/errgroup"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
@@ -108,22 +109,10 @@ func (a *Activities) GenerateBenthosConfigs(
 			})
 		}
 
-		uniqueSchemas := getUniqueSchemasFromMappings(job.Mappings)
-		allConstraints := []*dbschemas_postgres.ForeignKeyConstraint{}
-		conn, err := pgx.Connect(ctx, dsn)
+		allConstraints, err := a.getAllFkConstraintsFromMappings(ctx, dsn, job.Mappings)
 		if err != nil {
 			return nil, err
 		}
-		defer conn.Close(ctx)
-		// todo: parallelize
-		for _, schema := range uniqueSchemas {
-			constraints, err := dbschemas_postgres.GetForeignKeyConstraints(ctx, conn, schema)
-			if err != nil {
-				return nil, err
-			}
-			allConstraints = append(allConstraints, constraints...)
-		}
-
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
 
 		for _, resp := range responses {
@@ -226,6 +215,44 @@ func (a *Activities) GenerateBenthosConfigs(
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+func (a *Activities) getAllFkConstraintsFromMappings(
+	ctx context.Context,
+	dsn string,
+	mappings []*mgmtv1alpha1.JobMapping,
+) ([]*dbschemas_postgres.ForeignKeyConstraint, error) {
+	conn, err := pgx.Connect(ctx, dsn)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close(ctx)
+
+	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
+	holder := make([][]*dbschemas_postgres.ForeignKeyConstraint, len(uniqueSchemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range uniqueSchemas {
+		idx := idx
+		schema := uniqueSchemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := dbschemas_postgres.GetForeignKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*dbschemas_postgres.ForeignKeyConstraint{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
 }
 
 type initStatementOpts struct {
