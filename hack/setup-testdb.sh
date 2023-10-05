@@ -8,6 +8,9 @@ DST_PORT="5434"
 pkill -f "kubectl port-forward -n default svc/postgresql1 ${SRC_PORT}:5432"
 pkill -f "kubectl port-forward -n default svc/postgresql2 ${DST_PORT}:5432"
 
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=postgresql1
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=postgresql2
+
 kubectl port-forward -n default svc/postgresql1 ${SRC_PORT}:5432 &
 kubectl port-forward -n default svc/postgresql2 ${DST_PORT}:5432 &
 
