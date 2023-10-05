@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
+	"go.temporal.io/sdk/activity"
 	"golang.org/x/sync/errgroup"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
@@ -43,6 +44,8 @@ func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
 ) (*GenerateBenthosConfigsResponse, error) {
+	activity.RecordHeartbeat(ctx)
+
 	job, err := a.getJobById(ctx, req.BackendUrl, req.JobId)
 	if err != nil {
 		return nil, err
@@ -306,6 +309,8 @@ type SyncRequest struct {
 type SyncResponse struct{}
 
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
+	activity.RecordHeartbeat(ctx)
+
 	streambldr := service.NewStreamBuilder()
 
 	err := streambldr.SetYAML(req.BenthosConfig)
