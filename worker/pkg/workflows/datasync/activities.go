@@ -228,8 +228,6 @@ type SyncResponse struct{}
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
 	streambldr := service.NewStreamBuilder()
 
-	fmt.Println("the config", req.BenthosConfig)
-
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)

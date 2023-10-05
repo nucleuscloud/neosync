@@ -12,7 +12,7 @@ import { getTransformerComponentDetails } from './components/transformer-compone
 export default function TransformerPage({ params }: PageProps) {
   const name = params?.name ?? '';
   const account = useAccount();
-  const { data, isLoading } = useGetTransformers(account?.id ?? ''); //udpate with tranformesr
+  const { data, isLoading } = useGetTransformers(account?.id ?? '');
 
   const transformer = data?.transformers.find((item) => item.name == name);
 
