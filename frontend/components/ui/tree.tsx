@@ -17,27 +17,22 @@ interface TreeDataItem {
 }
 
 type TreeProps = React.HTMLAttributes<HTMLDivElement> & {
-  data: TreeDataItem[] | TreeDataItem;
+  data: TreeDataItem[];
   onSelectChange?: (items: TreeDataItem[]) => void;
   folderIcon?: LucideIcon;
   itemIcon?: LucideIcon;
 };
-
-function convertToArray<T>(item: T | T[]): T[] {
-  if (Array.isArray(item)) {
-    return item;
-  }
-  return [item];
-}
 
 const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
   (
     { data, onSelectChange, folderIcon, itemIcon, className, ...props },
     ref
   ) => {
-    const [treeItems, setTreeItems] = React.useState<TreeDataItem[]>(
-      convertToArray(data)
-    );
+    const [treeItems, setTreeItems] = React.useState<TreeDataItem[]>(data);
+
+    React.useEffect(() => {
+      setTreeItems(data);
+    }, [data]);
 
     function handleSelectChange(item: TreeDataItem) {
       const newTree = updateItemAndChildren(
@@ -81,6 +76,31 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
       });
     }
 
+    function isIndeterminate(item: TreeDataItem): boolean {
+      if (!item.children) {
+        return false;
+      }
+      function walkTreeItems(items: TreeDataItem | TreeDataItem[]) {
+        if (items instanceof Array) {
+          // eslint-disable-next-line @typescript-eslint/prefer-for-of
+          for (let i = 0; i < items.length; i++) {
+            console.log('item', JSON.stringify(items[i]));
+            if (!items[i].isSelected) {
+              return true;
+            }
+            if (walkTreeItems(items[i])) {
+              return true;
+            }
+          }
+        } else if (items.children) {
+          return walkTreeItems(items.children);
+        }
+        return false;
+      }
+
+      return walkTreeItems(item);
+    }
+
     const { ref: refRoot, width, height } = useResizeObserver();
 
     return (
@@ -93,6 +113,7 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
               handleSelectChange={handleSelectChange}
               FolderIcon={folderIcon}
               ItemIcon={itemIcon}
+              isIndeterminate={isIndeterminate}
               {...props}
             />
           </div>
@@ -103,15 +124,26 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
 );
 Tree.displayName = 'Tree';
 
-type TreeItemProps = TreeProps & {
+type TreeItemProps = React.HTMLAttributes<HTMLDivElement> & {
+  data: TreeDataItem | TreeDataItem[];
+  onSelectChange?: (items: TreeDataItem[]) => void;
   handleSelectChange: (item: TreeDataItem) => void;
+  isIndeterminate: (item: TreeDataItem) => boolean;
   FolderIcon?: LucideIcon;
   ItemIcon?: LucideIcon;
 };
 
 const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
   (
-    { className, data, handleSelectChange, FolderIcon, ItemIcon, ...props },
+    {
+      className,
+      data,
+      handleSelectChange,
+      isIndeterminate,
+      FolderIcon,
+      ItemIcon,
+      ...props
+    },
     ref
   ) => {
     return (
@@ -132,6 +164,7 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                             id={item.id}
                             onClick={() => handleSelectChange(item)}
                             checked={item.isSelected}
+                            indeterminate={isIndeterminate(item)}
                           />
                           <label
                             htmlFor="terms"
@@ -165,6 +198,7 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                           handleSelectChange={handleSelectChange}
                           FolderIcon={FolderIcon}
                           ItemIcon={ItemIcon}
+                          isIndeterminate={isIndeterminate}
                         />
                       </AccordionContent>
                     </AccordionPrimitive.Item>
@@ -174,6 +208,7 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                     item={item}
                     handleSelectChange={() => handleSelectChange(item)}
                     Icon={ItemIcon}
+                    indeterminate={isIndeterminate(item)}
                   />
                 )}
               </li>
@@ -184,6 +219,7 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                 item={data}
                 handleSelectChange={() => handleSelectChange(data)}
                 Icon={ItemIcon}
+                indeterminate={isIndeterminate(data)}
               />
             </li>
           )}
@@ -200,46 +236,53 @@ const Leaf = React.forwardRef<
     item: TreeDataItem;
     Icon?: LucideIcon;
     handleSelectChange: (item: TreeDataItem | undefined) => void;
+    indeterminate: boolean;
   }
->(({ className, handleSelectChange, item, Icon, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        'flex items-center py-2 px-2 cursor-pointer \
+>(
+  (
+    { className, handleSelectChange, indeterminate, item, Icon, ...props },
+    ref
+  ) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'flex items-center py-2 px-2 cursor-pointer \
         hover:before:opacity-100 before:absolute before:left-0 before:right-1 before:w-full before:opacity-0 before:bg-muted/80 before:h-[1.75rem] before:-z-10',
-        className
-      )}
-      {...props}
-    >
-      {item.icon && (
-        <item.icon
-          className="h-4 w-4 shrink-0 mr-2 text-accent-foreground/50"
-          aria-hidden="true"
-        />
-      )}
-      {!item.icon && Icon && (
-        <Icon
-          className="h-4 w-4 shrink-0 mr-2 text-accent-foreground/50"
-          aria-hidden="true"
-        />
-      )}
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id={item.id}
-          onClick={() => handleSelectChange(item)}
-          checked={item.isSelected}
-        />
-        <label
-          htmlFor="terms"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          {item.name}
-        </label>
+          className
+        )}
+        {...props}
+      >
+        {item.icon && (
+          <item.icon
+            className="h-4 w-4 shrink-0 mr-2 text-accent-foreground/50"
+            aria-hidden="true"
+          />
+        )}
+        {!item.icon && Icon && (
+          <Icon
+            className="h-4 w-4 shrink-0 mr-2 text-accent-foreground/50"
+            aria-hidden="true"
+          />
+        )}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id={item.id}
+            onClick={() => handleSelectChange(item)}
+            checked={item.isSelected}
+            indeterminate={indeterminate}
+          />
+          <label
+            htmlFor="terms"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            {item.name}
+          </label>
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 Leaf.displayName = 'Leaf';
 
 const AccordionTrigger = React.forwardRef<

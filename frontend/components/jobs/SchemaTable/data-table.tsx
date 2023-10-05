@@ -67,6 +67,8 @@ export function DataTable<TData, TValue>({
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
+  // const { ref: refRoot, width, height } = useResizeObserver();
+
   const table = useReactTable({
     data,
     columns,
@@ -88,16 +90,12 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  const schemas: string[] = [];
-  const tables: string[] = [];
-  const treedata = Object.keys(schemaMap).map((schema) => {
-    schemas.push(schema);
+  const initialTreeData = Object.keys(schemaMap).map((schema) => {
     return {
       id: schema,
       name: schema,
       isSelected: true,
       children: Object.keys(schemaMap[schema]).map((table) => {
-        tables.push(table);
         return {
           id: table,
           name: table,
@@ -106,6 +104,8 @@ export function DataTable<TData, TValue>({
       }),
     };
   });
+  const [treeData, setTreeData] =
+    React.useState<TreeDataItem[]>(initialTreeData);
 
   function handlefilter(items: TreeDataItem[]) {
     const schemaFilters: string[] = [];
@@ -137,6 +137,85 @@ export function DataTable<TData, TValue>({
     ]);
   }
 
+  function updateTree(): void {
+    const treedata = Object.keys(schemaMap).map((schema) => {
+      const parentIsSelected =
+        columnFilters.length == 0
+          ? true
+          : columnFilters.some((f) => f.id == 'schema' && f.value == schema);
+
+      return {
+        id: schema,
+        name: schema,
+        isSelected: parentIsSelected,
+        children: Object.keys(schemaMap[schema]).map((table) => {
+          const childIsSelected =
+            columnFilters.length == 0
+              ? true
+              : columnFilters.some((f) => f.id == 'table' && f.value == schema);
+          return {
+            id: table,
+            name: table,
+            isSelected: parentIsSelected || childIsSelected,
+          };
+        }),
+      };
+    });
+    setTreeData(treedata);
+  }
+  const other = [
+    { id: '1', name: '1', isSelected: false },
+    { id: '2', name: '2', isSelected: false },
+    {
+      id: '3',
+      name: '3',
+      isSelected: false,
+      children: [
+        { id: 'c1', name: 'c1', isSelected: false },
+        { id: 'c2', name: 'c2', isSelected: false },
+        { id: 'c3', name: 'c3', isSelected: false },
+      ],
+    },
+    {
+      id: '4',
+      name: '4',
+      isSelected: false,
+      children: [
+        {
+          id: 'd1',
+          name: 'd1',
+          isSelected: false,
+          children: [
+            { id: 'd11', name: 'd11', isSelected: false },
+            { id: 'd12', name: 'd12', isSelected: false },
+            { id: 'd13', name: 'd13', isSelected: false },
+          ],
+        },
+        { id: 'd2', name: 'd2', isSelected: false },
+        { id: 'd3', name: 'd3', isSelected: false },
+      ],
+    },
+    {
+      id: '5',
+      name: '5',
+      isSelected: false,
+      children: [
+        {
+          id: 'e1',
+          name: 'e1',
+          isSelected: false,
+          children: [
+            { id: 'e11', name: 'e11', isSelected: false },
+            { id: 'e12', name: 'e12', isSelected: false },
+            { id: 'e13', name: 'e13', isSelected: false },
+          ],
+        },
+        { id: 'e2', name: 'e2', isSelected: false },
+        { id: 'e3', name: 'e3', isSelected: false },
+      ],
+    },
+  ];
+
   if (!data) {
     return <SkeletonTable />;
   }
@@ -150,12 +229,12 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="flex flex-row">
-        <div className="basis-1/3 mb-10">
+      <div className="flex flex-row space-x-2">
+        <div className="basis-1/3 ">
           <Tree
-            data={treedata}
-            className="h-full w-[200px] border rounded-md border-r-0"
-            onSelectChange={handlefilter}
+            data={other}
+            className="h-full w-[200px] border rounded-md"
+            // onSelectChange={handlefilter}
           />
         </div>
         <div className="basis-2/3">
@@ -180,6 +259,9 @@ export function DataTable<TData, TValue>({
                                   column={header.column}
                                   table={table}
                                   transformers={transformers || []}
+                                  onSelect={() => {
+                                    updateTree();
+                                  }}
                                 />
                               </div>
                             ) : null}
@@ -234,10 +316,11 @@ interface FilterSelectProps<TData, TValue> {
   column: Column<TData, TValue>;
   table: TableType<TData>;
   transformers: Transformer[];
+  onSelect: (values: string[]) => void;
 }
 
 function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
-  const { column, table, transformers } = props;
+  const { column, table, transformers, onSelect } = props;
   const [open, setOpen] = React.useState(false);
   const firstValue = table
     .getPreFilteredRowModel()
@@ -266,6 +349,13 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
     }
     return '';
   }
+
+  function computeFilters(newValue: string, currentValues: string[]): string[] {
+    if (currentValues.includes(newValue)) {
+      return currentValues.filter((v) => v != newValue);
+    }
+    return [...currentValues, newValue];
+  }
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -292,14 +382,12 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
               <CommandItem
                 key={i}
                 onSelect={(currentValue) => {
-                  if (columnFilterValue.includes(currentValue)) {
-                    column.setFilterValue(
-                      columnFilterValue.filter((v) => v != currentValue)
-                    );
-                  } else {
-                    column.setFilterValue([...columnFilterValue, currentValue]);
-                  }
-
+                  const newValues = computeFilters(
+                    currentValue,
+                    columnFilterValue
+                  );
+                  column.setFilterValue(newValues);
+                  onSelect(newValues);
                   setOpen(false);
                 }}
                 value={i}
