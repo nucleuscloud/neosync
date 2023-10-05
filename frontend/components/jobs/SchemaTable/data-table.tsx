@@ -4,7 +4,6 @@ import {
   Column,
   ColumnDef,
   ColumnFiltersState,
-  FilterFn,
   SortingState,
   Table as TableType,
   VisibilityState,
@@ -68,14 +67,6 @@ export function DataTable<TData, TValue>({
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
-  const multiFilter: FilterFn<TData> = (row, columnId, value, addMeta) => {
-    console.log(JSON.stringify(row));
-    console.log('columnId', columnId);
-    console.log('value', value);
-
-    return true;
-  };
-
   const table = useReactTable({
     data,
     columns,
@@ -84,9 +75,6 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
       columnFilters,
-    },
-    filterFns: {
-      multi: multiFilter,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -100,12 +88,16 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  const schemas: string[] = [];
+  const tables: string[] = [];
   const treedata = Object.keys(schemaMap).map((schema) => {
+    schemas.push(schema);
     return {
       id: schema,
       name: schema,
       isSelected: true,
       children: Object.keys(schemaMap[schema]).map((table) => {
+        tables.push(table);
         return {
           id: table,
           name: table,
@@ -115,62 +107,34 @@ export function DataTable<TData, TValue>({
     };
   });
 
-  const other = [
-    { id: '1', name: '1', isSelected: false },
-    { id: '2', name: '2', isSelected: false },
-    {
-      id: '3',
-      name: '3',
-      isSelected: false,
-      children: [
-        { id: 'c1', name: 'c1', isSelected: false },
-        { id: 'c2', name: 'c2', isSelected: false },
-        { id: 'c3', name: 'c3', isSelected: false },
-      ],
-    },
-    {
-      id: '4',
-      name: '4',
-      isSelected: false,
-      children: [
-        {
-          id: 'd1',
-          name: 'd1',
-          isSelected: false,
-          children: [
-            { id: 'd11', name: 'd11', isSelected: false },
-            { id: 'd12', name: 'd12', isSelected: false },
-            { id: 'd13', name: 'd13', isSelected: false },
-          ],
-        },
-        { id: 'd2', name: 'd2', isSelected: false },
-        { id: 'd3', name: 'd3', isSelected: false },
-      ],
-    },
-    {
-      id: '5',
-      name: '5',
-      isSelected: false,
-      children: [
-        {
-          id: 'e1',
-          name: 'e1',
-          isSelected: false,
-          children: [
-            { id: 'e11', name: 'e11', isSelected: false },
-            { id: 'e12', name: 'e12', isSelected: false },
-            { id: 'e13', name: 'e13', isSelected: false },
-          ],
-        },
-        { id: 'e2', name: 'e2', isSelected: false },
-        { id: 'e3', name: 'e3', isSelected: false },
-      ],
-    },
-  ];
-
   function handlefilter(items: TreeDataItem[]) {
-    // table.setColumnFilters()
-    setColumnFilters([{ id: 'schema', value: ['public', 'sales'] }]);
+    const schemaFilters: string[] = [];
+    const tableFilters: string[] = [];
+    function walkTreeItems(items: TreeDataItem | TreeDataItem[]) {
+      if (items instanceof Array) {
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].isSelected) {
+            if (items[i].children) {
+              schemaFilters.push(items[i]!.id);
+            } else {
+              tableFilters.push(items[i]!.id);
+            }
+          }
+          if (walkTreeItems(items[i]!)) {
+            return true;
+          }
+        }
+      } else if (items.children) {
+        return walkTreeItems(items.children);
+      }
+    }
+
+    walkTreeItems(items);
+    setColumnFilters([
+      { id: 'schema', value: schemaFilters },
+      { id: 'table', value: tableFilters },
+    ]);
   }
 
   if (!data) {

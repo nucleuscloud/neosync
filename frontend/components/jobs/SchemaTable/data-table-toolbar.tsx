@@ -2,6 +2,7 @@
 
 import { Table } from '@tanstack/react-table';
 
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -10,9 +11,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { UpdateIcon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { DataTableViewOptions } from './data-table-view-options';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -88,7 +89,14 @@ export function DataTableToolbar<TData>({
           </SelectContent>
         </Select>
       </div>
-      <DataTableViewOptions table={table} />
+      <Button
+        variant="outline"
+        type="button"
+        onClick={() => table.setColumnFilters([])}
+      >
+        Clear filters
+        <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
     </div>
   );
 }
