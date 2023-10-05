@@ -343,7 +343,7 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping, transformerConfigs 
 	}
 
 	// ED: have to register the custom method, should build this list based on the selected transformers
-	//so we're not calling and registering transformers that aren't being used
+	// so we're not calling and registering transformers that aren't being used
 	neosync_plugins.Emailtransformer()
 
 	mutations := []string{}

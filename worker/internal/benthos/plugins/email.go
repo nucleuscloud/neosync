@@ -16,7 +16,7 @@ func Emailtransformer() {
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("preserve_domain"))
 
-	//register the plugin
+	// register the plugin
 	err := bloblang.RegisterMethodV2("emailtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
 
 		preserveLength, err := args.GetBool("preserve_length")
@@ -29,7 +29,7 @@ func Emailtransformer() {
 			return nil, err
 		}
 
-		return bloblang.StringMethod(func(s string) (interface{}, error) {
+		return bloblang.StringMethod(func(s string) (any, error) {
 			res, err := ProcessEmail(s, preserveLength, preserveDomain)
 			return res, err
 		}), nil
@@ -57,9 +57,9 @@ func ProcessEmail(email string, preserveLength, preserveDomain bool) (string, er
 
 	} else if preserveLength && !preserveDomain {
 
-		//preserve length of email but not the domain
+		// preserve length of email but not the domain
 
-		splitDomain := strings.Split(parsedEmail[1], ".") //split the domain to account for different domain name lengths
+		splitDomain := strings.Split(parsedEmail[1], ".") // split the domain to account for different domain name lengths
 
 		domain := sliceString(faker.DomainName(), len(splitDomain[0]))
 
@@ -69,7 +69,7 @@ func ProcessEmail(email string, preserveLength, preserveDomain bool) (string, er
 
 	} else if preserveDomain && preserveLength {
 
-		//preserve the domain and the length of the email -> keep the domain the same but slice the username to be the same length as the input username
+		// preserve domain and length of the email -> keep the domain the same but slice the username to be the same length as the input username
 		unLength := len(parsedEmail[0])
 
 		un := faker.Username()
@@ -77,7 +77,7 @@ func ProcessEmail(email string, preserveLength, preserveDomain bool) (string, er
 		returnValue = sliceString(un, unLength) + "@" + parsedEmail[1]
 
 	} else {
-		//generate random email
+		// generate random email
 
 		returnValue = faker.Email()
 	}
@@ -100,7 +100,7 @@ func parseEmail(email string) ([]string, error) {
 
 func sliceString(s string, l int) string {
 
-	runes := []rune(s) //use runes instead of strings in order to avoid slicing a multi-byte character and returning invalid UTF-8
+	runes := []rune(s) // use runes instead of strings in order to avoid slicing a multi-byte character and returning invalid UTF-8
 
 	if l > len(runes) {
 		l = len(runes)
