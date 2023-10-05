@@ -60,7 +60,7 @@ func (a *Activities) GenerateBenthosConfigs(
 		return nil, err
 	}
 
-	//ED:add more connection types here as we build more out and probably refactor cases into a separate file
+	// ED:add more connection types here as we build more out and probably refactor cases into a separate file
 	switch connection := sourceConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		dsn, err := getPgDsn(connection.PgConfig)
@@ -101,7 +101,7 @@ func (a *Activities) GenerateBenthosConfigs(
 				return nil, err
 			}
 
-			/*ED:when the component here is Mutation: benthos throws this error:
+			/* ED:when the component here is Mutation: benthos throws this error:
 			field processor is invalid when the component type is mutation (processor)
 			switching it to Bloblang makes it pass */
 
@@ -127,7 +127,7 @@ func (a *Activities) GenerateBenthosConfigs(
 			return nil, err
 		}
 		for _, resp := range responses {
-			//ED:add more destination cases here and evntually probably refactor the case statements out into a separate file
+			// ED:add more destination cases here and evntually probably refactor the case statements out into a separate file
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 				dsn, err := getPgDsn(connection.PgConfig)
@@ -342,14 +342,14 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping, transformerConfigs 
 		transformerConfigMap[val.Name] = val
 	}
 
-	//ED: have to register the custom method, should build this list based on the selected transformers
+	// ED: have to register the custom method, should build this list based on the selected transformers
 	//so we're not calling and registering transformers that aren't being used
 	neosync_plugins.Emailtransformer()
 
 	mutations := []string{}
 
 	for _, col := range cols {
-		//ED: checks that the user-selected transformer is defined and in the transfomer map from the db
+		// ED: checks that the user-selected transformer is defined and in the transfomer map from the db
 		if value, ok := transformerConfigMap[col.Transformer]; ok {
 			mutation, err := computeMutationFunction(col, value)
 			if err != nil {

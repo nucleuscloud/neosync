@@ -42,7 +42,7 @@ func Emailtransformer() {
 }
 
 // main plugin logic goes here
-func ProcessEmail(email string, preserveLength bool, preserveDomain bool) (string, error) {
+func ProcessEmail(email string, preserveLength, preserveDomain bool) (string, error) {
 
 	parsedEmail, err := parseEmail(email)
 	if err != nil {
