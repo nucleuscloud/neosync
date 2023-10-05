@@ -142,7 +142,7 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div>
+    <div className="space-y-2">
       <div className="flex flex-row">
         <div className="w-[230px] mb-10 "></div>
         <div className="w-full  ">

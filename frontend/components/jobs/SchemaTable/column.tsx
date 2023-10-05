@@ -249,8 +249,8 @@ function TansformerSelect(props: TransformersSelectProps) {
       </PopoverTrigger>
       <PopoverContent className="w-[175px] p-0">
         <Command>
-          <CommandInput placeholder="Search filters..." />
-          <CommandEmpty>No filters found.</CommandEmpty>
+          <CommandInput placeholder="Search transformers..." />
+          <CommandEmpty>No transformers found.</CommandEmpty>
           <CommandGroup>
             {transformers.map((t, index) => (
               <CommandItem
