@@ -4,6 +4,7 @@ import {
   Column,
   ColumnDef,
   ColumnFiltersState,
+  FilterFn,
   SortingState,
   Table as TableType,
   VisibilityState,
@@ -40,7 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Tree } from '@/components/ui/tree';
+import { Tree, TreeDataItem } from '@/components/ui/tree';
 import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
@@ -65,8 +66,16 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [content, setContent] = React.useState('Admin Page');
   const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const multiFilter: FilterFn<TData> = (row, columnId, value, addMeta) => {
+    console.log(JSON.stringify(row));
+    console.log('columnId', columnId);
+    console.log('value', value);
+
+    return true;
+  };
+
   const table = useReactTable({
     data,
     columns,
@@ -75,6 +84,9 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
       columnFilters,
+    },
+    filterFns: {
+      multi: multiFilter,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -156,24 +168,33 @@ export function DataTable<TData, TValue>({
     },
   ];
 
+  function handlefilter(items: TreeDataItem[]) {
+    // table.setColumnFilters()
+    setColumnFilters([{ id: 'schema', value: ['public', 'sales'] }]);
+  }
+
   if (!data) {
     return <SkeletonTable />;
   }
 
   return (
-    <div className="flex flex-row">
-      <div className="basis-1/3">
-        <div className="flex min-h-full space-x-2">
-          <Tree
-            data={other}
-            className="flex-shrink-0 w-[200px] h-[460px] border-[1px]"
-            onSelectChange={(item) => setContent(item?.name ?? '')}
-          />
+    <div>
+      <div className="flex flex-row">
+        <div className="w-[230px] mb-10 "></div>
+        <div className="w-full  ">
+          <DataTableToolbar table={table} transformers={transformers} />
         </div>
       </div>
-      <div className="basis-2/3">
-        <div className="space-y-4">
-          <DataTableToolbar table={table} transformers={transformers} />
+
+      <div className="flex flex-row">
+        <div className="basis-1/3 mb-10">
+          <Tree
+            data={treedata}
+            className="h-full w-[200px] border rounded-md border-r-0"
+            onSelectChange={handlefilter}
+          />
+        </div>
+        <div className="basis-2/3">
           <div className="rounded-md border">
             <ScrollArea className="h-[700px]">
               <Table>
@@ -258,7 +279,7 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
     .getPreFilteredRowModel()
     .flatRows[0]?.getValue(column.id || '');
 
-  const columnFilterValue = column.getFilterValue() as string;
+  const columnFilterValue = (column.getFilterValue() as string[]) || [];
 
   const sortedUniqueValues = React.useMemo(
     () =>
@@ -290,7 +311,11 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {columnFilterValue || 'Filter...'}
+          <p className="truncate ...">
+            {columnFilterValue && columnFilterValue.length
+              ? columnFilterValue.join(', ')
+              : 'Filter...'}
+          </p>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -303,9 +328,14 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
               <CommandItem
                 key={i}
                 onSelect={(currentValue) => {
-                  const newValue =
-                    currentValue === columnFilterValue ? '' : currentValue;
-                  column.setFilterValue(newValue);
+                  if (columnFilterValue.includes(currentValue)) {
+                    column.setFilterValue(
+                      columnFilterValue.filter((v) => v != currentValue)
+                    );
+                  } else {
+                    column.setFilterValue([...columnFilterValue, currentValue]);
+                  }
+
                   setOpen(false);
                 }}
                 value={i}
@@ -313,7 +343,7 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
                 <CheckIcon
                   className={cn(
                     'mr-2 h-4 w-4',
-                    columnFilterValue === i ? 'opacity-100' : 'opacity-0'
+                    columnFilterValue.includes(i) ? 'opacity-100' : 'opacity-0'
                   )}
                 />
                 {getLabel(column.id, i)}

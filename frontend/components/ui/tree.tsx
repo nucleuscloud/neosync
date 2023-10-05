@@ -18,9 +18,7 @@ interface TreeDataItem {
 
 type TreeProps = React.HTMLAttributes<HTMLDivElement> & {
   data: TreeDataItem[] | TreeDataItem;
-  // initialSelectedItemId?: string;
   onSelectChange?: (items: TreeDataItem[]) => void;
-  // expandAll?: boolean;
   folderIcon?: LucideIcon;
   itemIcon?: LucideIcon;
 };
@@ -31,18 +29,10 @@ function convertToArray<T>(item: T | T[]): T[] {
   }
   return [item];
 }
+
 const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
   (
-    {
-      data,
-      // initialSelectedItemId,
-      onSelectChange,
-      // expandAll,
-      folderIcon,
-      itemIcon,
-      className,
-      ...props
-    },
+    { data, onSelectChange, folderIcon, itemIcon, className, ...props },
     ref
   ) => {
     const [treeItems, setTreeItems] = React.useState<TreeDataItem[]>(
@@ -55,7 +45,6 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
         item.id,
         !item.isSelected
       );
-      console.log('tree', newTree);
       setTreeItems(newTree);
       if (onSelectChange) {
         onSelectChange(newTree);
@@ -68,8 +57,6 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
       isSelected: boolean,
       foundItem: boolean = false
     ): TreeDataItem[] {
-      console.log('----------');
-      console.log('isFound', foundItem);
       return items.map((item) => {
         const isCurrentOrFound = item.id === id || foundItem;
 
@@ -97,7 +84,7 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
     const { ref: refRoot, width, height } = useResizeObserver();
 
     return (
-      <div ref={refRoot} className={cn('overflow-hidden', className)}>
+      <div ref={refRoot} className={cn('overflow-hidden ', className)}>
         <ScrollArea style={{ width, height }}>
           <div className="relative p-2">
             <TreeItem

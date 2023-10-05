@@ -64,6 +64,7 @@ export function getColumns(
       ),
       enableSorting: true,
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'table',
@@ -80,6 +81,7 @@ export function getColumns(
         );
       },
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'column',
@@ -96,6 +98,7 @@ export function getColumns(
         );
       },
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'dataType',
@@ -112,6 +115,7 @@ export function getColumns(
         );
       },
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'transformer',
@@ -155,6 +159,7 @@ export function getColumns(
         );
       },
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'exclude',
