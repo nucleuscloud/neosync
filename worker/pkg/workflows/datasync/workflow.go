@@ -68,6 +68,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				bits, _ := yaml.Marshal(bc.Config) // todo: handle error
 				future := workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)})
 				selector.AddFuture(future, func(f workflow.Future) {
+					logger.Info(fmt.Sprintf("completed %s sync", bc.Name))
 					bchan.Send(ctx, bc.Name)
 				})
 			}
