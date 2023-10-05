@@ -6,36 +6,64 @@ import (
 	"net/mail"
 	"strings"
 
+	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/bxcodec/faker/v4"
 )
 
-type EmailTransformerOptions struct {
-	PreserveLength bool
-	PreserveDomain bool
+func emailtransformer() {
+
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam("email")).Param(bloblang.NewBoolParam("preserve_length")).Param(bloblang.NewBoolParam("preserve_domain"))
+
+	//register the plugin
+	err := bloblang.RegisterMethodV2("emailtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+
+		email, err := args.GetString("email")
+		if err != nil {
+			return nil, err
+		}
+
+		preserveLength, err := args.GetBool("preserve_length")
+		if err != nil {
+			return nil, err
+		}
+
+		preserveDomain, err := args.GetBool("preserve_domain")
+		if err != nil {
+			return nil, err
+		}
+
+		return func(v interface{}) (interface{}, error) {
+			res, err := ProcessEmail(email, preserveLength, preserveDomain)
+			return res, err
+		}, nil
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	//executes the plugin
+	service.RunCLI(context.Background())
+
 }
 
 // main plugin logic goes here
-func (e *EmailTransformerOptions) Process(ctx context.Context, m *service.Message) (service.MessageBatch, error) {
+func ProcessEmail(email string, preserveLength bool, preserveDomain bool) (string, error) {
 
-	b, err := m.AsBytes()
+	parsedEmail, err := parseEmail(email)
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("invalid email: %s", email)
 	}
 
-	parsedEmail, err := parseEmail(b)
-	if err != nil {
-		return nil, fmt.Errorf("invalid email: %s", string(b))
-	}
+	var returnValue string
 
-	var email string
+	if preserveDomain && !preserveLength {
 
-	if e.PreserveDomain && !e.PreserveLength {
+		returnValue = faker.Username() + "@" + parsedEmail[1]
 
-		email = faker.Username() + "@" + parsedEmail[1]
-
-	} else if e.PreserveLength && !e.PreserveDomain {
+	} else if preserveLength && !preserveDomain {
 
 		//preserve length of email but not the domain
 
@@ -45,66 +73,29 @@ func (e *EmailTransformerOptions) Process(ctx context.Context, m *service.Messag
 
 		tld := sliceString(faker.DomainName(), len(splitDomain[1]))
 
-		email = sliceString(faker.Username(), len(parsedEmail[0])) + "@" + domain + "." + tld
+		returnValue = sliceString(faker.Username(), len(parsedEmail[0])) + "@" + domain + "." + tld
 
-	} else if e.PreserveDomain && e.PreserveLength {
+	} else if preserveDomain && preserveLength {
 
 		//preserve the domain and the length of the email -> keep the domain the same but slice the username to be the same length as the input username
 		unLength := len(parsedEmail[0])
 
 		un := faker.Username()
 
-		email = sliceString(un, unLength) + "@" + parsedEmail[1]
+		returnValue = sliceString(un, unLength) + "@" + parsedEmail[1]
 
 	} else {
 		//generate random email
 
-		email = faker.Email()
+		returnValue = faker.Email()
 	}
 
-	m.SetBytes([]byte(email))
-
-	return service.MessageBatch{m}, nil
+	return returnValue, nil
 }
 
-// gets called when benthos is done with the component
-func (e *EmailTransformerOptions) Close(ctx context.Context) error {
-	return nil
-}
+func parseEmail(email string) ([]string, error) {
 
-func main() {
-
-	spec := service.NewConfigSpec().
-		Field(service.NewBoolField("preserve_domain")).
-		Field(service.NewBoolField("preserve_length"))
-
-	constructor := func(conf *service.ParsedConfig, mgr *service.Resources) (service.Processor, error) {
-
-		//extract the params
-		pd, err := conf.FieldBool("preserve_domain")
-		if err != nil {
-			return nil, err
-		}
-
-		pl, err := conf.FieldBool("preserve_length")
-		if err != nil {
-			return nil, err
-		}
-		return &EmailTransformerOptions{PreserveLength: pl, PreserveDomain: pd}, nil
-
-	}
-
-	//register the plugin
-	service.RegisterProcessor("emailtransformer", spec, constructor)
-
-	//executes the plugin
-	service.RunCLI(context.Background())
-
-}
-
-func parseEmail(email []byte) ([]string, error) {
-
-	inputEmail, err := mail.ParseAddress(string(email))
+	inputEmail, err := mail.ParseAddress(email)
 	if err != nil {
 
 		return nil, fmt.Errorf("invalid email format: %s", email)

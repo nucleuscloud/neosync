@@ -3,6 +3,7 @@ package datasync
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/jackc/pgx/v5"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins/email"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -53,6 +55,10 @@ func (a *Activities) GenerateBenthosConfigs(
 		return nil, err
 	}
 
+	transformerConfigs, err := a.getTransformerConfigs(ctx, req.BackendUrl, job.AccountId)
+	if err != nil {
+		return nil, err
+	}
 
 	switch connection := sourceConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
@@ -88,15 +94,32 @@ func (a *Activities) GenerateBenthosConfigs(
 					},
 				},
 			}
-			mutation, err := buildProcessorMutation(job.Mappings)
+
+			//instead of mutation this is oing to be the processor
+
+			// plugin, err := buildProcessorPlugin(job.Mappings, transformerConfigs)
+			// if err != nil {
+			// 	return nil, err
+			// }
+
+			mutation, err := buildProcessorMutation(job.Mappings, transformerConfigs)
 			if err != nil {
 				return nil, err
 			}
+			// //instead of mutation this is going to be the plugin name
+			// //TODO: update this to just append the processor itself instead of assigning it to the processor plugin
+			// if plugin != "" {
+			// 	bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
+			// 		Processor: plugin,
+			// 	})
+			// }
+
 			if mutation != "" {
 				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
 					Mutation: mutation,
 				})
 			}
+
 			responses = append(responses, &benthosConfigResponse{
 				Name:   key, // todo: may need to expand on this
 				Config: bc,
@@ -303,114 +326,79 @@ func getPgDsn(
 	}
 }
 
-func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
-	pieces := []string{}
-	for _, col := range cols {
-		if col.Transformer != "" && col.Transformer != "passthrough" {
-			mutation, err := computeMutationFunction(col.Transformer)
-			if err != nil {
-				return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
-			}
-			pieces = append(pieces, fmt.Sprintf("root.%s = %s", col.Column, mutation))
-		}
+func (a *Activities) getTransformerConfigs(ctx context.Context, backendurl, accountId string) ([]*mgmtv1alpha1.Transformer, error) {
+	transformerClient := mgmtv1alpha1connect.NewTransformersServiceClient(
+		http.DefaultClient,
+		backendurl,
+	)
+
+	getTransformerResp, err := transformerClient.GetTransformers(ctx, connect.NewRequest(&mgmtv1alpha1.GetTransformersRequest{
+		AccountId: accountId,
+	}))
+	if err != nil {
+		return nil, err
 	}
+
+	return getTransformerResp.Msg.Transformers, nil
+}
+
+func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping, transformerConfigs []*mgmtv1alpha1.Transformer) (string, error) {
+
+	transformerConfigMap := make(map[string]*mgmtv1alpha1.Transformer)
+
+	for _, val := range transformerConfigs {
+		transformerConfigMap[val.Name] = val
+	}
+
+	pieces := []string{}
+
+	for _, col := range cols {
+
+		fmt.Println("the col", col)
+
+		if col.Transformer != "" {
+
+			if value, ok := transformerConfigMap[col.Transformer]; ok {
+
+				// mutation, err := computeMutationFunction(col.Transformer)
+				// if err != nil {
+				// 	return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
+				// }
+
+				if value.Name == "email" {
+					pieces = append(pieces, fmt.Sprintf("root.%s = %s.emailtransformer(%s, true, true)", col.Column, "evis@gmail.com", col.Column))
+				} else if value.Name == "passthrough" {
+					pieces = append(pieces, fmt.Sprintf("root.%s = %s", col.Column, col.Column))
+
+				} else {
+					return "", fmt.Errorf("unsupported transformer")
+				}
+			}
+
+		} else {
+			return "", fmt.Errorf("%s is not a supported transformation", col.Transformer)
+		}
+
+		//else build configs
+
+		// if col.Transformer != "" && col.Transformer != "passthrough" {
+		// 	mutation, err := computeMutationFunction(col.Transformer)
+		// 	if err != nil {
+		// 		return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
+		// 	}
+		// 	pieces = append(pieces, fmt.Sprintf("root.%s = %s()", col.Column, mutation))
+		// }
+	}
+	fmt.Println(" the mutation string", strings.Join(pieces, "\n"))
 	return strings.Join(pieces, "\n"), nil
 }
 
-func computeMutationFunction(transformer string) (string, error) {
+func computeMutationFunction(transformer string, logger log.Logger) (string, error) {
+
+	logger.Println("this is the transformer in the switch", transformer)
 	switch transformer {
-	case "uuid_v4":
-		return "uuid_v4()", nil
-	case "latitude":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "longitude":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "unix_time":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "date":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "time_string":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "month_name":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "year_string":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "day_of_week":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "day_of_month":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "timestamp":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "century":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "timezone":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "time_period":
-		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "email":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "mac_address":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "domain_name":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "url":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "username":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "ipv4":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "ipv6":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "password":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "jwt":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "word":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "sentence":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "paragraph":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "cc_type":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "cc_number":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "currency":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "amount_with_currency":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "title_male":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "title_female":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "first_name":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "first_name_male":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "first_name_female":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "last_name":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "name":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "gender":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "chinese_first_name":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "chinese_last_name":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "chinese_name":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "phone_number":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "toll_free_phone_number":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "e164_phone_number":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "uuid_hyphenated":
-		return fmt.Sprintf("fake(%q)", transformer), nil
-	case "uuid_digit":
-		return fmt.Sprintf("fake(%q)", transformer), nil
+		return fmt.Sprintf("emailtransformer"), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

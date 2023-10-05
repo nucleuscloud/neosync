@@ -49,6 +49,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.37.0 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/bxcodec/faker/v4 v4.0.0-beta.3 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -67,6 +68,7 @@ require (
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/go-faker/faker/v4 v4.2.0 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.6.1 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
@@ -136,6 +138,7 @@ require (
 	github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 // indirect
+	github.com/nucleuscloud/neosync v0.0.0-20231002185125-dac18b4ca4de // indirect
 	github.com/olivere/elastic/v7 v7.0.32 // indirect
 	github.com/onsi/gomega v1.27.10 // indirect
 	github.com/paulmach/orb v0.10.0 // indirect

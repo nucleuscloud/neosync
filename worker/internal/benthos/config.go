@@ -50,7 +50,8 @@ type PipelineConfig struct {
 }
 
 type ProcessorConfig struct {
-	Mutation string `json:"mutation" yaml:"mutation"`
+	Mutation  string `json:"mutation,omitempty" yaml:"mutation"`
+	Processor string `json:"processor" yaml:"processor"`
 }
 
 type OutputConfig struct {
