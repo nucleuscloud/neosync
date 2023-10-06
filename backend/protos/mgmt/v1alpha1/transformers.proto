@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package mgmt.v1alpha1;
 
-import "google/protobuf/timestamp.proto";
+// import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
 
 // add these other fields back in once we add in custom transformers
