@@ -35,6 +35,7 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
     }, [data]);
 
     function handleSelectChange(item: TreeDataItem) {
+      console.log('---------');
       const newTree = updateItemAndChildren(
         treeItems,
         item.id,
@@ -55,24 +56,30 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
       return items.map((item) => {
         const isCurrentOrFound = item.id === id || foundItem;
 
+        let updatedChildren = item.children;
         if (item.children) {
-          return {
-            ...item,
-            isSelected: isCurrentOrFound ? isSelected : item.isSelected,
-            children: updateItemAndChildren(
-              item.children,
-              id,
-              isSelected,
-              isCurrentOrFound
-            ),
-          };
+          updatedChildren = updateItemAndChildren(
+            item.children,
+            id,
+            isSelected,
+            isCurrentOrFound
+          );
         }
 
+        let updatedIsSelected = item.isSelected;
         if (isCurrentOrFound) {
-          return { ...item, isSelected };
+          updatedIsSelected = isSelected;
+        } else if (item.children) {
+          updatedIsSelected = updatedChildren?.some(
+            (child) => child.isSelected
+          );
         }
 
-        return item;
+        return {
+          ...item,
+          isSelected: updatedIsSelected,
+          children: updatedChildren,
+        };
       });
     }
 
@@ -84,7 +91,6 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
         if (items instanceof Array) {
           // eslint-disable-next-line @typescript-eslint/prefer-for-of
           for (let i = 0; i < items.length; i++) {
-            console.log('item', JSON.stringify(items[i]));
             if (!items[i].isSelected) {
               return true;
             }

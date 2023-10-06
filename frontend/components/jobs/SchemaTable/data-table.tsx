@@ -144,77 +144,29 @@ export function DataTable<TData, TValue>({
           ? true
           : columnFilters.some((f) => f.id == 'schema' && f.value == schema);
 
+      const children = Object.keys(schemaMap[schema]).map((table) => {
+        const childIsSelected =
+          columnFilters.length == 0
+            ? true
+            : columnFilters.some((f) => f.id == 'table' && f.value == table);
+        return {
+          id: table,
+          name: table,
+          isSelected: parentIsSelected || childIsSelected,
+        };
+      });
+
+      const isChildSelected = children.some((c) => c.isSelected);
+
       return {
         id: schema,
         name: schema,
-        isSelected: parentIsSelected,
-        children: Object.keys(schemaMap[schema]).map((table) => {
-          const childIsSelected =
-            columnFilters.length == 0
-              ? true
-              : columnFilters.some((f) => f.id == 'table' && f.value == schema);
-          return {
-            id: table,
-            name: table,
-            isSelected: parentIsSelected || childIsSelected,
-          };
-        }),
+        isSelected: parentIsSelected || isChildSelected,
+        children,
       };
     });
     setTreeData(treedata);
   }
-  const other = [
-    { id: '1', name: '1', isSelected: false },
-    { id: '2', name: '2', isSelected: false },
-    {
-      id: '3',
-      name: '3',
-      isSelected: false,
-      children: [
-        { id: 'c1', name: 'c1', isSelected: false },
-        { id: 'c2', name: 'c2', isSelected: false },
-        { id: 'c3', name: 'c3', isSelected: false },
-      ],
-    },
-    {
-      id: '4',
-      name: '4',
-      isSelected: false,
-      children: [
-        {
-          id: 'd1',
-          name: 'd1',
-          isSelected: false,
-          children: [
-            { id: 'd11', name: 'd11', isSelected: false },
-            { id: 'd12', name: 'd12', isSelected: false },
-            { id: 'd13', name: 'd13', isSelected: false },
-          ],
-        },
-        { id: 'd2', name: 'd2', isSelected: false },
-        { id: 'd3', name: 'd3', isSelected: false },
-      ],
-    },
-    {
-      id: '5',
-      name: '5',
-      isSelected: false,
-      children: [
-        {
-          id: 'e1',
-          name: 'e1',
-          isSelected: false,
-          children: [
-            { id: 'e11', name: 'e11', isSelected: false },
-            { id: 'e12', name: 'e12', isSelected: false },
-            { id: 'e13', name: 'e13', isSelected: false },
-          ],
-        },
-        { id: 'e2', name: 'e2', isSelected: false },
-        { id: 'e3', name: 'e3', isSelected: false },
-      ],
-    },
-  ];
 
   if (!data) {
     return <SkeletonTable />;
@@ -232,9 +184,9 @@ export function DataTable<TData, TValue>({
       <div className="flex flex-row space-x-2">
         <div className="basis-1/3 ">
           <Tree
-            data={other}
+            data={treeData}
             className="h-full w-[200px] border rounded-md"
-            // onSelectChange={handlefilter}
+            onSelectChange={handlefilter}
           />
         </div>
         <div className="basis-2/3">
