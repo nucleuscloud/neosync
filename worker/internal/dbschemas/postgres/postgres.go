@@ -62,7 +62,7 @@ WHERE
 
 func GetDatabaseSchemas(
 	ctx context.Context,
-	conn *pgx.Conn,
+	conn DBTX,
 ) ([]*DatabaseSchema, error) {
 	rows, err := conn.Query(ctx, getDatabaseSchemaSql)
 	if err != nil && !isNoRows(err) {

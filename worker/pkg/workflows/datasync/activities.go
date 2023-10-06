@@ -2,6 +2,7 @@ package datasync
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -123,8 +124,26 @@ func (a *Activities) GenerateBenthosConfigs(
 			defer pool.Close()
 			pgpoolmap[dsn] = pool
 		}
-
 		pool := pgpoolmap[dsn]
+
+		// validate job mappings align with sql connections
+		dbschemas, err := dbschemas_postgres.GetDatabaseSchemas(ctx, pool)
+		if err != nil {
+			return nil, err
+		}
+		if !areMappingsSubsetOfSchemas(dbschemas, job.Mappings) {
+			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
+		}
+		sqlOpts := job.Source.Options.GetSqlOptions()
+		if sqlOpts != nil &&
+			sqlOpts.HaltOnNewColumnAddition != nil &&
+			*sqlOpts.HaltOnNewColumnAddition &&
+			shouldHaltOnSchemaAddition(dbschemas, job.Mappings) {
+			msg := "job mappings does not contain a column mapping for all " +
+				"columns found in the source connection for the selected schemas and tables"
+			return nil, errors.New(msg)
+		}
+
 		allConstraints, err := a.getAllFkConstraintsFromMappings(ctx, pool, job.Mappings)
 		if err != nil {
 			return nil, err
@@ -234,6 +253,118 @@ func (a *Activities) GenerateBenthosConfigs(
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+func areMappingsSubsetOfSchemas(
+	dbschemas []*dbschemas_postgres.DatabaseSchema,
+	mappings []*mgmtv1alpha1.JobMapping,
+) bool {
+	tableColMappings := map[string]map[string]struct{}{}
+	groupedSchemas := map[string]map[string]struct{}{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+
+	for _, mapping := range mappings {
+		key := buildBenthosTable(mapping.Schema, mapping.Table)
+		if _, ok := tableColMappings[key]; ok {
+			tableColMappings[key][mapping.Column] = struct{}{}
+		} else {
+			tableColMappings[key] = map[string]struct{}{
+				mapping.Column: {},
+			}
+		}
+	}
+
+	for _, record := range dbschemas {
+		key := buildBenthosTable(record.TableSchema, record.TableName)
+		// db schemas might have more schemas+tables than we care about mapping
+		if _, ok := tableColMappings[key]; !ok {
+			continue
+		}
+		if _, ok := groupedSchemas[key]; ok {
+			groupedSchemas[key][record.ColumnName] = struct{}{}
+		} else {
+			groupedSchemas[key] = map[string]struct{}{
+				record.ColumnName: {},
+			}
+		}
+	}
+
+	if len(tableColMappings) != len(groupedSchemas) {
+		return false
+	}
+
+	// tests to make sure that every column in the col mappings is present in the db schema
+	for table, cols := range tableColMappings {
+		schemaCols, ok := groupedSchemas[table]
+		if !ok {
+			return false
+		}
+		// job mappings has more columns than the schema
+		if len(cols) > len(schemaCols) {
+			return false
+		}
+		for col := range cols {
+			if _, ok := schemaCols[col]; !ok {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func shouldHaltOnSchemaAddition(
+	dbschemas []*dbschemas_postgres.DatabaseSchema,
+	mappings []*mgmtv1alpha1.JobMapping,
+) bool {
+	tableColMappings := map[string]map[string]struct{}{}
+	groupedSchemas := map[string]map[string]struct{}{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+
+	for _, mapping := range mappings {
+		key := buildBenthosTable(mapping.Schema, mapping.Table)
+		if _, ok := tableColMappings[key]; ok {
+			tableColMappings[key][mapping.Column] = struct{}{}
+		} else {
+			tableColMappings[key] = map[string]struct{}{
+				mapping.Column: {},
+			}
+		}
+	}
+
+	for _, record := range dbschemas {
+		key := buildBenthosTable(record.TableSchema, record.TableName)
+		// db schemas might have more schemas+tables than we care about mapping
+		if _, ok := tableColMappings[key]; !ok {
+			continue
+		}
+		if _, ok := groupedSchemas[key]; ok {
+			groupedSchemas[key][record.ColumnName] = struct{}{}
+		} else {
+			groupedSchemas[key] = map[string]struct{}{
+				record.ColumnName: {},
+			}
+		}
+	}
+
+	if len(tableColMappings) != len(groupedSchemas) {
+		return true
+	}
+
+	// tests to make sure that every column in the col mappings is present in the db schema
+	for table, cols := range tableColMappings {
+		schemaCols, ok := groupedSchemas[table]
+		if !ok {
+			return true
+		}
+		// schema has more col mappings than the job
+		if len(cols) < len(schemaCols) {
+			return true
+		}
+		for col := range schemaCols {
+			if _, ok := cols[col]; !ok {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (a *Activities) getAllFkConstraintsFromMappings(
