@@ -55,7 +55,7 @@
     "yup": "^1.2.0"
   },
   "devDependencies": {
-    "@types/node": "20.6.3",
+    "@types/node": "20.8.2",
     "@types/react": "18.2.22",
     "@types/react-dom": "18.2.7",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
