@@ -76,7 +76,8 @@ message JobMapping {
       "passthrough",
       "uuid_v4",
       "first_name",
-      "phone_number"
+      "phone_number",
+      "email"
     ]
   }];
   bool exclude = 6;

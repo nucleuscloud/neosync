@@ -1900,7 +1900,7 @@ func (m *JobMapping) validate(all bool) error {
 	if _, ok := _JobMapping_Transformer_InLookup[m.GetTransformer()]; !ok {
 		err := JobMappingValidationError{
 			field:  "Transformer",
-			reason: "value must be in list [passthrough uuid_v4 first_name phone_number]",
+			reason: "value must be in list [passthrough uuid_v4 first_name phone_number email]",
 		}
 		if !all {
 			return err
@@ -1992,6 +1992,7 @@ var _JobMapping_Transformer_InLookup = map[string]struct{}{
 	"uuid_v4":      {},
 	"first_name":   {},
 	"phone_number": {},
+	"email":        {},
 }
 
 // Validate checks the field values on GetJobRequest with the rules defined in
