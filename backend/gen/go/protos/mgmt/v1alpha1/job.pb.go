@@ -3221,7 +3221,6 @@ type Transformer struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// string id = 1 [(validate.rules).string.uuid = true];
 	Title       string             `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Value       string             `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	Description string             `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`

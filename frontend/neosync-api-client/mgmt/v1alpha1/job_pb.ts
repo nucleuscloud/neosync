@@ -2469,8 +2469,6 @@ export class GetTransformersResponse extends Message<GetTransformersResponse> {
  */
 export class Transformer extends Message<Transformer> {
   /**
-   *   string id = 1 [(validate.rules).string.uuid = true];
-   *
    * @generated from field: string title = 1;
    */
   title = "";
