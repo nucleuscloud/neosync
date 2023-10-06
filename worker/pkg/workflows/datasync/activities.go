@@ -21,6 +21,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
@@ -438,6 +439,7 @@ func getPgDsn(
 
 func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
+
 	for _, col := range cols {
 		if col.Transformer != "" && col.Transformer != "passthrough" {
 			mutation, err := computeMutationFunction(col.Transformer)
@@ -448,6 +450,17 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 		}
 	}
 	return strings.Join(pieces, "\n"), nil
+}
+
+func buildPlainInsertArgs(cols []string) string {
+	if len(cols) == 0 {
+		return ""
+	}
+	pieces := make([]string, len(cols))
+	for idx, col := range cols {
+		pieces[idx] = fmt.Sprintf("this.%s", col)
+	}
+	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
 
 func computeMutationFunction(transformer string) (string, error) {
@@ -481,7 +494,7 @@ func computeMutationFunction(transformer string) (string, error) {
 	case "time_period":
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "email":
-		return fmt.Sprintf("fake(%q)", transformer), nil
+		return fmt.Sprintf("this.%s.emailtransformer(true, true)", transformer), nil
 	case "mac_address":
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "domain_name":
@@ -547,15 +560,4 @@ func computeMutationFunction(transformer string) (string, error) {
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
-}
-
-func buildPlainInsertArgs(cols []string) string {
-	if len(cols) == 0 {
-		return ""
-	}
-	pieces := make([]string, len(cols))
-	for idx, col := range cols {
-		pieces[idx] = fmt.Sprintf("this.%s", col)
-	}
-	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
