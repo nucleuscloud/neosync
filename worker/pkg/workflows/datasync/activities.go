@@ -406,7 +406,7 @@ func (a *Activities) getInitStatementFromPostgres(
 
 	statements := []string{}
 	if opts != nil && opts.TruncateBeforeInsert {
-		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s CASCADE;", table))
+		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
 	}
 	if opts != nil && opts.InitSchema {
 		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
