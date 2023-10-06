@@ -1900,7 +1900,7 @@ func (m *JobMapping) validate(all bool) error {
 	if _, ok := _JobMapping_Transformer_InLookup[m.GetTransformer()]; !ok {
 		err := JobMappingValidationError{
 			field:  "Transformer",
-			reason: "value must be in list [passthrough uuid_v4 first_name phone_number]",
+			reason: "value must be in list [passthrough uuid_v4 first_name phone_number email]",
 		}
 		if !all {
 			return err
@@ -1992,6 +1992,7 @@ var _JobMapping_Transformer_InLookup = map[string]struct{}{
 	"uuid_v4":      {},
 	"first_name":   {},
 	"phone_number": {},
+	"email":        {},
 }
 
 // Validate checks the field values on GetJobRequest with the rules defined in
@@ -6967,45 +6968,62 @@ var _ interface {
 	ErrorName() string
 } = GetJobRunEventsResponseValidationError{}
 
-// Validate checks the field values on Transformer with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *Transformer) Validate() error {
+// Validate checks the field values on DeleteJobRunRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteJobRunRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on Transformer with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in TransformerMultiError, or
-// nil if none found.
-func (m *Transformer) ValidateAll() error {
+// ValidateAll checks the field values on DeleteJobRunRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteJobRunRequestMultiError, or nil if none found.
+func (m *DeleteJobRunRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *Transformer) validate(all bool) error {
+func (m *DeleteJobRunRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Title
-
-	// no validation rules for Value
+	if err := m._validateUuid(m.GetJobRunId()); err != nil {
+		err = DeleteJobRunRequestValidationError{
+			field:  "JobRunId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
-		return TransformerMultiError(errors)
+		return DeleteJobRunRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// TransformerMultiError is an error wrapping multiple validation errors
-// returned by Transformer.ValidateAll() if the designated constraints aren't met.
-type TransformerMultiError []error
+func (m *DeleteJobRunRequest) _validateUuid(uuid string) error {
+	if matched := _job_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// DeleteJobRunRequestMultiError is an error wrapping multiple validation
+// errors returned by DeleteJobRunRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteJobRunRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TransformerMultiError) Error() string {
+func (m DeleteJobRunRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -7014,11 +7032,11 @@ func (m TransformerMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TransformerMultiError) AllErrors() []error { return m }
+func (m DeleteJobRunRequestMultiError) AllErrors() []error { return m }
 
-// TransformerValidationError is the validation error returned by
-// Transformer.Validate if the designated constraints aren't met.
-type TransformerValidationError struct {
+// DeleteJobRunRequestValidationError is the validation error returned by
+// DeleteJobRunRequest.Validate if the designated constraints aren't met.
+type DeleteJobRunRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -7026,22 +7044,24 @@ type TransformerValidationError struct {
 }
 
 // Field function returns field value.
-func (e TransformerValidationError) Field() string { return e.field }
+func (e DeleteJobRunRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TransformerValidationError) Reason() string { return e.reason }
+func (e DeleteJobRunRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TransformerValidationError) Cause() error { return e.cause }
+func (e DeleteJobRunRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TransformerValidationError) Key() bool { return e.key }
+func (e DeleteJobRunRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TransformerValidationError) ErrorName() string { return "TransformerValidationError" }
+func (e DeleteJobRunRequestValidationError) ErrorName() string {
+	return "DeleteJobRunRequestValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e TransformerValidationError) Error() string {
+func (e DeleteJobRunRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -7053,14 +7073,14 @@ func (e TransformerValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTransformer.%s: %s%s",
+		"invalid %sDeleteJobRunRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TransformerValidationError{}
+var _ error = DeleteJobRunRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -7068,7 +7088,109 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TransformerValidationError{}
+} = DeleteJobRunRequestValidationError{}
+
+// Validate checks the field values on DeleteJobRunResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DeleteJobRunResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DeleteJobRunResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DeleteJobRunResponseMultiError, or nil if none found.
+func (m *DeleteJobRunResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DeleteJobRunResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return DeleteJobRunResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DeleteJobRunResponseMultiError is an error wrapping multiple validation
+// errors returned by DeleteJobRunResponse.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteJobRunResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DeleteJobRunResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DeleteJobRunResponseMultiError) AllErrors() []error { return m }
+
+// DeleteJobRunResponseValidationError is the validation error returned by
+// DeleteJobRunResponse.Validate if the designated constraints aren't met.
+type DeleteJobRunResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DeleteJobRunResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DeleteJobRunResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DeleteJobRunResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DeleteJobRunResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DeleteJobRunResponseValidationError) ErrorName() string {
+	return "DeleteJobRunResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DeleteJobRunResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDeleteJobRunResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DeleteJobRunResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DeleteJobRunResponseValidationError{}
 
 // Validate checks the field values on GetTransformersRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -7308,33 +7430,213 @@ var _ interface {
 	ErrorName() string
 } = GetTransformersResponseValidationError{}
 
-// Validate checks the field values on DeleteJobRunRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *DeleteJobRunRequest) Validate() error {
+// Validate checks the field values on Transformer with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Transformer) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on DeleteJobRunRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// DeleteJobRunRequestMultiError, or nil if none found.
-func (m *DeleteJobRunRequest) ValidateAll() error {
+// ValidateAll checks the field values on Transformer with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in TransformerMultiError, or
+// nil if none found.
+func (m *Transformer) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *DeleteJobRunRequest) validate(all bool) error {
+func (m *Transformer) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetJobRunId()); err != nil {
-		err = DeleteJobRunRequestValidationError{
-			field:  "JobRunId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	// no validation rules for Title
+
+	// no validation rules for Value
+
+	// no validation rules for Description
+
+	if all {
+		switch v := interface{}(m.GetConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, TransformerValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, TransformerValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TransformerValidationError{
+				field:  "Config",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return TransformerMultiError(errors)
+	}
+
+	return nil
+}
+
+// TransformerMultiError is an error wrapping multiple validation errors
+// returned by Transformer.ValidateAll() if the designated constraints aren't met.
+type TransformerMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TransformerMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TransformerMultiError) AllErrors() []error { return m }
+
+// TransformerValidationError is the validation error returned by
+// Transformer.Validate if the designated constraints aren't met.
+type TransformerValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TransformerValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TransformerValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TransformerValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TransformerValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TransformerValidationError) ErrorName() string { return "TransformerValidationError" }
+
+// Error satisfies the builtin error interface
+func (e TransformerValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTransformer.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TransformerValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TransformerValidationError{}
+
+// Validate checks the field values on TransformerConfig with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *TransformerConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TransformerConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TransformerConfigMultiError, or nil if none found.
+func (m *TransformerConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TransformerConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	oneofConfigPresent := false
+	switch v := m.Config.(type) {
+	case *TransformerConfig_EmailConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		oneofConfigPresent = true
+
+		if all {
+			switch v := interface{}(m.GetEmailConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "EmailConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "EmailConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetEmailConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "EmailConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+	if !oneofConfigPresent {
+		err := TransformerConfigValidationError{
+			field:  "Config",
+			reason: "value is required",
 		}
 		if !all {
 			return err
@@ -7343,27 +7645,19 @@ func (m *DeleteJobRunRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return DeleteJobRunRequestMultiError(errors)
+		return TransformerConfigMultiError(errors)
 	}
 
 	return nil
 }
 
-func (m *DeleteJobRunRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
-	}
-
-	return nil
-}
-
-// DeleteJobRunRequestMultiError is an error wrapping multiple validation
-// errors returned by DeleteJobRunRequest.ValidateAll() if the designated
-// constraints aren't met.
-type DeleteJobRunRequestMultiError []error
+// TransformerConfigMultiError is an error wrapping multiple validation errors
+// returned by TransformerConfig.ValidateAll() if the designated constraints
+// aren't met.
+type TransformerConfigMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m DeleteJobRunRequestMultiError) Error() string {
+func (m TransformerConfigMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -7372,11 +7666,11 @@ func (m DeleteJobRunRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m DeleteJobRunRequestMultiError) AllErrors() []error { return m }
+func (m TransformerConfigMultiError) AllErrors() []error { return m }
 
-// DeleteJobRunRequestValidationError is the validation error returned by
-// DeleteJobRunRequest.Validate if the designated constraints aren't met.
-type DeleteJobRunRequestValidationError struct {
+// TransformerConfigValidationError is the validation error returned by
+// TransformerConfig.Validate if the designated constraints aren't met.
+type TransformerConfigValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -7384,24 +7678,24 @@ type DeleteJobRunRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e DeleteJobRunRequestValidationError) Field() string { return e.field }
+func (e TransformerConfigValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e DeleteJobRunRequestValidationError) Reason() string { return e.reason }
+func (e TransformerConfigValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e DeleteJobRunRequestValidationError) Cause() error { return e.cause }
+func (e TransformerConfigValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e DeleteJobRunRequestValidationError) Key() bool { return e.key }
+func (e TransformerConfigValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e DeleteJobRunRequestValidationError) ErrorName() string {
-	return "DeleteJobRunRequestValidationError"
+func (e TransformerConfigValidationError) ErrorName() string {
+	return "TransformerConfigValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e DeleteJobRunRequestValidationError) Error() string {
+func (e TransformerConfigValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -7413,14 +7707,14 @@ func (e DeleteJobRunRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sDeleteJobRunRequest.%s: %s%s",
+		"invalid %sTransformerConfig.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = DeleteJobRunRequestValidationError{}
+var _ error = TransformerConfigValidationError{}
 
 var _ interface {
 	Field() string
@@ -7428,44 +7722,47 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = DeleteJobRunRequestValidationError{}
+} = TransformerConfigValidationError{}
 
-// Validate checks the field values on DeleteJobRunResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *DeleteJobRunResponse) Validate() error {
+// Validate checks the field values on EmailConfig with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *EmailConfig) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on DeleteJobRunResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// DeleteJobRunResponseMultiError, or nil if none found.
-func (m *DeleteJobRunResponse) ValidateAll() error {
+// ValidateAll checks the field values on EmailConfig with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in EmailConfigMultiError, or
+// nil if none found.
+func (m *EmailConfig) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *DeleteJobRunResponse) validate(all bool) error {
+func (m *EmailConfig) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
+	// no validation rules for PreserveDomain
+
+	// no validation rules for PreserveLength
+
 	if len(errors) > 0 {
-		return DeleteJobRunResponseMultiError(errors)
+		return EmailConfigMultiError(errors)
 	}
 
 	return nil
 }
 
-// DeleteJobRunResponseMultiError is an error wrapping multiple validation
-// errors returned by DeleteJobRunResponse.ValidateAll() if the designated
-// constraints aren't met.
-type DeleteJobRunResponseMultiError []error
+// EmailConfigMultiError is an error wrapping multiple validation errors
+// returned by EmailConfig.ValidateAll() if the designated constraints aren't met.
+type EmailConfigMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m DeleteJobRunResponseMultiError) Error() string {
+func (m EmailConfigMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -7474,11 +7771,11 @@ func (m DeleteJobRunResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m DeleteJobRunResponseMultiError) AllErrors() []error { return m }
+func (m EmailConfigMultiError) AllErrors() []error { return m }
 
-// DeleteJobRunResponseValidationError is the validation error returned by
-// DeleteJobRunResponse.Validate if the designated constraints aren't met.
-type DeleteJobRunResponseValidationError struct {
+// EmailConfigValidationError is the validation error returned by
+// EmailConfig.Validate if the designated constraints aren't met.
+type EmailConfigValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -7486,24 +7783,22 @@ type DeleteJobRunResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e DeleteJobRunResponseValidationError) Field() string { return e.field }
+func (e EmailConfigValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e DeleteJobRunResponseValidationError) Reason() string { return e.reason }
+func (e EmailConfigValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e DeleteJobRunResponseValidationError) Cause() error { return e.cause }
+func (e EmailConfigValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e DeleteJobRunResponseValidationError) Key() bool { return e.key }
+func (e EmailConfigValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e DeleteJobRunResponseValidationError) ErrorName() string {
-	return "DeleteJobRunResponseValidationError"
-}
+func (e EmailConfigValidationError) ErrorName() string { return "EmailConfigValidationError" }
 
 // Error satisfies the builtin error interface
-func (e DeleteJobRunResponseValidationError) Error() string {
+func (e EmailConfigValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -7515,14 +7810,14 @@ func (e DeleteJobRunResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sDeleteJobRunResponse.%s: %s%s",
+		"invalid %sEmailConfig.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = DeleteJobRunResponseValidationError{}
+var _ error = EmailConfigValidationError{}
 
 var _ interface {
 	Field() string
@@ -7530,4 +7825,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = DeleteJobRunResponseValidationError{}
+} = EmailConfigValidationError{}

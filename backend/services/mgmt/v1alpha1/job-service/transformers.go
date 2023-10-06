@@ -24,11 +24,18 @@ func (s *Service) GetTransformers(
 ) (*connect.Response[mgmtv1alpha1.GetTransformersResponse], error) {
 	return connect.NewResponse(&mgmtv1alpha1.GetTransformersResponse{
 		Transformers: []*mgmtv1alpha1.Transformer{
-			{Title: "Passthrough", Value: string(Passthrough)},
-			{Title: "Uuid V4", Value: string(UuidV4)},
-			{Title: "First Name", Value: string(FirstName)},
-			{Title: "Phone Number", Value: string(PhoneNumber)},
-			{Title: "Email", Value: string(Email)},
+			{Title: "Passthrough", Value: string(Passthrough), Description: "Passes the input value through to the desination with no changes."},
+			{Title: "Uuid V4", Value: string(UuidV4), Description: "Generates a new UUIDv4 id."},
+			{Title: "First Name", Value: string(FirstName), Description: "Anonymizes or generates a new phone number."},
+			{Title: "Phone Number", Value: string(PhoneNumber), Description: "Anonymizes or generates a new phone number."},
+			{Title: "Email", Value: string(Email), Description: "Anonymizes or generates a new email address.", Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
+					EmailConfig: &mgmtv1alpha1.EmailConfig{
+						PreserveDomain: true,
+						PreserveLength: true,
+					},
+				},
+			}},
 		},
 	}), nil
 }
