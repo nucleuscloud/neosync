@@ -405,9 +405,6 @@ func (a *Activities) getInitStatementFromPostgres(
 ) (string, error) {
 
 	statements := []string{}
-	if opts != nil && opts.TruncateBeforeInsert {
-		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
-	}
 	if opts != nil && opts.InitSchema {
 		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
 			Schema: schema,
@@ -417,6 +414,9 @@ func (a *Activities) getInitStatementFromPostgres(
 			return "", err
 		}
 		statements = append(statements, stmt)
+	}
+	if opts != nil && opts.TruncateBeforeInsert {
+		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
 	}
 	return strings.Join(statements, "\n"), nil
 }
