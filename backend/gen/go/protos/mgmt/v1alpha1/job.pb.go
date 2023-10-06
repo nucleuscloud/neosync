@@ -3046,6 +3046,91 @@ func (x *GetJobRunEventsResponse) GetEvents() []*JobRunEvent {
 	return nil
 }
 
+type DeleteJobRunRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	JobRunId string `protobuf:"bytes,1,opt,name=job_run_id,json=jobRunId,proto3" json:"job_run_id,omitempty"`
+}
+
+func (x *DeleteJobRunRequest) Reset() {
+	*x = DeleteJobRunRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[51]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteJobRunRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteJobRunRequest) ProtoMessage() {}
+
+func (x *DeleteJobRunRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[51]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteJobRunRequest.ProtoReflect.Descriptor instead.
+func (*DeleteJobRunRequest) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *DeleteJobRunRequest) GetJobRunId() string {
+	if x != nil {
+		return x.JobRunId
+	}
+	return ""
+}
+
+type DeleteJobRunResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *DeleteJobRunResponse) Reset() {
+	*x = DeleteJobRunResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[52]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteJobRunResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteJobRunResponse) ProtoMessage() {}
+
+func (x *DeleteJobRunResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[52]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteJobRunResponse.ProtoReflect.Descriptor instead.
+func (*DeleteJobRunResponse) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{52}
+}
+
 type GetTransformersRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3055,7 +3140,7 @@ type GetTransformersRequest struct {
 func (x *GetTransformersRequest) Reset() {
 	*x = GetTransformersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[51]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3068,7 +3153,7 @@ func (x *GetTransformersRequest) String() string {
 func (*GetTransformersRequest) ProtoMessage() {}
 
 func (x *GetTransformersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[51]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3081,7 +3166,7 @@ func (x *GetTransformersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransformersRequest.ProtoReflect.Descriptor instead.
 func (*GetTransformersRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{51}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{53}
 }
 
 type GetTransformersResponse struct {
@@ -3095,7 +3180,7 @@ type GetTransformersResponse struct {
 func (x *GetTransformersResponse) Reset() {
 	*x = GetTransformersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[52]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3108,7 +3193,7 @@ func (x *GetTransformersResponse) String() string {
 func (*GetTransformersResponse) ProtoMessage() {}
 
 func (x *GetTransformersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[52]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3121,7 +3206,7 @@ func (x *GetTransformersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransformersResponse.ProtoReflect.Descriptor instead.
 func (*GetTransformersResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{52}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *GetTransformersResponse) GetTransformers() []*Transformer {
@@ -3146,7 +3231,7 @@ type Transformer struct {
 func (x *Transformer) Reset() {
 	*x = Transformer{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[53]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3159,7 +3244,7 @@ func (x *Transformer) String() string {
 func (*Transformer) ProtoMessage() {}
 
 func (x *Transformer) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[53]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3172,7 +3257,7 @@ func (x *Transformer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Transformer.ProtoReflect.Descriptor instead.
 func (*Transformer) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{53}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *Transformer) GetTitle() string {
@@ -3217,7 +3302,7 @@ type TransformerConfig struct {
 func (x *TransformerConfig) Reset() {
 	*x = TransformerConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[54]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3230,7 +3315,7 @@ func (x *TransformerConfig) String() string {
 func (*TransformerConfig) ProtoMessage() {}
 
 func (x *TransformerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[54]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3243,7 +3328,7 @@ func (x *TransformerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformerConfig.ProtoReflect.Descriptor instead.
 func (*TransformerConfig) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{54}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{56}
 }
 
 func (m *TransformerConfig) GetConfig() isTransformerConfig_Config {
@@ -3282,7 +3367,7 @@ type EmailConfig struct {
 func (x *EmailConfig) Reset() {
 	*x = EmailConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[55]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3295,7 +3380,7 @@ func (x *EmailConfig) String() string {
 func (*EmailConfig) ProtoMessage() {}
 
 func (x *EmailConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[55]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3308,7 +3393,7 @@ func (x *EmailConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailConfig.ProtoReflect.Descriptor instead.
 func (*EmailConfig) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{55}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *EmailConfig) GetPreserveDomain() bool {
@@ -3323,91 +3408,6 @@ func (x *EmailConfig) GetPreserveLength() bool {
 		return x.PreserveLength
 	}
 	return false
-}
-
-type DeleteJobRunRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	JobRunId string `protobuf:"bytes,1,opt,name=job_run_id,json=jobRunId,proto3" json:"job_run_id,omitempty"`
-}
-
-func (x *DeleteJobRunRequest) Reset() {
-	*x = DeleteJobRunRequest{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[56]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *DeleteJobRunRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteJobRunRequest) ProtoMessage() {}
-
-func (x *DeleteJobRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[56]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteJobRunRequest.ProtoReflect.Descriptor instead.
-func (*DeleteJobRunRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{56}
-}
-
-func (x *DeleteJobRunRequest) GetJobRunId() string {
-	if x != nil {
-		return x.JobRunId
-	}
-	return ""
-}
-
-type DeleteJobRunResponse struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *DeleteJobRunResponse) Reset() {
-	*x = DeleteJobRunResponse{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[57]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *DeleteJobRunResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteJobRunResponse) ProtoMessage() {}
-
-func (x *DeleteJobRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[57]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteJobRunResponse.ProtoReflect.Descriptor instead.
-func (*DeleteJobRunResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{57}
 }
 
 var File_mgmt_v1alpha1_job_proto protoreflect.FileDescriptor
@@ -3783,41 +3783,41 @@ var file_mgmt_v1alpha1_job_proto_rawDesc = []byte{
 	0x32, 0x0a, 0x06, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
 	0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e,
 	0x4a, 0x6f, 0x62, 0x52, 0x75, 0x6e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x52, 0x06, 0x65, 0x76, 0x65,
-	0x6e, 0x74, 0x73, 0x22, 0x18, 0x0a, 0x16, 0x47, 0x65, 0x74, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
-	0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x59, 0x0a,
-	0x17, 0x47, 0x65, 0x74, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3e, 0x0a, 0x0c, 0x74, 0x72, 0x61, 0x6e,
-	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a,
-	0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54,
-	0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x0c, 0x74, 0x72, 0x61, 0x6e,
-	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x22, 0x95, 0x01, 0x0a, 0x0b, 0x54, 0x72, 0x61,
-	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c,
-	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x14,
-	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76,
-	0x61, 0x6c, 0x75, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74,
-	0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72,
-	0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x38, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31,
-	0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
-	0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x22, 0x63, 0x0a, 0x11, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x3f, 0x0a, 0x0c, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x63,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x6d, 0x67,
-	0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x45, 0x6d, 0x61, 0x69,
-	0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x48, 0x00, 0x52, 0x0b, 0x65, 0x6d, 0x61, 0x69, 0x6c,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x0d, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x12, 0x03, 0xf8, 0x42, 0x01, 0x22, 0x5f, 0x0a, 0x0b, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x43, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x12, 0x27, 0x0a, 0x0f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65,
-	0x5f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x70,
-	0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x44, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x12, 0x27, 0x0a,
-	0x0f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x5f, 0x6c, 0x65, 0x6e, 0x67, 0x74, 0x68,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65,
-	0x4c, 0x65, 0x6e, 0x67, 0x74, 0x68, 0x22, 0x3d, 0x0a, 0x13, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65,
-	0x4a, 0x6f, 0x62, 0x52, 0x75, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x26, 0x0a,
-	0x0a, 0x6a, 0x6f, 0x62, 0x5f, 0x72, 0x75, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x42, 0x08, 0xfa, 0x42, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x08, 0x6a, 0x6f, 0x62,
-	0x52, 0x75, 0x6e, 0x49, 0x64, 0x22, 0x16, 0x0a, 0x14, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x4a,
-	0x6f, 0x62, 0x52, 0x75, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2a, 0x6f, 0x0a,
+	0x6e, 0x74, 0x73, 0x22, 0x3d, 0x0a, 0x13, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x4a, 0x6f, 0x62,
+	0x52, 0x75, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x26, 0x0a, 0x0a, 0x6a, 0x6f,
+	0x62, 0x5f, 0x72, 0x75, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08,
+	0xfa, 0x42, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x08, 0x6a, 0x6f, 0x62, 0x52, 0x75, 0x6e,
+	0x49, 0x64, 0x22, 0x16, 0x0a, 0x14, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x52,
+	0x75, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x18, 0x0a, 0x16, 0x47, 0x65,
+	0x74, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x22, 0x59, 0x0a, 0x17, 0x47, 0x65, 0x74, 0x54, 0x72, 0x61, 0x6e, 0x73,
+	0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x3e, 0x0a, 0x0c, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x18,
+	0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
+	0x72, 0x52, 0x0c, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x22,
+	0x95, 0x01, 0x0a, 0x0b, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x12,
+	0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64,
+	0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x38, 0x0a,
+	0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e,
+	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72,
+	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52,
+	0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x63, 0x0a, 0x11, 0x54, 0x72, 0x61, 0x6e, 0x73,
+	0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x3f, 0x0a, 0x0c,
+	0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
+	0x61, 0x31, 0x2e, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x48, 0x00,
+	0x52, 0x0b, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x0d, 0x0a,
+	0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x03, 0xf8, 0x42, 0x01, 0x22, 0x5f, 0x0a, 0x0b,
+	0x45, 0x6d, 0x61, 0x69, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x27, 0x0a, 0x0f, 0x70,
+	0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x5f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x44, 0x6f,
+	0x6d, 0x61, 0x69, 0x6e, 0x12, 0x27, 0x0a, 0x0f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65,
+	0x5f, 0x6c, 0x65, 0x6e, 0x67, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x70,
+	0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x4c, 0x65, 0x6e, 0x67, 0x74, 0x68, 0x2a, 0x6f, 0x0a,
 	0x09, 0x4a, 0x6f, 0x62, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x1a, 0x0a, 0x16, 0x4a, 0x4f,
 	0x42, 0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49,
 	0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x16, 0x0a, 0x12, 0x4a, 0x4f, 0x42, 0x5f, 0x53, 0x54,
@@ -4050,13 +4050,13 @@ var file_mgmt_v1alpha1_job_proto_goTypes = []interface{}{
 	(*JobRunEvent)(nil),                             // 51: mgmt.v1alpha1.JobRunEvent
 	(*GetJobRunEventsRequest)(nil),                  // 52: mgmt.v1alpha1.GetJobRunEventsRequest
 	(*GetJobRunEventsResponse)(nil),                 // 53: mgmt.v1alpha1.GetJobRunEventsResponse
-	(*GetTransformersRequest)(nil),                  // 54: mgmt.v1alpha1.GetTransformersRequest
-	(*GetTransformersResponse)(nil),                 // 55: mgmt.v1alpha1.GetTransformersResponse
-	(*Transformer)(nil),                             // 56: mgmt.v1alpha1.Transformer
-	(*TransformerConfig)(nil),                       // 57: mgmt.v1alpha1.TransformerConfig
-	(*EmailConfig)(nil),                             // 58: mgmt.v1alpha1.EmailConfig
-	(*DeleteJobRunRequest)(nil),                     // 59: mgmt.v1alpha1.DeleteJobRunRequest
-	(*DeleteJobRunResponse)(nil),                    // 60: mgmt.v1alpha1.DeleteJobRunResponse
+	(*DeleteJobRunRequest)(nil),                     // 54: mgmt.v1alpha1.DeleteJobRunRequest
+	(*DeleteJobRunResponse)(nil),                    // 55: mgmt.v1alpha1.DeleteJobRunResponse
+	(*GetTransformersRequest)(nil),                  // 56: mgmt.v1alpha1.GetTransformersRequest
+	(*GetTransformersResponse)(nil),                 // 57: mgmt.v1alpha1.GetTransformersResponse
+	(*Transformer)(nil),                             // 58: mgmt.v1alpha1.Transformer
+	(*TransformerConfig)(nil),                       // 59: mgmt.v1alpha1.TransformerConfig
+	(*EmailConfig)(nil),                             // 60: mgmt.v1alpha1.EmailConfig
 	(*timestamppb.Timestamp)(nil),                   // 61: google.protobuf.Timestamp
 }
 var file_mgmt_v1alpha1_job_proto_depIdxs = []int32{
@@ -4104,9 +4104,9 @@ var file_mgmt_v1alpha1_job_proto_depIdxs = []int32{
 	49, // 41: mgmt.v1alpha1.JobRun.pending_activities:type_name -> mgmt.v1alpha1.PendingActivity
 	61, // 42: mgmt.v1alpha1.JobRunEvent.created_at:type_name -> google.protobuf.Timestamp
 	51, // 43: mgmt.v1alpha1.GetJobRunEventsResponse.events:type_name -> mgmt.v1alpha1.JobRunEvent
-	56, // 44: mgmt.v1alpha1.GetTransformersResponse.transformers:type_name -> mgmt.v1alpha1.Transformer
-	57, // 45: mgmt.v1alpha1.Transformer.config:type_name -> mgmt.v1alpha1.TransformerConfig
-	58, // 46: mgmt.v1alpha1.TransformerConfig.email_config:type_name -> mgmt.v1alpha1.EmailConfig
+	58, // 44: mgmt.v1alpha1.GetTransformersResponse.transformers:type_name -> mgmt.v1alpha1.Transformer
+	59, // 45: mgmt.v1alpha1.Transformer.config:type_name -> mgmt.v1alpha1.TransformerConfig
+	60, // 46: mgmt.v1alpha1.TransformerConfig.email_config:type_name -> mgmt.v1alpha1.EmailConfig
 	3,  // 47: mgmt.v1alpha1.JobService.GetJobs:input_type -> mgmt.v1alpha1.GetJobsRequest
 	17, // 48: mgmt.v1alpha1.JobService.GetJob:input_type -> mgmt.v1alpha1.GetJobRequest
 	14, // 49: mgmt.v1alpha1.JobService.CreateJob:input_type -> mgmt.v1alpha1.CreateJobRequest
@@ -4121,10 +4121,10 @@ var file_mgmt_v1alpha1_job_proto_depIdxs = []int32{
 	35, // 58: mgmt.v1alpha1.JobService.GetJobRuns:input_type -> mgmt.v1alpha1.GetJobRunsRequest
 	52, // 59: mgmt.v1alpha1.JobService.GetJobRunEvents:input_type -> mgmt.v1alpha1.GetJobRunEventsRequest
 	37, // 60: mgmt.v1alpha1.JobService.GetJobRun:input_type -> mgmt.v1alpha1.GetJobRunRequest
-	59, // 61: mgmt.v1alpha1.JobService.DeleteJobRun:input_type -> mgmt.v1alpha1.DeleteJobRunRequest
+	54, // 61: mgmt.v1alpha1.JobService.DeleteJobRun:input_type -> mgmt.v1alpha1.DeleteJobRunRequest
 	39, // 62: mgmt.v1alpha1.JobService.CreateJobRun:input_type -> mgmt.v1alpha1.CreateJobRunRequest
 	41, // 63: mgmt.v1alpha1.JobService.CancelJobRun:input_type -> mgmt.v1alpha1.CancelJobRunRequest
-	54, // 64: mgmt.v1alpha1.JobService.GetTransformers:input_type -> mgmt.v1alpha1.GetTransformersRequest
+	56, // 64: mgmt.v1alpha1.JobService.GetTransformers:input_type -> mgmt.v1alpha1.GetTransformersRequest
 	4,  // 65: mgmt.v1alpha1.JobService.GetJobs:output_type -> mgmt.v1alpha1.GetJobsResponse
 	18, // 66: mgmt.v1alpha1.JobService.GetJob:output_type -> mgmt.v1alpha1.GetJobResponse
 	15, // 67: mgmt.v1alpha1.JobService.CreateJob:output_type -> mgmt.v1alpha1.CreateJobResponse
@@ -4139,10 +4139,10 @@ var file_mgmt_v1alpha1_job_proto_depIdxs = []int32{
 	36, // 76: mgmt.v1alpha1.JobService.GetJobRuns:output_type -> mgmt.v1alpha1.GetJobRunsResponse
 	53, // 77: mgmt.v1alpha1.JobService.GetJobRunEvents:output_type -> mgmt.v1alpha1.GetJobRunEventsResponse
 	38, // 78: mgmt.v1alpha1.JobService.GetJobRun:output_type -> mgmt.v1alpha1.GetJobRunResponse
-	60, // 79: mgmt.v1alpha1.JobService.DeleteJobRun:output_type -> mgmt.v1alpha1.DeleteJobRunResponse
+	55, // 79: mgmt.v1alpha1.JobService.DeleteJobRun:output_type -> mgmt.v1alpha1.DeleteJobRunResponse
 	40, // 80: mgmt.v1alpha1.JobService.CreateJobRun:output_type -> mgmt.v1alpha1.CreateJobRunResponse
 	42, // 81: mgmt.v1alpha1.JobService.CancelJobRun:output_type -> mgmt.v1alpha1.CancelJobRunResponse
-	55, // 82: mgmt.v1alpha1.JobService.GetTransformers:output_type -> mgmt.v1alpha1.GetTransformersResponse
+	57, // 82: mgmt.v1alpha1.JobService.GetTransformers:output_type -> mgmt.v1alpha1.GetTransformersResponse
 	65, // [65:83] is the sub-list for method output_type
 	47, // [47:65] is the sub-list for method input_type
 	47, // [47:47] is the sub-list for extension type_name
@@ -4769,66 +4769,6 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetTransformersRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mgmt_v1alpha1_job_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetTransformersResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mgmt_v1alpha1_job_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Transformer); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mgmt_v1alpha1_job_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TransformerConfig); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mgmt_v1alpha1_job_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EmailConfig); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mgmt_v1alpha1_job_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteJobRunRequest); i {
 			case 0:
 				return &v.state
@@ -4840,8 +4780,68 @@ func file_mgmt_v1alpha1_job_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_job_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_job_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeleteJobRunResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetTransformersRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetTransformersResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Transformer); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*TransformerConfig); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*EmailConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4874,7 +4874,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 	file_mgmt_v1alpha1_job_proto_msgTypes[44].OneofWrappers = []interface{}{}
 	file_mgmt_v1alpha1_job_proto_msgTypes[46].OneofWrappers = []interface{}{}
 	file_mgmt_v1alpha1_job_proto_msgTypes[47].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_job_proto_msgTypes[54].OneofWrappers = []interface{}{
+	file_mgmt_v1alpha1_job_proto_msgTypes[56].OneofWrappers = []interface{}{
 		(*TransformerConfig_EmailConfig)(nil),
 	}
 	type x struct{}

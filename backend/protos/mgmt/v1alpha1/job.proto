@@ -279,6 +279,11 @@ message GetJobRunEventsResponse {
   repeated JobRunEvent events = 1;
 }
 
+message DeleteJobRunRequest {
+  string job_run_id = 1 [(validate.rules).string.uuid = true];
+}
+message DeleteJobRunResponse {}
+
 message GetTransformersRequest {}
 //   string account_id = 1 [(validate.rules).string.uuid = true];
 
@@ -316,11 +321,6 @@ message EmailConfig {
   bool preserve_length = 2;
 }
 
-message DeleteJobRunRequest {
-  string job_run_id = 1 [(validate.rules).string.uuid = true];
-}
-message DeleteJobRunResponse {}
-
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -340,5 +340,6 @@ service JobService {
   rpc DeleteJobRun(DeleteJobRunRequest) returns (DeleteJobRunResponse) {}
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
   rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}
+
   rpc GetTransformers(GetTransformersRequest) returns (GetTransformersResponse) {}
 }

@@ -2329,6 +2329,74 @@ export class GetJobRunEventsResponse extends Message<GetJobRunEventsResponse> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.DeleteJobRunRequest
+ */
+export class DeleteJobRunRequest extends Message<DeleteJobRunRequest> {
+  /**
+   * @generated from field: string job_run_id = 1;
+   */
+  jobRunId = "";
+
+  constructor(data?: PartialMessage<DeleteJobRunRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DeleteJobRunRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteJobRunRequest {
+    return new DeleteJobRunRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteJobRunRequest {
+    return new DeleteJobRunRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteJobRunRequest {
+    return new DeleteJobRunRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeleteJobRunRequest | PlainMessage<DeleteJobRunRequest> | undefined, b: DeleteJobRunRequest | PlainMessage<DeleteJobRunRequest> | undefined): boolean {
+    return proto3.util.equals(DeleteJobRunRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.DeleteJobRunResponse
+ */
+export class DeleteJobRunResponse extends Message<DeleteJobRunResponse> {
+  constructor(data?: PartialMessage<DeleteJobRunResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DeleteJobRunResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteJobRunResponse {
+    return new DeleteJobRunResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteJobRunResponse {
+    return new DeleteJobRunResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteJobRunResponse {
+    return new DeleteJobRunResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeleteJobRunResponse | PlainMessage<DeleteJobRunResponse> | undefined, b: DeleteJobRunResponse | PlainMessage<DeleteJobRunResponse> | undefined): boolean {
+    return proto3.util.equals(DeleteJobRunResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.GetTransformersRequest
  */
 export class GetTransformersRequest extends Message<GetTransformersRequest> {
@@ -2536,74 +2604,6 @@ export class EmailConfig extends Message<EmailConfig> {
 
   static equals(a: EmailConfig | PlainMessage<EmailConfig> | undefined, b: EmailConfig | PlainMessage<EmailConfig> | undefined): boolean {
     return proto3.util.equals(EmailConfig, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.DeleteJobRunRequest
- */
-export class DeleteJobRunRequest extends Message<DeleteJobRunRequest> {
-  /**
-   * @generated from field: string job_run_id = 1;
-   */
-  jobRunId = "";
-
-  constructor(data?: PartialMessage<DeleteJobRunRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.DeleteJobRunRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteJobRunRequest {
-    return new DeleteJobRunRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteJobRunRequest {
-    return new DeleteJobRunRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteJobRunRequest {
-    return new DeleteJobRunRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteJobRunRequest | PlainMessage<DeleteJobRunRequest> | undefined, b: DeleteJobRunRequest | PlainMessage<DeleteJobRunRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteJobRunRequest, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.DeleteJobRunResponse
- */
-export class DeleteJobRunResponse extends Message<DeleteJobRunResponse> {
-  constructor(data?: PartialMessage<DeleteJobRunResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.DeleteJobRunResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteJobRunResponse {
-    return new DeleteJobRunResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteJobRunResponse {
-    return new DeleteJobRunResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteJobRunResponse {
-    return new DeleteJobRunResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteJobRunResponse | PlainMessage<DeleteJobRunResponse> | undefined, b: DeleteJobRunResponse | PlainMessage<DeleteJobRunResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteJobRunResponse, a, b);
   }
 }
 
