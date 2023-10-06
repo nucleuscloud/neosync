@@ -71,7 +71,7 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 			{ // ordinal position intentionally out of order to ensure the algorithm corrects that
 				ColumnName:      "extra",
 				DataType:        "varchar",
-				OrdinalPosition: 4,
+				OrdinalPosition: 5,
 				IsNullable:      "YES",
 			},
 			{

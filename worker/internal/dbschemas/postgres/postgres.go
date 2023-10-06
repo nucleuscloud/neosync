@@ -3,6 +3,7 @@ package dbschemas_postgres
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -247,9 +248,14 @@ func generateCreateTableStatement(
 	tableSchemas []*DatabaseSchema,
 	tableConstraints []*DatabaseTableConstraint,
 ) string {
+	// ensures the columsn are built in the correct order
+	sort.Slice(tableSchemas, func(i, j int) bool {
+		return tableSchemas[i].OrdinalPosition < tableSchemas[j].OrdinalPosition
+	})
 	columns := make([]string, len(tableSchemas))
-	for _, record := range tableSchemas {
-		columns[record.OrdinalPosition-1] = buildTableCol(record)
+	for idx := range tableSchemas {
+		record := tableSchemas[idx]
+		columns[idx] = buildTableCol(record)
 	}
 	constraints := make([]string, len(tableConstraints))
 	for idx := range tableConstraints {
