@@ -41,7 +41,7 @@ export default function JobNextRuns({ job }: Props): ReactElement {
     );
   }
   return (
-    <Card>
+    <Card className="p-2">
       {!job.nextRuns || !job.nextRuns.nextRunTimes ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve upcoming runs`}</AlertTitle>

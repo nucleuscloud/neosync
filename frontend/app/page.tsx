@@ -1,14 +1,11 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import NextLink from 'next/link';
+import RunsTable from './runs/components/RunsTable';
 
 export default function Home() {
   return (
-    <div>
-      <h1>Neosync Overview</h1>
-      <NextLink href={'/new/connection'}>
-        <Button>New Connection</Button>
-      </NextLink>
+    <div className="space-y-4 my-2">
+      <h1 className="text-lg font-semibold tracking-tight">Latest Job Runs</h1>
+      <RunsTable />
     </div>
   );
 }
