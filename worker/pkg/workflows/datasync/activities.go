@@ -119,7 +119,7 @@ func (a *Activities) GenerateBenthosConfigs(
 			if err != nil {
 				return nil, err
 			}
-			// defer pool.Close()
+			defer pool.Close()
 			pgpoolmap[dsn] = pool
 		}
 
