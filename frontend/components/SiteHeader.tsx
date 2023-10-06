@@ -1,9 +1,9 @@
 import { siteConfig } from '@/app/config/site';
-import { ModeToggle } from '@/app/toggle';
 import { cn } from '@/libs/utils';
 import Link from 'next/link';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
+import { ModeToggle } from './ModeToggle';
 import { UserNav } from './UserNav';
 import { Icons } from './icons';
 import { buttonVariants } from './ui/button';
