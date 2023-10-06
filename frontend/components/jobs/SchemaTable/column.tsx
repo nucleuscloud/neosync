@@ -64,7 +64,7 @@ export function getColumns(
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
-          className="translate-y-[2px]"
+          className="translate-y-[2px] "
         />
       ),
       enableSorting: false,
@@ -76,9 +76,7 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Schema" />
       ),
-      cell: ({ row }) => (
-        <div className="w-[80px]">{row.getValue('schema')}</div>
-      ),
+      cell: ({ row }) => <div>{row.getValue('schema')}</div>,
       enableSorting: true,
       enableColumnFilter: true,
       filterFn: 'arrIncludesSome',
@@ -91,7 +89,7 @@ export function getColumns(
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
+            <span className="truncate font-medium">
               {row.getValue('table')}
             </span>
           </div>
@@ -108,7 +106,7 @@ export function getColumns(
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
+            <span className="truncate font-medium">
               {row.getValue('column')}
             </span>
           </div>
@@ -124,8 +122,8 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
+          <div className="flex space-x-2 ">
+            <span className="truncate font-medium">
               {row.getValue('dataType')}
             </span>
           </div>
@@ -141,7 +139,7 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 ">
             <FormField
               name={`mappings.${row.index}.transformer`}
               render={({ field }) => (

@@ -38,7 +38,7 @@ export default async function RootLayout({
             <AccountProvider>
               <div className="relative flex min-h-screen flex-col">
                 <SiteHeader />
-                <div className="flex-1 container">{children}</div>
+                <div className="flex-1 ">{children}</div>
                 <SiteFooter />
                 <Toaster />
               </div>

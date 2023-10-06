@@ -1,11 +1,9 @@
 'use client';
 
 import {
-  Column,
   ColumnDef,
   ColumnFiltersState,
   SortingState,
-  Table as TableType,
   VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -191,38 +189,40 @@ export function DataTable<TData, TValue>({
         </div>
         <div className="basis-2/3">
           <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                          {header.column.getCanFilter() ? (
+                            <div>
+                              <FilterSelect
+                                column={header.column}
+                                table={table}
+                                transformers={transformers || []}
+                                onSelect={() => {
+                                  updateTree();
+                                }}
+                              />
+                            </div>
+                          ) : null}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+            </Table>
             <ScrollArea className="h-[700px]">
               <Table>
-                <TableHeader className="sticky top-0">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead key={header.id}>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                            {header.column.getCanFilter() ? (
-                              <div>
-                                <FilterSelect
-                                  column={header.column}
-                                  table={table}
-                                  transformers={transformers || []}
-                                  onSelect={() => {
-                                    updateTree();
-                                  }}
-                                />
-                              </div>
-                            ) : null}
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
                 <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row) => (
@@ -230,14 +230,25 @@ export function DataTable<TData, TValue>({
                         key={row.id}
                         data-state={row.getIsSelected() && 'selected'}
                       >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
+                        {row.getVisibleCells().map((cell) => {
+                          console.log(cell.column.id);
+
+                          return (
+                            <TableCell
+                              className={
+                                cell.column.id == 'select'
+                                  ? ' w-[30px] '
+                                  : 'w-[197px] indent-4'
+                              }
+                              key={cell.id}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          );
+                        })}
                       </TableRow>
                     ))
                   ) : (
@@ -262,13 +273,6 @@ export function DataTable<TData, TValue>({
       </div>
     </div>
   );
-}
-
-interface FilterSelectProps<TData, TValue> {
-  column: Column<TData, TValue>;
-  table: TableType<TData>;
-  transformers: Transformer[];
-  onSelect: (values: string[]) => void;
 }
 
 function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
