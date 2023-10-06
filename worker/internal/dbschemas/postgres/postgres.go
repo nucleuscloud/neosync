@@ -106,7 +106,6 @@ func getDatabaseTableSchema(
 
 	output := []*DatabaseSchema{}
 	for rows.Next() {
-		fmt.Println("scanning row!")
 		var o DatabaseSchema
 		err := rows.Scan(
 			&o.TableSchema,
@@ -122,7 +121,6 @@ func getDatabaseTableSchema(
 		}
 		output = append(output, &o)
 	}
-	fmt.Println("found ", len(output), " rows for ", schema, table)
 	return output, nil
 }
 
