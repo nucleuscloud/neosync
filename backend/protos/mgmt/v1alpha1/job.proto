@@ -279,6 +279,43 @@ message GetJobRunEventsResponse {
   repeated JobRunEvent events = 1;
 }
 
+message GetTransformersRequest {}
+//   string account_id = 1 [(validate.rules).string.uuid = true];
+
+message GetTransformersResponse {
+  repeated Transformer transformers = 1;
+}
+
+message Transformer {
+  //   string id = 1 [(validate.rules).string.uuid = true];
+  string title = 1;
+  string value = 2;
+  string description = 3;
+
+  //   string created_by_user_id = 4;
+  //   google.protobuf.Timestamp created_at = 5;
+
+  //   string updated_by_user_id = 6;
+  //   google.protobuf.Timestamp updated_at = 7;
+
+  TransformerConfig config = 4;
+
+  //   string account_id = 9;
+}
+
+message TransformerConfig {
+  oneof config {
+    option (validate.required) = true;
+
+    EmailConfig email_config = 1;
+  }
+}
+
+message EmailConfig {
+  bool preserve_domain = 1;
+  bool preserve_length = 2;
+}
+
 message DeleteJobRunRequest {
   string job_run_id = 1 [(validate.rules).string.uuid = true];
 }
@@ -303,4 +340,6 @@ service JobService {
   rpc DeleteJobRun(DeleteJobRunRequest) returns (DeleteJobRunResponse) {}
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
   rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}
+
+  rpc GetTransformers(GetTransformersRequest) returns (GetTransformersResponse) {}
 }
