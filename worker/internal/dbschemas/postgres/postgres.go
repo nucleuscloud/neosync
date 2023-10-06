@@ -3,7 +3,6 @@ package dbschemas_postgres
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -57,7 +56,8 @@ FROM
 		AND c.table_name = t.table_name
 WHERE
 	c.table_schema = $1 AND t.table_name = $2
-	AND t.table_type = 'BASE TABLE';
+	AND t.table_type = 'BASE TABLE'
+	ORDER BY c.ordinal_position ASC;
 	`
 )
 
@@ -248,10 +248,6 @@ func generateCreateTableStatement(
 	tableSchemas []*DatabaseSchema,
 	tableConstraints []*DatabaseTableConstraint,
 ) string {
-	// ensures the columns are built in the correct order
-	sort.Slice(tableSchemas, func(i, j int) bool {
-		return tableSchemas[i].OrdinalPosition < tableSchemas[j].OrdinalPosition
-	})
 	columns := make([]string, len(tableSchemas))
 	for idx := range tableSchemas {
 		record := tableSchemas[idx]
