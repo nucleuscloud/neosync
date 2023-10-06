@@ -5,14 +5,15 @@ go 1.21.1
 require (
 	connectrpc.com/connect v1.11.1
 	github.com/benthosdev/benthos/v4 v4.22.0
+	github.com/bxcodec/faker/v4 v4.0.0-beta.3
 	github.com/google/uuid v1.3.1
 	github.com/jackc/pgx/v5 v5.4.3
-	github.com/nucleuscloud/neosync/backend v0.0.0-20230911182806-f8b250e84872
+	github.com/nucleuscloud/neosync/backend v0.0.0-20231006180658-d1ac7e7a555e
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 	go.temporal.io/sdk v1.24.0
-	golang.org/x/sync v0.3.0
+	golang.org/x/sync v0.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -51,7 +52,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.37.0 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/bxcodec/faker/v4 v4.0.0-beta.3 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -138,7 +138,6 @@ require (
 	github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 // indirect
-	github.com/nucleuscloud/neosync v0.0.4-0.20231006010943-90529ef07e5c // indirect
 	github.com/olivere/elastic/v7 v7.0.32 // indirect
 	github.com/paulmach/orb v0.10.0 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
