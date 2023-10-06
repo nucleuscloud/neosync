@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 
-export const AccountContext = createContext<UserAccount | undefined>(undefined);
+const AccountContext = createContext<UserAccount | undefined>(undefined);
 
 const USER_ACCOUNT_KEY = 'user-account';
 

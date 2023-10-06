@@ -35,7 +35,7 @@ const FORM_SCHEMA = Yup.object({
   error: Yup.string().optional(),
 });
 
-export type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 interface Props {
   job: Job;
