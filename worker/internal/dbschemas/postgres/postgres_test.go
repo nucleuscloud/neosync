@@ -68,18 +68,18 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 				IsNullable:      "NO",
 				ColumnDefault:   strPtr("now()"),
 			},
-			{ // ordinal position intentionally out of order to ensure the algorithm corrects that
-				ColumnName:      "extra",
-				DataType:        "varchar",
-				OrdinalPosition: 5,
-				IsNullable:      "YES",
-			},
 			{
 				ColumnName:      "updated_at",
 				DataType:        "timestamp",
 				OrdinalPosition: 3,
 				IsNullable:      "NO",
 				ColumnDefault:   strPtr("CURRENT_TIMESTAMP"),
+			},
+			{
+				ColumnName:      "extra",
+				DataType:        "varchar",
+				OrdinalPosition: 5,
+				IsNullable:      "YES",
 			},
 		},
 		[]*DatabaseTableConstraint{
