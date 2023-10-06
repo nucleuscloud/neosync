@@ -16,6 +16,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -45,6 +46,8 @@ func (a *Activities) GenerateBenthosConfigs(
 	req *GenerateBenthosConfigsRequest,
 ) (*GenerateBenthosConfigsResponse, error) {
 	activity.RecordHeartbeat(ctx)
+
+	pgpoolmap := map[string]*pgxpool.Pool{}
 
 	job, err := a.getJobById(ctx, req.BackendUrl, req.JobId)
 	if err != nil {
@@ -111,8 +114,17 @@ func (a *Activities) GenerateBenthosConfigs(
 				DependsOn: []string{},
 			})
 		}
+		if _, ok := pgpoolmap[dsn]; !ok {
+			pool, err := pgxpool.New(ctx, dsn)
+			if err != nil {
+				return nil, err
+			}
+			defer pool.Close()
+			pgpoolmap[dsn] = pool
+		}
 
-		allConstraints, err := a.getAllFkConstraintsFromMappings(ctx, dsn, job.Mappings)
+		pool := pgpoolmap[dsn]
+		allConstraints, err := a.getAllFkConstraintsFromMappings(ctx, pool, job.Mappings)
 		if err != nil {
 			return nil, err
 		}
@@ -153,11 +165,14 @@ func (a *Activities) GenerateBenthosConfigs(
 					truncateBeforeInsert = *sqlOpts.TruncateBeforeInsert
 				}
 
+				pool := pgpoolmap[resp.Config.Input.SqlSelect.Dsn]
 				// todo: make this more efficient to reduce amount of times we have to connect to the source database
+				schema, table := splitTableKey(resp.Config.Input.SqlSelect.Table)
 				initStmt, err := a.getInitStatementFromPostgres(
 					ctx,
-					resp.Config.Input.SqlSelect.Dsn,
-					resp.Config.Input.SqlSelect.Table,
+					pool,
+					schema,
+					table,
 					&initStatementOpts{
 						TruncateBeforeInsert: truncateBeforeInsert,
 						InitSchema:           initSchema,
@@ -222,15 +237,9 @@ func (a *Activities) GenerateBenthosConfigs(
 
 func (a *Activities) getAllFkConstraintsFromMappings(
 	ctx context.Context,
-	dsn string,
+	conn DBTX,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) ([]*dbschemas_postgres.ForeignKeyConstraint, error) {
-	conn, err := pgx.Connect(ctx, dsn)
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close(ctx)
-
 	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
 	holder := make([][]*dbschemas_postgres.ForeignKeyConstraint, len(uniqueSchemas))
 	errgrp, errctx := errgroup.WithContext(ctx)
@@ -263,17 +272,18 @@ type initStatementOpts struct {
 	InitSchema           bool
 }
 
+type DBTX interface {
+	Query(context.Context, string, ...any) (pgx.Rows, error)
+	QueryRow(context.Context, string, ...any) pgx.Row
+}
+
 func (a *Activities) getInitStatementFromPostgres(
 	ctx context.Context,
-	dsn string,
+	conn DBTX,
+	schema string,
 	table string,
 	opts *initStatementOpts,
 ) (string, error) {
-	conn, err := pgx.Connect(ctx, dsn)
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close(ctx)
 
 	statements := []string{}
 	if opts != nil && opts.TruncateBeforeInsert {
@@ -281,7 +291,8 @@ func (a *Activities) getInitStatementFromPostgres(
 	}
 	if opts != nil && opts.InitSchema {
 		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
-			Table: table,
+			Schema: schema,
+			Table:  table,
 		})
 		if err != nil {
 			return "", err
@@ -301,6 +312,14 @@ func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
 	}
 
 	return columns
+}
+
+func splitTableKey(key string) (schema, table string) {
+	pieces := strings.Split(key, ".")
+	if len(pieces) == 1 {
+		return "public", pieces[0]
+	}
+	return pieces[0], pieces[1]
 }
 
 type SyncRequest struct {

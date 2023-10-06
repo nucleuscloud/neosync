@@ -49,3 +49,54 @@ func TestGetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
 		"neosync_api.t4": {"neosync_api.t3"},
 	}, "Testing composite foreign keys, table self-referencing, and table cycles")
 }
+
+func TestGenerateCreateTableStatement(t *testing.T) {
+	result := generateCreateTableStatement(
+		"public", "users",
+		[]*DatabaseSchema{
+			{
+				ColumnName:      "id",
+				DataType:        "uuid",
+				OrdinalPosition: 1,
+				IsNullable:      "NO",
+				ColumnDefault:   strPtr("gen_random_uuid()"),
+			},
+			{
+				ColumnName:      "created_at",
+				DataType:        "timestamp without time zone",
+				OrdinalPosition: 2,
+				IsNullable:      "NO",
+				ColumnDefault:   strPtr("now()"),
+			},
+			{ // ordinal position intentionally out of order to ensure the algorithm corrects that
+				ColumnName:      "extra",
+				DataType:        "varchar",
+				OrdinalPosition: 4,
+				IsNullable:      "YES",
+			},
+			{
+				ColumnName:      "updated_at",
+				DataType:        "timestamp",
+				OrdinalPosition: 3,
+				IsNullable:      "NO",
+				ColumnDefault:   strPtr("CURRENT_TIMESTAMP"),
+			},
+		},
+		[]*DatabaseTableConstraint{
+			{
+				ConstraintName:       "users_pkey",
+				ConstraintDefinition: "PRIMARY KEY (id)",
+			},
+		},
+	)
+
+	assert.Equal(
+		t,
+		result,
+		"CREATE TABLE IF NOT EXISTS public.users (id uuid NOT NULL DEFAULT gen_random_uuid(), created_at timestamp without time zone NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, extra varchar NULL, CONSTRAINT users_pkey PRIMARY KEY (id));", //nolint
+	)
+}
+
+func strPtr(val string) *string {
+	return &val
+}
