@@ -20,6 +20,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
@@ -421,8 +422,6 @@ func getPgDsn(
 
 func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
-
-	// neosync_plugins.Emailtransformer()
 
 	for _, col := range cols {
 		if col.Transformer != "" && col.Transformer != "passthrough" {
