@@ -259,32 +259,13 @@ func areMappingsSubsetOfSchemas(
 	dbschemas []*dbschemas_postgres.DatabaseSchema,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
-	tableColMappings := map[string]map[string]struct{}{}
-	groupedSchemas := map[string]map[string]struct{}{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+	tableColMappings := getUniqueColMappingsMap(mappings)
+	groupedSchemas := getUniqueSchemaColMappings(dbschemas)
 
-	for _, mapping := range mappings {
-		key := buildBenthosTable(mapping.Schema, mapping.Table)
-		if _, ok := tableColMappings[key]; ok {
-			tableColMappings[key][mapping.Column] = struct{}{}
-		} else {
-			tableColMappings[key] = map[string]struct{}{
-				mapping.Column: {},
-			}
-		}
-	}
-
-	for _, record := range dbschemas {
-		key := buildBenthosTable(record.TableSchema, record.TableName)
-		// db schemas might have more schemas+tables than we care about mapping
+	for key := range groupedSchemas {
+		// For this method, we only care about the schemas+tables that we currently have mappings for
 		if _, ok := tableColMappings[key]; !ok {
-			continue
-		}
-		if _, ok := groupedSchemas[key]; ok {
-			groupedSchemas[key][record.ColumnName] = struct{}{}
-		} else {
-			groupedSchemas[key] = map[string]struct{}{
-				record.ColumnName: {},
-			}
+			delete(groupedSchemas, key)
 		}
 	}
 
@@ -311,13 +292,27 @@ func areMappingsSubsetOfSchemas(
 	return true
 }
 
-func shouldHaltOnSchemaAddition(
+func getUniqueSchemaColMappings(
 	dbschemas []*dbschemas_postgres.DatabaseSchema,
-	mappings []*mgmtv1alpha1.JobMapping,
-) bool {
-	tableColMappings := map[string]map[string]struct{}{}
+) map[string]map[string]struct{} {
 	groupedSchemas := map[string]map[string]struct{}{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+	for _, record := range dbschemas {
+		key := buildBenthosTable(record.TableSchema, record.TableName)
+		if _, ok := groupedSchemas[key]; ok {
+			groupedSchemas[key][record.ColumnName] = struct{}{}
+		} else {
+			groupedSchemas[key] = map[string]struct{}{
+				record.ColumnName: {},
+			}
+		}
+	}
+	return groupedSchemas
+}
 
+func getUniqueColMappingsMap(
+	mappings []*mgmtv1alpha1.JobMapping,
+) map[string]map[string]struct{} {
+	tableColMappings := map[string]map[string]struct{}{}
 	for _, mapping := range mappings {
 		key := buildBenthosTable(mapping.Schema, mapping.Table)
 		if _, ok := tableColMappings[key]; ok {
@@ -328,38 +323,30 @@ func shouldHaltOnSchemaAddition(
 			}
 		}
 	}
+	return tableColMappings
+}
 
-	for _, record := range dbschemas {
-		key := buildBenthosTable(record.TableSchema, record.TableName)
-		// db schemas might have more schemas+tables than we care about mapping
-		if _, ok := tableColMappings[key]; !ok {
-			continue
-		}
-		if _, ok := groupedSchemas[key]; ok {
-			groupedSchemas[key][record.ColumnName] = struct{}{}
-		} else {
-			groupedSchemas[key] = map[string]struct{}{
-				record.ColumnName: {},
-			}
-		}
-	}
+func shouldHaltOnSchemaAddition(
+	dbschemas []*dbschemas_postgres.DatabaseSchema,
+	mappings []*mgmtv1alpha1.JobMapping,
+) bool {
+	tableColMappings := getUniqueColMappingsMap(mappings)
+	groupedSchemas := getUniqueSchemaColMappings(dbschemas)
 
 	if len(tableColMappings) != len(groupedSchemas) {
 		return true
 	}
 
-	// tests to make sure that every column in the col mappings is present in the db schema
-	for table, cols := range tableColMappings {
-		schemaCols, ok := groupedSchemas[table]
+	for table, cols := range groupedSchemas {
+		mappingCols, ok := tableColMappings[table]
 		if !ok {
 			return true
 		}
-		// schema has more col mappings than the job
-		if len(cols) < len(schemaCols) {
+		if len(cols) > len(mappingCols) {
 			return true
 		}
-		for col := range schemaCols {
-			if _, ok := cols[col]; !ok {
+		for col := range cols {
+			if _, ok := mappingCols[col]; !ok {
 				return true
 			}
 		}
