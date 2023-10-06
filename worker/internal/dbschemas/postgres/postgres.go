@@ -248,7 +248,7 @@ func generateCreateTableStatement(
 	tableSchemas []*DatabaseSchema,
 	tableConstraints []*DatabaseTableConstraint,
 ) string {
-	// ensures the columsn are built in the correct order
+	// ensures the columns are built in the correct order
 	sort.Slice(tableSchemas, func(i, j int) bool {
 		return tableSchemas[i].OrdinalPosition < tableSchemas[j].OrdinalPosition
 	})
