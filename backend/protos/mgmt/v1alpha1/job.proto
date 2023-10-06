@@ -340,6 +340,5 @@ service JobService {
   rpc DeleteJobRun(DeleteJobRunRequest) returns (DeleteJobRunResponse) {}
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
   rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}
-
   rpc GetTransformers(GetTransformersRequest) returns (GetTransformersResponse) {}
 }
