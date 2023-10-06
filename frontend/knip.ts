@@ -26,6 +26,7 @@ const config: KnipConfig = {
     'autoprefixer',
     'postcss',
     'eslint-config-next',
+    'tailwindcss-animate',
   ],
   ignoreBinaries: ['tail'],
 };
