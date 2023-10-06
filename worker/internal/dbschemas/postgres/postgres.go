@@ -232,6 +232,21 @@ func GetTableCreateStatement(
 		return "", err
 	}
 
+	return generateCreateTableStatement(
+		req.Schema,
+		req.Table,
+		tableSchemas,
+		tableConstraints,
+	), nil
+}
+
+// This assumes that the schemas and constraints as for a single table, not an entire db schema
+func generateCreateTableStatement(
+	schema string,
+	table string,
+	tableSchemas []*DatabaseSchema,
+	tableConstraints []*DatabaseTableConstraint,
+) string {
 	columns := make([]string, len(tableSchemas))
 	for _, record := range tableSchemas {
 		columns[record.OrdinalPosition-1] = buildTableCol(record)
@@ -242,8 +257,7 @@ func GetTableCreateStatement(
 		constraints[idx] = fmt.Sprintf("CONSTRAINT %s %s", constraint.ConstraintName, constraint.ConstraintDefinition)
 	}
 	tableDefs := append(columns, constraints...) //nolint
-	stmt := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.%s (%s);`, req.Schema, req.Table, strings.Join(tableDefs, ", "))
-	return stmt, nil
+	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.%s (%s);`, schema, table, strings.Join(tableDefs, ", "))
 }
 
 func buildTableCol(record *DatabaseSchema) string {
