@@ -1,13 +1,13 @@
-export interface Database {
+interface Database {
   tables: Table[];
 }
 
-export interface Table {
+interface Table {
   name: string;
   columns: Column[];
 }
 
-export interface Column {
+interface Column {
   name: string;
   type?: string;
   length?: string;

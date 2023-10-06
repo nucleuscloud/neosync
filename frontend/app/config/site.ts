@@ -9,5 +9,3 @@ export const siteConfig = {
     github: 'https://github.com/nucleuscloud',
   },
 };
-
-export type SiteConfig = typeof siteConfig;

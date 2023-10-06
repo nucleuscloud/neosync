@@ -5,18 +5,18 @@ on:
 
 name: Frontend
 jobs:
-  # knip:
-  #   name: Knip
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  knip:
+    name: Knip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Set up Node
-  #       uses: actions/setup-node@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
 
-  #     - run: npm ci
-  #     - run: npm run knip:production
+      - run: npm ci
+      - run: npm run knip:production
 
   prettier:
     name: Prettier

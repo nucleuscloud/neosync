@@ -42,7 +42,7 @@ export const FLOW_FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
 );
 export type FlowFormValues = Yup.InferType<typeof FLOW_FORM_SCHEMA>;
 
-export const FORM_SCHEMA = Yup.object({
+const FORM_SCHEMA = Yup.object({
   define: DEFINE_FORM_SCHEMA,
   flow: FLOW_FORM_SCHEMA,
   schema: SCHEMA_FORM_SCHEMA,
