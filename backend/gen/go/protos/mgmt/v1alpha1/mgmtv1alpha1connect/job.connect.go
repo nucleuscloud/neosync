@@ -74,9 +74,6 @@ const (
 	JobServiceCreateJobRunProcedure = "/mgmt.v1alpha1.JobService/CreateJobRun"
 	// JobServiceCancelJobRunProcedure is the fully-qualified name of the JobService's CancelJobRun RPC.
 	JobServiceCancelJobRunProcedure = "/mgmt.v1alpha1.JobService/CancelJobRun"
-	// JobServiceGetTransformersProcedure is the fully-qualified name of the JobService's
-	// GetTransformers RPC.
-	JobServiceGetTransformersProcedure = "/mgmt.v1alpha1.JobService/GetTransformers"
 )
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
@@ -98,7 +95,6 @@ type JobServiceClient interface {
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
-	GetTransformers(context.Context, *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -196,11 +192,6 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			baseURL+JobServiceCancelJobRunProcedure,
 			opts...,
 		),
-		getTransformers: connect.NewClient[v1alpha1.GetTransformersRequest, v1alpha1.GetTransformersResponse](
-			httpClient,
-			baseURL+JobServiceGetTransformersProcedure,
-			opts...,
-		),
 	}
 }
 
@@ -223,7 +214,6 @@ type jobServiceClient struct {
 	deleteJobRun                    *connect.Client[v1alpha1.DeleteJobRunRequest, v1alpha1.DeleteJobRunResponse]
 	createJobRun                    *connect.Client[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse]
 	cancelJobRun                    *connect.Client[v1alpha1.CancelJobRunRequest, v1alpha1.CancelJobRunResponse]
-	getTransformers                 *connect.Client[v1alpha1.GetTransformersRequest, v1alpha1.GetTransformersResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -311,11 +301,6 @@ func (c *jobServiceClient) CancelJobRun(ctx context.Context, req *connect.Reques
 	return c.cancelJobRun.CallUnary(ctx, req)
 }
 
-// GetTransformers calls mgmt.v1alpha1.JobService.GetTransformers.
-func (c *jobServiceClient) GetTransformers(ctx context.Context, req *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error) {
-	return c.getTransformers.CallUnary(ctx, req)
-}
-
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
 type JobServiceHandler interface {
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
@@ -335,7 +320,6 @@ type JobServiceHandler interface {
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
-	GetTransformers(context.Context, *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -429,11 +413,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		svc.CancelJobRun,
 		opts...,
 	)
-	jobServiceGetTransformersHandler := connect.NewUnaryHandler(
-		JobServiceGetTransformersProcedure,
-		svc.GetTransformers,
-		opts...,
-	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceGetJobsProcedure:
@@ -470,8 +449,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceCreateJobRunHandler.ServeHTTP(w, r)
 		case JobServiceCancelJobRunProcedure:
 			jobServiceCancelJobRunHandler.ServeHTTP(w, r)
-		case JobServiceGetTransformersProcedure:
-			jobServiceGetTransformersHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -547,8 +524,4 @@ func (UnimplementedJobServiceHandler) CreateJobRun(context.Context, *connect.Req
 
 func (UnimplementedJobServiceHandler) CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.CancelJobRun is not implemented"))
-}
-
-func (UnimplementedJobServiceHandler) GetTransformers(context.Context, *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetTransformers is not implemented"))
 }
