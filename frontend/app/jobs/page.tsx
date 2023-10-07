@@ -61,7 +61,7 @@ function NewJobButton(props: NewJobButtonProps): ReactElement {
   const {} = props;
   return (
     <NextLink href={'/new/job'}>
-      <Button>New Job </Button>
+      <Button>+ New Job </Button>
     </NextLink>
   );
 }

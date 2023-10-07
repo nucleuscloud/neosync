@@ -28,7 +28,7 @@ interface Props {
   transformer: Transformer;
 }
 
-export default function EmailTransformerForm(props: Props): ReactElement {
+export default function FirstNameTransformerForm(props: Props): ReactElement {
   const account = useAccount();
 
   const { transformer } = props;
@@ -72,36 +72,13 @@ export default function EmailTransformerForm(props: Props): ReactElement {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name="preserve_length"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                <div className="space-y-0.5">
-                  <FormLabel>Preserve Length</FormLabel>
-                  <FormDescription>
-                    Set the length of the output email to be the same as the
-                    input
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="preserve_domain"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel>Preserve Domain</FormLabel>
+                  <FormLabel>First Name</FormLabel>
                   <FormDescription>
-                    Set the domain of the output email to be the same as the
-                    input
+                    Anonymzie the first name field
                   </FormDescription>
                 </div>
                 <FormControl>

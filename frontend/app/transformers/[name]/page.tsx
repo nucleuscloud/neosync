@@ -9,13 +9,11 @@ import RemoveTransformerButton from './components/RemoveTransformerButton';
 import { getTransformerComponentDetails } from './components/transformer-component';
 
 export default function TransformerPage({ params }: PageProps) {
-  const title = params?.title ?? '';
+  const title = params?.name ?? '';
 
   const { data, isLoading } = useGetTransformers();
 
-  const transformer = data?.transformers.find(
-    (item) => item.title == params?.title ?? ''
-  );
+  const transformer = data?.transformers.find((item) => item.title == title);
 
   const { toast } = useToast();
 
@@ -29,6 +27,7 @@ export default function TransformerPage({ params }: PageProps) {
       </div>
     );
   }
+
   const tranformerComponent = getTransformerComponentDetails({
     transformer: transformer,
     // onSaved: (resp) => {

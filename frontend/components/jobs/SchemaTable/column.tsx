@@ -1,7 +1,6 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-
+import TransformerEdit from '@/app/transformers/components/transformersTable/TransformerEdit';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Button } from '@/components/ui/button';
@@ -30,6 +29,7 @@ import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
 import { DataTableColumnHeader } from './data-table-column-header';
 
@@ -144,6 +144,11 @@ export function getColumns(
                       value={field.value}
                       onSelect={field.onChange}
                     />
+                    <TransformerEdit
+                        transformer={transformers?.find(
+                          (item) => item.value == field.value
+                        )}
+                      />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -162,7 +167,7 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2">
+          <div className="flex flex-row space-x-2">
             <FormField
               name={`mappings.${row.index}.exclude`}
               render={({ field }) => (
