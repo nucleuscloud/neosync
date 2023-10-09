@@ -6,7 +6,7 @@ import { ReactElement } from 'react';
 import { getColumns } from './column';
 import { DataTable } from './data-table';
 
-export interface JobTableProps {
+interface JobTableProps {
   data: JobMappingFormValues[];
 }
 

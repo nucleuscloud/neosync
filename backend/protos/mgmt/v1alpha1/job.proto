@@ -76,7 +76,8 @@ message JobMapping {
       "passthrough",
       "uuid_v4",
       "first_name",
-      "phone_number"
+      "phone_number",
+      "email"
     ]
   }];
   bool exclude = 6;
@@ -279,19 +280,36 @@ message GetJobRunEventsResponse {
   repeated JobRunEvent events = 1;
 }
 
-message Transformer {
-  string title = 1;
-  string value = 2;
-}
-message GetTransformersRequest {}
-message GetTransformersResponse {
-  repeated Transformer transformers = 1;
-}
-
 message DeleteJobRunRequest {
   string job_run_id = 1 [(validate.rules).string.uuid = true];
 }
 message DeleteJobRunResponse {}
+
+message GetTransformersRequest {}
+
+message GetTransformersResponse {
+  repeated Transformer transformers = 1;
+}
+
+message Transformer {
+  string title = 1;
+  string value = 2;
+  string description = 3;
+  TransformerConfig config = 4;
+}
+
+message TransformerConfig {
+  oneof config {
+    option (validate.required) = true;
+
+    EmailConfig email_config = 1;
+  }
+}
+
+message EmailConfig {
+  bool preserve_domain = 1;
+  bool preserve_length = 2;
+}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}

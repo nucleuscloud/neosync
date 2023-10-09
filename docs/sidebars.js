@@ -106,6 +106,11 @@ const sidebars = {
       className: "sidebarcategory",
     },
     {
+      type: "doc",
+      id: "transformers/introduction",
+      label: "Introduction",
+    },
+    {
       type: "category",
       label: "Pre-built",
       collapsible: true,

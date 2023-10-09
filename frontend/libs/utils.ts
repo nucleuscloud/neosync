@@ -1,14 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-function isNil<T>(item: T | null | undefined): item is null | undefined {
-  return item == null;
-}
-
-export function isNotNil<T>(item: T | null | undefined): item is T {
-  return !isNil(item);
-}
-
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

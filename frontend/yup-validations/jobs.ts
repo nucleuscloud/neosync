@@ -5,7 +5,7 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
-export const JOB_MAPPING_SCHEMA = Yup.object({
+const JOB_MAPPING_SCHEMA = Yup.object({
   schema: Yup.string().required(),
   table: Yup.string().required(),
   column: Yup.string().required(),
@@ -30,7 +30,7 @@ export const SOURCE_FORM_SCHEMA = Yup.object({
     haltOnNewColumnAddition: Yup.boolean().optional(),
   }),
 });
-export type SourceFormValues = Yup.InferType<typeof SOURCE_FORM_SCHEMA>;
+// export type SourceFormValues = Yup.InferType<typeof SOURCE_FORM_SCHEMA>;
 
 export const DESTINATION_FORM_SCHEMA = Yup.object({
   connectionId: Yup.string().uuid('destination is required').required(),
@@ -39,9 +39,7 @@ export const DESTINATION_FORM_SCHEMA = Yup.object({
     initDbSchema: Yup.boolean().optional(),
   }),
 }).required();
-export type DestinationFormValues = Yup.InferType<
-  typeof DESTINATION_FORM_SCHEMA
->;
+type DestinationFormValues = Yup.InferType<typeof DESTINATION_FORM_SCHEMA>;
 
 export function toJobDestinationOptions(
   values: DestinationFormValues,

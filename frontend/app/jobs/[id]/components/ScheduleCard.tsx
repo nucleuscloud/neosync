@@ -40,7 +40,7 @@ const SCHEDULE_FORM_SCHEMA = Yup.object({
     }),
 });
 
-export type ScheduleFormValues = Yup.InferType<typeof SCHEDULE_FORM_SCHEMA>;
+type ScheduleFormValues = Yup.InferType<typeof SCHEDULE_FORM_SCHEMA>;
 
 interface Props {
   job: Job;

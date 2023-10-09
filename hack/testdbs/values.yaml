@@ -1,0 +1,3 @@
+auth:
+  postgresPassword: foofar
+  database: nucleus
