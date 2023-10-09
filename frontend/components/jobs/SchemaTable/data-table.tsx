@@ -137,6 +137,26 @@ export function DataTable<TData, TValue>({
     ]);
   }
 
+  function restoreTree(): void {
+    const treedata = Object.keys(schemaMap).map((schema) => {
+      const children = Object.keys(schemaMap[schema]).map((table) => {
+        return {
+          id: table,
+          name: table,
+          isSelected: true,
+        };
+      });
+
+      return {
+        id: schema,
+        name: schema,
+        isSelected: true,
+        children,
+      };
+    });
+    setTreeData(treedata);
+  }
+
   function updateTree(): void {
     console.log(JSON.stringify(columnFilters));
     const treedata = Object.keys(schemaMap).map((schema) => {
@@ -178,7 +198,11 @@ export function DataTable<TData, TValue>({
       <div className="flex flex-row">
         <div className="w-[230px] mb-10 "></div>
         <div className="w-full  ">
-          <DataTableToolbar table={table} transformers={transformers} />
+          <DataTableToolbar
+            table={table}
+            transformers={transformers}
+            onClearFilters={restoreTree}
+          />
         </div>
       </div>
 

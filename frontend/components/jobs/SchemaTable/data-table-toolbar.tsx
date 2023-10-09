@@ -31,11 +31,13 @@ import { useFormContext } from 'react-hook-form';
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   transformers?: Transformer[];
+  onClearFilters: () => void;
 }
 
 export function DataTableToolbar<TData>({
   table,
   transformers,
+  onClearFilters,
 }: DataTableToolbarProps<TData>) {
   const form = useFormContext();
   const [transformer, setTransformer] = useState<string>('');
@@ -91,7 +93,10 @@ export function DataTableToolbar<TData>({
       <Button
         variant="outline"
         type="button"
-        onClick={() => table.setColumnFilters([])}
+        onClick={() => {
+          table.setColumnFilters([]);
+          onClearFilters();
+        }}
       >
         Clear filters
         <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />

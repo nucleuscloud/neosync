@@ -2,7 +2,7 @@
 
 import { cn } from '@/libs/utils';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
-import { ChevronRight, type LucideIcon } from 'lucide-react';
+import { ChevronRightIcon } from '@radix-ui/react-icons';
 import * as React from 'react';
 import useResizeObserver from 'use-resize-observer';
 import { Checkbox } from './checkbox';
@@ -12,22 +12,16 @@ interface TreeDataItem {
   id: string;
   name: string;
   isSelected?: boolean;
-  icon?: LucideIcon;
   children?: TreeDataItem[];
 }
 
 type TreeProps = React.HTMLAttributes<HTMLDivElement> & {
   data: TreeDataItem[];
   onSelectChange?: (items: TreeDataItem[]) => void;
-  folderIcon?: LucideIcon;
-  itemIcon?: LucideIcon;
 };
 
 const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
-  (
-    { data, onSelectChange, folderIcon, itemIcon, className, ...props },
-    ref
-  ) => {
+  ({ data, onSelectChange, className, ...props }, ref) => {
     const [treeItems, setTreeItems] = React.useState<TreeDataItem[]>(data);
 
     React.useEffect(() => {
@@ -117,8 +111,6 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
               data={treeItems}
               ref={ref}
               handleSelectChange={handleSelectChange}
-              FolderIcon={folderIcon}
-              ItemIcon={itemIcon}
               isIndeterminate={isIndeterminate}
               {...props}
             />
@@ -135,23 +127,10 @@ type TreeItemProps = React.HTMLAttributes<HTMLDivElement> & {
   onSelectChange?: (items: TreeDataItem[]) => void;
   handleSelectChange: (item: TreeDataItem) => void;
   isIndeterminate: (item: TreeDataItem) => boolean;
-  FolderIcon?: LucideIcon;
-  ItemIcon?: LucideIcon;
 };
 
 const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
-  (
-    {
-      className,
-      data,
-      handleSelectChange,
-      isIndeterminate,
-      FolderIcon,
-      ItemIcon,
-      ...props
-    },
-    ref
-  ) => {
+  ({ className, data, handleSelectChange, isIndeterminate, ...props }, ref) => {
     return (
       <div ref={ref} role="tree" className={className} {...props}>
         <ul>
@@ -183,27 +162,12 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                           className={cn(
                             '  px-2 hover:before:opacity-100 before:absolute before:left-0 before:w-full before:opacity-0 before:bg-muted/80 before:h-[1.75rem] before:-z-10'
                           )}
-                        >
-                          {item.icon && (
-                            <item.icon
-                              className="h-4 w-4 shrink-0 mr-2 text-accent-foreground/50"
-                              aria-hidden="true"
-                            />
-                          )}
-                          {!item.icon && FolderIcon && (
-                            <FolderIcon
-                              className="h-4 w-4 shrink-0 mr-2 text-accent-foreground/50"
-                              aria-hidden="true"
-                            />
-                          )}
-                        </AccordionTrigger>
+                        ></AccordionTrigger>
                       </div>
                       <AccordionContent className="pl-6">
                         <TreeItem
                           data={item.children ? item.children : item}
                           handleSelectChange={handleSelectChange}
-                          FolderIcon={FolderIcon}
-                          ItemIcon={ItemIcon}
                           isIndeterminate={isIndeterminate}
                         />
                       </AccordionContent>
@@ -213,7 +177,6 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                   <Leaf
                     item={item}
                     handleSelectChange={() => handleSelectChange(item)}
-                    Icon={ItemIcon}
                     indeterminate={isIndeterminate(item)}
                   />
                 )}
@@ -224,7 +187,6 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
               <Leaf
                 item={data}
                 handleSelectChange={() => handleSelectChange(data)}
-                Icon={ItemIcon}
                 indeterminate={isIndeterminate(data)}
               />
             </li>
@@ -240,55 +202,37 @@ const Leaf = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
     item: TreeDataItem;
-    Icon?: LucideIcon;
     handleSelectChange: (item: TreeDataItem | undefined) => void;
     indeterminate: boolean;
   }
->(
-  (
-    { className, handleSelectChange, indeterminate, item, Icon, ...props },
-    ref
-  ) => {
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          'flex items-center py-2 px-2 cursor-pointer \
+>(({ className, handleSelectChange, indeterminate, item, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        'flex items-center py-2 px-2 cursor-pointer \
         hover:before:opacity-100 before:absolute before:left-0 before:right-1 before:w-full before:opacity-0 before:bg-muted/80 before:h-[1.75rem] before:-z-10',
-          className
-        )}
-        {...props}
-      >
-        {item.icon && (
-          <item.icon
-            className="h-4 w-4 shrink-0 mr-2 text-accent-foreground/50"
-            aria-hidden="true"
-          />
-        )}
-        {!item.icon && Icon && (
-          <Icon
-            className="h-4 w-4 shrink-0 mr-2 text-accent-foreground/50"
-            aria-hidden="true"
-          />
-        )}
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id={item.id}
-            onClick={() => handleSelectChange(item)}
-            checked={item.isSelected}
-            indeterminate={indeterminate}
-          />
-          <label
-            htmlFor="terms"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            {item.name}
-          </label>
-        </div>
+        className
+      )}
+      {...props}
+    >
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id={item.id}
+          onClick={() => handleSelectChange(item)}
+          checked={item.isSelected}
+          indeterminate={indeterminate}
+        />
+        <label
+          htmlFor="terms"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          {item.name}
+        </label>
       </div>
-    );
-  }
-);
+    </div>
+  );
+});
 Leaf.displayName = 'Leaf';
 
 const AccordionTrigger = React.forwardRef<
@@ -305,7 +249,7 @@ const AccordionTrigger = React.forwardRef<
       {...props}
     >
       {children}
-      <ChevronRight className="h-4 w-4 shrink-0 transition-transform duration-200 text-accent-foreground/50 ml-auto" />
+      <ChevronRightIcon className="h-4 w-4 shrink-0 transition-transform duration-200 text-accent-foreground/50 ml-auto" />
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ));
