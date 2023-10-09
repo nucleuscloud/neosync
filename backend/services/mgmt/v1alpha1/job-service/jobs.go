@@ -568,13 +568,13 @@ func (s *Service) PauseJob(
 	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	if req.Msg.Pause {
 		logger.Info("pausing job")
-		err = scheduleHandle.Pause(ctx, temporalclient.SchedulePauseOptions{Note: *req.Msg.Note})
+		err = scheduleHandle.Pause(ctx, temporalclient.SchedulePauseOptions{Note: req.Msg.GetNote()})
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		logger.Info("unpausing job")
-		err = scheduleHandle.Unpause(ctx, temporalclient.ScheduleUnpauseOptions{Note: *req.Msg.Note})
+		err = scheduleHandle.Unpause(ctx, temporalclient.ScheduleUnpauseOptions{Note: req.Msg.GetNote()})
 		if err != nil {
 			return nil, err
 		}
