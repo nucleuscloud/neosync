@@ -13,7 +13,7 @@ jobs:
         working-directory: backend
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -63,7 +63,7 @@ jobs:
         working-directory: backend
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -116,7 +116,7 @@ jobs:
         working-directory: frontend
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -166,7 +166,7 @@ jobs:
         working-directory: worker
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -216,7 +216,7 @@ jobs:
       - docker-backend-migrations
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Chart.yaml
         uses: mikefarah/yq@v4.34.2
@@ -271,7 +271,7 @@ jobs:
       - docker-frontend
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Chart.yaml
         uses: mikefarah/yq@v4.34.2
@@ -326,7 +326,7 @@ jobs:
       - docker-worker
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Chart.yaml
         uses: mikefarah/yq@v4.34.2
@@ -384,7 +384,7 @@ jobs:
       - docker-worker
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Chart.yaml
         uses: mikefarah/yq@v4.34.2
