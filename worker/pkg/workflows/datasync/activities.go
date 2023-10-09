@@ -94,10 +94,27 @@ func (a *Activities) GenerateBenthosConfigs(
 						Processors: []neosync_benthos.ProcessorConfig{},
 					},
 					Output: &neosync_benthos.OutputConfig{
-						Broker: &neosync_benthos.OutputBrokerConfig{
-							Pattern: "fan_out",
-							Outputs: []neosync_benthos.Outputs{},
+						Outputs: neosync_benthos.Outputs{
+							Retry: &neosync_benthos.RetryConfig{
+								InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+									MaxRetries: 1,
+									Backoff:    neosync_benthos.Backoff{},
+								},
+								Output: neosync_benthos.OutputConfig{
+									Outputs: neosync_benthos.Outputs{
+										Broker: &neosync_benthos.OutputBrokerConfig{
+											Pattern: "fan_out",
+											Outputs: []neosync_benthos.Outputs{},
+										},
+									},
+								},
+							},
 						},
+
+						// Broker: &neosync_benthos.OutputBrokerConfig{
+						// 	Pattern: "fan_out",
+						// 	Outputs: []neosync_benthos.Outputs{},
+						// },
 					},
 				},
 			}
@@ -201,17 +218,19 @@ func (a *Activities) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
-				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver: "postgres",
-						Dsn:    dsn,
 
-						Table:         resp.Config.Input.SqlSelect.Table,
-						Columns:       resp.Config.Input.SqlSelect.Columns,
-						ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
-						InitStatement: initStmt,
-					},
-				})
+				resp.Config.Output.Outputs.Retry.Output.Broker.Outputs =
+					append(resp.Config.Output.Outputs.Retry.Output.Broker.Outputs, neosync_benthos.Outputs{
+						SqlInsert: &neosync_benthos.SqlInsert{
+							Driver: "postgres",
+							Dsn:    dsn,
+
+							Table:         resp.Config.Input.SqlSelect.Table,
+							Columns:       resp.Config.Input.SqlSelect.Columns,
+							ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+							InitStatement: initStmt,
+						},
+					})
 
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 				s3pathpieces := []string{}
@@ -228,21 +247,22 @@ func (a *Activities) GenerateBenthosConfigs(
 					`${!count("files")}.json.gz}`,
 				)
 
-				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					AwsS3: &neosync_benthos.AwsS3Insert{
-						Bucket:      connection.AwsS3Config.BucketArn,
-						MaxInFlight: 64,
-						Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
-						Batching: &neosync_benthos.Batching{
-							Count:  100,
-							Period: "5s",
-							Processors: []*neosync_benthos.BatchProcessor{
-								{Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"}},
-								{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
+				resp.Config.Output.Outputs.Retry.Output.Broker.Outputs =
+					append(resp.Config.Output.Outputs.Retry.Output.Broker.Outputs, neosync_benthos.Outputs{
+						AwsS3: &neosync_benthos.AwsS3Insert{
+							Bucket:      connection.AwsS3Config.BucketArn,
+							MaxInFlight: 64,
+							Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
+							Batching: &neosync_benthos.Batching{
+								Count:  100,
+								Period: "5s",
+								Processors: []*neosync_benthos.BatchProcessor{
+									{Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"}},
+									{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
+								},
 							},
 						},
-					},
-				})
+					})
 				// todo: configure provided aws creds
 			default:
 				return nil, fmt.Errorf("unsupported destination connection config")

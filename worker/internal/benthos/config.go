@@ -56,12 +56,30 @@ type ProcessorConfig struct {
 type OutputConfig struct {
 	Label   string `json:"label" yaml:"label"`
 	Outputs `json:",inline" yaml:",inline"`
-	Broker  *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
+	// Broker  *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
 }
 
 type Outputs struct {
-	SqlInsert *SqlInsert   `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
-	AwsS3     *AwsS3Insert `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
+	SqlInsert *SqlInsert          `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
+	AwsS3     *AwsS3Insert        `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
+	Retry     *RetryConfig        `json:"retry,omitempty" yaml:"retry,omitempty"`
+	Broker    *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
+}
+
+type RetryConfig struct {
+	Output            OutputConfig `json:"output" yaml:"output"`
+	InlineRetryConfig `json:",inline" yaml:",inline"`
+}
+
+type InlineRetryConfig struct {
+	MaxRetries uint64  `json:"max_retries" yaml:"max_retries"`
+	Backoff    Backoff `json:"backoff" yaml:"backoff"`
+}
+
+type Backoff struct {
+	InitialInterval string `json:"initial_interval" yaml:"initial_interval"`
+	MaxInterval     string `json:"max_interval" yaml:"max_interval"`
+	MaxElapsedTime  string `json:"max_elapsed_time" yaml:"max_elapsed_time"`
 }
 
 type SqlInsert struct {
