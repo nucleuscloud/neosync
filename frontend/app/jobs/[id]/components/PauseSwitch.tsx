@@ -45,14 +45,16 @@ export default function JobPauseSwitch({ job, mutate }: Props): ReactElement {
   }
 
   return (
-    <SwitchCard
-      isChecked={job.pauseStatus?.isPaused || false}
-      onCheckedChange={async (value) => {
-        onClick(value);
-      }}
-      title="Pause job"
-      description="Prevents future job runs."
-    />
+    <div className="max-w-[300px]">
+      <SwitchCard
+        isChecked={job.pauseStatus?.isPaused || false}
+        onCheckedChange={async (value) => {
+          onClick(value);
+        }}
+        title="Pause job"
+        description="Prevents future job runs."
+      />
+    </div>
   );
 }
 
