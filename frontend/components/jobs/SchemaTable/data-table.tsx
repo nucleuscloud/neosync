@@ -1,9 +1,11 @@
 'use client';
 
 import {
+  Column,
   ColumnDef,
   ColumnFiltersState,
   SortingState,
+  Table as TableType,
   VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -136,6 +138,7 @@ export function DataTable<TData, TValue>({
   }
 
   function updateTree(): void {
+    console.log(JSON.stringify(columnFilters));
     const treedata = Object.keys(schemaMap).map((schema) => {
       const parentIsSelected =
         columnFilters.length == 0
@@ -231,8 +234,6 @@ export function DataTable<TData, TValue>({
                         data-state={row.getIsSelected() && 'selected'}
                       >
                         {row.getVisibleCells().map((cell) => {
-                          console.log(cell.column.id);
-
                           return (
                             <TableCell
                               className={
@@ -273,6 +274,13 @@ export function DataTable<TData, TValue>({
       </div>
     </div>
   );
+}
+
+interface FilterSelectProps<TData, TValue> {
+  column: Column<TData, TValue>;
+  table: TableType<TData>;
+  transformers: Transformer[];
+  onSelect: (values: string[]) => void;
 }
 
 function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
