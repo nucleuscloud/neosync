@@ -64,6 +64,18 @@ type Outputs struct {
 	AwsS3     *AwsS3Insert        `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
 	Retry     *RetryConfig        `json:"retry,omitempty" yaml:"retry,omitempty"`
 	Broker    *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
+	DropOn    *DropOnConfig       `json:"drop_on,omitempty" yaml:"drop_on,omitempty"`
+	Drop      *DropConfig         `json:"drop,omitempty" yaml:"drop,omitempty"`
+	Resource  string              `json:"resource,omitempty" yaml:"resource,omitempty"`
+	Fallback  []Outputs           `json:"fallback,omitempty" yaml:"fallback,omitempty"`
+}
+
+type DropConfig struct{}
+
+type DropOnConfig struct {
+	Error        bool    `json:"error" yaml:"error"`
+	Backpressure string  `json:"back_pressure" yaml:"back_pressure"`
+	Output       Outputs `json:"output" yaml:"output"`
 }
 
 type RetryConfig struct {
