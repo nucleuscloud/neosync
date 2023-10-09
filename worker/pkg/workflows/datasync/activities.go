@@ -2,11 +2,14 @@ package datasync
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"connectrpc.com/connect"
+	"go.temporal.io/sdk/activity"
+	"golang.org/x/sync/errgroup"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
@@ -14,10 +17,12 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
@@ -42,6 +47,10 @@ func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
 ) (*GenerateBenthosConfigsResponse, error) {
+	activity.RecordHeartbeat(ctx)
+
+	pgpoolmap := map[string]*pgxpool.Pool{}
+
 	job, err := a.getJobById(ctx, req.BackendUrl, req.JobId)
 	if err != nil {
 		return nil, err
@@ -62,6 +71,11 @@ func (a *Activities) GenerateBenthosConfigs(
 
 		groupedMappings := groupMappingsByTable(job.Mappings)
 		for key, mappings := range groupedMappings {
+			cols := buildPlainColumns(mappings)
+			if len(cols) == 0 {
+				// skipping table as no columns are mapped
+				continue
+			}
 			bc := &neosync_benthos.BenthosConfig{
 				StreamConfig: neosync_benthos.StreamConfig{
 					Input: &neosync_benthos.InputConfig{
@@ -97,9 +111,50 @@ func (a *Activities) GenerateBenthosConfigs(
 				})
 			}
 			responses = append(responses, &benthosConfigResponse{
-				Name:   key, // todo: may need to expand on this
-				Config: bc,
+				Name:      key, // todo: may need to expand on this
+				Config:    bc,
+				DependsOn: []string{},
 			})
+		}
+		if _, ok := pgpoolmap[dsn]; !ok {
+			pool, err := pgxpool.New(ctx, dsn)
+			if err != nil {
+				return nil, err
+			}
+			defer pool.Close()
+			pgpoolmap[dsn] = pool
+		}
+		pool := pgpoolmap[dsn]
+
+		// validate job mappings align with sql connections
+		dbschemas, err := dbschemas_postgres.GetDatabaseSchemas(ctx, pool)
+		if err != nil {
+			return nil, err
+		}
+		if !areMappingsSubsetOfSchemas(dbschemas, job.Mappings) {
+			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
+		}
+		sqlOpts := job.Source.Options.GetSqlOptions()
+		if sqlOpts != nil &&
+			sqlOpts.HaltOnNewColumnAddition != nil &&
+			*sqlOpts.HaltOnNewColumnAddition &&
+			shouldHaltOnSchemaAddition(dbschemas, job.Mappings) {
+			msg := "job mappings does not contain a column mapping for all " +
+				"columns found in the source connection for the selected schemas and tables"
+			return nil, errors.New(msg)
+		}
+
+		allConstraints, err := a.getAllFkConstraintsFromMappings(ctx, pool, job.Mappings)
+		if err != nil {
+			return nil, err
+		}
+		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+
+		for _, resp := range responses {
+			dependsOn, ok := td[resp.Name]
+			if ok {
+				resp.DependsOn = dependsOn
+			}
 		}
 
 	default:
@@ -118,8 +173,31 @@ func (a *Activities) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
+
+				truncateBeforeInsert := false
+				initSchema := true
+				sqlOpts := destination.Options.GetSqlOptions()
+				if sqlOpts != nil && sqlOpts.InitDbSchema != nil {
+					initSchema = *sqlOpts.InitDbSchema
+				}
+
+				if sqlOpts != nil && sqlOpts.TruncateBeforeInsert != nil {
+					truncateBeforeInsert = *sqlOpts.TruncateBeforeInsert
+				}
+
+				pool := pgpoolmap[resp.Config.Input.SqlSelect.Dsn]
 				// todo: make this more efficient to reduce amount of times we have to connect to the source database
-				initStmt, err := a.getInitStatementFromPostgres(ctx, resp.Config.Input.SqlSelect.Dsn, resp.Config.Input.SqlSelect.Table)
+				schema, table := splitTableKey(resp.Config.Input.SqlSelect.Table)
+				initStmt, err := a.getInitStatementFromPostgres(
+					ctx,
+					pool,
+					schema,
+					table,
+					&initStatementOpts{
+						TruncateBeforeInsert: truncateBeforeInsert,
+						InitSchema:           initSchema,
+					},
+				)
 				if err != nil {
 					return nil, err
 				}
@@ -134,6 +212,7 @@ func (a *Activities) GenerateBenthosConfigs(
 						InitStatement: initStmt,
 					},
 				})
+
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 				s3pathpieces := []string{}
 				if connection.AwsS3Config.PathPrefix != nil && *connection.AwsS3Config.PathPrefix != "" {
@@ -176,20 +255,170 @@ func (a *Activities) GenerateBenthosConfigs(
 	}, nil
 }
 
+func areMappingsSubsetOfSchemas(
+	dbschemas []*dbschemas_postgres.DatabaseSchema,
+	mappings []*mgmtv1alpha1.JobMapping,
+) bool {
+	tableColMappings := getUniqueColMappingsMap(mappings)
+	groupedSchemas := getUniqueSchemaColMappings(dbschemas)
+
+	for key := range groupedSchemas {
+		// For this method, we only care about the schemas+tables that we currently have mappings for
+		if _, ok := tableColMappings[key]; !ok {
+			delete(groupedSchemas, key)
+		}
+	}
+
+	if len(tableColMappings) != len(groupedSchemas) {
+		return false
+	}
+
+	// tests to make sure that every column in the col mappings is present in the db schema
+	for table, cols := range tableColMappings {
+		schemaCols, ok := groupedSchemas[table]
+		if !ok {
+			return false
+		}
+		// job mappings has more columns than the schema
+		if len(cols) > len(schemaCols) {
+			return false
+		}
+		for col := range cols {
+			if _, ok := schemaCols[col]; !ok {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func getUniqueSchemaColMappings(
+	dbschemas []*dbschemas_postgres.DatabaseSchema,
+) map[string]map[string]struct{} {
+	groupedSchemas := map[string]map[string]struct{}{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+	for _, record := range dbschemas {
+		key := buildBenthosTable(record.TableSchema, record.TableName)
+		if _, ok := groupedSchemas[key]; ok {
+			groupedSchemas[key][record.ColumnName] = struct{}{}
+		} else {
+			groupedSchemas[key] = map[string]struct{}{
+				record.ColumnName: {},
+			}
+		}
+	}
+	return groupedSchemas
+}
+
+func getUniqueColMappingsMap(
+	mappings []*mgmtv1alpha1.JobMapping,
+) map[string]map[string]struct{} {
+	tableColMappings := map[string]map[string]struct{}{}
+	for _, mapping := range mappings {
+		key := buildBenthosTable(mapping.Schema, mapping.Table)
+		if _, ok := tableColMappings[key]; ok {
+			tableColMappings[key][mapping.Column] = struct{}{}
+		} else {
+			tableColMappings[key] = map[string]struct{}{
+				mapping.Column: {},
+			}
+		}
+	}
+	return tableColMappings
+}
+
+func shouldHaltOnSchemaAddition(
+	dbschemas []*dbschemas_postgres.DatabaseSchema,
+	mappings []*mgmtv1alpha1.JobMapping,
+) bool {
+	tableColMappings := getUniqueColMappingsMap(mappings)
+	groupedSchemas := getUniqueSchemaColMappings(dbschemas)
+
+	if len(tableColMappings) != len(groupedSchemas) {
+		return true
+	}
+
+	for table, cols := range groupedSchemas {
+		mappingCols, ok := tableColMappings[table]
+		if !ok {
+			return true
+		}
+		if len(cols) > len(mappingCols) {
+			return true
+		}
+		for col := range cols {
+			if _, ok := mappingCols[col]; !ok {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (a *Activities) getAllFkConstraintsFromMappings(
+	ctx context.Context,
+	conn DBTX,
+	mappings []*mgmtv1alpha1.JobMapping,
+) ([]*dbschemas_postgres.ForeignKeyConstraint, error) {
+	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
+	holder := make([][]*dbschemas_postgres.ForeignKeyConstraint, len(uniqueSchemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range uniqueSchemas {
+		idx := idx
+		schema := uniqueSchemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := dbschemas_postgres.GetForeignKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*dbschemas_postgres.ForeignKeyConstraint{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
+}
+
+type initStatementOpts struct {
+	TruncateBeforeInsert bool
+	InitSchema           bool
+}
+
+type DBTX interface {
+	Query(context.Context, string, ...any) (pgx.Rows, error)
+	QueryRow(context.Context, string, ...any) pgx.Row
+}
+
 func (a *Activities) getInitStatementFromPostgres(
 	ctx context.Context,
-	dsn string,
+	conn DBTX,
+	schema string,
 	table string,
+	opts *initStatementOpts,
 ) (string, error) {
-	conn, err := pgx.Connect(ctx, dsn)
-	if err != nil {
-		return "", err
-	}
-	defer conn.Close(ctx)
 
-	return dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
-		Table: table,
-	})
+	statements := []string{}
+	if opts != nil && opts.InitSchema {
+		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
+			Schema: schema,
+			Table:  table,
+		})
+		if err != nil {
+			return "", err
+		}
+		statements = append(statements, stmt)
+	}
+	if opts != nil && opts.TruncateBeforeInsert {
+		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
+	}
+	return strings.Join(statements, "\n"), nil
 }
 
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
@@ -204,12 +433,22 @@ func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
 	return columns
 }
 
+func splitTableKey(key string) (schema, table string) {
+	pieces := strings.Split(key, ".")
+	if len(pieces) == 1 {
+		return "public", pieces[0]
+	}
+	return pieces[0], pieces[1]
+}
+
 type SyncRequest struct {
 	BenthosConfig string
 }
 type SyncResponse struct{}
 
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
+	activity.RecordHeartbeat(ctx)
+
 	streambldr := service.NewStreamBuilder()
 
 	err := streambldr.SetYAML(req.BenthosConfig)
@@ -236,6 +475,20 @@ func groupMappingsByTable(
 	for _, mapping := range mappings {
 		key := buildBenthosTable(mapping.Schema, mapping.Table)
 		output[key] = append(output[key], mapping)
+	}
+	return output
+}
+
+func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
+	schemas := map[string]struct{}{}
+	for _, mapping := range mappings {
+		schemas[mapping.Schema] = struct{}{}
+	}
+
+	output := make([]string, 0, len(schemas))
+
+	for schema := range schemas {
+		output = append(output, schema)
 	}
 	return output
 }
@@ -304,6 +557,7 @@ func getPgDsn(
 
 func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
+
 	for _, col := range cols {
 		if col.Transformer != "" && col.Transformer != "passthrough" {
 			mutation, err := computeMutationFunction(col.Transformer)
@@ -314,6 +568,17 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 		}
 	}
 	return strings.Join(pieces, "\n"), nil
+}
+
+func buildPlainInsertArgs(cols []string) string {
+	if len(cols) == 0 {
+		return ""
+	}
+	pieces := make([]string, len(cols))
+	for idx, col := range cols {
+		pieces[idx] = fmt.Sprintf("this.%s", col)
+	}
+	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
 
 func computeMutationFunction(transformer string) (string, error) {
@@ -347,7 +612,7 @@ func computeMutationFunction(transformer string) (string, error) {
 	case "time_period":
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "email":
-		return fmt.Sprintf("fake(%q)", transformer), nil
+		return fmt.Sprintf("this.%s.emailtransformer(true, true)", transformer), nil
 	case "mac_address":
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "domain_name":
@@ -413,15 +678,4 @@ func computeMutationFunction(transformer string) (string, error) {
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
-}
-
-func buildPlainInsertArgs(cols []string) string {
-	if len(cols) == 0 {
-		return ""
-	}
-	pieces := make([]string, len(cols))
-	for idx, col := range cols {
-		pieces[idx] = fmt.Sprintf("this.%s", col)
-	}
-	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }

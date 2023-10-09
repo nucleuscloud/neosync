@@ -1,9 +1,12 @@
 package datasync
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/spf13/viper"
+	"go.temporal.io/sdk/log"
+
 	"go.temporal.io/sdk/workflow"
 	"gopkg.in/yaml.v3"
 )
@@ -27,6 +30,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	wfinfo := workflow.GetInfo(wfctx)
 
 	ctx := workflow.WithActivityOptions(wfctx, ao)
+	logger := workflow.GetLogger(ctx)
+	_ = logger
 
 	var wfActivites *Activities
 	var bcResp *GenerateBenthosConfigsResponse
@@ -39,37 +44,124 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, err
 	}
 
-	// todo: figure this out as we want to parallelize this
+	started := map[string]struct{}{}
+	completed := map[string]struct{}{}
 
-	//nolint:gocritic
-	// futures := make([]workflow.Future, len(bcResp.BenthosConfigs))
-	for idx := range bcResp.BenthosConfigs {
-		bc := bcResp.BenthosConfigs[idx]
-		bits, err := yaml.Marshal(bc.Config)
-		if err != nil {
-			return nil, err
-		}
-		var resp *SyncResponse
-		err = workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)}).Get(ctx, &resp)
-		if err != nil {
-			return nil, err
-		}
-		//nolint:gocritic
-		//future := workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(bits)})
-		// futures = append(futures, future)
+	workselector := workflow.NewSelector(ctx)
+
+	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
+	var activityErr error
+	childctx, cancelHandler := workflow.WithCancel(ctx)
+
+	for _, bc := range splitConfigs.Root {
+		bc := bc
+		future := invokeSync(bc, childctx, started, completed, logger)
+		workselector.AddFuture(future, func(f workflow.Future) {
+			logger.Info("config sync completed", "name", bc.Name)
+			var result SyncResponse
+			err := f.Get(childctx, &result)
+			if err != nil {
+				logger.Error("activity did not complete", "err", err)
+				cancelHandler()
+				activityErr = err
+			}
+		})
 	}
 
-	// todo: for some reason the future in the list is nil. We must be doing something here we shouldn't be
+	for i := 0; i < len(bcResp.BenthosConfigs); i++ {
+		logger.Debug("*** blocking select ***", "i", i)
+		workselector.Select(ctx)
+		if activityErr != nil {
+			return nil, fmt.Errorf("activity failed: %w", activityErr)
+		}
+		logger.Debug("*** post select ***", "i", i)
 
-	// todo: this should be heavily optimized
-	// for _, future := range futures {
-	// 	fmt.Println("future", future)
-	// 	var resp *SyncResponse
-	// 	err := future.Get(ctx, &resp)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
+		for _, bc := range splitConfigs.Dependents {
+			bc := bc
+			if _, ok := started[bc.Name]; ok {
+				continue
+			}
+			if !isConfigReady(bc, completed) {
+				continue
+			}
+			future := invokeSync(bc, childctx, started, completed, logger)
+			workselector.AddFuture(future, func(f workflow.Future) {
+				logger.Info("config sync completed", "name", bc.Name)
+				var result SyncResponse
+				err := f.Get(childctx, &result)
+				if err != nil {
+					logger.Error("activity did not complete", "err", err)
+					cancelHandler()
+					activityErr = err
+				}
+			})
+		}
+	}
+
+	logger.Info("workflow completed")
 
 	return &WorkflowResponse{}, nil
+}
+
+func invokeSync(
+	config *benthosConfigResponse,
+	ctx workflow.Context,
+	started map[string]struct{},
+	completed map[string]struct{},
+	logger log.Logger,
+) workflow.Future {
+	future, settable := workflow.NewFuture(ctx)
+	logger.Info("triggering config sync", "name", config.Name)
+	started[config.Name] = struct{}{}
+	var wfActivites *Activities
+	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
+		configbits, err := yaml.Marshal(config.Config)
+		if err != nil {
+			logger.Error("unable to marshal benthos config", "err", err)
+			settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
+			return
+		}
+		var result SyncResponse
+		err = workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(configbits)}).Get(ctx, &result)
+		completed[config.Name] = struct{}{}
+		settable.Set(result, err)
+	})
+	return future
+}
+
+func isConfigReady(config *benthosConfigResponse, completed map[string]struct{}) bool {
+	if config == nil {
+		return false
+	}
+
+	if len(config.DependsOn) == 0 {
+		return true
+	}
+	for _, dep := range config.DependsOn {
+		if _, ok := completed[dep]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+type SplitConfigs struct {
+	Root       []*benthosConfigResponse
+	Dependents []*benthosConfigResponse
+}
+
+func splitBenthosConfigs(configs []*benthosConfigResponse) *SplitConfigs {
+	out := &SplitConfigs{
+		Root:       []*benthosConfigResponse{},
+		Dependents: []*benthosConfigResponse{},
+	}
+	for _, cfg := range configs {
+		if len(cfg.DependsOn) == 0 {
+			out.Root = append(out.Root, cfg)
+		} else {
+			out.Dependents = append(out.Dependents, cfg)
+		}
+	}
+
+	return out
 }

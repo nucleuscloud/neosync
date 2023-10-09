@@ -20,7 +20,7 @@ interface Props {
 
 export default function JobRecentRuns({ job }: Props): ReactElement {
   return (
-    <Card>
+    <Card className="p-2">
       {!job.recentRuns || !job.recentRuns.runs ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
