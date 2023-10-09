@@ -28,14 +28,18 @@ func (s *Service) GetTransformers(
 			{Title: "Uuid V4", Value: string(UuidV4), Description: "Generates a new UUIDv4 id."},
 			{Title: "First Name", Value: string(FirstName), Description: "Anonymizes or generates a new phone number."},
 			{Title: "Phone Number", Value: string(PhoneNumber), Description: "Anonymizes or generates a new phone number."},
-			{Title: "Email", Value: string(Email), Description: "Anonymizes or generates a new email address.", Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
-					EmailConfig: &mgmtv1alpha1.EmailConfig{
-						PreserveDomain: true,
-						PreserveLength: true,
+			{
+				Title:       "Email",
+				Value:       string(Email),
+				Description: "Anonymizes or generates a new email address.",
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
+						EmailConfig: &mgmtv1alpha1.EmailConfig{
+							PreserveDomain: true,
+							PreserveLength: true,
+						},
 					},
-				},
-			}},
+				}},
 		},
 	}), nil
 }
