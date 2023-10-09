@@ -8,15 +8,6 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import { ReactElement } from 'react';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = Yup.object({
-  note: Yup.string().optional(),
-  isPaused: Yup.boolean().required(),
-  error: Yup.string().optional(),
-});
-
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 interface Props {
   job: Job;
