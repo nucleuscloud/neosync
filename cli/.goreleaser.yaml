@@ -37,7 +37,7 @@ changelog:
       - '^docs:'
       - '^test:'
 brews:
-  - tap:
+  - repository:
       owner: nucleuscloud
       name: homebrew-tap
     folder: Formula
