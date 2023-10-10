@@ -2,6 +2,6 @@ go 1.21.1
 
 use (
 	./backend
-	./worker
 	./cli
+	./worker
 )
