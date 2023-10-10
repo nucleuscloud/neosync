@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package mgmt.v1alpha1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
-import "validate/validate.proto";
 
 message GetJobsRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetJobsResponse {
   repeated Job jobs = 1;
@@ -30,7 +30,7 @@ message JobDestination {
 
 message JobSourceOptions {
   oneof config {
-    option (validate.required) = true;
+    option (buf.validate.oneof).required = true;
     SqlSourceConnectionOptions sql_options = 1;
     AwsS3SourceConnectionOptions aws_s3_options = 2;
   }
@@ -43,7 +43,7 @@ message AwsS3SourceConnectionOptions {}
 
 message JobDestinationOptions {
   oneof config {
-    option (validate.required) = true;
+    option (buf.validate.oneof).required = true;
     SqlDestinationConnectionOptions sql_options = 1;
     AwsS3DestinationConnectionOptions aws_s3_options = 2;
   }
@@ -56,7 +56,7 @@ message SqlDestinationConnectionOptions {
 message AwsS3DestinationConnectionOptions {}
 
 message CreateJobRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
   string job_name = 2;
   optional string cron_schedule = 3;
   repeated JobMapping mappings = 4;
@@ -71,7 +71,7 @@ message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  string transformer = 5 [(validate.rules).string = {
+  string transformer = 5 [(buf.validate.field).string = {
     in: [
       "passthrough",
       "uuid_v4",
@@ -91,14 +91,14 @@ enum JobStatus {
 }
 
 message GetJobRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetJobResponse {
   Job job = 1;
 }
 
 message UpdateJobScheduleRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
   optional string cron_schedule = 2;
 }
 message UpdateJobScheduleResponse {
@@ -106,7 +106,7 @@ message UpdateJobScheduleResponse {
 }
 
 message PauseJobRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
   bool pause = 2;
   optional string note = 3;
 }
@@ -115,17 +115,17 @@ message PauseJobResponse {
 }
 
 message UpdateJobSourceConnectionRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
   JobSource source = 2;
-  repeated JobMapping mappings = 3 [(validate.rules).repeated = {min_items: 1}];
+  repeated JobMapping mappings = 3 [(buf.validate.field).repeated = {min_items: 1}];
 }
 message UpdateJobSourceConnectionResponse {
   Job job = 1;
 }
 
 message UpdateJobDestinationConnectionRequest {
-  string job_id = 1 [(validate.rules).string.uuid = true];
-  string connection_id = 2 [(validate.rules).string.uuid = true];
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+  string connection_id = 2 [(buf.validate.field).string.uuid = true];
   JobDestinationOptions options = 3;
   string destination_id = 4;
 }
@@ -134,7 +134,7 @@ message UpdateJobDestinationConnectionResponse {
 }
 
 message DeleteJobDestinationConnectionRequest {
-  string destination_id = 1 [(validate.rules).string.uuid = true];
+  string destination_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message DeleteJobDestinationConnectionResponse {}
 
@@ -147,13 +147,13 @@ message CreateJobDestinationConnectionsResponse {
 }
 
 message DeleteJobRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message DeleteJobResponse {}
 
 message IsJobNameAvailableRequest {
   string name = 1;
-  string account_id = 2 [(validate.rules).string.uuid = true];
+  string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message IsJobNameAvailableResponse {
   bool is_available = 1;
@@ -161,8 +161,8 @@ message IsJobNameAvailableResponse {
 
 message GetJobRunsRequest {
   oneof id {
-    string job_id = 1 [(validate.rules).string.uuid = true];
-    string account_id = 2 [(validate.rules).string.uuid = true];
+    string job_id = 1 [(buf.validate.field).string.uuid = true];
+    string account_id = 2 [(buf.validate.field).string.uuid = true];
   }
 }
 message GetJobRunsResponse {
@@ -275,7 +275,7 @@ message GetJobRunEventsResponse {
 }
 
 message DeleteJobRunRequest {
-  string job_run_id = 1 [(validate.rules).string.uuid = true];
+  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message DeleteJobRunResponse {}
 
@@ -294,7 +294,7 @@ message Transformer {
 
 message TransformerConfig {
   oneof config {
-    option (validate.required) = true;
+    option (buf.validate.oneof).required = true;
 
     EmailConfig email_config = 1;
   }

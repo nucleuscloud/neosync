@@ -35,9 +35,6 @@ var (
 	_ = sort.Sort
 )
 
-// define the regex for a UUID once up-front
-var _job_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on GetJobsRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -60,28 +57,10 @@ func (m *GetJobsRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = GetJobsRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for AccountId
 
 	if len(errors) > 0 {
 		return GetJobsRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetJobsRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -710,7 +689,6 @@ func (m *JobSourceOptions) validate(all bool) error {
 
 	var errors []error
 
-	oneofConfigPresent := false
 	switch v := m.Config.(type) {
 	case *JobSourceOptions_SqlOptions:
 		if v == nil {
@@ -723,7 +701,6 @@ func (m *JobSourceOptions) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		oneofConfigPresent = true
 
 		if all {
 			switch v := interface{}(m.GetSqlOptions()).(type) {
@@ -765,7 +742,6 @@ func (m *JobSourceOptions) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		oneofConfigPresent = true
 
 		if all {
 			switch v := interface{}(m.GetAwsS3Options()).(type) {
@@ -798,16 +774,6 @@ func (m *JobSourceOptions) validate(all bool) error {
 
 	default:
 		_ = v // ensures v is used
-	}
-	if !oneofConfigPresent {
-		err := JobSourceOptionsValidationError{
-			field:  "Config",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -1119,7 +1085,6 @@ func (m *JobDestinationOptions) validate(all bool) error {
 
 	var errors []error
 
-	oneofConfigPresent := false
 	switch v := m.Config.(type) {
 	case *JobDestinationOptions_SqlOptions:
 		if v == nil {
@@ -1132,7 +1097,6 @@ func (m *JobDestinationOptions) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		oneofConfigPresent = true
 
 		if all {
 			switch v := interface{}(m.GetSqlOptions()).(type) {
@@ -1174,7 +1138,6 @@ func (m *JobDestinationOptions) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		oneofConfigPresent = true
 
 		if all {
 			switch v := interface{}(m.GetAwsS3Options()).(type) {
@@ -1207,16 +1170,6 @@ func (m *JobDestinationOptions) validate(all bool) error {
 
 	default:
 		_ = v // ensures v is used
-	}
-	if !oneofConfigPresent {
-		err := JobDestinationOptionsValidationError{
-			field:  "Config",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -1537,17 +1490,7 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = CreateJobRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for AccountId
 
 	// no validation rules for JobName
 
@@ -1654,14 +1597,6 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return CreateJobRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *CreateJobRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1897,16 +1832,7 @@ func (m *JobMapping) validate(all bool) error {
 
 	// no validation rules for Column
 
-	if _, ok := _JobMapping_Transformer_InLookup[m.GetTransformer()]; !ok {
-		err := JobMappingValidationError{
-			field:  "Transformer",
-			reason: "value must be in list [passthrough uuid_v4 first_name phone_number email]",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Transformer
 
 	// no validation rules for Exclude
 
@@ -1987,14 +1913,6 @@ var _ interface {
 	ErrorName() string
 } = JobMappingValidationError{}
 
-var _JobMapping_Transformer_InLookup = map[string]struct{}{
-	"passthrough":  {},
-	"uuid_v4":      {},
-	"first_name":   {},
-	"phone_number": {},
-	"email":        {},
-}
-
 // Validate checks the field values on GetJobRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -2017,28 +1935,10 @@ func (m *GetJobRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = GetJobRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return GetJobRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetJobRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -2266,17 +2166,7 @@ func (m *UpdateJobScheduleRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = UpdateJobScheduleRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
@@ -2284,14 +2174,6 @@ func (m *UpdateJobScheduleRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UpdateJobScheduleRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *UpdateJobScheduleRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -2523,17 +2405,7 @@ func (m *PauseJobRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = PauseJobRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	// no validation rules for Pause
 
@@ -2543,14 +2415,6 @@ func (m *PauseJobRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return PauseJobRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *PauseJobRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -2779,17 +2643,7 @@ func (m *UpdateJobSourceConnectionRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = UpdateJobSourceConnectionRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if all {
 		switch v := interface{}(m.GetSource()).(type) {
@@ -2818,17 +2672,6 @@ func (m *UpdateJobSourceConnectionRequest) validate(all bool) error {
 				cause:  err,
 			}
 		}
-	}
-
-	if len(m.GetMappings()) < 1 {
-		err := UpdateJobSourceConnectionRequestValidationError{
-			field:  "Mappings",
-			reason: "value must contain at least 1 item(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
 	}
 
 	for idx, item := range m.GetMappings() {
@@ -2867,14 +2710,6 @@ func (m *UpdateJobSourceConnectionRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UpdateJobSourceConnectionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *UpdateJobSourceConnectionRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -3112,29 +2947,9 @@ func (m *UpdateJobDestinationConnectionRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetJobId()); err != nil {
-		err = UpdateJobDestinationConnectionRequestValidationError{
-			field:  "JobId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for JobId
 
-	if err := m._validateUuid(m.GetConnectionId()); err != nil {
-		err = UpdateJobDestinationConnectionRequestValidationError{
-			field:  "ConnectionId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for ConnectionId
 
 	if all {
 		switch v := interface{}(m.GetOptions()).(type) {
@@ -3169,14 +2984,6 @@ func (m *UpdateJobDestinationConnectionRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UpdateJobDestinationConnectionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *UpdateJobDestinationConnectionRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -3415,28 +3222,10 @@ func (m *DeleteJobDestinationConnectionRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetDestinationId()); err != nil {
-		err = DeleteJobDestinationConnectionRequestValidationError{
-			field:  "DestinationId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for DestinationId
 
 	if len(errors) > 0 {
 		return DeleteJobDestinationConnectionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *DeleteJobDestinationConnectionRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -3922,28 +3711,10 @@ func (m *DeleteJobRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = DeleteJobRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return DeleteJobRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *DeleteJobRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -4146,28 +3917,10 @@ func (m *IsJobNameAvailableRequest) validate(all bool) error {
 
 	// no validation rules for Name
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = IsJobNameAvailableRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for AccountId
 
 	if len(errors) > 0 {
 		return IsJobNameAvailableRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *IsJobNameAvailableRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -4384,19 +4137,7 @@ func (m *GetJobRunsRequest) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-
-		if err := m._validateUuid(m.GetJobId()); err != nil {
-			err = GetJobRunsRequestValidationError{
-				field:  "JobId",
-				reason: "value must be a valid UUID",
-				cause:  err,
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
+		// no validation rules for JobId
 	case *GetJobRunsRequest_AccountId:
 		if v == nil {
 			err := GetJobRunsRequestValidationError{
@@ -4408,33 +4149,13 @@ func (m *GetJobRunsRequest) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-
-		if err := m._validateUuid(m.GetAccountId()); err != nil {
-			err = GetJobRunsRequestValidationError{
-				field:  "AccountId",
-				reason: "value must be a valid UUID",
-				cause:  err,
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
+		// no validation rules for AccountId
 	default:
 		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
 		return GetJobRunsRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetJobRunsRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -6855,28 +6576,10 @@ func (m *DeleteJobRunRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetJobRunId()); err != nil {
-		err = DeleteJobRunRequestValidationError{
-			field:  "JobRunId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for JobRunId
 
 	if len(errors) > 0 {
 		return DeleteJobRunRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *DeleteJobRunRequest) _validateUuid(uuid string) error {
-	if matched := _job_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -7451,7 +7154,6 @@ func (m *TransformerConfig) validate(all bool) error {
 
 	var errors []error
 
-	oneofConfigPresent := false
 	switch v := m.Config.(type) {
 	case *TransformerConfig_EmailConfig:
 		if v == nil {
@@ -7464,7 +7166,6 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		oneofConfigPresent = true
 
 		if all {
 			switch v := interface{}(m.GetEmailConfig()).(type) {
@@ -7497,16 +7198,6 @@ func (m *TransformerConfig) validate(all bool) error {
 
 	default:
 		_ = v // ensures v is used
-	}
-	if !oneofConfigPresent {
-		err := TransformerConfigValidationError{
-			field:  "Config",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {

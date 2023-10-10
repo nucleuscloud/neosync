@@ -4,7 +4,7 @@ managed:
   go_package_prefix:
     default: github.com/nucleuscloud/neosync/backend/gen/go/protos
     except:
-      - buf.build/envoyproxy/protoc-gen-validate
+      - buf.build/bufbuild/protovalidate
       - buf.build/googleapis/googleapis
 plugins:
   - plugin: buf.build/protocolbuffers/go:v1.31.0
