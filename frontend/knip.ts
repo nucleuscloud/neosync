@@ -27,6 +27,7 @@ const config: KnipConfig = {
     'postcss',
     'eslint-config-next',
     'tailwindcss-animate',
+    'use-resize-observer',
   ],
   ignoreBinaries: ['tail'],
 };
