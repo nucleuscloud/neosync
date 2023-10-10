@@ -1,0 +1,121 @@
+project_name: neosync
+before:
+  hooks:
+    - go mod tidy # https://goreleaser.com/customization/builds/#go-modules
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+
+    ldflags:
+      - -s -w -X 'github.com/nucleuscloud/neosync/neosync/cli/internal/version.buildDate={{.Date}}' -X 'github.com/nucleuscloud/neosync/neosync/cli/internal/version.gitCommit={{.Commit}}' -X 'github.com/nucleuscloud/neosync/neosync/cli/internal/version.gitVersion={{.Version}}'
+
+checksum:
+  name_template: 'checksums.txt'
+# signs:
+#   - artifacts: checksum
+#     # Used by GH Action to sign with a specific fingerprint
+#     args:
+#       [
+#         '--batch',
+#         '-u',
+#         '{{ .Env.GPG_FINGERPRINT }}',
+#         '--output',
+#         '${signature}',
+#         '--detach-sign',
+#         '${artifact}',
+#       ]
+snapshot:
+  name_template: '{{ incpatch .Version }}-next'
+changelog:
+  sort: desc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+brews:
+  - tap:
+      owner: nucleuscloud
+      name: homebrew-tap
+    folder: Formula
+    homepage: https://neosync.dev
+    description: CLI for interfacing with Neosync
+    license: MIT
+archives:
+  -
+    id: default
+    format_overrides:
+      - goos: windows
+        format: zip
+
+aurs:
+  -
+    homepage: https://neosync.dev
+    description: CLI for interfacing with Neosync
+    maintainers:
+      - Devops <devops@nucleuscloud.com>
+    license: MIT
+    git_url: ssh://aur@aur.archlinux.org/neosync-bin.git
+    package: |-
+      # bin
+      install -Dm755 "./neosync" "${pkgdir}/usr/bin/neosync"
+
+      # license
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/neosync/LICENSE"
+    commit_author:
+      name: nucleusbot
+      email: devops@nucleuscloud.com
+    private_key: '{{ .Env.AUR_KEY }}'
+
+dockers:
+  - image_templates:
+      - "ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64"
+    use: buildx
+    dockerfile: Dockerfile.goreleaser
+    build_flag_templates:
+      - --platform=linux/amd64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/nucleuscloud/neosync/cli
+      - --label=org.opencontainers.image.source=https://github.com/nucleuscloud/neosync/cli
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+  - image_templates:
+      - "ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64"
+    use: buildx
+    dockerfile: Dockerfile.goreleaser
+    build_flag_templates:
+      - --platform=linux/arm64
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/nucleuscloud/neosync/cli
+      - --label=org.opencontainers.image.source=https://github.com/nucleuscloud/neosync/cli
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+
+docker_manifests:
+- name_template: ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}
+  image_templates:
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
+- name_template: ghcr.io/nucleuscloud/cli:latest
+  image_templates:
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
+- name_template: ghcr.io/nucleuscloud/neosync/cli:{{ .Tag }}
+  image_templates:
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
+- name_template: ghcr.io/nucleuscloud/neosync/cli:v{{ .Major }}
+  image_templates:
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
+- name_template: ghcr.io/nucleuscloud/neosync/cli:v{{ .Major }}.{{ .Minor }}
+  image_templates:
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+    - ghcr.io/nucleuscloud/neosync/li:{{ .Version }}-arm64

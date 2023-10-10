@@ -1,5 +1,9 @@
 GO=go
 
+BUILD_DATE ?= $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+GIT_COMMIT ?= $(shell git rev-parse HEAD)
+VERSION ?= $(shell git describe --tags --abbrev=0 | tr -d '\n')
+
 default: all
 
 all: build
@@ -13,8 +17,7 @@ lint:
 
 build: vet
 	# Note the ldflags here are used for local builds only. To see the ldflags at release time, check the .goreleaser.yaml file
-	# $(GO) build -o bin/nucleus -ldflags="-X 'github.com/nucleuscloud/cli/internal/version.buildDate=${BUILD_DATE}' -X 'github.com/nucleuscloud/cli/internal/version.gitCommit=${GIT_COMMIT}' -X 'github.com/nucleuscloud/cli/internal/version.gitVersion=${VERSION}'"
-	CGO_ENABLED=0 $(GO) build -ldflags="-s -w" -o bin/neosync cmd/neosync/*.go
+	CGO_ENABLED=0 $(GO) build -o bin/neosync -ldflags="-s -w -X 'github.com/nucleuscloud/neosync/cli/internal/version.buildDate=${BUILD_DATE}' -X 'github.com/nucleuscloud/neosync/cli/internal/version.gitCommit=${GIT_COMMIT}' -X 'github.com/nucleuscloud/neosync/cli/internal/version.gitVersion=${VERSION}'" cmd/neosync/*.go
 .PHONY: build
 
 
