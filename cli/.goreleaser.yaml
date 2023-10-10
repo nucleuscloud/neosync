@@ -120,4 +120,4 @@ docker_manifests:
 - name_template: ghcr.io/nucleuscloud/neosync/cli:v{{ .Major }}.{{ .Minor }}
   image_templates:
     - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
-    - ghcr.io/nucleuscloud/neosync/li:{{ .Version }}-arm64
+    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
