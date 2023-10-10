@@ -1,15 +1,28 @@
 package neosync_cmd
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	jobs_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/jobs"
+	version_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/version"
+	"github.com/nucleuscloud/neosync/cli/internal/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc/metadata"
+)
+
+const (
+	neosyncDirName           = ".neosync"
+	cliSettingsFileNameNoExt = ".neosync-cli"
+	cliSettingsFileExt       = "yaml"
 )
 
 func Execute() {
-	cobra.OnInitialize(func() { initConfig() })
+	var cfgFile string
+	cobra.OnInitialize(func() { initConfig(cfgFile) })
 
 	rootCmd := &cobra.Command{
 		Use:   "neosync",
@@ -17,50 +30,62 @@ func Execute() {
 		Long:  "",
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			cmd.SilenceErrors = true
+
+			versionInfo := version.Get()
+			md := metadata.New(map[string]string{
+				"cliVersion":  versionInfo.GitVersion,
+				"cliPlatform": versionInfo.Platform,
+				"cliCommit":   versionInfo.GitCommit,
+			})
+			cmd.SetContext(metadata.NewOutgoingContext(cmd.Context(), md))
 		},
 	}
 
+	rootCmd.Version = version.Get().GitVersion
 	rootCmd.SetVersionTemplate(`{{printf "%s\n" .Version}}`)
 
+	rootCmd.PersistentFlags().StringVar(
+		&cfgFile, "config", "", fmt.Sprintf("config file (default is $HOME/%s.%s)", cliSettingsFileNameNoExt, cliSettingsFileExt),
+	)
 	rootCmd.AddCommand(jobs_cmd.NewCmd())
-	// Wire up subcommands here
-	// rootCmd.AddCommand(serve.NewCmd())
+	rootCmd.AddCommand(version_cmd.NewCmd())
 
 	cobra.CheckErr(rootCmd.Execute())
 }
 
 // initConfig reads in config file and ENV variables if set.
-func initConfig(
-// logger logr.Logger,
-) {
-	viper.AddConfigPath(".")
-	viper.SetConfigType("dotenv")
+func initConfig(cfgFilePath string) {
+	if cfgFilePath != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(cfgFilePath)
+	} else {
+		// Find home directory.
+		home, err := os.UserHomeDir()
+		cobra.CheckErr(err)
+
+		fullNeosyncSettingsDir := filepath.Join(home, neosyncDirName)
+		neosyncConfigDir := os.Getenv("NEOSYNC_CONFIG_DIR") // helpful for tools such as direnv and people who want it somewhere interesting
+		xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")       // linux users expect this to be respected
+
+		viper.AddConfigPath(".")
+		viper.AddConfigPath(fullNeosyncSettingsDir)
+		viper.AddConfigPath(home)
+		viper.AddConfigPath(neosyncConfigDir)
+		viper.AddConfigPath(xdgConfigHome)
+
+		viper.SetConfigType(cliSettingsFileExt)
+		viper.SetConfigName(cliSettingsFileNameNoExt)
+	}
 
 	viper.AutomaticEnv() // read in environment variables that match
 
-	viper.SetConfigName(".env")
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-		} else {
-			panic(err)
-		}
-	}
-	envType := viper.GetString("NUCLEUS_ENV")
-	if envType != "" {
-		viper.SetConfigName(fmt.Sprintf(".env.%s", envType))
-		if err := viper.MergeInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			} else {
-				panic(err)
-			}
-		}
-
-		viper.SetConfigName(fmt.Sprintf(".env.%s.secrets", envType))
-		if err := viper.MergeInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			} else {
-				panic(err)
-			}
+	// If a config file is found, read it in.
+	err := viper.ReadInConfig()
+	if err != nil {
+		if !errors.As(err, &viper.ConfigFileNotFoundError{}) {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+			return
 		}
 	}
 }
