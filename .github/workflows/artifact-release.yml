@@ -448,6 +448,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
