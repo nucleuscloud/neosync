@@ -1,6 +1,6 @@
 'use client';
 
-import TransformerEdit from '@/app/transformers/components/transformersTable/TransformerEdit';
+import EditTransformerOptions from '@/app/transformers/components/transformersTable/EditTransformerOptions';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Button } from '@/components/ui/button';
@@ -135,7 +135,7 @@ export function getColumns(
         return (
           <div className="flex space-x-2 ">
             <FormField
-              name={`mappings.${row.index}.transformer`}
+              name={`mappings.${row.index}.transformer.value`}
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
@@ -144,11 +144,12 @@ export function getColumns(
                       value={field.value}
                       onSelect={field.onChange}
                     />
-                    <TransformerEdit
-                        transformer={transformers?.find(
-                          (item) => item.value == field.value
-                        )}
-                      />
+                    <EditTransformerOptions
+                      transformer={transformers?.find(
+                        (item) => item.value == field.value
+                      )}
+                      index={row.index}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

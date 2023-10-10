@@ -24,8 +24,6 @@ export function getTransformerComponentDetails(
 ): TransformerComponent {
   const { transformer } = props;
 
-  console.log('tra', transformer);
-
   switch (transformer?.title) {
     case 'Email':
       return {
@@ -67,10 +65,13 @@ export function getTransformerComponentDetails(
   }
 }
 
-export function handleTransformerForm(transformer: Transformer): ReactElement {
+export function handleTransformerForm(
+  transformer: Transformer,
+  index?: number
+): ReactElement {
   switch (transformer.title) {
     case 'Email':
-      return <EmailTransformerForm transformer={transformer} />;
+      return <EmailTransformerForm transformer={transformer} index={index} />;
     case 'First Name':
       return <FirstNameTransformerForm transformer={transformer} />;
     default:

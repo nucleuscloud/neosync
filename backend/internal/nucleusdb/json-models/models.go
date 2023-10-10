@@ -132,7 +132,7 @@ type JobMapping struct {
 	Schema      string
 	Table       string
 	Column      string
-	Transformer string
+	Transformer *mgmtv1alpha1.Transformer
 	Exclude     bool
 }
 

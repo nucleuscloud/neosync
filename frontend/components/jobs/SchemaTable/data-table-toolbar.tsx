@@ -52,7 +52,7 @@ export function DataTableToolbar<TData>({
           onSelect={(value) => {
             const rows = table.getSelectedRowModel();
             rows.rows.forEach((r) => {
-              form.setValue(`mappings.${r.index}.transformer`, value, {
+              form.setValue(`mappings.${r.index}.transformer.value`, value, {
                 shouldDirty: true,
               });
             });
@@ -65,7 +65,6 @@ export function DataTableToolbar<TData>({
           value={exclude}
           onValueChange={(value) => {
             const rows = table.getSelectedRowModel();
-
             rows.rows.forEach((r) => {
               form.setValue(`mappings.${r.index}.exclude`, value === 'false', {
                 shouldDirty: true,

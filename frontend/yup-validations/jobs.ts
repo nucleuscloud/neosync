@@ -6,16 +6,34 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
+const TRANSFORMER_CONFIG = Yup.object().oneOf([
+  Yup.object().shape({
+    email_config: Yup.object().shape({
+      preserve_domain: Yup.boolean(),
+      preserve_length: Yup.boolean(),
+    }),
+  }),
+  Yup.string(),
+  //add new transformer configs to this array
+]);
+
+export type TransformerConfigSchema = Yup.InferType<typeof TRANSFORMER_CONFIG>;
+
+const TRANSFORMER_SCHEMA = Yup.object({
+  value: Yup.string().required(),
+  config: TRANSFORMER_CONFIG,
+});
+
+export type TransformerSchema = Yup.InferType<typeof TRANSFORMER_SCHEMA>;
+
+export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
+
 const JOB_MAPPING_SCHEMA = Yup.object({
   schema: Yup.string().required(),
   table: Yup.string().required(),
   column: Yup.string().required(),
   dataType: Yup.string().required(),
-  transformer: Yup.string()
-    .required('Tranformer is a required field')
-    .test('isValidTransformer', 'Must specify transformer', (value) => {
-      return value != '';
-    }),
+  transformer: TRANSFORMER_SCHEMA,
   exclude: Yup.boolean(),
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
@@ -23,7 +41,6 @@ export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
 export const SCHEMA_FORM_SCHEMA = Yup.object({
   mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
 });
-export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
 
 export const SOURCE_FORM_SCHEMA = Yup.object({
   sourceId: Yup.string().uuid('source is required').required(),

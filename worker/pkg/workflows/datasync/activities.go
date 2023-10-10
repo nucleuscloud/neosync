@@ -651,8 +651,8 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
 
 	for _, col := range cols {
-		if col.Transformer != "" && col.Transformer != "passthrough" {
-			mutation, err := computeMutationFunction(col.Transformer)
+		if col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
+			mutation, err := computeMutationFunction(col.Transformer.Value)
 			if err != nil {
 				return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
 			}

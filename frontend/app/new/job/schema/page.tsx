@@ -78,7 +78,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
+<<<<<<< HEAD
           transformer: 'passthrough',
+=======
+          transformer: {
+            value: '', //set the default to passthrough, this prevents the form from trying to validate every field on each transformer config, since ever setValue call revalidates the entire form, figure out a way to only validate the specific row and wait until the submit to validate
+            config: {},
+          },
+>>>>>>> 37a3bae (setting email config fields in the original form)
         };
       });
       return { mappings };
@@ -104,6 +111,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setValue: form.setValue,
     storage: window.sessionStorage,
   });
+
+  console.log('values', form.getValues());
 
   async function onSubmit(values: SchemaFormValues) {
     if (!account) {
@@ -145,8 +154,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+<<<<<<< HEAD
           <SchemaTable data={form.getValues().mappings || []} />
 
+=======
+          <SchemaTable data={form.getValues().mappings} />
+>>>>>>> 37a3bae (setting email config fields in the original form)
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
               Back
