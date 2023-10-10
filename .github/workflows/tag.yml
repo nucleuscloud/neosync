@@ -8,7 +8,7 @@ on:
         required: true
 
 jobs:
-  release:
+  tag:
     runs-on: ubuntu-latest
 
     steps:
