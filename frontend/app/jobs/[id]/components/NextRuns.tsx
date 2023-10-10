@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Job, JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { ReactElement } from 'react';
 
@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function JobNextRuns({ job }: Props): ReactElement {
-  if (job.pauseStatus?.isPaused) {
+  if (job.status == JobStatus.PAUSED) {
     return (
       <Card>
         <Table>

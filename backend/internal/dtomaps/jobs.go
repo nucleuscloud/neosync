@@ -1,8 +1,6 @@
 package dtomaps
 
 import (
-	"strings"
-
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -32,7 +30,7 @@ func ToJobDto(
 		UpdatedAt:       timestamppb.New(inputJob.UpdatedAt.Time),
 		CreatedByUserId: nucleusdb.UUIDString(inputJob.CreatedByID),
 		UpdatedByUserId: nucleusdb.UUIDString(inputJob.UpdatedByID),
-		Status:          mgmtv1alpha1.JobStatus(inputJob.Status),
+		Status:          toJobStatus(inputJob, inputSchedule),
 		CronSchedule:    nucleusdb.ToNullableString(inputJob.CronSchedule),
 		Mappings:        mappings,
 		Source: &mgmtv1alpha1.JobSource{
@@ -41,7 +39,6 @@ func ToJobDto(
 		},
 		Destinations: destinations,
 		AccountId:    nucleusdb.UUIDString(inputJob.AccountID),
-		PauseStatus:  toPauseStatusDto(inputSchedule),
 		RecentRuns:   toRecentRunsDto(inputSchedule),
 		NextRuns:     toNextRunsDto(inputSchedule),
 	}
@@ -56,18 +53,11 @@ func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssoci
 	}
 }
 
-func toPauseStatusDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobPauseStatus {
-	if inputSchedule == nil {
-		return nil
+func toJobStatus(inputJob *db_queries.NeosyncApiJob, inputSchedule *temporalclient.ScheduleDescription) mgmtv1alpha1.JobStatus {
+	if inputSchedule.Schedule.State.Paused {
+		return mgmtv1alpha1.JobStatus_JOB_STATUS_PAUSED
 	}
-	note := inputSchedule.Schedule.State.Note
-	if strings.Contains(note, "aused via Go SDK") {
-		note = ""
-	}
-	return &mgmtv1alpha1.JobPauseStatus{
-		IsPaused: inputSchedule.Schedule.State.Paused,
-		Note:     &note,
-	}
+	return mgmtv1alpha1.JobStatus(inputJob.Status)
 }
 
 func toRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobRecentRuns {
