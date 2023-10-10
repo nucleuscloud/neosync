@@ -6,5 +6,5 @@ lint:
   use:
     - DEFAULT
 deps:
-  - buf.build/envoyproxy/protoc-gen-validate
+  - buf.build/bufbuild/protovalidate
   - buf.build/googleapis/googleapis

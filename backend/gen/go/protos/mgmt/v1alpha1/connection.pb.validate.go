@@ -35,9 +35,6 @@ var (
 	_ = sort.Sort
 )
 
-// define the regex for a UUID once up-front
-var _connection_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-
 // Validate checks the field values on GetConnectionsRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -60,28 +57,10 @@ func (m *GetConnectionsRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = GetConnectionsRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for AccountId
 
 	if len(errors) > 0 {
 		return GetConnectionsRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetConnectionsRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -318,28 +297,10 @@ func (m *GetConnectionRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = GetConnectionRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return GetConnectionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *GetConnectionRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -571,28 +532,9 @@ func (m *CreateConnectionRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = CreateConnectionRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for AccountId
 
-	if !_CreateConnectionRequest_Name_Pattern.MatchString(m.GetName()) {
-		err := CreateConnectionRequestValidationError{
-			field:  "Name",
-			reason: "value does not match regex pattern \"^[a-z0-9-]{3,30}$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Name
 
 	if all {
 		switch v := interface{}(m.GetConnectionConfig()).(type) {
@@ -625,14 +567,6 @@ func (m *CreateConnectionRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return CreateConnectionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *CreateConnectionRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -710,8 +644,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateConnectionRequestValidationError{}
-
-var _CreateConnectionRequest_Name_Pattern = regexp.MustCompile("^[a-z0-9-]{3,30}$")
 
 // Validate checks the field values on CreateConnectionResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -866,17 +798,7 @@ func (m *UpdateConnectionRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = UpdateConnectionRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if all {
 		switch v := interface{}(m.GetConnectionConfig()).(type) {
@@ -909,14 +831,6 @@ func (m *UpdateConnectionRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UpdateConnectionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *UpdateConnectionRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1148,28 +1062,10 @@ func (m *DeleteConnectionRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = DeleteConnectionRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Id
 
 	if len(errors) > 0 {
 		return DeleteConnectionRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *DeleteConnectionRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1809,7 +1705,6 @@ func (m *ConnectionConfig) validate(all bool) error {
 
 	var errors []error
 
-	oneofConfigPresent := false
 	switch v := m.Config.(type) {
 	case *ConnectionConfig_PgConfig:
 		if v == nil {
@@ -1822,7 +1717,6 @@ func (m *ConnectionConfig) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		oneofConfigPresent = true
 
 		if all {
 			switch v := interface{}(m.GetPgConfig()).(type) {
@@ -1864,7 +1758,6 @@ func (m *ConnectionConfig) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		oneofConfigPresent = true
 
 		if all {
 			switch v := interface{}(m.GetAwsS3Config()).(type) {
@@ -1897,16 +1790,6 @@ func (m *ConnectionConfig) validate(all bool) error {
 
 	default:
 		_ = v // ensures v is used
-	}
-	if !oneofConfigPresent {
-		err := ConnectionConfigValidationError{
-			field:  "Config",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -2009,7 +1892,6 @@ func (m *PostgresConnectionConfig) validate(all bool) error {
 
 	var errors []error
 
-	oneofConnectionConfigPresent := false
 	switch v := m.ConnectionConfig.(type) {
 	case *PostgresConnectionConfig_Url:
 		if v == nil {
@@ -2022,7 +1904,6 @@ func (m *PostgresConnectionConfig) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		oneofConnectionConfigPresent = true
 		// no validation rules for Url
 	case *PostgresConnectionConfig_Connection:
 		if v == nil {
@@ -2035,7 +1916,6 @@ func (m *PostgresConnectionConfig) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		oneofConnectionConfigPresent = true
 
 		if all {
 			switch v := interface{}(m.GetConnection()).(type) {
@@ -2068,16 +1948,6 @@ func (m *PostgresConnectionConfig) validate(all bool) error {
 
 	default:
 		_ = v // ensures v is used
-	}
-	if !oneofConnectionConfigPresent {
-		err := PostgresConnectionConfigValidationError{
-			field:  "ConnectionConfig",
-			reason: "value is required",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
 	}
 
 	if len(errors) > 0 {
@@ -2548,39 +2418,12 @@ func (m *IsConnectionNameAvailableRequest) validate(all bool) error {
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetAccountId()); err != nil {
-		err = IsConnectionNameAvailableRequestValidationError{
-			field:  "AccountId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for AccountId
 
-	if !_IsConnectionNameAvailableRequest_ConnectionName_Pattern.MatchString(m.GetConnectionName()) {
-		err := IsConnectionNameAvailableRequestValidationError{
-			field:  "ConnectionName",
-			reason: "value does not match regex pattern \"^[a-z0-9-]{3,30}$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for ConnectionName
 
 	if len(errors) > 0 {
 		return IsConnectionNameAvailableRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *IsConnectionNameAvailableRequest) _validateUuid(uuid string) error {
-	if matched := _connection_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -2660,8 +2503,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = IsConnectionNameAvailableRequestValidationError{}
-
-var _IsConnectionNameAvailableRequest_ConnectionName_Pattern = regexp.MustCompile("^[a-z0-9-]{3,30}$")
 
 // Validate checks the field values on IsConnectionNameAvailableResponse with
 // the rules defined in the proto definition for this message. If any rules
