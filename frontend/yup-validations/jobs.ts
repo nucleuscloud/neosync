@@ -30,10 +30,25 @@ export const SOURCE_FORM_SCHEMA = Yup.object({
     haltOnNewColumnAddition: Yup.boolean().optional(),
   }),
 });
-// export type SourceFormValues = Yup.InferType<typeof SOURCE_FORM_SCHEMA>;
 
 export const DESTINATION_FORM_SCHEMA = Yup.object({
-  connectionId: Yup.string().uuid('destination is required').required(),
+  connectionId: Yup.string()
+    .uuid('destination is required')
+    .required()
+    .test(
+      'checkConnectionUnique',
+      'Destination must be different from source.',
+      (value, ctx) => {
+        if (ctx.from) {
+          const { sourceId } = ctx.from[ctx.from.length - 1].value;
+          if (value == sourceId) {
+            return false;
+          }
+        }
+
+        return true;
+      }
+    ),
   destinationOptions: Yup.object({
     truncateBeforeInsert: Yup.boolean().optional(),
     initDbSchema: Yup.boolean().optional(),
