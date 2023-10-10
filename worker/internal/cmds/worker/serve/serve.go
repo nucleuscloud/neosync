@@ -2,6 +2,8 @@ package serve_connect
 
 import (
 	"errors"
+	"log/slog"
+	"os"
 
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync"
 	"github.com/spf13/cobra"
@@ -38,7 +40,7 @@ func serve() error {
 	}
 
 	temporalClient, err := client.Dial(client.Options{
-		// Logger: ,
+		Logger:    slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})),
 		HostPort:  temporalUrl,
 		Namespace: temporalNamespace,
 		// Interceptors: ,
