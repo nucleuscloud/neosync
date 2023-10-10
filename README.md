@@ -175,3 +175,27 @@ We love contributions big and small. Here are just a few ways that you can conti
 ## Licensing
 
 We strongly believe in free and open source software and make this repo is available under the [MIT expat license](./LICENSE.md).
+
+## Triggering a Release
+
+Triggering a release is done by cutting a git tag.
+This causes all artifacts for the various components in the system to build and publish.
+
+### Tag Format:
+
+The tag format is a semver compliant tag that starts with `v`.
+
+Examples:
+* `v0.0.1`
+* `v0.0.1-nick.1`
+
+This is done by running the `hack/tag.sh` script like so:
+
+```sh
+$ ./hack/tag.sh <tag>
+```
+
+Example:
+```sh
+$ ./hack/tag.sh v0.0.1
+```

@@ -26,7 +26,7 @@ migrate -path backend/migrations -database "${SRC_CONN}" up
 migrate -path backend/migrations -database "${DST_CONN}" up
 
 # seed data into source db
-psql "${SRC_CONN}" -f hack/source-data.sql
+psql "${SRC_CONN}" -f hack/testdbs/source-data.sql
 
 pkill -f "kubectl port-forward -n default svc/postgresql1 ${SRC_PORT}:5432"
 pkill -f "kubectl port-forward -n default svc/postgresql2 ${DST_PORT}:5432"
