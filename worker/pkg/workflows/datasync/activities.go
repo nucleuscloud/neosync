@@ -49,14 +49,13 @@ func (a *Activities) GenerateBenthosConfigs(
 	req *GenerateBenthosConfigsRequest,
 ) (*GenerateBenthosConfigsResponse, error) {
 	logger := activity.GetLogger(ctx)
+	_ = logger
 	go func() {
 		for {
 			select {
 			case <-time.After(1 * time.Second):
-				logger.Info("heartbeating...")
 				activity.RecordHeartbeat(ctx)
 			case <-ctx.Done():
-				logger.Info("context is canceled")
 				return
 			}
 		}
@@ -222,24 +221,33 @@ func (a *Activities) GenerateBenthosConfigs(
 					return nil, err
 				}
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					Fallback: []neosync_benthos.Outputs{
-						{
-							DropOn: &neosync_benthos.DropOnConfig{
-								Error: true,
-								Output: neosync_benthos.Outputs{
-									SqlInsert: &neosync_benthos.SqlInsert{
-										Driver: "postgres",
-										Dsn:    dsn,
+					SqlInsert: &neosync_benthos.SqlInsert{
+						Driver: "postgres",
+						Dsn:    dsn,
 
-										Table:         resp.Config.Input.SqlSelect.Table,
-										Columns:       resp.Config.Input.SqlSelect.Columns,
-										ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
-										InitStatement: initStmt,
-									},
-								},
-							},
-						},
+						Table:         resp.Config.Input.SqlSelect.Table,
+						Columns:       resp.Config.Input.SqlSelect.Columns,
+						ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+						InitStatement: initStmt,
 					},
+					// Fallback: []neosync_benthos.Outputs{
+					// 	{
+					// 		DropOn: &neosync_benthos.DropOnConfig{
+					// 			Error: true,
+					// 			Output: neosync_benthos.Outputs{
+					// 				SqlInsert: &neosync_benthos.SqlInsert{
+					// 					Driver: "postgres",
+					// 					Dsn:    dsn,
+
+					// 					Table:         resp.Config.Input.SqlSelect.Table,
+					// 					Columns:       resp.Config.Input.SqlSelect.Columns,
+					// 					ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+					// 					InitStatement: initStmt,
+					// 				},
+					// 			},
+					// 		},
+					// 	},
+					// },
 					// Retry: &neosync_benthos.RetryConfig{
 					// 	InlineRetryConfig: neosync_benthos.InlineRetryConfig{
 					// 		MaxRetries: 1,
@@ -504,18 +512,16 @@ type SyncResponse struct{}
 
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
 	logger := activity.GetLogger(ctx)
-	cancelctx, canceled := context.WithCancel(ctx)
 	var benthosStream *service.Stream
 	go func() {
 		for {
 			select {
 			case <-time.After(1 * time.Second):
-				logger.Info("heartbeating...")
 				activity.RecordHeartbeat(ctx)
 			case <-ctx.Done():
-				canceled()
-				logger.Info("context is canceled")
 				if benthosStream != nil {
+					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
+					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
 					err := benthosStream.Stop(ctx)
 					if err != nil {
 						logger.Error(err.Error())
@@ -539,7 +545,7 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse,
 	}
 	benthosStream = stream
 
-	err = stream.Run(cancelctx)
+	err = stream.Run(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to run benthos stream: %w", err)
 	}
