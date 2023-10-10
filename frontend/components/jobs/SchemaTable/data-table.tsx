@@ -232,113 +232,105 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-row">
-        <div className="basis-1/4  min-w-[170px] max-w-[400px] mb-10"></div>
-        <div className="basis-3/4">
-          <DataTableToolbar
-            table={table}
-            transformers={transformers}
-            onClearFilters={() => {
-              setFiltersUpdated(true);
-            }}
-          />
-        </div>
+    <div className="flex flex-row">
+      <div className="basis-1/3 min-w-[170px] max-w-[400px] pt-[45px]">
+        <Tree
+          data={treeData}
+          className="h-full border rounded-md"
+          onSelectChange={handlefilter}
+        />
       </div>
-
-      <div className="flex flex-row">
-        <div className="basis-1/3 min-w-[170px] max-w-[400px]">
-          <Tree
-            data={treeData}
-            className="h-full border rounded-md"
-            onSelectChange={handlefilter}
-          />
-        </div>
-        <div className="basis-3/4">
-          <div className="rounded-md border">
+      <div className="basis-3/4 space-y-2">
+        <DataTableToolbar
+          table={table}
+          transformers={transformers}
+          onClearFilters={() => {
+            setFiltersUpdated(true);
+          }}
+        />
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
+                        className={
+                          header.id == 'select' ? ' w-[40px]' : 'w-[197px]'
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                        {header.column.getCanFilter() ? (
+                          <div>
+                            <FilterSelect
+                              column={header.column}
+                              table={table}
+                              transformers={transformers || []}
+                              onSelect={() => {
+                                setFiltersUpdated(true);
+                              }}
+                            />
+                          </div>
+                        ) : null}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+          </Table>
+          <ScrollArea className="h-[700px]">
             <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead
-                          key={header.id}
-                          className={
-                            header.id == 'select' ? ' w-[40px]' : 'w-[197px]'
-                          }
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                          {header.column.getCanFilter() ? (
-                            <div>
-                              <FilterSelect
-                                column={header.column}
-                                table={table}
-                                transformers={transformers || []}
-                                onSelect={() => {
-                                  setFiltersUpdated(true);
-                                }}
-                              />
-                            </div>
-                          ) : null}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-            </Table>
-            <ScrollArea className="h-[700px]">
-              <Table>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                      >
-                        {row.getVisibleCells().map((cell) => {
-                          return (
-                            <TableCell
-                              className={
-                                cell.column.id == 'select'
-                                  ? ' w-[40px]'
-                                  : 'w-[197px]'
-                              }
-                              key={cell.id}
-                            >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center "
-                      >
-                        No results.
-                      </TableCell>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                    >
+                      {row.getVisibleCells().map((cell) => {
+                        return (
+                          <TableCell
+                            className={
+                              cell.column.id == 'select'
+                                ? ' w-[40px]'
+                                : 'w-[197px]'
+                            }
+                            key={cell.id}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        );
+                      })}
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </ScrollArea>
-          </div>
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{' '}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center "
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </div>
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} of{' '}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
       </div>
     </div>

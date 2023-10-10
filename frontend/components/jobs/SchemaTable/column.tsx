@@ -23,14 +23,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/libs/utils';
 import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
@@ -164,7 +158,7 @@ export function getColumns(
     {
       accessorKey: 'exclude',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Exclude" />
+        <DataTableColumnHeader column={column} title="Include" />
       ),
       cell: ({ row }) => {
         return (
@@ -174,35 +168,13 @@ export function getColumns(
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={
-                        field.value == true || field.value == 'true'
-                          ? 'true'
-                          : 'false'
-                      }
-                    >
-                      <SelectTrigger className="">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem
-                          className="cursor-pointer"
-                          key="exclude"
-                          value="true"
-                        >
-                          Exclude
-                        </SelectItem>
-
-                        <SelectItem
-                          className="cursor-pointer"
-                          key="include"
-                          value="false"
-                        >
-                          Include
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Switch
+                      checked={!field.value}
+                      onCheckedChange={(checked: boolean) => {
+                        console.log(checked);
+                        field.onChange(!checked);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
