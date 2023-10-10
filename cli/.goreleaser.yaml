@@ -105,7 +105,7 @@ docker_manifests:
   image_templates:
     - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
     - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
-- name_template: ghcr.io/nucleuscloud/neosynccli:latest
+- name_template: ghcr.io/nucleuscloud/neosync/cli:latest
   image_templates:
     - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
     - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
