@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Tag
-        uses: actions/github-script
+        uses: actions/github-script@v6
         with:
           script: |
             github.rest.git.createRef({
