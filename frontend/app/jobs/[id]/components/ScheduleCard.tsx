@@ -51,7 +51,8 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
   const { toast } = useToast();
   const form = useForm({
     resolver: yupResolver<ScheduleFormValues>(SCHEDULE_FORM_SCHEMA),
-    defaultValues: { cronSchedule: job?.cronSchedule || '' },
+    defaultValues: { cronSchedule: '' },
+    values: { cronSchedule: job?.cronSchedule },
   });
 
   async function onSubmit(values: ScheduleFormValues) {
@@ -62,7 +63,6 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
         variant: 'default',
       });
       mutate();
-      form.reset();
     } catch (err) {
       console.error(err);
       toast({

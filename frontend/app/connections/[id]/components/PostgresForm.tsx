@@ -59,7 +59,11 @@ export default function PostgresForm(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
-    defaultValues,
+    defaultValues: {
+      connectionName: '',
+      db: {},
+    },
+    values: defaultValues,
   });
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined

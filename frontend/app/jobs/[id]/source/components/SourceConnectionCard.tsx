@@ -25,8 +25,12 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { useGetJob } from '@/libs/hooks/useGetJob';
+import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
+  Job,
   JobMapping,
   JobSource,
   JobSourceOptions,
@@ -40,7 +44,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { getConnection, getJob } from '../../util';
+import { getConnection } from '../../util';
 
 interface Props {
   jobId: string;
@@ -66,37 +70,26 @@ interface SchemaMap {
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
   const account = useAccount();
-  const {
-    isLoading: isConnectionsLoading,
-    data: connectionsData,
-    mutate,
-  } = useGetConnections(account?.id ?? '');
+  const { data, mutate } = useGetJob(jobId);
+  const { data: schema } = useGetConnectionSchema(
+    data?.job?.source?.connectionId
+  );
+  const { isLoading: isConnectionsLoading, data: connectionsData } =
+    useGetConnections(account?.id ?? '');
 
   const connections = connectionsData?.connections ?? [];
 
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
-    defaultValues: async () => {
-      try {
-        const res = await getJobSource(jobId);
-        return res;
-      } catch (err) {
-        console.error(err);
-        toast({
-          title: 'Unable to get connection schema',
-          description: getErrorMessage(err),
-          variant: 'destructive',
-        });
-        return {
-          sourceId: '',
-          sourceOptions: {
-            haltOnNewColumnAddition: false,
-          },
-          destinationIds: [],
-          mappings: [],
-        };
-      }
+    defaultValues: {
+      sourceId: '',
+      sourceOptions: {
+        haltOnNewColumnAddition: false,
+      },
+      destinationIds: [],
+      mappings: [],
     },
+    values: getJobSource(data?.job, schema?.schemas),
   });
 
   async function onSourceChange(value: string): Promise<void> {
@@ -121,7 +114,6 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
         variant: 'default',
       });
       mutate();
-      form.reset();
     } catch (err) {
       console.error(err);
       toast({
@@ -251,95 +243,73 @@ async function updateJobConnection(
   return UpdateJobSourceConnectionResponse.fromJson(await res.json());
 }
 
-async function getJobSource(jobId?: string): Promise<SourceFormValues> {
-  const emptyValues = {
-    sourceId: '',
-    sourceOptions: {
-      haltOnNewColumnAddition: false,
-    },
-    destinationIds: [],
-    mappings: [],
-  };
-  if (!jobId) {
-    return emptyValues;
+function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
+  if (!job || !schema) {
+    return {
+      sourceId: '',
+      sourceOptions: {
+        haltOnNewColumnAddition: false,
+      },
+      destinationIds: [],
+      mappings: [],
+    };
   }
-  try {
-    const jobRes = await getJob(jobId);
-    if (!jobRes) {
-      return emptyValues;
-    }
-    const job = jobRes?.job;
-
-    const res = await getConnectionSchema(job?.source?.connectionId);
-    if (!res) {
-      return emptyValues;
-    }
-
-    const schemaMap: SchemaMap = {};
-    job?.mappings.forEach((c) => {
-      if (!schemaMap[c.schema]) {
-        schemaMap[c.schema] = {
-          [c.table]: {
-            [c.column]: {
-              transformer: c.transformer,
-              exclude: c.exclude,
-            },
-          },
-        };
-      } else if (!schemaMap[c.schema][c.table]) {
-        schemaMap[c.schema][c.table] = {
+  const schemaMap: SchemaMap = {};
+  job?.mappings.forEach((c) => {
+    if (!schemaMap[c.schema]) {
+      schemaMap[c.schema] = {
+        [c.table]: {
           [c.column]: {
             transformer: c.transformer,
             exclude: c.exclude,
           },
-        };
-      } else {
-        schemaMap[c.schema][c.table][c.column] = {
+        },
+      };
+    } else if (!schemaMap[c.schema][c.table]) {
+      schemaMap[c.schema][c.table] = {
+        [c.column]: {
           transformer: c.transformer,
           exclude: c.exclude,
-        };
-      }
-    });
-
-    const mappings = res.schemas.map((c) => {
-      const colMapping = getColumnMapping(
-        schemaMap,
-        c.schema,
-        c.table,
-        c.column
-      );
-      return {
-        schema: c.schema,
-        table: c.table,
-        column: c.column,
-        dataType: c.dataType,
-        transformer: (colMapping && colMapping.transformer) || 'passthrough',
-        exclude: (colMapping && colMapping.exclude) || false,
+        },
       };
-    });
-
-    const destinationIds = jobRes.job?.destinations.map((d) => d.connectionId);
-    const values = {
-      sourceId: jobRes.job?.source?.connectionId || '',
-      sourceOptions: {},
-      destinationIds: destinationIds,
-      mappings: mappings || [],
-    };
-    switch (jobRes.job?.source?.options?.config.case) {
-      case 'sqlOptions':
-        return {
-          ...values,
-          sourceOptions: {
-            haltOnNewColumnAddition:
-              jobRes.job?.source?.options?.config.value.haltOnNewColumnAddition,
-          },
-        };
-      default:
-        return values;
+    } else {
+      schemaMap[c.schema][c.table][c.column] = {
+        transformer: c.transformer,
+        exclude: c.exclude,
+      };
     }
-  } catch (err) {
-    console.error(err);
-    throw new Error(getErrorMessage(err));
+  });
+
+  const mappings = schema.map((c) => {
+    const colMapping = getColumnMapping(schemaMap, c.schema, c.table, c.column);
+    return {
+      schema: c.schema,
+      table: c.table,
+      column: c.column,
+      dataType: c.dataType,
+      transformer: (colMapping && colMapping.transformer) || 'passthrough',
+      exclude: (colMapping && colMapping.exclude) || false,
+    };
+  });
+
+  const destinationIds = job?.destinations.map((d) => d.connectionId);
+  const values = {
+    sourceId: job?.source?.connectionId || '',
+    sourceOptions: {},
+    destinationIds: destinationIds,
+    mappings: mappings || [],
+  };
+  switch (job?.source?.options?.config.case) {
+    case 'sqlOptions':
+      return {
+        ...values,
+        sourceOptions: {
+          haltOnNewColumnAddition:
+            job?.source?.options?.config.value.haltOnNewColumnAddition,
+        },
+      };
+    default:
+      return values;
   }
 }
 

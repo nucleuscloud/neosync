@@ -59,7 +59,11 @@ export default function DestinationConnectionCard({
 
   const form = useForm({
     resolver: yupResolver<FormValues>(FORM_SCHEMA),
-    defaultValues: getDefaultValues(destination),
+    defaultValues: {
+      connectionId: '',
+      destinationOptions: {},
+    },
+    values: getDefaultValues(destination),
   });
 
   async function onSubmit(values: FormValues) {
@@ -71,7 +75,6 @@ export default function DestinationConnectionCard({
         title: 'Successfully updated job destination!',
         variant: 'default',
       });
-      form.reset();
     } catch (err) {
       console.error(err);
       toast({

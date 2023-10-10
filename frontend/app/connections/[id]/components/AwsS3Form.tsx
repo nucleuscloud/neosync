@@ -54,7 +54,11 @@ export default function AwsS3Form(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
-    defaultValues,
+    defaultValues: {
+      connectionName: '',
+      s3: {},
+    },
+    values: defaultValues,
   });
 
   async function onSubmit(values: FormValues) {
