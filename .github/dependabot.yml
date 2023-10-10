@@ -11,6 +11,11 @@ updates:
     schedule:
       interval: 'daily'
 
+  - package-ecosystem: 'gomod'
+    directory: 'cli'
+    schedule:
+      interval: 'daily'
+
   - package-ecosystem: 'npm'
     directory: 'frontend'
     schedule:

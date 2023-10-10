@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/log"
+	"go.temporal.io/sdk/temporal"
 
 	"go.temporal.io/sdk/workflow"
 	"gopkg.in/yaml.v3"
@@ -24,7 +25,10 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
+		StartToCloseTimeout: 10 * time.Second, // this will need to be drastically increased and probably settable via the UI
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1,
+		},
 	}
 
 	wfinfo := workflow.GetInfo(wfctx)

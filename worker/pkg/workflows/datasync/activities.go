@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"go.temporal.io/sdk/activity"
@@ -47,7 +48,18 @@ func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
 ) (*GenerateBenthosConfigsResponse, error) {
-	activity.RecordHeartbeat(ctx)
+	logger := activity.GetLogger(ctx)
+	_ = logger
+	go func() {
+		for {
+			select {
+			case <-time.After(1 * time.Second):
+				activity.RecordHeartbeat(ctx)
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 
 	pgpoolmap := map[string]*pgxpool.Pool{}
 
@@ -94,10 +106,17 @@ func (a *Activities) GenerateBenthosConfigs(
 						Processors: []neosync_benthos.ProcessorConfig{},
 					},
 					Output: &neosync_benthos.OutputConfig{
-						Broker: &neosync_benthos.OutputBrokerConfig{
-							Pattern: "fan_out",
-							Outputs: []neosync_benthos.Outputs{},
+						Outputs: neosync_benthos.Outputs{
+							Broker: &neosync_benthos.OutputBrokerConfig{
+								Pattern: "fan_out",
+								Outputs: []neosync_benthos.Outputs{},
+							},
 						},
+
+						// Broker: &neosync_benthos.OutputBrokerConfig{
+						// 	Pattern: "fan_out",
+						// 	Outputs: []neosync_benthos.Outputs{},
+						// },
 					},
 				},
 			}
@@ -211,6 +230,42 @@ func (a *Activities) GenerateBenthosConfigs(
 						ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
 						InitStatement: initStmt,
 					},
+					// Fallback: []neosync_benthos.Outputs{
+					// 	{
+					// 		DropOn: &neosync_benthos.DropOnConfig{
+					// 			Error: true,
+					// 			Output: neosync_benthos.Outputs{
+					// 				SqlInsert: &neosync_benthos.SqlInsert{
+					// 					Driver: "postgres",
+					// 					Dsn:    dsn,
+
+					// 					Table:         resp.Config.Input.SqlSelect.Table,
+					// 					Columns:       resp.Config.Input.SqlSelect.Columns,
+					// 					ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+					// 					InitStatement: initStmt,
+					// 				},
+					// 			},
+					// 		},
+					// 	},
+					// },
+					// Retry: &neosync_benthos.RetryConfig{
+					// 	InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+					// 		MaxRetries: 1,
+					// 	},
+					// 	Output: neosync_benthos.OutputConfig{
+					// 		Outputs: neosync_benthos.Outputs{
+					// 			SqlInsert: &neosync_benthos.SqlInsert{
+					// 				Driver: "postgres",
+					// 				Dsn:    dsn,
+
+					// 				Table:         resp.Config.Input.SqlSelect.Table,
+					// 				Columns:       resp.Config.Input.SqlSelect.Columns,
+					// 				ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+					// 				InitStatement: initStmt,
+					// 			},
+					// 		},
+					// 	},
+					// },
 				})
 
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
@@ -229,16 +284,25 @@ func (a *Activities) GenerateBenthosConfigs(
 				)
 
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					AwsS3: &neosync_benthos.AwsS3Insert{
-						Bucket:      connection.AwsS3Config.BucketArn,
-						MaxInFlight: 64,
-						Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
-						Batching: &neosync_benthos.Batching{
-							Count:  100,
-							Period: "5s",
-							Processors: []*neosync_benthos.BatchProcessor{
-								{Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"}},
-								{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
+					Retry: &neosync_benthos.RetryConfig{
+						InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+							MaxRetries: 1,
+						},
+						Output: neosync_benthos.OutputConfig{
+							Outputs: neosync_benthos.Outputs{
+								AwsS3: &neosync_benthos.AwsS3Insert{
+									Bucket:      connection.AwsS3Config.BucketArn,
+									MaxInFlight: 64,
+									Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
+									Batching: &neosync_benthos.Batching{
+										Count:  100,
+										Period: "5s",
+										Processors: []*neosync_benthos.BatchProcessor{
+											{Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"}},
+											{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
+										},
+									},
+								},
 							},
 						},
 					},
@@ -447,7 +511,26 @@ type SyncRequest struct {
 type SyncResponse struct{}
 
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
-	activity.RecordHeartbeat(ctx)
+	logger := activity.GetLogger(ctx)
+	var benthosStream *service.Stream
+	go func() {
+		for {
+			select {
+			case <-time.After(1 * time.Second):
+				activity.RecordHeartbeat(ctx)
+			case <-ctx.Done():
+				if benthosStream != nil {
+					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
+					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
+					err := benthosStream.Stop(ctx)
+					if err != nil {
+						logger.Error(err.Error())
+					}
+				}
+				return
+			}
+		}
+	}()
 
 	streambldr := service.NewStreamBuilder()
 
@@ -455,10 +538,12 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse,
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
 	}
+
 	stream, err := streambldr.Build()
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos stream: %w", err)
 	}
+	benthosStream = stream
 
 	err = stream.Run(ctx)
 	if err != nil {

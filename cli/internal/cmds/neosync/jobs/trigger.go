@@ -40,7 +40,7 @@ func triggerJob(
 ) error {
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		http.DefaultClient,
-		"localhost:8080",
+		"http://localhost:8080",
 	)
 	_, err := jobclient.CreateJobRun(ctx, connect.NewRequest[mgmtv1alpha1.CreateJobRunRequest](&mgmtv1alpha1.CreateJobRunRequest{
 		JobId: jobId,
