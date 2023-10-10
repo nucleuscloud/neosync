@@ -67,7 +67,7 @@ export function DataTableToolbar<TData>({
             const rows = table.getSelectedRowModel();
 
             rows.rows.forEach((r) => {
-              form.setValue(`mappings.${r.index}.exclude`, value, {
+              form.setValue(`mappings.${r.index}.exclude`, value === 'false', {
                 shouldDirty: true,
               });
             });
@@ -80,11 +80,11 @@ export function DataTableToolbar<TData>({
             <SelectValue placeholder="bulk update exclude..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem className="cursor-pointer" key="exclude" value="true">
+            <SelectItem className="cursor-pointer" key="exclude" value="false">
               Exclude
             </SelectItem>
 
-            <SelectItem className="cursor-pointer" key="include" value="false">
+            <SelectItem className="cursor-pointer" key="include" value="true">
               Include
             </SelectItem>
           </SelectContent>
