@@ -49,7 +49,7 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Connection" />
       ),
-      cell: ({ row }) => <div className="w-[80px]">{row.getValue('id')}</div>,
+      cell: ({ row }) => <div>{row.getValue('id')}</div>,
       enableSorting: false,
       enableHiding: false,
     },

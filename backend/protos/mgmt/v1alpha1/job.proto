@@ -186,11 +186,6 @@ message CancelJobRunRequest {
 }
 message CancelJobRunResponse {}
 
-message JobPauseStatus {
-  bool is_paused = 1;
-  optional string note = 2;
-}
-
 message JobRecentRun {
   google.protobuf.Timestamp start_time = 1;
   string job_run_id = 2;
@@ -218,11 +213,10 @@ message Job {
   repeated JobDestination destinations = 9;
   repeated JobMapping mappings = 10;
   optional string cron_schedule = 11;
-  JobPauseStatus pause_status = 12;
-  JobRecentRuns recent_runs = 13;
-  JobNextRuns next_runs = 14;
+  JobRecentRuns recent_runs = 12;
+  JobNextRuns next_runs = 13;
 
-  string account_id = 15;
+  string account_id = 14;
 }
 
 enum ActivityStatus {

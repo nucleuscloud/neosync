@@ -3,6 +3,7 @@ import SwitchCard from '@/components/switches/SwitchCard';
 import { useToast } from '@/components/ui/use-toast';
 import {
   Job,
+  JobStatus,
   PauseJobRequest,
   PauseJobResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
@@ -38,7 +39,7 @@ export default function JobPauseSwitch({ job, mutate }: Props): ReactElement {
   return (
     <div className="max-w-[300px]">
       <SwitchCard
-        isChecked={job.pauseStatus?.isPaused || false}
+        isChecked={job.status == JobStatus.PAUSED || false}
         onCheckedChange={async (value) => {
           onClick(value);
         }}
