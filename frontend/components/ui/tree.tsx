@@ -29,7 +29,6 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
     }, [data]);
 
     function handleSelectChange(item: TreeDataItem) {
-      console.log('---------');
       const newTree = updateItemAndChildren(
         treeItems,
         item.id,

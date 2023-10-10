@@ -182,7 +182,7 @@ export function getColumns(
                           : 'false'
                       }
                     >
-                      <SelectTrigger className="w-[125px]">
+                      <SelectTrigger className="">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -237,15 +237,15 @@ function TansformerSelect(props: TransformersSelectProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[175px] justify-between"
+          className="justify-between"
         >
           {value
             ? transformers.find((t) => t.value === value)?.title
-            : 'Select framework...'}
+            : 'Select transformation...'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[175px] p-0">
+      <PopoverContent className=" p-0">
         <Command>
           <CommandInput placeholder="Search transformers..." />
           <CommandEmpty>No transformers found.</CommandEmpty>
@@ -258,6 +258,7 @@ function TansformerSelect(props: TransformersSelectProps) {
                   setOpen(false);
                 }}
                 value={t.value}
+                defaultValue={'passthrough'}
               >
                 <CheckIcon
                   className={cn(

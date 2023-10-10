@@ -65,9 +65,8 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  const [filtersUpdated, setFiltersUpdated] = React.useState(false);
   const [sorting, setSorting] = React.useState<SortingState>([]);
-
-  // const { ref: refRoot, width, height } = useResizeObserver();
 
   const table = useReactTable({
     data,
@@ -90,22 +89,7 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  const initialTreeData = Object.keys(schemaMap).map((schema) => {
-    return {
-      id: schema,
-      name: schema,
-      isSelected: true,
-      children: Object.keys(schemaMap[schema]).map((table) => {
-        return {
-          id: table,
-          name: table,
-          isSelected: true,
-        };
-      }),
-    };
-  });
-  const [treeData, setTreeData] =
-    React.useState<TreeDataItem[]>(initialTreeData);
+  const [treeData, setTreeData] = React.useState<TreeDataItem[]>([]);
 
   function handlefilter(items: TreeDataItem[]) {
     const schemaFilters: string[] = [];
@@ -116,9 +100,9 @@ export function DataTable<TData, TValue>({
         for (let i = 0; i < items.length; i++) {
           if (items[i].isSelected) {
             if (items[i].children) {
-              schemaFilters.push(items[i]!.id);
+              schemaFilters.push(items[i]!.name);
             } else {
-              tableFilters.push(items[i]!.id);
+              tableFilters.push(items[i]!.name);
             }
           }
           if (walkTreeItems(items[i]!)) {
@@ -158,18 +142,43 @@ export function DataTable<TData, TValue>({
   }
 
   function updateTree(): void {
-    console.log(JSON.stringify(columnFilters));
+    const uniqueTableFilters = table
+      .getColumn('table')
+      ?.getFacetedUniqueValues();
+    const possibleTableFilters = uniqueTableFilters
+      ? Array.from(uniqueTableFilters.keys())
+      : [];
+
+    const uniqueSchemaFilters = table
+      .getColumn('schema')
+      ?.getFacetedUniqueValues();
+    const possibleSchemaFilters = uniqueSchemaFilters
+      ? Array.from(uniqueSchemaFilters.keys())
+      : [];
+
+    const schemaFilters = columnFilters
+      .filter((f) => f.id == 'schema')
+      .map((f) => f.id);
+    const tableFilters = columnFilters
+      .filter((f) => f.id == 'table')
+      .map((f) => f.id);
+
     const treedata = Object.keys(schemaMap).map((schema) => {
       const parentIsSelected =
         columnFilters.length == 0
           ? true
-          : columnFilters.some((f) => f.id == 'schema' && f.value == schema);
+          : schemaFilters.some((f) => f == schema);
 
       const children = Object.keys(schemaMap[schema]).map((table) => {
         const childIsSelected =
           columnFilters.length == 0
             ? true
-            : columnFilters.some((f) => f.id == 'table' && f.value == table);
+            : tableFilters.some(
+                (f) =>
+                  f == 'table' &&
+                  possibleTableFilters.includes(table) &&
+                  possibleSchemaFilters.includes(schema)
+              );
         return {
           id: table,
           name: table,
@@ -189,6 +198,35 @@ export function DataTable<TData, TValue>({
     setTreeData(treedata);
   }
 
+  React.useEffect(() => {
+    if (filtersUpdated) {
+      if (columnFilters.length == 0) {
+        restoreTree();
+      } else {
+        updateTree();
+      }
+    }
+    setFiltersUpdated(false);
+  }, [filtersUpdated]);
+
+  React.useEffect(() => {
+    const initialTreeData = Object.keys(schemaMap).map((schema) => {
+      return {
+        id: schema,
+        name: schema,
+        isSelected: true,
+        children: Object.keys(schemaMap[schema]).map((table) => {
+          return {
+            id: table,
+            name: table,
+            isSelected: true,
+          };
+        }),
+      };
+    });
+    setTreeData(initialTreeData);
+  }, [schemaMap]);
+
   if (!data) {
     return <SkeletonTable />;
   }
@@ -196,25 +234,27 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-2">
       <div className="flex flex-row">
-        <div className="w-[230px] mb-10 "></div>
-        <div className="w-full  ">
+        <div className="basis-1/4  min-w-[170px] max-w-[400px] mb-10"></div>
+        <div className="basis-3/4">
           <DataTableToolbar
             table={table}
             transformers={transformers}
-            onClearFilters={restoreTree}
+            onClearFilters={() => {
+              setFiltersUpdated(true);
+            }}
           />
         </div>
       </div>
 
-      <div className="flex flex-row space-x-2">
-        <div className="basis-1/3 ">
+      <div className="flex flex-row">
+        <div className="basis-1/3 min-w-[170px] max-w-[400px]">
           <Tree
             data={treeData}
-            className="h-full w-[200px] border rounded-md"
+            className="h-full border rounded-md"
             onSelectChange={handlefilter}
           />
         </div>
-        <div className="basis-2/3">
+        <div className="basis-3/4">
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -222,7 +262,12 @@ export function DataTable<TData, TValue>({
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
                       return (
-                        <TableHead key={header.id}>
+                        <TableHead
+                          key={header.id}
+                          className={
+                            header.id == 'select' ? ' w-[40px]' : 'w-[197px]'
+                          }
+                        >
                           {header.isPlaceholder
                             ? null
                             : flexRender(
@@ -236,7 +281,7 @@ export function DataTable<TData, TValue>({
                                 table={table}
                                 transformers={transformers || []}
                                 onSelect={() => {
-                                  updateTree();
+                                  setFiltersUpdated(true);
                                 }}
                               />
                             </div>
@@ -262,8 +307,8 @@ export function DataTable<TData, TValue>({
                             <TableCell
                               className={
                                 cell.column.id == 'select'
-                                  ? ' w-[30px] '
-                                  : 'w-[197px] indent-4'
+                                  ? ' w-[40px]'
+                                  : 'w-[197px]'
                               }
                               key={cell.id}
                             >
@@ -280,7 +325,7 @@ export function DataTable<TData, TValue>({
                     <TableRow>
                       <TableCell
                         colSpan={columns.length}
-                        className="h-24 text-center"
+                        className="h-24 text-center "
                       >
                         No results.
                       </TableCell>
@@ -304,7 +349,7 @@ interface FilterSelectProps<TData, TValue> {
   column: Column<TData, TValue>;
   table: TableType<TData>;
   transformers: Transformer[];
-  onSelect: (values: string[]) => void;
+  onSelect: () => void;
 }
 
 function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
@@ -351,7 +396,7 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[175px] justify-between"
+          className="min-w-[175px] justify-between"
         >
           <p className="truncate ...">
             {columnFilterValue && columnFilterValue.length
@@ -361,7 +406,7 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[175px] p-0">
+      <PopoverContent className="min-w-[175px] p-0">
         <Command>
           <CommandInput placeholder="Search filters..." />
           <CommandEmpty>No filters found.</CommandEmpty>
@@ -375,7 +420,7 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
                     columnFilterValue
                   );
                   column.setFilterValue(newValues);
-                  onSelect(newValues);
+                  onSelect();
                   setOpen(false);
                 }}
                 value={i}

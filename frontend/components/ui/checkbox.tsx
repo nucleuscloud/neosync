@@ -6,15 +6,11 @@ import * as React from 'react';
 
 import { cn } from '@/libs/utils';
 
-type CheckboxProps = React.ComponentPropsWithoutRef<
-  typeof CheckboxPrimitive.Root
-> & {
-  indeterminate?: boolean;
-};
-
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
-  CheckboxProps
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> & {
+    indeterminate?: boolean;
+  }
 >(({ className, ...props }, ref) => (
   <CheckboxPrimitive.Root
     ref={ref}
