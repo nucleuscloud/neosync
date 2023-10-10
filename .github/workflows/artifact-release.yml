@@ -481,6 +481,7 @@ jobs:
           distribution: goreleaser
           version: latest
           args: release --rm-dist
+          workdir: cli
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_PAT }} # needs to be a non-action token because this also pushes to the homebrew repo
           # GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
