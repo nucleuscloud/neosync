@@ -16,8 +16,9 @@ import (
 
 func newListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
-		Short: "list jobs",
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "list jobs",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
 			return listJobs(cmd.Context())

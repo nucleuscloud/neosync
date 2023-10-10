@@ -12,7 +12,7 @@ func Execute() {
 	cobra.OnInitialize(func() { initConfig() })
 
 	rootCmd := &cobra.Command{
-		Use:   "mgmt",
+		Use:   "neosync",
 		Short: "Terminal UI that interfaces with the Neosync system.",
 		Long:  "",
 		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
