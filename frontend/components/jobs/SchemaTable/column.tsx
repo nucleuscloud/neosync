@@ -4,6 +4,14 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import { Checkbox } from '@/components/ui/checkbox';
 
+import { Button } from '@/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
 import {
   FormControl,
   FormField,
@@ -11,15 +19,24 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+import { cn } from '@/libs/utils';
 import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { useState } from 'react';
 import { DataTableColumnHeader } from './data-table-column-header';
 
 interface GetColumnsProps {
@@ -47,7 +64,7 @@ export function getColumns(
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
-          className="translate-y-[2px]"
+          className="translate-y-[2px] "
         />
       ),
       enableSorting: false,
@@ -59,11 +76,10 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Schema" />
       ),
-      cell: ({ row }) => (
-        <div className="w-[80px]">{row.getValue('schema')}</div>
-      ),
+      cell: ({ row }) => <div>{row.getValue('schema')}</div>,
       enableSorting: true,
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'table',
@@ -73,13 +89,14 @@ export function getColumns(
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
+            <span className="truncate font-medium">
               {row.getValue('table')}
             </span>
           </div>
         );
       },
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'column',
@@ -89,13 +106,14 @@ export function getColumns(
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
+            <span className="truncate font-medium">
               {row.getValue('column')}
             </span>
           </div>
         );
       },
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'dataType',
@@ -104,14 +122,15 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
+          <div className="flex space-x-2 ">
+            <span className="truncate font-medium">
               {row.getValue('dataType')}
             </span>
           </div>
         );
       },
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'transformer',
@@ -120,33 +139,18 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 ">
             <FormField
               name={`mappings.${row.index}.transformer`}
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value == '' ? undefined : field.value}
-                    >
-                      <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="select a transformer..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {transformers?.map((t) => (
-                          <SelectItem
-                            className="cursor-pointer"
-                            key={t.value}
-                            value={t.value}
-                          >
-                            {t.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <TansformerSelect
+                      transformers={transformers || []}
+                      value={field.value}
+                      onSelect={field.onChange}
+                    />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
@@ -155,6 +159,7 @@ export function getColumns(
         );
       },
       enableColumnFilter: true,
+      filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'exclude',
@@ -177,7 +182,7 @@ export function getColumns(
                           : 'false'
                       }
                     >
-                      <SelectTrigger className="w-[125px]">
+                      <SelectTrigger className="">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -213,4 +218,60 @@ export function getColumns(
       },
     },
   ];
+}
+
+interface TransformersSelectProps {
+  transformers: Transformer[];
+  value: string;
+  onSelect: (value: string) => void;
+}
+
+function TansformerSelect(props: TransformersSelectProps) {
+  const { transformers, value, onSelect } = props;
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="justify-between"
+        >
+          {value
+            ? transformers.find((t) => t.value === value)?.title
+            : 'Select transformation...'}
+          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className=" p-0">
+        <Command>
+          <CommandInput placeholder="Search transformers..." />
+          <CommandEmpty>No transformers found.</CommandEmpty>
+          <CommandGroup>
+            {transformers.map((t, index) => (
+              <CommandItem
+                key={`${t.value}-${index}`}
+                onSelect={(currentValue) => {
+                  onSelect(currentValue);
+                  setOpen(false);
+                }}
+                value={t.value}
+                defaultValue={'passthrough'}
+              >
+                <CheckIcon
+                  className={cn(
+                    'mr-2 h-4 w-4',
+                    value == t.value ? 'opacity-100' : 'opacity-0'
+                  )}
+                />
+                {t.title}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
 }

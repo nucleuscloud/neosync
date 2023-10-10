@@ -56,7 +56,8 @@ interface SchemaMap {
   [schema: string]: {
     [table: string]: {
       [column: string]: {
-        dataType: string;
+        transformer: string;
+        exclude: boolean;
       };
     };
   };
@@ -195,7 +196,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
             maxColNum={2}
           />
 
-          <SchemaTable data={form.getValues().mappings} />
+          <SchemaTable data={form.getValues().mappings || []} />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button disabled={!form.formState.isDirty} type="submit">
               Save
@@ -275,34 +276,48 @@ async function getJobSource(jobId?: string): Promise<SourceFormValues> {
     }
 
     const schemaMap: SchemaMap = {};
-    res.schemas.forEach((c) => {
+    job?.mappings.forEach((c) => {
       if (!schemaMap[c.schema]) {
         schemaMap[c.schema] = {
           [c.table]: {
             [c.column]: {
-              dataType: c.dataType,
+              transformer: c.transformer,
+              exclude: c.exclude,
             },
           },
         };
       } else if (!schemaMap[c.schema][c.table]) {
         schemaMap[c.schema][c.table] = {
           [c.column]: {
-            dataType: c.dataType,
+            transformer: c.transformer,
+            exclude: c.exclude,
           },
         };
       } else {
-        schemaMap[c.schema][c.table][c.column] = { dataType: c.dataType };
+        schemaMap[c.schema][c.table][c.column] = {
+          transformer: c.transformer,
+          exclude: c.exclude,
+        };
       }
     });
 
-    const mappings = job?.mappings.map((r) => {
-      const datatype = schemaMap[r.schema][r.table][r.column].dataType;
+    const mappings = res.schemas.map((c) => {
+      const colMapping = getColumnMapping(
+        schemaMap,
+        c.schema,
+        c.table,
+        c.column
+      );
       return {
-        ...r,
-        transformer: r.transformer as unknown as string,
-        dataType: datatype || '',
+        schema: c.schema,
+        table: c.table,
+        column: c.column,
+        dataType: c.dataType,
+        transformer: (colMapping && colMapping.transformer) || 'passthrough',
+        exclude: (colMapping && colMapping.exclude) || false,
       };
     });
+
     const destinationIds = jobRes.job?.destinations.map((d) => d.connectionId);
     const values = {
       sourceId: jobRes.job?.source?.connectionId || '',
@@ -326,6 +341,22 @@ async function getJobSource(jobId?: string): Promise<SourceFormValues> {
     console.error(err);
     throw new Error(getErrorMessage(err));
   }
+}
+
+function getColumnMapping(
+  schemaMap: SchemaMap,
+  schema: string,
+  table: string,
+  column: string
+): { transformer: string; exclude: boolean } | undefined {
+  if (!schemaMap[schema]) {
+    return;
+  }
+  if (!schemaMap[schema][table]) {
+    return;
+  }
+
+  return schemaMap[schema][table][column];
 }
 
 async function getUpdatedValues(
