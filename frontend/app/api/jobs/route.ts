@@ -19,7 +19,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    console.log('body in api', CreateJobRequest);
     const body = CreateJobRequest.fromJson(await req.json());
     return ctx.jobsClient.createJob(body);
   })(req);

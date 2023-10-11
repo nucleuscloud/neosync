@@ -133,7 +133,6 @@ export function toTransformerConfigOptions(
         }),
       });
 
-      console.log('tra', tra);
       return tra;
     }
     default: {

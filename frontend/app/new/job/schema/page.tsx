@@ -223,7 +223,6 @@ async function createNewJob(
     }),
   });
 
-  console.log('body', body);
   const res = await fetch(`/api/jobs`, {
     method: 'POST',
     headers: {
