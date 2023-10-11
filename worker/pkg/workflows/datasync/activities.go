@@ -505,12 +505,17 @@ func splitTableKey(key string) (schema, table string) {
 	return pieces[0], pieces[1]
 }
 
+// used to record metadata in activity event history
+type SyncMetadata struct {
+	Schema string
+	Table  string
+}
 type SyncRequest struct {
 	BenthosConfig string
 }
 type SyncResponse struct{}
 
-func (a *Activities) Sync(ctx context.Context, req *SyncRequest) (*SyncResponse, error) {
+func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
 	logger := activity.GetLogger(ctx)
 	var benthosStream *service.Stream
 	go func() {
