@@ -149,6 +149,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
     };
   }
+  console.log('vals', form.getValues());
 
   return (
     <OverviewContainer

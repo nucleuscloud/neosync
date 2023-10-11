@@ -14,7 +14,7 @@ interface TransformerComponent {
 interface GetTransformerComponentDetailsProps {
   transformer?: Transformer;
   // onSaved(updatedConnResp: UpdateConnectionResponse): void;
-  onSaveFailed(err: unknown): void;
+  // onSaveFailed(err: unknown): void;
   extraPageHeading?: ReactElement;
 }
 

@@ -2,9 +2,7 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
-import { useToast } from '@/components/ui/use-toast';
 import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
-import { getErrorMessage } from '@/util/util';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import { getTransformerComponentDetails } from './components/transformer-component';
 
@@ -15,7 +13,7 @@ export default function TransformerPage({ params }: PageProps) {
 
   const transformer = data?.transformers.find((item) => item.title == title);
 
-  const { toast } = useToast();
+  // const { toast } = useToast();
 
   if (!title) {
     return <div>Can&apos;t find transformer ${title}</div>;
@@ -40,12 +38,12 @@ export default function TransformerPage({ params }: PageProps) {
     //     variant: 'default',
     //   });
     // },
-    onSaveFailed: (err) =>
-      toast({
-        title: 'Unable to update transformer',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      }),
+    // onSaveFailed: (err) =>
+    //   toast({
+    //     title: 'Unable to update transformer',
+    //     description: getErrorMessage(err),
+    //     variant: 'destructive',
+    //   }),
     extraPageHeading: (
       <div>
         <RemoveTransformerButton transformerID={transformer?.title ?? ''} />

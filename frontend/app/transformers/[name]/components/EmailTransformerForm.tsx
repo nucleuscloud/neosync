@@ -8,7 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
@@ -20,8 +20,15 @@ export default function EmailTransformerForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const [pd, setPd] = useState<boolean>(false);
-  const [pl, setPl] = useState<boolean>(false);
+  const vals = fc.getValues();
+
+  //sheet re-renders on every open which resets state, so have to get the values from the mappings so user values persist across sheet openings
+  const [pd, setPd] = useState<boolean>(
+    vals.mappings[index ?? 0].transformer.config.preserveDomain
+  );
+  const [pl, setPl] = useState<boolean>(
+    vals.mappings[index ?? 0].transformer.config.preserveLength
+  );
 
   const handleSubmit = () => {
     fc.setValue(`mappings.${index}.transformer.config.preserveDomain`, pd, {
@@ -33,10 +40,24 @@ export default function EmailTransformerForm(props: Props): ReactElement {
     setIsSheetOpen!(false);
   };
 
+  //since component is in a controlled state, have to manually handle closing the sheet when the user presses escape
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsSheetOpen!(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col w-full space-y-4 pt-10">
+    <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.preserve_length`}
+        name={`mappings.${index}.transformer.config.preserveLength`}
         defaultValue={pl}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -58,7 +79,7 @@ export default function EmailTransformerForm(props: Props): ReactElement {
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.preserve_domain`}
+        name={`mappings.${index}.transformer.config.preserveDomain`}
         defaultValue={pd}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -81,7 +102,7 @@ export default function EmailTransformerForm(props: Props): ReactElement {
       />
       <div className="flex justify-end">
         <Button type="button" onClick={handleSubmit}>
-          Submit
+          Save
         </Button>
       </div>
     </div>
