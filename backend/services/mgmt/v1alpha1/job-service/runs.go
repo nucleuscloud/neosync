@@ -2,11 +2,9 @@ package v1alpha1_jobservice
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -22,6 +20,7 @@ import (
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *Service) GetJobRuns(
@@ -127,33 +126,6 @@ func (s *Service) GetJobRun(
 	}), nil
 }
 
-type syncMetadata struct {
-	Table  string
-	Schema string
-}
-
-type jobRunTaskError struct {
-	Message    string
-	RetryState string
-}
-type jobRunEventTask struct {
-	Id        int64
-	Type      string
-	EventTime *time.Time
-	Error     *jobRunTaskError
-}
-
-// probably want this by table
-// how to handle sub activities
-type jobRunEvent struct {
-	Id        int64
-	Type      string
-	StartTime *time.Time
-	CloseTime *time.Time
-	Metadata  *syncMetadata // needs to be customizable for different metadata
-	Tasks     []*jobRunEventTask
-}
-
 func (s *Service) GetJobRunEvents(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRunEventsRequest],
@@ -165,10 +137,8 @@ func (s *Service) GetJobRunEvents(
 		return nil, err
 	}
 
-	activityNameMap := map[int64]string{}
 	activityOrder := []int64{}
-	activityMap := map[int64]*jobRunEvent{}
-	events := []*mgmtv1alpha1.JobRunEvent{}
+	activityMap := map[int64]*mgmtv1alpha1.JobRunEvent{}
 	iter := s.temporalClient.GetWorkflowHistory(
 		ctx,
 		run.Execution.WorkflowId,
@@ -182,155 +152,77 @@ func (s *Service) GetJobRunEvents(
 			return nil, err
 		}
 
-		jsonF, _ := json.MarshalIndent(event, "", " ")
-		fmt.Printf("\n\n event: %s \n\n", string(jsonF))
-
 		switch event.EventType {
 		case enums.EVENT_TYPE_ACTIVITY_TASK_SCHEDULED:
 			activityOrder = append(activityOrder, event.EventId)
 			attributes := event.GetActivityTaskScheduledEventAttributes()
-			jobRunEvent := &jobRunEvent{
+			jobRunEvent := &mgmtv1alpha1.JobRunEvent{
 				Id:   event.EventId,
 				Type: attributes.ActivityType.Name,
-				Tasks: []*jobRunEventTask{
-					{
-						Id:        event.EventId,
-						Type:      event.EventType.String(),
-						EventTime: event.EventTime,
-					},
+				Tasks: []*mgmtv1alpha1.JobRunEventTask{
+					dtomaps.ToJobRunEventTaskDto(event, nil),
 				},
 			}
 			if len(attributes.Input.Payloads) > 1 {
-				var input syncMetadata
+				var input mgmtv1alpha1.JobRunSyncMetadata
 				err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[1], &input)
 				if err != nil {
 					logger.Error(fmt.Errorf("unable to convert event input payload: %w", err).Error())
 				}
-				jobRunEvent.Metadata = &syncMetadata{
-					Schema: input.Schema,
-					Table:  input.Table,
+				jobRunEvent.Metadata = &mgmtv1alpha1.JobRunEventMetadata{
+					Metadata: &mgmtv1alpha1.JobRunEventMetadata_SyncMetadata{
+						SyncMetadata: &mgmtv1alpha1.JobRunSyncMetadata{
+							Schema: input.Schema,
+							Table:  input.Table,
+						},
+					},
 				}
 			}
 			activityMap[event.EventId] = jobRunEvent
 		case enums.EVENT_TYPE_ACTIVITY_TASK_STARTED:
 			attributes := event.GetActivityTaskStartedEventAttributes()
 			activity := activityMap[attributes.ScheduledEventId]
-			activity.StartTime = event.EventTime
-			activity.Tasks = append(activity.Tasks, &jobRunEventTask{
-				Id:        event.EventId,
-				Type:      event.EventType.String(),
-				EventTime: event.EventTime,
-			})
+			activity.StartTime = timestamppb.New(*event.EventTime)
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
 
 		case enums.EVENT_TYPE_ACTIVITY_TASK_COMPLETED:
 			attributes := event.GetActivityTaskCompletedEventAttributes()
 			activity := activityMap[attributes.ScheduledEventId]
-			activity.CloseTime = event.EventTime
-			activity.Tasks = append(activity.Tasks, &jobRunEventTask{
-				Id:        event.EventId,
-				Type:      event.EventType.String(),
-				EventTime: event.EventTime,
-			})
+			activity.CloseTime = timestamppb.New(*event.EventTime)
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+
+		case enums.EVENT_TYPE_ACTIVITY_TASK_CANCEL_REQUESTED:
+			attributes := event.GetActivityTaskCancelRequestedEventAttributes()
+			activity := activityMap[attributes.ScheduledEventId]
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+
+		case enums.EVENT_TYPE_ACTIVITY_TASK_CANCELED:
+			attributes := event.GetActivityTaskCanceledEventAttributes()
+			activity := activityMap[attributes.ScheduledEventId]
+			activity.CloseTime = timestamppb.New(*event.EventTime)
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
+
 		case enums.EVENT_TYPE_ACTIVITY_TASK_FAILED:
 			attributes := event.GetActivityTaskFailedEventAttributes()
 			activity := activityMap[attributes.ScheduledEventId]
-			activity.Tasks = append(activity.Tasks, &jobRunEventTask{
-				Id:        event.EventId,
-				Type:      event.EventType.String(),
-				EventTime: event.EventTime,
-				Error: &jobRunTaskError{
-					Message:    attributes.Failure.Message,
-					RetryState: attributes.RetryState.String(),
-				},
-			})
+			errorDto := dtomaps.ToJobRunEventTaskErrorDto(attributes.Failure, attributes.RetryState)
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, errorDto))
+
 		case enums.EVENT_TYPE_ACTIVITY_TASK_TIMED_OUT:
 			attributes := event.GetActivityTaskTimedOutEventAttributes()
 			activity := activityMap[attributes.ScheduledEventId]
-			fmt.Println(attributes.GetRetryState().String())
-			fmt.Println(attributes.GetFailure().GetFailureInfo())
-
-			activity.Tasks = append(activity.Tasks, &jobRunEventTask{
-				Id:        event.EventId,
-				Type:      event.EventType.String(),
-				EventTime: event.EventTime,
-				Error: &jobRunTaskError{
-					Message:    attributes.Failure.Message,
-					RetryState: attributes.RetryState.String(),
-				},
-			})
+			errorDto := dtomaps.ToJobRunEventTaskErrorDto(attributes.Failure, attributes.RetryState)
+			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, errorDto))
 
 		default:
 
 		}
-
-		// workflow events
-		if event.GetWorkflowExecutionStartedEventAttributes() != nil {
-			workflowEvent := event.GetWorkflowExecutionStartedEventAttributes()
-			events = append(events, dtomaps.ToJobRunEventDto(event, workflowEvent.WorkflowType.Name, "Workflow Started"))
-			activityNameMap[event.EventId] = workflowEvent.WorkflowType.Name
-			if len(workflowEvent.Input.Payloads) > 1 {
-				fmt.Println("HERE HERE HERE")
-				x, _ := json.MarshalIndent(event, "", " ")
-				fmt.Printf("\n\n event: %s \n\n", string(x))
-				var input syncMetadata
-				err := converter.GetDefaultDataConverter().FromPayload(workflowEvent.Input.Payloads[1], &input)
-				if err != nil {
-					logger.Error(fmt.Errorf("unable to get job id from workflow: %w", err).Error())
-				}
-				jsonF, _ := json.MarshalIndent(input, "", " ")
-				fmt.Printf("\n\n input: %s \n\n", string(jsonF))
-				fmt.Println("-------")
-			}
-		}
-		if event.GetWorkflowExecutionCompletedEventAttributes() != nil {
-			workflowEvent := event.GetWorkflowExecutionCompletedEventAttributes()
-			name := activityNameMap[workflowEvent.WorkflowTaskCompletedEventId]
-			events = append(events, dtomaps.ToJobRunEventDto(event, name, "Workflow Completed"))
-		}
-
-		// // activity events
-		// if event.GetActivityTaskScheduledEventAttributes() != nil {
-		// 	attributes := event.GetActivityTaskScheduledEventAttributes()
-		// 	events = append(events, dtomaps.ToJobRunEventDto(event, attributes.ActivityType.Name, "Activity Scheduled"))
-		// 	activityNameMap[event.EventId] = attributes.ActivityType.Name
-		// 	if len(attributes.Input.Payloads) > 1 {
-		// 		x, _ := json.MarshalIndent(event, "", " ")
-		// 		fmt.Printf("\n\n event: %s \n\n", string(x))
-		// 		var input syncMetadata
-		// 		err := converter.GetDefaultDataConverter().FromPayload(attributes.Input.Payloads[1], &input)
-		// 		if err != nil {
-		// 			logger.Error(fmt.Errorf("unable to get job id from workflow: %w", err).Error())
-		// 		}
-		// 		jsonF, _ := json.MarshalIndent(input, "", " ")
-		// 		fmt.Printf("\n\n input: %s \n\n", string(jsonF))
-		// 		fmt.Println("-------")
-		// 	}
-		// }
-
-		if event.GetActivityTaskFailedEventAttributes() != nil {
-			attributes := event.GetActivityTaskFailedEventAttributes()
-			name := activityNameMap[attributes.ScheduledEventId]
-			events = append(events, dtomaps.ToJobRunEventDto(event, name, "Activity Failed"))
-		}
-
-		if event.GetActivityTaskStartedEventAttributes() != nil {
-			attributes := event.GetActivityTaskStartedEventAttributes()
-			name := activityNameMap[attributes.ScheduledEventId]
-			events = append(events, dtomaps.ToJobRunEventDto(event, name, "Activity Started"))
-		}
-
-		if event.GetActivityTaskCompletedEventAttributes() != nil {
-			attributes := event.GetActivityTaskCompletedEventAttributes()
-			name := activityNameMap[attributes.ScheduledEventId]
-			events = append(events, dtomaps.ToJobRunEventDto(event, name, "Activity Completed"))
-		}
 	}
 
+	events := []*mgmtv1alpha1.JobRunEvent{}
 	for _, index := range activityOrder {
 		value := activityMap[index]
-		fmt.Println(index)
-		jsonF, _ := json.MarshalIndent(value, "", " ")
-		fmt.Printf("%s \n\n", string(jsonF))
+		events = append(events, value)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRunEventsResponse{

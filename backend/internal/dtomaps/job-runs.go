@@ -7,6 +7,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/failure/v1"
 	"go.temporal.io/api/history/v1"
 	"go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
@@ -47,13 +48,21 @@ func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *common.SearchAt
 	return scheduledByID
 }
 
-func ToJobRunEventDto(event *history.HistoryEvent, name, eventType string) *mgmtv1alpha1.JobRunEvent {
-	return &mgmtv1alpha1.JobRunEvent{
+func ToJobRunEventTaskDto(event *history.HistoryEvent, taskError *mgmtv1alpha1.JobRunEventTaskError) *mgmtv1alpha1.JobRunEventTask {
+	return &mgmtv1alpha1.JobRunEventTask{
 		Id:        event.EventId,
-		Name:      name,
-		CreatedAt: timestamppb.New(*event.EventTime),
-		Type:      eventType,
+		Type:      event.EventType.String(),
+		EventTime: timestamppb.New(*event.EventTime),
+		Error:     taskError,
 	}
+}
+
+func ToJobRunEventTaskErrorDto(failure *failure.Failure, retryState enums.RetryState) *mgmtv1alpha1.JobRunEventTaskError {
+	return &mgmtv1alpha1.JobRunEventTaskError{
+		Message:    failure.Message,
+		RetryState: retryState.String(),
+	}
+
 }
 
 func toPendingActivitiesDto(activities []*workflow.PendingActivityInfo) []*mgmtv1alpha1.PendingActivity {

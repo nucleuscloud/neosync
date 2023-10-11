@@ -6180,6 +6180,528 @@ var _ interface {
 	ErrorName() string
 } = JobRunValidationError{}
 
+// Validate checks the field values on JobRunEventTaskError with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *JobRunEventTaskError) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobRunEventTaskError with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobRunEventTaskErrorMultiError, or nil if none found.
+func (m *JobRunEventTaskError) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobRunEventTaskError) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Message
+
+	// no validation rules for RetryState
+
+	if len(errors) > 0 {
+		return JobRunEventTaskErrorMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobRunEventTaskErrorMultiError is an error wrapping multiple validation
+// errors returned by JobRunEventTaskError.ValidateAll() if the designated
+// constraints aren't met.
+type JobRunEventTaskErrorMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobRunEventTaskErrorMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobRunEventTaskErrorMultiError) AllErrors() []error { return m }
+
+// JobRunEventTaskErrorValidationError is the validation error returned by
+// JobRunEventTaskError.Validate if the designated constraints aren't met.
+type JobRunEventTaskErrorValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobRunEventTaskErrorValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobRunEventTaskErrorValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobRunEventTaskErrorValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobRunEventTaskErrorValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobRunEventTaskErrorValidationError) ErrorName() string {
+	return "JobRunEventTaskErrorValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e JobRunEventTaskErrorValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobRunEventTaskError.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobRunEventTaskErrorValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobRunEventTaskErrorValidationError{}
+
+// Validate checks the field values on JobRunEventTask with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *JobRunEventTask) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobRunEventTask with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobRunEventTaskMultiError, or nil if none found.
+func (m *JobRunEventTask) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobRunEventTask) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Type
+
+	if all {
+		switch v := interface{}(m.GetEventTime()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunEventTaskValidationError{
+					field:  "EventTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunEventTaskValidationError{
+					field:  "EventTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEventTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunEventTaskValidationError{
+				field:  "EventTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetError()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunEventTaskValidationError{
+					field:  "Error",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunEventTaskValidationError{
+					field:  "Error",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetError()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunEventTaskValidationError{
+				field:  "Error",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return JobRunEventTaskMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobRunEventTaskMultiError is an error wrapping multiple validation errors
+// returned by JobRunEventTask.ValidateAll() if the designated constraints
+// aren't met.
+type JobRunEventTaskMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobRunEventTaskMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobRunEventTaskMultiError) AllErrors() []error { return m }
+
+// JobRunEventTaskValidationError is the validation error returned by
+// JobRunEventTask.Validate if the designated constraints aren't met.
+type JobRunEventTaskValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobRunEventTaskValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobRunEventTaskValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobRunEventTaskValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobRunEventTaskValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobRunEventTaskValidationError) ErrorName() string { return "JobRunEventTaskValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobRunEventTaskValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobRunEventTask.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobRunEventTaskValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobRunEventTaskValidationError{}
+
+// Validate checks the field values on JobRunSyncMetadata with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *JobRunSyncMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobRunSyncMetadata with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobRunSyncMetadataMultiError, or nil if none found.
+func (m *JobRunSyncMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobRunSyncMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Schema
+
+	// no validation rules for Table
+
+	if len(errors) > 0 {
+		return JobRunSyncMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobRunSyncMetadataMultiError is an error wrapping multiple validation errors
+// returned by JobRunSyncMetadata.ValidateAll() if the designated constraints
+// aren't met.
+type JobRunSyncMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobRunSyncMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobRunSyncMetadataMultiError) AllErrors() []error { return m }
+
+// JobRunSyncMetadataValidationError is the validation error returned by
+// JobRunSyncMetadata.Validate if the designated constraints aren't met.
+type JobRunSyncMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobRunSyncMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobRunSyncMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobRunSyncMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobRunSyncMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobRunSyncMetadataValidationError) ErrorName() string {
+	return "JobRunSyncMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e JobRunSyncMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobRunSyncMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobRunSyncMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobRunSyncMetadataValidationError{}
+
+// Validate checks the field values on JobRunEventMetadata with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *JobRunEventMetadata) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobRunEventMetadata with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobRunEventMetadataMultiError, or nil if none found.
+func (m *JobRunEventMetadata) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobRunEventMetadata) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	switch v := m.Metadata.(type) {
+	case *JobRunEventMetadata_SyncMetadata:
+		if v == nil {
+			err := JobRunEventMetadataValidationError{
+				field:  "Metadata",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetSyncMetadata()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobRunEventMetadataValidationError{
+						field:  "SyncMetadata",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobRunEventMetadataValidationError{
+						field:  "SyncMetadata",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetSyncMetadata()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobRunEventMetadataValidationError{
+					field:  "SyncMetadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return JobRunEventMetadataMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobRunEventMetadataMultiError is an error wrapping multiple validation
+// errors returned by JobRunEventMetadata.ValidateAll() if the designated
+// constraints aren't met.
+type JobRunEventMetadataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobRunEventMetadataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobRunEventMetadataMultiError) AllErrors() []error { return m }
+
+// JobRunEventMetadataValidationError is the validation error returned by
+// JobRunEventMetadata.Validate if the designated constraints aren't met.
+type JobRunEventMetadataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobRunEventMetadataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobRunEventMetadataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobRunEventMetadataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobRunEventMetadataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobRunEventMetadataValidationError) ErrorName() string {
+	return "JobRunEventMetadataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e JobRunEventMetadataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobRunEventMetadata.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobRunEventMetadataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobRunEventMetadataValidationError{}
+
 // Validate checks the field values on JobRunEvent with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -6202,14 +6724,16 @@ func (m *JobRunEvent) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Name
+	// no validation rules for Id
+
+	// no validation rules for Type
 
 	if all {
-		switch v := interface{}(m.GetCreatedAt()).(type) {
+		switch v := interface{}(m.GetStartTime()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, JobRunEventValidationError{
-					field:  "CreatedAt",
+					field:  "StartTime",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -6217,25 +6741,113 @@ func (m *JobRunEvent) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, JobRunEventValidationError{
-					field:  "CreatedAt",
+					field:  "StartTime",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetStartTime()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return JobRunEventValidationError{
-				field:  "CreatedAt",
+				field:  "StartTime",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	// no validation rules for Type
+	if all {
+		switch v := interface{}(m.GetCloseTime()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunEventValidationError{
+					field:  "CloseTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunEventValidationError{
+					field:  "CloseTime",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCloseTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunEventValidationError{
+				field:  "CloseTime",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
-	// no validation rules for Id
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobRunEventValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobRunEventValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobRunEventValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	for idx, item := range m.GetTasks() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobRunEventValidationError{
+						field:  fmt.Sprintf("Tasks[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobRunEventValidationError{
+						field:  fmt.Sprintf("Tasks[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobRunEventValidationError{
+					field:  fmt.Sprintf("Tasks[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	if len(errors) > 0 {
 		return JobRunEventMultiError(errors)
