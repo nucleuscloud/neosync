@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { DataTableColumnHeader } from './data-table-column-header';
-import { DataTableRowActions } from './data-table-row-actions';
 
 interface GetTransformerProps {
   onTransformerDeleted(id: string): void;
@@ -17,7 +16,7 @@ interface GetTransformerProps {
 export function getColumns(
   props: GetTransformerProps
 ): ColumnDef<PlainMessage<Transformer>>[] {
-  const { onTransformerDeleted } = props;
+  const {} = props; //include onTransformerDeleted once it's ready here
   return [
     {
       id: 'select',
@@ -79,17 +78,17 @@ export function getColumns(
         return value.includes(row.getValue(id));
       },
     },
-    {
-      accessorKey: 'actions',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Actions" />
-      ),
-      cell: ({ row }) => (
-        <DataTableRowActions
-          row={row}
-          onDeleted={() => onTransformerDeleted(row.id)}
-        />
-      ),
-    },
+    // {
+    //   accessorKey: 'actions',
+    //   header: ({ column }) => (
+    //     <DataTableColumnHeader column={column} title="Actions" />
+    //   ),
+    //   cell: ({ row }) => (
+    //     <DataTableRowActions
+    //       row={row}
+    //       onDeleted={() => onTransformerDeleted(row.id)}
+    //     />
+    //   ),
+    // },
   ];
 }
