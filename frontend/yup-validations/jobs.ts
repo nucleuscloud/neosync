@@ -1,27 +1,26 @@
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
+  EmailConfig,
   JobDestinationOptions,
   SqlDestinationConnectionOptions,
+  Transformer,
+  TransformerConfig,
   TruncateTableConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
-const TRANSFORMER_CONFIG = Yup.object().oneOf([
-  Yup.object().shape({
-    email_config: Yup.object().shape({
-      preserve_domain: Yup.boolean(),
-      preserve_length: Yup.boolean(),
-    }),
-  }),
-  Yup.string(),
-  //add new transformer configs to this array
-]);
-
-export type TransformerConfigSchema = Yup.InferType<typeof TRANSFORMER_CONFIG>;
-
-const TRANSFORMER_SCHEMA = Yup.object({
+const TRANSFORMER_SCHEMA = Yup.object().shape({
   value: Yup.string().required(),
-  config: TRANSFORMER_CONFIG,
+  config: Yup.object()
+    .shape({})
+    .when('value', {
+      is: 'email',
+      then: () =>
+        Yup.object().shape({
+          preserve_domain: Yup.boolean().required(),
+          preserve_length: Yup.boolean().required(),
+        }),
+    }),
 });
 
 export type TransformerSchema = Yup.InferType<typeof TRANSFORMER_SCHEMA>;
@@ -100,6 +99,45 @@ export function toJobDestinationOptions(
     }
     default: {
       return new JobDestinationOptions();
+    }
+  }
+}
+
+export function toTransformerConfigOptions(
+  t: {
+    value: string;
+    config: {};
+  },
+  transformers: Transformer[]
+): Transformer {
+  if (!t) {
+    return new Transformer();
+  }
+
+  switch (t.value) {
+    case 'email': {
+      const tf = transformers.find((item) => item.value == t.value);
+
+      const tra = new Transformer({
+        title: t.value,
+        value: t.value,
+        description: tf?.description,
+        config: new TransformerConfig({
+          config: {
+            case: 'emailConfig',
+            value: new EmailConfig({
+              preserveDomain: false,
+              preserveLength: true,
+            }),
+          },
+        }),
+      });
+
+      console.log('tra', tra);
+      return tra;
+    }
+    default: {
+      return new Transformer();
     }
   }
 }

@@ -2,8 +2,7 @@
 import PageHeader from '@/components/headers/PageHeader';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { ReactElement } from 'react';
-import EmailTransformerForm from './EmailTransformerForm';
-import FirstNameTransformerForm from './FirstNameForm';
+import { handleTransformerForm } from '../../components/transformersTable/EditTransformerOptions';
 
 interface TransformerComponent {
   name: string;
@@ -63,19 +62,4 @@ export function getTransformerComponentDetails(
         ),
       };
   }
-}
-
-export function handleTransformerForm(
-  transformer: Transformer,
-  index?: number
-): ReactElement {
-  switch (transformer.title) {
-    case 'Email':
-      return <EmailTransformerForm transformer={transformer} index={index} />;
-    case 'First Name':
-      return <FirstNameTransformerForm transformer={transformer} />;
-    default:
-      <div>No transformer component found</div>;
-  }
-  return <div></div>;
 }

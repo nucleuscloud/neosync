@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
@@ -21,12 +22,14 @@ import {
   JobSource,
   JobSourceOptions,
   SqlSourceConnectionOptions,
+  Transformer,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import {
   SCHEMA_FORM_SCHEMA,
   SchemaFormValues,
   toJobDestinationOptions,
+  toTransformerConfigOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
@@ -50,6 +53,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [searchParams?.sessionId]);
 
   const sessionPrefix = searchParams?.sessionId ?? '';
+
+  const { data: transformersData } = useGetTransformers();
+
+  const transformers = transformersData?.transformers ?? [];
 
   const [defineFormValues] = useSessionStorage<DefineFormValues>(
     `${sessionPrefix}-new-job-define`,
@@ -78,14 +85,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
-<<<<<<< HEAD
-          transformer: 'passthrough',
-=======
           transformer: {
-            value: '', //set the default to passthrough, this prevents the form from trying to validate every field on each transformer config, since ever setValue call revalidates the entire form, figure out a way to only validate the specific row and wait until the submit to validate
+            value: '',
             config: {},
           },
->>>>>>> 37a3bae (setting email config fields in the original form)
         };
       });
       return { mappings };
@@ -106,41 +109,44 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       return getSchema();
     },
   });
+  const isBrowser = () => typeof window !== 'undefined';
+
   useFormPersist(`${sessionPrefix}-new-job-schema`, {
     watch: form.watch,
     setValue: form.setValue,
-    storage: window.sessionStorage,
+    storage: isBrowser() ? window.sessionStorage : undefined,
   });
 
-  console.log('values', form.getValues());
-
-  async function onSubmit(values: SchemaFormValues) {
-    if (!account) {
-      return;
-    }
-    try {
-      const job = await createNewJob(
-        {
-          define: defineFormValues,
-          flow: flowFormValues,
-          schema: values,
-        },
-        account.id,
-        connections
-      );
-      if (job.job?.id) {
-        router.push(`/jobs/${job.job.id}`);
-      } else {
-        router.push(`/jobs`);
+  function onSubmit(transformers: Transformer[]) {
+    return async function (values: SchemaFormValues) {
+      if (!account) {
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: 'Unable to create job',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      });
-    }
+      try {
+        const job = await createNewJob(
+          {
+            define: defineFormValues,
+            flow: flowFormValues,
+            schema: values,
+          },
+          account.id,
+          connections,
+          transformers
+        );
+        if (job.job?.id) {
+          router.push(`/jobs/${job.job.id}`);
+        } else {
+          router.push(`/jobs`);
+        }
+      } catch (err) {
+        console.error(err);
+        toast({
+          title: 'Unable to create job',
+          description: getErrorMessage(err),
+          variant: 'destructive',
+        });
+      }
+    };
   }
 
   return (
@@ -154,12 +160,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-<<<<<<< HEAD
           <SchemaTable data={form.getValues().mappings || []} />
 
-=======
-          <SchemaTable data={form.getValues().mappings} />
->>>>>>> 37a3bae (setting email config fields in the original form)
+        <form
+          onSubmit={form.handleSubmit(onSubmit(transformers))}
+          className="space-y-8"
+        >
+          <SchemaTable data={form.getValues().mappings || []} />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
               Back
@@ -177,7 +184,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 async function createNewJob(
   formData: FormValues,
   accountId: string,
-  connections: Connection[]
+  connections: Connection[],
+  transformers: Transformer[]
 ): Promise<CreateJobResponse> {
   const body = new CreateJobRequest({
     accountId,
@@ -188,7 +196,7 @@ async function createNewJob(
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: m.transformer,
+        transformer: toTransformerConfigOptions(m.transformer, transformers),
         exclude: m.exclude,
       });
     }),
@@ -214,6 +222,8 @@ async function createNewJob(
       });
     }),
   });
+
+  console.log('body', body);
   const res = await fetch(`/api/jobs`, {
     method: 'POST',
     headers: {

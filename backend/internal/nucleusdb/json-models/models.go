@@ -132,7 +132,7 @@ type JobMapping struct {
 	Schema      string
 	Table       string
 	Column      string
-	Transformer *mgmtv1alpha1.Transformer
+	Transformer *Transformer
 	Exclude     bool
 }
 
@@ -141,17 +141,81 @@ func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
 		Schema:      jm.Schema,
 		Table:       jm.Table,
 		Column:      jm.Column,
-		Transformer: jm.Transformer,
+		Transformer: jm.Transformer.ToDto(),
 		Exclude:     jm.Exclude,
 	}
 }
 
 func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
+
+	t := &Transformer{}
+	if err := t.FromDto(dto.Transformer); err != nil {
+		return err
+	}
 	jm.Schema = dto.Schema
 	jm.Table = dto.Table
 	jm.Column = dto.Column
-	jm.Transformer = dto.Transformer
+	jm.Transformer = t
 	jm.Exclude = dto.Exclude
+	return nil
+}
+
+type Transformer struct {
+	Title       string
+	Value       string
+	Description string
+	Config      *TransformerConfigs
+}
+
+type TransformerConfigs struct {
+	EmailConfig *EmailConfigs
+}
+
+type EmailConfigs struct {
+	PreserveLength bool
+	PreserveDomain bool
+}
+
+// from API -> DB
+func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
+
+	if tr.Config != nil {
+		switch tr.Config.Config.(type) {
+		case *mgmtv1alpha1.TransformerConfig_EmailConfig:
+			t.Title = tr.Title
+			t.Value = tr.Value
+			t.Description = tr.Description
+			t.Config = &TransformerConfigs{
+				EmailConfig: &EmailConfigs{
+					PreserveLength: tr.Config.GetEmailConfig().PreserveLength,
+					PreserveDomain: tr.Config.GetEmailConfig().PreserveDomain,
+				},
+			}
+		default:
+			return fmt.Errorf("invalid config")
+		}
+	}
+
+	return nil
+}
+
+func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
+
+	if t.Config != nil {
+		return &mgmtv1alpha1.Transformer{
+			Title:       t.Title,
+			Value:       t.Value,
+			Description: t.Description,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
+					EmailConfig: &mgmtv1alpha1.EmailConfig{
+						PreserveDomain: t.Config.EmailConfig.PreserveDomain,
+						PreserveLength: t.Config.EmailConfig.PreserveLength,
+					},
+				},
+			},
+		}
+	}
 	return nil
 }
 
