@@ -508,7 +508,6 @@ type SyncResponse struct{}
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
 	logger := activity.GetLogger(ctx)
 	var benthosStream *service.Stream
-	successChan := make(chan bool)
 	go func() {
 		for {
 			select {
@@ -549,7 +548,6 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 
 	err = stream.Run(ctx)
 	if err != nil {
-		successChan <- false
 		return nil, fmt.Errorf("unable to run benthos stream: %w", err)
 	}
 	benthosStream = nil
