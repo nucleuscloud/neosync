@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -522,18 +524,17 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 					}
 				}
 				return
-			case success := <-successChan:
-				// if failure, I think we still want to call stop on the stream incase something is still going
-				// Need to test this further until we can get all of the benthos logs to go away complaining about ungraceful shutdowns
-				if success {
-					benthosStream = nil
-				}
-				return
 			}
 		}
 	}()
 
 	streambldr := service.NewStreamBuilder()
+	// would ideally use the activity logger here but can't convert it into a slog.
+	benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	streambldr.SetLogger(benthoslogger.With(
+		"metadata", metadata,
+		"benthos", "true",
+	))
 
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
@@ -551,7 +552,7 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		successChan <- false
 		return nil, fmt.Errorf("unable to run benthos stream: %w", err)
 	}
-	successChan <- true
+	benthosStream = nil
 	return &SyncResponse{}, nil
 }
 

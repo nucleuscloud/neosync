@@ -121,8 +121,9 @@ func invokeSync(
 	completed map[string]struct{},
 	logger log.Logger,
 ) workflow.Future {
+	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
-	logger.Info("triggering config sync", "name", config.Name)
+	logger.Info("triggering config sync", "name", config.Name, "metadata", metadata)
 	started[config.Name] = struct{}{}
 	var wfActivites *Activities
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
@@ -132,7 +133,6 @@ func invokeSync(
 			settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
 			return
 		}
-		metadata := getSyncMetadata(config)
 		var result SyncResponse
 		err = workflow.ExecuteActivity(
 			ctx,
