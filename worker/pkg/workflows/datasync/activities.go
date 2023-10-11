@@ -27,6 +27,10 @@ import (
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
+const (
+	maxPgParamLimit = 65535
+)
+
 type GenerateBenthosConfigsRequest struct {
 	JobId      string
 	BackendUrl string
@@ -220,6 +224,7 @@ func (a *Activities) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
+				logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					SqlInsert: &neosync_benthos.SqlInsert{
 						Driver: "postgres",
@@ -229,43 +234,16 @@ func (a *Activities) GenerateBenthosConfigs(
 						Columns:       resp.Config.Input.SqlSelect.Columns,
 						ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
 						InitStatement: initStmt,
+
+						ConnMaxIdle: 2,
+						ConnMaxOpen: 2,
+
+						Batching: &neosync_benthos.Batching{
+							Period: "1s",
+							// max allowed by postgres in a single batch
+							Count: clampInt(maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns), 1, maxPgParamLimit), // automatically rounds down
+						},
 					},
-					// Fallback: []neosync_benthos.Outputs{
-					// 	{
-					// 		DropOn: &neosync_benthos.DropOnConfig{
-					// 			Error: true,
-					// 			Output: neosync_benthos.Outputs{
-					// 				SqlInsert: &neosync_benthos.SqlInsert{
-					// 					Driver: "postgres",
-					// 					Dsn:    dsn,
-
-					// 					Table:         resp.Config.Input.SqlSelect.Table,
-					// 					Columns:       resp.Config.Input.SqlSelect.Columns,
-					// 					ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
-					// 					InitStatement: initStmt,
-					// 				},
-					// 			},
-					// 		},
-					// 	},
-					// },
-					// Retry: &neosync_benthos.RetryConfig{
-					// 	InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-					// 		MaxRetries: 1,
-					// 	},
-					// 	Output: neosync_benthos.OutputConfig{
-					// 		Outputs: neosync_benthos.Outputs{
-					// 			SqlInsert: &neosync_benthos.SqlInsert{
-					// 				Driver: "postgres",
-					// 				Dsn:    dsn,
-
-					// 				Table:         resp.Config.Input.SqlSelect.Table,
-					// 				Columns:       resp.Config.Input.SqlSelect.Columns,
-					// 				ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
-					// 				InitStatement: initStmt,
-					// 			},
-					// 		},
-					// 	},
-					// },
 				})
 
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
@@ -317,6 +295,16 @@ func (a *Activities) GenerateBenthosConfigs(
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+func clampInt(input, low, high int) int {
+	if input < low {
+		return low
+	}
+	if input > high {
+		return high
+	}
+	return input
 }
 
 func areMappingsSubsetOfSchemas(
@@ -518,6 +506,7 @@ type SyncResponse struct{}
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
 	logger := activity.GetLogger(ctx)
 	var benthosStream *service.Stream
+	successChan := make(chan bool)
 	go func() {
 		for {
 			select {
@@ -531,6 +520,13 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 					if err != nil {
 						logger.Error(err.Error())
 					}
+				}
+				return
+			case success := <-successChan:
+				// if failure, I think we still want to call stop on the stream incase something is still going
+				// Need to test this further until we can get all of the benthos logs to go away complaining about ungraceful shutdowns
+				if success {
+					benthosStream = nil
 				}
 				return
 			}
@@ -552,8 +548,10 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 
 	err = stream.Run(ctx)
 	if err != nil {
+		successChan <- false
 		return nil, fmt.Errorf("unable to run benthos stream: %w", err)
 	}
+	successChan <- true
 	return &SyncResponse{}, nil
 }
 

@@ -95,12 +95,17 @@ type Backoff struct {
 }
 
 type SqlInsert struct {
-	Driver        string   `json:"driver" yaml:"driver"`
-	Dsn           string   `json:"dsn" yaml:"dsn"`
-	Table         string   `json:"table" yaml:"table"`
-	Columns       []string `json:"columns" yaml:"columns"`
-	ArgsMapping   string   `json:"args_mapping" yaml:"args_mapping"`
-	InitStatement string   `json:"init_statement" yaml:"init_statement"`
+	Driver          string    `json:"driver" yaml:"driver"`
+	Dsn             string    `json:"dsn" yaml:"dsn"`
+	Table           string    `json:"table" yaml:"table"`
+	Columns         []string  `json:"columns" yaml:"columns"`
+	ArgsMapping     string    `json:"args_mapping" yaml:"args_mapping"`
+	InitStatement   string    `json:"init_statement" yaml:"init_statement"`
+	ConnMaxIdleTime string    `json:"conn_max_idle_time,omitempty" yaml:"conn_max_idle_time,omitempty"`
+	ConnMaxLifeTime string    `json:"conn_max_life_time,omitempty" yaml:"conn_max_life_time,omitempty"`
+	ConnMaxIdle     int       `json:"conn_max_idle,omitempty" yaml:"conn_max_idle,omitempty"`
+	ConnMaxOpen     int       `json:"conn_max_open,omitempty" yaml:"conn_max_open,omitempty"`
+	Batching        *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type AwsS3Insert struct {
@@ -127,7 +132,9 @@ type AwsCredentials struct {
 
 type Batching struct {
 	Count      int               `json:"count" yaml:"count"`
+	ByteSize   int               `json:"byte_size" yaml:"byte_size"`
 	Period     string            `json:"period" yaml:"period"`
+	Check      string            `json:"check" yaml:"check"`
 	Processors []*BatchProcessor `json:"processors" yaml:"processors"`
 }
 
