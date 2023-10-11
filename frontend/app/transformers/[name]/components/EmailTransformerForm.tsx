@@ -24,10 +24,10 @@ export default function EmailTransformerForm(props: Props): ReactElement {
   const [pl, setPl] = useState<boolean>(false);
 
   const handleSubmit = () => {
-    fc.setValue(`mappings.${index}.transformer.config.preserve_domain`, pd, {
+    fc.setValue(`mappings.${index}.transformer.config.preserveDomain`, pd, {
       shouldValidate: false,
     });
-    fc.setValue(`mappings.${index}.transformer.config.preserve_length`, pl, {
+    fc.setValue(`mappings.${index}.transformer.config.preserveLength`, pl, {
       shouldValidate: false,
     });
     setIsSheetOpen!(false);
@@ -37,6 +37,7 @@ export default function EmailTransformerForm(props: Props): ReactElement {
     <div className="flex flex-col w-full space-y-4 pt-10">
       <FormField
         name={`mappings.${index}.transformer.config.preserve_length`}
+        defaultValue={pl}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -58,6 +59,7 @@ export default function EmailTransformerForm(props: Props): ReactElement {
       />
       <FormField
         name={`mappings.${index}.transformer.config.preserve_domain`}
+        defaultValue={pd}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">

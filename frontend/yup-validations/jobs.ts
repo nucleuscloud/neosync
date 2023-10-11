@@ -17,8 +17,8 @@ const TRANSFORMER_SCHEMA = Yup.object().shape({
       is: 'email',
       then: () =>
         Yup.object().shape({
-          preserve_domain: Yup.boolean().required(),
-          preserve_length: Yup.boolean().required(),
+          preserve_domain: Yup.boolean().notRequired(),
+          preserve_length: Yup.boolean().notRequired(),
         }),
     }),
 });
@@ -103,6 +103,16 @@ export function toJobDestinationOptions(
   }
 }
 
+interface EmailTransformer {
+  value: string;
+  config: EmailTransformerConfigs;
+}
+
+interface EmailTransformerConfigs {
+  preserveDomain: boolean;
+  preserveLength: boolean;
+}
+
 export function toTransformerConfigOptions(
   t: {
     value: string;
@@ -117,23 +127,21 @@ export function toTransformerConfigOptions(
   switch (t.value) {
     case 'email': {
       const tf = transformers.find((item) => item.value == t.value);
-
-      const tra = new Transformer({
-        title: t.value,
-        value: t.value,
+      const et = t as EmailTransformer; //cast to email transformer to access fields in config object
+      return new Transformer({
+        title: et.value,
+        value: et.value,
         description: tf?.description,
         config: new TransformerConfig({
           config: {
             case: 'emailConfig',
             value: new EmailConfig({
-              preserveDomain: false,
-              preserveLength: true,
+              preserveDomain: et.config.preserveDomain,
+              preserveLength: et.config.preserveLength,
             }),
           },
         }),
       });
-
-      return tra;
     }
     default: {
       return new Transformer();

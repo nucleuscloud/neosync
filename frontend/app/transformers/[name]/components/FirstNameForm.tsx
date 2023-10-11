@@ -45,12 +45,12 @@ export default function FirstNameTransformerForm(props: Props): ReactElement {
   //     CheckConnectionConfigResponse | undefined
   //   >();
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(_values: FormValues) {
     if (!account) {
       return;
     }
     try {
-      console.log('values', values);
+      // console.log('values', values);
       //   const connection = await createPostgresConnection(
       //     values.db,
       //     values.connectionName,
