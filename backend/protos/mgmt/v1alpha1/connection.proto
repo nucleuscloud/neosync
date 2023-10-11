@@ -2,26 +2,26 @@ syntax = "proto3";
 
 package mgmt.v1alpha1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
-import "validate/validate.proto";
 
 message GetConnectionsRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetConnectionsResponse {
   repeated Connection connections = 1;
 }
 
 message GetConnectionRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetConnectionResponse {
   Connection connection = 1;
 }
 
 message CreateConnectionRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
-  string name = 2 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
 
   ConnectionConfig connection_config = 3;
 }
@@ -30,7 +30,7 @@ message CreateConnectionResponse {
 }
 
 message UpdateConnectionRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 
   ConnectionConfig connection_config = 2;
 }
@@ -39,7 +39,7 @@ message UpdateConnectionResponse {
 }
 
 message DeleteConnectionRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string id = 1 [(buf.validate.field).string.uuid = true];
 }
 message DeleteConnectionResponse {}
 
@@ -69,7 +69,7 @@ message Connection {
 
 message ConnectionConfig {
   oneof config {
-    option (validate.required) = true;
+    option (buf.validate.oneof).required = true;
 
     PostgresConnectionConfig pg_config = 1;
     AwsS3ConnectionConfig aws_s3_config = 2;
@@ -78,7 +78,7 @@ message ConnectionConfig {
 
 message PostgresConnectionConfig {
   oneof connection_config {
-    option (validate.required) = true;
+    option (buf.validate.oneof).required = true;
 
     string url = 1;
     PostgresConnection connection = 2;
@@ -107,8 +107,8 @@ message AwsS3Credentials {
 }
 
 message IsConnectionNameAvailableRequest {
-  string account_id = 1 [(validate.rules).string.uuid = true];
-  string connection_name = 2 [(validate.rules).string.pattern = "^[a-z0-9-]{3,30}$"];
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  string connection_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
 }
 
 message IsConnectionNameAvailableResponse {

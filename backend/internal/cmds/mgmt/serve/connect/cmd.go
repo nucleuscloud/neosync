@@ -10,6 +10,7 @@ import (
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
+	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
 	"github.com/nucleuscloud/neosync/backend/internal/authmw"
@@ -84,19 +85,25 @@ func serve() error {
 	temporalConfig := getTemporalConfig()
 	temporalClient, err := temporalclient.Dial(*temporalConfig)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer temporalClient.Close()
 
 	temporalTaskQueue, err := getTemporalTaskQueue()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	temporalNamespace := getTemporalNamespace()
+
+	validateInterceptor, err := validate.NewInterceptor()
+	if err != nil {
+		return err
+	}
 
 	stdInterceptors := []connect.Interceptor{
 		otelconnect.NewInterceptor(),
 		logger_interceptor.NewInterceptor(logger),
+		validateInterceptor,
 	}
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
