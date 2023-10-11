@@ -2,6 +2,7 @@ package datasync
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -107,6 +108,12 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	return &WorkflowResponse{}, nil
 }
 
+func getSyncMetadata(config *benthosConfigResponse) *SyncMetadata {
+	names := strings.Split(config.Name, ".")
+	schema, table := names[0], names[1]
+	return &SyncMetadata{Schema: schema, Table: table}
+}
+
 func invokeSync(
 	config *benthosConfigResponse,
 	ctx workflow.Context,
@@ -125,8 +132,12 @@ func invokeSync(
 			settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
 			return
 		}
+		metadata := getSyncMetadata(config)
 		var result SyncResponse
-		err = workflow.ExecuteActivity(ctx, wfActivites.Sync, &SyncRequest{BenthosConfig: string(configbits)}).Get(ctx, &result)
+		err = workflow.ExecuteActivity(
+			ctx,
+			wfActivites.Sync,
+			&SyncRequest{BenthosConfig: string(configbits)}, metadata).Get(ctx, &result)
 		completed[config.Name] = struct{}{}
 		settable.Set(result, err)
 	})
