@@ -12,7 +12,7 @@ export const JOB_RUN_STATUS = [
   },
   {
     value: JobRunStatus.FAILED,
-    badge: <Badge variant="destructive">Error</Badge>,
+    badge: <Badge variant="destructive">Failed</Badge>,
   },
   {
     value: JobRunStatus.RUNNING,

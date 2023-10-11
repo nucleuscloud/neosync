@@ -1,17 +1,30 @@
 'use client';
 import { PageProps } from '@/components/types';
 
-import ProgressNav from '@/components/Progress';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SkeletonProgress from '@/components/skeleton/SkeletonProgress';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useGetJobRun } from '@/libs/hooks/useGetJobRun';
 import { useGetJobRunEvents } from '@/libs/hooks/useGetJobRunEvents';
-import { formatDateTime } from '@/util/util';
+import { formatDateTime, formatDateTimeMilliseconds } from '@/util/util';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -25,13 +38,6 @@ export default function Page({ params }: PageProps): ReactElement {
 
   const jobRun = data?.jobRun;
   const events = jobRunEvents?.events || [];
-
-  const progressNavItems = events.map((e) => {
-    return {
-      title: `${e.name} - ${e.type}`,
-      description: formatDateTime(e.createdAt?.toDate()) || '',
-    };
-  });
 
   const status = JOB_RUN_STATUS.find(
     (status) => status.value === jobRun?.status
@@ -62,7 +68,7 @@ export default function Page({ params }: PageProps): ReactElement {
           <SkeletonProgress />
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-12">
           <div
             className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4`}
           >
@@ -96,14 +102,236 @@ export default function Page({ params }: PageProps): ReactElement {
               }
             })}
           </div>
-          <div className="space-y-4">
-            <h1 className="text-xl font-semibold tracking-tight">Steps</h1>
-            {jobRunEventsLoading ? (
-              <SkeletonProgress />
-            ) : (
-              <ProgressNav items={progressNavItems} />
-            )}
+          {/*  */}
+          <div className="space-y-2">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Activities
+            </h1>
+            <div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
+                      <div
+                        className={`grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-5 font-medium  text-left  text-muted-foreground`}
+                      >
+                        <div className="lg:pl-10">Id</div>
+                        <div>Time</div>
+                        <div>Type</div>
+                        <div>Schema</div>
+                        <div>Table</div>
+                      </div>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {events.map((e) => {
+                    const isError = e.Tasks.some((t) => t.error);
+                    return (
+                      <TableRow key={e.id}>
+                        <TableCell
+                          className={` ${
+                            isError && 'border border-destructive'
+                          }`}
+                        >
+                          <Collapsible>
+                            <CollapsibleTrigger className="w-full text-left">
+                              <div
+                                className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-5 `}
+                              >
+                                <div className="lg:pl-10">
+                                  {e.id.toString()}
+                                </div>
+                                <div>
+                                  {e.startTime &&
+                                    formatDateTimeMilliseconds(
+                                      e.startTime.toDate()
+                                    )}
+                                </div>
+                                <div>{e.type}</div>
+                                <div>
+                                  {e.metadata?.metadata.case ==
+                                    'syncMetadata' &&
+                                    e.metadata.metadata.value.schema}
+                                </div>
+                                <div>
+                                  {e.metadata?.metadata.case ==
+                                    'syncMetadata' &&
+                                    e.metadata.metadata.value.table}
+                                </div>
+                              </div>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="bg-muted">
+                              <div>
+                                <Separator />
+                                <div className="p-6">
+                                  <Card className="p-5">
+                                    <Table>
+                                      <TableHeader>
+                                        <TableRow>
+                                          <TableHead>Id</TableHead>
+                                          <TableHead>Type</TableHead>
+                                          <TableHead>Time</TableHead>
+                                          {isError && (
+                                            <>
+                                              <TableHead>Error</TableHead>
+                                              <TableHead>Retry State</TableHead>
+                                            </>
+                                          )}
+                                        </TableRow>
+                                      </TableHeader>
+                                      <TableBody>
+                                        {e.Tasks.map((t) => {
+                                          const cn =
+                                            t.error &&
+                                            'border-t border-b border-destructive';
+                                          return (
+                                            <TableRow key={t.id}>
+                                              <TableCell className={cn}>
+                                                {t.id.toString()}
+                                              </TableCell>
+                                              <TableCell className={cn}>
+                                                {t.type}
+                                              </TableCell>
+                                              <TableCell className={cn}>
+                                                {t.eventTime &&
+                                                  formatDateTimeMilliseconds(
+                                                    t.eventTime.toDate()
+                                                  )}
+                                              </TableCell>
+                                              {isError && (
+                                                <>
+                                                  <TableCell className={cn}>
+                                                    {t.error?.message}
+                                                  </TableCell>
+                                                  <TableCell className={cn}>
+                                                    {t.error?.retryState}
+                                                  </TableCell>
+                                                </>
+                                              )}
+                                            </TableRow>
+                                          );
+                                        })}
+                                      </TableBody>
+                                    </Table>
+                                  </Card>
+                                </div>
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
+          {/*  */}
+          {/* <div className="space-y-2">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Activities
+            </h1>
+            <div className="border">
+              <div
+                className={`grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-5 font-medium border-b text-left  text-muted-foreground`}
+              >
+                <div className="lg:pl-10">Id</div>
+                <div>Time</div>
+                <div>Type</div>
+                <div>Schema</div>
+                <div>Table</div>
+              </div>
+              {events.map((e) => {
+                const isError = e.Tasks.some((t) => t.error);
+                return (
+                  <div key={e.id} className="border-b">
+                    <Collapsible>
+                      <CollapsibleTrigger className="w-full text-left">
+                        <div
+                          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-5 ${
+                            isError && 'border border-destructive'
+                          }`}
+                        >
+                          <div className="lg:pl-10">{e.id.toString()}</div>
+                          <div>
+                            {e.startTime &&
+                              formatDateTimeMilliseconds(e.startTime.toDate())}
+                          </div>
+                          <div>{e.type}</div>
+                          <div>
+                            {e.metadata?.metadata.case == 'syncMetadata' &&
+                              e.metadata.metadata.value.schema}
+                          </div>
+                          <div>
+                            {e.metadata?.metadata.case == 'syncMetadata' &&
+                              e.metadata.metadata.value.table}
+                          </div>
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div>
+                          <Separator />
+                          <div className="p-6">
+                            <Card className="p-5">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Id</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Time</TableHead>
+                                    {isError && (
+                                      <>
+                                        <TableHead>Error</TableHead>
+                                        <TableHead>Retry State</TableHead>
+                                      </>
+                                    )}
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {e.Tasks.map((t) => {
+                                    const cn =
+                                      t.error &&
+                                      'border-t border-b border-destructive';
+                                    return (
+                                      <TableRow key={t.id}>
+                                        <TableCell className={cn}>
+                                          {t.id.toString()}
+                                        </TableCell>
+                                        <TableCell className={cn}>
+                                          {t.type}
+                                        </TableCell>
+                                        <TableCell className={cn}>
+                                          {t.eventTime &&
+                                            formatDateTimeMilliseconds(
+                                              t.eventTime.toDate()
+                                            )}
+                                        </TableCell>
+                                        {isError && (
+                                          <>
+                                            <TableCell className={cn}>
+                                              {t.error?.message}
+                                            </TableCell>
+                                            <TableCell className={cn}>
+                                              {t.error?.retryState}
+                                            </TableCell>
+                                          </>
+                                        )}
+                                      </TableRow>
+                                    );
+                                  })}
+                                </TableBody>
+                              </Table>
+                            </Card>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                );
+              })}
+            </div>
+          </div> */}
         </div>
       )}
     </OverviewContainer>
