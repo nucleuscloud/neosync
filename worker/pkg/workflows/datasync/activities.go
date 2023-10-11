@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -25,6 +27,10 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
+)
+
+const (
+	maxPgParamLimit = 65535
 )
 
 type GenerateBenthosConfigsRequest struct {
@@ -220,6 +226,7 @@ func (a *Activities) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
+				logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					SqlInsert: &neosync_benthos.SqlInsert{
 						Driver: "postgres",
@@ -229,43 +236,16 @@ func (a *Activities) GenerateBenthosConfigs(
 						Columns:       resp.Config.Input.SqlSelect.Columns,
 						ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
 						InitStatement: initStmt,
+
+						ConnMaxIdle: 2,
+						ConnMaxOpen: 2,
+
+						Batching: &neosync_benthos.Batching{
+							Period: "1s",
+							// max allowed by postgres in a single batch
+							Count: clampInt(maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns), 1, maxPgParamLimit), // automatically rounds down
+						},
 					},
-					// Fallback: []neosync_benthos.Outputs{
-					// 	{
-					// 		DropOn: &neosync_benthos.DropOnConfig{
-					// 			Error: true,
-					// 			Output: neosync_benthos.Outputs{
-					// 				SqlInsert: &neosync_benthos.SqlInsert{
-					// 					Driver: "postgres",
-					// 					Dsn:    dsn,
-
-					// 					Table:         resp.Config.Input.SqlSelect.Table,
-					// 					Columns:       resp.Config.Input.SqlSelect.Columns,
-					// 					ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
-					// 					InitStatement: initStmt,
-					// 				},
-					// 			},
-					// 		},
-					// 	},
-					// },
-					// Retry: &neosync_benthos.RetryConfig{
-					// 	InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-					// 		MaxRetries: 1,
-					// 	},
-					// 	Output: neosync_benthos.OutputConfig{
-					// 		Outputs: neosync_benthos.Outputs{
-					// 			SqlInsert: &neosync_benthos.SqlInsert{
-					// 				Driver: "postgres",
-					// 				Dsn:    dsn,
-
-					// 				Table:         resp.Config.Input.SqlSelect.Table,
-					// 				Columns:       resp.Config.Input.SqlSelect.Columns,
-					// 				ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
-					// 				InitStatement: initStmt,
-					// 			},
-					// 		},
-					// 	},
-					// },
 				})
 
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
@@ -317,6 +297,16 @@ func (a *Activities) GenerateBenthosConfigs(
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+func clampInt(input, low, high int) int {
+	if input < low {
+		return low
+	}
+	if input > high {
+		return high
+	}
+	return input
 }
 
 func areMappingsSubsetOfSchemas(
@@ -538,6 +528,12 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 	}()
 
 	streambldr := service.NewStreamBuilder()
+	// would ideally use the activity logger here but can't convert it into a slog.
+	benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	streambldr.SetLogger(benthoslogger.With(
+		"metadata", metadata,
+		"benthos", "true",
+	))
 
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
@@ -554,6 +550,7 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 	if err != nil {
 		return nil, fmt.Errorf("unable to run benthos stream: %w", err)
 	}
+	benthosStream = nil
 	return &SyncResponse{}, nil
 }
 
