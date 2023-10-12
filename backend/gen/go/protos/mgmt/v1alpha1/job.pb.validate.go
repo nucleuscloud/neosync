@@ -7786,11 +7786,7 @@ func (m *Transformer) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Title
-
 	// no validation rules for Value
-
-	// no validation rules for Description
 
 	if all {
 		switch v := interface{}(m.GetConfig()).(type) {

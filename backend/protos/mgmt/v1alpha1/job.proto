@@ -309,9 +309,7 @@ message GetTransformersResponse {
 }
 
 message Transformer {
-  string title = 1;
   string value = 2;
-  string description = 3;
   TransformerConfig config = 4;
 }
 

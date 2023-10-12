@@ -161,10 +161,8 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 }
 
 type Transformer struct {
-	Title       string
-	Value       string
-	Description string
-	Config      *TransformerConfigs
+	Value  string
+	Config *TransformerConfigs
 }
 
 type TransformerConfigs struct {
@@ -182,9 +180,7 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 	if tr.Config != nil {
 		switch tr.Config.Config.(type) {
 		case *mgmtv1alpha1.TransformerConfig_EmailConfig:
-			t.Title = tr.Title
 			t.Value = tr.Value
-			t.Description = tr.Description
 			t.Config = &TransformerConfigs{
 				EmailConfig: &EmailConfigs{
 					PreserveLength: tr.Config.GetEmailConfig().PreserveLength,
@@ -203,9 +199,7 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 
 	if t.Config != nil {
 		return &mgmtv1alpha1.Transformer{
-			Title:       t.Title,
-			Value:       t.Value,
-			Description: t.Description,
+			Value: t.Value,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
 					EmailConfig: &mgmtv1alpha1.EmailConfig{
