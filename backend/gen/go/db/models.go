@@ -45,7 +45,7 @@ type NeosyncApiJob struct {
 	Status             int16
 	ConnectionSourceID pgtype.UUID
 	ConnectionOptions  *jsonmodels.JobSourceOptions
-	Mappings           []*jsonmodels.JobMapping
+	Mappings           []*jsonmodels.JobSchemaMapping
 	CronSchedule       pgtype.Text
 	CreatedByID        pgtype.UUID
 	UpdatedByID        pgtype.UUID

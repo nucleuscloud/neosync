@@ -128,27 +128,105 @@ type AwsS3ConnectionConfig struct {
 	Credentials *AwsS3Credentials
 }
 
-type JobMapping struct {
-	Schema      string
-	Table       string
+type JobSchemaMapping struct {
+	Schema        string
+	TableMappings []*JobTableMapping
+}
+
+func (j *JobSchemaMapping) ToDto() *mgmtv1alpha1.JobSchemaMapping {
+	jsm := &mgmtv1alpha1.JobSchemaMapping{}
+	jsm.Schema = j.Schema
+	jsm.TableMappings = make([]*mgmtv1alpha1.JobTableMapping, len(j.TableMappings))
+	for i := range j.TableMappings {
+		jsm.TableMappings[i] = j.TableMappings[i].ToDto()
+	}
+	return jsm
+}
+func (j *JobSchemaMapping) FromDto(dto *mgmtv1alpha1.JobSchemaMapping) error {
+	j.Schema = dto.Schema
+	j.TableMappings = make([]*JobTableMapping, len(dto.TableMappings))
+	for i := range dto.TableMappings {
+		val := &JobTableMapping{}
+		err := val.FromDto(dto.TableMappings[i])
+		if err != nil {
+			return err
+		}
+		j.TableMappings[i] = val
+	}
+	return nil
+}
+
+type JobTableMapping struct {
+	Table                  string
+	ColumnMappings         []*JobColumnMapping
+	InitSchemaBeforeInsert bool
+	Truncate               TruncateTableConfig
+}
+
+func (j *JobTableMapping) ToDto() *mgmtv1alpha1.JobTableMapping {
+	jtm := &mgmtv1alpha1.JobTableMapping{
+		Table:                  j.Table,
+		InitSchemaBeforeInsert: j.InitSchemaBeforeInsert,
+		Truncate:               j.Truncate.ToDto(),
+		ColumnMappings:         make([]*mgmtv1alpha1.JobColumnMapping, len(j.ColumnMappings)),
+	}
+	for i := range j.ColumnMappings {
+		jtm.ColumnMappings[i] = j.ColumnMappings[i].ToDto()
+	}
+	return jtm
+}
+func (j *JobTableMapping) FromDto(dto *mgmtv1alpha1.JobTableMapping) error {
+	j.Table = dto.Table
+	j.InitSchemaBeforeInsert = dto.InitSchemaBeforeInsert
+	j.ColumnMappings = make([]*JobColumnMapping, len(dto.ColumnMappings))
+	for i := range dto.ColumnMappings {
+		val := &JobColumnMapping{}
+		err := val.FromDto(dto.ColumnMappings[i])
+		if err != nil {
+			return err
+		}
+		j.ColumnMappings[i] = val
+	}
+	j.Truncate = TruncateTableConfig{}
+	err := j.Truncate.FromDto(dto.Truncate)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type TruncateTableConfig struct {
+	TruncateBeforeInsert bool
+	Cascade              bool
+}
+
+func (j *TruncateTableConfig) ToDto() *mgmtv1alpha1.TruncateTableConfig {
+	return &mgmtv1alpha1.TruncateTableConfig{
+		TruncateBeforeInsert: j.TruncateBeforeInsert,
+		Cascade:              j.Cascade,
+	}
+}
+func (j *TruncateTableConfig) FromDto(dto *mgmtv1alpha1.TruncateTableConfig) error {
+	j.TruncateBeforeInsert = dto.TruncateBeforeInsert
+	j.Cascade = dto.Cascade
+	return nil
+}
+
+type JobColumnMapping struct {
 	Column      string
 	Transformer string
 	Exclude     bool
 }
 
-func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
-	return &mgmtv1alpha1.JobMapping{
-		Schema:      jm.Schema,
-		Table:       jm.Table,
+func (jm *JobColumnMapping) ToDto() *mgmtv1alpha1.JobColumnMapping {
+	return &mgmtv1alpha1.JobColumnMapping{
 		Column:      jm.Column,
 		Transformer: jm.Transformer,
 		Exclude:     jm.Exclude,
 	}
 }
 
-func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
-	jm.Schema = dto.Schema
-	jm.Table = dto.Table
+func (jm *JobColumnMapping) FromDto(dto *mgmtv1alpha1.JobColumnMapping) error {
 	jm.Column = dto.Column
 	jm.Transformer = dto.Transformer
 	jm.Exclude = dto.Exclude
@@ -188,21 +266,24 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 }
 
 type JobDestinationOptions struct {
-	SqlOptions *SqlDestinationOptions
+	SqlOptions   *SqlDestinationOptions
+	AwsS3Options *AwsS3DestinationOptions
 }
-type SqlDestinationOptions struct {
-	TruncateBeforeInsert bool
-	InitDbSchema         bool
-}
+type SqlDestinationOptions struct{}
+type AwsS3DestinationOptions struct{}
 
 func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 	if j.SqlOptions != nil {
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_SqlOptions{
-				SqlOptions: &mgmtv1alpha1.SqlDestinationConnectionOptions{
-					TruncateBeforeInsert: &j.SqlOptions.TruncateBeforeInsert,
-					InitDbSchema:         &j.SqlOptions.InitDbSchema,
-				},
+				SqlOptions: &mgmtv1alpha1.SqlDestinationConnectionOptions{},
+			},
+		}
+	}
+	if j.AwsS3Options != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_AwsS3Options{
+				AwsS3Options: &mgmtv1alpha1.AwsS3DestinationConnectionOptions{},
 			},
 		}
 	}
@@ -210,12 +291,11 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 }
 
 func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions) error {
-	switch config := dto.Config.(type) {
+	switch dto.Config.(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_SqlOptions:
-		j.SqlOptions = &SqlDestinationOptions{
-			TruncateBeforeInsert: *config.SqlOptions.TruncateBeforeInsert,
-			InitDbSchema:         *config.SqlOptions.InitDbSchema,
-		}
+		j.SqlOptions = &SqlDestinationOptions{}
+	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
+		j.AwsS3Options = &AwsS3DestinationOptions{}
 	default:
 		return fmt.Errorf("invalid config")
 	}

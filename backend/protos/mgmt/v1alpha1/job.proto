@@ -18,7 +18,7 @@ message JobSource {
 }
 
 message CreateJobDestination {
-  string connection_id = 1;
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
   JobDestinationOptions options = 2;
 }
 
@@ -49,29 +49,45 @@ message JobDestinationOptions {
   }
 }
 
-message SqlDestinationConnectionOptions {
-  optional bool truncate_before_insert = 1;
-  optional bool init_db_schema = 2;
-}
+message SqlDestinationConnectionOptions {}
 message AwsS3DestinationConnectionOptions {}
 
 message CreateJobRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
-  string job_name = 2;
+  string job_name = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 63
+  ];
   optional string cron_schedule = 3;
-  repeated JobMapping mappings = 4;
+  repeated JobSchemaMapping mappings = 4;
+
   JobSource source = 5;
   repeated CreateJobDestination destinations = 6;
 }
-message CreateJobResponse {
-  Job job = 1;
+
+message JobSchemaMapping {
+  string schema = 1;
+  repeated JobTableMapping table_mappings = 2;
 }
 
-message JobMapping {
-  string schema = 1;
-  string table = 2;
-  string column = 3;
-  string transformer = 5 [(buf.validate.field).string = {
+message JobTableMapping {
+  string table = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 63
+  ];
+  repeated JobColumnMapping column_mappings = 2;
+  bool init_schema_before_insert = 3;
+  TruncateTableConfig truncate = 4;
+}
+
+message TruncateTableConfig {
+  bool truncate_before_insert = 1;
+  bool cascade = 2;
+}
+
+message JobColumnMapping {
+  string column = 1;
+  string transformer = 2 [(buf.validate.field).string = {
     in: [
       "passthrough",
       "uuid_v4",
@@ -80,7 +96,11 @@ message JobMapping {
       "email"
     ]
   }];
-  bool exclude = 6;
+  bool exclude = 3;
+}
+
+message CreateJobResponse {
+  Job job = 1;
 }
 
 enum JobStatus {
@@ -117,7 +137,7 @@ message PauseJobResponse {
 message UpdateJobSourceConnectionRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
   JobSource source = 2;
-  repeated JobMapping mappings = 3 [(buf.validate.field).repeated = {min_items: 1}];
+  repeated JobSchemaMapping mappings = 3 [(buf.validate.field).repeated = {min_items: 1}];
 }
 message UpdateJobSourceConnectionResponse {
   Job job = 1;
@@ -211,7 +231,7 @@ message Job {
 
   JobSource source = 8;
   repeated JobDestination destinations = 9;
-  repeated JobMapping mappings = 10;
+  repeated JobSchemaMapping mappings = 10;
   optional string cron_schedule = 11;
   JobRecentRuns recent_runs = 12;
   JobNextRuns next_runs = 13;

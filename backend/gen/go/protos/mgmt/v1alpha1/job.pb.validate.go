@@ -1274,14 +1274,6 @@ func (m *SqlDestinationConnectionOptions) validate(all bool) error {
 
 	var errors []error
 
-	if m.TruncateBeforeInsert != nil {
-		// no validation rules for TruncateBeforeInsert
-	}
-
-	if m.InitDbSchema != nil {
-		// no validation rules for InitDbSchema
-	}
-
 	if len(errors) > 0 {
 		return SqlDestinationConnectionOptionsMultiError(errors)
 	}
@@ -1673,6 +1665,521 @@ var _ interface {
 	ErrorName() string
 } = CreateJobRequestValidationError{}
 
+// Validate checks the field values on JobSchemaMapping with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *JobSchemaMapping) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobSchemaMapping with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobSchemaMappingMultiError, or nil if none found.
+func (m *JobSchemaMapping) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobSchemaMapping) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Schema
+
+	for idx, item := range m.GetTableMappings() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSchemaMappingValidationError{
+						field:  fmt.Sprintf("TableMappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSchemaMappingValidationError{
+						field:  fmt.Sprintf("TableMappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSchemaMappingValidationError{
+					field:  fmt.Sprintf("TableMappings[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return JobSchemaMappingMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobSchemaMappingMultiError is an error wrapping multiple validation errors
+// returned by JobSchemaMapping.ValidateAll() if the designated constraints
+// aren't met.
+type JobSchemaMappingMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobSchemaMappingMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobSchemaMappingMultiError) AllErrors() []error { return m }
+
+// JobSchemaMappingValidationError is the validation error returned by
+// JobSchemaMapping.Validate if the designated constraints aren't met.
+type JobSchemaMappingValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobSchemaMappingValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobSchemaMappingValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobSchemaMappingValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobSchemaMappingValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobSchemaMappingValidationError) ErrorName() string { return "JobSchemaMappingValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobSchemaMappingValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobSchemaMapping.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobSchemaMappingValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobSchemaMappingValidationError{}
+
+// Validate checks the field values on JobTableMapping with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *JobTableMapping) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobTableMapping with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobTableMappingMultiError, or nil if none found.
+func (m *JobTableMapping) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobTableMapping) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Table
+
+	for idx, item := range m.GetColumnMappings() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobTableMappingValidationError{
+						field:  fmt.Sprintf("ColumnMappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobTableMappingValidationError{
+						field:  fmt.Sprintf("ColumnMappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobTableMappingValidationError{
+					field:  fmt.Sprintf("ColumnMappings[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for InitSchemaBeforeInsert
+
+	if all {
+		switch v := interface{}(m.GetTruncate()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobTableMappingValidationError{
+					field:  "Truncate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobTableMappingValidationError{
+					field:  "Truncate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTruncate()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobTableMappingValidationError{
+				field:  "Truncate",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return JobTableMappingMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobTableMappingMultiError is an error wrapping multiple validation errors
+// returned by JobTableMapping.ValidateAll() if the designated constraints
+// aren't met.
+type JobTableMappingMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobTableMappingMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobTableMappingMultiError) AllErrors() []error { return m }
+
+// JobTableMappingValidationError is the validation error returned by
+// JobTableMapping.Validate if the designated constraints aren't met.
+type JobTableMappingValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobTableMappingValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobTableMappingValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobTableMappingValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobTableMappingValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobTableMappingValidationError) ErrorName() string { return "JobTableMappingValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobTableMappingValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobTableMapping.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobTableMappingValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobTableMappingValidationError{}
+
+// Validate checks the field values on TruncateTableConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TruncateTableConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TruncateTableConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TruncateTableConfigMultiError, or nil if none found.
+func (m *TruncateTableConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TruncateTableConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for TruncateBeforeInsert
+
+	// no validation rules for Cascade
+
+	if len(errors) > 0 {
+		return TruncateTableConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// TruncateTableConfigMultiError is an error wrapping multiple validation
+// errors returned by TruncateTableConfig.ValidateAll() if the designated
+// constraints aren't met.
+type TruncateTableConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TruncateTableConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TruncateTableConfigMultiError) AllErrors() []error { return m }
+
+// TruncateTableConfigValidationError is the validation error returned by
+// TruncateTableConfig.Validate if the designated constraints aren't met.
+type TruncateTableConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TruncateTableConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TruncateTableConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TruncateTableConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TruncateTableConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TruncateTableConfigValidationError) ErrorName() string {
+	return "TruncateTableConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TruncateTableConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTruncateTableConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TruncateTableConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TruncateTableConfigValidationError{}
+
+// Validate checks the field values on JobColumnMapping with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *JobColumnMapping) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobColumnMapping with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobColumnMappingMultiError, or nil if none found.
+func (m *JobColumnMapping) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobColumnMapping) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Column
+
+	// no validation rules for Transformer
+
+	// no validation rules for Exclude
+
+	if len(errors) > 0 {
+		return JobColumnMappingMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobColumnMappingMultiError is an error wrapping multiple validation errors
+// returned by JobColumnMapping.ValidateAll() if the designated constraints
+// aren't met.
+type JobColumnMappingMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobColumnMappingMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobColumnMappingMultiError) AllErrors() []error { return m }
+
+// JobColumnMappingValidationError is the validation error returned by
+// JobColumnMapping.Validate if the designated constraints aren't met.
+type JobColumnMappingValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobColumnMappingValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobColumnMappingValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobColumnMappingValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobColumnMappingValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobColumnMappingValidationError) ErrorName() string { return "JobColumnMappingValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobColumnMappingValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobColumnMapping.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobColumnMappingValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobColumnMappingValidationError{}
+
 // Validate checks the field values on CreateJobResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -1803,115 +2310,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateJobResponseValidationError{}
-
-// Validate checks the field values on JobMapping with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *JobMapping) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on JobMapping with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in JobMappingMultiError, or
-// nil if none found.
-func (m *JobMapping) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *JobMapping) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Schema
-
-	// no validation rules for Table
-
-	// no validation rules for Column
-
-	// no validation rules for Transformer
-
-	// no validation rules for Exclude
-
-	if len(errors) > 0 {
-		return JobMappingMultiError(errors)
-	}
-
-	return nil
-}
-
-// JobMappingMultiError is an error wrapping multiple validation errors
-// returned by JobMapping.ValidateAll() if the designated constraints aren't met.
-type JobMappingMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m JobMappingMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m JobMappingMultiError) AllErrors() []error { return m }
-
-// JobMappingValidationError is the validation error returned by
-// JobMapping.Validate if the designated constraints aren't met.
-type JobMappingValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e JobMappingValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e JobMappingValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e JobMappingValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e JobMappingValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e JobMappingValidationError) ErrorName() string { return "JobMappingValidationError" }
-
-// Error satisfies the builtin error interface
-func (e JobMappingValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sJobMapping.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = JobMappingValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = JobMappingValidationError{}
 
 // Validate checks the field values on GetJobRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

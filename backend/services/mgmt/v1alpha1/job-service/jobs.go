@@ -205,9 +205,9 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	mappings := []*jsonmodels.JobMapping{}
+	mappings := []*jsonmodels.JobSchemaMapping{}
 	for _, mapping := range req.Msg.Mappings {
-		jm := &jsonmodels.JobMapping{}
+		jm := &jsonmodels.JobSchemaMapping{}
 		err = jm.FromDto(mapping)
 		if err != nil {
 			return nil, err
@@ -635,9 +635,9 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, err
 	}
 
-	mappings := []*jsonmodels.JobMapping{}
+	mappings := []*jsonmodels.JobSchemaMapping{}
 	for _, mapping := range req.Msg.Mappings {
-		jm := &jsonmodels.JobMapping{}
+		jm := &jsonmodels.JobSchemaMapping{}
 		err = jm.FromDto(mapping)
 		if err != nil {
 			return nil, err

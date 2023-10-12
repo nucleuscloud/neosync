@@ -513,16 +513,6 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
  * @generated from message mgmt.v1alpha1.SqlDestinationConnectionOptions
  */
 export class SqlDestinationConnectionOptions extends Message<SqlDestinationConnectionOptions> {
-  /**
-   * @generated from field: optional bool truncate_before_insert = 1;
-   */
-  truncateBeforeInsert?: boolean;
-
-  /**
-   * @generated from field: optional bool init_db_schema = 2;
-   */
-  initDbSchema?: boolean;
-
   constructor(data?: PartialMessage<SqlDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -531,8 +521,6 @@ export class SqlDestinationConnectionOptions extends Message<SqlDestinationConne
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.SqlDestinationConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "truncate_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
-    { no: 2, name: "init_db_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlDestinationConnectionOptions {
@@ -603,9 +591,9 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   cronSchedule?: string;
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 4;
+   * @generated from field: repeated mgmt.v1alpha1.JobSchemaMapping mappings = 4;
    */
-  mappings: JobMapping[] = [];
+  mappings: JobSchemaMapping[] = [];
 
   /**
    * @generated from field: mgmt.v1alpha1.JobSource source = 5;
@@ -628,7 +616,7 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
     { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "job_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 4, name: "mappings", kind: "message", T: JobMapping, repeated: true },
+    { no: 4, name: "mappings", kind: "message", T: JobSchemaMapping, repeated: true },
     { no: 5, name: "source", kind: "message", T: JobSource },
     { no: 6, name: "destinations", kind: "message", T: CreateJobDestination, repeated: true },
   ]);
@@ -647,6 +635,196 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
 
   static equals(a: CreateJobRequest | PlainMessage<CreateJobRequest> | undefined, b: CreateJobRequest | PlainMessage<CreateJobRequest> | undefined): boolean {
     return proto3.util.equals(CreateJobRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobSchemaMapping
+ */
+export class JobSchemaMapping extends Message<JobSchemaMapping> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobTableMapping table_mappings = 2;
+   */
+  tableMappings: JobTableMapping[] = [];
+
+  constructor(data?: PartialMessage<JobSchemaMapping>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobSchemaMapping";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "table_mappings", kind: "message", T: JobTableMapping, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSchemaMapping {
+    return new JobSchemaMapping().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobSchemaMapping {
+    return new JobSchemaMapping().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobSchemaMapping {
+    return new JobSchemaMapping().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobSchemaMapping | PlainMessage<JobSchemaMapping> | undefined, b: JobSchemaMapping | PlainMessage<JobSchemaMapping> | undefined): boolean {
+    return proto3.util.equals(JobSchemaMapping, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobTableMapping
+ */
+export class JobTableMapping extends Message<JobTableMapping> {
+  /**
+   * @generated from field: string table = 1;
+   */
+  table = "";
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobColumnMapping column_mappings = 2;
+   */
+  columnMappings: JobColumnMapping[] = [];
+
+  /**
+   * @generated from field: bool init_schema_before_insert = 3;
+   */
+  initSchemaBeforeInsert = false;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.TruncateTableConfig truncate = 4;
+   */
+  truncate?: TruncateTableConfig;
+
+  constructor(data?: PartialMessage<JobTableMapping>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobTableMapping";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "column_mappings", kind: "message", T: JobColumnMapping, repeated: true },
+    { no: 3, name: "init_schema_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 4, name: "truncate", kind: "message", T: TruncateTableConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobTableMapping {
+    return new JobTableMapping().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobTableMapping {
+    return new JobTableMapping().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobTableMapping {
+    return new JobTableMapping().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobTableMapping | PlainMessage<JobTableMapping> | undefined, b: JobTableMapping | PlainMessage<JobTableMapping> | undefined): boolean {
+    return proto3.util.equals(JobTableMapping, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.TruncateTableConfig
+ */
+export class TruncateTableConfig extends Message<TruncateTableConfig> {
+  /**
+   * @generated from field: bool truncate_before_insert = 1;
+   */
+  truncateBeforeInsert = false;
+
+  /**
+   * @generated from field: bool cascade = 2;
+   */
+  cascade = false;
+
+  constructor(data?: PartialMessage<TruncateTableConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.TruncateTableConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "truncate_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "cascade", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TruncateTableConfig {
+    return new TruncateTableConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TruncateTableConfig {
+    return new TruncateTableConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TruncateTableConfig {
+    return new TruncateTableConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TruncateTableConfig | PlainMessage<TruncateTableConfig> | undefined, b: TruncateTableConfig | PlainMessage<TruncateTableConfig> | undefined): boolean {
+    return proto3.util.equals(TruncateTableConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobColumnMapping
+ */
+export class JobColumnMapping extends Message<JobColumnMapping> {
+  /**
+   * @generated from field: string column = 1;
+   */
+  column = "";
+
+  /**
+   * @generated from field: string transformer = 2;
+   */
+  transformer = "";
+
+  /**
+   * @generated from field: bool exclude = 3;
+   */
+  exclude = false;
+
+  constructor(data?: PartialMessage<JobColumnMapping>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobColumnMapping";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "transformer", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "exclude", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobColumnMapping {
+    return new JobColumnMapping().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobColumnMapping {
+    return new JobColumnMapping().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobColumnMapping {
+    return new JobColumnMapping().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobColumnMapping | PlainMessage<JobColumnMapping> | undefined, b: JobColumnMapping | PlainMessage<JobColumnMapping> | undefined): boolean {
+    return proto3.util.equals(JobColumnMapping, a, b);
   }
 }
 
@@ -684,67 +862,6 @@ export class CreateJobResponse extends Message<CreateJobResponse> {
 
   static equals(a: CreateJobResponse | PlainMessage<CreateJobResponse> | undefined, b: CreateJobResponse | PlainMessage<CreateJobResponse> | undefined): boolean {
     return proto3.util.equals(CreateJobResponse, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.JobMapping
- */
-export class JobMapping extends Message<JobMapping> {
-  /**
-   * @generated from field: string schema = 1;
-   */
-  schema = "";
-
-  /**
-   * @generated from field: string table = 2;
-   */
-  table = "";
-
-  /**
-   * @generated from field: string column = 3;
-   */
-  column = "";
-
-  /**
-   * @generated from field: string transformer = 5;
-   */
-  transformer = "";
-
-  /**
-   * @generated from field: bool exclude = 6;
-   */
-  exclude = false;
-
-  constructor(data?: PartialMessage<JobMapping>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.JobMapping";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "transformer", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "exclude", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobMapping {
-    return new JobMapping().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobMapping {
-    return new JobMapping().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobMapping {
-    return new JobMapping().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: JobMapping | PlainMessage<JobMapping> | undefined, b: JobMapping | PlainMessage<JobMapping> | undefined): boolean {
-    return proto3.util.equals(JobMapping, a, b);
   }
 }
 
@@ -1003,9 +1120,9 @@ export class UpdateJobSourceConnectionRequest extends Message<UpdateJobSourceCon
   source?: JobSource;
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 3;
+   * @generated from field: repeated mgmt.v1alpha1.JobSchemaMapping mappings = 3;
    */
-  mappings: JobMapping[] = [];
+  mappings: JobSchemaMapping[] = [];
 
   constructor(data?: PartialMessage<UpdateJobSourceConnectionRequest>) {
     super();
@@ -1017,7 +1134,7 @@ export class UpdateJobSourceConnectionRequest extends Message<UpdateJobSourceCon
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "source", kind: "message", T: JobSource },
-    { no: 3, name: "mappings", kind: "message", T: JobMapping, repeated: true },
+    { no: 3, name: "mappings", kind: "message", T: JobSchemaMapping, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateJobSourceConnectionRequest {
@@ -1926,9 +2043,9 @@ export class Job extends Message<Job> {
   destinations: JobDestination[] = [];
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.JobMapping mappings = 10;
+   * @generated from field: repeated mgmt.v1alpha1.JobSchemaMapping mappings = 10;
    */
-  mappings: JobMapping[] = [];
+  mappings: JobSchemaMapping[] = [];
 
   /**
    * @generated from field: optional string cron_schedule = 11;
@@ -1967,7 +2084,7 @@ export class Job extends Message<Job> {
     { no: 7, name: "status", kind: "enum", T: proto3.getEnumType(JobStatus) },
     { no: 8, name: "source", kind: "message", T: JobSource },
     { no: 9, name: "destinations", kind: "message", T: JobDestination, repeated: true },
-    { no: 10, name: "mappings", kind: "message", T: JobMapping, repeated: true },
+    { no: 10, name: "mappings", kind: "message", T: JobSchemaMapping, repeated: true },
     { no: 11, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 12, name: "recent_runs", kind: "message", T: JobRecentRuns },
     { no: 13, name: "next_runs", kind: "message", T: JobNextRuns },

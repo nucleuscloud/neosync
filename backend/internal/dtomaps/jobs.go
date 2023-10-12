@@ -13,7 +13,7 @@ func ToJobDto(
 	inputDestConnections []db_queries.NeosyncApiJobDestinationConnectionAssociation,
 	inputSchedule *temporalclient.ScheduleDescription,
 ) *mgmtv1alpha1.Job {
-	mappings := []*mgmtv1alpha1.JobMapping{}
+	mappings := []*mgmtv1alpha1.JobSchemaMapping{}
 	for _, mapping := range inputJob.Mappings {
 		mappings = append(mappings, mapping.ToDto())
 	}
