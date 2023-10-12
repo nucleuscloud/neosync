@@ -30,7 +30,6 @@ func ToJobDto(
 		UpdatedAt:       timestamppb.New(inputJob.UpdatedAt.Time),
 		CreatedByUserId: nucleusdb.UUIDString(inputJob.CreatedByID),
 		UpdatedByUserId: nucleusdb.UUIDString(inputJob.UpdatedByID),
-		Status:          toJobStatus(inputJob, inputSchedule),
 		CronSchedule:    nucleusdb.ToNullableString(inputJob.CronSchedule),
 		Mappings:        mappings,
 		Source: &mgmtv1alpha1.JobSource{
@@ -39,10 +38,7 @@ func ToJobDto(
 		},
 		Destinations: destinations,
 		AccountId:    nucleusdb.UUIDString(inputJob.AccountID),
-		RecentRuns:   toRecentRunsDto(inputSchedule),
-		NextRuns:     toNextRunsDto(inputSchedule),
 	}
-
 }
 
 func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssociation) *mgmtv1alpha1.JobDestination {
@@ -53,14 +49,14 @@ func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssoci
 	}
 }
 
-func toJobStatus(inputJob *db_queries.NeosyncApiJob, inputSchedule *temporalclient.ScheduleDescription) mgmtv1alpha1.JobStatus {
+func ToJobStatus(inputSchedule *temporalclient.ScheduleDescription) mgmtv1alpha1.JobStatus {
 	if inputSchedule.Schedule.State.Paused {
 		return mgmtv1alpha1.JobStatus_JOB_STATUS_PAUSED
 	}
-	return mgmtv1alpha1.JobStatus(inputJob.Status)
+	return mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED
 }
 
-func toRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobRecentRuns {
+func ToJobRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobRecentRuns {
 	recentRuns := []*mgmtv1alpha1.JobRecentRun{}
 	if inputSchedule == nil {
 		return nil
@@ -76,7 +72,7 @@ func toRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1a
 	}
 }
 
-func toNextRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobNextRuns {
+func ToJobNextRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobNextRuns {
 	nextRunTimes := []*timestamppb.Timestamp{}
 	if inputSchedule == nil {
 		return nil

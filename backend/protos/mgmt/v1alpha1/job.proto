@@ -186,17 +186,6 @@ message CancelJobRunRequest {
 }
 message CancelJobRunResponse {}
 
-message JobRecentRun {
-  google.protobuf.Timestamp start_time = 1;
-  string job_run_id = 2;
-}
-message JobRecentRuns {
-  repeated JobRecentRun runs = 1;
-}
-message JobNextRuns {
-  repeated google.protobuf.Timestamp next_run_times = 1;
-}
-
 message Job {
   string id = 1;
 
@@ -207,16 +196,46 @@ message Job {
   google.protobuf.Timestamp updated_at = 5;
 
   string name = 6;
-  JobStatus status = 7;
 
-  JobSource source = 8;
-  repeated JobDestination destinations = 9;
-  repeated JobMapping mappings = 10;
-  optional string cron_schedule = 11;
-  JobRecentRuns recent_runs = 12;
-  JobNextRuns next_runs = 13;
+  JobSource source = 7;
+  repeated JobDestination destinations = 8;
+  repeated JobMapping mappings = 9;
+  optional string cron_schedule = 10;
 
-  string account_id = 14;
+  string account_id = 11;
+}
+
+message JobRecentRun {
+  google.protobuf.Timestamp start_time = 1;
+  string job_run_id = 2;
+}
+message JobRecentRuns {
+  repeated JobRecentRun runs = 1;
+}
+
+message GetJobRecentRunsRequest {
+  string job_id = 1;
+}
+message GetJobRecentRunsResponse {
+  JobRecentRuns recent_runs = 1;
+}
+
+message JobNextRuns {
+  repeated google.protobuf.Timestamp next_run_times = 1;
+}
+
+message GetJobNextRunsRequest {
+  string job_id = 1;
+}
+message GetJobNextRunsResponse {
+  JobNextRuns next_runs = 1;
+}
+
+message GetJobStatusRequest {
+  string job_id = 1;
+}
+message GetJobStatusResponse {
+  JobStatus status = 1;
 }
 
 enum ActivityStatus {
@@ -343,6 +362,9 @@ service JobService {
   rpc DeleteJobDestinationConnection(DeleteJobDestinationConnectionRequest) returns (DeleteJobDestinationConnectionResponse) {}
   rpc CreateJobDestinationConnections(CreateJobDestinationConnectionsRequest) returns (CreateJobDestinationConnectionsResponse) {}
   rpc PauseJob(PauseJobRequest) returns (PauseJobResponse) {}
+  rpc GetJobRecentRuns(GetJobRecentRunsRequest) returns (GetJobRecentRunsResponse) {}
+  rpc GetJobNextRuns(GetJobNextRunsRequest) returns (GetJobNextRunsResponse) {}
+  rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}
