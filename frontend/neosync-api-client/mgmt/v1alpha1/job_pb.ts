@@ -2659,12 +2659,12 @@ export class GetTransformersResponse extends Message<GetTransformersResponse> {
  */
 export class Transformer extends Message<Transformer> {
   /**
-   * @generated from field: string value = 2;
+   * @generated from field: string value = 1;
    */
   value = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 4;
+   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 2;
    */
   config?: TransformerConfig;
 
@@ -2676,8 +2676,8 @@ export class Transformer extends Message<Transformer> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.Transformer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 2, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "config", kind: "message", T: TransformerConfig },
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "config", kind: "message", T: TransformerConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Transformer {
@@ -2710,6 +2710,30 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: EmailConfig;
     case: "emailConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Passthrough passthrough_config = 2;
+     */
+    value: Passthrough;
+    case: "passthroughConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Uuidv4 uuid_config = 3;
+     */
+    value: Uuidv4;
+    case: "uuidConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.FirstName first_name_config = 4;
+     */
+    value: FirstName;
+    case: "firstNameConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.PhoneNumber phone_number_config = 5;
+     */
+    value: PhoneNumber;
+    case: "phoneNumberConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -2721,6 +2745,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
   static readonly typeName = "mgmt.v1alpha1.TransformerConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "email_config", kind: "message", T: EmailConfig, oneof: "config" },
+    { no: 2, name: "passthrough_config", kind: "message", T: Passthrough, oneof: "config" },
+    { no: 3, name: "uuid_config", kind: "message", T: Uuidv4, oneof: "config" },
+    { no: 4, name: "first_name_config", kind: "message", T: FirstName, oneof: "config" },
+    { no: 5, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -2780,6 +2808,130 @@ export class EmailConfig extends Message<EmailConfig> {
 
   static equals(a: EmailConfig | PlainMessage<EmailConfig> | undefined, b: EmailConfig | PlainMessage<EmailConfig> | undefined): boolean {
     return proto3.util.equals(EmailConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.Passthrough
+ */
+export class Passthrough extends Message<Passthrough> {
+  constructor(data?: PartialMessage<Passthrough>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.Passthrough";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Passthrough {
+    return new Passthrough().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Passthrough {
+    return new Passthrough().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Passthrough {
+    return new Passthrough().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Passthrough | PlainMessage<Passthrough> | undefined, b: Passthrough | PlainMessage<Passthrough> | undefined): boolean {
+    return proto3.util.equals(Passthrough, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.Uuidv4
+ */
+export class Uuidv4 extends Message<Uuidv4> {
+  constructor(data?: PartialMessage<Uuidv4>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.Uuidv4";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Uuidv4 {
+    return new Uuidv4().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Uuidv4 {
+    return new Uuidv4().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Uuidv4 {
+    return new Uuidv4().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Uuidv4 | PlainMessage<Uuidv4> | undefined, b: Uuidv4 | PlainMessage<Uuidv4> | undefined): boolean {
+    return proto3.util.equals(Uuidv4, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.FirstName
+ */
+export class FirstName extends Message<FirstName> {
+  constructor(data?: PartialMessage<FirstName>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.FirstName";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FirstName {
+    return new FirstName().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FirstName {
+    return new FirstName().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FirstName {
+    return new FirstName().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FirstName | PlainMessage<FirstName> | undefined, b: FirstName | PlainMessage<FirstName> | undefined): boolean {
+    return proto3.util.equals(FirstName, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PhoneNumber
+ */
+export class PhoneNumber extends Message<PhoneNumber> {
+  constructor(data?: PartialMessage<PhoneNumber>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PhoneNumber";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PhoneNumber {
+    return new PhoneNumber().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PhoneNumber {
+    return new PhoneNumber().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PhoneNumber {
+    return new PhoneNumber().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PhoneNumber | PlainMessage<PhoneNumber> | undefined, b: PhoneNumber | PlainMessage<PhoneNumber> | undefined): boolean {
+    return proto3.util.equals(PhoneNumber, a, b);
   }
 }
 

@@ -8,6 +8,7 @@ import {
   SqlDestinationConnectionOptions,
   Transformer,
   TransformerConfig,
+  TruncateTableConfig,
   Uuidv4,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
