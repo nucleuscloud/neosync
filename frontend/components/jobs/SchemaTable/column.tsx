@@ -139,17 +139,19 @@ export function getColumns(
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <TansformerSelect
-                      transformers={transformers || []}
-                      value={field.value}
-                      onSelect={field.onChange}
-                    />
-                    <EditTransformerOptions
-                      transformer={transformers?.find(
-                        (item) => item.value == field.value
-                      )}
-                      index={row.index}
-                    />
+                    <div className="flex flex-row">
+                      <TansformerSelect
+                        transformers={transformers || []}
+                        value={field.value}
+                        onSelect={field.onChange}
+                      />
+                      <EditTransformerOptions
+                        transformer={transformers?.find(
+                          (item) => item.value == field.value
+                        )}
+                        index={row.index}
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
