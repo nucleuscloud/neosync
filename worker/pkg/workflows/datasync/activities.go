@@ -160,9 +160,7 @@ func (a *Activities) GenerateBenthosConfigs(
 			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
 		}
 		sqlOpts := job.Source.Options.GetSqlOptions()
-		if sqlOpts != nil &&
-			sqlOpts.HaltOnNewColumnAddition != nil &&
-			*sqlOpts.HaltOnNewColumnAddition &&
+		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
 			shouldHaltOnSchemaAddition(dbschemas, job.Mappings) {
 			msg := "job mappings does not contain a column mapping for all " +
 				"columns found in the source connection for the selected schemas and tables"
@@ -200,14 +198,15 @@ func (a *Activities) GenerateBenthosConfigs(
 				}
 
 				truncateBeforeInsert := false
-				initSchema := true
+				truncateCascade := false
+				initSchema := false
 				sqlOpts := destination.Options.GetSqlOptions()
-				if sqlOpts != nil && sqlOpts.InitDbSchema != nil {
-					initSchema = *sqlOpts.InitDbSchema
-				}
-
-				if sqlOpts != nil && sqlOpts.TruncateBeforeInsert != nil {
-					truncateBeforeInsert = *sqlOpts.TruncateBeforeInsert
+				if sqlOpts != nil {
+					initSchema = sqlOpts.InitTableSchema
+					if sqlOpts.TruncateTable != nil {
+						truncateBeforeInsert = sqlOpts.TruncateTable.TruncateBeforeInsert
+						truncateCascade = sqlOpts.TruncateTable.Cascade
+					}
 				}
 
 				pool := pgpoolmap[resp.Config.Input.SqlSelect.Dsn]
@@ -220,6 +219,7 @@ func (a *Activities) GenerateBenthosConfigs(
 					table,
 					&initStatementOpts{
 						TruncateBeforeInsert: truncateBeforeInsert,
+						TruncateCascade:      truncateCascade,
 						InitSchema:           initSchema,
 					},
 				)
@@ -442,6 +442,7 @@ func (a *Activities) getAllFkConstraintsFromMappings(
 
 type initStatementOpts struct {
 	TruncateBeforeInsert bool
+	TruncateCascade      bool // only applied if truncatebeforeinsert is true
 	InitSchema           bool
 }
 
@@ -470,7 +471,11 @@ func (a *Activities) getInitStatementFromPostgres(
 		statements = append(statements, stmt)
 	}
 	if opts != nil && opts.TruncateBeforeInsert {
-		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
+		if opts.TruncateCascade {
+			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
+		} else {
+			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
+		}
 	}
 	return strings.Join(statements, "\n"), nil
 }

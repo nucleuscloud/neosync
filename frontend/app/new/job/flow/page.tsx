@@ -193,7 +193,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         `destinations.${index}.destinationOptions`,
                                         {
                                           truncateBeforeInsert: false,
-                                          initDbSchema: false,
+                                          truncateCascade: false,
+                                          initTableSchema: false,
                                         }
                                       );
                                       field.onChange(value);
