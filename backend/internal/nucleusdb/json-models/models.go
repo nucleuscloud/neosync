@@ -221,7 +221,8 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 			PhoneNumber: &PhoneNumberConfig{},
 		}
 	default:
-		return fmt.Errorf("invalid config")
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{}
 	}
 
 	return nil
@@ -280,7 +281,7 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 			},
 		}
 	default:
-		return nil
+		return &mgmtv1alpha1.Transformer{Value: t.Value}
 	}
 }
 

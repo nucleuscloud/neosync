@@ -309,8 +309,8 @@ message GetTransformersResponse {
 }
 
 message Transformer {
-  string value = 2;
-  TransformerConfig config = 4;
+  string value = 1;
+  TransformerConfig config = 2;
 }
 
 message TransformerConfig {
