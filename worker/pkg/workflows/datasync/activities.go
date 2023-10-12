@@ -706,7 +706,6 @@ func computeMutationFunction(transformer *mgmtv1alpha1.Transformer) (string, err
 	case "email":
 		pd := transformer.Config.GetEmailConfig().PreserveDomain
 		pl := transformer.Config.GetEmailConfig().PreserveLength
-		fmt.Println("configs", pd, pl)
 		return fmt.Sprintf("this.%s.emailtransformer(%t, %t)", transformer, pd, pl), nil
 	case "mac_address":
 		return fmt.Sprintf("fake(%q)", transformer), nil
