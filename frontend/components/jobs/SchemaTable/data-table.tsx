@@ -403,9 +403,9 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
           <CommandInput placeholder="Search filters..." />
           <CommandEmpty>No filters found.</CommandEmpty>
           <CommandGroup>
-            {sortedUniqueValues.map((i) => (
+            {sortedUniqueValues.map((i, index) => (
               <CommandItem
-                key={i}
+                key={`${i}-${index}`}
                 onSelect={(currentValue) => {
                   const newValues = computeFilters(
                     currentValue,

@@ -7,12 +7,6 @@ import SkeletonProgress from '@/components/skeleton/SkeletonProgress';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -27,7 +21,7 @@ import { useGetJobRunEvents } from '@/libs/hooks/useGetJobRunEvents';
 import { formatDateTime, formatDateTimeMilliseconds } from '@/util/util';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { JOB_RUN_STATUS } from '../components/status';
 
 export default function Page({ params }: PageProps): ReactElement {
@@ -39,9 +33,17 @@ export default function Page({ params }: PageProps): ReactElement {
   const jobRun = data?.jobRun;
   const events = jobRunEvents?.events || [];
 
+  const [isOpen, setIsOpen] = useState(events.map((_) => 0));
+
   const status = JOB_RUN_STATUS.find(
     (status) => status.value === jobRun?.status
   );
+
+  function onRowClick(index: number): void {
+    const newOpen = [...isOpen];
+    newOpen[index] = isOpen[index] == 1 ? 0 : 1;
+    setIsOpen(newOpen);
+  }
 
   return (
     <OverviewContainer
@@ -111,6 +113,120 @@ export default function Page({ params }: PageProps): ReactElement {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Id</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Schema</TableHead>
+                    <TableHead>Table</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {events.map((e, index) => {
+                    const isError = e.Tasks.some((t) => t.error);
+                    return (
+                      <>
+                        <TableRow
+                          key={e.id}
+                          onClick={(_) => onRowClick(index)}
+                          className={
+                            isError
+                              ? 'border-t-2 border-b-2 border-destructive'
+                              : ''
+                          }
+                        >
+                          <TableCell>{e.id.toString()}</TableCell>
+                          <TableCell>
+                            {e.startTime &&
+                              formatDateTimeMilliseconds(e.startTime.toDate())}
+                          </TableCell>
+                          <TableCell>{e.type}</TableCell>
+                          <TableCell>
+                            {e.metadata?.metadata.case == 'syncMetadata' &&
+                              e.metadata.metadata.value.schema}
+                          </TableCell>
+                          <TableCell>
+                            {e.metadata?.metadata.case == 'syncMetadata' &&
+                              e.metadata.metadata.value.table}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow
+                          key={`${e.id}-collapse`}
+                          className={`${
+                            isOpen[index] == 1 ? 'visible' : 'collapse'
+                          }`}
+                        >
+                          <TableCell>
+                            <div className="p-6">
+                              <Card className="p-5">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Id</TableHead>
+                                      <TableHead>Type</TableHead>
+                                      <TableHead>Time</TableHead>
+                                      {isError && (
+                                        <>
+                                          <TableHead>Error</TableHead>
+                                          <TableHead>Retry State</TableHead>
+                                        </>
+                                      )}
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {e.Tasks.map((t) => {
+                                      const cn =
+                                        t.error &&
+                                        'border-t border-b border-destructive';
+                                      return (
+                                        <TableRow key={t.id}>
+                                          <TableCell className={cn}>
+                                            {t.id.toString()}
+                                          </TableCell>
+                                          <TableCell className={cn}>
+                                            {t.type}
+                                          </TableCell>
+                                          <TableCell className={cn}>
+                                            {t.eventTime &&
+                                              formatDateTimeMilliseconds(
+                                                t.eventTime.toDate()
+                                              )}
+                                          </TableCell>
+                                          {isError && (
+                                            <>
+                                              <TableCell className={cn}>
+                                                {t.error?.message}
+                                              </TableCell>
+                                              <TableCell className={cn}>
+                                                {t.error?.retryState}
+                                              </TableCell>
+                                            </>
+                                          )}
+                                        </TableRow>
+                                      );
+                                    })}
+                                  </TableBody>
+                                </Table>
+                              </Card>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      </>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+          {/*  */}
+          {/*  */}
+          {/* <div className="space-y-2">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Activities
+            </h1>
+            <div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
                     <TableHead>
                       <div
                         className={`grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-5 font-medium  text-left  text-muted-foreground`}
@@ -161,7 +277,7 @@ export default function Page({ params }: PageProps): ReactElement {
                                 </div>
                               </div>
                             </CollapsibleTrigger>
-                            <CollapsibleContent className="bg-muted">
+                            <CollapsibleContent>
                               <div>
                                 <Separator />
                                 <div className="p-6">
@@ -226,7 +342,7 @@ export default function Page({ params }: PageProps): ReactElement {
                 </TableBody>
               </Table>
             </div>
-          </div>
+          </div> */}
           {/*  */}
           {/* <div className="space-y-2">
             <h1 className="text-2xl font-semibold tracking-tight">
