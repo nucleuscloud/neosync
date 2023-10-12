@@ -219,7 +219,6 @@ func (a *Activities) GenerateBenthosConfigs(
 					return nil, err
 				}
 				logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
-				numCols := uint(len(resp.Config.Input.SqlSelect.Columns))
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					SqlInsert: &neosync_benthos.SqlInsert{
 						Driver: "postgres",
@@ -236,7 +235,7 @@ func (a *Activities) GenerateBenthosConfigs(
 						Batching: &neosync_benthos.Batching{
 							Period: "1s",
 							// max allowed by postgres in a single batch
-							Count: int(computeMaxPgBatchCount(numCols)),
+							Count: computeMaxPgBatchCount(len(resp.Config.Input.SqlSelect.Columns)),
 						},
 					},
 				})
@@ -296,15 +295,15 @@ const (
 	maxPgParamLimit = 65535
 )
 
-func computeMaxPgBatchCount(numCols uint) uint {
+func computeMaxPgBatchCount(numCols int) int {
 	if numCols < 1 {
 		return maxPgParamLimit
 	}
-	return clampUint(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
+	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
 }
 
 // clamps the input between low, high
-func clampUint(input, low, high uint) uint {
+func clampInt(input, low, high int) int {
 	if input < low {
 		return low
 	}
