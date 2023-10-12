@@ -149,7 +149,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
     };
   }
-  console.log('vals', form.getValues());
 
   return (
     <OverviewContainer
@@ -161,9 +160,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <SchemaTable data={form.getValues().mappings || []} />
-
         <form
           onSubmit={form.handleSubmit(onSubmit(transformers))}
           className="space-y-8"

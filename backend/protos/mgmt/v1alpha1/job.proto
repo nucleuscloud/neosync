@@ -76,15 +76,7 @@ message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  string transformer = 5 [(buf.validate.field).string = {
-    in: [
-      "passthrough",
-      "uuid_v4",
-      "first_name",
-      "phone_number",
-      "email"
-    ]
-  }];
+  Transformer transformer = 5;
   bool exclude = 6;
 }
 

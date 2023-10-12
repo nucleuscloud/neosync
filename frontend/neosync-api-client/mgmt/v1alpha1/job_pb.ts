@@ -750,9 +750,9 @@ export class JobMapping extends Message<JobMapping> {
   column = "";
 
   /**
-   * @generated from field: string transformer = 5;
+   * @generated from field: mgmt.v1alpha1.Transformer transformer = 5;
    */
-  transformer = "";
+  transformer?: Transformer;
 
   /**
    * @generated from field: bool exclude = 6;
@@ -770,7 +770,7 @@ export class JobMapping extends Message<JobMapping> {
     { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "transformer", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "transformer", kind: "message", T: Transformer },
     { no: 6, name: "exclude", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
