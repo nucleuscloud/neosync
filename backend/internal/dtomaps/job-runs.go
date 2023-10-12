@@ -7,7 +7,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/api/failure/v1"
+	temporalfailure "go.temporal.io/api/failure/v1"
 	"go.temporal.io/api/history/v1"
 	"go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
@@ -57,7 +57,7 @@ func ToJobRunEventTaskDto(event *history.HistoryEvent, taskError *mgmtv1alpha1.J
 	}
 }
 
-func ToJobRunEventTaskErrorDto(failure *failure.Failure, retryState enums.RetryState) *mgmtv1alpha1.JobRunEventTaskError {
+func ToJobRunEventTaskErrorDto(failure *temporalfailure.Failure, retryState enums.RetryState) *mgmtv1alpha1.JobRunEventTaskError {
 	return &mgmtv1alpha1.JobRunEventTaskError{
 		Message:    failure.Message,
 		RetryState: retryState.String(),
