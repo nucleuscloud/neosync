@@ -139,7 +139,7 @@ export function getColumns(
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <div className="flex flex-row">
+                    <div className="flex flex-row space-x-2">
                       <TansformerSelect
                         transformers={transformers || []}
                         value={field.value}
@@ -220,7 +220,7 @@ function TansformerSelect(props: TransformersSelectProps) {
         >
           {value
             ? transformers.find((t) => t.value === value)?.title
-            : 'Select transformation...'}
+            : 'Select transformer'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
