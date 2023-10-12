@@ -27,6 +27,7 @@ import {
   SCHEMA_FORM_SCHEMA,
   SchemaFormValues,
   toJobDestinationOptions,
+  toTransformerConfigOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
@@ -75,10 +76,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       if (!res) {
         return { mappings: [] };
       }
+
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
-          transformer: 'passthrough',
+          transformer: {
+            value: '',
+            config: {},
+          },
         };
       });
       return { mappings };
@@ -99,10 +104,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       return getSchema();
     },
   });
+  const isBrowser = () => typeof window !== 'undefined';
+
   useFormPersist(`${sessionPrefix}-new-job-schema`, {
     watch: form.watch,
     setValue: form.setValue,
-    storage: window.sessionStorage,
+    storage: isBrowser() ? window.sessionStorage : undefined,
   });
 
   async function onSubmit(values: SchemaFormValues) {
@@ -146,7 +153,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable data={form.getValues().mappings || []} />
-
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
               Back
@@ -175,7 +181,7 @@ async function createNewJob(
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: m.transformer,
+        transformer: toTransformerConfigOptions(m.transformer),
         exclude: m.exclude,
       });
     }),
@@ -201,6 +207,7 @@ async function createNewJob(
       });
     }),
   });
+
   const res = await fetch(`/api/jobs`, {
     method: 'POST',
     headers: {

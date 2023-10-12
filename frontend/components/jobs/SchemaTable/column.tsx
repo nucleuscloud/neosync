@@ -1,7 +1,6 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-
+import EditTransformerOptions from '@/app/transformers/EditTransformerOptions';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Button } from '@/components/ui/button';
@@ -30,6 +29,7 @@ import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
 import { DataTableColumnHeader } from './data-table-column-header';
 
@@ -133,17 +133,25 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2 ">
+          <div className="flex space-x-2">
             <FormField
-              name={`mappings.${row.index}.transformer`}
+              name={`mappings.${row.index}.transformer.value`}
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <TansformerSelect
-                      transformers={transformers || []}
-                      value={field.value}
-                      onSelect={field.onChange}
-                    />
+                    <div className="flex flex-row space-x-2">
+                      <TansformerSelect
+                        transformers={transformers || []}
+                        value={field.value}
+                        onSelect={field.onChange}
+                      />
+                      <EditTransformerOptions
+                        transformer={transformers?.find(
+                          (item) => item.value == field.value
+                        )}
+                        index={row.index}
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -162,7 +170,7 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2">
+          <div className="flex flex-row space-x-2">
             <FormField
               name={`mappings.${row.index}.exclude`}
               render={({ field }) => (
@@ -208,11 +216,11 @@ function TansformerSelect(props: TransformersSelectProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between"
+          className="justify-between " //whitespace-nowrap
         >
           {value
-            ? transformers.find((t) => t.value === value)?.title
-            : 'Select transformation...'}
+            ? transformers.find((t) => t.value === value)?.value
+            : 'Transformer'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -237,7 +245,7 @@ function TansformerSelect(props: TransformersSelectProps) {
                     value == t.value ? 'opacity-100' : 'opacity-0'
                   )}
                 />
-                {t.title}
+                {t.value}
               </CommandItem>
             ))}
           </CommandGroup>

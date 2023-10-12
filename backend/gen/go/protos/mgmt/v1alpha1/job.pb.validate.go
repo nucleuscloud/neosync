@@ -1959,7 +1959,34 @@ func (m *JobMapping) validate(all bool) error {
 
 	// no validation rules for Column
 
-	// no validation rules for Transformer
+	if all {
+		switch v := interface{}(m.GetTransformer()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobMappingValidationError{
+					field:  "Transformer",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobMappingValidationError{
+					field:  "Transformer",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTransformer()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobMappingValidationError{
+				field:  "Transformer",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	// no validation rules for Exclude
 
@@ -7759,11 +7786,7 @@ func (m *Transformer) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Title
-
 	// no validation rules for Value
-
-	// no validation rules for Description
 
 	if all {
 		switch v := interface{}(m.GetConfig()).(type) {
@@ -7929,6 +7952,170 @@ func (m *TransformerConfig) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
 					field:  "EmailConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *TransformerConfig_PassthroughConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPassthroughConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "PassthroughConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "PassthroughConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPassthroughConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "PassthroughConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *TransformerConfig_UuidConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetUuidConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "UuidConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "UuidConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUuidConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "UuidConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *TransformerConfig_FirstNameConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetFirstNameConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "FirstNameConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "FirstNameConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetFirstNameConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "FirstNameConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *TransformerConfig_PhoneNumberConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPhoneNumberConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "PhoneNumberConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "PhoneNumberConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPhoneNumberConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "PhoneNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -8121,3 +8308,398 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = EmailConfigValidationError{}
+
+// Validate checks the field values on Passthrough with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Passthrough) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Passthrough with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PassthroughMultiError, or
+// nil if none found.
+func (m *Passthrough) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Passthrough) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return PassthroughMultiError(errors)
+	}
+
+	return nil
+}
+
+// PassthroughMultiError is an error wrapping multiple validation errors
+// returned by Passthrough.ValidateAll() if the designated constraints aren't met.
+type PassthroughMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PassthroughMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PassthroughMultiError) AllErrors() []error { return m }
+
+// PassthroughValidationError is the validation error returned by
+// Passthrough.Validate if the designated constraints aren't met.
+type PassthroughValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PassthroughValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PassthroughValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PassthroughValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PassthroughValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PassthroughValidationError) ErrorName() string { return "PassthroughValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PassthroughValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPassthrough.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PassthroughValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PassthroughValidationError{}
+
+// Validate checks the field values on Uuidv4 with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Uuidv4) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Uuidv4 with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in Uuidv4MultiError, or nil if none found.
+func (m *Uuidv4) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Uuidv4) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return Uuidv4MultiError(errors)
+	}
+
+	return nil
+}
+
+// Uuidv4MultiError is an error wrapping multiple validation errors returned by
+// Uuidv4.ValidateAll() if the designated constraints aren't met.
+type Uuidv4MultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m Uuidv4MultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m Uuidv4MultiError) AllErrors() []error { return m }
+
+// Uuidv4ValidationError is the validation error returned by Uuidv4.Validate if
+// the designated constraints aren't met.
+type Uuidv4ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Uuidv4ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Uuidv4ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Uuidv4ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Uuidv4ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Uuidv4ValidationError) ErrorName() string { return "Uuidv4ValidationError" }
+
+// Error satisfies the builtin error interface
+func (e Uuidv4ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUuidv4.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Uuidv4ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Uuidv4ValidationError{}
+
+// Validate checks the field values on FirstName with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *FirstName) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on FirstName with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in FirstNameMultiError, or nil
+// if none found.
+func (m *FirstName) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *FirstName) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return FirstNameMultiError(errors)
+	}
+
+	return nil
+}
+
+// FirstNameMultiError is an error wrapping multiple validation errors returned
+// by FirstName.ValidateAll() if the designated constraints aren't met.
+type FirstNameMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m FirstNameMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m FirstNameMultiError) AllErrors() []error { return m }
+
+// FirstNameValidationError is the validation error returned by
+// FirstName.Validate if the designated constraints aren't met.
+type FirstNameValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FirstNameValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FirstNameValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FirstNameValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FirstNameValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FirstNameValidationError) ErrorName() string { return "FirstNameValidationError" }
+
+// Error satisfies the builtin error interface
+func (e FirstNameValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFirstName.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FirstNameValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FirstNameValidationError{}
+
+// Validate checks the field values on PhoneNumber with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PhoneNumber) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PhoneNumber with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PhoneNumberMultiError, or
+// nil if none found.
+func (m *PhoneNumber) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PhoneNumber) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return PhoneNumberMultiError(errors)
+	}
+
+	return nil
+}
+
+// PhoneNumberMultiError is an error wrapping multiple validation errors
+// returned by PhoneNumber.ValidateAll() if the designated constraints aren't met.
+type PhoneNumberMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PhoneNumberMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PhoneNumberMultiError) AllErrors() []error { return m }
+
+// PhoneNumberValidationError is the validation error returned by
+// PhoneNumber.Validate if the designated constraints aren't met.
+type PhoneNumberValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PhoneNumberValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PhoneNumberValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PhoneNumberValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PhoneNumberValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PhoneNumberValidationError) ErrorName() string { return "PhoneNumberValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PhoneNumberValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPhoneNumber.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PhoneNumberValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PhoneNumberValidationError{}

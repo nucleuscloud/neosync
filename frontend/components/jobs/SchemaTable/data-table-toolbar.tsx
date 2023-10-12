@@ -52,7 +52,7 @@ export function DataTableToolbar<TData>({
           onSelect={(value) => {
             const rows = table.getSelectedRowModel();
             rows.rows.forEach((r) => {
-              form.setValue(`mappings.${r.index}.transformer`, value, {
+              form.setValue(`mappings.${r.index}.transformer.value`, value, {
                 shouldDirty: true,
               });
             });
@@ -65,7 +65,6 @@ export function DataTableToolbar<TData>({
           value={exclude}
           onValueChange={(value) => {
             const rows = table.getSelectedRowModel();
-
             rows.rows.forEach((r) => {
               form.setValue(`mappings.${r.index}.exclude`, value === 'false', {
                 shouldDirty: true,
@@ -125,7 +124,7 @@ function BulkTansformerSelect(props: BulkTransformersSelectProps) {
           className="w-[250px] justify-between"
         >
           {value
-            ? transformers.find((t) => t.value === value)?.title
+            ? transformers.find((t) => t.value === value)?.value
             : 'Bulk update transformers...'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -150,7 +149,7 @@ function BulkTansformerSelect(props: BulkTransformersSelectProps) {
                     value == t.value ? 'opacity-100' : 'opacity-0'
                   )}
                 />
-                {t.title}
+                {t.value}
               </CommandItem>
             ))}
           </CommandGroup>

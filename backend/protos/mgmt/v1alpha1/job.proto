@@ -76,15 +76,7 @@ message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  string transformer = 5 [(buf.validate.field).string = {
-    in: [
-      "passthrough",
-      "uuid_v4",
-      "first_name",
-      "phone_number",
-      "email"
-    ]
-  }];
+  Transformer transformer = 5;
   bool exclude = 6;
 }
 
@@ -317,10 +309,8 @@ message GetTransformersResponse {
 }
 
 message Transformer {
-  string title = 1;
-  string value = 2;
-  string description = 3;
-  TransformerConfig config = 4;
+  string value = 1;
+  TransformerConfig config = 2;
 }
 
 message TransformerConfig {
@@ -328,6 +318,10 @@ message TransformerConfig {
     option (buf.validate.oneof).required = true;
 
     EmailConfig email_config = 1;
+    Passthrough passthrough_config = 2;
+    Uuidv4 uuid_config = 3;
+    FirstName first_name_config = 4;
+    PhoneNumber phone_number_config = 5;
   }
 }
 
@@ -335,6 +329,14 @@ message EmailConfig {
   bool preserve_domain = 1;
   bool preserve_length = 2;
 }
+
+message Passthrough {}
+
+message Uuidv4 {}
+
+message FirstName {}
+
+message PhoneNumber {}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}

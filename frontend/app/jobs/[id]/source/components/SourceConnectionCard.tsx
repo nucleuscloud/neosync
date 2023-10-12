@@ -35,6 +35,7 @@ import {
   JobSource,
   JobSourceOptions,
   SqlSourceConnectionOptions,
+  Transformer,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
@@ -60,7 +61,7 @@ interface SchemaMap {
   [schema: string]: {
     [table: string]: {
       [column: string]: {
-        transformer: string;
+        transformer: Transformer;
         exclude: boolean;
       };
     };
@@ -260,7 +261,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       schemaMap[c.schema] = {
         [c.table]: {
           [c.column]: {
-            transformer: c.transformer,
+            transformer: c.transformer ?? new Transformer(),
             exclude: c.exclude,
           },
         },
@@ -268,13 +269,13 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
     } else if (!schemaMap[c.schema][c.table]) {
       schemaMap[c.schema][c.table] = {
         [c.column]: {
-          transformer: c.transformer,
+          transformer: c.transformer ?? new Transformer(),
           exclude: c.exclude,
         },
       };
     } else {
       schemaMap[c.schema][c.table][c.column] = {
-        transformer: c.transformer,
+        transformer: c.transformer ?? new Transformer(),
         exclude: c.exclude,
       };
     }
@@ -287,7 +288,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       table: c.table,
       column: c.column,
       dataType: c.dataType,
-      transformer: (colMapping && colMapping.transformer) || 'passthrough',
+      transformer: colMapping?.transformer ?? new Transformer(),
       exclude: (colMapping && colMapping.exclude) || false,
     };
   });
@@ -299,17 +300,27 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
     destinationIds: destinationIds,
     mappings: mappings || [],
   };
+
+  //update to map the tranformer values from proto defintion to the yup validation definition
+  const yupValidationValues = {
+    ...values,
+    mappings: values.mappings.map((mapping) => ({
+      ...mapping,
+      transformer: { value: mapping.transformer.value, config: {} },
+    })),
+  };
+
   switch (job?.source?.options?.config.case) {
     case 'sqlOptions':
       return {
-        ...values,
+        ...yupValidationValues,
         sourceOptions: {
           haltOnNewColumnAddition:
             job?.source?.options?.config.value.haltOnNewColumnAddition,
         },
       };
     default:
-      return values;
+      return yupValidationValues;
   }
 }
 
@@ -318,7 +329,7 @@ function getColumnMapping(
   schema: string,
   table: string,
   column: string
-): { transformer: string; exclude: boolean } | undefined {
+): { transformer: Transformer; exclude: boolean } | undefined {
   if (!schemaMap[schema]) {
     return;
   }
@@ -356,15 +367,24 @@ async function getUpdatedValues(
     mappings: mappings || [],
   };
 
+  //update to map the tranformer values from proto defintion to the yup validation definition
+  const yupValidationValues = {
+    ...values,
+    mappings: values.mappings.map((mapping) => ({
+      ...mapping,
+      transformer: { value: mapping.transformer, config: {} },
+    })),
+  };
+
   switch (connRes.connection?.connectionConfig?.config.case) {
     case 'pgConfig':
       return {
-        ...values,
+        ...yupValidationValues,
         sourceOptions: {
           haltOnNewColumnAddition: false,
         },
       };
     default:
-      return values;
+      return yupValidationValues;
   }
 }

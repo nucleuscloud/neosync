@@ -225,6 +225,7 @@ func (s *Service) CreateJob(
 
 	var createdJob *db_queries.NeosyncApiJob
 	var ScheduleDescription *temporalclient.ScheduleDescription
+
 	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
 		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
 			Name:               req.Msg.JobName,

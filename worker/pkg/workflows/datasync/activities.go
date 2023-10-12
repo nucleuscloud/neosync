@@ -651,7 +651,7 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
 
 	for _, col := range cols {
-		if col.Transformer != "" && col.Transformer != "passthrough" {
+		if col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
 			mutation, err := computeMutationFunction(col.Transformer)
 			if err != nil {
 				return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
@@ -673,8 +673,8 @@ func buildPlainInsertArgs(cols []string) string {
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
 
-func computeMutationFunction(transformer string) (string, error) {
-	switch transformer {
+func computeMutationFunction(transformer *mgmtv1alpha1.Transformer) (string, error) {
+	switch transformer.Value {
 	case "uuid_v4":
 		return "uuid_v4()", nil
 	case "latitude":
@@ -704,7 +704,9 @@ func computeMutationFunction(transformer string) (string, error) {
 	case "time_period":
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "email":
-		return fmt.Sprintf("this.%s.emailtransformer(true, true)", transformer), nil
+		pd := transformer.Config.GetEmailConfig().PreserveDomain
+		pl := transformer.Config.GetEmailConfig().PreserveLength
+		return fmt.Sprintf("this.%s.emailtransformer(%t, %t)", transformer, pd, pl), nil
 	case "mac_address":
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "domain_name":
