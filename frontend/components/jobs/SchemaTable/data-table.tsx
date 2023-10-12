@@ -233,14 +233,14 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-row">
-      <div className="basis-1/3 min-w-[170px] max-w-[400px] pt-[45px]">
+      <div className="basis-1/6 min-w-[170px] max-w-[400px] pt-[45px]">
         <Tree
           data={treeData}
           className="h-full border rounded-md"
           onSelectChange={handlefilter}
         />
       </div>
-      <div className="basis-3/4 space-y-2">
+      <div className="basis-5/4 space-y-2 pl-8">
         <DataTableToolbar
           table={table}
           transformers={transformers}
@@ -318,7 +318,7 @@ export function DataTable<TData, TValue>({
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center "
+                      className="h-24 text-center"
                     >
                       No results.
                     </TableCell>

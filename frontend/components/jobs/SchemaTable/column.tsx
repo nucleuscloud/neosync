@@ -133,7 +133,7 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2 ">
+          <div className="flex space-x-2">
             <FormField
               name={`mappings.${row.index}.transformer.value`}
               render={({ field }) => (
@@ -216,11 +216,11 @@ function TansformerSelect(props: TransformersSelectProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between"
+          className="justify-between " //whitespace-nowrap
         >
           {value
             ? transformers.find((t) => t.value === value)?.value
-            : 'Select transformer'}
+            : 'Transformer'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
