@@ -23,8 +23,6 @@ const TRANSFORMER_SCHEMA = Yup.object().shape({
     }),
 });
 
-export type TransformerSchema = Yup.InferType<typeof TRANSFORMER_SCHEMA>;
-
 export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
 
 const JOB_MAPPING_SCHEMA = Yup.object({
