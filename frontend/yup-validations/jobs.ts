@@ -111,25 +111,19 @@ interface EmailTransformerConfigs {
   preserveLength: boolean;
 }
 
-export function toTransformerConfigOptions(
-  t: {
-    value: string;
-    config: {};
-  },
-  transformers: Transformer[]
-): Transformer {
+export function toTransformerConfigOptions(t: {
+  value: string;
+  config: {};
+}): Transformer {
   if (!t) {
     return new Transformer();
   }
 
   switch (t.value) {
     case 'email': {
-      const tf = transformers.find((item) => item.value == t.value);
       const et = t as EmailTransformer; //cast to email transformer to access fields in config object
       return new Transformer({
-        title: et.value,
         value: et.value,
-        description: tf?.description,
         config: new TransformerConfig({
           config: {
             case: 'emailConfig',

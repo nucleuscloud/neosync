@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
@@ -22,7 +21,6 @@ import {
   JobSource,
   JobSourceOptions,
   SqlSourceConnectionOptions,
-  Transformer,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -53,10 +51,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [searchParams?.sessionId]);
 
   const sessionPrefix = searchParams?.sessionId ?? '';
-
-  const { data: transformersData } = useGetTransformers();
-
-  const transformers = transformersData?.transformers ?? [];
 
   const [defineFormValues] = useSessionStorage<DefineFormValues>(
     `${sessionPrefix}-new-job-define`,
@@ -118,36 +112,33 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     storage: isBrowser() ? window.sessionStorage : undefined,
   });
 
-  function onSubmit(transformers: Transformer[]) {
-    return async function (values: SchemaFormValues) {
-      if (!account) {
-        return;
+  async function onSubmit(values: SchemaFormValues) {
+    if (!account) {
+      return;
+    }
+    try {
+      const job = await createNewJob(
+        {
+          define: defineFormValues,
+          flow: flowFormValues,
+          schema: values,
+        },
+        account.id,
+        connections
+      );
+      if (job.job?.id) {
+        router.push(`/jobs/${job.job.id}`);
+      } else {
+        router.push(`/jobs`);
       }
-      try {
-        const job = await createNewJob(
-          {
-            define: defineFormValues,
-            flow: flowFormValues,
-            schema: values,
-          },
-          account.id,
-          connections,
-          transformers
-        );
-        if (job.job?.id) {
-          router.push(`/jobs/${job.job.id}`);
-        } else {
-          router.push(`/jobs`);
-        }
-      } catch (err) {
-        console.error(err);
-        toast({
-          title: 'Unable to create job',
-          description: getErrorMessage(err),
-          variant: 'destructive',
-        });
-      }
-    };
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to create job',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
   }
 
   return (
@@ -160,10 +151,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
     >
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit(transformers))}
-          className="space-y-8"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable data={form.getValues().mappings || []} />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
@@ -182,8 +170,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 async function createNewJob(
   formData: FormValues,
   accountId: string,
-  connections: Connection[],
-  transformers: Transformer[]
+  connections: Connection[]
 ): Promise<CreateJobResponse> {
   const body = new CreateJobRequest({
     accountId,
@@ -194,7 +181,7 @@ async function createNewJob(
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: toTransformerConfigOptions(m.transformer, transformers),
+        transformer: toTransformerConfigOptions(m.transformer),
         exclude: m.exclude,
       });
     }),

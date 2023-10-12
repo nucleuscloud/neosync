@@ -2659,19 +2659,9 @@ export class GetTransformersResponse extends Message<GetTransformersResponse> {
  */
 export class Transformer extends Message<Transformer> {
   /**
-   * @generated from field: string title = 1;
-   */
-  title = "";
-
-  /**
    * @generated from field: string value = 2;
    */
   value = "";
-
-  /**
-   * @generated from field: string description = 3;
-   */
-  description = "";
 
   /**
    * @generated from field: mgmt.v1alpha1.TransformerConfig config = 4;
@@ -2686,9 +2676,7 @@ export class Transformer extends Message<Transformer> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.Transformer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "config", kind: "message", T: TransformerConfig },
   ]);
 

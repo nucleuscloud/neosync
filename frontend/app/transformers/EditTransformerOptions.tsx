@@ -37,7 +37,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
       <SheetContent className="w-[800px]">
         <SheetHeader>
           <div className="flex flex-row justify-between w-full">
-            <SheetTitle>{transformer?.title}</SheetTitle>
+            <SheetTitle>{transformer?.value}</SheetTitle>
             <Button variant="ghost" onClick={() => setIsSheetOpen(false)}>
               <Cross2Icon className="h-4 w-4" />
             </Button>

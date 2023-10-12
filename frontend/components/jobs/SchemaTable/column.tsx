@@ -219,7 +219,7 @@ function TansformerSelect(props: TransformersSelectProps) {
           className="justify-between"
         >
           {value
-            ? transformers.find((t) => t.value === value)?.title
+            ? transformers.find((t) => t.value === value)?.value
             : 'Select transformer'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -245,7 +245,7 @@ function TansformerSelect(props: TransformersSelectProps) {
                     value == t.value ? 'opacity-100' : 'opacity-0'
                   )}
                 />
-                {t.title}
+                {t.value}
               </CommandItem>
             ))}
           </CommandGroup>
