@@ -167,7 +167,7 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_SqlOptions{
 				SqlOptions: &mgmtv1alpha1.SqlSourceConnectionOptions{
-					HaltOnNewColumnAddition: &j.SqlOptions.HaltOnNewColumnAddition,
+					HaltOnNewColumnAddition: j.SqlOptions.HaltOnNewColumnAddition,
 				},
 			},
 		}
@@ -179,7 +179,7 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 	switch config := dto.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_SqlOptions:
 		j.SqlOptions = &SqlSourceOptions{
-			HaltOnNewColumnAddition: *config.SqlOptions.HaltOnNewColumnAddition,
+			HaltOnNewColumnAddition: config.SqlOptions.HaltOnNewColumnAddition,
 		}
 	default:
 		return fmt.Errorf("invalid config")
@@ -188,11 +188,29 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 }
 
 type JobDestinationOptions struct {
-	SqlOptions *SqlDestinationOptions
+	SqlOptions   *SqlDestinationOptions
+	AwsS3Options *AwsS3DestinationOptions
 }
+type AwsS3DestinationOptions struct{}
 type SqlDestinationOptions struct {
+	TruncateTableConfig *TruncateTableConfig
+	InitTableSchema     bool
+}
+type TruncateTableConfig struct {
 	TruncateBeforeInsert bool
-	InitDbSchema         bool
+	TruncateCascade      bool
+}
+
+func (t *TruncateTableConfig) ToDto() *mgmtv1alpha1.TruncateTableConfig {
+	return &mgmtv1alpha1.TruncateTableConfig{
+		TruncateBeforeInsert: t.TruncateBeforeInsert,
+		Cascade:              t.TruncateCascade,
+	}
+}
+
+func (t *TruncateTableConfig) FromDto(dto *mgmtv1alpha1.TruncateTableConfig) {
+	t.TruncateBeforeInsert = dto.TruncateBeforeInsert
+	t.TruncateCascade = dto.Cascade
 }
 
 func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
@@ -200,22 +218,34 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_SqlOptions{
 				SqlOptions: &mgmtv1alpha1.SqlDestinationConnectionOptions{
-					TruncateBeforeInsert: &j.SqlOptions.TruncateBeforeInsert,
-					InitDbSchema:         &j.SqlOptions.InitDbSchema,
+					TruncateTable:   j.SqlOptions.TruncateTableConfig.ToDto(),
+					InitTableSchema: j.SqlOptions.InitTableSchema,
 				},
 			},
 		}
 	}
+	if j.AwsS3Options != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_AwsS3Options{
+				AwsS3Options: &mgmtv1alpha1.AwsS3DestinationConnectionOptions{},
+			},
+		}
+	}
+
 	return nil
 }
 
 func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions) error {
 	switch config := dto.Config.(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_SqlOptions:
+		truncateCfg := &TruncateTableConfig{}
+		truncateCfg.FromDto(config.SqlOptions.TruncateTable)
 		j.SqlOptions = &SqlDestinationOptions{
-			TruncateBeforeInsert: *config.SqlOptions.TruncateBeforeInsert,
-			InitDbSchema:         *config.SqlOptions.InitDbSchema,
+			InitTableSchema:     config.SqlOptions.InitTableSchema,
+			TruncateTableConfig: truncateCfg,
 		}
+	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
+		j.AwsS3Options = &AwsS3DestinationOptions{}
 	default:
 		return fmt.Errorf("invalid config")
 	}

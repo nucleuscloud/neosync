@@ -396,9 +396,9 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
  */
 export class SqlSourceConnectionOptions extends Message<SqlSourceConnectionOptions> {
   /**
-   * @generated from field: optional bool halt_on_new_column_addition = 1;
+   * @generated from field: bool halt_on_new_column_addition = 1;
    */
-  haltOnNewColumnAddition?: boolean;
+  haltOnNewColumnAddition = false;
 
   constructor(data?: PartialMessage<SqlSourceConnectionOptions>) {
     super();
@@ -408,7 +408,7 @@ export class SqlSourceConnectionOptions extends Message<SqlSourceConnectionOptio
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.SqlSourceConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlSourceConnectionOptions {
@@ -514,14 +514,14 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
  */
 export class SqlDestinationConnectionOptions extends Message<SqlDestinationConnectionOptions> {
   /**
-   * @generated from field: optional bool truncate_before_insert = 1;
+   * @generated from field: mgmt.v1alpha1.TruncateTableConfig truncate_table = 1;
    */
-  truncateBeforeInsert?: boolean;
+  truncateTable?: TruncateTableConfig;
 
   /**
-   * @generated from field: optional bool init_db_schema = 2;
+   * @generated from field: bool init_table_schema = 2;
    */
-  initDbSchema?: boolean;
+  initTableSchema = false;
 
   constructor(data?: PartialMessage<SqlDestinationConnectionOptions>) {
     super();
@@ -531,8 +531,8 @@ export class SqlDestinationConnectionOptions extends Message<SqlDestinationConne
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.SqlDestinationConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "truncate_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
-    { no: 2, name: "init_db_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+    { no: 1, name: "truncate_table", kind: "message", T: TruncateTableConfig },
+    { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlDestinationConnectionOptions {
@@ -549,6 +549,49 @@ export class SqlDestinationConnectionOptions extends Message<SqlDestinationConne
 
   static equals(a: SqlDestinationConnectionOptions | PlainMessage<SqlDestinationConnectionOptions> | undefined, b: SqlDestinationConnectionOptions | PlainMessage<SqlDestinationConnectionOptions> | undefined): boolean {
     return proto3.util.equals(SqlDestinationConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.TruncateTableConfig
+ */
+export class TruncateTableConfig extends Message<TruncateTableConfig> {
+  /**
+   * @generated from field: bool truncate_before_insert = 1;
+   */
+  truncateBeforeInsert = false;
+
+  /**
+   * @generated from field: bool cascade = 2;
+   */
+  cascade = false;
+
+  constructor(data?: PartialMessage<TruncateTableConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.TruncateTableConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "truncate_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "cascade", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TruncateTableConfig {
+    return new TruncateTableConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TruncateTableConfig {
+    return new TruncateTableConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TruncateTableConfig {
+    return new TruncateTableConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TruncateTableConfig | PlainMessage<TruncateTableConfig> | undefined, b: TruncateTableConfig | PlainMessage<TruncateTableConfig> | undefined): boolean {
+    return proto3.util.equals(TruncateTableConfig, a, b);
   }
 }
 
