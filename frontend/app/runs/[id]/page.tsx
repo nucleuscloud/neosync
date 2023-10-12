@@ -13,7 +13,7 @@ import { formatDateTime } from '@/util/util';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
-import { JOB_RUN_STATUS } from '../components/status';
+import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
 
 export default function Page({ params }: PageProps): ReactElement {
@@ -21,10 +21,6 @@ export default function Page({ params }: PageProps): ReactElement {
   const { data, isLoading } = useGetJobRun(id);
 
   const jobRun = data?.jobRun;
-
-  const status = JOB_RUN_STATUS.find(
-    (status) => status.value === jobRun?.status
-  );
 
   return (
     <OverviewContainer
@@ -55,7 +51,12 @@ export default function Page({ params }: PageProps): ReactElement {
           <div
             className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4`}
           >
-            <StatCard header="Status" content={status?.badge} />
+            <StatCard
+              header="Status"
+              content={
+                <JobRunStatus status={jobRun?.status} className="text-lg" />
+              }
+            />
             <StatCard
               header="Start Time"
               content={formatDateTime(jobRun?.startedAt?.toDate())}
@@ -85,7 +86,10 @@ export default function Page({ params }: PageProps): ReactElement {
               }
             })}
           </div>
-          <JobRunActivityTable jobId={id} />
+          <div className="space-y-4">
+            <h1 className="text-2xl font-bold tracking-tight">Activity</h1>
+            <JobRunActivityTable jobId={id} />
+          </div>
         </div>
       )}
     </OverviewContainer>
