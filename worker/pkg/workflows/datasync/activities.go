@@ -29,10 +29,6 @@ import (
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
-const (
-	maxPgParamLimit = 65535
-)
-
 type GenerateBenthosConfigsRequest struct {
 	JobId      string
 	BackendUrl string
@@ -88,8 +84,9 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 
 		groupedMappings := groupMappingsByTable(job.Mappings)
-		for key, mappings := range groupedMappings {
-			cols := buildPlainColumns(mappings)
+		for i := range groupedMappings {
+			tableMapping := groupedMappings[i]
+			cols := buildPlainColumns(tableMapping.Mappings)
 			if len(cols) == 0 {
 				// skipping table as no columns are mapped
 				continue
@@ -102,8 +99,8 @@ func (a *Activities) GenerateBenthosConfigs(
 								Driver: "postgres",
 								Dsn:    dsn,
 
-								Table:   key,
-								Columns: buildPlainColumns(mappings),
+								Table:   buildBenthosTable(tableMapping.Schema, tableMapping.Table),
+								Columns: cols,
 							},
 						},
 					},
@@ -118,11 +115,6 @@ func (a *Activities) GenerateBenthosConfigs(
 								Outputs: []neosync_benthos.Outputs{},
 							},
 						},
-
-						// Broker: &neosync_benthos.OutputBrokerConfig{
-						// 	Pattern: "fan_out",
-						// 	Outputs: []neosync_benthos.Outputs{},
-						// },
 					},
 				},
 			}
@@ -136,7 +128,7 @@ func (a *Activities) GenerateBenthosConfigs(
 				})
 			}
 			responses = append(responses, &benthosConfigResponse{
-				Name:      key, // todo: may need to expand on this
+				Name:      buildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 				Config:    bc,
 				DependsOn: []string{},
 			})
@@ -243,7 +235,7 @@ func (a *Activities) GenerateBenthosConfigs(
 						Batching: &neosync_benthos.Batching{
 							Period: "1s",
 							// max allowed by postgres in a single batch
-							Count: clampInt(maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns), 1, maxPgParamLimit), // automatically rounds down
+							Count: computeMaxPgBatchCount(len(resp.Config.Input.SqlSelect.Columns)),
 						},
 					},
 				})
@@ -299,6 +291,18 @@ func (a *Activities) GenerateBenthosConfigs(
 	}, nil
 }
 
+const (
+	maxPgParamLimit = 65535
+)
+
+func computeMaxPgBatchCount(numCols int) int {
+	if numCols < 1 {
+		return maxPgParamLimit
+	}
+	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
+}
+
+// clamps the input between low, high
 func clampInt(input, low, high int) int {
 	if input < low {
 		return low
@@ -561,14 +565,30 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 
 func groupMappingsByTable(
 	mappings []*mgmtv1alpha1.JobMapping,
-) map[string][]*mgmtv1alpha1.JobMapping {
-	output := map[string][]*mgmtv1alpha1.JobMapping{}
+) []*TableMapping {
+	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
 
 	for _, mapping := range mappings {
 		key := buildBenthosTable(mapping.Schema, mapping.Table)
-		output[key] = append(output[key], mapping)
+		groupedMappings[key] = append(groupedMappings[key], mapping)
+	}
+
+	output := make([]*TableMapping, 0, len(groupedMappings))
+	for key, mappings := range groupedMappings {
+		schema, table := splitTableKey(key)
+		output = append(output, &TableMapping{
+			Schema:   schema,
+			Table:    table,
+			Mappings: mappings,
+		})
 	}
 	return output
+}
+
+type TableMapping struct {
+	Schema   string
+	Table    string
+	Mappings []*mgmtv1alpha1.JobMapping
 }
 
 func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {

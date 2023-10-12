@@ -1,6 +1,7 @@
 package datasync
 
 import (
+	"math"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -95,4 +96,24 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 		},
 	)
 	assert.True(t, ok, "job mappings have same column count, but missing specific column")
+}
+
+func TestClampInt(t *testing.T) {
+	assert.Equal(t, clampInt(0, 1, 2), 1)
+	assert.Equal(t, clampInt(1, 1, 2), 1)
+	assert.Equal(t, clampInt(2, 1, 2), 2)
+	assert.Equal(t, clampInt(3, 1, 2), 2)
+	assert.Equal(t, clampInt(1, 1, 1), 1)
+
+	assert.Equal(t, clampInt(1, 3, 2), 3, "low is evaluated first, order is relevant")
+
+}
+
+func TestComputeMaxPgBatchCount(t *testing.T) {
+	assert.Equal(t, computeMaxPgBatchCount(65535), 1)
+	assert.Equal(t, computeMaxPgBatchCount(65536), 1, "anything over max should clamp to 1")
+	assert.Equal(t, computeMaxPgBatchCount(math.MaxInt), 1, "anything over pgmax should clamp to 1")
+	assert.Equal(t, computeMaxPgBatchCount(1), 65535)
+	assert.Equal(t, computeMaxPgBatchCount(0), 65535)
+
 }
