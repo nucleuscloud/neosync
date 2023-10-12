@@ -367,7 +367,7 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
     }
     if (columnId == 'transformer') {
       const t = transformers.find((t) => t.value == filter);
-      return t?.title || '';
+      return t?.value || '';
     }
     if (typeof filter === 'string') {
       return filter;

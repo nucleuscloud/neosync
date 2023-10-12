@@ -318,6 +318,10 @@ message TransformerConfig {
     option (buf.validate.oneof).required = true;
 
     EmailConfig email_config = 1;
+    Passthrough passthrough_config = 2;
+    Uuidv4 uuid_config = 3;
+    FirstName first_name_config = 4;
+    PhoneNumber phone_number_config = 5;
   }
 }
 
@@ -325,6 +329,14 @@ message EmailConfig {
   bool preserve_domain = 1;
   bool preserve_length = 2;
 }
+
+message Passthrough {}
+
+message Uuidv4 {}
+
+message FirstName {}
+
+message PhoneNumber {}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}

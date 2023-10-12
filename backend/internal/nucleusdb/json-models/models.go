@@ -137,6 +137,7 @@ type JobMapping struct {
 }
 
 func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
+
 	return &mgmtv1alpha1.JobMapping{
 		Schema:      jm.Schema,
 		Table:       jm.Table,
@@ -167,6 +168,10 @@ type Transformer struct {
 
 type TransformerConfigs struct {
 	EmailConfig *EmailConfigs
+	FirstName   *FirstNameConfig
+	Uuidv4      *Uuidv4Config
+	PhoneNumber *PhoneNumberConfig
+	Passthrough *PassthroughConfig
 }
 
 type EmailConfigs struct {
@@ -174,30 +179,59 @@ type EmailConfigs struct {
 	PreserveDomain bool
 }
 
+type FirstNameConfig struct {
+}
+type Uuidv4Config struct {
+}
+type PhoneNumberConfig struct {
+}
+type PassthroughConfig struct {
+}
+
 // from API -> DB
 func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 
-	if tr.Config != nil {
-		switch tr.Config.Config.(type) {
-		case *mgmtv1alpha1.TransformerConfig_EmailConfig:
-			t.Value = tr.Value
-			t.Config = &TransformerConfigs{
-				EmailConfig: &EmailConfigs{
-					PreserveLength: tr.Config.GetEmailConfig().PreserveLength,
-					PreserveDomain: tr.Config.GetEmailConfig().PreserveDomain,
-				},
-			}
-		default:
-			return fmt.Errorf("invalid config")
+	switch tr.Config.Config.(type) {
+	case *mgmtv1alpha1.TransformerConfig_EmailConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			EmailConfig: &EmailConfigs{
+				PreserveLength: tr.Config.GetEmailConfig().PreserveLength,
+				PreserveDomain: tr.Config.GetEmailConfig().PreserveDomain,
+			},
 		}
+	case *mgmtv1alpha1.TransformerConfig_FirstNameConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			FirstName: &FirstNameConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			Passthrough: &PassthroughConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_UuidConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			Uuidv4: &Uuidv4Config{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_PhoneNumberConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			PhoneNumber: &PhoneNumberConfig{},
+		}
+	default:
+		return fmt.Errorf("invalid config")
 	}
 
 	return nil
 }
 
+// DB -> API
 func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 
-	if t.Config != nil {
+	switch {
+	case t.Config.EmailConfig != nil:
 		return &mgmtv1alpha1.Transformer{
 			Value: t.Value,
 			Config: &mgmtv1alpha1.TransformerConfig{
@@ -209,8 +243,45 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 				},
 			},
 		}
+	case t.Config.FirstName != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_FirstNameConfig{
+					FirstNameConfig: &mgmtv1alpha1.FirstName{},
+				},
+			},
+		}
+	case t.Config.Passthrough != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+					PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+				},
+			},
+		}
+	case t.Config.PhoneNumber != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PhoneNumberConfig{
+					PhoneNumberConfig: &mgmtv1alpha1.PhoneNumber{},
+				},
+			},
+		}
+	case t.Config.Uuidv4 != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_UuidConfig{
+					UuidConfig: &mgmtv1alpha1.Uuidv4{},
+				},
+			},
+		}
+	default:
+		return nil
 	}
-	return nil
 }
 
 type JobSourceOptions struct {

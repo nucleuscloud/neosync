@@ -1,11 +1,14 @@
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   EmailConfig,
+  FirstName,
   JobDestinationOptions,
+  Passthrough,
+  PhoneNumber,
   SqlDestinationConnectionOptions,
   Transformer,
   TransformerConfig,
-  TruncateTableConfig,
+  Uuidv4,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
@@ -135,8 +138,52 @@ export function toTransformerConfigOptions(t: {
         }),
       });
     }
+    case 'passthrough': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'passthroughConfig',
+            value: new Passthrough({}),
+          },
+        }),
+      });
+    }
+    case 'uuid_v4': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'uuidConfig',
+            value: new Uuidv4({}),
+          },
+        }),
+      });
+    }
+    case 'first_name': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'firstNameConfig',
+            value: new FirstName({}),
+          },
+        }),
+      });
+    }
+    case 'phone_number': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'phoneNumberConfig',
+            value: new PhoneNumber({}),
+          },
+        }),
+      });
+    }
     default: {
-      return new Transformer();
+      return new Transformer({});
     }
   }
 }
