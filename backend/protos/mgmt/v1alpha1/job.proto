@@ -289,7 +289,7 @@ message JobRunEvent {
   google.protobuf.Timestamp start_time = 3;
   google.protobuf.Timestamp close_time = 4;
   JobRunEventMetadata metadata = 5;
-  repeated JobRunEventTask Tasks = 6;
+  repeated JobRunEventTask tasks = 6;
 }
 
 message GetJobRunEventsRequest {

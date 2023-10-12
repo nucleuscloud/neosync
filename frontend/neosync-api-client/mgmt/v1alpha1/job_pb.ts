@@ -2364,9 +2364,9 @@ export class JobRunEvent extends Message<JobRunEvent> {
   metadata?: JobRunEventMetadata;
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.JobRunEventTask Tasks = 6;
+   * @generated from field: repeated mgmt.v1alpha1.JobRunEventTask tasks = 6;
    */
-  Tasks: JobRunEventTask[] = [];
+  tasks: JobRunEventTask[] = [];
 
   constructor(data?: PartialMessage<JobRunEvent>) {
     super();
@@ -2381,7 +2381,7 @@ export class JobRunEvent extends Message<JobRunEvent> {
     { no: 3, name: "start_time", kind: "message", T: Timestamp },
     { no: 4, name: "close_time", kind: "message", T: Timestamp },
     { no: 5, name: "metadata", kind: "message", T: JobRunEventMetadata },
-    { no: 6, name: "Tasks", kind: "message", T: JobRunEventTask, repeated: true },
+    { no: 6, name: "tasks", kind: "message", T: JobRunEventTask, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRunEvent {
