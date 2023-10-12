@@ -215,6 +215,9 @@ func (t *TruncateTableConfig) FromDto(dto *mgmtv1alpha1.TruncateTableConfig) {
 
 func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 	if j.SqlOptions != nil {
+		if j.SqlOptions.TruncateTableConfig == nil {
+			j.SqlOptions.TruncateTableConfig = &TruncateTableConfig{}
+		}
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_SqlOptions{
 				SqlOptions: &mgmtv1alpha1.SqlDestinationConnectionOptions{
