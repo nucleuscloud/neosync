@@ -83,8 +83,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         return { mappings: [] };
       }
 
-      console.log('res', res);
-
       const mappings = res.schemas.map((r) => {
         return {
           ...r,
