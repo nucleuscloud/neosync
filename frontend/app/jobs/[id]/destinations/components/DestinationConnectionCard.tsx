@@ -120,7 +120,8 @@ export default function DestinationConnectionCard({
                           field.onChange(value);
                           form.setValue(`destinationOptions`, {
                             truncateBeforeInsert: false,
-                            initDbSchema: false,
+                            truncateCascade: false,
+                            initTableSchema: false,
                           });
                         }}
                         value={field.value}
@@ -229,8 +230,10 @@ function getDefaultValues(d: JobDestination): FormValues {
       return {
         connectionId: d.connectionId,
         destinationOptions: {
-          truncateBeforeInsert: d.options.config.value.truncateBeforeInsert,
-          initDbSchema: d.options.config.value.initDbSchema,
+          truncateBeforeInsert:
+            d.options.config.value.truncateTable?.truncateBeforeInsert,
+          truncateCascade: d.options.config.value.truncateTable?.cascade,
+          initTableSchema: d.options.config.value.initTableSchema,
         },
       };
     default:

@@ -139,7 +139,8 @@ export default function Page({ params }: PageProps): ReactElement {
                                       `destinations.${index}.destinationOptions`,
                                       {
                                         truncateBeforeInsert: false,
-                                        initDbSchema: false,
+                                        truncateCascade: false,
+                                        initTableSchema: false,
                                       }
                                     );
                                   }}

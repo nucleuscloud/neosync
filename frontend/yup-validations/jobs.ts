@@ -2,6 +2,7 @@ import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   JobDestinationOptions,
   SqlDestinationConnectionOptions,
+  TruncateTableConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
@@ -51,7 +52,8 @@ export const DESTINATION_FORM_SCHEMA = Yup.object({
     ),
   destinationOptions: Yup.object({
     truncateBeforeInsert: Yup.boolean().optional(),
-    initDbSchema: Yup.boolean().optional(),
+    truncateCascade: Yup.boolean().optional(),
+    initTableSchema: Yup.boolean().optional(),
   }),
 }).required();
 type DestinationFormValues = Yup.InferType<typeof DESTINATION_FORM_SCHEMA>;
@@ -69,9 +71,12 @@ export function toJobDestinationOptions(
         config: {
           case: 'sqlOptions',
           value: new SqlDestinationConnectionOptions({
-            truncateBeforeInsert:
-              values.destinationOptions.truncateBeforeInsert,
-            initDbSchema: values.destinationOptions.initDbSchema,
+            truncateTable: new TruncateTableConfig({
+              truncateBeforeInsert:
+                values.destinationOptions.truncateBeforeInsert ?? false,
+              cascade: values.destinationOptions.truncateCascade ?? false,
+            }),
+            initTableSchema: values.destinationOptions.initTableSchema,
           }),
         },
       });
