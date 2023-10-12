@@ -10,7 +10,7 @@ import {
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
-import EmailTransformerForm from '../../[name]/components/EmailTransformerForm';
+import EmailTransformerForm from './EmailTransformerForm';
 
 interface Props {
   transformer: Transformer | undefined;

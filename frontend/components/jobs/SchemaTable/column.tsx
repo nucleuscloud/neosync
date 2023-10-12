@@ -1,6 +1,6 @@
 'use client';
 
-import EditTransformerOptions from '@/app/transformers/components/transformersTable/EditTransformerOptions';
+import EditTransformerOptions from '@/app/transformers/EditTransformerOptions';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Button } from '@/components/ui/button';

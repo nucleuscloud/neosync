@@ -260,7 +260,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       schemaMap[c.schema] = {
         [c.table]: {
           [c.column]: {
-            transformer: c.transformer,
+            transformer: c.transformer?.value ?? 'passthrough',
             exclude: c.exclude,
           },
         },
@@ -268,13 +268,13 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
     } else if (!schemaMap[c.schema][c.table]) {
       schemaMap[c.schema][c.table] = {
         [c.column]: {
-          transformer: c.transformer,
+          transformer: c.transformer?.value ?? 'passthrough',
           exclude: c.exclude,
         },
       };
     } else {
       schemaMap[c.schema][c.table][c.column] = {
-        transformer: c.transformer,
+        transformer: c.transformer?.value ?? 'passthrough',
         exclude: c.exclude,
       };
     }

@@ -2,7 +2,7 @@
 import PageHeader from '@/components/headers/PageHeader';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { ReactElement } from 'react';
-import { handleTransformerForm } from '../../components/transformersTable/EditTransformerOptions';
+import { handleTransformerForm } from './EditTransformerOptions';
 
 interface TransformerComponent {
   name: string;

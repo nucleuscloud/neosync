@@ -54,17 +54,6 @@ export function MainNav({
           Runs
         </Link>
         <Link
-          href="/transformers"
-          className={cn(
-            'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            pathname === '/transformers'
-              ? 'text-foreground'
-              : 'text-foreground/60'
-          )}
-        >
-          Transformers
-        </Link>
-        <Link
           href="/connections"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
