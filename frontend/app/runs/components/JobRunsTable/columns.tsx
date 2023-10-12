@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
-import { JOB_RUN_STATUS } from '../status';
+import JobRunStatus from '../JobRunStatus';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
@@ -47,16 +47,10 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => {
-        const status = JOB_RUN_STATUS.find(
-          (status) => status.value === row.getValue('status')
-        );
-
-        if (!status) {
-          return null;
-        }
-
         return (
-          <div className="flex w-[100px] items-center">{status.badge}</div>
+          <div className="flex w-[100px] items-center">
+            <JobRunStatus status={row.getValue('status')} />
+          </div>
         );
       },
       filterFn: (row, id, value) => {

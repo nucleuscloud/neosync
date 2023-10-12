@@ -171,7 +171,6 @@ export function getColumns(
                     <Switch
                       checked={!field.value}
                       onCheckedChange={(checked: boolean) => {
-                        console.log(checked);
                         field.onChange(!checked);
                       }}
                     />

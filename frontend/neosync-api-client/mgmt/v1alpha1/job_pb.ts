@@ -2151,28 +2151,222 @@ export class JobRun extends Message<JobRun> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.JobRunEvent
+ * @generated from message mgmt.v1alpha1.JobRunEventTaskError
  */
-export class JobRunEvent extends Message<JobRunEvent> {
+export class JobRunEventTaskError extends Message<JobRunEventTaskError> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: string message = 1;
    */
-  name = "";
+  message = "";
 
   /**
-   * @generated from field: google.protobuf.Timestamp created_at = 2;
+   * @generated from field: string retry_state = 2;
    */
-  createdAt?: Timestamp;
+  retryState = "";
+
+  constructor(data?: PartialMessage<JobRunEventTaskError>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobRunEventTaskError";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "retry_state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRunEventTaskError {
+    return new JobRunEventTaskError().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobRunEventTaskError {
+    return new JobRunEventTaskError().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobRunEventTaskError {
+    return new JobRunEventTaskError().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobRunEventTaskError | PlainMessage<JobRunEventTaskError> | undefined, b: JobRunEventTaskError | PlainMessage<JobRunEventTaskError> | undefined): boolean {
+    return proto3.util.equals(JobRunEventTaskError, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobRunEventTask
+ */
+export class JobRunEventTask extends Message<JobRunEventTask> {
+  /**
+   * @generated from field: int64 id = 1;
+   */
+  id = protoInt64.zero;
 
   /**
-   * @generated from field: string type = 3;
+   * @generated from field: string type = 2;
    */
   type = "";
 
   /**
-   * @generated from field: int64 id = 4;
+   * @generated from field: google.protobuf.Timestamp event_time = 3;
+   */
+  eventTime?: Timestamp;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.JobRunEventTaskError error = 4;
+   */
+  error?: JobRunEventTaskError;
+
+  constructor(data?: PartialMessage<JobRunEventTask>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobRunEventTask";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 2, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "event_time", kind: "message", T: Timestamp },
+    { no: 4, name: "error", kind: "message", T: JobRunEventTaskError },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRunEventTask {
+    return new JobRunEventTask().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobRunEventTask {
+    return new JobRunEventTask().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobRunEventTask {
+    return new JobRunEventTask().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobRunEventTask | PlainMessage<JobRunEventTask> | undefined, b: JobRunEventTask | PlainMessage<JobRunEventTask> | undefined): boolean {
+    return proto3.util.equals(JobRunEventTask, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobRunSyncMetadata
+ */
+export class JobRunSyncMetadata extends Message<JobRunSyncMetadata> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: string table = 2;
+   */
+  table = "";
+
+  constructor(data?: PartialMessage<JobRunSyncMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobRunSyncMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRunSyncMetadata {
+    return new JobRunSyncMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobRunSyncMetadata {
+    return new JobRunSyncMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobRunSyncMetadata {
+    return new JobRunSyncMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobRunSyncMetadata | PlainMessage<JobRunSyncMetadata> | undefined, b: JobRunSyncMetadata | PlainMessage<JobRunSyncMetadata> | undefined): boolean {
+    return proto3.util.equals(JobRunSyncMetadata, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobRunEventMetadata
+ */
+export class JobRunEventMetadata extends Message<JobRunEventMetadata> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.JobRunEventMetadata.metadata
+   */
+  metadata: {
+    /**
+     * @generated from field: mgmt.v1alpha1.JobRunSyncMetadata sync_metadata = 1;
+     */
+    value: JobRunSyncMetadata;
+    case: "syncMetadata";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<JobRunEventMetadata>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobRunEventMetadata";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "sync_metadata", kind: "message", T: JobRunSyncMetadata, oneof: "metadata" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRunEventMetadata {
+    return new JobRunEventMetadata().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobRunEventMetadata {
+    return new JobRunEventMetadata().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobRunEventMetadata {
+    return new JobRunEventMetadata().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobRunEventMetadata | PlainMessage<JobRunEventMetadata> | undefined, b: JobRunEventMetadata | PlainMessage<JobRunEventMetadata> | undefined): boolean {
+    return proto3.util.equals(JobRunEventMetadata, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobRunEvent
+ */
+export class JobRunEvent extends Message<JobRunEvent> {
+  /**
+   * @generated from field: int64 id = 1;
    */
   id = protoInt64.zero;
+
+  /**
+   * @generated from field: string type = 2;
+   */
+  type = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp start_time = 3;
+   */
+  startTime?: Timestamp;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp close_time = 4;
+   */
+  closeTime?: Timestamp;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.JobRunEventMetadata metadata = 5;
+   */
+  metadata?: JobRunEventMetadata;
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobRunEventTask tasks = 6;
+   */
+  tasks: JobRunEventTask[] = [];
 
   constructor(data?: PartialMessage<JobRunEvent>) {
     super();
@@ -2182,10 +2376,12 @@ export class JobRunEvent extends Message<JobRunEvent> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.JobRunEvent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "created_at", kind: "message", T: Timestamp },
-    { no: 3, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "id", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "id", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 2, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "start_time", kind: "message", T: Timestamp },
+    { no: 4, name: "close_time", kind: "message", T: Timestamp },
+    { no: 5, name: "metadata", kind: "message", T: JobRunEventMetadata },
+    { no: 6, name: "tasks", kind: "message", T: JobRunEventTask, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRunEvent {

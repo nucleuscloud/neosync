@@ -1,7 +1,6 @@
 'use client';
 import { PageProps } from '@/components/types';
 
-import ProgressNav from '@/components/Progress';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SkeletonProgress from '@/components/skeleton/SkeletonProgress';
@@ -10,32 +9,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetJobRun } from '@/libs/hooks/useGetJobRun';
-import { useGetJobRunEvents } from '@/libs/hooks/useGetJobRunEvents';
 import { formatDateTime } from '@/util/util';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
-import { JOB_RUN_STATUS } from '../components/status';
+import JobRunStatus from '../components/JobRunStatus';
+import JobRunActivityTable from './components/JobRunActivityTable';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { data, isLoading } = useGetJobRun(id);
-  const { data: jobRunEvents, isLoading: jobRunEventsLoading } =
-    useGetJobRunEvents(id);
 
   const jobRun = data?.jobRun;
-  const events = jobRunEvents?.events || [];
-
-  const progressNavItems = events.map((e) => {
-    return {
-      title: `${e.name} - ${e.type}`,
-      description: formatDateTime(e.createdAt?.toDate()) || '',
-    };
-  });
-
-  const status = JOB_RUN_STATUS.find(
-    (status) => status.value === jobRun?.status
-  );
 
   return (
     <OverviewContainer
@@ -62,11 +47,16 @@ export default function Page({ params }: PageProps): ReactElement {
           <SkeletonProgress />
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-12">
           <div
             className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4`}
           >
-            <StatCard header="Status" content={status?.badge} />
+            <StatCard
+              header="Status"
+              content={
+                <JobRunStatus status={jobRun?.status} className="text-lg" />
+              }
+            />
             <StatCard
               header="Start Time"
               content={formatDateTime(jobRun?.startedAt?.toDate())}
@@ -97,12 +87,8 @@ export default function Page({ params }: PageProps): ReactElement {
             })}
           </div>
           <div className="space-y-4">
-            <h1 className="text-xl font-semibold tracking-tight">Steps</h1>
-            {jobRunEventsLoading ? (
-              <SkeletonProgress />
-            ) : (
-              <ProgressNav items={progressNavItems} />
-            )}
+            <h1 className="text-2xl font-bold tracking-tight">Activity</h1>
+            <JobRunActivityTable jobId={id} />
           </div>
         </div>
       )}

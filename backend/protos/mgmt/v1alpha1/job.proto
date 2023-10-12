@@ -259,11 +259,37 @@ enum JobRunStatus {
   JOB_RUN_STATUS_FAILED = 7;
 }
 
+message JobRunEventTaskError {
+  string message = 1;
+  string retry_state = 2;
+}
+
+message JobRunEventTask {
+  int64 id = 1;
+  string type = 2;
+  google.protobuf.Timestamp event_time = 3;
+  JobRunEventTaskError error = 4;
+}
+
+message JobRunSyncMetadata {
+  string schema = 1;
+  string table = 2;
+}
+
+message JobRunEventMetadata {
+  oneof metadata {
+    option (buf.validate.oneof).required = true;
+    JobRunSyncMetadata sync_metadata = 1;
+  }
+}
+
 message JobRunEvent {
-  string name = 1;
-  google.protobuf.Timestamp created_at = 2;
-  string type = 3;
-  int64 id = 4;
+  int64 id = 1;
+  string type = 2;
+  google.protobuf.Timestamp start_time = 3;
+  google.protobuf.Timestamp close_time = 4;
+  JobRunEventMetadata metadata = 5;
+  repeated JobRunEventTask tasks = 6;
 }
 
 message GetJobRunEventsRequest {
