@@ -20,12 +20,11 @@ export default function DestinationOptionsForm(
 ): ReactElement {
   const { connection, maxColNum, index } = props;
   const grid = maxColNum ? `lg:grid-cols-${maxColNum}` : 'lg:grid-cols-3';
+  const formCtx = useFormContext();
 
   if (!connection) {
     return <></>;
   }
-
-  const formCtx = useFormContext();
 
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
