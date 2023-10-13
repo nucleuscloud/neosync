@@ -72,25 +72,10 @@ func (s *Service) GetJobs(
 	}
 
 	dtos := []*mgmtv1alpha1.Job{}
-	group := new(errgroup.Group)
 	// Use jobIds to retain original query order
 	for _, jobId := range jobIds {
-		jobId := jobId
-		group.Go(func() error {
-			job := jobMap[jobId]
-			scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
-			schedule, err := scheduleHandle.Describe(ctx)
-			if err != nil {
-				logger.Error(fmt.Errorf("unable to get schedule: %w", err).Error(), "jobId", jobId)
-			}
-			dtos = append(dtos, dtomaps.ToJobDto(job, associationMap[job.ID], schedule))
-			return nil
-		})
-	}
-
-	err = group.Wait()
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve jobs: %w", err).Error())
+		job := jobMap[jobId]
+		dtos = append(dtos, dtomaps.ToJobDto(job, associationMap[job.ID]))
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
@@ -102,8 +87,6 @@ func (s *Service) GetJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.Id)
 	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
@@ -140,14 +123,99 @@ func (s *Service) GetJob(
 	if err != nil {
 		return nil, err
 	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+		Job: dtomaps.ToJobDto(&job, destConnections),
+	}), nil
+}
+
+func (s *Service) GetJobStatus(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobStatusRequest],
+) (*connect.Response[mgmtv1alpha1.GetJobStatusResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.JobId)
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
 	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	schedule, err := scheduleHandle.Describe(ctx)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(&job, destConnections, schedule),
+	return connect.NewResponse(&mgmtv1alpha1.GetJobStatusResponse{
+		Status: dtomaps.ToJobStatus(schedule),
+	}), nil
+}
+
+func (s *Service) GetJobRecentRuns(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRecentRunsRequest],
+) (*connect.Response[mgmtv1alpha1.GetJobRecentRunsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.JobId)
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	schedule, err := scheduleHandle.Describe(ctx)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetJobRecentRunsResponse{
+		RecentRuns: dtomaps.ToJobRecentRunsDto(schedule),
+	}), nil
+}
+
+func (s *Service) GetJobNextRuns(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobNextRunsRequest],
+) (*connect.Response[mgmtv1alpha1.GetJobNextRunsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.JobId)
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	schedule, err := scheduleHandle.Describe(ctx)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetJobNextRunsResponse{
+		NextRuns: dtomaps.ToJobNextRunsDto(schedule),
 	}), nil
 }
 
@@ -224,8 +292,6 @@ func (s *Service) CreateJob(
 	// todo: verify connection ids are all in this account
 
 	var createdJob *db_queries.NeosyncApiJob
-	var ScheduleDescription *temporalclient.ScheduleDescription
-
 	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
 		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
 			Name:               req.Msg.JobName,
@@ -293,10 +359,6 @@ func (s *Service) CreateJob(
 				return err
 			}
 		}
-		ScheduleDescription, err = scheduleHandle.Describe(ctx)
-		if err != nil {
-			logger.Error(fmt.Errorf("unable to get schedule: %w", err).Error())
-		}
 		return nil
 	}); err != nil {
 		return nil, err
@@ -308,7 +370,7 @@ func (s *Service) CreateJob(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(createdJob, destinationConnections, ScheduleDescription),
+		Job: dtomaps.ToJobDto(createdJob, destinationConnections),
 	}), nil
 }
 

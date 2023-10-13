@@ -7,6 +7,7 @@ import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { getErrorMessage } from '@/util/util';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -18,6 +19,7 @@ import JobScheduleCard from './components/ScheduleCard';
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { data, isLoading, mutate } = useGetJob(id);
+  const { data: jobStatus } = useGetJobStatus(id);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -65,14 +67,14 @@ export default function Page({ params }: PageProps): ReactElement {
         }
       />
       <div className="space-y-10">
-        <JobPauseSwitch job={data?.job} mutate={mutate} />
+        <JobPauseSwitch jobId={id} status={jobStatus?.status} mutate={mutate} />
         <JobScheduleCard job={data?.job} mutate={mutate} />
-        <div className="flex flex-row space-x-8">
-          <div className="basis-1/4">
-            <JobNextRuns job={data?.job} />
+        <div className="flex md:flex-row md:space-x-8 md:space-y-0 flex-col space-y-8">
+          <div className="md:basis-1/4">
+            <JobNextRuns jobId={id} jobStatus={jobStatus?.status} />
           </div>
-          <div className="basis-3/4">
-            <JobRecentRuns job={data?.job} />
+          <div className="md:basis-3/4">
+            <JobRecentRuns jobId={id} />
           </div>
         </div>
       </div>

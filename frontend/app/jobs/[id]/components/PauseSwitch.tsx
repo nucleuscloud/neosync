@@ -2,7 +2,6 @@
 import SwitchCard from '@/components/switches/SwitchCard';
 import { useToast } from '@/components/ui/use-toast';
 import {
-  Job,
   JobStatus,
   PauseJobRequest,
   PauseJobResponse,
@@ -11,16 +10,21 @@ import { getErrorMessage } from '@/util/util';
 import { ReactElement } from 'react';
 
 interface Props {
-  job: Job;
+  jobId: string;
+  status?: JobStatus;
   mutate: () => void;
 }
 
-export default function JobPauseSwitch({ job, mutate }: Props): ReactElement {
+export default function JobPauseSwitch({
+  status,
+  mutate,
+  jobId,
+}: Props): ReactElement {
   const { toast } = useToast();
 
   async function onClick(isPaused: boolean) {
     try {
-      await pauseJob(job.id, isPaused);
+      await pauseJob(jobId, isPaused);
       toast({
         title: `Successfully ${isPaused ? 'paused' : 'unpaused'}  job!`,
         variant: 'default',
@@ -39,7 +43,7 @@ export default function JobPauseSwitch({ job, mutate }: Props): ReactElement {
   return (
     <div className="max-w-[300px]">
       <SwitchCard
-        isChecked={job.status == JobStatus.PAUSED || false}
+        isChecked={status == JobStatus.PAUSED || false}
         onCheckedChange={async (value) => {
           onClick(value);
         }}

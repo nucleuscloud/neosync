@@ -81,7 +81,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         return {
           ...r,
           transformer: {
-            value: '',
+            value: 'passthrough',
             config: {},
           },
         };
