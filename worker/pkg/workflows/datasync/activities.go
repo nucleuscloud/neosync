@@ -120,7 +120,7 @@ func (a *Activities) GenerateBenthosConfigs(
 					},
 				},
 			}
-			mutation, err := buildProcessorMutation(job.Mappings)
+			mutation, err := buildProcessorMutation(tableMapping.Mappings)
 			if err != nil {
 				return nil, err
 			}
