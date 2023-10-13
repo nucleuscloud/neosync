@@ -122,6 +122,8 @@ jobs:
           cmd: sh ./backend/hack/sqlc-prepare-patch.sh postgresql://postgres:postgres@localhost:5432/nucleus ./backend/sqlc.yaml
 
       - run: sh ./hack/migrate-download.sh
+      - name: add backend/bin to system path to run migrate
+        run: echo "./bin" >> $GITHUB_PATH
 
       # - name: Set up Go
       #   uses: actions/setup-go@v4
@@ -135,6 +137,7 @@ jobs:
       - name: Run migrations on database
         env:
           PG_PASSWORD: postgres
+
         run: ./hack/migrate.sh up
 
       - name: Retrieve SQLC Version
