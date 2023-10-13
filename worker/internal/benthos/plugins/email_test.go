@@ -17,9 +17,9 @@ func TestEmailTransformer(t *testing.T) {
 		expectedLength      int
 		checkEmailStructure bool
 	}{
-		{"evis@gmail.com", true, false, false, 14, false}, //checks preserve length
-		{"evis@gmail.com", false, true, false, 0, true},   //checks preserve domain
-		{"evis@gmail.com", true, true, false, 14, false},  //checks preserve length and domain
+		{"evis@gmail.com", true, false, false, 14, false}, // checks preserve length
+		{"evis@gmail.com", false, true, false, 0, true},   // checks preserve domain
+		{"evis@gmail.com", true, true, false, 14, false},  // checks preserve length and domain
 	}
 
 	for _, tt := range tests {
