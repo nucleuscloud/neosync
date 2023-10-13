@@ -15,7 +15,6 @@ sql:
               package: jsonmodels
               type: ConnectionConfig
               pointer: true
-
           - column: neosync_api.jobs.mappings
             go_type:
               import: github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models
@@ -23,14 +22,12 @@ sql:
               type: JobMapping
               pointer: true
               slice: true
-
           - column: neosync_api.jobs.connection_options
             go_type:
               import: github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models
               package: jsonmodels
               type: JobSourceOptions
               pointer: true
-
           - column: neosync_api.job_destination_connection_associations.options
             go_type:
               import: github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models
