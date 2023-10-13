@@ -1,6 +1,7 @@
 'use client';
 import { PageProps } from '@/components/types';
 
+import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SkeletonProgress from '@/components/skeleton/SkeletonProgress';
@@ -156,8 +157,10 @@ function ButtonLink(props: ButtonProps): ReactElement {
       variant="outline"
       onClick={() => router.push(`/jobs/${props.jobId}`)}
     >
-      View Job
-      <ArrowRightIcon className="ml-2 h-4 w-4" />
+      <ButtonText
+        text="View Job"
+        rightIcon={<ArrowRightIcon className="ml-2 h-4 w-4" />}
+      />
     </Button>
   );
 }

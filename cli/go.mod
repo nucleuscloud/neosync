@@ -6,7 +6,7 @@ require (
 	connectrpc.com/connect v1.11.1
 	github.com/fatih/color v1.15.0
 	github.com/google/uuid v1.3.1
-	github.com/nucleuscloud/neosync/backend v0.0.0-20231009234438-a78d344cd6e2
+	github.com/nucleuscloud/neosync/backend v0.0.0-20231013222221-e455d40191d0
 	github.com/rodaine/table v1.1.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
@@ -16,7 +16,7 @@ require (
 )
 
 require (
-	github.com/envoyproxy/protoc-gen-validate v1.0.2 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20230824200731-b9b8148056b9.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
