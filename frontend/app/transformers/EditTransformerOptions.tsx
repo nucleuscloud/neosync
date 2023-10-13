@@ -119,7 +119,7 @@ function handleTransformerMetadata(
         description: 'Anonymizes or generates a new first name.',
       },
     },
-    { uuidv4: { name: 'UUIDv4', description: 'Generates a new UUIDv4 id.' } },
+    { uuid_v4: { name: 'UUIDv4', description: 'Generates a new UUIDv4 id.' } },
     {
       passthrough: {
         name: 'Passthrough',

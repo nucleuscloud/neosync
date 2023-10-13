@@ -195,7 +195,15 @@ export function toTransformerConfigOptions(t: {
       });
     }
     default: {
-      return new Transformer({});
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'passthroughConfig',
+            value: new Passthrough({}),
+          },
+        }),
+      });
     }
   }
 }
