@@ -37,12 +37,11 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
         <DataTableColumnHeader column={column} title="Time" />
       ),
       cell: ({ row }) => {
+        const startTime = row.getValue<Timestamp>('startTime');
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTimeMilliseconds(
-                row.getValue<Timestamp>('startTime').toDate()
-              )}
+              {startTime && formatDateTimeMilliseconds(startTime.toDate())}
             </span>
           </div>
         );

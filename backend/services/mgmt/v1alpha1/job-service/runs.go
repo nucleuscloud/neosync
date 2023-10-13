@@ -157,8 +157,9 @@ func (s *Service) GetJobRunEvents(
 			activityOrder = append(activityOrder, event.EventId)
 			attributes := event.GetActivityTaskScheduledEventAttributes()
 			jobRunEvent := &mgmtv1alpha1.JobRunEvent{
-				Id:   event.EventId,
-				Type: attributes.ActivityType.Name,
+				Id:        event.EventId,
+				Type:      attributes.ActivityType.Name,
+				StartTime: timestamppb.New(*event.EventTime),
 				Tasks: []*mgmtv1alpha1.JobRunEventTask{
 					dtomaps.ToJobRunEventTaskDto(event, nil),
 				},
