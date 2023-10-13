@@ -16,6 +16,7 @@ const (
 	FirstName   Transformation = "first_name"
 	PhoneNumber Transformation = "phone_number"
 	Email       Transformation = "email"
+	Null        Transformation = "null"
 )
 
 func (s *Service) GetTransformers(
@@ -28,6 +29,7 @@ func (s *Service) GetTransformers(
 			{Value: string(UuidV4), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(FirstName), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(PhoneNumber), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{
 				Value: string(Email),
 				Config: &mgmtv1alpha1.TransformerConfig{

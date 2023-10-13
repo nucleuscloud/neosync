@@ -162,7 +162,6 @@ type JobMapping struct {
 	Table       string
 	Column      string
 	Transformer *Transformer
-	Exclude     bool
 }
 
 func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
@@ -172,12 +171,10 @@ func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
 		Table:       jm.Table,
 		Column:      jm.Column,
 		Transformer: jm.Transformer.ToDto(),
-		Exclude:     jm.Exclude,
 	}
 }
 
 func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
-
 	t := &Transformer{}
 	if err := t.FromDto(dto.Transformer); err != nil {
 		return err
@@ -186,7 +183,6 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 	jm.Table = dto.Table
 	jm.Column = dto.Column
 	jm.Transformer = t
-	jm.Exclude = dto.Exclude
 	return nil
 }
 
@@ -201,6 +197,7 @@ type TransformerConfigs struct {
 	Uuidv4      *Uuidv4Config
 	PhoneNumber *PhoneNumberConfig
 	Passthrough *PassthroughConfig
+	Null        *NullConfig
 }
 
 type EmailConfigs struct {
@@ -216,6 +213,8 @@ type PhoneNumberConfig struct {
 }
 type PassthroughConfig struct {
 }
+
+type NullConfig struct{}
 
 // from API -> DB
 func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
@@ -248,6 +247,11 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
 			PhoneNumber: &PhoneNumberConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_NullConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			Null: &NullConfig{},
 		}
 	default:
 		t.Value = tr.Value
@@ -306,6 +310,15 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_UuidConfig{
 					UuidConfig: &mgmtv1alpha1.Uuidv4{},
+				},
+			},
+		}
+	case t.Config.Null != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_NullConfig{
+					NullConfig: &mgmtv1alpha1.Null{},
 				},
 			},
 		}

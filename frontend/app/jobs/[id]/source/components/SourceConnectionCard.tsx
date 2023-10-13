@@ -66,7 +66,6 @@ interface SchemaMap {
     [table: string]: {
       [column: string]: {
         transformer: Transformer;
-        exclude: boolean;
       };
     };
   };
@@ -223,7 +222,6 @@ async function updateJobConnection(
             table: m.table,
             column: m.column,
             transformer: toTransformerConfigOptions(m.transformer),
-            exclude: m.exclude,
           });
         }),
         source: new JobSource({
@@ -266,7 +264,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
         [c.table]: {
           [c.column]: {
             transformer: c.transformer ?? new Transformer(),
-            exclude: c.exclude,
           },
         },
       };
@@ -274,13 +271,11 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       schemaMap[c.schema][c.table] = {
         [c.column]: {
           transformer: c.transformer ?? new Transformer(),
-          exclude: c.exclude,
         },
       };
     } else {
       schemaMap[c.schema][c.table][c.column] = {
         transformer: c.transformer ?? new Transformer(),
-        exclude: c.exclude,
       };
     }
   });
@@ -293,7 +288,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       column: c.column,
       dataType: c.dataType,
       transformer: colMapping?.transformer ?? new Transformer(),
-      exclude: (colMapping && colMapping.exclude) || false,
     };
   });
 
@@ -333,7 +327,7 @@ function getColumnMapping(
   schema: string,
   table: string,
   column: string
-): { transformer: Transformer; exclude: boolean } | undefined {
+): { transformer: Transformer } | undefined {
   if (!schemaMap[schema]) {
     return;
   }

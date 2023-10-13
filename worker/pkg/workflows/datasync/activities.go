@@ -29,6 +29,8 @@ import (
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
+const nullString = "null"
+
 type GenerateBenthosConfigsRequest struct {
 	JobId      string
 	BackendUrl string
@@ -87,7 +89,7 @@ func (a *Activities) GenerateBenthosConfigs(
 		for i := range groupedMappings {
 			tableMapping := groupedMappings[i]
 			cols := buildPlainColumns(tableMapping.Mappings)
-			if len(cols) == 0 {
+			if areAllColsNull(tableMapping.Mappings) {
 				// skipping table as no columns are mapped
 				continue
 			}
@@ -507,13 +509,20 @@ func (a *Activities) getInitStatementFromPostgres(
 	return strings.Join(statements, "\n"), nil
 }
 
+func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
+	for _, col := range mappings {
+		if col.Transformer.Value != nullString {
+			return false
+		}
+	}
+	return true
+}
+
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
 	columns := []string{}
 
 	for _, col := range mappings {
-		if !col.Exclude {
-			columns = append(columns, col.Column)
-		}
+		columns = append(columns, col.Column)
 	}
 
 	return columns
@@ -812,6 +821,8 @@ func computeMutationFunction(transformer *mgmtv1alpha1.Transformer) (string, err
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "uuid_digit":
 		return fmt.Sprintf("fake(%q)", transformer), nil
+	case nullString:
+		return nullString, nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

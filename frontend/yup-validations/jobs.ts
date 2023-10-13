@@ -3,6 +3,7 @@ import {
   EmailConfig,
   FirstName,
   JobDestinationOptions,
+  Null,
   Passthrough,
   PhoneNumber,
   SqlDestinationConnectionOptions,
@@ -35,7 +36,6 @@ const JOB_MAPPING_SCHEMA = Yup.object({
   column: Yup.string().required(),
   dataType: Yup.string().required(),
   transformer: TRANSFORMER_SCHEMA,
-  exclude: Yup.boolean(),
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
 
@@ -179,6 +179,17 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'phoneNumberConfig',
             value: new PhoneNumber({}),
+          },
+        }),
+      });
+    }
+    case 'null': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'nullConfig',
+            value: new Null({}),
           },
         }),
       });

@@ -15,13 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { CaretSortIcon, CheckIcon, UpdateIcon } from '@radix-ui/react-icons';
@@ -41,7 +34,6 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const form = useFormContext();
   const [transformer, setTransformer] = useState<string>('');
-  const [exclude, setExclude] = useState<string>('');
 
   return (
     <div className="flex items-center justify-between">
@@ -61,33 +53,6 @@ export function DataTableToolbar<TData>({
             setTransformer('');
           }}
         />
-        <Select
-          value={exclude}
-          onValueChange={(value) => {
-            const rows = table.getSelectedRowModel();
-            rows.rows.forEach((r) => {
-              form.setValue(`mappings.${r.index}.exclude`, value === 'false', {
-                shouldDirty: true,
-              });
-            });
-
-            table.resetRowSelection();
-            setExclude('');
-          }}
-        >
-          <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder="bulk update exclude..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem className="cursor-pointer" key="exclude" value="false">
-              Exclude
-            </SelectItem>
-
-            <SelectItem className="cursor-pointer" key="include" value="true">
-              Include
-            </SelectItem>
-          </SelectContent>
-        </Select>
       </div>
       <Button
         variant="outline"
