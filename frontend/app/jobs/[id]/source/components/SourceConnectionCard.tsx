@@ -40,7 +40,11 @@ import {
   UpdateJobSourceConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
-import { SCHEMA_FORM_SCHEMA, SOURCE_FORM_SCHEMA } from '@/yup-validations/jobs';
+import {
+  SCHEMA_FORM_SCHEMA,
+  SOURCE_FORM_SCHEMA,
+  toTransformerConfigOptions,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -218,7 +222,7 @@ async function updateJobConnection(
             schema: m.schema,
             table: m.table,
             column: m.column,
-            transformer: m.transformer,
+            transformer: toTransformerConfigOptions(m.transformer),
             exclude: m.exclude,
           });
         }),
