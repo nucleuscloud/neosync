@@ -116,6 +116,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Patch sqlc.yaml with db-prepare lint
+        uses: mikefarah/yq@v4.35.2
+        with:
+          cmd: sh ./backend/hack/sqlc-prepare-patch.sh postgresql://postgres:postgres@localhost:5432/nucleus ./backend/sqlc.yaml
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -139,8 +144,4 @@ jobs:
         with:
           sqlc-version: ${{ env.SQLC_VERSION }}
 
-      - name: Patch sqlc.yaml with db-prepare lint
-        uses: mikefarah/yq@v4
-        with:
-          cmd: sh ./backend/hack/sqlc-prepare-patch.sh postgresql://postgres:postgres@localhost:5432/nucleus ./backend/sqlc.yaml
       - run: sqlc vet
