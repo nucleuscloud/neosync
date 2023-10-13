@@ -123,7 +123,11 @@ jobs:
 
       - run: sh ./hack/migrate-download.sh
       - name: add backend/bin to system path to run migrate
-        run: echo "$PWD/bin" >> $GITHUB_PATH
+        run: |
+          echo $GITHUB_PATH
+          echo $PWD
+          echo "$PWD/bin" >> $GITHUB_PATH
+          echo $GITHUB_PATH
 
       # - name: Set up Go
       #   uses: actions/setup-go@v4
