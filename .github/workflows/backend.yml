@@ -125,9 +125,11 @@ jobs:
       - name: add backend/bin to system path to run migrate
         run: |
           echo $GITHUB_PATH
+          echo $PATH
           echo $PWD
           echo "$PWD/bin" >> $GITHUB_PATH
           echo $GITHUB_PATH
+          echo $PATH
 
       # - name: Set up Go
       #   uses: actions/setup-go@v4
