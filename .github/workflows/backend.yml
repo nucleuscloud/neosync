@@ -121,14 +121,16 @@ jobs:
         with:
           cmd: sh ./backend/hack/sqlc-prepare-patch.sh postgresql://postgres:postgres@localhost:5432/nucleus ./backend/sqlc.yaml
 
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
+      - run: sh ./hack/migrate-download.sh
 
-      - name: Install golang-migrate
-        run: make install-go-tools
+      # - name: Set up Go
+      #   uses: actions/setup-go@v4
+      #   with:
+      #     go-version-file: backend/go.mod
+      #     cache-dependency-path: backend/go.sum
+
+      # - name: Install golang-migrate
+      #   run: make install-go-tools
 
       - name: Run migrations on database
         env:
