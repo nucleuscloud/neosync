@@ -64,10 +64,9 @@ func listJobs(
 	errgrp, errctx := errgroup.WithContext(ctx)
 	for idx := range res.Msg.Jobs {
 		idx := idx
-		job := res.Msg.Jobs[idx]
 		errgrp.Go(func() error {
 			jsres, err := jobclient.GetJobStatus(errctx, connect.NewRequest[mgmtv1alpha1.GetJobStatusRequest](&mgmtv1alpha1.GetJobStatusRequest{
-				JobId: job.Id,
+				JobId: res.Msg.Jobs[idx].Id,
 			}))
 			if err != nil {
 				return err
