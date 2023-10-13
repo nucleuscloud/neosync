@@ -1,10 +1,12 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { useGetJobs } from '@/libs/hooks/useGetJobs';
+import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { getColumns } from './components/DataTable/columns';
@@ -61,7 +63,9 @@ function NewJobButton(props: NewJobButtonProps): ReactElement {
   const {} = props;
   return (
     <NextLink href={'/new/job'}>
-      <Button>+ New Job </Button>
+      <Button>
+        <ButtonText leftIcon={<PlusIcon />} text="New Job" />
+      </Button>
     </NextLink>
   );
 }

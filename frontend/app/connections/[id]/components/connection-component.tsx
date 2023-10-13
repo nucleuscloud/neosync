@@ -112,13 +112,8 @@ export function getConnectionComponentDetails(
               s3: {
                 bucketArn: connection.connectionConfig.config.value.bucketArn,
                 pathPrefix: connection.connectionConfig.config.value.pathPrefix,
-                roleArn: connection.connectionConfig.config.value.roleArn,
-                accessKey:
-                  connection.connectionConfig.config.value.credentials
-                    ?.accessKey || '',
-                accessKeyId:
-                  connection.connectionConfig.config.value.credentials
-                    ?.accessKeyId,
+                credentials:
+                  connection.connectionConfig.config.value.credentials,
               },
             }}
             onSaved={(resp) => onSaved(resp)}

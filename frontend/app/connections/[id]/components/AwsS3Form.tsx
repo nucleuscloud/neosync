@@ -1,5 +1,6 @@
 'use client';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import SwitchCard from '@/components/switches/SwitchCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,16 +29,15 @@ const FORM_SCHEMA = Yup.object({
   s3: Yup.object({
     bucketArn: Yup.string().required(),
     pathPrefix: Yup.string().optional(),
-    roleArn: Yup.string().optional(),
-    accessKeyId: Yup.string(),
-    accessKey: Yup.string()
-      .ensure()
-      .when('accessKeyId', {
-        is: (val?: string) => {
-          return val && val != '';
-        },
-        then: (schema) => schema.required(),
-      }),
+    credentials: Yup.object({
+      profile: Yup.string().optional(),
+      accessKeyId: Yup.string(),
+      secretAccessKey: Yup.string().optional(),
+      sessionToken: Yup.string().optional(),
+      fromEc2Role: Yup.boolean().optional(),
+      roleArn: Yup.string().optional(),
+      roleExternalId: Yup.string().optional(),
+    }).optional(),
   }).required(),
 });
 
@@ -132,15 +132,22 @@ export default function AwsS3Form(props: Props) {
           )}
         />
 
+        <div className="space-y-2">
+          <h2 className="text-1xl font-bold tracking-tight">Manual Setup</h2>
+          <p className="text-sm tracking-tight">
+            Optional manual configuration of AWS credentials to use
+          </p>
+        </div>
+
         <FormField
           control={form.control}
-          name="s3.roleArn"
+          name="s3.credentials.profile"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input placeholder="Role Arn" {...field} />
+                <Input placeholder="default" {...field} />
               </FormControl>
-              <FormDescription>Role Arn</FormDescription>
+              <FormDescription>AWS Profile Name</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -148,7 +155,7 @@ export default function AwsS3Form(props: Props) {
 
         <FormField
           control={form.control}
-          name="s3.accessKeyId"
+          name="s3.credentials.accessKeyId"
           render={({ field }) => (
             <FormItem>
               <FormControl>
@@ -162,13 +169,74 @@ export default function AwsS3Form(props: Props) {
 
         <FormField
           control={form.control}
-          name="s3.accessKey"
+          name="s3.credentials.secretAccessKey"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input placeholder="Access Key" {...field} />
+                <Input placeholder="Secret Access Key" {...field} />
               </FormControl>
-              <FormDescription>Access Key</FormDescription>
+              <FormDescription>Secret Access Key</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="s3.credentials.sessionToken"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="Session Token" {...field} />
+              </FormControl>
+              <FormDescription>Session Token</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="s3.credentials.fromEc2Role"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <SwitchCard
+                  isChecked={field.value || false}
+                  onCheckedChange={field.onChange}
+                  title="From EC2 Role"
+                  description="Use the credentials of a host EC2 machine configured to assume an IAM role associated with the instance."
+                />
+              </FormControl>
+              {/* <FormDescription>From EC2 Role</FormDescription> */}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="s3.credentials.roleArn"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="Role Arn" {...field} />
+              </FormControl>
+              <FormDescription>Role Arn</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="s3.credentials.roleExternalId"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="Role External Id" {...field} />
+              </FormControl>
+              <FormDescription>Role External Id</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -185,13 +253,6 @@ async function updateAwsS3Connection(
   s3: FormValues['s3'],
   connectionId: string
 ): Promise<UpdateConnectionResponse> {
-  const credentials =
-    s3.accessKeyId && s3.accessKey
-      ? new AwsS3Credentials({
-          accessKeyId: s3.accessKeyId,
-          accessKey: s3.accessKey,
-        })
-      : undefined;
   const res = await fetch(`/api/connections/${connectionId}`, {
     method: 'PUT',
     headers: {
@@ -206,8 +267,15 @@ async function updateAwsS3Connection(
             value: new AwsS3ConnectionConfig({
               bucketArn: s3.bucketArn,
               pathPrefix: s3.pathPrefix,
-              roleArn: s3.roleArn,
-              credentials,
+              credentials: new AwsS3Credentials({
+                profile: s3.credentials?.profile,
+                accessKeyId: s3.credentials?.accessKeyId,
+                secretAccessKey: s3.credentials?.secretAccessKey,
+                fromEc2Role: s3.credentials?.fromEc2Role,
+                roleArn: s3.credentials?.roleArn,
+                roleExternalId: s3.credentials?.roleExternalId,
+                sessionToken: s3.credentials?.sessionToken,
+              }),
             }),
           },
         }),
