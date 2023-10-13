@@ -29,6 +29,8 @@ const FORM_SCHEMA = Yup.object({
   s3: Yup.object({
     bucketArn: Yup.string().required(),
     pathPrefix: Yup.string().optional(),
+    region: Yup.string().optional(),
+    endpoint: Yup.string().optional(),
     credentials: Yup.object({
       profile: Yup.string().optional(),
       accessKeyId: Yup.string(),
@@ -127,6 +129,36 @@ export default function AwsS3Form(props: Props) {
                 <Input placeholder="/..." {...field} />
               </FormControl>
               <FormDescription>Path Prefix</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="s3.region"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="" {...field} />
+              </FormControl>
+              <FormDescription>The AWS region to target</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="s3.endpoint"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="" {...field} />
+              </FormControl>
+              <FormDescription>
+                Allows specifying a custom endpoint for the AWS API
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -267,6 +299,8 @@ async function updateAwsS3Connection(
             value: new AwsS3ConnectionConfig({
               bucketArn: s3.bucketArn,
               pathPrefix: s3.pathPrefix,
+              region: s3.region,
+              endpoint: s3.endpoint,
               credentials: new AwsS3Credentials({
                 profile: s3.credentials?.profile,
                 accessKeyId: s3.credentials?.accessKeyId,

@@ -2207,6 +2207,14 @@ func (m *AwsS3ConnectionConfig) validate(all bool) error {
 
 	}
 
+	if m.Region != nil {
+		// no validation rules for Region
+	}
+
+	if m.Endpoint != nil {
+		// no validation rules for Endpoint
+	}
+
 	if len(errors) > 0 {
 		return AwsS3ConnectionConfigMultiError(errors)
 	}

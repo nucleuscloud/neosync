@@ -269,6 +269,8 @@ func (a *Activities) GenerateBenthosConfigs(
 							},
 						},
 						Credentials: buildBenthosS3Credentials(connection.AwsS3Config.Credentials),
+						Region:      connection.AwsS3Config.GetRegion(),
+						Endpoint:    connection.AwsS3Config.GetEndpoint(),
 					},
 				})
 			default:

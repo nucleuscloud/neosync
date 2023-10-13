@@ -114,6 +114,8 @@ export function getConnectionComponentDetails(
                 pathPrefix: connection.connectionConfig.config.value.pathPrefix,
                 credentials:
                   connection.connectionConfig.config.value.credentials,
+                endpoint: connection.connectionConfig.config.value.endpoint,
+                region: connection.connectionConfig.config.value.region,
               },
             }}
             onSaved={(resp) => onSaved(resp)}
