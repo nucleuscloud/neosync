@@ -2174,10 +2174,6 @@ func (m *AwsS3ConnectionConfig) validate(all bool) error {
 		// no validation rules for PathPrefix
 	}
 
-	if m.RoleArn != nil {
-		// no validation rules for RoleArn
-	}
-
 	if m.Credentials != nil {
 
 		if all {
@@ -2313,9 +2309,33 @@ func (m *AwsS3Credentials) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for AccessKeyId
+	if m.Profile != nil {
+		// no validation rules for Profile
+	}
 
-	// no validation rules for AccessKey
+	if m.AccessKeyId != nil {
+		// no validation rules for AccessKeyId
+	}
+
+	if m.SecretAccessKey != nil {
+		// no validation rules for SecretAccessKey
+	}
+
+	if m.SessionToken != nil {
+		// no validation rules for SessionToken
+	}
+
+	if m.FromEc2Role != nil {
+		// no validation rules for FromEc2Role
+	}
+
+	if m.RoleArn != nil {
+		// no validation rules for RoleArn
+	}
+
+	if m.RoleExternalId != nil {
+		// no validation rules for RoleExternalId
+	}
 
 	if len(errors) > 0 {
 		return AwsS3CredentialsMultiError(errors)

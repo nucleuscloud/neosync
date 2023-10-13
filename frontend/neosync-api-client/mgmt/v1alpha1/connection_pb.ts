@@ -729,11 +729,6 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
   pathPrefix?: string;
 
   /**
-   * @generated from field: optional string role_arn = 3;
-   */
-  roleArn?: string;
-
-  /**
    * @generated from field: optional mgmt.v1alpha1.AwsS3Credentials credentials = 4;
    */
   credentials?: AwsS3Credentials;
@@ -748,7 +743,6 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "bucket_arn", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "path_prefix", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 3, name: "role_arn", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 4, name: "credentials", kind: "message", T: AwsS3Credentials, opt: true },
   ]);
 
@@ -774,14 +768,39 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
  */
 export class AwsS3Credentials extends Message<AwsS3Credentials> {
   /**
-   * @generated from field: string access_key_id = 1;
+   * @generated from field: optional string profile = 1;
    */
-  accessKeyId = "";
+  profile?: string;
 
   /**
-   * @generated from field: string access_key = 2;
+   * @generated from field: optional string access_key_id = 2;
    */
-  accessKey = "";
+  accessKeyId?: string;
+
+  /**
+   * @generated from field: optional string secret_access_key = 3;
+   */
+  secretAccessKey?: string;
+
+  /**
+   * @generated from field: optional string session_token = 4;
+   */
+  sessionToken?: string;
+
+  /**
+   * @generated from field: optional bool from_ec2_role = 5;
+   */
+  fromEc2Role?: boolean;
+
+  /**
+   * @generated from field: optional string role_arn = 6;
+   */
+  roleArn?: string;
+
+  /**
+   * @generated from field: optional string role_external_id = 7;
+   */
+  roleExternalId?: string;
 
   constructor(data?: PartialMessage<AwsS3Credentials>) {
     super();
@@ -791,8 +810,13 @@ export class AwsS3Credentials extends Message<AwsS3Credentials> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.AwsS3Credentials";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "access_key_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "access_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "profile", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 2, name: "access_key_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "secret_access_key", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "session_token", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "from_ec2_role", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+    { no: 6, name: "role_arn", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 7, name: "role_external_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsS3Credentials {

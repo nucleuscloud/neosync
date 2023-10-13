@@ -1,10 +1,12 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { getColumns } from './components/ConnectionsTable/columns';
@@ -59,7 +61,9 @@ function NewConnectionButton(props: NewConnectionButtonprops): ReactElement {
   const {} = props;
   return (
     <NextLink href={'/new/connection'}>
-      <Button>+ New Connection</Button>
+      <Button>
+        <ButtonText leftIcon={<PlusIcon />} text="New Connection" />
+      </Button>
     </NextLink>
   );
 }

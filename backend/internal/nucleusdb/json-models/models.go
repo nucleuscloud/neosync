@@ -42,21 +42,9 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 			}
 		}
 	} else if c.AwsS3Config != nil {
-		var credentials *mgmtv1alpha1.AwsS3Credentials
-		if c.AwsS3Config.Credentials != nil {
-			credentials = &mgmtv1alpha1.AwsS3Credentials{
-				AccessKeyId: c.AwsS3Config.Credentials.AccessKeyId,
-				AccessKey:   c.AwsS3Config.Credentials.AccessKey,
-			}
-		}
 		return &mgmtv1alpha1.ConnectionConfig{
 			Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
-				AwsS3Config: &mgmtv1alpha1.AwsS3ConnectionConfig{
-					BucketArn:   c.AwsS3Config.BucketArn,
-					PathPrefix:  c.AwsS3Config.PathPrefix,
-					RoleArn:     c.AwsS3Config.RoleArn,
-					Credentials: credentials,
-				},
+				AwsS3Config: c.AwsS3Config.ToDto(),
 			},
 		}
 	}
@@ -83,23 +71,14 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 			return fmt.Errorf("invalid postgres format")
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		var credentials *AwsS3Credentials
-		if config.AwsS3Config.Credentials != nil {
-			credentials = &AwsS3Credentials{
-				AccessKeyId: config.AwsS3Config.Credentials.AccessKeyId,
-				AccessKey:   config.AwsS3Config.Credentials.AccessKey,
-			}
-		}
-		c.AwsS3Config = &AwsS3ConnectionConfig{
-			BucketArn:   config.AwsS3Config.BucketArn,
-			PathPrefix:  config.AwsS3Config.PathPrefix,
-			RoleArn:     config.AwsS3Config.RoleArn,
-			Credentials: credentials,
+		c.AwsS3Config = &AwsS3ConnectionConfig{}
+		err := c.AwsS3Config.FromDto(config.AwsS3Config)
+		if err != nil {
+			return err
 		}
 	default:
 		return fmt.Errorf("invalid config")
 	}
-
 	return nil
 }
 
@@ -118,14 +97,58 @@ type PostgresConnection struct {
 }
 
 type AwsS3Credentials struct {
-	AccessKeyId string
-	AccessKey   string
+	Profile         *string
+	AccessKeyId     *string
+	SecretAccessKey *string
+	SessionToken    *string
+	FromEc2Role     *bool
+	RoleArn         *string
+	RoleExternalId  *string
 }
+
+func (a *AwsS3Credentials) ToDto() *mgmtv1alpha1.AwsS3Credentials {
+	return &mgmtv1alpha1.AwsS3Credentials{
+		Profile:         a.Profile,
+		AccessKeyId:     a.AccessKeyId,
+		SecretAccessKey: a.SecretAccessKey,
+		SessionToken:    a.SessionToken,
+		FromEc2Role:     a.FromEc2Role,
+		RoleArn:         a.RoleArn,
+		RoleExternalId:  a.RoleExternalId,
+	}
+}
+func (a *AwsS3Credentials) FromDto(dto *mgmtv1alpha1.AwsS3Credentials) {
+	if dto == nil {
+		return
+	}
+	a.Profile = dto.Profile
+	a.AccessKeyId = dto.AccessKeyId
+	a.SecretAccessKey = dto.SecretAccessKey
+	a.SessionToken = dto.SessionToken
+	a.FromEc2Role = dto.FromEc2Role
+	a.RoleArn = dto.RoleArn
+	a.RoleExternalId = dto.RoleExternalId
+}
+
 type AwsS3ConnectionConfig struct {
 	BucketArn   string
 	PathPrefix  *string
-	RoleArn     *string
 	Credentials *AwsS3Credentials
+}
+
+func (a *AwsS3ConnectionConfig) ToDto() *mgmtv1alpha1.AwsS3ConnectionConfig {
+	return &mgmtv1alpha1.AwsS3ConnectionConfig{
+		BucketArn:   a.BucketArn,
+		PathPrefix:  a.PathPrefix,
+		Credentials: a.Credentials.ToDto(),
+	}
+}
+func (a *AwsS3ConnectionConfig) FromDto(dto *mgmtv1alpha1.AwsS3ConnectionConfig) error {
+	a.BucketArn = dto.BucketArn
+	a.PathPrefix = dto.PathPrefix
+	a.Credentials = &AwsS3Credentials{}
+	a.Credentials.FromDto(dto.Credentials)
+	return nil
 }
 
 type JobMapping struct {

@@ -1,3 +1,4 @@
+import ButtonText from '@/components/ButtonText';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
@@ -34,10 +35,7 @@ export default function RemoveConnectionButton(props: Props): ReactElement {
         }
       }}
     >
-      <div className="flex flex-row gap-1 items-center">
-        <TrashIcon />
-        <p>Delete Connection</p>
-      </div>
+      <ButtonText leftIcon={<TrashIcon />} text="Delete Connection" />
     </Button>
   );
 }
