@@ -12,6 +12,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 func newListCmd() *cobra.Command {
@@ -58,12 +59,33 @@ func listJobs(
 	if err != nil {
 		return err
 	}
-	printJobTable(res.Msg.Jobs)
+
+	jobstatuses := make([]*mgmtv1alpha1.JobStatus, len(res.Msg.Jobs))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range res.Msg.Jobs {
+		idx := idx
+		errgrp.Go(func() error {
+			jsres, err := jobclient.GetJobStatus(errctx, connect.NewRequest[mgmtv1alpha1.GetJobStatusRequest](&mgmtv1alpha1.GetJobStatusRequest{
+				JobId: res.Msg.Jobs[idx].Id,
+			}))
+			if err != nil {
+				return err
+			}
+			jobstatuses[idx] = &jsres.Msg.Status
+			return nil
+		})
+	}
+	if err := errgrp.Wait(); err != nil {
+		return err
+	}
+
+	printJobTable(res.Msg.Jobs, jobstatuses)
 	return nil
 }
 
 func printJobTable(
 	jobs []*mgmtv1alpha1.Job,
+	jobstatuses []*mgmtv1alpha1.JobStatus,
 ) {
 	tbl := table.
 		New("Id", "Name", "Status", "Created At", "Updated At").
@@ -74,11 +96,13 @@ func printJobTable(
 			color.New(color.FgYellow).SprintfFunc(),
 		)
 
-	for _, job := range jobs {
+	for idx := range jobs {
+		job := jobs[idx]
+		js := jobstatuses[idx]
 		tbl.AddRow(
 			job.Id,
 			job.Name,
-			job.Status,
+			js.String(),
 			job.CreatedAt.AsTime().Local().Format(time.RFC3339),
 			job.UpdatedAt.AsTime().Local().Format(time.RFC3339),
 		)
