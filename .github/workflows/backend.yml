@@ -126,6 +126,8 @@ jobs:
         run: make install-go-tools
 
       - name: Run migrations on database
+        env:
+          PG_PASSWORD: postgres
         run: ./hack/migrate.sh up
 
       - name: Retrieve SQLC Version
