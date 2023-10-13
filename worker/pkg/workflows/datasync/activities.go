@@ -256,30 +256,21 @@ func (a *Activities) GenerateBenthosConfigs(
 				)
 
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					Retry: &neosync_benthos.RetryConfig{
-						InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-							MaxRetries: 1,
-						},
-						Output: neosync_benthos.OutputConfig{
-							Outputs: neosync_benthos.Outputs{
-								AwsS3: &neosync_benthos.AwsS3Insert{
-									Bucket:      connection.AwsS3Config.BucketArn,
-									MaxInFlight: 64,
-									Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
-									Batching: &neosync_benthos.Batching{
-										Count:  100,
-										Period: "5s",
-										Processors: []*neosync_benthos.BatchProcessor{
-											{Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"}},
-											{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
-										},
-									},
-								},
+					AwsS3: &neosync_benthos.AwsS3Insert{
+						Bucket:      connection.AwsS3Config.BucketArn,
+						MaxInFlight: 64,
+						Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
+						Batching: &neosync_benthos.Batching{
+							Count:  100,
+							Period: "1s",
+							Processors: []*neosync_benthos.BatchProcessor{
+								{Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"}},
+								{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
 							},
 						},
+						Credentials: buildBenthosS3Credentials(connection.AwsS3Config.Credentials),
 					},
 				})
-				// todo: configure provided aws creds
 			default:
 				return nil, fmt.Errorf("unsupported destination connection config")
 			}
@@ -289,6 +280,36 @@ func (a *Activities) GenerateBenthosConfigs(
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosync_benthos.AwsCredentials {
+	if mgmtCreds == nil {
+		return nil
+	}
+	creds := &neosync_benthos.AwsCredentials{}
+	if mgmtCreds.Profile != nil {
+		creds.Profile = *mgmtCreds.Profile
+	}
+	if mgmtCreds.AccessKeyId != nil {
+		creds.Id = *mgmtCreds.AccessKeyId
+	}
+	if mgmtCreds.SecretAccessKey != nil {
+		creds.Secret = *mgmtCreds.SecretAccessKey
+	}
+	if mgmtCreds.SessionToken != nil {
+		creds.Token = *mgmtCreds.SessionToken
+	}
+	if mgmtCreds.FromEc2Role != nil {
+		creds.FromEc2Role = *mgmtCreds.FromEc2Role
+	}
+	if mgmtCreds.RoleArn != nil {
+		creds.Role = *mgmtCreds.RoleArn
+	}
+	if mgmtCreds.RoleExternalId != nil {
+		creds.RoleExternalId = *mgmtCreds.RoleExternalId
+	}
+
+	return creds
 }
 
 const (
