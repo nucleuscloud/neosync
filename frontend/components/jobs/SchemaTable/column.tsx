@@ -23,7 +23,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
-import { Switch } from '@/components/ui/switch';
 import { cn } from '@/libs/utils';
 import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
@@ -162,39 +161,6 @@ export function getColumns(
       },
       enableColumnFilter: true,
       filterFn: 'arrIncludesSome',
-    },
-    {
-      accessorKey: 'exclude',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Include" />
-      ),
-      cell: ({ row }) => {
-        return (
-          <div className="flex flex-row space-x-2">
-            <FormField
-              name={`mappings.${row.index}.exclude`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Switch
-                      checked={!field.value}
-                      onCheckedChange={(checked: boolean) => {
-                        field.onChange(!checked);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-      },
-      enableColumnFilter: true,
-      filterFn: (row, id, value) => {
-        const filter = row.getValue(id) ? 'exclude' : 'include';
-        return filter.includes(value);
-      },
     },
   ];
 }

@@ -183,7 +183,6 @@ async function createNewJob(
         table: m.table,
         column: m.column,
         transformer: toTransformerConfigOptions(m.transformer),
-        exclude: m.exclude,
       });
     }),
     source: new JobSource({

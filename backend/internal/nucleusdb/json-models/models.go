@@ -162,7 +162,6 @@ type JobMapping struct {
 	Table       string
 	Column      string
 	Transformer *Transformer
-	Exclude     bool
 }
 
 func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
@@ -172,7 +171,6 @@ func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
 		Table:       jm.Table,
 		Column:      jm.Column,
 		Transformer: jm.Transformer.ToDto(),
-		Exclude:     jm.Exclude,
 	}
 }
 
@@ -186,7 +184,6 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 	jm.Table = dto.Table
 	jm.Column = dto.Column
 	jm.Transformer = t
-	jm.Exclude = dto.Exclude
 	return nil
 }
 

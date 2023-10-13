@@ -362,9 +362,6 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
   );
 
   function getLabel(columnId: string, filter: string | boolean): string {
-    if (columnId == 'exclude') {
-      return filter ? 'Exclude' : 'Include';
-    }
     if (columnId == 'transformer') {
       const t = transformers.find((t) => t.value == filter);
       return t?.value || '';

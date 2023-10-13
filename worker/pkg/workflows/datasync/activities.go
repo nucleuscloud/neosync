@@ -511,7 +511,7 @@ func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
 	columns := []string{}
 
 	for _, col := range mappings {
-		if !col.Exclude {
+		if col.Transformer.Value != "null" {
 			columns = append(columns, col.Column)
 		}
 	}
