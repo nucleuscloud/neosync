@@ -8,7 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
@@ -39,20 +39,6 @@ export default function EmailTransformerForm(props: Props): ReactElement {
     });
     setIsSheetOpen!(false);
   };
-
-  //since component is in a controlled state, have to manually handle closing the sheet when the user presses escape
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsSheetOpen!(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    // Clean up the event listener when the component unmounts
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">

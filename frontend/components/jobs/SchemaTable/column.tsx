@@ -216,7 +216,7 @@ function TansformerSelect(props: TransformersSelectProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between " //whitespace-nowrap
+          className="justify-between min-w-[141px]" //whitespace-nowrap
         >
           {value
             ? transformers.find((t) => t.value === value)?.value
