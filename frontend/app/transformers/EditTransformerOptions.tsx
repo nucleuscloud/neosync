@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/sheet';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import EmailTransformerForm from './EmailTransformerForm';
 
 interface Props {
@@ -27,6 +27,20 @@ export default function EditTransformerOptions(props: Props): ReactElement {
   const { transformer, index } = props;
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  //since component is in a controlled state, have to manually handle closing the sheet when the user presses escape
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsSheetOpen!(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    // Clean up the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <Sheet open={isSheetOpen} onOpenChange={() => setIsSheetOpen(true)}>
@@ -46,16 +60,10 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           <div className="flex flex-row justify-between w-full">
             <div className="flex flex-col space-y-2">
               <SheetTitle>
-                {
-                  handleTransformerMetadata(transformer ?? new Transformer())
-                    .name
-                }
+                {handleTransformerMetadata(transformer).name}
               </SheetTitle>
               <SheetDescription>
-                {
-                  handleTransformerMetadata(transformer ?? new Transformer())
-                    .description
-                }
+                {handleTransformerMetadata(transformer).description}
               </SheetDescription>
             </div>
             <Button variant="ghost" onClick={() => setIsSheetOpen(false)}>
@@ -89,7 +97,9 @@ function handleTransformerForm(
   return <div></div>;
 }
 
-const handleTransformerMetadata = (t: Transformer): TransformerMetadata => {
+export function handleTransformerMetadata(
+  t: Transformer | undefined
+): TransformerMetadata {
   const tEntries: Record<string, TransformerMetadata>[] = [
     {
       email: {
@@ -118,7 +128,6 @@ const handleTransformerMetadata = (t: Transformer): TransformerMetadata => {
       },
     },
   ];
-  const res = tEntries.find((item) => item[t.value]);
 
   const def = {
     default: {
@@ -127,5 +136,10 @@ const handleTransformerMetadata = (t: Transformer): TransformerMetadata => {
     },
   };
 
+  if (!t) {
+    return def.default;
+  }
+  const res = tEntries.find((item) => item[t.value]);
+
   return res ? res[t.value] : def.default;
-};
+}
