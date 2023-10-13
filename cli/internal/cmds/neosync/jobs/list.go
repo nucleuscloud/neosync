@@ -96,7 +96,8 @@ func printJobTable(
 			color.New(color.FgYellow).SprintfFunc(),
 		)
 
-	for idx, job := range jobs {
+	for idx := range jobs {
+		job := jobs[idx]
 		js := jobstatuses[idx]
 		tbl.AddRow(
 			job.Id,
