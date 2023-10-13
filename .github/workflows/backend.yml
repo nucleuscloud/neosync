@@ -116,6 +116,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Install golang-migrate
+        run: make install-go-tools
+
       - name: Run migrations on database
         run: ./hack/migrate.sh up
 
