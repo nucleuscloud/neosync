@@ -121,29 +121,18 @@ jobs:
         with:
           cmd: sh ./backend/hack/sqlc-prepare-patch.sh postgresql://postgres:postgres@localhost:5432/nucleus ./backend/sqlc.yaml
 
-      - run: sh ./hack/migrate-download.sh
-      - name: add backend/bin to system path to run migrate
-        run: |
-          echo $GITHUB_PATH
-          echo $PATH
-          echo $PWD
-          echo "$PWD/bin" >> $GITHUB_PATH
-          echo $GITHUB_PATH
-          echo $PATH
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
 
-      # - name: Set up Go
-      #   uses: actions/setup-go@v4
-      #   with:
-      #     go-version-file: backend/go.mod
-      #     cache-dependency-path: backend/go.sum
-
-      # - name: Install golang-migrate
-      #   run: make install-go-tools
+      - name: Install golang-migrate
+        run: make install-go-tools
 
       - name: Run migrations on database
         env:
           PG_PASSWORD: postgres
-
         run: ./hack/migrate.sh up
 
       - name: Retrieve SQLC Version

@@ -13,5 +13,5 @@ fi
 
 curl -sSL "https://github.com/golang-migrate/migrate/releases/download/v4.16.2/migrate.${PLATFORM}-${MACHINE}.tar.gz" \
   -o migrate.tar.gz && \
-  tar xzvf migrate.tar.gz migrate -C $HOME/.local/bin && \
+  tar xzvf migrate.tar.gz migrate -C bin && \
   rm  migrate.tar.gz
