@@ -14,8 +14,6 @@ import (
 	"go.temporal.io/sdk/activity"
 	"golang.org/x/sync/errgroup"
 
-	_ "github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/all"
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
