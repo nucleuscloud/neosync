@@ -67,6 +67,7 @@ message CreateJobRequest {
   repeated JobMapping mappings = 4;
   JobSource source = 5;
   repeated CreateJobDestination destinations = 6;
+  bool initiate_job_run = 7;
 }
 message CreateJobResponse {
   Job job = 1;

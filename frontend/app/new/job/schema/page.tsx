@@ -176,6 +176,7 @@ async function createNewJob(
     accountId,
     jobName: formData.define.jobName,
     cronSchedule: formData.define.cronSchedule,
+    initiateJobRun: formData.define.initiateJobRun,
     mappings: formData.schema.mappings.map((m) => {
       return new JobMapping({
         schema: m.schema,
