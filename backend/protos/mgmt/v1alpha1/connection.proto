@@ -97,7 +97,9 @@ message PostgresConnection {
 message AwsS3ConnectionConfig {
   string bucket_arn = 1;
   optional string path_prefix = 2;
-  optional AwsS3Credentials credentials = 4;
+  optional AwsS3Credentials credentials = 3;
+  optional string region = 4;
+  optional string endpoint = 5;
 }
 
 message AwsS3Credentials {

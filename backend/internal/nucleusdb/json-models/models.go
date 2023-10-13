@@ -134,6 +134,8 @@ type AwsS3ConnectionConfig struct {
 	BucketArn   string
 	PathPrefix  *string
 	Credentials *AwsS3Credentials
+	Region      *string
+	Endpoint    *string
 }
 
 func (a *AwsS3ConnectionConfig) ToDto() *mgmtv1alpha1.AwsS3ConnectionConfig {
@@ -141,6 +143,8 @@ func (a *AwsS3ConnectionConfig) ToDto() *mgmtv1alpha1.AwsS3ConnectionConfig {
 		BucketArn:   a.BucketArn,
 		PathPrefix:  a.PathPrefix,
 		Credentials: a.Credentials.ToDto(),
+		Region:      a.Region,
+		Endpoint:    a.Endpoint,
 	}
 }
 func (a *AwsS3ConnectionConfig) FromDto(dto *mgmtv1alpha1.AwsS3ConnectionConfig) error {
@@ -148,6 +152,8 @@ func (a *AwsS3ConnectionConfig) FromDto(dto *mgmtv1alpha1.AwsS3ConnectionConfig)
 	a.PathPrefix = dto.PathPrefix
 	a.Credentials = &AwsS3Credentials{}
 	a.Credentials.FromDto(dto.Credentials)
+	a.Region = dto.Region
+	a.Endpoint = dto.Endpoint
 	return nil
 }
 

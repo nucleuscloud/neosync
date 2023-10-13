@@ -729,9 +729,19 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
   pathPrefix?: string;
 
   /**
-   * @generated from field: optional mgmt.v1alpha1.AwsS3Credentials credentials = 4;
+   * @generated from field: optional mgmt.v1alpha1.AwsS3Credentials credentials = 3;
    */
   credentials?: AwsS3Credentials;
+
+  /**
+   * @generated from field: optional string region = 4;
+   */
+  region?: string;
+
+  /**
+   * @generated from field: optional string endpoint = 5;
+   */
+  endpoint?: string;
 
   constructor(data?: PartialMessage<AwsS3ConnectionConfig>) {
     super();
@@ -743,7 +753,9 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "bucket_arn", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "path_prefix", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 4, name: "credentials", kind: "message", T: AwsS3Credentials, opt: true },
+    { no: 3, name: "credentials", kind: "message", T: AwsS3Credentials, opt: true },
+    { no: 4, name: "region", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "endpoint", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsS3ConnectionConfig {
