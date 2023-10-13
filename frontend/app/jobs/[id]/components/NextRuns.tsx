@@ -1,6 +1,7 @@
 'use client';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -9,16 +10,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Job, JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { useGetJobNextRuns } from '@/libs/hooks/useGetJobNextRuns';
+import { JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { ReactElement } from 'react';
 
 interface Props {
-  job: Job;
+  jobId: string;
+  jobStatus?: JobStatus;
 }
 
-export default function JobNextRuns({ job }: Props): ReactElement {
-  if (job.status == JobStatus.PAUSED) {
+export default function JobNextRuns({ jobId, jobStatus }: Props): ReactElement {
+  const { data, isLoading, error } = useGetJobNextRuns(jobId);
+
+  if (isLoading) {
+    return <Skeleton className="h-full w-full" />;
+  }
+
+  if (jobStatus == JobStatus.PAUSED) {
     return (
       <Card>
         <Table>
@@ -42,7 +51,7 @@ export default function JobNextRuns({ job }: Props): ReactElement {
   }
   return (
     <Card className="p-2">
-      {!job.nextRuns || !job.nextRuns.nextRunTimes ? (
+      {!data?.nextRuns || error ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve upcoming runs`}</AlertTitle>
         </Alert>
@@ -56,7 +65,7 @@ export default function JobNextRuns({ job }: Props): ReactElement {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {job.nextRuns?.nextRunTimes.map((r) => {
+            {data.nextRuns?.nextRunTimes.map((r) => {
               return (
                 <TableRow key={r.toDate().toString()}>
                   <TableCell className="text-center">

@@ -8,7 +8,7 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.jobsClient.getJobStatus(
+    return ctx.jobsClient.getJobNextRuns(
       new GetJobNextRunsRequest({
         jobId: params.id,
       })

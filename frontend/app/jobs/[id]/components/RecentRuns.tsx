@@ -1,6 +1,7 @@
 'use client';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -10,18 +11,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { formatDateTime } from '@/util/util';
 import { ReactElement } from 'react';
 
 interface Props {
-  job: Job;
+  jobId: string;
 }
 
-export default function JobRecentRuns({ job }: Props): ReactElement {
+export default function JobRecentRuns({ jobId }: Props): ReactElement {
+  const { data, isLoading, error } = useGetJobRecentRuns(jobId);
+
+  if (isLoading) {
+    return <Skeleton className="w-full h-full" />;
+  }
   return (
     <Card className="p-2">
-      {!job.recentRuns || !job.recentRuns.runs ? (
+      {!data?.recentRuns || error ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
         </Alert>
@@ -36,7 +42,7 @@ export default function JobRecentRuns({ job }: Props): ReactElement {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {job.recentRuns?.runs.map((r) => {
+            {data?.recentRuns?.runs.map((r) => {
               return (
                 <TableRow key={r.jobRunId}>
                   <TableCell>
