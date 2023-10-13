@@ -11,7 +11,6 @@ import (
 func ToJobDto(
 	inputJob *db_queries.NeosyncApiJob,
 	inputDestConnections []db_queries.NeosyncApiJobDestinationConnectionAssociation,
-	inputSchedule *temporalclient.ScheduleDescription,
 ) *mgmtv1alpha1.Job {
 	mappings := []*mgmtv1alpha1.JobMapping{}
 	for _, mapping := range inputJob.Mappings {
