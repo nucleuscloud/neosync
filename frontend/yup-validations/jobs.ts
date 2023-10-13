@@ -3,6 +3,7 @@ import {
   EmailConfig,
   FirstName,
   JobDestinationOptions,
+  Null,
   Passthrough,
   PhoneNumber,
   SqlDestinationConnectionOptions,
@@ -178,6 +179,17 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'phoneNumberConfig',
             value: new PhoneNumber({}),
+          },
+        }),
+      });
+    }
+    case 'null': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'nullConfig',
+            value: new Null({}),
           },
         }),
       });

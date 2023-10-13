@@ -812,6 +812,8 @@ func computeMutationFunction(transformer *mgmtv1alpha1.Transformer) (string, err
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "uuid_digit":
 		return fmt.Sprintf("fake(%q)", transformer), nil
+	case "null":
+		return "null", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

@@ -341,6 +341,7 @@ message TransformerConfig {
     Uuidv4 uuid_config = 3;
     FirstName first_name_config = 4;
     PhoneNumber phone_number_config = 5;
+    Null null_config = 6;
   }
 }
 
@@ -356,6 +357,7 @@ message Uuidv4 {}
 message FirstName {}
 
 message PhoneNumber {}
+message Null {}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}

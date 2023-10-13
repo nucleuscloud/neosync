@@ -2938,6 +2938,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: PhoneNumber;
     case: "phoneNumberConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 6;
+     */
+    value: Null;
+    case: "nullConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -2953,6 +2959,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 3, name: "uuid_config", kind: "message", T: Uuidv4, oneof: "config" },
     { no: 4, name: "first_name_config", kind: "message", T: FirstName, oneof: "config" },
     { no: 5, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
+    { no: 6, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3136,6 +3143,37 @@ export class PhoneNumber extends Message<PhoneNumber> {
 
   static equals(a: PhoneNumber | PlainMessage<PhoneNumber> | undefined, b: PhoneNumber | PlainMessage<PhoneNumber> | undefined): boolean {
     return proto3.util.equals(PhoneNumber, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.Null
+ */
+export class Null extends Message<Null> {
+  constructor(data?: PartialMessage<Null>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.Null";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Null {
+    return new Null().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Null {
+    return new Null().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Null {
+    return new Null().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Null | PlainMessage<Null> | undefined, b: Null | PlainMessage<Null> | undefined): boolean {
+    return proto3.util.equals(Null, a, b);
   }
 }
 

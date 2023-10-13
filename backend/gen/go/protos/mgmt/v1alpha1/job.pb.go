@@ -3797,6 +3797,7 @@ type TransformerConfig struct {
 	//	*TransformerConfig_UuidConfig
 	//	*TransformerConfig_FirstNameConfig
 	//	*TransformerConfig_PhoneNumberConfig
+	//	*TransformerConfig_NullConfig
 	Config isTransformerConfig_Config `protobuf_oneof:"config"`
 }
 
@@ -3874,6 +3875,13 @@ func (x *TransformerConfig) GetPhoneNumberConfig() *PhoneNumber {
 	return nil
 }
 
+func (x *TransformerConfig) GetNullConfig() *Null {
+	if x, ok := x.GetConfig().(*TransformerConfig_NullConfig); ok {
+		return x.NullConfig
+	}
+	return nil
+}
+
 type isTransformerConfig_Config interface {
 	isTransformerConfig_Config()
 }
@@ -3898,6 +3906,10 @@ type TransformerConfig_PhoneNumberConfig struct {
 	PhoneNumberConfig *PhoneNumber `protobuf:"bytes,5,opt,name=phone_number_config,json=phoneNumberConfig,proto3,oneof"`
 }
 
+type TransformerConfig_NullConfig struct {
+	NullConfig *Null `protobuf:"bytes,6,opt,name=null_config,json=nullConfig,proto3,oneof"`
+}
+
 func (*TransformerConfig_EmailConfig) isTransformerConfig_Config() {}
 
 func (*TransformerConfig_PassthroughConfig) isTransformerConfig_Config() {}
@@ -3907,6 +3919,8 @@ func (*TransformerConfig_UuidConfig) isTransformerConfig_Config() {}
 func (*TransformerConfig_FirstNameConfig) isTransformerConfig_Config() {}
 
 func (*TransformerConfig_PhoneNumberConfig) isTransformerConfig_Config() {}
+
+func (*TransformerConfig_NullConfig) isTransformerConfig_Config() {}
 
 type EmailConfig struct {
 	state         protoimpl.MessageState
@@ -4113,6 +4127,44 @@ func (x *PhoneNumber) ProtoReflect() protoreflect.Message {
 // Deprecated: Use PhoneNumber.ProtoReflect.Descriptor instead.
 func (*PhoneNumber) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{71}
+}
+
+type Null struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Null) Reset() {
+	*x = Null{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[72]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Null) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Null) ProtoMessage() {}
+
+func (x *Null) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[72]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Null.ProtoReflect.Descriptor instead.
+func (*Null) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{72}
 }
 
 var File_mgmt_v1alpha1_job_proto protoreflect.FileDescriptor
@@ -4551,7 +4603,7 @@ var file_mgmt_v1alpha1_job_proto_rawDesc = []byte{
 	0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76,
 	0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72,
 	0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x22, 0x82, 0x03, 0x0a, 0x11, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
+	0x67, 0x22, 0xba, 0x03, 0x0a, 0x11, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
 	0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x3f, 0x0a, 0x0c, 0x65, 0x6d, 0x61, 0x69, 0x6c,
 	0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
 	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x45, 0x6d,
@@ -4574,17 +4626,21 @@ var file_mgmt_v1alpha1_job_proto_rawDesc = []byte{
 	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c,
 	0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72,
 	0x48, 0x00, 0x52, 0x11, 0x70, 0x68, 0x6f, 0x6e, 0x65, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x0f, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12,
-	0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0x5f, 0x0a, 0x0b, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x43,
-	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x27, 0x0a, 0x0f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76,
-	0x65, 0x5f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e,
-	0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x44, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x12, 0x27,
-	0x0a, 0x0f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x5f, 0x6c, 0x65, 0x6e, 0x67, 0x74,
-	0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76,
-	0x65, 0x4c, 0x65, 0x6e, 0x67, 0x74, 0x68, 0x22, 0x0d, 0x0a, 0x0b, 0x50, 0x61, 0x73, 0x73, 0x74,
-	0x68, 0x72, 0x6f, 0x75, 0x67, 0x68, 0x22, 0x08, 0x0a, 0x06, 0x55, 0x75, 0x69, 0x64, 0x76, 0x34,
-	0x22, 0x0b, 0x0a, 0x09, 0x46, 0x69, 0x72, 0x73, 0x74, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x0d, 0x0a,
-	0x0b, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x2a, 0x6f, 0x0a, 0x09,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x36, 0x0a, 0x0b, 0x6e, 0x75, 0x6c, 0x6c, 0x5f, 0x63, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x6d, 0x67, 0x6d,
+	0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4e, 0x75, 0x6c, 0x6c, 0x48,
+	0x00, 0x52, 0x0a, 0x6e, 0x75, 0x6c, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x0f, 0x0a,
+	0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0x5f,
+	0x0a, 0x0b, 0x45, 0x6d, 0x61, 0x69, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x27, 0x0a,
+	0x0f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x5f, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65,
+	0x44, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x12, 0x27, 0x0a, 0x0f, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72,
+	0x76, 0x65, 0x5f, 0x6c, 0x65, 0x6e, 0x67, 0x74, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52,
+	0x0e, 0x70, 0x72, 0x65, 0x73, 0x65, 0x72, 0x76, 0x65, 0x4c, 0x65, 0x6e, 0x67, 0x74, 0x68, 0x22,
+	0x0d, 0x0a, 0x0b, 0x50, 0x61, 0x73, 0x73, 0x74, 0x68, 0x72, 0x6f, 0x75, 0x67, 0x68, 0x22, 0x08,
+	0x0a, 0x06, 0x55, 0x75, 0x69, 0x64, 0x76, 0x34, 0x22, 0x0b, 0x0a, 0x09, 0x46, 0x69, 0x72, 0x73,
+	0x74, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x0d, 0x0a, 0x0b, 0x50, 0x68, 0x6f, 0x6e, 0x65, 0x4e, 0x75,
+	0x6d, 0x62, 0x65, 0x72, 0x22, 0x06, 0x0a, 0x04, 0x4e, 0x75, 0x6c, 0x6c, 0x2a, 0x6f, 0x0a, 0x09,
 	0x4a, 0x6f, 0x62, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x1a, 0x0a, 0x16, 0x4a, 0x4f, 0x42,
 	0x5f, 0x53, 0x54, 0x41, 0x54, 0x55, 0x53, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46,
 	0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x16, 0x0a, 0x12, 0x4a, 0x4f, 0x42, 0x5f, 0x53, 0x54, 0x41,
@@ -4779,7 +4835,7 @@ func file_mgmt_v1alpha1_job_proto_rawDescGZIP() []byte {
 }
 
 var file_mgmt_v1alpha1_job_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_mgmt_v1alpha1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 72)
+var file_mgmt_v1alpha1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 73)
 var file_mgmt_v1alpha1_job_proto_goTypes = []interface{}{
 	(JobStatus)(0),                                  // 0: mgmt.v1alpha1.JobStatus
 	(ActivityStatus)(0),                             // 1: mgmt.v1alpha1.ActivityStatus
@@ -4856,7 +4912,8 @@ var file_mgmt_v1alpha1_job_proto_goTypes = []interface{}{
 	(*Uuidv4)(nil),                                  // 72: mgmt.v1alpha1.Uuidv4
 	(*FirstName)(nil),                               // 73: mgmt.v1alpha1.FirstName
 	(*PhoneNumber)(nil),                             // 74: mgmt.v1alpha1.PhoneNumber
-	(*timestamppb.Timestamp)(nil),                   // 75: google.protobuf.Timestamp
+	(*Null)(nil),                                    // 75: mgmt.v1alpha1.Null
+	(*timestamppb.Timestamp)(nil),                   // 76: google.protobuf.Timestamp
 }
 var file_mgmt_v1alpha1_job_proto_depIdxs = []int32{
 	44, // 0: mgmt.v1alpha1.GetJobsResponse.jobs:type_name -> mgmt.v1alpha1.Job
@@ -4885,28 +4942,28 @@ var file_mgmt_v1alpha1_job_proto_depIdxs = []int32{
 	44, // 23: mgmt.v1alpha1.CreateJobDestinationConnectionsResponse.job:type_name -> mgmt.v1alpha1.Job
 	56, // 24: mgmt.v1alpha1.GetJobRunsResponse.job_runs:type_name -> mgmt.v1alpha1.JobRun
 	56, // 25: mgmt.v1alpha1.GetJobRunResponse.job_run:type_name -> mgmt.v1alpha1.JobRun
-	75, // 26: mgmt.v1alpha1.Job.created_at:type_name -> google.protobuf.Timestamp
-	75, // 27: mgmt.v1alpha1.Job.updated_at:type_name -> google.protobuf.Timestamp
+	76, // 26: mgmt.v1alpha1.Job.created_at:type_name -> google.protobuf.Timestamp
+	76, // 27: mgmt.v1alpha1.Job.updated_at:type_name -> google.protobuf.Timestamp
 	5,  // 28: mgmt.v1alpha1.Job.source:type_name -> mgmt.v1alpha1.JobSource
 	7,  // 29: mgmt.v1alpha1.Job.destinations:type_name -> mgmt.v1alpha1.JobDestination
 	17, // 30: mgmt.v1alpha1.Job.mappings:type_name -> mgmt.v1alpha1.JobMapping
-	75, // 31: mgmt.v1alpha1.JobRecentRun.start_time:type_name -> google.protobuf.Timestamp
+	76, // 31: mgmt.v1alpha1.JobRecentRun.start_time:type_name -> google.protobuf.Timestamp
 	45, // 32: mgmt.v1alpha1.JobRecentRuns.runs:type_name -> mgmt.v1alpha1.JobRecentRun
 	46, // 33: mgmt.v1alpha1.GetJobRecentRunsResponse.recent_runs:type_name -> mgmt.v1alpha1.JobRecentRuns
-	75, // 34: mgmt.v1alpha1.JobNextRuns.next_run_times:type_name -> google.protobuf.Timestamp
+	76, // 34: mgmt.v1alpha1.JobNextRuns.next_run_times:type_name -> google.protobuf.Timestamp
 	49, // 35: mgmt.v1alpha1.GetJobNextRunsResponse.next_runs:type_name -> mgmt.v1alpha1.JobNextRuns
 	0,  // 36: mgmt.v1alpha1.GetJobStatusResponse.status:type_name -> mgmt.v1alpha1.JobStatus
 	1,  // 37: mgmt.v1alpha1.PendingActivity.status:type_name -> mgmt.v1alpha1.ActivityStatus
 	54, // 38: mgmt.v1alpha1.PendingActivity.last_failure:type_name -> mgmt.v1alpha1.ActivityFailure
 	2,  // 39: mgmt.v1alpha1.JobRun.status:type_name -> mgmt.v1alpha1.JobRunStatus
-	75, // 40: mgmt.v1alpha1.JobRun.started_at:type_name -> google.protobuf.Timestamp
-	75, // 41: mgmt.v1alpha1.JobRun.completed_at:type_name -> google.protobuf.Timestamp
+	76, // 40: mgmt.v1alpha1.JobRun.started_at:type_name -> google.protobuf.Timestamp
+	76, // 41: mgmt.v1alpha1.JobRun.completed_at:type_name -> google.protobuf.Timestamp
 	55, // 42: mgmt.v1alpha1.JobRun.pending_activities:type_name -> mgmt.v1alpha1.PendingActivity
-	75, // 43: mgmt.v1alpha1.JobRunEventTask.event_time:type_name -> google.protobuf.Timestamp
+	76, // 43: mgmt.v1alpha1.JobRunEventTask.event_time:type_name -> google.protobuf.Timestamp
 	57, // 44: mgmt.v1alpha1.JobRunEventTask.error:type_name -> mgmt.v1alpha1.JobRunEventTaskError
 	59, // 45: mgmt.v1alpha1.JobRunEventMetadata.sync_metadata:type_name -> mgmt.v1alpha1.JobRunSyncMetadata
-	75, // 46: mgmt.v1alpha1.JobRunEvent.start_time:type_name -> google.protobuf.Timestamp
-	75, // 47: mgmt.v1alpha1.JobRunEvent.close_time:type_name -> google.protobuf.Timestamp
+	76, // 46: mgmt.v1alpha1.JobRunEvent.start_time:type_name -> google.protobuf.Timestamp
+	76, // 47: mgmt.v1alpha1.JobRunEvent.close_time:type_name -> google.protobuf.Timestamp
 	60, // 48: mgmt.v1alpha1.JobRunEvent.metadata:type_name -> mgmt.v1alpha1.JobRunEventMetadata
 	58, // 49: mgmt.v1alpha1.JobRunEvent.tasks:type_name -> mgmt.v1alpha1.JobRunEventTask
 	61, // 50: mgmt.v1alpha1.GetJobRunEventsResponse.events:type_name -> mgmt.v1alpha1.JobRunEvent
@@ -4917,53 +4974,54 @@ var file_mgmt_v1alpha1_job_proto_depIdxs = []int32{
 	72, // 55: mgmt.v1alpha1.TransformerConfig.uuid_config:type_name -> mgmt.v1alpha1.Uuidv4
 	73, // 56: mgmt.v1alpha1.TransformerConfig.first_name_config:type_name -> mgmt.v1alpha1.FirstName
 	74, // 57: mgmt.v1alpha1.TransformerConfig.phone_number_config:type_name -> mgmt.v1alpha1.PhoneNumber
-	3,  // 58: mgmt.v1alpha1.JobService.GetJobs:input_type -> mgmt.v1alpha1.GetJobsRequest
-	18, // 59: mgmt.v1alpha1.JobService.GetJob:input_type -> mgmt.v1alpha1.GetJobRequest
-	15, // 60: mgmt.v1alpha1.JobService.CreateJob:input_type -> mgmt.v1alpha1.CreateJobRequest
-	32, // 61: mgmt.v1alpha1.JobService.DeleteJob:input_type -> mgmt.v1alpha1.DeleteJobRequest
-	34, // 62: mgmt.v1alpha1.JobService.IsJobNameAvailable:input_type -> mgmt.v1alpha1.IsJobNameAvailableRequest
-	20, // 63: mgmt.v1alpha1.JobService.UpdateJobSchedule:input_type -> mgmt.v1alpha1.UpdateJobScheduleRequest
-	24, // 64: mgmt.v1alpha1.JobService.UpdateJobSourceConnection:input_type -> mgmt.v1alpha1.UpdateJobSourceConnectionRequest
-	26, // 65: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection:input_type -> mgmt.v1alpha1.UpdateJobDestinationConnectionRequest
-	28, // 66: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection:input_type -> mgmt.v1alpha1.DeleteJobDestinationConnectionRequest
-	30, // 67: mgmt.v1alpha1.JobService.CreateJobDestinationConnections:input_type -> mgmt.v1alpha1.CreateJobDestinationConnectionsRequest
-	22, // 68: mgmt.v1alpha1.JobService.PauseJob:input_type -> mgmt.v1alpha1.PauseJobRequest
-	47, // 69: mgmt.v1alpha1.JobService.GetJobRecentRuns:input_type -> mgmt.v1alpha1.GetJobRecentRunsRequest
-	50, // 70: mgmt.v1alpha1.JobService.GetJobNextRuns:input_type -> mgmt.v1alpha1.GetJobNextRunsRequest
-	52, // 71: mgmt.v1alpha1.JobService.GetJobStatus:input_type -> mgmt.v1alpha1.GetJobStatusRequest
-	36, // 72: mgmt.v1alpha1.JobService.GetJobRuns:input_type -> mgmt.v1alpha1.GetJobRunsRequest
-	62, // 73: mgmt.v1alpha1.JobService.GetJobRunEvents:input_type -> mgmt.v1alpha1.GetJobRunEventsRequest
-	38, // 74: mgmt.v1alpha1.JobService.GetJobRun:input_type -> mgmt.v1alpha1.GetJobRunRequest
-	64, // 75: mgmt.v1alpha1.JobService.DeleteJobRun:input_type -> mgmt.v1alpha1.DeleteJobRunRequest
-	40, // 76: mgmt.v1alpha1.JobService.CreateJobRun:input_type -> mgmt.v1alpha1.CreateJobRunRequest
-	42, // 77: mgmt.v1alpha1.JobService.CancelJobRun:input_type -> mgmt.v1alpha1.CancelJobRunRequest
-	66, // 78: mgmt.v1alpha1.JobService.GetTransformers:input_type -> mgmt.v1alpha1.GetTransformersRequest
-	4,  // 79: mgmt.v1alpha1.JobService.GetJobs:output_type -> mgmt.v1alpha1.GetJobsResponse
-	19, // 80: mgmt.v1alpha1.JobService.GetJob:output_type -> mgmt.v1alpha1.GetJobResponse
-	16, // 81: mgmt.v1alpha1.JobService.CreateJob:output_type -> mgmt.v1alpha1.CreateJobResponse
-	33, // 82: mgmt.v1alpha1.JobService.DeleteJob:output_type -> mgmt.v1alpha1.DeleteJobResponse
-	35, // 83: mgmt.v1alpha1.JobService.IsJobNameAvailable:output_type -> mgmt.v1alpha1.IsJobNameAvailableResponse
-	21, // 84: mgmt.v1alpha1.JobService.UpdateJobSchedule:output_type -> mgmt.v1alpha1.UpdateJobScheduleResponse
-	25, // 85: mgmt.v1alpha1.JobService.UpdateJobSourceConnection:output_type -> mgmt.v1alpha1.UpdateJobSourceConnectionResponse
-	27, // 86: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection:output_type -> mgmt.v1alpha1.UpdateJobDestinationConnectionResponse
-	29, // 87: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection:output_type -> mgmt.v1alpha1.DeleteJobDestinationConnectionResponse
-	31, // 88: mgmt.v1alpha1.JobService.CreateJobDestinationConnections:output_type -> mgmt.v1alpha1.CreateJobDestinationConnectionsResponse
-	23, // 89: mgmt.v1alpha1.JobService.PauseJob:output_type -> mgmt.v1alpha1.PauseJobResponse
-	48, // 90: mgmt.v1alpha1.JobService.GetJobRecentRuns:output_type -> mgmt.v1alpha1.GetJobRecentRunsResponse
-	51, // 91: mgmt.v1alpha1.JobService.GetJobNextRuns:output_type -> mgmt.v1alpha1.GetJobNextRunsResponse
-	53, // 92: mgmt.v1alpha1.JobService.GetJobStatus:output_type -> mgmt.v1alpha1.GetJobStatusResponse
-	37, // 93: mgmt.v1alpha1.JobService.GetJobRuns:output_type -> mgmt.v1alpha1.GetJobRunsResponse
-	63, // 94: mgmt.v1alpha1.JobService.GetJobRunEvents:output_type -> mgmt.v1alpha1.GetJobRunEventsResponse
-	39, // 95: mgmt.v1alpha1.JobService.GetJobRun:output_type -> mgmt.v1alpha1.GetJobRunResponse
-	65, // 96: mgmt.v1alpha1.JobService.DeleteJobRun:output_type -> mgmt.v1alpha1.DeleteJobRunResponse
-	41, // 97: mgmt.v1alpha1.JobService.CreateJobRun:output_type -> mgmt.v1alpha1.CreateJobRunResponse
-	43, // 98: mgmt.v1alpha1.JobService.CancelJobRun:output_type -> mgmt.v1alpha1.CancelJobRunResponse
-	67, // 99: mgmt.v1alpha1.JobService.GetTransformers:output_type -> mgmt.v1alpha1.GetTransformersResponse
-	79, // [79:100] is the sub-list for method output_type
-	58, // [58:79] is the sub-list for method input_type
-	58, // [58:58] is the sub-list for extension type_name
-	58, // [58:58] is the sub-list for extension extendee
-	0,  // [0:58] is the sub-list for field type_name
+	75, // 58: mgmt.v1alpha1.TransformerConfig.null_config:type_name -> mgmt.v1alpha1.Null
+	3,  // 59: mgmt.v1alpha1.JobService.GetJobs:input_type -> mgmt.v1alpha1.GetJobsRequest
+	18, // 60: mgmt.v1alpha1.JobService.GetJob:input_type -> mgmt.v1alpha1.GetJobRequest
+	15, // 61: mgmt.v1alpha1.JobService.CreateJob:input_type -> mgmt.v1alpha1.CreateJobRequest
+	32, // 62: mgmt.v1alpha1.JobService.DeleteJob:input_type -> mgmt.v1alpha1.DeleteJobRequest
+	34, // 63: mgmt.v1alpha1.JobService.IsJobNameAvailable:input_type -> mgmt.v1alpha1.IsJobNameAvailableRequest
+	20, // 64: mgmt.v1alpha1.JobService.UpdateJobSchedule:input_type -> mgmt.v1alpha1.UpdateJobScheduleRequest
+	24, // 65: mgmt.v1alpha1.JobService.UpdateJobSourceConnection:input_type -> mgmt.v1alpha1.UpdateJobSourceConnectionRequest
+	26, // 66: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection:input_type -> mgmt.v1alpha1.UpdateJobDestinationConnectionRequest
+	28, // 67: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection:input_type -> mgmt.v1alpha1.DeleteJobDestinationConnectionRequest
+	30, // 68: mgmt.v1alpha1.JobService.CreateJobDestinationConnections:input_type -> mgmt.v1alpha1.CreateJobDestinationConnectionsRequest
+	22, // 69: mgmt.v1alpha1.JobService.PauseJob:input_type -> mgmt.v1alpha1.PauseJobRequest
+	47, // 70: mgmt.v1alpha1.JobService.GetJobRecentRuns:input_type -> mgmt.v1alpha1.GetJobRecentRunsRequest
+	50, // 71: mgmt.v1alpha1.JobService.GetJobNextRuns:input_type -> mgmt.v1alpha1.GetJobNextRunsRequest
+	52, // 72: mgmt.v1alpha1.JobService.GetJobStatus:input_type -> mgmt.v1alpha1.GetJobStatusRequest
+	36, // 73: mgmt.v1alpha1.JobService.GetJobRuns:input_type -> mgmt.v1alpha1.GetJobRunsRequest
+	62, // 74: mgmt.v1alpha1.JobService.GetJobRunEvents:input_type -> mgmt.v1alpha1.GetJobRunEventsRequest
+	38, // 75: mgmt.v1alpha1.JobService.GetJobRun:input_type -> mgmt.v1alpha1.GetJobRunRequest
+	64, // 76: mgmt.v1alpha1.JobService.DeleteJobRun:input_type -> mgmt.v1alpha1.DeleteJobRunRequest
+	40, // 77: mgmt.v1alpha1.JobService.CreateJobRun:input_type -> mgmt.v1alpha1.CreateJobRunRequest
+	42, // 78: mgmt.v1alpha1.JobService.CancelJobRun:input_type -> mgmt.v1alpha1.CancelJobRunRequest
+	66, // 79: mgmt.v1alpha1.JobService.GetTransformers:input_type -> mgmt.v1alpha1.GetTransformersRequest
+	4,  // 80: mgmt.v1alpha1.JobService.GetJobs:output_type -> mgmt.v1alpha1.GetJobsResponse
+	19, // 81: mgmt.v1alpha1.JobService.GetJob:output_type -> mgmt.v1alpha1.GetJobResponse
+	16, // 82: mgmt.v1alpha1.JobService.CreateJob:output_type -> mgmt.v1alpha1.CreateJobResponse
+	33, // 83: mgmt.v1alpha1.JobService.DeleteJob:output_type -> mgmt.v1alpha1.DeleteJobResponse
+	35, // 84: mgmt.v1alpha1.JobService.IsJobNameAvailable:output_type -> mgmt.v1alpha1.IsJobNameAvailableResponse
+	21, // 85: mgmt.v1alpha1.JobService.UpdateJobSchedule:output_type -> mgmt.v1alpha1.UpdateJobScheduleResponse
+	25, // 86: mgmt.v1alpha1.JobService.UpdateJobSourceConnection:output_type -> mgmt.v1alpha1.UpdateJobSourceConnectionResponse
+	27, // 87: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection:output_type -> mgmt.v1alpha1.UpdateJobDestinationConnectionResponse
+	29, // 88: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection:output_type -> mgmt.v1alpha1.DeleteJobDestinationConnectionResponse
+	31, // 89: mgmt.v1alpha1.JobService.CreateJobDestinationConnections:output_type -> mgmt.v1alpha1.CreateJobDestinationConnectionsResponse
+	23, // 90: mgmt.v1alpha1.JobService.PauseJob:output_type -> mgmt.v1alpha1.PauseJobResponse
+	48, // 91: mgmt.v1alpha1.JobService.GetJobRecentRuns:output_type -> mgmt.v1alpha1.GetJobRecentRunsResponse
+	51, // 92: mgmt.v1alpha1.JobService.GetJobNextRuns:output_type -> mgmt.v1alpha1.GetJobNextRunsResponse
+	53, // 93: mgmt.v1alpha1.JobService.GetJobStatus:output_type -> mgmt.v1alpha1.GetJobStatusResponse
+	37, // 94: mgmt.v1alpha1.JobService.GetJobRuns:output_type -> mgmt.v1alpha1.GetJobRunsResponse
+	63, // 95: mgmt.v1alpha1.JobService.GetJobRunEvents:output_type -> mgmt.v1alpha1.GetJobRunEventsResponse
+	39, // 96: mgmt.v1alpha1.JobService.GetJobRun:output_type -> mgmt.v1alpha1.GetJobRunResponse
+	65, // 97: mgmt.v1alpha1.JobService.DeleteJobRun:output_type -> mgmt.v1alpha1.DeleteJobRunResponse
+	41, // 98: mgmt.v1alpha1.JobService.CreateJobRun:output_type -> mgmt.v1alpha1.CreateJobRunResponse
+	43, // 99: mgmt.v1alpha1.JobService.CancelJobRun:output_type -> mgmt.v1alpha1.CancelJobRunResponse
+	67, // 100: mgmt.v1alpha1.JobService.GetTransformers:output_type -> mgmt.v1alpha1.GetTransformersResponse
+	80, // [80:101] is the sub-list for method output_type
+	59, // [59:80] is the sub-list for method input_type
+	59, // [59:59] is the sub-list for extension type_name
+	59, // [59:59] is the sub-list for extension extendee
+	0,  // [0:59] is the sub-list for field type_name
 }
 
 func init() { file_mgmt_v1alpha1_job_proto_init() }
@@ -5836,6 +5894,18 @@ func file_mgmt_v1alpha1_job_proto_init() {
 				return nil
 			}
 		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Null); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_mgmt_v1alpha1_job_proto_msgTypes[5].OneofWrappers = []interface{}{
 		(*JobSourceOptions_SqlOptions)(nil),
@@ -5864,6 +5934,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 		(*TransformerConfig_UuidConfig)(nil),
 		(*TransformerConfig_FirstNameConfig)(nil),
 		(*TransformerConfig_PhoneNumberConfig)(nil),
+		(*TransformerConfig_NullConfig)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -5871,7 +5942,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_mgmt_v1alpha1_job_proto_rawDesc,
 			NumEnums:      3,
-			NumMessages:   72,
+			NumMessages:   73,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
