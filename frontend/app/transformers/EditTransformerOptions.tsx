@@ -97,7 +97,7 @@ function handleTransformerForm(
   return <div></div>;
 }
 
-export function handleTransformerMetadata(
+function handleTransformerMetadata(
   t: Transformer | undefined
 ): TransformerMetadata {
   const tEntries: Record<string, TransformerMetadata>[] = [
