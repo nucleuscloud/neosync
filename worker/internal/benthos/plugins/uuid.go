@@ -38,11 +38,12 @@ func ProcessUuid(include_hyphen bool) (string, error) {
 
 	if include_hyphen {
 
+		//generate uuid with hyphens
 		returnValue = faker.UUIDHyphenated()
 
 	} else {
-		// generate random email
 
+		//generates uuid with no hyphens
 		returnValue = faker.UUIDDigit()
 	}
 
