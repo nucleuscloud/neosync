@@ -14,6 +14,8 @@ import (
 	"go.temporal.io/sdk/activity"
 	"golang.org/x/sync/errgroup"
 
+	_ "github.com/benthosdev/benthos/v4/public/bloblang"
+	_ "github.com/benthosdev/benthos/v4/public/components/all"
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
@@ -758,7 +760,7 @@ func computeMutationFunction(transformer *mgmtv1alpha1.Transformer) (string, err
 	case "email":
 		pd := transformer.Config.GetEmailConfig().PreserveDomain
 		pl := transformer.Config.GetEmailConfig().PreserveLength
-		return fmt.Sprintf("this.%s.emailtransformer(%t, %t)", transformer, pd, pl), nil
+		return fmt.Sprintf("this.%s.emailtransformer(%t, %t)", transformer.Value, pd, pl), nil
 	case "mac_address":
 		return fmt.Sprintf("fake(%q)", transformer.Value), nil
 	case "domain_name":
