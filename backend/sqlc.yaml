@@ -1,13 +1,13 @@
-version: '2'
+version: "2"
 sql:
-  - engine: 'postgresql'
-    queries: 'sql/postgresql'
-    schema: 'migrations'
+  - engine: "postgresql"
+    queries: "sql/postgresql"
+    schema: "migrations"
     gen:
       go:
-        package: 'db_queries'
-        out: 'gen/go/db'
-        sql_package: 'pgx/v5'
+        package: "db_queries"
+        out: "gen/go/db"
+        sql_package: "pgx/v5"
         overrides:
           - column: neosync_api.connections.connection_config
             go_type:

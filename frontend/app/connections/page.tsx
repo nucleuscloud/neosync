@@ -59,7 +59,7 @@ function NewConnectionButton(props: NewConnectionButtonprops): ReactElement {
   const {} = props;
   return (
     <NextLink href={'/new/connection'}>
-      <Button>New Connection</Button>
+      <Button>+ New Connection</Button>
     </NextLink>
   );
 }

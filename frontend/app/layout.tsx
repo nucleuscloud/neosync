@@ -11,7 +11,11 @@ import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 
-export const metadata: Metadata = {};
+export const metadata: Metadata = {
+  title: 'Neosync',
+  description: 'Open Source Test Data Management',
+  icons: [{ rel: 'icon', url: 'favicon.ico' }],
+};
 
 export default async function RootLayout({
   children,

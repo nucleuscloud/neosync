@@ -45,6 +45,15 @@ export function MainNav({
           Jobs
         </Link>
         <Link
+          href="/runs"
+          className={cn(
+            'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
+            pathname === '/runs' ? 'text-foreground' : 'text-foreground/60'
+          )}
+        >
+          Runs
+        </Link>
+        <Link
           href="/connections"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
@@ -55,15 +64,7 @@ export function MainNav({
         >
           Connections
         </Link>
-        <Link
-          href="/runs"
-          className={cn(
-            'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            pathname === '/runs' ? 'text-foreground' : 'text-foreground/60'
-          )}
-        >
-          Runs
-        </Link>
+
         <Link
           href="/settings"
           className={cn(

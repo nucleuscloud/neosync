@@ -132,27 +132,157 @@ type JobMapping struct {
 	Schema      string
 	Table       string
 	Column      string
-	Transformer string
+	Transformer *Transformer
 	Exclude     bool
 }
 
 func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
+
 	return &mgmtv1alpha1.JobMapping{
 		Schema:      jm.Schema,
 		Table:       jm.Table,
 		Column:      jm.Column,
-		Transformer: jm.Transformer,
+		Transformer: jm.Transformer.ToDto(),
 		Exclude:     jm.Exclude,
 	}
 }
 
 func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
+
+	t := &Transformer{}
+	if err := t.FromDto(dto.Transformer); err != nil {
+		return err
+	}
 	jm.Schema = dto.Schema
 	jm.Table = dto.Table
 	jm.Column = dto.Column
-	jm.Transformer = dto.Transformer
+	jm.Transformer = t
 	jm.Exclude = dto.Exclude
 	return nil
+}
+
+type Transformer struct {
+	Value  string
+	Config *TransformerConfigs
+}
+
+type TransformerConfigs struct {
+	EmailConfig *EmailConfigs
+	FirstName   *FirstNameConfig
+	Uuidv4      *Uuidv4Config
+	PhoneNumber *PhoneNumberConfig
+	Passthrough *PassthroughConfig
+}
+
+type EmailConfigs struct {
+	PreserveLength bool
+	PreserveDomain bool
+}
+
+type FirstNameConfig struct {
+}
+type Uuidv4Config struct {
+}
+type PhoneNumberConfig struct {
+}
+type PassthroughConfig struct {
+}
+
+// from API -> DB
+func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
+
+	switch tr.Config.Config.(type) {
+	case *mgmtv1alpha1.TransformerConfig_EmailConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			EmailConfig: &EmailConfigs{
+				PreserveLength: tr.Config.GetEmailConfig().PreserveLength,
+				PreserveDomain: tr.Config.GetEmailConfig().PreserveDomain,
+			},
+		}
+	case *mgmtv1alpha1.TransformerConfig_FirstNameConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			FirstName: &FirstNameConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			Passthrough: &PassthroughConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_UuidConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			Uuidv4: &Uuidv4Config{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_PhoneNumberConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			PhoneNumber: &PhoneNumberConfig{},
+		}
+	default:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{}
+	}
+
+	return nil
+}
+
+// DB -> API
+func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
+
+	switch {
+	case t.Config.EmailConfig != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
+					EmailConfig: &mgmtv1alpha1.EmailConfig{
+						PreserveDomain: t.Config.EmailConfig.PreserveDomain,
+						PreserveLength: t.Config.EmailConfig.PreserveLength,
+					},
+				},
+			},
+		}
+	case t.Config.FirstName != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_FirstNameConfig{
+					FirstNameConfig: &mgmtv1alpha1.FirstName{},
+				},
+			},
+		}
+	case t.Config.Passthrough != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+					PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+				},
+			},
+		}
+	case t.Config.PhoneNumber != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PhoneNumberConfig{
+					PhoneNumberConfig: &mgmtv1alpha1.PhoneNumber{},
+				},
+			},
+		}
+	case t.Config.Uuidv4 != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_UuidConfig{
+					UuidConfig: &mgmtv1alpha1.Uuidv4{},
+				},
+			},
+		}
+	default:
+		return &mgmtv1alpha1.Transformer{Value: t.Value}
+	}
 }
 
 type JobSourceOptions struct {
@@ -167,7 +297,7 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_SqlOptions{
 				SqlOptions: &mgmtv1alpha1.SqlSourceConnectionOptions{
-					HaltOnNewColumnAddition: &j.SqlOptions.HaltOnNewColumnAddition,
+					HaltOnNewColumnAddition: j.SqlOptions.HaltOnNewColumnAddition,
 				},
 			},
 		}
@@ -179,7 +309,7 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 	switch config := dto.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_SqlOptions:
 		j.SqlOptions = &SqlSourceOptions{
-			HaltOnNewColumnAddition: *config.SqlOptions.HaltOnNewColumnAddition,
+			HaltOnNewColumnAddition: config.SqlOptions.HaltOnNewColumnAddition,
 		}
 	default:
 		return fmt.Errorf("invalid config")
@@ -188,34 +318,67 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 }
 
 type JobDestinationOptions struct {
-	SqlOptions *SqlDestinationOptions
+	SqlOptions   *SqlDestinationOptions
+	AwsS3Options *AwsS3DestinationOptions
 }
+type AwsS3DestinationOptions struct{}
 type SqlDestinationOptions struct {
+	TruncateTableConfig *TruncateTableConfig
+	InitTableSchema     bool
+}
+type TruncateTableConfig struct {
 	TruncateBeforeInsert bool
-	InitDbSchema         bool
+	TruncateCascade      bool
+}
+
+func (t *TruncateTableConfig) ToDto() *mgmtv1alpha1.TruncateTableConfig {
+	return &mgmtv1alpha1.TruncateTableConfig{
+		TruncateBeforeInsert: t.TruncateBeforeInsert,
+		Cascade:              t.TruncateCascade,
+	}
+}
+
+func (t *TruncateTableConfig) FromDto(dto *mgmtv1alpha1.TruncateTableConfig) {
+	t.TruncateBeforeInsert = dto.TruncateBeforeInsert
+	t.TruncateCascade = dto.Cascade
 }
 
 func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 	if j.SqlOptions != nil {
+		if j.SqlOptions.TruncateTableConfig == nil {
+			j.SqlOptions.TruncateTableConfig = &TruncateTableConfig{}
+		}
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_SqlOptions{
 				SqlOptions: &mgmtv1alpha1.SqlDestinationConnectionOptions{
-					TruncateBeforeInsert: &j.SqlOptions.TruncateBeforeInsert,
-					InitDbSchema:         &j.SqlOptions.InitDbSchema,
+					TruncateTable:   j.SqlOptions.TruncateTableConfig.ToDto(),
+					InitTableSchema: j.SqlOptions.InitTableSchema,
 				},
 			},
 		}
 	}
+	if j.AwsS3Options != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_AwsS3Options{
+				AwsS3Options: &mgmtv1alpha1.AwsS3DestinationConnectionOptions{},
+			},
+		}
+	}
+
 	return nil
 }
 
 func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions) error {
 	switch config := dto.Config.(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_SqlOptions:
+		truncateCfg := &TruncateTableConfig{}
+		truncateCfg.FromDto(config.SqlOptions.TruncateTable)
 		j.SqlOptions = &SqlDestinationOptions{
-			TruncateBeforeInsert: *config.SqlOptions.TruncateBeforeInsert,
-			InitDbSchema:         *config.SqlOptions.InitDbSchema,
+			InitTableSchema:     config.SqlOptions.InitTableSchema,
+			TruncateTableConfig: truncateCfg,
 		}
+	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
+		j.AwsS3Options = &AwsS3DestinationOptions{}
 	default:
 		return fmt.Errorf("invalid config")
 	}

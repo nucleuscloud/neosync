@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/form';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { ReactElement } from 'react';
+import { useFormContext } from 'react-hook-form';
 
 interface DestinationOptionsProps {
   connection?: Connection;
@@ -19,30 +20,39 @@ export default function DestinationOptionsForm(
 ): ReactElement {
   const { connection, maxColNum, index } = props;
   const grid = maxColNum ? `lg:grid-cols-${maxColNum}` : 'lg:grid-cols-3';
+  const formCtx = useFormContext();
 
   if (!connection) {
     return <></>;
   }
+
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
       const value = connection.connectionConfig.config.value;
+      const truncateBeforeInsertName = index
+        ? `destinations.${index}.destinationOptions.truncateBeforeInsert`
+        : `destinationOptions.truncateBeforeInsert`;
+      const truncateCascadeName = index
+        ? `destinations.${index}.destinationOptions.truncateCascade`
+        : `destinationOptions.truncateCascade`;
       switch (value.connectionConfig.case) {
         case 'connection':
           return (
             <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
               <div>
                 <FormField
-                  name={
-                    index
-                      ? `destinations.${index}.destinationOptions.truncateBeforeInsert`
-                      : `destinationOptions.truncateBeforeInsert`
-                  }
+                  name={truncateBeforeInsertName}
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <SwitchCard
                           isChecked={field.value || false}
-                          onCheckedChange={field.onChange}
+                          onCheckedChange={(newVal) => {
+                            field.onChange(newVal);
+                            if (!newVal) {
+                              formCtx.setValue(truncateCascadeName, false);
+                            }
+                          }}
                           title="Truncate Before Insert"
                           description="Truncates table before inserting data"
                         />
@@ -54,10 +64,33 @@ export default function DestinationOptionsForm(
               </div>
               <div>
                 <FormField
+                  name={truncateCascadeName}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SwitchCard
+                          isChecked={field.value || false}
+                          onCheckedChange={(newVal) => {
+                            field.onChange(newVal);
+                            if (newVal) {
+                              formCtx.setValue(truncateBeforeInsertName, true);
+                            }
+                          }}
+                          title="Truncate Cascade"
+                          description="Adds CASCADE to the end of the TRUNCATE statement"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div>
+                <FormField
                   name={
                     index
-                      ? `destinations.${index}.destinationOptions.initDbSchema`
-                      : `destinationOptions.initDbSchema`
+                      ? `destinations.${index}.destinationOptions.initTableSchema`
+                      : `destinationOptions.initTableSchema`
                   }
                   render={({ field }) => (
                     <FormItem>
@@ -65,8 +98,8 @@ export default function DestinationOptionsForm(
                         <SwitchCard
                           isChecked={field.value || false}
                           onCheckedChange={field.onChange}
-                          title="Init Database Schema"
-                          description="Creates database schema"
+                          title="Init Table Schema"
+                          description="Creates the table schema and its constraints"
                         />
                       </FormControl>
                       <FormMessage />

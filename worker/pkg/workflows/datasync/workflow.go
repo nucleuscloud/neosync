@@ -77,10 +77,11 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		logger.Debug("*** blocking select ***", "i", i)
 		workselector.Select(ctx)
 		if activityErr != nil {
-			return nil, fmt.Errorf("activity failed: %w", activityErr)
+			return nil, activityErr
 		}
 		logger.Debug("*** post select ***", "i", i)
 
+		// todo: deadlock detection
 		for _, bc := range splitConfigs.Dependents {
 			bc := bc
 			if _, ok := started[bc.Name]; ok {

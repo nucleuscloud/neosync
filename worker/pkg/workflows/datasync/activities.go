@@ -29,10 +29,6 @@ import (
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
-const (
-	maxPgParamLimit = 65535
-)
-
 type GenerateBenthosConfigsRequest struct {
 	JobId      string
 	BackendUrl string
@@ -88,8 +84,9 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 
 		groupedMappings := groupMappingsByTable(job.Mappings)
-		for key, mappings := range groupedMappings {
-			cols := buildPlainColumns(mappings)
+		for i := range groupedMappings {
+			tableMapping := groupedMappings[i]
+			cols := buildPlainColumns(tableMapping.Mappings)
 			if len(cols) == 0 {
 				// skipping table as no columns are mapped
 				continue
@@ -102,8 +99,8 @@ func (a *Activities) GenerateBenthosConfigs(
 								Driver: "postgres",
 								Dsn:    dsn,
 
-								Table:   key,
-								Columns: buildPlainColumns(mappings),
+								Table:   buildBenthosTable(tableMapping.Schema, tableMapping.Table),
+								Columns: cols,
 							},
 						},
 					},
@@ -118,11 +115,6 @@ func (a *Activities) GenerateBenthosConfigs(
 								Outputs: []neosync_benthos.Outputs{},
 							},
 						},
-
-						// Broker: &neosync_benthos.OutputBrokerConfig{
-						// 	Pattern: "fan_out",
-						// 	Outputs: []neosync_benthos.Outputs{},
-						// },
 					},
 				},
 			}
@@ -136,7 +128,7 @@ func (a *Activities) GenerateBenthosConfigs(
 				})
 			}
 			responses = append(responses, &benthosConfigResponse{
-				Name:      key, // todo: may need to expand on this
+				Name:      buildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 				Config:    bc,
 				DependsOn: []string{},
 			})
@@ -160,9 +152,7 @@ func (a *Activities) GenerateBenthosConfigs(
 			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
 		}
 		sqlOpts := job.Source.Options.GetSqlOptions()
-		if sqlOpts != nil &&
-			sqlOpts.HaltOnNewColumnAddition != nil &&
-			*sqlOpts.HaltOnNewColumnAddition &&
+		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
 			shouldHaltOnSchemaAddition(dbschemas, job.Mappings) {
 			msg := "job mappings does not contain a column mapping for all " +
 				"columns found in the source connection for the selected schemas and tables"
@@ -200,14 +190,15 @@ func (a *Activities) GenerateBenthosConfigs(
 				}
 
 				truncateBeforeInsert := false
-				initSchema := true
+				truncateCascade := false
+				initSchema := false
 				sqlOpts := destination.Options.GetSqlOptions()
-				if sqlOpts != nil && sqlOpts.InitDbSchema != nil {
-					initSchema = *sqlOpts.InitDbSchema
-				}
-
-				if sqlOpts != nil && sqlOpts.TruncateBeforeInsert != nil {
-					truncateBeforeInsert = *sqlOpts.TruncateBeforeInsert
+				if sqlOpts != nil {
+					initSchema = sqlOpts.InitTableSchema
+					if sqlOpts.TruncateTable != nil {
+						truncateBeforeInsert = sqlOpts.TruncateTable.TruncateBeforeInsert
+						truncateCascade = sqlOpts.TruncateTable.Cascade
+					}
 				}
 
 				pool := pgpoolmap[resp.Config.Input.SqlSelect.Dsn]
@@ -220,6 +211,7 @@ func (a *Activities) GenerateBenthosConfigs(
 					table,
 					&initStatementOpts{
 						TruncateBeforeInsert: truncateBeforeInsert,
+						TruncateCascade:      truncateCascade,
 						InitSchema:           initSchema,
 					},
 				)
@@ -243,7 +235,7 @@ func (a *Activities) GenerateBenthosConfigs(
 						Batching: &neosync_benthos.Batching{
 							Period: "1s",
 							// max allowed by postgres in a single batch
-							Count: clampInt(maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns), 1, maxPgParamLimit), // automatically rounds down
+							Count: computeMaxPgBatchCount(len(resp.Config.Input.SqlSelect.Columns)),
 						},
 					},
 				})
@@ -299,6 +291,18 @@ func (a *Activities) GenerateBenthosConfigs(
 	}, nil
 }
 
+const (
+	maxPgParamLimit = 65535
+)
+
+func computeMaxPgBatchCount(numCols int) int {
+	if numCols < 1 {
+		return maxPgParamLimit
+	}
+	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
+}
+
+// clamps the input between low, high
 func clampInt(input, low, high int) int {
 	if input < low {
 		return low
@@ -442,6 +446,7 @@ func (a *Activities) getAllFkConstraintsFromMappings(
 
 type initStatementOpts struct {
 	TruncateBeforeInsert bool
+	TruncateCascade      bool // only applied if truncatebeforeinsert is true
 	InitSchema           bool
 }
 
@@ -470,7 +475,11 @@ func (a *Activities) getInitStatementFromPostgres(
 		statements = append(statements, stmt)
 	}
 	if opts != nil && opts.TruncateBeforeInsert {
-		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
+		if opts.TruncateCascade {
+			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
+		} else {
+			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
+		}
 	}
 	return strings.Join(statements, "\n"), nil
 }
@@ -556,14 +565,30 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 
 func groupMappingsByTable(
 	mappings []*mgmtv1alpha1.JobMapping,
-) map[string][]*mgmtv1alpha1.JobMapping {
-	output := map[string][]*mgmtv1alpha1.JobMapping{}
+) []*TableMapping {
+	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
 
 	for _, mapping := range mappings {
 		key := buildBenthosTable(mapping.Schema, mapping.Table)
-		output[key] = append(output[key], mapping)
+		groupedMappings[key] = append(groupedMappings[key], mapping)
+	}
+
+	output := make([]*TableMapping, 0, len(groupedMappings))
+	for key, mappings := range groupedMappings {
+		schema, table := splitTableKey(key)
+		output = append(output, &TableMapping{
+			Schema:   schema,
+			Table:    table,
+			Mappings: mappings,
+		})
 	}
 	return output
+}
+
+type TableMapping struct {
+	Schema   string
+	Table    string
+	Mappings []*mgmtv1alpha1.JobMapping
 }
 
 func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
@@ -646,7 +671,7 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
 
 	for _, col := range cols {
-		if col.Transformer != "" && col.Transformer != "passthrough" {
+		if col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
 			mutation, err := computeMutationFunction(col.Transformer)
 			if err != nil {
 				return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
@@ -668,8 +693,8 @@ func buildPlainInsertArgs(cols []string) string {
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
 
-func computeMutationFunction(transformer string) (string, error) {
-	switch transformer {
+func computeMutationFunction(transformer *mgmtv1alpha1.Transformer) (string, error) {
+	switch transformer.Value {
 	case "uuid_v4":
 		return "uuid_v4()", nil
 	case "latitude":
@@ -699,7 +724,9 @@ func computeMutationFunction(transformer string) (string, error) {
 	case "time_period":
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "email":
-		return fmt.Sprintf("this.%s.emailtransformer(true, true)", transformer), nil
+		pd := transformer.Config.GetEmailConfig().PreserveDomain
+		pl := transformer.Config.GetEmailConfig().PreserveLength
+		return fmt.Sprintf("this.%s.emailtransformer(%t, %t)", transformer, pd, pl), nil
 	case "mac_address":
 		return fmt.Sprintf("fake(%q)", transformer), nil
 	case "domain_name":

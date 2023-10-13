@@ -87,8 +87,6 @@ func (s *Service) GetJob(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRequest],
 ) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.Id)
 	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
