@@ -1718,6 +1718,8 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	}
 
+	// no validation rules for InitiateJobRun
+
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
 	}

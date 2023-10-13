@@ -33,6 +33,7 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
       }
       return !!value && cron(value).isValid();
     }),
+  initiateJobRun: Yup.boolean(),
 });
 
 export type DefineFormValues = Yup.InferType<typeof DEFINE_FORM_SCHEMA>;

@@ -660,6 +660,11 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
    */
   destinations: CreateJobDestination[] = [];
 
+  /**
+   * @generated from field: bool initiate_job_run = 7;
+   */
+  initiateJobRun = false;
+
   constructor(data?: PartialMessage<CreateJobRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -674,6 +679,7 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
     { no: 4, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 5, name: "source", kind: "message", T: JobSource },
     { no: 6, name: "destinations", kind: "message", T: CreateJobDestination, repeated: true },
+    { no: 7, name: "initiate_job_run", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRequest {

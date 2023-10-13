@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import SwitchCard from '@/components/switches/SwitchCard';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +36,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     {
       jobName: '',
       cronSchedule: '',
+      initiateJobRun: false,
     }
   );
 
@@ -94,6 +96,25 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </FormItem>
             )}
           />
+
+          <div className="max-w-[500px]">
+            <FormField
+              name="initiateJobRun"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <SwitchCard
+                      isChecked={field.value || false}
+                      onCheckedChange={field.onChange}
+                      title="Initiate Job Run"
+                      description="Initiates a single job run immediately after job is created."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="flex flex-row justify-end">
             <Button type="submit">Next</Button>

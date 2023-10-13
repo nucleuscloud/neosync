@@ -351,8 +351,8 @@ func (s *Service) CreateJob(
 		}
 		logger.Info("scheduled workflow", "workflowId", scheduleHandle.GetID())
 
-		if paused {
-			// one off job, manually trigger run
+		if req.Msg.InitiateJobRun {
+			// manually trigger job run
 			err := scheduleHandle.Trigger(ctx, temporalclient.ScheduleTriggerOptions{})
 			if err != nil {
 				logger.Error(fmt.Errorf("unable to trigger job: %w", err).Error())
