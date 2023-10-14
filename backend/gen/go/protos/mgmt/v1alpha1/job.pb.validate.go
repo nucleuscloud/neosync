@@ -9067,40 +9067,42 @@ var _ interface {
 	ErrorName() string
 } = PassthroughValidationError{}
 
-// Validate checks the field values on Uuidv4 with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *Uuidv4) Validate() error {
+// Validate checks the field values on Uuid with the rules defined in the proto
+// definition for this message. If any rules are violated, the first error
+// encountered is returned, or nil if there are no violations.
+func (m *Uuid) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on Uuidv4 with the rules defined in the
+// ValidateAll checks the field values on Uuid with the rules defined in the
 // proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in Uuidv4MultiError, or nil if none found.
-func (m *Uuidv4) ValidateAll() error {
+// a list of violation errors wrapped in UuidMultiError, or nil if none found.
+func (m *Uuid) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *Uuidv4) validate(all bool) error {
+func (m *Uuid) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
+	// no validation rules for IncludeHyphen
+
 	if len(errors) > 0 {
-		return Uuidv4MultiError(errors)
+		return UuidMultiError(errors)
 	}
 
 	return nil
 }
 
-// Uuidv4MultiError is an error wrapping multiple validation errors returned by
-// Uuidv4.ValidateAll() if the designated constraints aren't met.
-type Uuidv4MultiError []error
+// UuidMultiError is an error wrapping multiple validation errors returned by
+// Uuid.ValidateAll() if the designated constraints aren't met.
+type UuidMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m Uuidv4MultiError) Error() string {
+func (m UuidMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -9109,11 +9111,11 @@ func (m Uuidv4MultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m Uuidv4MultiError) AllErrors() []error { return m }
+func (m UuidMultiError) AllErrors() []error { return m }
 
-// Uuidv4ValidationError is the validation error returned by Uuidv4.Validate if
-// the designated constraints aren't met.
-type Uuidv4ValidationError struct {
+// UuidValidationError is the validation error returned by Uuid.Validate if the
+// designated constraints aren't met.
+type UuidValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -9121,22 +9123,22 @@ type Uuidv4ValidationError struct {
 }
 
 // Field function returns field value.
-func (e Uuidv4ValidationError) Field() string { return e.field }
+func (e UuidValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e Uuidv4ValidationError) Reason() string { return e.reason }
+func (e UuidValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e Uuidv4ValidationError) Cause() error { return e.cause }
+func (e UuidValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e Uuidv4ValidationError) Key() bool { return e.key }
+func (e UuidValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e Uuidv4ValidationError) ErrorName() string { return "Uuidv4ValidationError" }
+func (e UuidValidationError) ErrorName() string { return "UuidValidationError" }
 
 // Error satisfies the builtin error interface
-func (e Uuidv4ValidationError) Error() string {
+func (e UuidValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -9148,14 +9150,14 @@ func (e Uuidv4ValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUuidv4.%s: %s%s",
+		"invalid %sUuid.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = Uuidv4ValidationError{}
+var _ error = UuidValidationError{}
 
 var _ interface {
 	Field() string
@@ -9163,7 +9165,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = Uuidv4ValidationError{}
+} = UuidValidationError{}
 
 // Validate checks the field values on FirstName with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

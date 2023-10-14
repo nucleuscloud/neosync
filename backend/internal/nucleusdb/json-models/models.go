@@ -194,7 +194,7 @@ type Transformer struct {
 type TransformerConfigs struct {
 	EmailConfig *EmailConfigs
 	FirstName   *FirstNameConfig
-	Uuidv4      *Uuidv4Config
+	Uuid        *UuidConfig
 	PhoneNumber *PhoneNumberConfig
 	Passthrough *PassthroughConfig
 	Null        *NullConfig
@@ -207,7 +207,8 @@ type EmailConfigs struct {
 
 type FirstNameConfig struct {
 }
-type Uuidv4Config struct {
+type UuidConfig struct {
+	IncludeHyphen bool
 }
 type PhoneNumberConfig struct {
 }
@@ -241,7 +242,9 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 	case *mgmtv1alpha1.TransformerConfig_UuidConfig:
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
-			Uuidv4: &Uuidv4Config{},
+			Uuid: &UuidConfig{
+				IncludeHyphen: tr.Config.GetUuidConfig().IncludeHyphen,
+			},
 		}
 	case *mgmtv1alpha1.TransformerConfig_PhoneNumberConfig:
 		t.Value = tr.Value
@@ -304,12 +307,14 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 				},
 			},
 		}
-	case t.Config.Uuidv4 != nil:
+	case t.Config.Uuid != nil:
 		return &mgmtv1alpha1.Transformer{
 			Value: t.Value,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_UuidConfig{
-					UuidConfig: &mgmtv1alpha1.Uuidv4{},
+					UuidConfig: &mgmtv1alpha1.Uuid{
+						IncludeHyphen: t.Config.Uuid.IncludeHyphen,
+					},
 				},
 			},
 		}

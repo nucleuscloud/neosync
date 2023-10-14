@@ -338,7 +338,7 @@ message TransformerConfig {
 
     EmailConfig email_config = 1;
     Passthrough passthrough_config = 2;
-    Uuidv4 uuid_config = 3;
+    Uuid uuid_config = 3;
     FirstName first_name_config = 4;
     PhoneNumber phone_number_config = 5;
     Null null_config = 6;
@@ -352,7 +352,9 @@ message EmailConfig {
 
 message Passthrough {}
 
-message Uuidv4 {}
+message Uuid {
+  bool include_hyphen = 1;
+}
 
 message FirstName {}
 
