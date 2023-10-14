@@ -29,12 +29,14 @@ export default function DestinationOptionsForm(
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
       const value = connection.connectionConfig.config.value;
-      const truncateBeforeInsertName = index
-        ? `destinations.${index}.destinationOptions.truncateBeforeInsert`
-        : `destinationOptions.truncateBeforeInsert`;
-      const truncateCascadeName = index
-        ? `destinations.${index}.destinationOptions.truncateCascade`
-        : `destinationOptions.truncateCascade`;
+      const truncateBeforeInsertName =
+        index != null
+          ? `destinations.${index}.destinationOptions.truncateBeforeInsert`
+          : `destinationOptions.truncateBeforeInsert`;
+      const truncateCascadeName =
+        index != null
+          ? `destinations.${index}.destinationOptions.truncateCascade`
+          : `destinationOptions.truncateCascade`;
       switch (value.connectionConfig.case) {
         case 'connection':
           return (
