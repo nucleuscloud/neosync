@@ -90,7 +90,7 @@ export default function DestinationOptionsForm(
               <div>
                 <FormField
                   name={
-                    index
+                    index != null
                       ? `destinations.${index}.destinationOptions.initTableSchema`
                       : `destinationOptions.initTableSchema`
                   }
