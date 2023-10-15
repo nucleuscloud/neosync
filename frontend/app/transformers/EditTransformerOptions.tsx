@@ -29,7 +29,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  //since component is in a controlled state, have to manually handle closing the sheet when the user presses escape
+  // since component is in a controlled state, have to manually handle closing the sheet when the user presses escape
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -49,7 +49,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         <Button
           variant="outline"
           size="sm"
-          disabled={!transformer}
+          disabled={!transformer || transformer.value == 'passthrough'}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >
