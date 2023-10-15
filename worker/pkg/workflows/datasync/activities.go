@@ -729,10 +729,6 @@ func buildPlainInsertArgs(cols []string) string {
 
 root.{destination_col} = this.{source_col}.mutationmethod(args)
 
-root.{destination_col} -> destination_col here is the key that will be mapped to in the root document, so this should be the name of the field in the destination
-
-root.{source_col} = this.{source_col}.mutationmethod() -> bar here is the name of the field that the method should execute on, so for a pg db, it'll be the name of the input column
-
 .mutationmethod(args) -> this the name of the custom plugin and then it's args as well
 */
 

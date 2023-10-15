@@ -42,16 +42,16 @@ func ProcessUuid(include_hyphen bool) (string, error) {
 
 	if include_hyphen {
 
-		//generate uuid with hyphens
+		// generate uuid with hyphens
 		returnValue = faker.UUIDHyphenated()
 
 	} else {
 
-		//generates uuid with no hyphens
-		//for postgres, if the dest column is defined as a UUID column then it will automatically
-		//convert the UUID with no hyphens to having hyphens
-		//so this is more useful for string columns or other dbs that won't do the automatic
-		//convesion if you want don't want your UUIDs to have hyphens on purpose
+		/*generates uuid with no hyphens
+		for postgres, if the dest column is defined as a UUID column then it will automatically
+		convert the UUID with no hyphens to having hyphens
+		so this is more useful for string columns or other dbs that won't do the automatic
+		convesion if you want don't want your UUIDs to have hyphens on purpose */
 		returnValue = faker.UUIDDigit()
 	}
 
