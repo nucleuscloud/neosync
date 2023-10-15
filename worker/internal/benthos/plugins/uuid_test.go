@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUuidlTransformer(t *testing.T) {
+func TestUuidTransformer(t *testing.T) {
 
 	tests := []struct {
 		includeHyphens bool
@@ -25,9 +25,9 @@ func TestUuidlTransformer(t *testing.T) {
 			assert.NoError(t, err)
 
 			if tt.includeHyphens {
-				assert.True(t, isValidUUID(uuidString))
+				assert.True(t, isValidUuid(uuidString))
 			} else {
-				assert.True(t, isValidUUID(uuidString))
+				assert.True(t, isValidUuid(uuidString))
 			}
 		}
 	}
@@ -35,7 +35,7 @@ func TestUuidlTransformer(t *testing.T) {
 }
 
 // the uuid lib will validate both hyphens and hyphens
-func isValidUUID(uuidString string) bool {
+func isValidUuid(uuidString string) bool {
 	_, err := uuid.Parse(uuidString)
 	return err == nil
 }
