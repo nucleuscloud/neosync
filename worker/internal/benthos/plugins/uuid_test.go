@@ -24,11 +24,8 @@ func TestUuidTransformer(t *testing.T) {
 		} else {
 			assert.NoError(t, err)
 
-			if tt.includeHyphens {
-				assert.True(t, isValidUuid(uuidString))
-			} else {
-				assert.True(t, isValidUuid(uuidString))
-			}
+			assert.True(t, isValidUuid(uuidString))
+
 		}
 	}
 
