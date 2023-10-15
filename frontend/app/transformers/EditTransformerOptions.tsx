@@ -11,7 +11,8 @@ import {
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
-import EmailTransformerForm from './EmailTransformerForm';
+import EmailTransformerForm from './forms/EmailTransformerForm';
+import UuidTransformerForm from './forms/UuidTransformerForm';
 
 interface Props {
   transformer: Transformer | undefined;
@@ -91,6 +92,10 @@ function handleTransformerForm(
       return (
         <EmailTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
       );
+    case 'uuid':
+      return (
+        <UuidTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -119,7 +124,7 @@ function handleTransformerMetadata(
         description: 'Anonymizes or generates a new first name.',
       },
     },
-    { uuid_v4: { name: 'UUIDv4', description: 'Generates a new UUIDv4 id.' } },
+    { uuid: { name: 'UUID', description: 'Generates a new UUIDv4 id.' } },
     {
       passthrough: {
         name: 'Passthrough',

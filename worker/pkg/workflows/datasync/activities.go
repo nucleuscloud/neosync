@@ -576,6 +576,8 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		"benthos", "true",
 	))
 
+	fmt.Println("req benthos", req.BenthosConfig)
+
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -704,7 +706,7 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 
 	for _, col := range cols {
 		if col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
-			mutation, err := computeMutationFunction(col.Transformer)
+			mutation, err := computeMutationFunction(col)
 			if err != nil {
 				return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
 			}
@@ -725,102 +727,112 @@ func buildPlainInsertArgs(cols []string) string {
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
 
-func computeMutationFunction(transformer *mgmtv1alpha1.Transformer) (string, error) {
-	switch transformer.Value {
-	case "uuid_v4":
-		return "uuid_v4()", nil
+/*
+
+root.{destination_col} = this.{source_col}.mutationmethod(args)
+
+root.{destination_col} -> destination_col here is the key that will be mapped to in the root document, so this should be the name of the field in the destination
+
+root.{source_col} = this.{source_col}.mutationmethod() -> bar here is the name of the field that the method should execute on, so for a pg db, it'll be the name of the input column
+
+.mutationmethod(args) -> this the name of the custom plugin and then it's args as well
+*/
+
+func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
+
+	switch col.Transformer.Value {
 	case "latitude":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "longitude":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "unix_time":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "date":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "time_string":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "month_name":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "year_string":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "day_of_week":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "day_of_month":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "timestamp":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "century":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "timezone":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "time_period":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "email":
-		pd := transformer.Config.GetEmailConfig().PreserveDomain
-		pl := transformer.Config.GetEmailConfig().PreserveLength
-		return fmt.Sprintf("this.%s.emailtransformer(%t, %t)", transformer.Value, pd, pl), nil
+		pd := col.Transformer.Config.GetEmailConfig().PreserveDomain
+		pl := col.Transformer.Config.GetEmailConfig().PreserveLength
+		return fmt.Sprintf("this.%s.emailtransformer(%t, %t)", col.Transformer.Value, pd, pl), nil
 	case "mac_address":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "domain_name":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "url":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "username":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "ipv4":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "ipv6":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "password":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "jwt":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "word":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "sentence":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "paragraph":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "cc_type":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "cc_number":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "currency":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "amount_with_currency":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "title_male":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "title_female":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "first_name":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "first_name_male":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "first_name_female":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "last_name":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "name":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "gender":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "chinese_first_name":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "chinese_last_name":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "chinese_name":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "phone_number":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "toll_free_phone_number":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "e164_phone_number":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
-	case "uuid_hyphenated":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
-	case "uuid_digit":
-		return fmt.Sprintf("fake(%q)", transformer.Value), nil
+		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
+	case "uuid":
+		ih := col.Transformer.Config.GetUuidConfig().IncludeHyphen
+		fmt.Println("the hyphen setting", ih)
+		return fmt.Sprintf("this.%s.uuidtransformer(%t)", col.Column, ih), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

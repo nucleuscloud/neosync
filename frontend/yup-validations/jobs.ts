@@ -10,7 +10,7 @@ import {
   Transformer,
   TransformerConfig,
   TruncateTableConfig,
-  Uuidv4,
+  Uuid,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
@@ -115,6 +115,15 @@ interface EmailTransformerConfigs {
   preserveLength: boolean;
 }
 
+interface UuidTransformer {
+  value: string;
+  config: UuidTransformerConfigs;
+}
+
+interface UuidTransformerConfigs {
+  includeHyphen: boolean;
+}
+
 export function toTransformerConfigOptions(t: {
   value: string;
   config: {};
@@ -150,13 +159,16 @@ export function toTransformerConfigOptions(t: {
         }),
       });
     }
-    case 'uuid_v4': {
+    case 'uuid': {
+      const ut = t as UuidTransformer;
       return new Transformer({
         value: t.value,
         config: new TransformerConfig({
           config: {
             case: 'uuidConfig',
-            value: new Uuidv4({}),
+            value: new Uuid({
+              includeHyphen: ut.config.includeHyphen,
+            }),
           },
         }),
       });
