@@ -576,8 +576,6 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		"benthos", "true",
 	))
 
-	fmt.Println("req benthos", req.BenthosConfig)
-
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -831,7 +829,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "uuid":
 		ih := col.Transformer.Config.GetUuidConfig().IncludeHyphen
-		fmt.Println("the hyphen setting", ih)
 		return fmt.Sprintf("this.%s.uuidtransformer(%t)", col.Column, ih), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
