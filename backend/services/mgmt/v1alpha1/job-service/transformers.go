@@ -12,7 +12,7 @@ type Transformation string
 const (
 	Invalid     Transformation = "invalid"
 	Passthrough Transformation = "passthrough"
-	UuidV4      Transformation = "uuid_v4"
+	Uuid        Transformation = "uuid"
 	FirstName   Transformation = "first_name"
 	PhoneNumber Transformation = "phone_number"
 	Email       Transformation = "email"
@@ -26,7 +26,14 @@ func (s *Service) GetTransformers(
 	return connect.NewResponse(&mgmtv1alpha1.GetTransformersResponse{
 		Transformers: []*mgmtv1alpha1.Transformer{
 			{Value: string(Passthrough), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(UuidV4), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(Uuid), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_UuidConfig{
+					UuidConfig: &mgmtv1alpha1.Uuid{
+						IncludeHyphen: true,
+					},
+				},
+			},
+			},
 			{Value: string(FirstName), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(PhoneNumber), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{}},

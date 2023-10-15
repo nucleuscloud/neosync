@@ -2922,9 +2922,9 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "passthroughConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Uuidv4 uuid_config = 3;
+     * @generated from field: mgmt.v1alpha1.Uuid uuid_config = 3;
      */
-    value: Uuidv4;
+    value: Uuid;
     case: "uuidConfig";
   } | {
     /**
@@ -2956,7 +2956,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "email_config", kind: "message", T: EmailConfig, oneof: "config" },
     { no: 2, name: "passthrough_config", kind: "message", T: Passthrough, oneof: "config" },
-    { no: 3, name: "uuid_config", kind: "message", T: Uuidv4, oneof: "config" },
+    { no: 3, name: "uuid_config", kind: "message", T: Uuid, oneof: "config" },
     { no: 4, name: "first_name_config", kind: "message", T: FirstName, oneof: "config" },
     { no: 5, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
     { no: 6, name: "null_config", kind: "message", T: Null, oneof: "config" },
@@ -3054,33 +3054,39 @@ export class Passthrough extends Message<Passthrough> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.Uuidv4
+ * @generated from message mgmt.v1alpha1.Uuid
  */
-export class Uuidv4 extends Message<Uuidv4> {
-  constructor(data?: PartialMessage<Uuidv4>) {
+export class Uuid extends Message<Uuid> {
+  /**
+   * @generated from field: bool include_hyphen = 1;
+   */
+  includeHyphen = false;
+
+  constructor(data?: PartialMessage<Uuid>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.Uuidv4";
+  static readonly typeName = "mgmt.v1alpha1.Uuid";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "include_hyphen", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Uuidv4 {
-    return new Uuidv4().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Uuid {
+    return new Uuid().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Uuidv4 {
-    return new Uuidv4().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Uuid {
+    return new Uuid().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Uuidv4 {
-    return new Uuidv4().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Uuid {
+    return new Uuid().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Uuidv4 | PlainMessage<Uuidv4> | undefined, b: Uuidv4 | PlainMessage<Uuidv4> | undefined): boolean {
-    return proto3.util.equals(Uuidv4, a, b);
+  static equals(a: Uuid | PlainMessage<Uuid> | undefined, b: Uuid | PlainMessage<Uuid> | undefined): boolean {
+    return proto3.util.equals(Uuid, a, b);
   }
 }
 
