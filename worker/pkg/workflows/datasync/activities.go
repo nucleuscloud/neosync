@@ -726,9 +726,7 @@ func buildPlainInsertArgs(cols []string) string {
 }
 
 /*
-
 root.{destination_col} = this.{source_col}.mutationmethod(args)
-
 .mutationmethod(args) -> this the name of the custom plugin and then it's args as well
 */
 
