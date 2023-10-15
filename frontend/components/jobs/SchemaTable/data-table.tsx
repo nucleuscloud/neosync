@@ -43,9 +43,9 @@ import {
 import { Tree, TreeDataItem } from '@/components/ui/tree';
 import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { CheckIcon } from '@radix-ui/react-icons';
+import { AiOutlineFilter } from 'react-icons/ai';
 import { DataTableToolbar } from './data-table-toolbar';
-
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -261,24 +261,26 @@ export function DataTable<TData, TValue>({
                           header.id == 'select' ? ' w-[40px]' : 'w-[197px]'
                         }
                       >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                        {header.column.getCanFilter() ? (
-                          <div>
-                            <FilterSelect
-                              column={header.column}
-                              table={table}
-                              transformers={transformers || []}
-                              onSelect={() => {
-                                setFiltersUpdated(true);
-                              }}
-                            />
-                          </div>
-                        ) : null}
+                        <div className="flex flex-row">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                          {header.column.getCanFilter() ? (
+                            <div>
+                              <FilterSelect
+                                column={header.column}
+                                table={table}
+                                transformers={transformers || []}
+                                onSelect={() => {
+                                  setFiltersUpdated(true);
+                                }}
+                              />
+                            </div>
+                          ) : null}
+                        </div>
                       </TableHead>
                     );
                   })}
@@ -382,17 +384,18 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="min-w-[175px] justify-between"
+          className="hover:bg-gray-200 p-2"
         >
-          <p className="truncate ...">
-            {columnFilterValue && columnFilterValue.length
-              ? columnFilterValue.join(', ')
-              : 'Filter...'}
-          </p>
-          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <AiOutlineFilter />
+          {columnFilterValue && columnFilterValue.length ? (
+            <div
+              id="notifbadge"
+              className="bg-blue-500 w-[6px] h-[6px] text-white rounded-full text-[8px] relative top-[-8px] right-0"
+            />
+          ) : null}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="min-w-[175px] p-0">
