@@ -6,67 +6,63 @@ import (
 	"testing"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
+	"go.uber.org/atomic"
 )
 
-type UnitTestSuite struct {
-	suite.Suite
-	testsuite.WorkflowTestSuite
+func Test_Workflow_BenthosConfigsFails(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
 
-	env *testsuite.TestWorkflowEnvironment
-}
-
-func (s *UnitTestSuite) SetupTest() {
-	s.env = s.NewTestWorkflowEnvironment()
-}
-
-func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
-	s.env.AssertExpectations(s.T())
-}
-
-func TestUnitTestSuite(t *testing.T) {
-	suite.Run(t, new(UnitTestSuite))
-}
-
-func (s *UnitTestSuite) Test_Workflow_BenthosConfigsFails() {
 	activities := &Activities{}
-	s.env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
 
-	s.env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
-	s.True(s.env.IsWorkflowCompleted())
+	assert.True(t, env.IsWorkflowCompleted())
+	assert.True(t, env.IsWorkflowCompleted())
 
-	err := s.env.GetWorkflowError()
-	s.Error(err)
+	err := env.GetWorkflowError()
+	assert.Error(t, err)
 	var applicationErr *temporal.ApplicationError
-	s.True(errors.As(err, &applicationErr))
-	s.Equal("TestFailure", applicationErr.Error())
+	assert.True(t, errors.As(err, &applicationErr))
+	assert.Equal(t, "TestFailure", applicationErr.Error())
+
+	env.AssertExpectations(t)
 }
 
-func (s *UnitTestSuite) Test_Workflow_Succeeds_Zero_BenthosConfigs() {
+func Test_Workflow_Succeeds_Zero_BenthosConfigs(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
 	activities := &Activities{}
-	s.env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosConfigResponse{}}, nil)
 
-	s.env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
-	s.True(s.env.IsWorkflowCompleted())
+	assert.True(t, env.IsWorkflowCompleted())
 
-	err := s.env.GetWorkflowError()
-	s.Nil(err)
+	err := env.GetWorkflowError()
+	assert.Nil(t, err)
 
 	result := &WorkflowResponse{}
-	err = s.env.GetWorkflowResult(result)
-	s.Nil(err)
-	s.Equal(result, &WorkflowResponse{})
+	err = env.GetWorkflowResult(result)
+	assert.Nil(t, err)
+	assert.Equal(t, result, &WorkflowResponse{})
+
+	env.AssertExpectations(t)
 }
 
-func (s *UnitTestSuite) Test_Workflow_Succeeds_SingleSync() {
+func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
 	activities := &Activities{}
-	s.env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosConfigResponse{
 			{
 				Name:      "public.users",
@@ -74,24 +70,29 @@ func (s *UnitTestSuite) Test_Workflow_Succeeds_SingleSync() {
 				Config:    &neosync_benthos.BenthosConfig{},
 			},
 		}}, nil)
-	s.env.OnActivity(activities.Sync, mock.Anything, mock.Anything, mock.Anything).Return(&SyncResponse{}, nil)
+	env.OnActivity(activities.Sync, mock.Anything, mock.Anything, mock.Anything).Return(&SyncResponse{}, nil)
 
-	s.env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
-	s.True(s.env.IsWorkflowCompleted())
+	assert.True(t, env.IsWorkflowCompleted())
 
-	err := s.env.GetWorkflowError()
-	s.Nil(err)
+	err := env.GetWorkflowError()
+	assert.Nil(t, err)
 
 	result := &WorkflowResponse{}
-	err = s.env.GetWorkflowResult(result)
-	s.Nil(err)
-	s.Equal(result, &WorkflowResponse{})
+	err = env.GetWorkflowResult(result)
+	assert.Nil(t, err)
+	assert.Equal(t, result, &WorkflowResponse{})
+
+	env.AssertExpectations(t)
 }
 
-func (s *UnitTestSuite) Test_Workflow_Follows_Synchronous_DependentFlow() {
+func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
 	activities := &Activities{}
-	s.env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosConfigResponse{
 			{
 				Name:      "public.users",
@@ -104,38 +105,43 @@ func (s *UnitTestSuite) Test_Workflow_Follows_Synchronous_DependentFlow() {
 			},
 		}}, nil)
 	count := 0
-	s.env.
+	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "users"}).
 		Return(func(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
-			s.Equal(count, 0)
+			assert.Equal(t, count, 0)
 			count += 1
 			return &SyncResponse{}, nil
 		})
-	s.env.
+	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "foo"}).
 		Return(func(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
-			s.Equal(count, 1)
+			assert.Equal(t, count, 1)
 			count += 1
 			return &SyncResponse{}, nil
 		})
 
-	s.env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
-	s.True(s.env.IsWorkflowCompleted())
-	s.Equal(count, 2)
+	assert.True(t, env.IsWorkflowCompleted())
+	assert.Equal(t, count, 2)
 
-	err := s.env.GetWorkflowError()
-	s.Nil(err)
+	err := env.GetWorkflowError()
+	assert.Nil(t, err)
 
 	result := &WorkflowResponse{}
-	err = s.env.GetWorkflowResult(result)
-	s.Nil(err)
-	s.Equal(result, &WorkflowResponse{})
+	err = env.GetWorkflowResult(result)
+	assert.Nil(t, err)
+	assert.Equal(t, result, &WorkflowResponse{})
+
+	env.AssertExpectations(t)
 }
 
-func (s *UnitTestSuite) Test_Workflow_Follows_Multiple_Dependents() {
+func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
 	activities := &Activities{}
-	s.env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosConfigResponse{
 			{
 				Name:      "public.users",
@@ -152,44 +158,49 @@ func (s *UnitTestSuite) Test_Workflow_Follows_Multiple_Dependents() {
 				DependsOn: []string{"public.users", "public.accounts"},
 			},
 		}}, nil)
-	count := 0
-	s.env.
+	counter := atomic.NewInt32(0)
+	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "users"}).
 		Return(func(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
-			count += 1
+			counter.Add(1)
 			return &SyncResponse{}, nil
 		})
-	s.env.
+	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "accounts"}).
 		Return(func(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
-			count += 1
+			counter.Add(1)
 			return &SyncResponse{}, nil
 		})
-	s.env.
+	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "foo"}).
 		Return(func(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
-			s.Equal(count, 2)
-			count += 1
+			assert.Equal(t, counter.Load(), int32(2))
+			counter.Add(1)
 			return &SyncResponse{}, nil
 		})
 
-	s.env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
-	s.True(s.env.IsWorkflowCompleted())
-	s.Equal(count, 3)
+	assert.True(t, env.IsWorkflowCompleted())
+	assert.Equal(t, counter.Load(), int32(3))
 
-	err := s.env.GetWorkflowError()
-	s.Nil(err)
+	err := env.GetWorkflowError()
+	assert.Nil(t, err)
 
 	result := &WorkflowResponse{}
-	err = s.env.GetWorkflowResult(result)
-	s.Nil(err)
-	s.Equal(result, &WorkflowResponse{})
+	err = env.GetWorkflowResult(result)
+	assert.Nil(t, err)
+	assert.Equal(t, result, &WorkflowResponse{})
+
+	env.AssertExpectations(t)
 }
 
-func (s *UnitTestSuite) Test_Workflow_Halts_Activities_OnError() {
+func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestWorkflowEnvironment()
+
 	activities := &Activities{}
-	s.env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&GenerateBenthosConfigsResponse{BenthosConfigs: []*benthosConfigResponse{
 			{
 				Name:      "public.users",
@@ -207,22 +218,24 @@ func (s *UnitTestSuite) Test_Workflow_Halts_Activities_OnError() {
 			},
 		}}, nil)
 
-	s.env.
+	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "users"}).
 		Return(func(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
 			return &SyncResponse{}, nil
 		})
-	s.env.
+	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "accounts"}).
 		Return(nil, errors.New("TestFailure"))
 
-	s.env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
+	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
-	s.True(s.env.IsWorkflowCompleted())
+	assert.True(t, env.IsWorkflowCompleted())
 
-	err := s.env.GetWorkflowError()
-	s.Error(err)
+	err := env.GetWorkflowError()
+	assert.Error(t, err)
 	var applicationErr *temporal.ApplicationError
-	s.True(errors.As(err, &applicationErr))
-	s.Equal("TestFailure", applicationErr.Error())
+	assert.True(t, errors.As(err, &applicationErr))
+	assert.Equal(t, "TestFailure", applicationErr.Error())
+
+	env.AssertExpectations(t)
 }
