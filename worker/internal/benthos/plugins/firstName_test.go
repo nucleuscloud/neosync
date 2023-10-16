@@ -13,8 +13,8 @@ func TestFirstNameTransformer(t *testing.T) {
 		preserveLength bool
 		expectedLength int
 	}{
-		{"frank", false, 0}, // checks preserve domain
-		{"evis", true, 4},   // checks preserve length
+		{"frank", false, 0},
+		{"evis", true, 4}, // checks preserve length
 	}
 
 	for _, tt := range tests {
