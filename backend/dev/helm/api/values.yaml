@@ -32,7 +32,8 @@ datadog:
 
 nucleusEnv: dev
 
-port: 8080
+servicePort: 80
+containerPort: 8080
 
 auth:
   baseUrl: https://auth.nucleuscloud.dev

@@ -37,4 +37,5 @@ temporal:
   taskQueue:
 
 host: 0.0.0.0
-port: 80
+servicePort: 80
+containerPort: 80

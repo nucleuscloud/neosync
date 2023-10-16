@@ -9,8 +9,8 @@ stringData:
     HOST: {{ .Values.host | quote}}
     {{- end }}
 
-    {{- if .Values.port }}
-    PORT: {{ .Values.port | quote }}
+    {{- if .Values.containerPort }}
+    PORT: {{ .Values.containerPort | quote }}
     {{- end }}
 
     {{- if ne .Values.nucleusEnv "dev" }}

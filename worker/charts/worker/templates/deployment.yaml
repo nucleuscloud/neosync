@@ -51,18 +51,18 @@ spec:
           image: '{{ .Values.image.repository | default "ghcr.io/nucleuscloud/neosync/worker" }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.port }}
+            - containerPort: {{ .Values.containerPort }}
               name: grpc
               protocol: TCP
           livenessProbe:
             grpc:
-              port: {{ .Values.port}}
+              port: {{ .Values.containerPort}}
             periodSeconds: 2
             failureThreshold: 2
             successThreshold: 1
           readinessProbe:
             grpc:
-              port: {{ .Values.port }}
+              port: {{ .Values.containerPort }}
             periodSeconds: 2
             failureThreshold: 2
             successThreshold: 1

@@ -8,8 +8,8 @@ metadata:
 spec:
   ports:
     - name: grpc # this is important!!! If it is anything other than "grpc", grpc routing will not work (at least when used with Istio) https://istiobyexample.dev/grpc/
-      port: 80
+      port: {{ .Values.servicePort }}
       protocol: TCP
-      targetPort: {{ .Values.port }}
+      targetPort: {{ .Values.containerPort }}
   selector:
     app: {{ template "neosync-worker.fullname" . }}

@@ -29,3 +29,5 @@ releases:
           url: temporal.temporal:7233
           namespace: default
           taskQueue: "sync-job"
+
+        containerPort: 8080

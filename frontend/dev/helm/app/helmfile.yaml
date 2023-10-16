@@ -15,7 +15,8 @@ releases:
 
         nucleusEnv: dev
 
-        port: 3000
+        servicePort: 80
+        containerPort: 3000
 
         neosyncApi:
           url: http://neosync-api
