@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export interface ConnectionMeta {
   name: string;
@@ -22,9 +22,14 @@ interface Props {
 export default function ConnectionCard(props: Props) {
   const { connection } = props;
   const router = useRouter();
+  const searchParams = useSearchParams();
   return (
     <Card
-      onClick={() => router.push(`/new/connection/${connection.urlSlug}`)}
+      onClick={() =>
+        router.push(
+          `/new/connection/${connection.urlSlug}?${searchParams.toString()}`
+        )
+      }
       className="cursor-pointer"
     >
       <CardHeader>
@@ -43,41 +48,3 @@ export default function ConnectionCard(props: Props) {
     </Card>
   );
 }
-
-// function ConnectionCard(props: ConnectionCardProps): ReactElement {
-//   const { connection } = props;
-//   return (
-//     <NextLink href={`/new/connection/${formatUrlParam(connection.urlSlug)}`}>
-//       <div
-//         borderWidth="1px"
-//         borderColor={borderColor}
-//         borderRadius="10"
-//         h="250px"
-//         key={connection.name}
-//         _hover={{ borderColor: 'purple.400' }}
-//       >
-//         <Stack
-//           direction="column"
-//           spacing={5}
-//           p="5"
-//           alignItems="flex-start"
-//           h="100%"
-//         >
-//           <Box>
-//             <ConnectionIcon name={connection.name ?? ''} />
-//           </Box>
-//           <Box>
-//             <Text textStyle="h3" align="left">
-//               {connection.name}
-//             </Text>
-//           </Box>
-//           <Container p="0" m="0" alignItems="flex-start">
-//             <Text align="left" textStyle="body">
-//               {connection.description}
-//             </Text>
-//           </Container>
-//         </Stack>
-//       </Box>
-//     </NextLink>
-//   );
-// }

@@ -33,6 +33,8 @@ import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../components/jobs/Form/DestinationOptionsForm';
 import { FLOW_FORM_SCHEMA, FlowFormValues } from '../schema';
 
+const NEW_CONNECTION_VALUE = 'new-connection';
+
 export default function Page({ searchParams }: PageProps): ReactElement {
   const account = useAccount();
   const router = useRouter();
@@ -113,6 +115,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       ) : (
                         <Select
                           onValueChange={(value: string) => {
+                            if (value === NEW_CONNECTION_VALUE) {
+                              router.push(
+                                `/new/connection?returnTo=${encodeURIComponent(
+                                  `/new/job/flow?sessionId=${sessionPrefix}`
+                                )}`
+                              );
+                              return;
+                            }
                             field.onChange(value);
                             form.setValue('sourceOptions', {
                               haltOnNewColumnAddition: false,
@@ -139,6 +149,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   {connection.name}
                                 </SelectItem>
                               ))}
+                            <SelectItem
+                              className="cursor-pointer"
+                              key="new-src-connection"
+                              value={NEW_CONNECTION_VALUE}
+                            >
+                              <div className="flex flex-row gap-1 items-center">
+                                <PlusIcon />
+                                <p>New Connection</p>
+                              </div>
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       )}
@@ -189,6 +209,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 ) : (
                                   <Select
                                     onValueChange={(value: string) => {
+                                      if (value === NEW_CONNECTION_VALUE) {
+                                        router.push(
+                                          `/new/connection?returnTo=${encodeURIComponent(
+                                            `/new/job/flow?sessionId=${sessionPrefix}`
+                                          )}`
+                                        );
+                                        return;
+                                      }
                                       form.setValue(
                                         `destinations.${index}.destinationOptions`,
                                         {
@@ -214,6 +242,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                           {connection.name}
                                         </SelectItem>
                                       ))}
+                                      <SelectItem
+                                        className="cursor-pointer"
+                                        key="new-dst-connection"
+                                        value={NEW_CONNECTION_VALUE}
+                                      >
+                                        <div className="flex flex-row gap-1 items-center">
+                                          <PlusIcon />
+                                          <p>New Connection</p>
+                                        </div>
+                                      </SelectItem>
                                     </SelectContent>
                                   </Select>
                                 )}
