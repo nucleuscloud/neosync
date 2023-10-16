@@ -10,12 +10,12 @@ const CONNECTIONS: ConnectionMeta[] = [
     description:
       'PostgreSQL is a free and open-source relational database manageent system emphasizing extensibility and SQL compliance.',
   },
-  {
-    urlSlug: 'mysql',
-    name: 'MySQL',
-    description:
-      'MySQL is an open-source relational database management system.',
-  },
+  // {
+  //   urlSlug: 'mysql',
+  //   name: 'MySQL',
+  //   description:
+  //     'MySQL is an open-source relational database management system.',
+  // },
   {
     urlSlug: 'aws-s3',
     name: 'AWS S3',

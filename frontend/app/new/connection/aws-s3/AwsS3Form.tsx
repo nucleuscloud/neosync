@@ -21,7 +21,7 @@ import {
   CreateConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { FaTerminal } from 'react-icons/fa';
 import * as Yup from 'yup';
@@ -60,6 +60,7 @@ export default function AwsS3Form() {
     },
   });
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   async function onSubmit(values: FormValues) {
     if (!account) {
@@ -71,7 +72,10 @@ export default function AwsS3Form() {
         values.connectionName,
         account.id
       );
-      if (connection.connection?.id) {
+      const returnTo = searchParams.get('returnTo');
+      if (returnTo) {
+        router.push(returnTo);
+      } else if (connection.connection?.id) {
         router.push(`/connections/${connection.connection.id}`);
       } else {
         router.push(`/connections`);
