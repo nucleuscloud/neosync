@@ -23,9 +23,6 @@ export default function FirstNameTransformerForm(props: Props): ReactElement {
   const vals = fc.getValues();
 
   //sheet re-renders on every open which resets state, so have to get the values from the mappings so user values persist across sheet openings
-  const [pd, setPd] = useState<boolean>(
-    vals.mappings[index ?? 0].transformer.config.preserveDomain
-  );
   const [pl, setPl] = useState<boolean>(
     vals.mappings[index ?? 0].transformer.config.preserveLength
   );
@@ -47,7 +44,8 @@ export default function FirstNameTransformerForm(props: Props): ReactElement {
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription>
-                Set the length of the output email to be the same as the input
+                Set the length of the output first name to be the same as the
+                input
               </FormDescription>
             </div>
             <FormControl>
@@ -55,28 +53,6 @@ export default function FirstNameTransformerForm(props: Props): ReactElement {
                 checked={pl}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
-                }}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <FormField
-        name={`mappings.${index}.transformer.config.preserveDomain`}
-        defaultValue={pd}
-        render={() => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Preserve Domain</FormLabel>
-              <FormDescription>
-                Set the length of the output email to be the same as the input
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={pd}
-                onCheckedChange={() => {
-                  pd ? setPd(false) : setPd(true);
                 }}
               />
             </FormControl>
