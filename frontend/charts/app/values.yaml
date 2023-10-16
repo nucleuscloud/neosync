@@ -48,3 +48,6 @@ auth0:
   issuer:
   scope:
   audience:
+
+ingress:
+  enabled: false
