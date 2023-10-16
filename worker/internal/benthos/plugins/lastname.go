@@ -36,7 +36,7 @@ func ProcessLastName(ln string, preserveLength bool) (string, error) {
 	var returnValue string
 
 	if preserveLength {
-
+		// loop until a ln is generated that is at least as long as the passed in ln
 		for {
 			returnValue = faker.LastName()
 			if len(returnValue) >= len(ln) {

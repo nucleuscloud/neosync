@@ -37,9 +37,13 @@ func ProcessFirstName(fn string, preserveLength bool) (string, error) {
 
 	if preserveLength {
 
-		returnValue = faker.FirstName()
+		for {
+			returnValue = faker.LastName()
+			if len(returnValue) >= len(fn) {
+				return returnValue[:len(fn)], nil
 
-		return returnValue[:len(fn)], nil
+			}
+		}
 
 	} else {
 
