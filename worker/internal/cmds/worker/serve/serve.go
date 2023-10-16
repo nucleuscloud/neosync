@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -72,6 +73,29 @@ func serve() error {
 		return err
 	}
 
+	httpServer := getHttpServer(loglogger)
+
+	go func() {
+		logger.Info(fmt.Sprintf("listening on %s", httpServer.Addr))
+		err := httpServer.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			logger.Error(err.Error())
+		}
+	}()
+
+	<-worker.InterruptCh()
+
+	w.Stop()
+
+	ctx, cancelHandler := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
+	defer cancelHandler()
+	if err := httpServer.Shutdown(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func getHttpServer(logger *log.Logger) *http.Server {
 	port := viper.GetInt32("PORT")
 	if port == 0 {
 		port = 8080
@@ -90,27 +114,11 @@ func serve() error {
 	api := http.NewServeMux()
 	mux.Handle("/", api)
 
-	addr := fmt.Sprintf("%s:%d", host, port)
 	httpServer := http.Server{
-		Addr:              addr,
+		Addr:              fmt.Sprintf("%s:%d", host, port),
 		Handler:           h2c.NewHandler(mux, &http2.Server{}),
-		ErrorLog:          loglogger,
+		ErrorLog:          logger,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
-
-	go func() {
-		logger.Info(fmt.Sprintf("listening on %s", addr))
-		err := httpServer.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
-			logger.Error(err.Error())
-		}
-	}()
-
-	<-worker.InterruptCh()
-
-	w.Stop()
-	if err := httpServer.Shutdown(context.Background()); err != nil {
-		return err
-	}
-	return nil
+	return &httpServer
 }
