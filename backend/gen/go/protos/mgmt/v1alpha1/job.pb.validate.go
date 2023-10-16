@@ -8740,6 +8740,47 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
+	case *TransformerConfig_FullNameConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetFullNameConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "FullNameConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "FullNameConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetFullNameConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "FullNameConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	case *TransformerConfig_PhoneNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
@@ -9409,6 +9450,107 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = LastNameValidationError{}
+
+// Validate checks the field values on FullName with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *FullName) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on FullName with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in FullNameMultiError, or nil
+// if none found.
+func (m *FullName) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *FullName) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for PreserveLength
+
+	if len(errors) > 0 {
+		return FullNameMultiError(errors)
+	}
+
+	return nil
+}
+
+// FullNameMultiError is an error wrapping multiple validation errors returned
+// by FullName.ValidateAll() if the designated constraints aren't met.
+type FullNameMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m FullNameMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m FullNameMultiError) AllErrors() []error { return m }
+
+// FullNameValidationError is the validation error returned by
+// FullName.Validate if the designated constraints aren't met.
+type FullNameValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FullNameValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FullNameValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FullNameValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FullNameValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FullNameValidationError) ErrorName() string { return "FullNameValidationError" }
+
+// Error satisfies the builtin error interface
+func (e FullNameValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFullName.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FullNameValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FullNameValidationError{}
 
 // Validate checks the field values on PhoneNumber with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

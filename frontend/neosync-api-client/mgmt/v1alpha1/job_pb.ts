@@ -2940,13 +2940,19 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "lastNameConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.PhoneNumber phone_number_config = 6;
+     * @generated from field: mgmt.v1alpha1.FullName full_name_config = 6;
+     */
+    value: FullName;
+    case: "fullNameConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.PhoneNumber phone_number_config = 7;
      */
     value: PhoneNumber;
     case: "phoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 7;
+     * @generated from field: mgmt.v1alpha1.Null null_config = 8;
      */
     value: Null;
     case: "nullConfig";
@@ -2965,8 +2971,9 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 3, name: "uuid_config", kind: "message", T: Uuid, oneof: "config" },
     { no: 4, name: "first_name_config", kind: "message", T: FirstName, oneof: "config" },
     { no: 5, name: "last_name_config", kind: "message", T: LastName, oneof: "config" },
-    { no: 6, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
-    { no: 7, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 6, name: "full_name_config", kind: "message", T: FullName, oneof: "config" },
+    { no: 7, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
+    { no: 8, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3168,6 +3175,43 @@ export class LastName extends Message<LastName> {
 
   static equals(a: LastName | PlainMessage<LastName> | undefined, b: LastName | PlainMessage<LastName> | undefined): boolean {
     return proto3.util.equals(LastName, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.FullName
+ */
+export class FullName extends Message<FullName> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
+  constructor(data?: PartialMessage<FullName>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.FullName";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FullName {
+    return new FullName().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FullName {
+    return new FullName().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FullName {
+    return new FullName().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FullName | PlainMessage<FullName> | undefined, b: FullName | PlainMessage<FullName> | undefined): boolean {
+    return proto3.util.equals(FullName, a, b);
   }
 }
 

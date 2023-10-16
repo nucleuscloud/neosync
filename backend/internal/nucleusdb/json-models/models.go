@@ -195,6 +195,7 @@ type TransformerConfigs struct {
 	EmailConfig *EmailConfigs
 	FirstName   *FirstNameConfig
 	LastName    *LastNameConfig
+	FullName    *FullNameConfig
 	Uuid        *UuidConfig
 	PhoneNumber *PhoneNumberConfig
 	Passthrough *PassthroughConfig
@@ -211,6 +212,10 @@ type FirstNameConfig struct {
 }
 
 type LastNameConfig struct {
+	PreserveLength bool
+}
+
+type FullNameConfig struct {
 	PreserveLength bool
 }
 type UuidConfig struct {
@@ -247,6 +252,13 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 		t.Config = &TransformerConfigs{
 			LastName: &LastNameConfig{
 				PreserveLength: tr.Config.GetLastNameConfig().PreserveLength,
+			},
+		}
+	case *mgmtv1alpha1.TransformerConfig_FullNameConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			FullName: &FullNameConfig{
+				PreserveLength: tr.Config.GetFullNameConfig().PreserveLength,
 			},
 		}
 	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig:
@@ -313,6 +325,17 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 				Config: &mgmtv1alpha1.TransformerConfig_LastNameConfig{
 					LastNameConfig: &mgmtv1alpha1.LastName{
 						PreserveLength: t.Config.LastName.PreserveLength,
+					},
+				},
+			},
+		}
+	case t.Config.FullName != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_FullNameConfig{
+					FullNameConfig: &mgmtv1alpha1.FullName{
+						PreserveLength: t.Config.FullName.PreserveLength,
 					},
 				},
 			},

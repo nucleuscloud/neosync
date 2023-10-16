@@ -342,8 +342,9 @@ message TransformerConfig {
     Uuid uuid_config = 3;
     FirstName first_name_config = 4;
     LastName last_name_config = 5;
-    PhoneNumber phone_number_config = 6;
-    Null null_config = 7;
+    FullName full_name_config = 6;
+    PhoneNumber phone_number_config = 7;
+    Null null_config = 8;
   }
 }
 
@@ -363,6 +364,10 @@ message FirstName {
 }
 
 message LastName {
+  bool preserve_length = 1;
+}
+
+message FullName {
   bool preserve_length = 1;
 }
 
