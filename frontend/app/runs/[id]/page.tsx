@@ -9,7 +9,7 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGetJobRun } from '@/libs/hooks/useGetJobRun';
+import { refreshWhenJobRunning, useGetJobRun } from '@/libs/hooks/useGetJobRun';
 import { formatDateTime } from '@/util/util';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
@@ -19,7 +19,9 @@ import JobRunActivityTable from './components/JobRunActivityTable';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { data, isLoading } = useGetJobRun(id);
+  const { data, isLoading } = useGetJobRun(id, {
+    refreshIntervalFn: refreshWhenJobRunning,
+  });
 
   const jobRun = data?.jobRun;
 

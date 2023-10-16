@@ -180,8 +180,10 @@ function renderSubComponent(row: Row<JobRunEvent>): React.ReactElement {
                   {isError && (
                     <TableCell>
                       <div className="flex space-x-2">
-                        <span className="max-w-[500px] truncate font-medium">
-                          <pre>{JSON.stringify(t.error, undefined, 2)}</pre>
+                        <span className="font-medium">
+                          <pre className="whitespace-pre-wrap">
+                            {JSON.stringify(t.error, undefined, 2)}
+                          </pre>
                         </span>
                       </div>
                     </TableCell>
