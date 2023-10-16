@@ -31,15 +31,19 @@ func init() {
 }
 
 // main plugin logic goes here
-func ProcessLastName(fn string, preserveLength bool) (string, error) {
+func ProcessLastName(ln string, preserveLength bool) (string, error) {
 
 	var returnValue string
 
 	if preserveLength {
 
-		returnValue = faker.LastName()
+		for {
+			returnValue = faker.LastName()
+			if len(returnValue) >= len(ln) {
+				return returnValue[:len(ln)], nil
 
-		return returnValue[:len(fn)], nil
+			}
+		}
 
 	} else {
 
