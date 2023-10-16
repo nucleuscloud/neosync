@@ -60,6 +60,7 @@ func ToJobRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmt
 	if inputSchedule == nil {
 		return nil
 	}
+
 	for _, run := range inputSchedule.Info.RecentActions {
 		recentRuns = append(recentRuns, &mgmtv1alpha1.JobRecentRun{
 			StartTime: timestamppb.New(run.ActualTime),

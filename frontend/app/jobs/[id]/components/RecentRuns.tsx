@@ -1,7 +1,7 @@
 'use client';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -43,48 +43,51 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
         </Alert>
       ) : (
-        <Table>
-          <TableCaption>
-            {nr && (
-              <div className="flex flex-row space-x-2 items-center justify-center">
-                <ClockIcon />
-                <div>Next run scheduled for: </div>
-                {formatDateTime(nextJob?.nextRuns?.nextRunTimes[0]?.toDate())}
-              </div>
-            )}
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Run Id</TableHead>
-              <TableHead>Start Time</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data?.recentRuns?.runs.map((r) => {
-              return (
-                <TableRow key={r.jobRunId}>
-                  <TableCell>
-                    <span className="font-medium">{r.jobRunId}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium">
-                      {formatDateTime(r.startTime?.toDate())}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      onClick={() => router.push(`/runs/${r.jobRunId}`)}
-                    >
-                      <ArrowRightIcon />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div>
+          <CardTitle className="py-6 px-2">Recent Job Runs</CardTitle>
+          <Table className="pt-5">
+            <TableCaption>
+              {nr && (
+                <div className="flex flex-row space-x-2 items-center justify-center">
+                  <ClockIcon />
+                  <div>Next run scheduled for: </div>
+                  {formatDateTime(nextJob?.nextRuns?.nextRunTimes[0]?.toDate())}
+                </div>
+              )}
+            </TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Run Id</TableHead>
+                <TableHead>Start Time</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data?.recentRuns?.runs.map((r) => {
+                return (
+                  <TableRow key={r.jobRunId}>
+                    <TableCell>
+                      <span className="font-medium">{r.jobRunId}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">
+                        {formatDateTime(r.startTime?.toDate())}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        onClick={() => router.push(`/runs/${r.jobRunId}`)}
+                      >
+                        <ArrowRightIcon />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </Card>
   );

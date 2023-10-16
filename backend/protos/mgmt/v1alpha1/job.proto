@@ -204,6 +204,7 @@ message Job {
 
 message JobRecentRun {
   google.protobuf.Timestamp start_time = 1;
+
   string job_run_id = 2;
 }
 message JobRecentRuns {
