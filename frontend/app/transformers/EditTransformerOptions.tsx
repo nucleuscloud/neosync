@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/sheet';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useRef, useState } from 'react';
 import EmailTransformerForm from './forms/EmailTransformerForm';
 import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
@@ -30,6 +30,27 @@ export default function EditTransformerOptions(props: Props): ReactElement {
   const { transformer, index } = props;
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+
+  // handles click outside of sheet so that it closes correctly
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (
+        sheetRef.current &&
+        !sheetRef.current.contains(event.target as Node)
+      ) {
+        setIsSheetOpen(false);
+      }
+    };
+
+    if (isSheetOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isSheetOpen]);
 
   // since component is in a controlled state, have to manually handle closing the sheet when the user presses escape
   useEffect(() => {
@@ -58,7 +79,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           <Pencil1Icon />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[800px]">
+      <SheetContent className="w-[800px]" ref={sheetRef}>
         <SheetHeader>
           <div className="flex flex-row justify-between w-full">
             <div className="flex flex-col space-y-2">
