@@ -27,15 +27,23 @@ import {
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData, TValue, TAutoRefreshInterval extends string> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  onRefreshClick(): void;
+  refreshInterval: TAutoRefreshInterval;
+  autoRefreshIntervalOptions: string[];
+  onAutoRefreshIntervalChange(interval: string): void;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
+  onRefreshClick,
+  refreshInterval,
+  autoRefreshIntervalOptions,
+  onAutoRefreshIntervalChange,
+}: DataTableProps<TData, TValue, TAutoRefreshInterval>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -68,7 +76,13 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar
+        table={table}
+        onRefreshClick={onRefreshClick}
+        refreshInterval={refreshInterval}
+        autoRefreshIntervalOptions={autoRefreshIntervalOptions}
+        onAutoRefreshIntervalChange={onAutoRefreshIntervalChange}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

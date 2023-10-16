@@ -1,31 +1,23 @@
-import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import { useGetJobRunEvents } from '@/libs/hooks/useGetJobRunEvents';
+import { JobRunEvent } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { ReactElement } from 'react';
 import { getColumns } from './JobRunActivityTable/columns';
 import { DataTable } from './JobRunActivityTable/data-table';
 
 interface JobRunActivityTableProps {
-  jobId: string;
+  jobRunEvents: JobRunEvent[];
 }
 
 export default function JobRunActivityTable(
   props: JobRunActivityTableProps
 ): ReactElement {
-  const { jobId } = props;
-  const { data, isLoading } = useGetJobRunEvents(jobId);
-
-  const events = data?.events || [];
-
-  if (isLoading) {
-    return <SkeletonTable />;
-  }
+  const { jobRunEvents } = props;
 
   const columns = getColumns({});
-  const isError = events.some((e) => e.tasks.some((t) => t.error));
+  const isError = jobRunEvents.some((e) => e.tasks.some((t) => t.error));
 
   return (
     <div>
-      <DataTable columns={columns} data={events} isError={isError} />
+      <DataTable columns={columns} data={jobRunEvents} isError={isError} />
     </div>
   );
 }
