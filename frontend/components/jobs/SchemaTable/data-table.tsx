@@ -233,14 +233,14 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-row">
-      <div className="basis-1/6 min-w-[170px] max-w-[400px] pt-[45px]">
+      <div className="basis-1/6 min-w-[170px] max-w-[400px] pt-[45px] h-[787px] overflow-y-auto">
         <Tree
           data={treeData}
           className="h-full border rounded-md"
           onSelectChange={handlefilter}
         />
       </div>
-      <div className="basis-5/4 space-y-2 pl-8">
+      <div className="basis-5/6 space-y-2 pl-8">
         <DataTableToolbar
           table={table}
           transformers={transformers}
@@ -258,7 +258,7 @@ export function DataTable<TData, TValue>({
                       <TableHead
                         key={header.id}
                         className={
-                          header.id == 'select' ? ' w-[40px]' : 'w-[197px]'
+                          header.id == 'select' ? 'w-[44px] pl-2 ' : 'w-[197px]'
                         }
                       >
                         <div className="flex flex-row">
@@ -288,7 +288,7 @@ export function DataTable<TData, TValue>({
               ))}
             </TableHeader>
           </Table>
-          <ScrollArea className="h-[700px]">
+          <ScrollArea className="max-h-[700px] overflow-y-auto">
             <Table>
               <TableBody>
                 {table.getRowModel().rows?.length ? (
