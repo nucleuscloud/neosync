@@ -43,7 +43,7 @@ func TestUUIDTransformer(t *testing.T) {
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the uuid transformer")
 
-	res, err := ex.Query("test") //input is ignored here
+	res, err := ex.Query("test") // input is ignored here
 	assert.NoError(t, err)
 
 	assert.Len(t, res.(string), 36, "UUIDs with hyphens must have 36 characters")
