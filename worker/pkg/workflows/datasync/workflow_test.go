@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
+	"go.uber.org/atomic"
 )
 
 func Test_Workflow_BenthosConfigsFails(t *testing.T) {
@@ -157,31 +158,31 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 				DependsOn: []string{"public.users", "public.accounts"},
 			},
 		}}, nil)
-	count := 0
+	counter := atomic.NewInt32(0)
 	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "users"}).
 		Return(func(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
-			count += 1
+			counter.Add(1)
 			return &SyncResponse{}, nil
 		})
 	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "accounts"}).
 		Return(func(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
-			count += 1
+			counter.Add(1)
 			return &SyncResponse{}, nil
 		})
 	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &SyncMetadata{Schema: "public", Table: "foo"}).
 		Return(func(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
-			assert.Equal(t, count, 2)
-			count += 1
+			assert.Equal(t, counter.Load(), int32(2))
+			counter.Add(1)
 			return &SyncResponse{}, nil
 		})
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
 	assert.True(t, env.IsWorkflowCompleted())
-	assert.Equal(t, count, 3)
+	assert.Equal(t, counter.Load(), int32(3))
 
 	err := env.GetWorkflowError()
 	assert.Nil(t, err)
