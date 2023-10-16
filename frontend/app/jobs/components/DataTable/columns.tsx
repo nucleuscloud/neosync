@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Job, JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
@@ -86,7 +87,18 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Job" />
       ),
-      cell: ({ row }) => <div>{row.getValue('id')}</div>,
+      cell: ({ row }) => {
+        return (
+          <div>
+            <NextLink
+              className="hover:underline"
+              href={`/jobs/${row.getValue('id')}`}
+            >
+              <span>{row.getValue('id')}</span>
+            </NextLink>
+          </div>
+        );
+      },
       enableSorting: false,
       enableHiding: false,
     },
