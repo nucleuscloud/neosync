@@ -37,7 +37,7 @@ func TestProcessFirstName(t *testing.T) {
 func TestFirstNameTransformer(t *testing.T) {
 	mapping := `root = this.firstnametransformer(true)`
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the uuid transformer")
+	assert.NoError(t, err, "failed to parse the first name transformer")
 
 	testVal := "evis"
 
