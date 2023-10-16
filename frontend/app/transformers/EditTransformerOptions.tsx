@@ -13,6 +13,7 @@ import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import EmailTransformerForm from './forms/EmailTransformerForm';
 import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
+import LastNameTransformerForm from './forms/LastnameTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
 
 interface Props {
@@ -104,6 +105,13 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
+    case 'last_name':
+      return (
+        <LastNameTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -130,6 +138,12 @@ function handleTransformerMetadata(
       first_name: {
         name: 'First Name',
         description: 'Anonymizes or generates a new first name.',
+      },
+    },
+    {
+      last_name: {
+        name: 'Last Name',
+        description: 'Anonymizes or generates a new last name.',
       },
     },
     { uuid: { name: 'UUID', description: 'Generates a new UUIDv4 id.' } },

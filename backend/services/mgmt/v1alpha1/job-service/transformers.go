@@ -14,6 +14,7 @@ const (
 	Passthrough Transformation = "passthrough"
 	Uuid        Transformation = "uuid"
 	FirstName   Transformation = "first_name"
+	LastName    Transformation = "last_name"
 	PhoneNumber Transformation = "phone_number"
 	Email       Transformation = "email"
 	Null        Transformation = "null"
@@ -37,6 +38,13 @@ func (s *Service) GetTransformers(
 			{Value: string(FirstName), Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_FirstNameConfig{
 					FirstNameConfig: &mgmtv1alpha1.FirstName{
+						PreserveLength: false,
+					},
+				},
+			}},
+			{Value: string(LastName), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_LastNameConfig{
+					LastNameConfig: &mgmtv1alpha1.LastName{
 						PreserveLength: false,
 					},
 				},
