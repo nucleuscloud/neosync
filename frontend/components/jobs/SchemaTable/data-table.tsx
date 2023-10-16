@@ -233,7 +233,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-row">
-      <div className="basis-1/6 min-w-[170px] max-w-[400px] pt-[45px]">
+      <div className="basis-1/6 min-w-[170px] max-w-[400px] pt-[45px] h-[787px] overflow-y-auto">
         <Tree
           data={treeData}
           className="h-full border rounded-md"
@@ -288,7 +288,7 @@ export function DataTable<TData, TValue>({
               ))}
             </TableHeader>
           </Table>
-          <ScrollArea className="h-[700px]">
+          <ScrollArea className="max-h-[700px] overflow-y-auto">
             <Table>
               <TableBody>
                 {table.getRowModel().rows?.length ? (
