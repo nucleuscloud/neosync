@@ -206,6 +206,7 @@ type EmailConfigs struct {
 }
 
 type FirstNameConfig struct {
+	PreserveLength bool
 }
 type UuidConfig struct {
 	IncludeHyphen bool
@@ -232,7 +233,9 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 	case *mgmtv1alpha1.TransformerConfig_FirstNameConfig:
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
-			FirstName: &FirstNameConfig{},
+			FirstName: &FirstNameConfig{
+				PreserveLength: tr.Config.GetFirstNameConfig().PreserveLength,
+			},
 		}
 	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig:
 		t.Value = tr.Value
@@ -285,7 +288,9 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 			Value: t.Value,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_FirstNameConfig{
-					FirstNameConfig: &mgmtv1alpha1.FirstName{},
+					FirstNameConfig: &mgmtv1alpha1.FirstName{
+						PreserveLength: t.Config.FirstName.PreserveLength,
+					},
 				},
 			},
 		}

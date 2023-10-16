@@ -34,7 +34,13 @@ func (s *Service) GetTransformers(
 				},
 			},
 			},
-			{Value: string(FirstName), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(FirstName), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_FirstNameConfig{
+					FirstNameConfig: &mgmtv1alpha1.FirstName{
+						PreserveLength: false,
+					},
+				},
+			}},
 			{Value: string(PhoneNumber), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{

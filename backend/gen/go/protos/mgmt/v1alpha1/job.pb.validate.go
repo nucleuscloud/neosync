@@ -9189,6 +9189,8 @@ func (m *FirstName) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for PreserveLength
+
 	if len(errors) > 0 {
 		return FirstNameMultiError(errors)
 	}

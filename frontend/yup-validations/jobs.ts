@@ -124,6 +124,15 @@ interface UuidTransformerConfigs {
   includeHyphen: boolean;
 }
 
+interface FirstNameTransformer {
+  value: string;
+  config: FirstNameTransformerConfigs;
+}
+
+interface FirstNameTransformerConfigs {
+  preserveLength: boolean;
+}
+
 export function toTransformerConfigOptions(t: {
   value: string;
   config: {};
@@ -174,12 +183,15 @@ export function toTransformerConfigOptions(t: {
       });
     }
     case 'first_name': {
+      const ft = t as FirstNameTransformer;
       return new Transformer({
         value: t.value,
         config: new TransformerConfig({
           config: {
             case: 'firstNameConfig',
-            value: new FirstName({}),
+            value: new FirstName({
+              preserveLength: ft.config.preserveLength,
+            }),
           },
         }),
       });
