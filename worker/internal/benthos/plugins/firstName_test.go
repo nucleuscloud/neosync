@@ -3,10 +3,11 @@ package neosync_plugins
 import (
 	"testing"
 
+	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFirstNameTransformer(t *testing.T) {
+func TestProcessFirstName(t *testing.T) {
 
 	tests := []struct {
 		fn             string
@@ -31,4 +32,17 @@ func TestFirstNameTransformer(t *testing.T) {
 
 	}
 
+}
+
+func TestFirstNameTransformer(t *testing.T) {
+	mapping := `root = this.firstnametransformer(true)`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the uuid transformer")
+
+	testVal := "evis"
+
+	res, err := ex.Query(testVal)
+	assert.NoError(t, err)
+
+	assert.Len(t, res.(string), len(testVal), "Generated first name must be as long as input first name")
 }

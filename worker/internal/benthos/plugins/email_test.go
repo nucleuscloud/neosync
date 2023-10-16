@@ -4,10 +4,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestEmailTransformer(t *testing.T) {
+func TestProcessEmail(t *testing.T) {
 
 	tests := []struct {
 		email               string
@@ -48,4 +50,18 @@ func TestEmailTransformer(t *testing.T) {
 
 	}
 
+}
+
+func TestEmailTransformer(t *testing.T) {
+	mapping := `root = this.emailtransformer(true, true)`
+	ex, err := bloblang.Parse(mapping)
+	require.NoError(t, err, "failed to parse the uuid transformer")
+
+	testVal := "evis@gmail.com"
+
+	res, err := ex.Query(testVal)
+	assert.NoError(t, err)
+
+	assert.Len(t, res.(string), len(testVal), "Generated email must be the same length as the input email")
+	assert.Equal(t, strings.Split(res.(string), "@")[1], "gmail.com")
 }
