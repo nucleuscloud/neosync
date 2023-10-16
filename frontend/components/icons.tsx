@@ -1,3 +1,4 @@
+'use client';
 import Image from 'next/image';
 
 // type IconProps = React.HTMLAttributes<SVGElement>;

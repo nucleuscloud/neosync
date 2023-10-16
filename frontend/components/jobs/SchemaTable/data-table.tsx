@@ -240,7 +240,7 @@ export function DataTable<TData, TValue>({
           onSelectChange={handlefilter}
         />
       </div>
-      <div className="basis-5/4 space-y-2 pl-8">
+      <div className="basis-5/6 space-y-2 pl-8">
         <DataTableToolbar
           table={table}
           transformers={transformers}
@@ -258,7 +258,7 @@ export function DataTable<TData, TValue>({
                       <TableHead
                         key={header.id}
                         className={
-                          header.id == 'select' ? ' w-[40px]' : 'w-[197px]'
+                          header.id == 'select' ? 'w-[44px] pl-2 ' : 'w-[197px]'
                         }
                       >
                         <div className="flex flex-row">
