@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "neosync-worker.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "neosync-worker.fullname" . }}
+spec:
+  ports:
+    - name: grpc # this is important!!! If it is anything other than "grpc", grpc routing will not work (at least when used with Istio) https://istiobyexample.dev/grpc/
+      port: 80
+      protocol: TCP
+      targetPort: {{ .Values.port }}
+  selector:
+    app: {{ template "neosync-worker.fullname" . }}
