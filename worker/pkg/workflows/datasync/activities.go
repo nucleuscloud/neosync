@@ -798,9 +798,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "title_female":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "first_name":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "first_name_male":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
+		pl := col.Transformer.Config.GetFirstNameConfig().PreserveLength
+		return fmt.Sprintf("this.%s.firstnametransformer(%t)", col.Column, pl), nil
 	case "first_name_female":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "last_name":

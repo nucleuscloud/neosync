@@ -3094,6 +3094,11 @@ export class Uuid extends Message<Uuid> {
  * @generated from message mgmt.v1alpha1.FirstName
  */
 export class FirstName extends Message<FirstName> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
   constructor(data?: PartialMessage<FirstName>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3102,6 +3107,7 @@ export class FirstName extends Message<FirstName> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.FirstName";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FirstName {

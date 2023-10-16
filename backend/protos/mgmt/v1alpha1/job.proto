@@ -357,7 +357,9 @@ message Uuid {
   bool include_hyphen = 1;
 }
 
-message FirstName {}
+message FirstName {
+  bool preserve_length = 1;
+}
 
 message PhoneNumber {}
 message Null {}

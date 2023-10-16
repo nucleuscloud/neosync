@@ -12,6 +12,7 @@ import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 import EmailTransformerForm from './forms/EmailTransformerForm';
+import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
 
 interface Props {
@@ -95,6 +96,13 @@ function handleTransformerForm(
     case 'uuid':
       return (
         <UuidTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
+      );
+    case 'first_name':
+      return (
+        <FirstNameTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
       );
     default:
       <div>No transformer component found</div>;
