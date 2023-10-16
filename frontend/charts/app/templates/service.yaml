@@ -8,8 +8,8 @@ metadata:
 spec:
   ports:
     - name: http
-      port: 80
+      port: {{ .Values.servicePort }}
       protocol: TCP
-      targetPort: {{ .Values.port }}
+      targetPort: {{ .Values.containerPort }}
   selector:
     app: {{ template "neosync-app.fullname" . }}
