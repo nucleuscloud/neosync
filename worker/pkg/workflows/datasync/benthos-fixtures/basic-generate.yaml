@@ -1,0 +1,15 @@
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "id": uuid_v4(), "name": "nick" }'
+pipeline:
+  threads: 1
+  processors:
+    - mutation: |
+        root.id = this.id + "_test"
+        root.name = fake("first_name")
+output:
+  label: ""
+  stdout:
+    codec: lines
