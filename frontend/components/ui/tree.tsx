@@ -209,7 +209,7 @@ const Leaf = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        'flex items-center py-2 px-2 cursor-pointer \
+        'flex items-center py-2 cursor-pointer \
         hover:before:opacity-100 before:absolute before:left-0 before:right-1 before:w-full before:opacity-0 before:bg-muted/80 before:h-[1.75rem] before:-z-10',
         className
       )}
