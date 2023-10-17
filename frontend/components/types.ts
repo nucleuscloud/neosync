@@ -14,6 +14,13 @@ export interface PageProps {
   searchParams?: Record<string, string | string[]>;
 }
 
-export interface LayoutProps extends PageProps {
+/**
+ * Props that are available on top-level next.js layout.js components
+ * ```ts
+ * export default function Layout(props: LayoutProps): ReactElement {}
+ * ```
+ */
+export interface LayoutProps {
+  params?: Record<string, string>;
   children: ReactNode;
 }
