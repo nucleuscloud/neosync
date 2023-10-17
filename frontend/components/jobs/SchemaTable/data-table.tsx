@@ -215,10 +215,10 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-row">
-      <div className="basis-1/6 min-w-[170px] max-w-[400px] pt-[45px] max-h-[787px] overflow-y-auto">
+      <div className="basis-1/6 min-w-[170px]  pt-[45px] max-h-[300px]">
         <Tree
           data={treeData}
-          className="h-full border rounded-md"
+          className="h-full border"
           onSelectChange={handlefilter}
         />
       </div>
