@@ -1,5 +1,11 @@
 'use client';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import { ChevronRightIcon } from '@radix-ui/react-icons';
@@ -103,17 +109,15 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
     const { ref: refRoot, width, height } = useResizeObserver();
 
     return (
-      <div ref={refRoot} className={cn('overflow-hidden ', className)}>
+      <div ref={refRoot} className={cn('p-2', className)}>
         <ScrollArea style={{ width, height }}>
-          <div className="relative p-2">
-            <TreeItem
-              data={treeItems}
-              ref={ref}
-              handleSelectChange={handleSelectChange}
-              isIndeterminate={isIndeterminate}
-              {...props}
-            />
-          </div>
+          <TreeItem
+            data={treeItems}
+            ref={ref}
+            handleSelectChange={handleSelectChange}
+            isIndeterminate={isIndeterminate}
+            {...props}
+          />
         </ScrollArea>
       </div>
     );
@@ -151,15 +155,15 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                             indeterminate={isIndeterminate(item)}
                           />
                           <label
-                            htmlFor="terms"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            htmlFor={item.id}
+                            className="text-sm truncate font-medium"
                           >
                             {item.name}
                           </label>
                         </div>
                         <AccordionTrigger
                           className={cn(
-                            '  px-2 hover:before:opacity-100 before:absolute before:left-0 before:w-full before:opacity-0 before:bg-muted/80 before:h-[1.75rem] before:-z-10'
+                            'px-2 hover:before:opacity-100 before:absolute before:left-0 before:w-full before:opacity-0 before:bg-muted/80 before:h-[1.75rem] before:-z-10'
                           )}
                         ></AccordionTrigger>
                       </div>
@@ -209,25 +213,31 @@ const Leaf = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        'flex items-center py-2 cursor-pointer \
+        'flex items-center py-2 \
         hover:before:opacity-100 before:absolute before:left-0 before:right-1 before:w-full before:opacity-0 before:bg-muted/80 before:h-[1.75rem] before:-z-10',
         className
       )}
       {...props}
     >
-      <div className="flex items-center space-x-2">
+      <div className={`flex items-center space-x-2`}>
         <Checkbox
           id={item.id}
           onClick={() => handleSelectChange(item)}
           checked={item.isSelected}
           indeterminate={indeterminate}
         />
-        <label
-          htmlFor="terms"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          {item.name}
-        </label>
+        <div className="flex ">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <label htmlFor={item.id} className={`text-sm font-medium`}>
+                  {item.name}
+                </label>
+              </TooltipTrigger>
+              <TooltipContent>{item.name}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     </div>
   );

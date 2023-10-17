@@ -21,6 +21,7 @@ const config: KnipConfig = {
     '@radix-ui/react-slot',
     '@radix-ui/react-switch',
     '@radix-ui/react-toast',
+    '@radix-ui/react-tooltip',
     'class-variance-authority',
     'cmdk',
     'autoprefixer',
