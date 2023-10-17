@@ -68,13 +68,23 @@ export default function EditTransformerOptions(props: Props): ReactElement {
     };
   }, []);
 
+  const disabledSheetValues = ['passthrough', 'null']; // the sheet button will be disabled for any transformer with these values
+
+  const handleDisableSheet = () => {
+    if (!transformer) {
+      return true;
+    }
+
+    return disabledSheetValues.includes(transformer.value);
+  };
+
   return (
     <Sheet open={isSheetOpen} onOpenChange={() => setIsSheetOpen(true)}>
       <SheetTrigger asChild>
         <Button
           variant="outline"
           size="sm"
-          disabled={!transformer || transformer.value == 'passthrough'}
+          disabled={handleDisableSheet()}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >
