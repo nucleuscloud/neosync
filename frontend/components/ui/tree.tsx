@@ -109,9 +109,8 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
     const { ref: refRoot, width, height } = useResizeObserver();
 
     return (
-      <div ref={refRoot} className={className}>
+      <div ref={refRoot} className={cn('p-2', className)}>
         <ScrollArea style={{ width, height }}>
-          {/* <div className="relative p-2"> */}
           <TreeItem
             data={treeItems}
             ref={ref}
@@ -119,7 +118,6 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
             isIndeterminate={isIndeterminate}
             {...props}
           />
-          {/* </div> */}
         </ScrollArea>
       </div>
     );

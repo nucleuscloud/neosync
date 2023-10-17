@@ -194,9 +194,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
 
           <SchemaTable data={form.getValues().mappings || []} />
           <div className="flex flex-row items-center justify-end w-full mt-4">
-            <Button disabled={!form.formState.isDirty} type="submit">
-              Save
-            </Button>
+            <Button type="submit">Save</Button>
           </div>
         </div>
       </form>
@@ -270,12 +268,16 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
     } else if (!schemaMap[c.schema][c.table]) {
       schemaMap[c.schema][c.table] = {
         [c.column]: {
-          transformer: c.transformer ?? new Transformer(),
+          transformer:
+            c.transformer ??
+            new Transformer({
+              value: 'passthrough',
+            }),
         },
       };
     } else {
       schemaMap[c.schema][c.table][c.column] = {
-        transformer: c.transformer ?? new Transformer(),
+        transformer: c.transformer ?? new Transformer({ value: 'passthrough' }),
       };
     }
   });
@@ -287,7 +289,8 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       table: c.table,
       column: c.column,
       dataType: c.dataType,
-      transformer: colMapping?.transformer ?? new Transformer(),
+      transformer:
+        colMapping?.transformer ?? new Transformer({ value: 'passthrough' }),
     };
   });
 
