@@ -26,7 +26,7 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
@@ -77,6 +77,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
+  const [sourceConn, setSourceConn] = useState<string>(
+    form.getValues().sourceId
+  );
+
+  const [destConn, setDestConn] = useState<string>(form.getValues().sourceId);
+
+  const errors = form.formState.errors;
+
   return (
     <OverviewContainer
       Header={
@@ -122,6 +130,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 )}`
                               );
                               return;
+                            }
+                            if (value == destConn) {
+                              form.setError(`sourceId`, {
+                                type: 'string',
+                                message:
+                                  'Source must be different from destination',
+                              });
+                            } else if (value !== sourceConn) {
+                              form.clearErrors();
+                            }
+                            setSourceConn(value);
+                            if (form.formState.errors) {
+                              form.clearErrors;
                             }
                             field.onChange(value);
                             form.setValue('sourceOptions', {
@@ -216,6 +237,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                           )}`
                                         );
                                         return;
+                                      }
+                                      setDestConn(value);
+                                      if (value == sourceConn) {
+                                        form.setError(
+                                          `destinations.${index}.connectionId`,
+                                          {
+                                            type: 'string',
+                                            message:
+                                              'Destination must be different from source',
+                                          }
+                                        );
+                                      } else if (value !== sourceConn) {
+                                        form.clearErrors();
                                       }
                                       form.setValue(
                                         `destinations.${index}.destinationOptions`,
@@ -312,7 +346,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             <Button type="button" onClick={() => router.back()}>
               Back
             </Button>
-            <Button type="submit">Next</Button>
+            <Button
+              type="submit"
+              disabled={
+                (errors?.destinations?.length ?? 0) > 0 ||
+                (errors.sourceId?.message?.length ?? 0) > 0
+              }
+            >
+              Next
+            </Button>
           </div>
         </form>
       </Form>
