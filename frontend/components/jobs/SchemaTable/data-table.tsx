@@ -5,7 +5,6 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
-  Table as TableType,
   VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -115,6 +114,9 @@ export function DataTable<TData, TValue>({
     }
 
     walkTreeItems(items);
+    if (schemaFilters.length == 0 && tableFilters.length == 0) {
+      return setColumnFilters([]);
+    }
     setColumnFilters([
       { id: 'schema', value: schemaFilters },
       { id: 'table', value: tableFilters },
@@ -125,20 +127,45 @@ export function DataTable<TData, TValue>({
     const treedata = Object.keys(schemaMap).map((schema) => {
       const children = Object.keys(schemaMap[schema]).map((table) => {
         return {
-          id: table,
+          id: `${schema}.${table}`,
           name: table,
-          isSelected: true,
+          isSelected: false,
         };
       });
 
       return {
         id: schema,
         name: schema,
-        isSelected: true,
+        isSelected: false,
         children,
       };
     });
     setTreeData(treedata);
+  }
+
+  // if schema in filter and no children selected then all children are selected
+  // if schema in filter and some children selected then only some children are selected
+
+  function isTableSelected(
+    table: string,
+    schema: string,
+    tableFilters: string[],
+    schemaFilters: string[],
+    possibeTableFilters: string[],
+    possibleSchemaFilters: string[]
+  ): boolean {
+    if (tableFilters.length == 0 && schemaFilters.length == 0) {
+      return false;
+    }
+    if (
+      !tableFilters.some((f) => f == table) ||
+      !possibeTableFilters.includes(table) ||
+      !possibleSchemaFilters.includes(schema)
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   function updateTree(): void {
@@ -156,33 +183,47 @@ export function DataTable<TData, TValue>({
       ? Array.from(uniqueSchemaFilters.keys())
       : [];
 
-    const schemaFilters = columnFilters
+    const schemaFilters: string[] = columnFilters
       .filter((f) => f.id == 'schema')
-      .map((f) => f.id);
-    const tableFilters = columnFilters
+      .map((f) => f.value as string);
+    const tableFilters: string[] = columnFilters
       .filter((f) => f.id == 'table')
-      .map((f) => f.id);
+      .map((f) => f.value as string);
 
     const treedata = Object.keys(schemaMap).map((schema) => {
       const parentIsSelected =
         columnFilters.length == 0
-          ? true
+          ? false
           : schemaFilters.some((f) => f == schema);
 
+      console.log('schema', schema, 'isSelected', parentIsSelected);
+      const someTablesSelected = Object.keys(schemaMap[schema]).some((t) =>
+        isTableSelected(
+          t,
+          schema,
+          tableFilters,
+          schemaFilters,
+          possibleTableFilters,
+          possibleSchemaFilters
+        )
+      );
       const children = Object.keys(schemaMap[schema]).map((table) => {
-        const childIsSelected =
-          columnFilters.length == 0
-            ? true
-            : tableFilters.some(
-                (f) =>
-                  f == 'table' &&
-                  possibleTableFilters.includes(table) &&
-                  possibleSchemaFilters.includes(schema)
-              );
+        const childIsSelected = isTableSelected(
+          table,
+          schema,
+          tableFilters,
+          schemaFilters,
+          possibleTableFilters,
+          possibleSchemaFilters
+        );
+
+        console.log('table', table, 'isSelected', childIsSelected);
+
         return {
-          id: table,
+          id: `${schema}-${table}`,
           name: table,
-          isSelected: parentIsSelected || childIsSelected,
+          isSelected:
+            (!someTablesSelected && parentIsSelected) || childIsSelected,
         };
       });
 
@@ -210,21 +251,7 @@ export function DataTable<TData, TValue>({
   }, [filtersUpdated]);
 
   React.useEffect(() => {
-    const initialTreeData = Object.keys(schemaMap).map((schema) => {
-      return {
-        id: schema,
-        name: schema,
-        isSelected: true,
-        children: Object.keys(schemaMap[schema]).map((table) => {
-          return {
-            id: table,
-            name: table,
-            isSelected: true,
-          };
-        }),
-      };
-    });
-    setTreeData(initialTreeData);
+    restoreTree();
   }, [schemaMap]);
 
   if (!data) {
@@ -272,7 +299,6 @@ export function DataTable<TData, TValue>({
                             <div>
                               <FilterSelect
                                 column={header.column}
-                                table={table}
                                 transformers={transformers || []}
                                 onSelect={() => {
                                   setFiltersUpdated(true);
@@ -341,25 +367,18 @@ export function DataTable<TData, TValue>({
 
 interface FilterSelectProps<TData, TValue> {
   column: Column<TData, TValue>;
-  table: TableType<TData>;
   transformers: Transformer[];
   onSelect: () => void;
 }
 
 function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
-  const { column, table, transformers, onSelect } = props;
+  const { column, transformers, onSelect } = props;
   const [open, setOpen] = React.useState(false);
-  const firstValue = table
-    .getPreFilteredRowModel()
-    .flatRows[0]?.getValue(column.id || '');
 
   const columnFilterValue = (column.getFilterValue() as string[]) || [];
 
   const sortedUniqueValues = React.useMemo(
-    () =>
-      typeof firstValue === 'number'
-        ? []
-        : Array.from(column.getFacetedUniqueValues().keys()).sort(),
+    () => Array.from(column.getFacetedUniqueValues().keys()).sort(),
     [column.getFacetedUniqueValues()]
   );
 
