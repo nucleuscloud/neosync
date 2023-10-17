@@ -6,6 +6,7 @@ import { Table } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+import Spinner from '@/components/Spinner';
 import {
   Select,
   SelectContent,
@@ -23,6 +24,7 @@ interface DataTableToolbarProps<TData, TAutoRefreshInterval extends string> {
   refreshInterval: TAutoRefreshInterval;
   autoRefreshIntervalOptions: TAutoRefreshInterval[];
   onAutoRefreshIntervalChange(interval: TAutoRefreshInterval): void;
+  isRefreshing: boolean;
 }
 
 export function DataTableToolbar<TData, TAutoRefreshInterval extends string>({
@@ -31,6 +33,7 @@ export function DataTableToolbar<TData, TAutoRefreshInterval extends string>({
   refreshInterval,
   autoRefreshIntervalOptions,
   onAutoRefreshIntervalChange,
+  isRefreshing,
 }: DataTableToolbarProps<TData, TAutoRefreshInterval>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -56,6 +59,7 @@ export function DataTableToolbar<TData, TAutoRefreshInterval extends string>({
           </Button>
         )}
       </div>
+      {isRefreshing && <Spinner />}
       <Select
         onValueChange={onAutoRefreshIntervalChange}
         defaultValue={refreshInterval}

@@ -2,9 +2,9 @@
 import { PageProps } from '@/components/types';
 
 import ButtonText from '@/components/ButtonText';
+import Spinner from '@/components/Spinner';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import SkeletonProgress from '@/components/skeleton/SkeletonProgress';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -28,12 +28,13 @@ export default function Page({ params }: PageProps): ReactElement {
     refreshIntervalFn: refreshWhenJobRunning,
   });
 
-  const { data: eventData, isLoading: eventsIsLoading } = useGetJobRunEvents(
-    id,
-    {
-      refreshIntervalFn: getRefreshEventsWhenJobRunningFn(data?.jobRun?.status),
-    }
-  );
+  const {
+    data: eventData,
+    isLoading: eventsIsLoading,
+    isValidating,
+  } = useGetJobRunEvents(id, {
+    refreshIntervalFn: getRefreshEventsWhenJobRunningFn(data?.jobRun?.status),
+  });
 
   const jobRun = data?.jobRun;
 
@@ -59,7 +60,7 @@ export default function Page({ params }: PageProps): ReactElement {
             <Skeleton className="w-full h-24 rounded-lg" />
           </div>
 
-          <SkeletonProgress />
+          <SkeletonTable />
         </div>
       ) : (
         <div className="space-y-12">
@@ -102,7 +103,10 @@ export default function Page({ params }: PageProps): ReactElement {
             })}
           </div>
           <div className="space-y-4">
-            <h1 className="text-2xl font-bold tracking-tight">Activity</h1>
+            <div className="flex flex-row items-center space-x-2">
+              <h1 className="text-2xl font-bold tracking-tight">Activity</h1>
+              {isValidating && <Spinner />}
+            </div>
             {eventsIsLoading ? (
               <SkeletonTable />
             ) : (

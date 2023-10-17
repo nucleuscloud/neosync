@@ -25,10 +25,13 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
   const account = useAccount();
   const [refreshInterval, setAutoRefreshInterval] =
     useState<JobRunsAutoRefreshInterval>('1m');
-  const { isLoading, data, mutate } = useGetJobRuns(account?.id ?? '', {
-    refreshIntervalFn: () => onJobRunsAutoRefreshInterval(refreshInterval),
-    isPaused: () => onJobRunsPaused(refreshInterval),
-  });
+  const { isLoading, data, mutate, isValidating } = useGetJobRuns(
+    account?.id ?? '',
+    {
+      refreshIntervalFn: () => onJobRunsAutoRefreshInterval(refreshInterval),
+      isPaused: () => onJobRunsPaused(refreshInterval),
+    }
+  );
 
   if (isLoading) {
     return <SkeletonTable />;
@@ -43,7 +46,6 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
   });
 
   function refreshClick(): void {
-    console.log('HERE');
     mutate();
   }
 
@@ -58,6 +60,7 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
         }
         autoRefreshIntervalOptions={INTERVAL_SELECT_OPTIONS}
         onRefreshClick={refreshClick}
+        isRefreshing={isValidating}
       />
     </div>
   );

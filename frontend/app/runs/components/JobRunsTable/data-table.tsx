@@ -34,6 +34,7 @@ interface DataTableProps<TData, TValue, TAutoRefreshInterval extends string> {
   refreshInterval: TAutoRefreshInterval;
   autoRefreshIntervalOptions: string[];
   onAutoRefreshIntervalChange(interval: string): void;
+  isRefreshing: boolean;
 }
 
 export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
@@ -43,6 +44,7 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
   refreshInterval,
   autoRefreshIntervalOptions,
   onAutoRefreshIntervalChange,
+  isRefreshing,
 }: DataTableProps<TData, TValue, TAutoRefreshInterval>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -82,6 +84,7 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
         refreshInterval={refreshInterval}
         autoRefreshIntervalOptions={autoRefreshIntervalOptions}
         onAutoRefreshIntervalChange={onAutoRefreshIntervalChange}
+        isRefreshing={isRefreshing}
       />
       <div className="rounded-md border">
         <Table>

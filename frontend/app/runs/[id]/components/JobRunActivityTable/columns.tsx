@@ -34,7 +34,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
     {
       accessorKey: 'startTime',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Time" />
+        <DataTableColumnHeader column={column} title="Start Time" />
       ),
       cell: ({ row }) => {
         const startTime = row.getValue<Timestamp>('startTime');
