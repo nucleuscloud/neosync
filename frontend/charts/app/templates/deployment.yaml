@@ -51,7 +51,7 @@ spec:
           image: '{{ .Values.image.repository | default "ghcr.io/nucleuscloud/neosync-app" }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.port }}
+            - containerPort: {{ .Values.containerPort }}
               name: http
               protocol: TCP
           env:

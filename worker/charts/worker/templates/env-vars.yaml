@@ -9,7 +9,9 @@ stringData:
     HOST: {{ .Values.host | quote}}
     {{- end }}
 
-    PORT: {{ .Values.port | quote }}
+    {{- if .Values.containerPort }}
+    PORT: {{ .Values.containerPort | quote }}
+    {{- end }}
 
     {{- if ne .Values.nucleusEnv "dev" }}
     OTEL_EXPORTER_OTLP_PORT: "4317" # sends to gRPC receiver on port 4317

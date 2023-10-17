@@ -32,7 +32,8 @@ datadog:
 
 nucleusEnv: dev
 
-port: 8080
+servicePort: 80
+containerPort: 8080
 
 auth:
   baseUrl: https://auth.nucleuscloud.dev
@@ -42,3 +43,6 @@ temporal:
   url: temporal.temporal:7233
   namespace: default
   taskQueue: 'sync-job'
+
+ingress:
+  enabled: false

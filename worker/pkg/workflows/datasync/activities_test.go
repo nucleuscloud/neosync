@@ -2,11 +2,14 @@ package datasync
 
 import (
 	"math"
+	"strings"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/testsuite"
 )
 
 func TestAreMappingsSubsetFoSchemas(t *testing.T) {
@@ -115,5 +118,61 @@ func TestComputeMaxPgBatchCount(t *testing.T) {
 	assert.Equal(t, computeMaxPgBatchCount(math.MaxInt), 1, "anything over pgmax should clamp to 1")
 	assert.Equal(t, computeMaxPgBatchCount(1), 65535)
 	assert.Equal(t, computeMaxPgBatchCount(0), 65535)
+}
 
+func Test_Sync_Run_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	activities := &Activities{}
+	env.RegisterActivity(activities)
+
+	val, err := env.ExecuteActivity(activities.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+}
+
+func Test_Sync_Fake_Mutation_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	activities := &Activities{}
+	env.RegisterActivity(activities)
+
+	val, err := env.ExecuteActivity(activities.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "name": "nick" }'
+pipeline:
+  threads: 1
+  processors:
+    - mutation: |
+        root.name = fake("first_name")
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
 }

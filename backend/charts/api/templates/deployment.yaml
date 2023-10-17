@@ -63,18 +63,18 @@ spec:
             - serve
             - connect
           ports:
-            - containerPort: {{ .Values.port }}
+            - containerPort: {{ .Values.containerPort }}
               name: grpc
               protocol: TCP
           livenessProbe:
             grpc:
-              port: {{ .Values.port}}
+              port: {{ .Values.containerPort}}
             periodSeconds: 2
             failureThreshold: 2
             successThreshold: 1
           readinessProbe:
             grpc:
-              port: {{ .Values.port }}
+              port: {{ .Values.containerPort }}
             periodSeconds: 2
             failureThreshold: 2
             successThreshold: 1

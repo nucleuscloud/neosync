@@ -341,8 +341,10 @@ message TransformerConfig {
     Passthrough passthrough_config = 2;
     Uuid uuid_config = 3;
     FirstName first_name_config = 4;
-    PhoneNumber phone_number_config = 5;
-    Null null_config = 6;
+    LastName last_name_config = 5;
+    FullName full_name_config = 6;
+    PhoneNumber phone_number_config = 7;
+    Null null_config = 8;
   }
 }
 
@@ -358,6 +360,14 @@ message Uuid {
 }
 
 message FirstName {
+  bool preserve_length = 1;
+}
+
+message LastName {
+  bool preserve_length = 1;
+}
+
+message FullName {
   bool preserve_length = 1;
 }
 

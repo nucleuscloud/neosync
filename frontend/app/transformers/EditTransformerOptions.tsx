@@ -10,9 +10,11 @@ import {
 } from '@/components/ui/sheet';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useRef, useState } from 'react';
 import EmailTransformerForm from './forms/EmailTransformerForm';
 import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
+import FullNameTransformerForm from './forms/FullnameTransformerForm';
+import LastNameTransformerForm from './forms/LastnameTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
 
 interface Props {
@@ -29,6 +31,27 @@ export default function EditTransformerOptions(props: Props): ReactElement {
   const { transformer, index } = props;
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+
+  // handles click outside of sheet so that it closes correctly
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (
+        sheetRef.current &&
+        !sheetRef.current.contains(event.target as Node)
+      ) {
+        setIsSheetOpen(false);
+      }
+    };
+
+    if (isSheetOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isSheetOpen]);
 
   // since component is in a controlled state, have to manually handle closing the sheet when the user presses escape
   useEffect(() => {
@@ -57,7 +80,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           <Pencil1Icon />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[800px]">
+      <SheetContent className="w-[800px]" ref={sheetRef}>
         <SheetHeader>
           <div className="flex flex-row justify-between w-full">
             <div className="flex flex-col space-y-2">
@@ -104,6 +127,20 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
+    case 'last_name':
+      return (
+        <LastNameTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
+    case 'full_name':
+      return (
+        <FullNameTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -130,6 +167,19 @@ function handleTransformerMetadata(
       first_name: {
         name: 'First Name',
         description: 'Anonymizes or generates a new first name.',
+      },
+    },
+    {
+      last_name: {
+        name: 'Last Name',
+        description: 'Anonymizes or generates a new last name.',
+      },
+    },
+    {
+      full_name: {
+        name: 'Full Name',
+        description:
+          'Anonymizes or generates a new full name consisting of a first and last name.',
       },
     },
     { uuid: { name: 'UUID', description: 'Generates a new UUIDv4 id.' } },

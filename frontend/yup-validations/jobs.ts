@@ -2,7 +2,9 @@ import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   EmailConfig,
   FirstName,
+  FullName,
   JobDestinationOptions,
+  LastName,
   Null,
   Passthrough,
   PhoneNumber,
@@ -133,6 +135,24 @@ interface FirstNameTransformerConfigs {
   preserveLength: boolean;
 }
 
+interface LastNameTransformer {
+  value: string;
+  config: LastNameTransformerConfigs;
+}
+
+interface LastNameTransformerConfigs {
+  preserveLength: boolean;
+}
+
+interface FullNameTransformer {
+  value: string;
+  config: FullNameTransformerConfigs;
+}
+
+interface FullNameTransformerConfigs {
+  preserveLength: boolean;
+}
+
 export function toTransformerConfigOptions(t: {
   value: string;
   config: {};
@@ -190,6 +210,34 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'firstNameConfig',
             value: new FirstName({
+              preserveLength: ft.config.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'last_name': {
+      const ft = t as LastNameTransformer;
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'lastNameConfig',
+            value: new LastName({
+              preserveLength: ft.config.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'full_name': {
+      const ft = t as FullNameTransformer;
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'fullNameConfig',
+            value: new FullName({
               preserveLength: ft.config.preserveLength,
             }),
           },

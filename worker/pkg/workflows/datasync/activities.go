@@ -17,6 +17,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
+	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/jackc/pgx/v5"
@@ -803,9 +804,11 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "first_name_female":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "last_name":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "name":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
+		pl := col.Transformer.Config.GetLastNameConfig().PreserveLength
+		return fmt.Sprintf("this.%s.lastnametransformer(%t)", col.Column, pl), nil
+	case "full_name":
+		pl := col.Transformer.Config.GetFullNameConfig().PreserveLength
+		return fmt.Sprintf("this.%s.fullnametransformer(%t)", col.Column, pl), nil
 	case "gender":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "chinese_first_name":

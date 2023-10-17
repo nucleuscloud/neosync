@@ -2,6 +2,8 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 
+import NextLink from 'next/link';
+
 import {
   Connection,
   ConnectionConfig,
@@ -26,7 +28,16 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Connection" />
       ),
-      cell: ({ row }) => <div>{row.getValue('id')}</div>,
+      cell: ({ row }) => (
+        <div>
+          <NextLink
+            className="hover:underline"
+            href={`/connections/${row.getValue('id')}`}
+          >
+            <span>{row.getValue('id')}</span>
+          </NextLink>
+        </div>
+      ),
       enableSorting: false,
       enableHiding: false,
     },

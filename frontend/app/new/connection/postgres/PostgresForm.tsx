@@ -30,7 +30,7 @@ import {
 import { SSL_MODES } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ExclamationTriangleIcon, RocketIcon } from '@radix-ui/react-icons';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -67,6 +67,7 @@ export default function PostgresForm() {
     },
   });
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
@@ -81,7 +82,11 @@ export default function PostgresForm() {
         values.connectionName,
         account.id
       );
-      if (connection.connection?.id) {
+
+      const returnTo = searchParams.get('returnTo');
+      if (returnTo) {
+        router.push(returnTo);
+      } else if (connection.connection?.id) {
         router.push(`/connections/${connection.connection.id}`);
       } else {
         router.push(`/connections`);

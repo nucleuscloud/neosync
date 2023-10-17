@@ -7,19 +7,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessFirstName(t *testing.T) {
+func TestProcessLastName(t *testing.T) {
 
 	tests := []struct {
 		fn             string
 		preserveLength bool
 		expectedLength int
 	}{
-		{"frank", false, 0},
-		{"evis", true, 4}, // checks preserve length
+		{"johnson", false, 0},
+		{"smith", true, 5}, // checks preserve length
 	}
 
 	for _, tt := range tests {
-		res, err := ProcessFirstName(tt.fn, tt.preserveLength)
+		res, err := ProcessLastName(tt.fn, tt.preserveLength)
 
 		assert.NoError(t, err)
 
@@ -34,15 +34,15 @@ func TestProcessFirstName(t *testing.T) {
 
 }
 
-func TestFirstNameTransformer(t *testing.T) {
-	mapping := `root = this.firstnametransformer(true)`
+func TestLastNameTransformer(t *testing.T) {
+	mapping := `root = this.lastnametransformer(true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the first name transformer")
 
-	testVal := "evis"
+	testVal := "johnson"
 
 	res, err := ex.Query(testVal)
 	assert.NoError(t, err)
 
-	assert.Len(t, res.(string), len(testVal), "Generated first name must be as long as input first name")
+	assert.Len(t, res.(string), len(testVal), "Generated last name must be as long as input last name")
 }

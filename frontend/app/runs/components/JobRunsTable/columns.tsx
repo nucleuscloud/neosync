@@ -5,6 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import NextLink from 'next/link';
 import JobRunStatus from '../JobRunStatus';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
@@ -39,7 +40,18 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Job Run" />
       ),
-      cell: ({ row }) => <div>{row.getValue('id')}</div>,
+      cell: ({ row }) => {
+        return (
+          <div>
+            <NextLink
+              className="hover:underline"
+              href={`/runs/${row.getValue('id')}`}
+            >
+              <span>{row.getValue('id')}</span>
+            </NextLink>
+          </div>
+        );
+      },
       enableSorting: false,
       enableHiding: false,
     },
@@ -66,9 +78,14 @@ export function getColumns(
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
-              {row.getValue('jobId')}
-            </span>
+            <NextLink
+              className="hover:underline"
+              href={`/jobs/${row.getValue('jobId')}`}
+            >
+              <span className="max-w-[500px] truncate font-medium">
+                {row.getValue('jobId')}
+              </span>
+            </NextLink>
           </div>
         );
       },
