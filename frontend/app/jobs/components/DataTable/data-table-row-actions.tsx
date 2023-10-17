@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,15 +11,7 @@ import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
@@ -56,39 +47,35 @@ export function DataTableRowActions<TData>({
   }
 
   return (
-    <Dialog>
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger className="hover:bg-gray-100 py-1 px-2 rounded-lg">
-          <DotsHorizontalIcon className="h-4 w-4" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => router.push(`/jobs/${job.id}`)}
-          >
-            View
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <DialogTrigger className="w-full text-left">Delete</DialogTrigger>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Job?</DialogTitle>
-        </DialogHeader>
-        <DialogDescription className="pt-8">
-          Deleting this Job will also delete all of the Job Runs. Are you sure
-          you want to delete this Job?
-        </DialogDescription>
-        <DialogFooter className="flex flex-row justify-between w-full">
-          <Button variant="destructive" onClick={() => onDelete()}>
-            Delete
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <DropdownMenu
+      modal={false} // needed because otherwise this breaks after a single use in conjunction with the delete dialog
+    >
+      <DropdownMenuTrigger className="hover:bg-gray-100 py-1 px-2 rounded-lg">
+        <DotsHorizontalIcon className="h-4 w-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => router.push(`/jobs/${job.id}`)}
+        >
+          View
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DeleteConfirmationDialog
+          trigger={
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => e.preventDefault()} // needed for the delete modal to not automatically close
+            >
+              Delete
+            </DropdownMenuItem>
+          }
+          headerText="Are you sure you want to delete this job?"
+          description="Deleting this job will also delete all job runs."
+          onConfirm={() => onDelete()}
+        />
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
