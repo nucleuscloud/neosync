@@ -57,7 +57,9 @@ func ProcessPhoneNumber(pn string, preserveLength, e164, includeHyphens bool) (s
 			pn = strings.ReplaceAll(pn, "-", "")
 		}
 
-		val, err := faker.RandomInt(0, 9, len(pn)) // generates len(pn) random numbers from 0 -> 9
+		const maxPhoneNum = 9
+
+		val, err := faker.RandomInt(0, maxPhoneNum, len(pn)) // generates len(pn) random numbers from 0 -> 9
 
 		if err != nil {
 			return "", nil
@@ -66,12 +68,12 @@ func ProcessPhoneNumber(pn string, preserveLength, e164, includeHyphens bool) (s
 		returnValue = strings.Join(IntArrToStringArr(val), "")
 
 	} else if !preserveLength && includeHyphens && !e164 {
-		//only works with 10 digit-based phone numbers like in the US
+		// only works with 10 digit-based phone numbers like in the US
 		returnValue = faker.Phonenumber()
 
 	} else if !preserveLength && !includeHyphens && e164 {
 
-		// outputs in e164 format -> [+][country_code][subscribe number including area code] with no 0 for country code, for ex. +873104859612, regex: ^\+[1-9]\d{1,14}$
+		/* outputs in e164 format -> for ex. +873104859612, regex: ^\+[1-9]\d{1,14}$ */
 		returnValue = faker.E164PhoneNumber()
 
 	} else {
