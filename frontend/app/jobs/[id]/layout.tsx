@@ -1,14 +1,15 @@
 'use client';
-import { SidebarNav } from '@/components/SideBarNav';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { LayoutProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function SettingsLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
@@ -77,11 +78,9 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
           }
         />
       </div>
-      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <aside>
-          <SidebarNav buttonClassName="px-8" items={sidebarNavItems} />
-        </aside>
-        <div className="flex-1 lg:max-w-8xl">{children}</div>
+      <div className="flex flex-col space-y-8">
+        <SubNav items={sidebarNavItems} />
+        <div>{children}</div>
       </div>
     </div>
   );
@@ -97,4 +96,45 @@ async function triggerJobRun(jobId: string): Promise<void> {
     throw new Error(body.message);
   }
   await res.json();
+}
+
+interface SubNavProps extends React.HTMLAttributes<HTMLElement> {
+  items: {
+    href: string;
+    title: string;
+  }[];
+  buttonClassName?: string;
+}
+
+function SubNav({ className, items, buttonClassName, ...props }: SubNavProps) {
+  const pathname = usePathname();
+  return (
+    <nav
+      className={cn(
+        'flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-2',
+        className
+      )}
+      {...props}
+    >
+      {items.map((item) => {
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              pathname === item.href
+                ? 'bg-muted hover:bg-muted'
+                : 'hover:bg-transparent hover:underline',
+              'justify-start',
+              buttonClassName,
+              'px-6'
+            )}
+          >
+            {item.title}
+          </Link>
+        );
+      })}
+    </nav>
+  );
 }
