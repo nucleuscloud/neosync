@@ -143,6 +143,102 @@ export function DataTable<TData, TValue>({
     setTreeData(treedata);
   }
 
+  // function updateTree(): void {
+  //   const uniqueTableFilters = table
+  //     .getColumn('table')
+  //     ?.getFacetedUniqueValues();
+  //   const possibleTableFilters = uniqueTableFilters
+  //     ? Array.from(uniqueTableFilters.keys())
+  //     : [];
+
+  //   const uniqueSchemaFilters = table
+  //     .getColumn('schema')
+  //     ?.getFacetedUniqueValues();
+  //   const possibleSchemaFilters = uniqueSchemaFilters
+  //     ? Array.from(uniqueSchemaFilters.keys())
+  //     : [];
+
+  //   const schemaFilters: string[] = columnFilters
+  //     .filter((f) => f.id == 'schema')
+  //     .map((f) => f.value as string);
+  //   const tableFilters: string[] = columnFilters
+  //     .filter((f) => f.id == 'table')
+  //     .map((f) => f.value as string);
+
+  //   console.log('schemaFilters', JSON.stringify(schemaFilters));
+  //   console.log('tableFilters', JSON.stringify(tableFilters));
+
+  //   const treedata = Object.keys(schemaMap).map((schema) => {
+  //     const isSchemaSelected =
+  //       columnFilters.length == 0
+  //         ? false
+  //         : schemaFilters.some((f) => f == schema) &&
+  //           possibleSchemaFilters.includes(schema);
+
+  //     console.log('isSchemaSelected', isSchemaSelected);
+
+  //     const tables = Object.keys(schemaMap[schema]).map((table) => {
+  //       return {
+  //         id: `${schema}-${table}`,
+  //         name: table,
+  //         isSelected:
+  //           tableFilters.some((f) => f == table) &&
+  //           possibleTableFilters.includes(table),
+  //       };
+  //     });
+  //     const isTableSelected = tables.some((t) => t.isSelected);
+  //     console.log('tables', JSON.stringify(tables, undefined, 2));
+
+  //     const newTables = tables.map((table) => {
+  //       return {
+  //         ...table,
+  //         isSelected:
+  //           isSchemaSelected && !isTableSelected ? true : table.isSelected,
+  //       };
+  //     });
+
+  //     console.log('newTables', JSON.stringify(newTables, undefined, 2));
+
+  //     return {
+  //       id: schema,
+  //       name: schema,
+  //       isSelected: isSchemaSelected || isTableSelected,
+  //       children: newTables,
+  //     };
+  //   });
+  //   setTreeData(treedata);
+  // }
+
+  function isTableSelected(
+    table: string,
+    schema: string,
+    tableFilters: string[],
+    schemaFilters: string[]
+  ): boolean {
+    console.log(
+      'table',
+      table,
+      'schema',
+      schema,
+      'tableFiltes',
+      JSON.stringify(tableFilters),
+      'schemaFilters',
+      JSON.stringify(schemaFilters)
+    );
+    if (schemaFilters.length != 0) {
+      if (!schemaFilters.includes(schema)) {
+        return false;
+      }
+      if (schemaFilters.includes(schema) && tableFilters.length == 0) {
+        return true;
+      }
+    }
+    if (tableFilters.includes(table)) {
+      return true;
+    }
+    return false;
+  }
+
   function updateTree(): void {
     const uniqueTableFilters = table
       .getColumn('table')
@@ -157,13 +253,12 @@ export function DataTable<TData, TValue>({
     const possibleSchemaFilters = uniqueSchemaFilters
       ? Array.from(uniqueSchemaFilters.keys())
       : [];
+    console.log('columnFilters', JSON.stringify(columnFilters));
 
-    const schemaFilters: string[] = columnFilters
-      .filter((f) => f.id == 'schema')
-      .map((f) => f.value as string);
-    const tableFilters: string[] = columnFilters
-      .filter((f) => f.id == 'table')
-      .map((f) => f.value as string);
+    const schemaFilters: string[] =
+      (columnFilters.find((f) => f.id == 'schema')?.value as string[]) || [];
+    const tableFilters: string[] =
+      (columnFilters.find((f) => f.id == 'table')?.value as string[]) || [];
 
     console.log('schemaFilters', JSON.stringify(schemaFilters));
     console.log('tableFilters', JSON.stringify(tableFilters));
@@ -177,32 +272,35 @@ export function DataTable<TData, TValue>({
 
       console.log('isSchemaSelected', isSchemaSelected);
 
-      const tables = Object.keys(schemaMap[schema]).map((table) => {
+      const newTables = Object.keys(schemaMap[schema]).map((table) => {
         return {
           id: `${schema}-${table}`,
           name: table,
-          isSelected:
-            tableFilters.some((f) => f == table) &&
-            possibleTableFilters.includes(table),
+          isSelected: isTableSelected(
+            table,
+            schema,
+            tableFilters,
+            schemaFilters
+          ),
         };
       });
-      const isTableSelected = tables.some((t) => t.isSelected);
-      console.log('tables', JSON.stringify(tables, undefined, 2));
+      const istableSelected = newTables.some((t) => t.isSelected);
+      console.log('newTables', JSON.stringify(newTables, undefined, 2));
 
-      const newTables = tables.map((table) => {
-        return {
-          ...table,
-          isSelected:
-            isSchemaSelected && !isTableSelected ? true : table.isSelected,
-        };
-      });
+      // const newTables = tables.map((table) => {
+      //   return {
+      //     ...table,
+      //     isSelected:
+      //       isSchemaSelected && !isTableSelected ? true : table.isSelected,
+      //   };
+      // });
 
       console.log('newTables', JSON.stringify(newTables, undefined, 2));
 
       return {
         id: schema,
         name: schema,
-        isSelected: isSchemaSelected || isTableSelected,
+        isSelected: isSchemaSelected || istableSelected,
         children: newTables,
       };
     });
