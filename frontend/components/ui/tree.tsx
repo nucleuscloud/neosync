@@ -228,19 +228,18 @@ const Leaf = React.forwardRef<
           checked={item.isSelected}
           indeterminate={indeterminate}
         />
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <label
-                htmlFor={item.id}
-                className={`text-sm font-medium truncate`}
-              >
-                {item.name}
-              </label>
-            </TooltipTrigger>
-            <TooltipContent>{item.name}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex ">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <label htmlFor={item.id} className={`text-sm font-medium`}>
+                  {item.name}
+                </label>
+              </TooltipTrigger>
+              <TooltipContent>{item.name}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     </div>
   );
