@@ -153,6 +153,17 @@ interface FullNameTransformerConfigs {
   preserveLength: boolean;
 }
 
+interface PhoneNumberTransformer {
+  value: string;
+  config: PhoneNumberTransformerConfigs;
+}
+
+interface PhoneNumberTransformerConfigs {
+  preserveLength: boolean;
+  e164Format: boolean;
+  includeHyphens: boolean;
+}
+
 export function toTransformerConfigOptions(t: {
   value: string;
   config: {};
@@ -245,12 +256,17 @@ export function toTransformerConfigOptions(t: {
       });
     }
     case 'phone_number': {
+      const pt = t as PhoneNumberTransformer;
       return new Transformer({
         value: t.value,
         config: new TransformerConfig({
           config: {
             case: 'phoneNumberConfig',
-            value: new PhoneNumber({}),
+            value: new PhoneNumber({
+              preserveLength: pt.config.preserveLength,
+              e164Format: pt.config.e164Format,
+              includeHyphens: pt.config.includeHyphens,
+            }),
           },
         }),
       });

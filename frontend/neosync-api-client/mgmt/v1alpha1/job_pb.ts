@@ -3336,6 +3336,21 @@ export class FullName extends Message<FullName> {
  * @generated from message mgmt.v1alpha1.PhoneNumber
  */
 export class PhoneNumber extends Message<PhoneNumber> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
+  /**
+   * @generated from field: bool e164_format = 2;
+   */
+  e164Format = false;
+
+  /**
+   * @generated from field: bool include_hyphens = 3;
+   */
+  includeHyphens = false;
+
   constructor(data?: PartialMessage<PhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3344,6 +3359,9 @@ export class PhoneNumber extends Message<PhoneNumber> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.PhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "e164_format", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PhoneNumber {

@@ -818,11 +818,10 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "chinese_name":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "phone_number":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "toll_free_phone_number":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "e164_phone_number":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
+		pl := col.Transformer.Config.GetPhoneNumberConfig().PreserveLength
+		ef := col.Transformer.Config.GetPhoneNumberConfig().E164Format
+		ih := col.Transformer.Config.GetPhoneNumberConfig().IncludeHyphens
+		return fmt.Sprintf("this.%s.phonetransformer(%t, %t, %t)", col.Column, pl, ef, ih), nil
 	case "uuid":
 		ih := col.Transformer.Config.GetUuidConfig().IncludeHyphen
 		return fmt.Sprintf("this.%s.uuidtransformer(%t)", col.Column, ih), nil

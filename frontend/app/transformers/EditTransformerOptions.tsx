@@ -15,6 +15,7 @@ import EmailTransformerForm from './forms/EmailTransformerForm';
 import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
 import FullNameTransformerForm from './forms/FullnameTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
+import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
 
 interface Props {
@@ -141,6 +142,13 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
+    case 'phone_number':
+      return (
+        <PhoneNumberTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -160,7 +168,8 @@ function handleTransformerMetadata(
     {
       phone_number: {
         name: 'Phone Number',
-        description: 'Anonymizes or generates a new phone number.',
+        description:
+          'Anonymizes or generates a new phone number. The default format is <XXX-XXX-XXXX>.',
       },
     },
     {

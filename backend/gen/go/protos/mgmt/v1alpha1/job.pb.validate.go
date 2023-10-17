@@ -9918,6 +9918,12 @@ func (m *PhoneNumber) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for PreserveLength
+
+	// no validation rules for E164Format
+
+	// no validation rules for IncludeHyphens
+
 	if len(errors) > 0 {
 		return PhoneNumberMultiError(errors)
 	}
