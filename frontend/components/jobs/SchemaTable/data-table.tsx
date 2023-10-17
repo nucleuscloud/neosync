@@ -143,31 +143,6 @@ export function DataTable<TData, TValue>({
     setTreeData(treedata);
   }
 
-  // if schema in filter and no children selected then all children are selected
-  // if schema in filter and some children selected then only some children are selected
-
-  function isTableSelected(
-    table: string,
-    schema: string,
-    tableFilters: string[],
-    schemaFilters: string[],
-    possibeTableFilters: string[],
-    possibleSchemaFilters: string[]
-  ): boolean {
-    if (tableFilters.length == 0 && schemaFilters.length == 0) {
-      return false;
-    }
-    if (
-      !tableFilters.some((f) => f == table) ||
-      !possibeTableFilters.includes(table) ||
-      !possibleSchemaFilters.includes(schema)
-    ) {
-      return false;
-    }
-
-    return true;
-  }
-
   function updateTree(): void {
     const uniqueTableFilters = table
       .getColumn('table')
@@ -190,50 +165,45 @@ export function DataTable<TData, TValue>({
       .filter((f) => f.id == 'table')
       .map((f) => f.value as string);
 
+    console.log('schemaFilters', JSON.stringify(schemaFilters));
+    console.log('tableFilters', JSON.stringify(tableFilters));
+
     const treedata = Object.keys(schemaMap).map((schema) => {
-      const parentIsSelected =
+      const isSchemaSelected =
         columnFilters.length == 0
           ? false
-          : schemaFilters.some((f) => f == schema);
+          : schemaFilters.some((f) => f == schema) &&
+            possibleSchemaFilters.includes(schema);
 
-      console.log('schema', schema, 'isSelected', parentIsSelected);
-      const someTablesSelected = Object.keys(schemaMap[schema]).some((t) =>
-        isTableSelected(
-          t,
-          schema,
-          tableFilters,
-          schemaFilters,
-          possibleTableFilters,
-          possibleSchemaFilters
-        )
-      );
-      const children = Object.keys(schemaMap[schema]).map((table) => {
-        const childIsSelected = isTableSelected(
-          table,
-          schema,
-          tableFilters,
-          schemaFilters,
-          possibleTableFilters,
-          possibleSchemaFilters
-        );
+      console.log('isSchemaSelected', isSchemaSelected);
 
-        console.log('table', table, 'isSelected', childIsSelected);
-
+      const tables = Object.keys(schemaMap[schema]).map((table) => {
         return {
           id: `${schema}-${table}`,
           name: table,
           isSelected:
-            (!someTablesSelected && parentIsSelected) || childIsSelected,
+            tableFilters.some((f) => f == table) &&
+            possibleTableFilters.includes(table),
+        };
+      });
+      const isTableSelected = tables.some((t) => t.isSelected);
+      console.log('tables', JSON.stringify(tables, undefined, 2));
+
+      const newTables = tables.map((table) => {
+        return {
+          ...table,
+          isSelected:
+            isSchemaSelected && !isTableSelected ? true : table.isSelected,
         };
       });
 
-      const isChildSelected = children.some((c) => c.isSelected);
+      console.log('newTables', JSON.stringify(newTables, undefined, 2));
 
       return {
         id: schema,
         name: schema,
-        isSelected: parentIsSelected || isChildSelected,
-        children,
+        isSelected: isSchemaSelected || isTableSelected,
+        children: newTables,
       };
     });
     setTreeData(treedata);
