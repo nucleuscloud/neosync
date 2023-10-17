@@ -26,7 +26,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/plugins"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
@@ -707,7 +707,7 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 		if col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
 			mutation, err := computeMutationFunction(col)
 			if err != nil {
-				return "", fmt.Errorf("%s is not a supported transformation: %w", col.Transformer, err)
+				return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
 			}
 			pieces = append(pieces, fmt.Sprintf("root.%s = %s", col.Column, mutation))
 		}

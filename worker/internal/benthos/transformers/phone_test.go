@@ -1,4 +1,4 @@
-package neosync_plugins
+package neosync_transformers
 
 import (
 	"strings"
