@@ -13,7 +13,7 @@ func init() {
 
 	err := bloblang.RegisterFunctionV2("transformernull", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		return func() (interface{}, error) {
+		return func() (any, error) {
 			return "null", nil
 		}, nil
 	})
