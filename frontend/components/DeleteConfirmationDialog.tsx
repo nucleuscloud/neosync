@@ -2,6 +2,7 @@ import { DialogClose } from '@radix-ui/react-dialog';
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ReactElement, ReactNode, useState } from 'react';
 import ButtonText from './ButtonText';
+import Spinner from './Spinner';
 import { Button } from './ui/button';
 import {
   Dialog,
@@ -45,7 +46,7 @@ export default function DeleteConfirmationDialog(props: Props): ReactElement {
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>{trigger}</DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>{headerText}</DialogHeader>
         <DialogDescription>{description}</DialogDescription>
@@ -56,7 +57,10 @@ export default function DeleteConfirmationDialog(props: Props): ReactElement {
             </Button>
           </DialogClose>
           <Button type="submit" variant="destructive" onClick={() => onClick()}>
-            <ButtonText leftIcon={<TrashIcon />} text={deleteButtonText} />
+            <ButtonText
+              leftIcon={isTrying ? <Spinner /> : <TrashIcon />}
+              text={deleteButtonText}
+            />
           </Button>
         </DialogFooter>
       </DialogContent>
