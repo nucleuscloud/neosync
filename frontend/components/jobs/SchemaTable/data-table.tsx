@@ -231,7 +231,7 @@ export function DataTable<TData, TValue>({
           }}
         />
         <div className="rounded-md border overflow-hidden">
-          <Table>
+          <Table className="table-fixed">
             <TableHeader className="bg-gray-100">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -240,7 +240,9 @@ export function DataTable<TData, TValue>({
                       <TableHead
                         key={header.id}
                         className={
-                          header.id == 'select' ? 'w-[44px] pl-2 ' : 'w-[197px]'
+                          header.id == 'select'
+                            ? 'w-[44px] pl-2 '
+                            : 'w-[197px] px-0'
                         }
                       >
                         <div className="flex flex-row">
@@ -270,7 +272,7 @@ export function DataTable<TData, TValue>({
             </TableHeader>
           </Table>
           <ScrollArea className="max-h-[700px] overflow-y-auto">
-            <Table>
+            <Table className="table-fixed">
               <TableBody>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
