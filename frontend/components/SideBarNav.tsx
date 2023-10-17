@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { cn } from '@/libs/utils';
@@ -11,9 +11,15 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
     href: string;
     title: string;
   }[];
+  buttonClassName?: string;
 }
 
-export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
+export function SidebarNav({
+  className,
+  items,
+  buttonClassName,
+  ...props
+}: SidebarNavProps) {
   const pathname = usePathname();
   return (
     <nav
@@ -25,7 +31,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
     >
       {items.map((item) => {
         return (
-          <Link
+          <NextLink
             key={item.href}
             href={item.href}
             className={cn(
@@ -33,11 +39,12 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
               pathname === item.href
                 ? 'bg-muted hover:bg-muted'
                 : 'hover:bg-transparent hover:underline',
-              'justify-start'
+              'justify-start',
+              buttonClassName
             )}
           >
             {item.title}
-          </Link>
+          </NextLink>
         );
       })}
     </nav>

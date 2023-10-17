@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation';
 export default function SettingsLayout({ children, params }: PageProps) {
   const id = params?.id ?? '';
   const basePath = `/jobs/${params?.id}`;
-  const { data, isLoading, mutate } = useGetJob(id);
+  const { data, isLoading } = useGetJob(id);
   const router = useRouter();
 
   async function onTriggerJobRun(): Promise<void> {
@@ -78,8 +78,8 @@ export default function SettingsLayout({ children, params }: PageProps) {
         />
       </div>
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <aside className="-mx-4 lg:w-[200px]">
-          <SidebarNav items={sidebarNavItems} />
+        <aside className="">
+          <SidebarNav buttonClassName="px-8" items={sidebarNavItems} />
         </aside>
         <div className="flex-1 lg:max-w-8xl">{children}</div>
       </div>
