@@ -2,14 +2,19 @@
 import { PageProps } from '@/components/types';
 
 import ButtonText from '@/components/ButtonText';
+import Spinner from '@/components/Spinner';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import SkeletonProgress from '@/components/skeleton/SkeletonProgress';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGetJobRun } from '@/libs/hooks/useGetJobRun';
+import { refreshWhenJobRunning, useGetJobRun } from '@/libs/hooks/useGetJobRun';
+import {
+  getRefreshEventsWhenJobRunningFn,
+  useGetJobRunEvents,
+} from '@/libs/hooks/useGetJobRunEvents';
 import { formatDateTime } from '@/util/util';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
@@ -19,7 +24,17 @@ import JobRunActivityTable from './components/JobRunActivityTable';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { data, isLoading } = useGetJobRun(id);
+  const { data, isLoading } = useGetJobRun(id, {
+    refreshIntervalFn: refreshWhenJobRunning,
+  });
+
+  const {
+    data: eventData,
+    isLoading: eventsIsLoading,
+    isValidating,
+  } = useGetJobRunEvents(id, {
+    refreshIntervalFn: getRefreshEventsWhenJobRunningFn(data?.jobRun?.status),
+  });
 
   const jobRun = data?.jobRun;
 
@@ -45,7 +60,7 @@ export default function Page({ params }: PageProps): ReactElement {
             <Skeleton className="w-full h-24 rounded-lg" />
           </div>
 
-          <SkeletonProgress />
+          <SkeletonTable />
         </div>
       ) : (
         <div className="space-y-12">
@@ -88,8 +103,15 @@ export default function Page({ params }: PageProps): ReactElement {
             })}
           </div>
           <div className="space-y-4">
-            <h1 className="text-2xl font-bold tracking-tight">Activity</h1>
-            <JobRunActivityTable jobId={id} />
+            <div className="flex flex-row items-center space-x-2">
+              <h1 className="text-2xl font-bold tracking-tight">Activity</h1>
+              {isValidating && <Spinner />}
+            </div>
+            {eventsIsLoading ? (
+              <SkeletonTable />
+            ) : (
+              <JobRunActivityTable jobRunEvents={eventData?.events || []} />
+            )}
           </div>
         </div>
       )}
@@ -123,7 +145,7 @@ function getDuration(dateTimeValue2?: Date, dateTimeValue1?: Date): string {
   var differenceValue =
     (dateTimeValue2.getTime() - dateTimeValue1.getTime()) / 1000;
   const minutes = Math.abs(Math.round(differenceValue / 60));
-  const seconds = differenceValue % 60;
+  const seconds = Math.round(differenceValue % 60);
   if (minutes == 0) {
     return `${seconds} seconds`;
   }

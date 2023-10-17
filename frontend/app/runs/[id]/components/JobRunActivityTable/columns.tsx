@@ -34,7 +34,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
     {
       accessorKey: 'startTime',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Time" />
+        <DataTableColumnHeader column={column} title="Start Time" />
       ),
       cell: ({ row }) => {
         const startTime = row.getValue<Timestamp>('startTime');
@@ -72,7 +72,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
 
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
+            <span className="font-medium">
               <pre>
                 {JSON.stringify(metadata?.metadata?.value, undefined, 2)}
               </pre>
@@ -92,7 +92,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
         const err = row.getValue<JobRunEventTaskError>('error');
         return (
           <div className={`flex space-x-2`}>
-            <span className="max-w-[500px] truncate font-medium">
+            <span className="truncate font-medium">
               {err && (
                 <Alert variant="destructive">
                   <AlertTitle className="flex flex-row space-x-2 justify-center">
@@ -100,7 +100,9 @@ export function getColumns(props: GetColumnsProps): ColumnDef<JobRunEvent>[] {
                     <p>Error</p>
                   </AlertTitle>
                   <AlertDescription>
-                    <pre>{JSON.stringify(err, undefined, 2)}</pre>
+                    <pre className="whitespace-pre-wrap">
+                      {JSON.stringify(err, undefined, 2)}
+                    </pre>
                   </AlertDescription>
                 </Alert>
               )}

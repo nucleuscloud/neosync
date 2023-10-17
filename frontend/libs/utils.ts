@@ -16,3 +16,16 @@ export function cn(...inputs: ClassValue[]) {
 // export function hookOnData<T>(data: JsonValue | DtoClass<T>, cl: DtoClass<T>): DtoClass<T> {
 //   return data instanceof DtoClass<T> ? data :
 // }
+export function getRefreshIntervalFn<T>(
+  fn?: (data: T) => number
+): ((data: T | undefined) => number) | undefined {
+  if (!fn) {
+    return undefined;
+  }
+  return (data) => {
+    if (!data) {
+      return 0;
+    }
+    return fn(data);
+  };
+}
