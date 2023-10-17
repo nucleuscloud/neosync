@@ -2239,6 +2239,123 @@ export class GetJobStatusResponse extends Message<GetJobStatusResponse> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.JobStatusRecord
+ */
+export class JobStatusRecord extends Message<JobStatusRecord> {
+  /**
+   * @generated from field: string job_id = 1;
+   */
+  jobId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.JobStatus status = 2;
+   */
+  status = JobStatus.UNSPECIFIED;
+
+  constructor(data?: PartialMessage<JobStatusRecord>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobStatusRecord";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "status", kind: "enum", T: proto3.getEnumType(JobStatus) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobStatusRecord {
+    return new JobStatusRecord().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobStatusRecord {
+    return new JobStatusRecord().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobStatusRecord {
+    return new JobStatusRecord().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobStatusRecord | PlainMessage<JobStatusRecord> | undefined, b: JobStatusRecord | PlainMessage<JobStatusRecord> | undefined): boolean {
+    return proto3.util.equals(JobStatusRecord, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetJobStatusesRequest
+ */
+export class GetJobStatusesRequest extends Message<GetJobStatusesRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetJobStatusesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetJobStatusesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobStatusesRequest {
+    return new GetJobStatusesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetJobStatusesRequest {
+    return new GetJobStatusesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetJobStatusesRequest {
+    return new GetJobStatusesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetJobStatusesRequest | PlainMessage<GetJobStatusesRequest> | undefined, b: GetJobStatusesRequest | PlainMessage<GetJobStatusesRequest> | undefined): boolean {
+    return proto3.util.equals(GetJobStatusesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetJobStatusesResponse
+ */
+export class GetJobStatusesResponse extends Message<GetJobStatusesResponse> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.JobStatusRecord statuses = 1;
+   */
+  statuses: JobStatusRecord[] = [];
+
+  constructor(data?: PartialMessage<GetJobStatusesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetJobStatusesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "statuses", kind: "message", T: JobStatusRecord, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobStatusesResponse {
+    return new GetJobStatusesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetJobStatusesResponse {
+    return new GetJobStatusesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetJobStatusesResponse {
+    return new GetJobStatusesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetJobStatusesResponse | PlainMessage<GetJobStatusesResponse> | undefined, b: GetJobStatusesResponse | PlainMessage<GetJobStatusesResponse> | undefined): boolean {
+    return proto3.util.equals(GetJobStatusesResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.ActivityFailure
  */
 export class ActivityFailure extends Message<ActivityFailure> {

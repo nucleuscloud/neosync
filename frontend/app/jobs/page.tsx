@@ -5,7 +5,9 @@ import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
+import { useGetJobStatuses } from '@/libs/hooks/useGetJobStatuses';
 import { useGetJobs } from '@/libs/hooks/useGetJobs';
+import { JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -37,12 +39,27 @@ function JobTable(props: JobTableProps): ReactElement {
   const {} = props;
   const account = useAccount();
   const { isLoading, data, mutate } = useGetJobs(account?.id ?? '');
+  const { data: statusData } = useGetJobStatuses(account?.id ?? '');
 
   if (isLoading) {
     return <SkeletonTable />;
   }
 
   const jobs = data?.jobs ?? [];
+  const statusJobMap =
+    statusData?.statuses.reduce(
+      (prev, curr) => {
+        return { ...prev, [curr.jobId]: curr.status };
+      },
+      {} as Record<string, JobStatus>
+    ) || {};
+
+  const jobData = jobs.map((j) => {
+    return {
+      ...j,
+      status: statusJobMap[j.id] || JobStatus.UNSPECIFIED,
+    };
+  });
 
   const columns = getColumns({
     onDeleted() {
@@ -52,7 +69,7 @@ function JobTable(props: JobTableProps): ReactElement {
 
   return (
     <div>
-      <DataTable columns={columns} data={jobs} />
+      <DataTable columns={columns} data={jobData} />
     </div>
   );
 }

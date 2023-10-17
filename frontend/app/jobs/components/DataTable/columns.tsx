@@ -3,9 +3,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { Badge } from '@/components/ui/badge';
-import { Job, JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
-import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { Timestamp } from '@bufbuild/protobuf';
 import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
@@ -29,13 +29,19 @@ const JOB_STATUS = [
   },
 ];
 
+interface JobColumn {
+  id: string;
+  name: string;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+  status: JobStatus;
+}
+
 interface GetJobsProps {
   onDeleted(id: string): void;
 }
 
-export function getColumns(
-  props: GetJobsProps
-): ColumnDef<PlainMessage<Job>>[] {
+export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
   const { onDeleted } = props;
 
   return [
