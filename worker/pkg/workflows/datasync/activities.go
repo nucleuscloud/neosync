@@ -825,8 +825,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "uuid":
 		ih := col.Transformer.Config.GetUuidConfig().IncludeHyphen
 		return fmt.Sprintf("this.%s.uuidtransformer(%t)", col.Column, ih), nil
-	case nullString:
-		return nullString, nil
+	case "null":
+		return "transformernull()", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
