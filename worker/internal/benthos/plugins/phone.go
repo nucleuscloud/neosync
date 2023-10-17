@@ -76,6 +76,17 @@ func ProcessPhoneNumber(pn string, preserveLength, e164, includeHyphens bool) (s
 		/* outputs in e164 format -> for ex. +873104859612, regex: ^\+[1-9]\d{1,14}$ */
 		returnValue = faker.E164PhoneNumber()
 
+	} else if e164 && preserveLength && !includeHyphens {
+
+		val := strings.Split(pn, "+")
+
+		p, err := ProcessPhoneNumber(val[1], true, false, false)
+		if err != nil {
+			return "", err
+		}
+
+		returnValue = "+" + p
+
 	} else {
 
 		// returns a phone number with no hyphens

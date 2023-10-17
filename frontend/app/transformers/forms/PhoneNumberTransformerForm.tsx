@@ -63,9 +63,8 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
-                onCheckedChange={() => {
-                  pl ? setPl(false) : setPl(true);
-                }}
+                disabled={ih}
+                onCheckedChange={() => setPl(!pl)}
               />
             </FormControl>
           </FormItem>
@@ -86,9 +85,8 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={ih}
-                onCheckedChange={() => {
-                  ih ? setIh(false) : setIh(true);
-                }}
+                disabled={e164 || pl}
+                onCheckedChange={() => setIh(!ih)}
               />
             </FormControl>
           </FormItem>
@@ -109,9 +107,8 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={e164}
-                onCheckedChange={() => {
-                  e164 ? setE164(false) : setE164(true);
-                }}
+                disabled={ih}
+                onCheckedChange={() => setE164(!e164)}
               />
             </FormControl>
           </FormItem>

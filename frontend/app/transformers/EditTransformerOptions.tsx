@@ -168,7 +168,8 @@ function handleTransformerMetadata(
     {
       phone_number: {
         name: 'Phone Number',
-        description: 'Anonymizes or generates a new phone number.',
+        description:
+          'Anonymizes or generates a new phone number. The default format is <XXX-XXX-XXXX>.',
       },
     },
     {

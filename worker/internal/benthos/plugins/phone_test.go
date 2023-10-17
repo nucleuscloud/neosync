@@ -1,7 +1,6 @@
 package neosync_plugins
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -22,6 +21,7 @@ func TestProcessPhoneNumber(t *testing.T) {
 		{"618384928322", true, false, false, 10},  // checks preserve length
 		{"739-892-9234", false, false, true, 0},   // checks hyphens
 		{"+1892393573894", false, true, false, 0}, // checks e164 format
+		{"+18923935738", false, true, false, 13},  // checks e164 format
 	}
 
 	for _, tt := range tests {
@@ -34,8 +34,6 @@ func TestProcessPhoneNumber(t *testing.T) {
 		}
 
 		if tt.e164_format && !tt.preserveLength && !tt.include_hyphens {
-
-			fmt.Println("res", res)
 			assert.Equal(t, Validatee164(res), Validatee164("+1892393573894"))
 		}
 
@@ -45,6 +43,10 @@ func TestProcessPhoneNumber(t *testing.T) {
 
 		if !tt.preserveLength && !tt.e164_format && tt.include_hyphens {
 			assert.Equal(t, len(res), len("618-384-9282"))
+		}
+
+		if tt.preserveLength && tt.e164_format && !tt.include_hyphens {
+			assert.Equal(t, len(res), tt.expectedLength)
 		}
 
 	}
