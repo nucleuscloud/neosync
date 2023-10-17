@@ -23,18 +23,24 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
   const vals = fc.getValues();
 
   //sheet re-renders on every open which resets state, so have to get the values from the mappings so user values persist across sheet openings
-  const [pd, setPd] = useState<boolean>(
-    vals.mappings[index ?? 0].transformer.config.preserveDomain
+  const [ih, setIh] = useState<boolean>(
+    vals.mappings[index ?? 0].transformer.config.includeHyphens
+  );
+  const [e164, setE164] = useState<boolean>(
+    vals.mappings[index ?? 0].transformer.config.e164Format
   );
   const [pl, setPl] = useState<boolean>(
     vals.mappings[index ?? 0].transformer.config.preserveLength
   );
 
   const handleSubmit = () => {
-    fc.setValue(`mappings.${index}.transformer.config.preserveDomain`, pd, {
+    fc.setValue(`mappings.${index}.transformer.config.preserveLength`, pl, {
       shouldValidate: false,
     });
-    fc.setValue(`mappings.${index}.transformer.config.preserveLength`, pl, {
+    fc.setValue(`mappings.${index}.transformer.config.e164Format`, e164, {
+      shouldValidate: false,
+    });
+    fc.setValue(`mappings.${index}.transformer.config.includeHyphens`, ih, {
       shouldValidate: false,
     });
     setIsSheetOpen!(false);
@@ -50,7 +56,8 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription>
-                Set the length of the output email to be the same as the input
+                Set the length of the output phone number to be the same as the
+                input
               </FormDescription>
             </div>
             <FormControl>
@@ -65,21 +72,45 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.preserveDomain`}
-        defaultValue={pd}
+        name={`mappings.${index}.transformer.config.includeHyphens`}
+        defaultValue={ih}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
-              <FormLabel>Preserve Domain</FormLabel>
+              <FormLabel>Include Hyphens</FormLabel>
               <FormDescription>
-                Set the length of the output email to be the same as the input
+                Include hyphens in the output phone number. Note: this only
+                works with 10 digit phone numbers.
               </FormDescription>
             </div>
             <FormControl>
               <Switch
-                checked={pd}
+                checked={ih}
                 onCheckedChange={() => {
-                  pd ? setPd(false) : setPd(true);
+                  ih ? setIh(false) : setIh(true);
+                }}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        name={`mappings.${index}.transformer.config.e164Format`}
+        defaultValue={e164}
+        render={() => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+            <div className="space-y-0.5">
+              <FormLabel>Format in E164 Format</FormLabel>
+              <FormDescription>
+                Format the output phone number in the E164 Format. For ex.
+                +1892393573894
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                checked={e164}
+                onCheckedChange={() => {
+                  e164 ? setE164(false) : setE164(true);
                 }}
               />
             </FormControl>
