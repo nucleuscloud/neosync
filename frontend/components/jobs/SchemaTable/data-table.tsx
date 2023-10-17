@@ -165,6 +165,10 @@ export function DataTable<TData, TValue>({
   function updateTree(): void {
     const schemaFilters: string[] = getFiltersById('schema', columnFilters);
     const tableFilters: string[] = getFiltersById('table', columnFilters);
+    var falseOverride = false;
+    if (schemaFilters.length == 0 && tableFilters.length == 0) {
+      falseOverride = true;
+    }
 
     const treedata = Object.keys(schemaMap).map((schema) => {
       const isSchemaSelected =
@@ -174,12 +178,9 @@ export function DataTable<TData, TValue>({
         return {
           id: `${schema}-${table}`,
           name: table,
-          isSelected: isTableSelected(
-            table,
-            schema,
-            tableFilters,
-            schemaFilters
-          ),
+          isSelected: falseOverride
+            ? false
+            : isTableSelected(table, schema, tableFilters, schemaFilters),
         };
       });
       const isSomeTablesSelected = tables.some((t) => t.isSelected);
@@ -187,7 +188,9 @@ export function DataTable<TData, TValue>({
       return {
         id: schema,
         name: schema,
-        isSelected: isSchemaSelected || isSomeTablesSelected,
+        isSelected: falseOverride
+          ? false
+          : isSchemaSelected || isSomeTablesSelected,
         children: tables,
       };
     });
