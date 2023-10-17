@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 /**
  * Props that are available on top-level next.js pages
  * ```ts
@@ -10,4 +12,5 @@ export interface PageProps {
    * You can use this...but it's suggested to instead use the `useSearchParams` hook instead
    */
   searchParams?: Record<string, string | string[]>;
+  children: ReactNode;
 }
