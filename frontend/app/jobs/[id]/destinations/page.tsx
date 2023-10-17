@@ -1,4 +1,5 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
@@ -63,7 +65,9 @@ function NewDestinationButton(props: NewDestinationButtonProps): ReactElement {
   const { jobId } = props;
   return (
     <NextLink href={`/new/job/${jobId}/destination`}>
-      <Button>New Destination</Button>
+      <Button>
+        <ButtonText leftIcon={<PlusIcon />} text="New Destination" />
+      </Button>
     </NextLink>
   );
 }
