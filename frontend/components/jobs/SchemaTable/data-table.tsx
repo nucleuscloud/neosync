@@ -332,11 +332,12 @@ interface FilterSelectProps<TData, TValue> {
 }
 
 function getSortedUniqueFilterValues(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filterValues: Map<any, number>,
   columnId: string
-): unknown[] {
+): string[] {
   if (columnId == 'transformer') {
-    const valueSet = new Set();
+    const valueSet = new Set<string>();
     filterValues.forEach((_, key) => {
       valueSet.add(key.value);
     });
