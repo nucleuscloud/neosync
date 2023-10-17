@@ -12,5 +12,8 @@ export interface PageProps {
    * You can use this...but it's suggested to instead use the `useSearchParams` hook instead
    */
   searchParams?: Record<string, string | string[]>;
+}
+
+export interface LayoutProps extends PageProps {
   children: ReactNode;
 }

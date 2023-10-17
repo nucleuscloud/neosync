@@ -2,7 +2,7 @@
 import { SidebarNav } from '@/components/SideBarNav';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
-import { PageProps } from '@/components/types';
+import { LayoutProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
@@ -10,7 +10,7 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import { useRouter } from 'next/navigation';
 
-export default function SettingsLayout({ children, params }: PageProps) {
+export default function SettingsLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
   const basePath = `/jobs/${params?.id}`;
   const { data, isLoading } = useGetJob(id);
