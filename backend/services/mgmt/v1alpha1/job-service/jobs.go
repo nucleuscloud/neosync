@@ -159,6 +159,50 @@ func (s *Service) GetJobStatus(
 	}), nil
 }
 
+func (s *Service) GetJobStatuses(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobStatusesRequest],
+) (*connect.Response[mgmtv1alpha1.GetJobStatusesResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+	jobs, err := s.db.Q.GetJobsByAccount(ctx, *accountUuid)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, err
+	}
+
+	dtos := make([]*mgmtv1alpha1.JobStatusRecord, len(jobs))
+	group := new(errgroup.Group)
+	for i := range jobs {
+		i := i
+		j := jobs[i]
+		group.Go(func() error {
+			jobId := nucleusdb.UUIDString(j.ID)
+			scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, jobId)
+			schedule, err := scheduleHandle.Describe(ctx)
+			if err != nil {
+				logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+			}
+			dtos[i] = &mgmtv1alpha1.JobStatusRecord{JobId: jobId, Status: dtomaps.ToJobStatus(schedule)}
+			return nil
+		})
+	}
+
+	err = group.Wait()
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job statuses: %w", err).Error())
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetJobStatusesResponse{
+		Statuses: dtos,
+	}), nil
+}
+
 func (s *Service) GetJobRecentRuns(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRecentRunsRequest],

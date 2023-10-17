@@ -236,6 +236,18 @@ message GetJobStatusResponse {
   JobStatus status = 1;
 }
 
+message JobStatusRecord {
+  string job_id = 1;
+  JobStatus status = 2;
+}
+
+message GetJobStatusesRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetJobStatusesResponse {
+  repeated JobStatusRecord statuses = 1;
+}
+
 enum ActivityStatus {
   ACTIVITY_STATUS_UNSPECIFIED = 0;
   ACTIVITY_STATUS_SCHEDULED = 1;
@@ -389,6 +401,7 @@ service JobService {
   rpc GetJobRecentRuns(GetJobRecentRunsRequest) returns (GetJobRecentRunsResponse) {}
   rpc GetJobNextRuns(GetJobNextRunsRequest) returns (GetJobNextRunsResponse) {}
   rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse) {}
+  rpc GetJobStatuses(GetJobStatusesRequest) returns (GetJobStatusesResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}
