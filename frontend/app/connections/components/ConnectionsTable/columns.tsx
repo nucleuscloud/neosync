@@ -12,7 +12,6 @@ import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
-import { statuses } from './schema';
 
 interface GetColumnsProps {
   onConnectionDeleted(id: string): void;
@@ -57,33 +56,6 @@ export function getColumns(
             </span>
           </div>
         );
-      },
-    },
-    {
-      accessorKey: 'status',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Status" />
-      ),
-      cell: ({ row }) => {
-        const status = statuses.find(
-          (status) => status.value === row.getValue('status')
-        );
-
-        if (!status) {
-          return null;
-        }
-
-        return (
-          <div className="flex w-[100px] items-center">
-            {status.icon && (
-              <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-            )}
-            <span>{status.label}</span>
-          </div>
-        );
-      },
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
       },
     },
     {
@@ -159,9 +131,9 @@ function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
   }
   switch (cc.config.case) {
     case 'pgConfig':
-      return 'Database';
+      return 'Postgres';
     case 'awsS3Config':
-      return 'File Storage';
+      return 'AWS S3';
     default:
       return '-';
   }

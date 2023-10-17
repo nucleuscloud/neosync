@@ -3,6 +3,7 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -25,7 +26,6 @@ export function DataTableRowActions<TData>({
   row,
   onDeleted,
 }: DataTableRowActionsProps<TData>) {
-  // const connecton = Connection.fromJson(row.original as JsonValue);
   const connection = row.original as Connection;
   const router = useRouter();
   const { toast } = useToast();
@@ -47,7 +47,7 @@ export function DataTableRowActions<TData>({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -65,10 +65,19 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => onDelete()}>
-          Delete
-          {/* <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut> */}
-        </DropdownMenuItem>
+        <DeleteConfirmationDialog
+          trigger={
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => e.preventDefault()}
+            >
+              Delete
+            </DropdownMenuItem>
+          }
+          headerText="Are you sure you want to delete this connection?"
+          description="Deleting this connection is irreversable!"
+          onConfirm={async () => onDelete()}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
