@@ -46,7 +46,7 @@ func init() {
 
 }
 
-// main plugin logic goes here
+// main transformer logic goes here
 func ProcessPhoneNumber(pn string, preserveLength, e164, includeHyphens bool) (string, error) {
 
 	var returnValue string
@@ -59,7 +59,7 @@ func ProcessPhoneNumber(pn string, preserveLength, e164, includeHyphens bool) (s
 
 		const maxPhoneNum = 9
 
-		val, err := faker.RandomInt(0, maxPhoneNum, len(pn)) // generates len(pn) random numbers from 0 -> 9
+		val, err := GenerateRandomInt(0, maxPhoneNum, len(pn)) // generates len(pn) random numbers from 0 -> 9
 
 		if err != nil {
 			return "", nil

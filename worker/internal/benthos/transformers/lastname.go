@@ -30,7 +30,7 @@ func init() {
 
 }
 
-// main plugin logic goes here
+// main transformer logic goes here
 func ProcessLastName(ln string, preserveLength bool) (string, error) {
 
 	var returnValue string
