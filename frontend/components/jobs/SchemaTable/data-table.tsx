@@ -218,7 +218,7 @@ export function DataTable<TData, TValue>({
       <div className="basis-1/6 min-w-[170px]  pt-[45px] max-h-[300px]">
         <Tree
           data={treeData}
-          className="h-full border"
+          className="h-full"
           onSelectChange={handlefilter}
         />
       </div>

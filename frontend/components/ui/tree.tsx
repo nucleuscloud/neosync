@@ -107,10 +107,9 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
     }
 
     const { ref: refRoot, width, height } = useResizeObserver();
-    console.log('width', width, 'height', height);
 
     return (
-      <div ref={refRoot} className={cn('overflow-hidden ', className)}>
+      <div ref={refRoot} className={className}>
         <ScrollArea style={{ width, height }}>
           {/* <div className="relative p-2"> */}
           <TreeItem
@@ -118,7 +117,6 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
             ref={ref}
             handleSelectChange={handleSelectChange}
             isIndeterminate={isIndeterminate}
-            width={width}
             {...props}
           />
           {/* </div> */}
@@ -134,14 +132,10 @@ type TreeItemProps = React.HTMLAttributes<HTMLDivElement> & {
   onSelectChange?: (items: TreeDataItem[]) => void;
   handleSelectChange: (item: TreeDataItem) => void;
   isIndeterminate: (item: TreeDataItem) => boolean;
-  width?: number;
 };
 
 const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
-  (
-    { className, data, handleSelectChange, isIndeterminate, width, ...props },
-    ref
-  ) => {
+  ({ className, data, handleSelectChange, isIndeterminate, ...props }, ref) => {
     return (
       <div ref={ref} role="tree" className={className} {...props}>
         <ul>
@@ -189,7 +183,6 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                     item={item}
                     handleSelectChange={() => handleSelectChange(item)}
                     indeterminate={isIndeterminate(item)}
-                    width={width}
                   />
                 )}
               </li>
@@ -200,7 +193,6 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                 item={data}
                 handleSelectChange={() => handleSelectChange(data)}
                 indeterminate={isIndeterminate(data)}
-                width={width}
               />
             </li>
           )}
@@ -217,48 +209,42 @@ const Leaf = React.forwardRef<
     item: TreeDataItem;
     handleSelectChange: (item: TreeDataItem | undefined) => void;
     indeterminate: boolean;
-    width?: number;
   }
->(
-  (
-    { className, handleSelectChange, indeterminate, item, width, ...props },
-    ref
-  ) => {
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          'flex items-center py-2 \
+>(({ className, handleSelectChange, indeterminate, item, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        'flex items-center py-2 \
         hover:before:opacity-100 before:absolute before:left-0 before:right-1 before:w-full before:opacity-0 before:bg-muted/80 before:h-[1.75rem] before:-z-10',
-          className
-        )}
-        {...props}
-      >
-        <div className={`flex items-center space-x-2`}>
-          <Checkbox
-            id={item.id}
-            onClick={() => handleSelectChange(item)}
-            checked={item.isSelected}
-            indeterminate={indeterminate}
-          />
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <label
-                  htmlFor={item.id}
-                  className={`text-sm font-medium truncate w-[${50}px]`}
-                >
-                  {item.name}
-                </label>
-              </TooltipTrigger>
-              <TooltipContent>{item.name}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        className
+      )}
+      {...props}
+    >
+      <div className={`flex items-center space-x-2`}>
+        <Checkbox
+          id={item.id}
+          onClick={() => handleSelectChange(item)}
+          checked={item.isSelected}
+          indeterminate={indeterminate}
+        />
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <label
+                htmlFor={item.id}
+                className={`text-sm font-medium truncate`}
+              >
+                {item.name}
+              </label>
+            </TooltipTrigger>
+            <TooltipContent>{item.name}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
-    );
-  }
-);
+    </div>
+  );
+});
 Leaf.displayName = 'Leaf';
 
 const AccordionTrigger = React.forwardRef<
