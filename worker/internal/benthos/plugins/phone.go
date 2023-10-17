@@ -13,7 +13,7 @@ func init() {
 
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("preserve_length")).
-		Param(bloblang.NewBoolParam("E164_format")).
+		Param(bloblang.NewBoolParam("e164_format")).
 		Param(bloblang.NewBoolParam("include_hyphens"))
 
 	// register the plugin
@@ -29,13 +29,13 @@ func init() {
 			return nil, err
 		}
 
-		e164, err := args.GetBool("E164_format")
+		e164, err := args.GetBool("e164_format")
 		if err != nil {
 			return nil, err
 		}
 
 		return bloblang.StringMethod(func(s string) (any, error) {
-			res, err := ProcessPhoneNumber(s, preserveLength, includeHyphens, e164)
+			res, err := ProcessPhoneNumber(s, preserveLength, e164, includeHyphens)
 			return res, err
 		}), nil
 	})
@@ -47,7 +47,7 @@ func init() {
 }
 
 // main plugin logic goes here
-func ProcessPhoneNumber(pn string, preserveLength, includeHyphens, e164 bool) (string, error) {
+func ProcessPhoneNumber(pn string, preserveLength, e164, includeHyphens bool) (string, error) {
 
 	var returnValue string
 
@@ -72,7 +72,7 @@ func ProcessPhoneNumber(pn string, preserveLength, includeHyphens, e164 bool) (s
 	} else if !preserveLength && !includeHyphens && e164 {
 
 		// outputs in e164 format -> [+][country_code][subscribe number including area code] with no 0 for country code, for ex. +873104859612, regex: ^\+[1-9]\d{1,14}$
-		faker.E164PhoneNumber()
+		returnValue = faker.E164PhoneNumber()
 
 	} else {
 

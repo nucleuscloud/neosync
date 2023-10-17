@@ -1,6 +1,7 @@
 package neosync_plugins
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -18,7 +19,7 @@ func TestProcessPhoneNumber(t *testing.T) {
 		expectedLength  int
 	}{
 		{"6183849282", false, false, false, 0},    // check base phone number generation
-		{"6183849282", true, false, false, 10},    // checks preserve length
+		{"618384928322", true, false, false, 10},  // checks preserve length
 		{"739-892-9234", false, false, true, 0},   // checks hyphens
 		{"+1892393573894", false, true, false, 0}, // checks e164 format
 	}
@@ -29,15 +30,17 @@ func TestProcessPhoneNumber(t *testing.T) {
 		assert.NoError(t, err)
 
 		if tt.preserveLength && !tt.e164_format && !tt.include_hyphens {
-			assert.Equal(t, res, tt.expectedLength)
+			assert.Equal(t, len(strings.ReplaceAll(res, "-", "")), tt.expectedLength)
 		}
 
-		if tt.e164_format {
+		if tt.e164_format && !tt.preserveLength && !tt.include_hyphens {
+
+			fmt.Println("res", res)
 			assert.Equal(t, Validatee164(res), Validatee164("+1892393573894"))
 		}
 
 		if !tt.preserveLength && !tt.e164_format && !tt.include_hyphens {
-			assert.Equal(t, len(res), len("618-384-9282"))
+			assert.Equal(t, len(res), len("6183849282"))
 		}
 
 		if !tt.preserveLength && !tt.e164_format && tt.include_hyphens {
@@ -49,6 +52,7 @@ func TestProcessPhoneNumber(t *testing.T) {
 }
 
 func Validatee164(p string) bool {
+
 	if len(p) >= 10 && len(p) <= 15 && strings.Contains(p, "+") {
 		return true
 	}
@@ -56,7 +60,7 @@ func Validatee164(p string) bool {
 }
 
 func TestPhoneNumberTransformer(t *testing.T) {
-	mapping := `root = this.phonetransformer(true, true, false)`
+	mapping := `root = this.phonetransformer(true, false, true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
@@ -66,5 +70,4 @@ func TestPhoneNumberTransformer(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Len(t, res.(string), len(testVal), "Generated phone number must be the same length as the input phone number")
-	assert.Equal(t, strings.Split(res.(string), "@")[1], "gmail.com")
 }
