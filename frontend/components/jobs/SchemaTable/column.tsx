@@ -160,7 +160,10 @@ export function getColumns(
         );
       },
       enableColumnFilter: true,
-      filterFn: 'arrIncludesSome',
+      filterFn: (row, id, value) => {
+        const rowValue = row.getValue(id) as Transformer;
+        return value.includes(rowValue.value);
+      },
     },
   ];
 }

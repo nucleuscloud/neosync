@@ -165,6 +165,10 @@ export function DataTable<TData, TValue>({
   function updateTree(): void {
     const schemaFilters: string[] = getFiltersById('schema', columnFilters);
     const tableFilters: string[] = getFiltersById('table', columnFilters);
+    var falseOverride = false;
+    if (schemaFilters.length == 0 && tableFilters.length == 0) {
+      falseOverride = true;
+    }
 
     const treedata = Object.keys(schemaMap).map((schema) => {
       const isSchemaSelected =
@@ -174,12 +178,9 @@ export function DataTable<TData, TValue>({
         return {
           id: `${schema}-${table}`,
           name: table,
-          isSelected: isTableSelected(
-            table,
-            schema,
-            tableFilters,
-            schemaFilters
-          ),
+          isSelected: falseOverride
+            ? false
+            : isTableSelected(table, schema, tableFilters, schemaFilters),
         };
       });
       const isSomeTablesSelected = tables.some((t) => t.isSelected);
@@ -187,7 +188,9 @@ export function DataTable<TData, TValue>({
       return {
         id: schema,
         name: schema,
-        isSelected: isSchemaSelected || isSomeTablesSelected,
+        isSelected: falseOverride
+          ? false
+          : isSchemaSelected || isSomeTablesSelected,
         children: tables,
       };
     });
@@ -328,6 +331,21 @@ interface FilterSelectProps<TData, TValue> {
   onSelect: () => void;
 }
 
+function getSortedUniqueFilterValues(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  filterValues: Map<any, number>,
+  columnId: string
+): string[] {
+  if (columnId == 'transformer') {
+    const valueSet = new Set<string>();
+    filterValues.forEach((_, key) => {
+      valueSet.add(key.value);
+    });
+    return Array.from(valueSet).sort();
+  }
+  return Array.from(filterValues.keys()).sort();
+}
+
 function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
   const { column, transformers, onSelect } = props;
   const [open, setOpen] = React.useState(false);
@@ -335,7 +353,8 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
   const columnFilterValue = (column.getFilterValue() as string[]) || [];
 
   const sortedUniqueValues = React.useMemo(
-    () => Array.from(column.getFacetedUniqueValues().keys()).sort(),
+    () =>
+      getSortedUniqueFilterValues(column.getFacetedUniqueValues(), column.id),
     [column.getFacetedUniqueValues()]
   );
 
