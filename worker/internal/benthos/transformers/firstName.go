@@ -1,4 +1,4 @@
-package neosync_plugins
+package neosync_transformers
 
 import (
 	"github.com/benthosdev/benthos/v4/public/bloblang"
