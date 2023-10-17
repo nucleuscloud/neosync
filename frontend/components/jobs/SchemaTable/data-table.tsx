@@ -328,6 +328,20 @@ interface FilterSelectProps<TData, TValue> {
   onSelect: () => void;
 }
 
+function getSortedUniqueFilterValues(
+  filterValues: Map<any, number>,
+  columnId: string
+): unknown[] {
+  if (columnId == 'transformer') {
+    const valueSet = new Set();
+    filterValues.forEach((_, key) => {
+      valueSet.add(key.value);
+    });
+    return Array.from(valueSet).sort();
+  }
+  return Array.from(filterValues.keys()).sort();
+}
+
 function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
   const { column, transformers, onSelect } = props;
   const [open, setOpen] = React.useState(false);
@@ -335,7 +349,8 @@ function FilterSelect<TData, TValue>(props: FilterSelectProps<TData, TValue>) {
   const columnFilterValue = (column.getFilterValue() as string[]) || [];
 
   const sortedUniqueValues = React.useMemo(
-    () => Array.from(column.getFacetedUniqueValues().keys()).sort(),
+    () =>
+      getSortedUniqueFilterValues(column.getFacetedUniqueValues(), column.id),
     [column.getFacetedUniqueValues()]
   );
 

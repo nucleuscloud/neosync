@@ -161,6 +161,10 @@ export function getColumns(
       },
       enableColumnFilter: true,
       filterFn: 'arrIncludesSome',
+      // filterFn: (row, id, value) => {
+      //   console.log('row', row, 'id', id, 'value', value);
+      //   return value.includes(row.getValue(id));
+      // },
     },
   ];
 }
