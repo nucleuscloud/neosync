@@ -15,6 +15,7 @@ import EmailTransformerForm from './forms/EmailTransformerForm';
 import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
 import FullNameTransformerForm from './forms/FullnameTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
+import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
 
 interface Props {
@@ -137,6 +138,13 @@ function handleTransformerForm(
     case 'full_name':
       return (
         <FullNameTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
+    case 'phone_number':
+      return (
+        <PhoneNumberTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
         />

@@ -57,7 +57,15 @@ func (s *Service) GetTransformers(
 					},
 				},
 			}},
-			{Value: string(PhoneNumber), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(PhoneNumber), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_PhoneNumberConfig{
+					PhoneNumberConfig: &mgmtv1alpha1.PhoneNumber{
+						PreserveLength: false,
+						E164Format:     false,
+						IncludeHyphens: false,
+					},
+				},
+			}},
 			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{
 				Value: string(Email),

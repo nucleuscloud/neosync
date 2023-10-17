@@ -383,7 +383,11 @@ message FullName {
   bool preserve_length = 1;
 }
 
-message PhoneNumber {}
+message PhoneNumber {
+  bool preserve_length = 1;
+  bool e164_format = 2;
+  bool include_hyphens = 3;
+}
 message Null {}
 
 service JobService {

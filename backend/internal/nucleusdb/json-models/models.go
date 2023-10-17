@@ -222,6 +222,9 @@ type UuidConfig struct {
 	IncludeHyphen bool
 }
 type PhoneNumberConfig struct {
+	IncludeHyphens bool
+	E164Format     bool
+	PreserveLength bool
 }
 type PassthroughConfig struct {
 }
@@ -276,7 +279,11 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 	case *mgmtv1alpha1.TransformerConfig_PhoneNumberConfig:
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
-			PhoneNumber: &PhoneNumberConfig{},
+			PhoneNumber: &PhoneNumberConfig{
+				IncludeHyphens: tr.Config.GetPhoneNumberConfig().IncludeHyphens,
+				E164Format:     tr.Config.GetPhoneNumberConfig().E164Format,
+				PreserveLength: tr.Config.GetPhoneNumberConfig().PreserveLength,
+			},
 		}
 	case *mgmtv1alpha1.TransformerConfig_NullConfig:
 		t.Value = tr.Value
@@ -354,7 +361,11 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 			Value: t.Value,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_PhoneNumberConfig{
-					PhoneNumberConfig: &mgmtv1alpha1.PhoneNumber{},
+					PhoneNumberConfig: &mgmtv1alpha1.PhoneNumber{
+						PreserveLength: t.Config.PhoneNumber.PreserveLength,
+						E164Format:     t.Config.PhoneNumber.E164Format,
+						IncludeHyphens: t.Config.PhoneNumber.IncludeHyphens,
+					},
 				},
 			},
 		}
