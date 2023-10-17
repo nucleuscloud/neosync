@@ -1,4 +1,5 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -98,8 +99,8 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
             <div className="flex flex-row space-x-4">
               <DeleteConfirmationDialog
                 trigger={
-                  <Button variant="destructive" size="icon">
-                    <TrashIcon />
+                  <Button variant="destructive">
+                    <ButtonText leftIcon={<TrashIcon />} text="Delete Job" />
                   </Button>
                 }
                 headerText="Are you sure you want to delete this job?"
