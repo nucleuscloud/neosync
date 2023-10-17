@@ -1,4 +1,5 @@
 'use client';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import SubPageHeader from '@/components/headers/SubPageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { LayoutProps } from '@/components/types';
@@ -8,6 +9,7 @@ import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import { TrashIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -28,6 +30,25 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
       console.error(err);
       toast({
         title: 'Unable to trigger job run',
+        description: getErrorMessage(err),
+      });
+    }
+  }
+
+  async function onDelete(): Promise<void> {
+    if (!id) {
+      return;
+    }
+    try {
+      await removeJob(id);
+      toast({
+        title: 'Job removed successfully!',
+      });
+      router.push('/jobs');
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to remove job',
         description: getErrorMessage(err),
       });
     }
@@ -74,7 +95,19 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
           header={data?.job?.name || ''}
           description={data?.job?.id || ''}
           extraHeading={
-            <Button onClick={() => onTriggerJobRun()}>Trigger Run</Button>
+            <div className="flex flex-row space-x-4">
+              <DeleteConfirmationDialog
+                trigger={
+                  <Button variant="destructive" size="icon">
+                    <TrashIcon />
+                  </Button>
+                }
+                headerText="Are you sure you want to delete this job?"
+                description="Deleting this job will also delete all job runs."
+                onConfirm={async () => onDelete()}
+              />
+              <Button onClick={() => onTriggerJobRun()}>Trigger Run</Button>
+            </div>
           }
         />
       </div>
@@ -84,6 +117,17 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
       </div>
     </div>
   );
+}
+
+async function removeJob(jobId: string): Promise<void> {
+  const res = await fetch(`/api/jobs/${jobId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  await res.json();
 }
 
 async function triggerJobRun(jobId: string): Promise<void> {
