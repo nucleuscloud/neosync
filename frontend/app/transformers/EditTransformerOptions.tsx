@@ -173,7 +173,7 @@ function handleTransformerForm(
   return <div></div>;
 }
 
-function handleTransformerMetadata(
+export function handleTransformerMetadata(
   t: Transformer | undefined
 ): TransformerMetadata {
   const tEntries: Record<string, TransformerMetadata>[] = [
@@ -222,6 +222,12 @@ function handleTransformerMetadata(
         name: 'Passthrough',
         description:
           'Passes the input value through to the desination with no changes.',
+      },
+    },
+    {
+      null: {
+        name: 'Null',
+        description: 'Inserts a <null> string instead of the source value.',
       },
     },
   ];
