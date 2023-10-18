@@ -3167,7 +3167,13 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "intPhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 9;
+     * @generated from field: mgmt.v1alpha1.GenericString string_config = 9;
+     */
+    value: GenericString;
+    case: "stringConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 10;
      */
     value: Null;
     case: "nullConfig";
@@ -3189,7 +3195,8 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 6, name: "full_name_config", kind: "message", T: FullName, oneof: "config" },
     { no: 7, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
     { no: 8, name: "int_phone_number_config", kind: "message", T: IntPhoneNumber, oneof: "config" },
-    { no: 9, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 9, name: "string_config", kind: "message", T: GenericString, oneof: "config" },
+    { no: 10, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3516,6 +3523,81 @@ export class IntPhoneNumber extends Message<IntPhoneNumber> {
     return proto3.util.equals(IntPhoneNumber, a, b);
   }
 }
+
+/**
+ * @generated from message mgmt.v1alpha1.GenericString
+ */
+export class GenericString extends Message<GenericString> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
+  /**
+   * @generated from field: int64 str_length = 2;
+   */
+  strLength = protoInt64.zero;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.GenericString.StringCase str_case = 3;
+   */
+  strCase = GenericString_StringCase.UPPER;
+
+  constructor(data?: PartialMessage<GenericString>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GenericString";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "str_length", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "str_case", kind: "enum", T: proto3.getEnumType(GenericString_StringCase) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenericString {
+    return new GenericString().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenericString {
+    return new GenericString().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenericString {
+    return new GenericString().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GenericString | PlainMessage<GenericString> | undefined, b: GenericString | PlainMessage<GenericString> | undefined): boolean {
+    return proto3.util.equals(GenericString, a, b);
+  }
+}
+
+/**
+ * @generated from enum mgmt.v1alpha1.GenericString.StringCase
+ */
+export enum GenericString_StringCase {
+  /**
+   * @generated from enum value: UPPER = 0;
+   */
+  UPPER = 0,
+
+  /**
+   * @generated from enum value: LOWER = 1;
+   */
+  LOWER = 1,
+
+  /**
+   * @generated from enum value: TITLE = 2;
+   */
+  TITLE = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GenericString_StringCase)
+proto3.util.setEnumType(GenericString_StringCase, "mgmt.v1alpha1.GenericString.StringCase", [
+  { no: 0, name: "UPPER" },
+  { no: 1, name: "LOWER" },
+  { no: 2, name: "TITLE" },
+]);
 
 /**
  * @generated from message mgmt.v1alpha1.Null
