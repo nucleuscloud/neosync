@@ -1,4 +1,4 @@
-package dbschemas_postgres
+package dbschemas_mysql
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-	"golang.org/x/sync/errgroup"
 )
 
 type DatabaseSchema struct {
@@ -127,29 +126,43 @@ func getDatabaseTableSchema(
 }
 
 type DatabaseTableConstraint struct {
-	Schema               string `db:"db_schema"`
-	Table                string `db:"table_name"`
-	ConstraintName       string `db:"constraint_name"`
-	ConstraintDefinition string `db:"constraint_definition"`
+	Schema            string `db:"db_schema"`
+	Table             string `db:"table_name"`
+	ConstraintName    string `db:"constraint_name"`
+	ColumnName        string `db:"column_name"`
+	ForeignSchemaName string `db:"foreign_schema_name"`
+	ForeignTableName  string `db:"foreign_table_name"`
+	ForeignColumnName string `db:"foreign_column_name"`
+	UpdateRule        string `db:"update_rule"`
+	DeleteRule        string `db:"delete_rule"`
 }
 
 const (
 	getTableConstraintsSql = `-- name: GetTableConstraints
-SELECT
-    nsp.nspname AS db_schema,
-    rel.relname AS table_name,
-    con.conname AS constraint_name,
-    pg_get_constraintdef(con.oid) AS constraint_definition
-FROM
-    pg_catalog.pg_constraint con
-INNER JOIN pg_catalog.pg_class rel
-                       ON
-    rel.oid = con.conrelid
-INNER JOIN pg_catalog.pg_namespace nsp
-                       ON
-    nsp.oid = connamespace
+	SELECT
+	kcu.constraint_name
+	,
+	kcu.table_schema AS db_schema
+	,
+	kcu.table_name as table_name
+	,
+	kcu.column_name as column_name
+	,
+	kcu.referenced_table_schema AS foreign_schema_name
+	,
+	kcu.referenced_table_name AS foreign_table_name
+	,
+	kcu.referenced_column_name AS foreign_column_name
+	,
+	rc.update_rule
+	,
+	rc.delete_rule
+FROM information_schema.key_column_usage kcu
+LEFT JOIN information_schema.referential_constraints rc
+	ON
+	kcu.constraint_name = rc.constraint_name
 WHERE
-    nsp.nspname = $1 AND rel.relname = $2;
+	kcu.table_schema = $1 AND kcu.table_name = $2;
 `
 )
 
@@ -173,7 +186,12 @@ func GetTableConstraints(
 			&o.Schema,
 			&o.Table,
 			&o.ConstraintName,
-			&o.ConstraintDefinition,
+			&o.ColumnName,
+			&o.ForeignSchemaName,
+			&o.ForeignTableName,
+			&o.ForeignColumnName,
+			&o.UpdateRule,
+			&o.DeleteRule,
 		)
 		if err != nil {
 			return nil, err
@@ -181,6 +199,36 @@ func GetTableConstraints(
 		output = append(output, &o)
 	}
 	return output, nil
+}
+
+type DatabaseTableShowCreate struct {
+	Table       string `db:"table"`
+	CreateTable string `db:"create table"`
+}
+
+const (
+	getShowTableCreateSql = `-- name: GetShowTableCreate
+	SHOW CREATE TABLE $1;
+`
+)
+
+func getShowTableCreate(
+	ctx context.Context,
+	conn DBTX,
+	schema string,
+	table string,
+) (*DatabaseTableShowCreate, error) {
+	row := conn.QueryRow(ctx, getShowTableCreateSql, fmt.Sprintf("%s.%s", schema, table))
+
+	var output DatabaseTableShowCreate
+	err := row.Scan(
+		&output.Table,
+		&output.CreateTable,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &output, nil
 }
 
 func isNoRows(err error) bool {
@@ -210,57 +258,11 @@ func GetTableCreateStatement(
 	conn DBTX,
 	req *GetTableCreateStatementRequest,
 ) (string, error) {
-	errgrp, errctx := errgroup.WithContext(ctx)
-
-	var tableSchemas []*DatabaseSchema
-	errgrp.Go(func() error {
-		result, err := getDatabaseTableSchema(errctx, conn, req.Schema, req.Table)
-		if err != nil {
-			return fmt.Errorf("unable to generate database table schema: %w", err)
-		}
-		tableSchemas = result
-		return nil
-	})
-	var tableConstraints []*DatabaseTableConstraint
-	errgrp.Go(func() error {
-		result, err := GetTableConstraints(errctx, conn, req.Schema, req.Table)
-		if err != nil {
-			return fmt.Errorf("unable to generate table constraints: %w", err)
-		}
-		tableConstraints = result
-		return nil
-	})
-	if err := errgrp.Wait(); err != nil {
-		return "", err
+	result, err := getShowTableCreate(ctx, conn, req.Schema, req.Table)
+	if err != nil {
+		return "", fmt.Errorf("unable to get table create statement: %w", err)
 	}
-
-	return generateCreateTableStatement(
-		req.Schema,
-		req.Table,
-		tableSchemas,
-		tableConstraints,
-	), nil
-}
-
-// This assumes that the schemas and constraints as for a single table, not an entire db schema
-func generateCreateTableStatement(
-	schema string,
-	table string,
-	tableSchemas []*DatabaseSchema,
-	tableConstraints []*DatabaseTableConstraint,
-) string {
-	columns := make([]string, len(tableSchemas))
-	for idx := range tableSchemas {
-		record := tableSchemas[idx]
-		columns[idx] = buildTableCol(record)
-	}
-	constraints := make([]string, len(tableConstraints))
-	for idx := range tableConstraints {
-		constraint := tableConstraints[idx]
-		constraints[idx] = fmt.Sprintf("CONSTRAINT %s %s", constraint.ConstraintName, constraint.ConstraintDefinition)
-	}
-	tableDefs := append(columns, constraints...) //nolint
-	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.%s (%s);`, schema, table, strings.Join(tableDefs, ", "))
+	return result.CreateTable, nil
 }
 
 func buildTableCol(record *DatabaseSchema) string {
@@ -279,30 +281,34 @@ func buildNullableText(record *DatabaseSchema) string {
 
 const (
 	fkConstraintSql = `--getForeignKeyConstraints
-	SELECT
-	rc.constraint_name
-	,
-	kcu.table_schema AS schema_name
-	,
-	kcu.table_name as table_name
-	,
-	kcu.column_name as column_name
-	,
-	kcu.referenced_table_schema AS foreign_schema_name
-	,
-	kcu.referenced_table_name AS foreign_table_name
-	,
-	kcu.referenced_column_name AS foreign_column_name
+SELECT
+    rc.constraint_name
+    ,
+    kcu.table_schema AS schema_name
+    ,
+    kcu.table_name
+    ,
+    kcu.column_name
+    ,
+    kcu2.table_schema AS foreign_schema_name
+    ,
+    kcu2.table_name AS foreign_table_name
+    ,
+    kcu2.column_name AS foreign_column_name
 FROM
-	information_schema.referential_constraints rc
+    information_schema.referential_constraints rc
 JOIN information_schema.key_column_usage kcu
-	ON
-	kcu.constraint_name = rc.constraint_name
+    ON
+    kcu.constraint_name = rc.constraint_name
+JOIN information_schema.key_column_usage kcu2
+    ON
+    kcu2.ordinal_position = kcu.position_in_unique_constraint
+    AND kcu2.constraint_name = rc.unique_constraint_name
 WHERE
-	kcu.table_schema = $1 
+    kcu.table_schema = $1
 ORDER BY
-	rc.constraint_name,
-	kcu.ordinal_position;
+    rc.constraint_name,
+    kcu.ordinal_position;
 	`
 )
 
@@ -352,7 +358,7 @@ func GetForeignKeyConstraints(
 type TableDependency = map[string][]string
 
 // Key is schema.table value is list of tables that key depends on
-func GetPostgresTableDependencies(
+func GetMysqlTableDependencies(
 	constraints []*ForeignKeyConstraint,
 ) TableDependency {
 	tdmap := map[string][]string{}

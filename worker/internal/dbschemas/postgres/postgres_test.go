@@ -97,6 +97,25 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 	)
 }
 
+func TestGetUniqueSchemaColMappings(t *testing.T) {
+	mappings := GetUniqueSchemaColMappings(
+		[]*DatabaseSchema{
+			{TableSchema: "public", TableName: "users", ColumnName: "id"},
+			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},
+			{TableSchema: "public", TableName: "users", ColumnName: "updated_by"},
+
+			{TableSchema: "neosync_api", TableName: "accounts", ColumnName: "id"},
+		},
+	)
+	assert.Contains(t, mappings, "public.users", "job mappings are a subset of the present database schemas")
+	assert.Contains(t, mappings, "neosync_api.accounts", "job mappings are a subset of the present database schemas")
+	assert.Contains(t, mappings["public.users"], "id", "")
+	assert.Contains(t, mappings["public.users"], "created_by", "")
+	assert.Contains(t, mappings["public.users"], "updated_by", "")
+	assert.Contains(t, mappings["neosync_api.accounts"], "id", "")
+
+}
+
 func strPtr(val string) *string {
 	return &val
 }

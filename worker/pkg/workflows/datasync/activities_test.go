@@ -12,14 +12,17 @@ import (
 	"go.temporal.io/sdk/testsuite"
 )
 
-func TestAreMappingsSubsetFoSchemas(t *testing.T) {
+func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	ok := areMappingsSubsetOfSchemas(
-		[]*dbschemas_postgres.DatabaseSchema{
-			{TableSchema: "public", TableName: "users", ColumnName: "id"},
-			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},
-			{TableSchema: "public", TableName: "users", ColumnName: "updated_by"},
-
-			{TableSchema: "neosync_api", TableName: "accounts", ColumnName: "id"},
+		map[string]map[string]struct{}{
+			"public.users": {
+				"id":         struct{}{},
+				"created_by": struct{}{},
+				"updated_by": struct{}{},
+			},
+			"neosync_api.accounts": {
+				"id": struct{}{},
+			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
 			{Schema: "public", Table: "users", Column: "id"},
@@ -29,8 +32,10 @@ func TestAreMappingsSubsetFoSchemas(t *testing.T) {
 	assert.True(t, ok, "job mappings are a subset of the present database schemas")
 
 	ok = areMappingsSubsetOfSchemas(
-		[]*dbschemas_postgres.DatabaseSchema{
-			{TableSchema: "public", TableName: "users", ColumnName: "id"},
+		map[string]map[string]struct{}{
+			"public.users": {
+				"id": struct{}{},
+			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
 			{Schema: "public", Table: "users", Column: "id2"},
@@ -39,8 +44,10 @@ func TestAreMappingsSubsetFoSchemas(t *testing.T) {
 	assert.False(t, ok, "job mappings contain mapping that is not in the source schema")
 
 	ok = areMappingsSubsetOfSchemas(
-		[]*dbschemas_postgres.DatabaseSchema{
-			{TableSchema: "public", TableName: "users", ColumnName: "id"},
+		map[string]map[string]struct{}{
+			"public.users": {
+				"id": struct{}{},
+			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
 			{Schema: "public", Table: "users", Column: "id"},
@@ -52,9 +59,11 @@ func TestAreMappingsSubsetFoSchemas(t *testing.T) {
 
 func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	ok := shouldHaltOnSchemaAddition(
-		[]*dbschemas_postgres.DatabaseSchema{
-			{TableSchema: "public", TableName: "users", ColumnName: "id"},
-			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},
+		map[string]map[string]struct{}{
+			"public.users": {
+				"id": struct{}{},
+				"created_by": struct{}{},
+			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
 			{Schema: "public", Table: "users", Column: "id"},
@@ -64,11 +73,14 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	assert.False(t, ok, "job mappings are valid set of database schemas")
 
 	ok = shouldHaltOnSchemaAddition(
-		[]*dbschemas_postgres.DatabaseSchema{
-			{TableSchema: "public", TableName: "users", ColumnName: "id"},
-			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},
-
-			{TableSchema: "neosync_api", TableName: "accounts", ColumnName: "id"},
+		map[string]map[string]struct{}{
+			"public.users": {
+				"id":         struct{}{},
+				"created_by": struct{}{},
+			},
+			"neosync_api.accounts": {
+				"id": struct{}{},
+			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
 			{Schema: "public", Table: "users", Column: "id"},
@@ -78,9 +90,11 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	assert.True(t, ok, "job mappings are missing database schema mappings")
 
 	ok = shouldHaltOnSchemaAddition(
-		[]*dbschemas_postgres.DatabaseSchema{
-			{TableSchema: "public", TableName: "users", ColumnName: "id"},
-			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},
+		map[string]map[string]struct{}{
+			"public.users": {
+				"id":         struct{}{},
+				"created_by": struct{}{},
+			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
 			{Schema: "public", Table: "users", Column: "id"},
@@ -89,10 +103,12 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	assert.True(t, ok, "job mappings are missing table column")
 
 	ok = shouldHaltOnSchemaAddition(
-		[]*dbschemas_postgres.DatabaseSchema{
-			{TableSchema: "public", TableName: "users", ColumnName: "id"},
-			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},
-		},
+		map[string]map[string]struct{}{
+			"public.users": {
+				"id":         struct{}{},
+				"created_by": struct{}{},
+			},
+		},,
 		[]*mgmtv1alpha1.JobMapping{
 			{Schema: "public", Table: "users", Column: "id"},
 			{Schema: "public", Table: "users", Column: "updated_by"},
