@@ -566,6 +566,12 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
      */
     value: AwsS3ConnectionConfig;
     case: "awsS3Config";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MysqlConnectionConfig mysql_config = 3;
+     */
+    value: MysqlConnectionConfig;
+    case: "mysqlConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionConfig>) {
@@ -578,6 +584,7 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "pg_config", kind: "message", T: PostgresConnectionConfig, oneof: "config" },
     { no: 2, name: "aws_s3_config", kind: "message", T: AwsS3ConnectionConfig, oneof: "config" },
+    { no: 3, name: "mysql_config", kind: "message", T: MysqlConnectionConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfig {
@@ -711,6 +718,123 @@ export class PostgresConnection extends Message<PostgresConnection> {
 
   static equals(a: PostgresConnection | PlainMessage<PostgresConnection> | undefined, b: PostgresConnection | PlainMessage<PostgresConnection> | undefined): boolean {
     return proto3.util.equals(PostgresConnection, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MysqlConnection
+ */
+export class MysqlConnection extends Message<MysqlConnection> {
+  /**
+   * @generated from field: string username = 1;
+   */
+  username = "";
+
+  /**
+   * @generated from field: string password = 2;
+   */
+  password = "";
+
+  /**
+   * @generated from field: string protocol = 3;
+   */
+  protocol = "";
+
+  /**
+   * @generated from field: string host = 4;
+   */
+  host = "";
+
+  /**
+   * @generated from field: int32 port = 5;
+   */
+  port = 0;
+
+  /**
+   * @generated from field: string db_name = 6;
+   */
+  dbName = "";
+
+  constructor(data?: PartialMessage<MysqlConnection>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MysqlConnection";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "username", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "password", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "protocol", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "host", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "port", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 6, name: "db_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlConnection {
+    return new MysqlConnection().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MysqlConnection {
+    return new MysqlConnection().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MysqlConnection {
+    return new MysqlConnection().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MysqlConnection | PlainMessage<MysqlConnection> | undefined, b: MysqlConnection | PlainMessage<MysqlConnection> | undefined): boolean {
+    return proto3.util.equals(MysqlConnection, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MysqlConnectionConfig
+ */
+export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.MysqlConnectionConfig.connection_config
+   */
+  connectionConfig: {
+    /**
+     * @generated from field: string url = 1;
+     */
+    value: string;
+    case: "url";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MysqlConnection connection = 2;
+     */
+    value: MysqlConnection;
+    case: "connection";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<MysqlConnectionConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MysqlConnectionConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
+    { no: 2, name: "connection", kind: "message", T: MysqlConnection, oneof: "connection_config" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlConnectionConfig {
+    return new MysqlConnectionConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MysqlConnectionConfig {
+    return new MysqlConnectionConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MysqlConnectionConfig {
+    return new MysqlConnectionConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MysqlConnectionConfig | PlainMessage<MysqlConnectionConfig> | undefined, b: MysqlConnectionConfig | PlainMessage<MysqlConnectionConfig> | undefined): boolean {
+    return proto3.util.equals(MysqlConnectionConfig, a, b);
   }
 }
 

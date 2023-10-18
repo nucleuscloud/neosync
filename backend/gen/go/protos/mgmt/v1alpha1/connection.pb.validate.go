@@ -1788,6 +1788,47 @@ func (m *ConnectionConfig) validate(all bool) error {
 			}
 		}
 
+	case *ConnectionConfig_MysqlConfig:
+		if v == nil {
+			err := ConnectionConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMysqlConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ConnectionConfigValidationError{
+						field:  "MysqlConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ConnectionConfigValidationError{
+						field:  "MysqlConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMysqlConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ConnectionConfigValidationError{
+					field:  "MysqlConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -2145,6 +2186,278 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PostgresConnectionValidationError{}
+
+// Validate checks the field values on MysqlConnection with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *MysqlConnection) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MysqlConnection with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MysqlConnectionMultiError, or nil if none found.
+func (m *MysqlConnection) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MysqlConnection) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Username
+
+	// no validation rules for Password
+
+	// no validation rules for Protocol
+
+	// no validation rules for Host
+
+	// no validation rules for Port
+
+	// no validation rules for DbName
+
+	if len(errors) > 0 {
+		return MysqlConnectionMultiError(errors)
+	}
+
+	return nil
+}
+
+// MysqlConnectionMultiError is an error wrapping multiple validation errors
+// returned by MysqlConnection.ValidateAll() if the designated constraints
+// aren't met.
+type MysqlConnectionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MysqlConnectionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MysqlConnectionMultiError) AllErrors() []error { return m }
+
+// MysqlConnectionValidationError is the validation error returned by
+// MysqlConnection.Validate if the designated constraints aren't met.
+type MysqlConnectionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MysqlConnectionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MysqlConnectionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MysqlConnectionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MysqlConnectionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MysqlConnectionValidationError) ErrorName() string { return "MysqlConnectionValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MysqlConnectionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMysqlConnection.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MysqlConnectionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MysqlConnectionValidationError{}
+
+// Validate checks the field values on MysqlConnectionConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MysqlConnectionConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MysqlConnectionConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MysqlConnectionConfigMultiError, or nil if none found.
+func (m *MysqlConnectionConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MysqlConnectionConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	switch v := m.ConnectionConfig.(type) {
+	case *MysqlConnectionConfig_Url:
+		if v == nil {
+			err := MysqlConnectionConfigValidationError{
+				field:  "ConnectionConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Url
+	case *MysqlConnectionConfig_Connection:
+		if v == nil {
+			err := MysqlConnectionConfigValidationError{
+				field:  "ConnectionConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetConnection()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, MysqlConnectionConfigValidationError{
+						field:  "Connection",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, MysqlConnectionConfigValidationError{
+						field:  "Connection",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetConnection()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return MysqlConnectionConfigValidationError{
+					field:  "Connection",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return MysqlConnectionConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// MysqlConnectionConfigMultiError is an error wrapping multiple validation
+// errors returned by MysqlConnectionConfig.ValidateAll() if the designated
+// constraints aren't met.
+type MysqlConnectionConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MysqlConnectionConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MysqlConnectionConfigMultiError) AllErrors() []error { return m }
+
+// MysqlConnectionConfigValidationError is the validation error returned by
+// MysqlConnectionConfig.Validate if the designated constraints aren't met.
+type MysqlConnectionConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MysqlConnectionConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MysqlConnectionConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MysqlConnectionConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MysqlConnectionConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MysqlConnectionConfigValidationError) ErrorName() string {
+	return "MysqlConnectionConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MysqlConnectionConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMysqlConnectionConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MysqlConnectionConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MysqlConnectionConfigValidationError{}
 
 // Validate checks the field values on AwsS3ConnectionConfig with the rules
 // defined in the proto definition for this message. If any rules are
