@@ -3,6 +3,7 @@ import {
   EmailConfig,
   FirstName,
   FullName,
+  IntPhoneNumber,
   JobDestinationOptions,
   LastName,
   Null,
@@ -164,6 +165,15 @@ interface PhoneNumberTransformerConfigs {
   includeHyphens: boolean;
 }
 
+interface IntPhoneNumberTransformer {
+  value: string;
+  config: IntPhoneNumberTransformerConfigs;
+}
+
+interface IntPhoneNumberTransformerConfigs {
+  preserveLength: boolean;
+}
+
 export function toTransformerConfigOptions(t: {
   value: string;
   config: {};
@@ -266,6 +276,20 @@ export function toTransformerConfigOptions(t: {
               preserveLength: pt.config.preserveLength,
               e164Format: pt.config.e164Format,
               includeHyphens: pt.config.includeHyphens,
+            }),
+          },
+        }),
+      });
+    }
+    case 'int_phone_number': {
+      const pt = t as IntPhoneNumberTransformer;
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'intPhoneNumberConfig',
+            value: new IntPhoneNumber({
+              preserveLength: pt.config.preserveLength,
             }),
           },
         }),
