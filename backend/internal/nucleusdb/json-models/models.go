@@ -399,15 +399,66 @@ type JobSourceOptions struct {
 }
 type SqlSourceOptions struct {
 	HaltOnNewColumnAddition bool
+	Schemas                 []*SqlSourceSchemaOption
+}
+
+func (s *SqlSourceOptions) ToDto() *mgmtv1alpha1.SqlSourceConnectionOptions {
+	dto := &mgmtv1alpha1.SqlSourceConnectionOptions{
+		HaltOnNewColumnAddition: s.HaltOnNewColumnAddition,
+	}
+	dto.Schemas = make([]*mgmtv1alpha1.SqlSourceSchemaOption, len(s.Schemas))
+	for idx := range s.Schemas {
+		schema := s.Schemas[idx]
+		tables := make([]*mgmtv1alpha1.SqlSourceTableOption, len(schema.Tables))
+		for tidx := range schema.Tables {
+			table := schema.Tables[tidx]
+			tables = append(tables, &mgmtv1alpha1.SqlSourceTableOption{
+				Table:       table.Table,
+				WhereClause: table.WhereClause,
+			})
+		}
+		dto.Schemas = append(dto.Schemas, &mgmtv1alpha1.SqlSourceSchemaOption{
+			Schema: schema.Schema,
+			Tables: tables,
+		})
+	}
+
+	return dto
+}
+func (s *SqlSourceOptions) FromDto(dto *mgmtv1alpha1.SqlSourceConnectionOptions) {
+	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
+	s.Schemas = make([]*SqlSourceSchemaOption, len(dto.Schemas))
+	for idx := range dto.Schemas {
+		schema := dto.Schemas[idx]
+		tables := make([]*SqlSourceTableOption, len(schema.Tables))
+		for tidx := range schema.Tables {
+			table := schema.Tables[tidx]
+			tables = append(tables, &SqlSourceTableOption{
+				Table:       table.Table,
+				WhereClause: table.WhereClause,
+			})
+		}
+		s.Schemas = append(s.Schemas, &SqlSourceSchemaOption{
+			Schema: schema.Schema,
+			Tables: tables,
+		})
+	}
+}
+
+type SqlSourceSchemaOption struct {
+	Schema string
+	Tables []*SqlSourceTableOption
+}
+type SqlSourceTableOption struct {
+	Table       string
+	WhereClause *string
 }
 
 func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 	if j.SqlOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_SqlOptions{
-				SqlOptions: &mgmtv1alpha1.SqlSourceConnectionOptions{
-					HaltOnNewColumnAddition: j.SqlOptions.HaltOnNewColumnAddition,
-				},
+				SqlOptions: j.SqlOptions.ToDto(),
 			},
 		}
 	}
@@ -417,9 +468,9 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 	switch config := dto.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_SqlOptions:
-		j.SqlOptions = &SqlSourceOptions{
-			HaltOnNewColumnAddition: config.SqlOptions.HaltOnNewColumnAddition,
-		}
+		sqlOpts := &SqlSourceOptions{}
+		sqlOpts.FromDto(config.SqlOptions)
+		j.SqlOptions = sqlOpts
 	default:
 		return fmt.Errorf("invalid config")
 	}

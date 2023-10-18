@@ -38,7 +38,18 @@ message JobSourceOptions {
 
 message SqlSourceConnectionOptions {
   bool halt_on_new_column_addition = 1;
+  repeated SqlSourceSchemaOption schemas = 2;
 }
+
+message SqlSourceSchemaOption {
+  string schema = 1;
+  repeated SqlSourceTableOption tables = 2;
+}
+message SqlSourceTableOption {
+  string table = 1;
+  optional string where_clause = 2;
+}
+
 message AwsS3SourceConnectionOptions {}
 
 message JobDestinationOptions {

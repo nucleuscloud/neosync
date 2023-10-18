@@ -400,6 +400,11 @@ export class SqlSourceConnectionOptions extends Message<SqlSourceConnectionOptio
    */
   haltOnNewColumnAddition = false;
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.SqlSourceSchemaOption schemas = 2;
+   */
+  schemas: SqlSourceSchemaOption[] = [];
+
   constructor(data?: PartialMessage<SqlSourceConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -409,6 +414,7 @@ export class SqlSourceConnectionOptions extends Message<SqlSourceConnectionOptio
   static readonly typeName = "mgmt.v1alpha1.SqlSourceConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "schemas", kind: "message", T: SqlSourceSchemaOption, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlSourceConnectionOptions {
@@ -425,6 +431,92 @@ export class SqlSourceConnectionOptions extends Message<SqlSourceConnectionOptio
 
   static equals(a: SqlSourceConnectionOptions | PlainMessage<SqlSourceConnectionOptions> | undefined, b: SqlSourceConnectionOptions | PlainMessage<SqlSourceConnectionOptions> | undefined): boolean {
     return proto3.util.equals(SqlSourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SqlSourceSchemaOption
+ */
+export class SqlSourceSchemaOption extends Message<SqlSourceSchemaOption> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.SqlSourceTableOption tables = 2;
+   */
+  tables: SqlSourceTableOption[] = [];
+
+  constructor(data?: PartialMessage<SqlSourceSchemaOption>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SqlSourceSchemaOption";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "tables", kind: "message", T: SqlSourceTableOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlSourceSchemaOption {
+    return new SqlSourceSchemaOption().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SqlSourceSchemaOption {
+    return new SqlSourceSchemaOption().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SqlSourceSchemaOption {
+    return new SqlSourceSchemaOption().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SqlSourceSchemaOption | PlainMessage<SqlSourceSchemaOption> | undefined, b: SqlSourceSchemaOption | PlainMessage<SqlSourceSchemaOption> | undefined): boolean {
+    return proto3.util.equals(SqlSourceSchemaOption, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SqlSourceTableOption
+ */
+export class SqlSourceTableOption extends Message<SqlSourceTableOption> {
+  /**
+   * @generated from field: string table = 1;
+   */
+  table = "";
+
+  /**
+   * @generated from field: optional string where_clause = 2;
+   */
+  whereClause?: string;
+
+  constructor(data?: PartialMessage<SqlSourceTableOption>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SqlSourceTableOption";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "where_clause", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlSourceTableOption {
+    return new SqlSourceTableOption().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SqlSourceTableOption {
+    return new SqlSourceTableOption().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SqlSourceTableOption {
+    return new SqlSourceTableOption().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SqlSourceTableOption | PlainMessage<SqlSourceTableOption> | undefined, b: SqlSourceTableOption | PlainMessage<SqlSourceTableOption> | undefined): boolean {
+    return proto3.util.equals(SqlSourceTableOption, a, b);
   }
 }
 
