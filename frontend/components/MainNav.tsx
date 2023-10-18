@@ -4,20 +4,19 @@ import Link from 'next/link';
 
 import { siteConfig } from '@/app/config/site';
 import { cn } from '@/libs/utils';
-import { useTheme } from 'next-themes';
 import { usePathname } from 'next/navigation';
-import { Icons } from './icons';
+import Logo from './Logo';
+// import { Icons } from './icons';
 
 export function MainNav({
   className,
   ...props
 }: React.HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
-  const { resolvedTheme } = useTheme();
   return (
     <div className="mr-4 hidden md:flex">
       <Link href="/" className="mr-6 flex items-center space-x-2">
-        <Icons.logo theme={resolvedTheme} className="w-5 object-scale-down" />
+        <Logo className="w-5 object-scale-down" />
         <span className="hidden font-bold sm:inline-block">
           {siteConfig.name}
         </span>
