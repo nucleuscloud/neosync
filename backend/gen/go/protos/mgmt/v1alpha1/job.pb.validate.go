@@ -9487,6 +9487,47 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
+	case *TransformerConfig_StringConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetStringConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "StringConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "StringConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetStringConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "StringConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	case *TransformerConfig_NullConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
@@ -10423,6 +10464,108 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = IntPhoneNumberValidationError{}
+
+// Validate checks the field values on GenericString with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *GenericString) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GenericString with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in GenericStringMultiError, or
+// nil if none found.
+func (m *GenericString) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GenericString) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for PreserveLength
+
+	if len(errors) > 0 {
+		return GenericStringMultiError(errors)
+	}
+
+	return nil
+}
+
+// GenericStringMultiError is an error wrapping multiple validation errors
+// returned by GenericString.ValidateAll() if the designated constraints
+// aren't met.
+type GenericStringMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GenericStringMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GenericStringMultiError) AllErrors() []error { return m }
+
+// GenericStringValidationError is the validation error returned by
+// GenericString.Validate if the designated constraints aren't met.
+type GenericStringValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GenericStringValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GenericStringValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GenericStringValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GenericStringValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GenericStringValidationError) ErrorName() string { return "GenericStringValidationError" }
+
+// Error satisfies the builtin error interface
+func (e GenericStringValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGenericString.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GenericStringValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GenericStringValidationError{}
 
 // Validate checks the field values on Null with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
