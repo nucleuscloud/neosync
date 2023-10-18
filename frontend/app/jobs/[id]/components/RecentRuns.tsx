@@ -1,4 +1,5 @@
 'use client';
+import JobRunStatus from '@/app/runs/components/JobRunStatus';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
@@ -6,16 +7,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useGetJobNextRuns } from '@/libs/hooks/useGetJobNextRuns';
 import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
+import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
+import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
-import { ArrowRightIcon, ClockIcon } from '@radix-ui/react-icons';
+import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 
@@ -26,15 +27,22 @@ interface Props {
 export default function JobRecentRuns({ jobId }: Props): ReactElement {
   const { data, isLoading, error } = useGetJobRecentRuns(jobId);
 
-  const { data: nextJob, isLoading: nextRunLoading } = useGetJobNextRuns(jobId);
+  const { data: jobRuns, isLoading: jobRunsLoading } =
+    useGetJobRunsByJob(jobId);
 
   const router = useRouter();
 
-  if (isLoading || nextRunLoading) {
+  const jobRunsIdMap =
+    jobRuns?.jobRuns.reduce(
+      (prev, curr) => {
+        return { ...prev, [curr.id]: curr };
+      },
+      {} as Record<string, JobRun>
+    ) || {};
+
+  if (isLoading || jobRunsLoading) {
     return <Skeleton className="w-full h-full" />;
   }
-
-  const nr = nextJob?.nextRuns?.nextRunTimes[0]?.toDate();
 
   return (
     <Card className="p-2">
@@ -46,24 +54,18 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
         <div>
           <CardTitle className="py-6 px-2">Recent Job Runs</CardTitle>
           <Table className="pt-5">
-            <TableCaption>
-              {nr && (
-                <div className="flex flex-row space-x-2 items-center justify-center">
-                  <ClockIcon />
-                  <div>Next run scheduled for: </div>
-                  {formatDateTime(nextJob?.nextRuns?.nextRunTimes[0]?.toDate())}
-                </div>
-              )}
-            </TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead>Run Id</TableHead>
-                <TableHead>Start Time</TableHead>
+                <TableHead>Start At</TableHead>
+                <TableHead>Completed At</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data?.recentRuns?.runs.map((r) => {
+                const jobRun = jobRunsIdMap[r.jobRunId];
                 return (
                   <TableRow key={r.jobRunId}>
                     <TableCell>
@@ -75,12 +77,24 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        onClick={() => router.push(`/runs/${r.jobRunId}`)}
-                      >
-                        <ArrowRightIcon />
-                      </Button>
+                      <span className="font-medium">
+                        {jobRun && formatDateTime(jobRun.completedAt?.toDate())}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">
+                        {jobRun && <JobRunStatus status={jobRun.status} />}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {jobRun && (
+                        <Button
+                          variant="ghost"
+                          onClick={() => router.push(`/runs/${r.jobRunId}`)}
+                        >
+                          <ArrowRightIcon />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
