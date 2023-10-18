@@ -9,6 +9,7 @@ import (
 type ConnectionConfig struct {
 	PgConfig    *PostgresConnectionConfig
 	AwsS3Config *AwsS3ConnectionConfig
+	MysqlConfig *MysqlConnectionConfig
 }
 
 func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
@@ -36,6 +37,35 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
 							Url: *c.PgConfig.Url,
+						},
+					},
+				},
+			}
+		}
+	} else if c.MysqlConfig != nil {
+		if c.MysqlConfig.Connection != nil {
+			return &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+							Connection: &mgmtv1alpha1.MysqlConnection{
+								Username: c.MysqlConfig.Connection.Username,
+								Password: c.MysqlConfig.Connection.Password,
+								Protocol: c.MysqlConfig.Connection.Protocol,
+								Host:     c.MysqlConfig.Connection.Host,
+								Port:     c.MysqlConfig.Connection.Port,
+								DbName:   c.MysqlConfig.Connection.DbName,
+							},
+						},
+					},
+				},
+			}
+		} else if c.MysqlConfig.Url != nil {
+			return &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: *c.MysqlConfig.Url,
 						},
 					},
 				},
@@ -70,6 +100,23 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		default:
 			return fmt.Errorf("invalid postgres format")
 		}
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		c.MysqlConfig = &MysqlConnectionConfig{}
+		switch mysqlcfg := config.MysqlConfig.ConnectionConfig.(type) {
+		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
+			c.MysqlConfig.Connection = &MysqlConnection{
+				Username: mysqlcfg.Connection.Username,
+				Password: mysqlcfg.Connection.Password,
+				Protocol: mysqlcfg.Connection.Protocol,
+				Host:     mysqlcfg.Connection.Host,
+				Port:     mysqlcfg.Connection.Port,
+				DbName:   mysqlcfg.Connection.DbName,
+			}
+		case *mgmtv1alpha1.MysqlConnectionConfig_Url:
+			c.MysqlConfig.Url = &mysqlcfg.Url
+		default:
+			return fmt.Errorf("invalid mysql format")
+		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		c.AwsS3Config = &AwsS3ConnectionConfig{}
 		err := c.AwsS3Config.FromDto(config.AwsS3Config)
@@ -94,6 +141,20 @@ type PostgresConnection struct {
 	User    string
 	Pass    string
 	SslMode *string
+}
+
+type MysqlConnectionConfig struct {
+	Connection *MysqlConnection
+	Url        *string
+}
+
+type MysqlConnection struct {
+	Username string
+	Password string
+	Protocol string
+	Host     string
+	Port     int32
+	DbName   string
 }
 
 type AwsS3Credentials struct {

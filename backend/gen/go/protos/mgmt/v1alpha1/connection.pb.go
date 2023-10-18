@@ -721,6 +721,7 @@ type ConnectionConfig struct {
 	//
 	//	*ConnectionConfig_PgConfig
 	//	*ConnectionConfig_AwsS3Config
+	//	*ConnectionConfig_MysqlConfig
 	Config isConnectionConfig_Config `protobuf_oneof:"config"`
 }
 
@@ -777,6 +778,13 @@ func (x *ConnectionConfig) GetAwsS3Config() *AwsS3ConnectionConfig {
 	return nil
 }
 
+func (x *ConnectionConfig) GetMysqlConfig() *MysqlConnectionConfig {
+	if x, ok := x.GetConfig().(*ConnectionConfig_MysqlConfig); ok {
+		return x.MysqlConfig
+	}
+	return nil
+}
+
 type isConnectionConfig_Config interface {
 	isConnectionConfig_Config()
 }
@@ -789,9 +797,15 @@ type ConnectionConfig_AwsS3Config struct {
 	AwsS3Config *AwsS3ConnectionConfig `protobuf:"bytes,2,opt,name=aws_s3_config,json=awsS3Config,proto3,oneof"`
 }
 
+type ConnectionConfig_MysqlConfig struct {
+	MysqlConfig *MysqlConnectionConfig `protobuf:"bytes,3,opt,name=mysql_config,json=mysqlConfig,proto3,oneof"`
+}
+
 func (*ConnectionConfig_PgConfig) isConnectionConfig_Config() {}
 
 func (*ConnectionConfig_AwsS3Config) isConnectionConfig_Config() {}
+
+func (*ConnectionConfig_MysqlConfig) isConnectionConfig_Config() {}
 
 type PostgresConnectionConfig struct {
 	state         protoimpl.MessageState
@@ -961,6 +975,174 @@ func (x *PostgresConnection) GetSslMode() string {
 	return ""
 }
 
+type MysqlConnection struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Username string `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Protocol string `protobuf:"bytes,3,opt,name=protocol,proto3" json:"protocol,omitempty"`
+	Host     string `protobuf:"bytes,4,opt,name=host,proto3" json:"host,omitempty"`
+	Port     int32  `protobuf:"varint,5,opt,name=port,proto3" json:"port,omitempty"`
+	DbName   string `protobuf:"bytes,6,opt,name=db_name,json=dbName,proto3" json:"db_name,omitempty"`
+}
+
+func (x *MysqlConnection) Reset() {
+	*x = MysqlConnection{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MysqlConnection) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MysqlConnection) ProtoMessage() {}
+
+func (x *MysqlConnection) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MysqlConnection.ProtoReflect.Descriptor instead.
+func (*MysqlConnection) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *MysqlConnection) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *MysqlConnection) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *MysqlConnection) GetProtocol() string {
+	if x != nil {
+		return x.Protocol
+	}
+	return ""
+}
+
+func (x *MysqlConnection) GetHost() string {
+	if x != nil {
+		return x.Host
+	}
+	return ""
+}
+
+func (x *MysqlConnection) GetPort() int32 {
+	if x != nil {
+		return x.Port
+	}
+	return 0
+}
+
+func (x *MysqlConnection) GetDbName() string {
+	if x != nil {
+		return x.DbName
+	}
+	return ""
+}
+
+type MysqlConnectionConfig struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to ConnectionConfig:
+	//
+	//	*MysqlConnectionConfig_Url
+	//	*MysqlConnectionConfig_Connection
+	ConnectionConfig isMysqlConnectionConfig_ConnectionConfig `protobuf_oneof:"connection_config"`
+}
+
+func (x *MysqlConnectionConfig) Reset() {
+	*x = MysqlConnectionConfig{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MysqlConnectionConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MysqlConnectionConfig) ProtoMessage() {}
+
+func (x *MysqlConnectionConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MysqlConnectionConfig.ProtoReflect.Descriptor instead.
+func (*MysqlConnectionConfig) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{17}
+}
+
+func (m *MysqlConnectionConfig) GetConnectionConfig() isMysqlConnectionConfig_ConnectionConfig {
+	if m != nil {
+		return m.ConnectionConfig
+	}
+	return nil
+}
+
+func (x *MysqlConnectionConfig) GetUrl() string {
+	if x, ok := x.GetConnectionConfig().(*MysqlConnectionConfig_Url); ok {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *MysqlConnectionConfig) GetConnection() *MysqlConnection {
+	if x, ok := x.GetConnectionConfig().(*MysqlConnectionConfig_Connection); ok {
+		return x.Connection
+	}
+	return nil
+}
+
+type isMysqlConnectionConfig_ConnectionConfig interface {
+	isMysqlConnectionConfig_ConnectionConfig()
+}
+
+type MysqlConnectionConfig_Url struct {
+	Url string `protobuf:"bytes,1,opt,name=url,proto3,oneof"`
+}
+
+type MysqlConnectionConfig_Connection struct {
+	Connection *MysqlConnection `protobuf:"bytes,2,opt,name=connection,proto3,oneof"`
+}
+
+func (*MysqlConnectionConfig_Url) isMysqlConnectionConfig_ConnectionConfig() {}
+
+func (*MysqlConnectionConfig_Connection) isMysqlConnectionConfig_ConnectionConfig() {}
+
 type AwsS3ConnectionConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -976,7 +1158,7 @@ type AwsS3ConnectionConfig struct {
 func (x *AwsS3ConnectionConfig) Reset() {
 	*x = AwsS3ConnectionConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[16]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -989,7 +1171,7 @@ func (x *AwsS3ConnectionConfig) String() string {
 func (*AwsS3ConnectionConfig) ProtoMessage() {}
 
 func (x *AwsS3ConnectionConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[16]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1002,7 +1184,7 @@ func (x *AwsS3ConnectionConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AwsS3ConnectionConfig.ProtoReflect.Descriptor instead.
 func (*AwsS3ConnectionConfig) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{16}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *AwsS3ConnectionConfig) GetBucketArn() string {
@@ -1057,7 +1239,7 @@ type AwsS3Credentials struct {
 func (x *AwsS3Credentials) Reset() {
 	*x = AwsS3Credentials{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[17]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1070,7 +1252,7 @@ func (x *AwsS3Credentials) String() string {
 func (*AwsS3Credentials) ProtoMessage() {}
 
 func (x *AwsS3Credentials) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[17]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1083,7 +1265,7 @@ func (x *AwsS3Credentials) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AwsS3Credentials.ProtoReflect.Descriptor instead.
 func (*AwsS3Credentials) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{17}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *AwsS3Credentials) GetProfile() string {
@@ -1147,7 +1329,7 @@ type IsConnectionNameAvailableRequest struct {
 func (x *IsConnectionNameAvailableRequest) Reset() {
 	*x = IsConnectionNameAvailableRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[18]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1160,7 +1342,7 @@ func (x *IsConnectionNameAvailableRequest) String() string {
 func (*IsConnectionNameAvailableRequest) ProtoMessage() {}
 
 func (x *IsConnectionNameAvailableRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[18]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1173,7 +1355,7 @@ func (x *IsConnectionNameAvailableRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsConnectionNameAvailableRequest.ProtoReflect.Descriptor instead.
 func (*IsConnectionNameAvailableRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{18}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *IsConnectionNameAvailableRequest) GetAccountId() string {
@@ -1201,7 +1383,7 @@ type IsConnectionNameAvailableResponse struct {
 func (x *IsConnectionNameAvailableResponse) Reset() {
 	*x = IsConnectionNameAvailableResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[19]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1214,7 +1396,7 @@ func (x *IsConnectionNameAvailableResponse) String() string {
 func (*IsConnectionNameAvailableResponse) ProtoMessage() {}
 
 func (x *IsConnectionNameAvailableResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[19]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1227,7 +1409,7 @@ func (x *IsConnectionNameAvailableResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use IsConnectionNameAvailableResponse.ProtoReflect.Descriptor instead.
 func (*IsConnectionNameAvailableResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{19}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *IsConnectionNameAvailableResponse) GetIsAvailable() bool {
@@ -1251,7 +1433,7 @@ type DatabaseColumn struct {
 func (x *DatabaseColumn) Reset() {
 	*x = DatabaseColumn{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[20]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1264,7 +1446,7 @@ func (x *DatabaseColumn) String() string {
 func (*DatabaseColumn) ProtoMessage() {}
 
 func (x *DatabaseColumn) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[20]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1277,7 +1459,7 @@ func (x *DatabaseColumn) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DatabaseColumn.ProtoReflect.Descriptor instead.
 func (*DatabaseColumn) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{20}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *DatabaseColumn) GetSchema() string {
@@ -1319,7 +1501,7 @@ type GetConnectionSchemaRequest struct {
 func (x *GetConnectionSchemaRequest) Reset() {
 	*x = GetConnectionSchemaRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[21]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1332,7 +1514,7 @@ func (x *GetConnectionSchemaRequest) String() string {
 func (*GetConnectionSchemaRequest) ProtoMessage() {}
 
 func (x *GetConnectionSchemaRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[21]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1345,7 +1527,7 @@ func (x *GetConnectionSchemaRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConnectionSchemaRequest.ProtoReflect.Descriptor instead.
 func (*GetConnectionSchemaRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{21}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetConnectionSchemaRequest) GetId() string {
@@ -1366,7 +1548,7 @@ type GetConnectionSchemaResponse struct {
 func (x *GetConnectionSchemaResponse) Reset() {
 	*x = GetConnectionSchemaResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[22]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1379,7 +1561,7 @@ func (x *GetConnectionSchemaResponse) String() string {
 func (*GetConnectionSchemaResponse) ProtoMessage() {}
 
 func (x *GetConnectionSchemaResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[22]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1392,7 +1574,7 @@ func (x *GetConnectionSchemaResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConnectionSchemaResponse.ProtoReflect.Descriptor instead.
 func (*GetConnectionSchemaResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{22}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetConnectionSchemaResponse) GetSchemas() []*DatabaseColumn {
@@ -1504,7 +1686,7 @@ var file_mgmt_v1alpha1_connection_proto_rawDesc = []byte{
 	0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09,
 	0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x1d, 0x0a, 0x0a, 0x61, 0x63, 0x63,
 	0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x61,
-	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x22, 0xb7, 0x01, 0x0a, 0x10, 0x43, 0x6f, 0x6e,
+	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x22, 0x82, 0x02, 0x0a, 0x10, 0x43, 0x6f, 0x6e,
 	0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x46, 0x0a,
 	0x09, 0x70, 0x67, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
 	0x32, 0x27, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
@@ -1515,27 +1697,51 @@ var file_mgmt_v1alpha1_connection_proto_rawDesc = []byte{
 	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x41, 0x77, 0x73,
 	0x53, 0x33, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x66,
 	0x69, 0x67, 0x48, 0x00, 0x52, 0x0b, 0x61, 0x77, 0x73, 0x53, 0x33, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x42, 0x0f, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x05, 0xba, 0x48, 0x02,
-	0x08, 0x01, 0x22, 0x8f, 0x01, 0x0a, 0x18, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x43,
-	0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12,
-	0x12, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x03,
-	0x75, 0x72, 0x6c, 0x12, 0x43, 0x0a, 0x0a, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f,
-	0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x21, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76,
-	0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73,
-	0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52, 0x0a, 0x63, 0x6f,
-	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x1a, 0x0a, 0x11, 0x63, 0x6f, 0x6e, 0x6e,
-	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x05, 0xba,
-	0x48, 0x02, 0x08, 0x01, 0x22, 0xa5, 0x01, 0x0a, 0x12, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65,
-	0x73, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04, 0x68,
-	0x6f, 0x73, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x12,
-	0x12, 0x0a, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x70,
-	0x6f, 0x72, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x75, 0x73, 0x65, 0x72, 0x18,
-	0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x75, 0x73, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x70,
-	0x61, 0x73, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x61, 0x73, 0x73, 0x12,
-	0x1e, 0x0a, 0x08, 0x73, 0x73, 0x6c, 0x5f, 0x6d, 0x6f, 0x64, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28,
-	0x09, 0x48, 0x00, 0x52, 0x07, 0x73, 0x73, 0x6c, 0x4d, 0x6f, 0x64, 0x65, 0x88, 0x01, 0x01, 0x42,
-	0x0b, 0x0a, 0x09, 0x5f, 0x73, 0x73, 0x6c, 0x5f, 0x6d, 0x6f, 0x64, 0x65, 0x22, 0x9a, 0x02, 0x0a,
+	0x67, 0x12, 0x49, 0x0a, 0x0c, 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x24, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76,
+	0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x43, 0x6f, 0x6e,
+	0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x48, 0x00, 0x52,
+	0x0b, 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x42, 0x0f, 0x0a, 0x06,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0x8f, 0x01,
+	0x0a, 0x18, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63,
+	0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x12, 0x0a, 0x03, 0x75, 0x72,
+	0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x12, 0x43,
+	0x0a, 0x0a, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x21, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
+	0x61, 0x31, 0x2e, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x43, 0x6f, 0x6e, 0x6e, 0x65,
+	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x48, 0x00, 0x52, 0x0a, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74,
+	0x69, 0x6f, 0x6e, 0x42, 0x1a, 0x0a, 0x11, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f,
+	0x6e, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22,
+	0xa5, 0x01, 0x0a, 0x12, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x43, 0x6f, 0x6e, 0x6e,
+	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x6f,
+	0x72, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x12,
+	0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61,
+	0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x75, 0x73, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x04, 0x75, 0x73, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x61, 0x73, 0x73, 0x18, 0x05,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x61, 0x73, 0x73, 0x12, 0x1e, 0x0a, 0x08, 0x73, 0x73,
+	0x6c, 0x5f, 0x6d, 0x6f, 0x64, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x07,
+	0x73, 0x73, 0x6c, 0x4d, 0x6f, 0x64, 0x65, 0x88, 0x01, 0x01, 0x42, 0x0b, 0x0a, 0x09, 0x5f, 0x73,
+	0x73, 0x6c, 0x5f, 0x6d, 0x6f, 0x64, 0x65, 0x22, 0xa6, 0x01, 0x0a, 0x0f, 0x4d, 0x79, 0x73, 0x71,
+	0x6c, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x1a, 0x0a, 0x08, 0x75,
+	0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x75,
+	0x73, 0x65, 0x72, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77,
+	0x6f, 0x72, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77,
+	0x6f, 0x72, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x12,
+	0x12, 0x0a, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x68,
+	0x6f, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x05, 0x52, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x17, 0x0a, 0x07, 0x64, 0x62, 0x5f, 0x6e, 0x61,
+	0x6d, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x62, 0x4e, 0x61, 0x6d, 0x65,
+	0x22, 0x89, 0x01, 0x0a, 0x15, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63,
+	0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x12, 0x0a, 0x03, 0x75, 0x72,
+	0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x12, 0x40,
+	0x0a, 0x0a, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
+	0x61, 0x31, 0x2e, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69,
+	0x6f, 0x6e, 0x48, 0x00, 0x52, 0x0a, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
+	0x42, 0x1a, 0x0a, 0x11, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x63,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0x9a, 0x02, 0x0a,
 	0x15, 0x41, 0x77, 0x73, 0x53, 0x33, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
 	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x1d, 0x0a, 0x0a, 0x62, 0x75, 0x63, 0x6b, 0x65, 0x74,
 	0x5f, 0x61, 0x72, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x62, 0x75, 0x63, 0x6b,
@@ -1692,7 +1898,7 @@ func file_mgmt_v1alpha1_connection_proto_rawDescGZIP() []byte {
 	return file_mgmt_v1alpha1_connection_proto_rawDescData
 }
 
-var file_mgmt_v1alpha1_connection_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_mgmt_v1alpha1_connection_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_mgmt_v1alpha1_connection_proto_goTypes = []interface{}{
 	(*GetConnectionsRequest)(nil),             // 0: mgmt.v1alpha1.GetConnectionsRequest
 	(*GetConnectionsResponse)(nil),            // 1: mgmt.v1alpha1.GetConnectionsResponse
@@ -1710,14 +1916,16 @@ var file_mgmt_v1alpha1_connection_proto_goTypes = []interface{}{
 	(*ConnectionConfig)(nil),                  // 13: mgmt.v1alpha1.ConnectionConfig
 	(*PostgresConnectionConfig)(nil),          // 14: mgmt.v1alpha1.PostgresConnectionConfig
 	(*PostgresConnection)(nil),                // 15: mgmt.v1alpha1.PostgresConnection
-	(*AwsS3ConnectionConfig)(nil),             // 16: mgmt.v1alpha1.AwsS3ConnectionConfig
-	(*AwsS3Credentials)(nil),                  // 17: mgmt.v1alpha1.AwsS3Credentials
-	(*IsConnectionNameAvailableRequest)(nil),  // 18: mgmt.v1alpha1.IsConnectionNameAvailableRequest
-	(*IsConnectionNameAvailableResponse)(nil), // 19: mgmt.v1alpha1.IsConnectionNameAvailableResponse
-	(*DatabaseColumn)(nil),                    // 20: mgmt.v1alpha1.DatabaseColumn
-	(*GetConnectionSchemaRequest)(nil),        // 21: mgmt.v1alpha1.GetConnectionSchemaRequest
-	(*GetConnectionSchemaResponse)(nil),       // 22: mgmt.v1alpha1.GetConnectionSchemaResponse
-	(*timestamppb.Timestamp)(nil),             // 23: google.protobuf.Timestamp
+	(*MysqlConnection)(nil),                   // 16: mgmt.v1alpha1.MysqlConnection
+	(*MysqlConnectionConfig)(nil),             // 17: mgmt.v1alpha1.MysqlConnectionConfig
+	(*AwsS3ConnectionConfig)(nil),             // 18: mgmt.v1alpha1.AwsS3ConnectionConfig
+	(*AwsS3Credentials)(nil),                  // 19: mgmt.v1alpha1.AwsS3Credentials
+	(*IsConnectionNameAvailableRequest)(nil),  // 20: mgmt.v1alpha1.IsConnectionNameAvailableRequest
+	(*IsConnectionNameAvailableResponse)(nil), // 21: mgmt.v1alpha1.IsConnectionNameAvailableResponse
+	(*DatabaseColumn)(nil),                    // 22: mgmt.v1alpha1.DatabaseColumn
+	(*GetConnectionSchemaRequest)(nil),        // 23: mgmt.v1alpha1.GetConnectionSchemaRequest
+	(*GetConnectionSchemaResponse)(nil),       // 24: mgmt.v1alpha1.GetConnectionSchemaResponse
+	(*timestamppb.Timestamp)(nil),             // 25: google.protobuf.Timestamp
 }
 var file_mgmt_v1alpha1_connection_proto_depIdxs = []int32{
 	12, // 0: mgmt.v1alpha1.GetConnectionsResponse.connections:type_name -> mgmt.v1alpha1.Connection
@@ -1728,34 +1936,36 @@ var file_mgmt_v1alpha1_connection_proto_depIdxs = []int32{
 	12, // 5: mgmt.v1alpha1.UpdateConnectionResponse.connection:type_name -> mgmt.v1alpha1.Connection
 	13, // 6: mgmt.v1alpha1.CheckConnectionConfigRequest.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
 	13, // 7: mgmt.v1alpha1.Connection.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
-	23, // 8: mgmt.v1alpha1.Connection.created_at:type_name -> google.protobuf.Timestamp
-	23, // 9: mgmt.v1alpha1.Connection.updated_at:type_name -> google.protobuf.Timestamp
+	25, // 8: mgmt.v1alpha1.Connection.created_at:type_name -> google.protobuf.Timestamp
+	25, // 9: mgmt.v1alpha1.Connection.updated_at:type_name -> google.protobuf.Timestamp
 	14, // 10: mgmt.v1alpha1.ConnectionConfig.pg_config:type_name -> mgmt.v1alpha1.PostgresConnectionConfig
-	16, // 11: mgmt.v1alpha1.ConnectionConfig.aws_s3_config:type_name -> mgmt.v1alpha1.AwsS3ConnectionConfig
-	15, // 12: mgmt.v1alpha1.PostgresConnectionConfig.connection:type_name -> mgmt.v1alpha1.PostgresConnection
-	17, // 13: mgmt.v1alpha1.AwsS3ConnectionConfig.credentials:type_name -> mgmt.v1alpha1.AwsS3Credentials
-	20, // 14: mgmt.v1alpha1.GetConnectionSchemaResponse.schemas:type_name -> mgmt.v1alpha1.DatabaseColumn
-	0,  // 15: mgmt.v1alpha1.ConnectionService.GetConnections:input_type -> mgmt.v1alpha1.GetConnectionsRequest
-	2,  // 16: mgmt.v1alpha1.ConnectionService.GetConnection:input_type -> mgmt.v1alpha1.GetConnectionRequest
-	4,  // 17: mgmt.v1alpha1.ConnectionService.CreateConnection:input_type -> mgmt.v1alpha1.CreateConnectionRequest
-	6,  // 18: mgmt.v1alpha1.ConnectionService.UpdateConnection:input_type -> mgmt.v1alpha1.UpdateConnectionRequest
-	8,  // 19: mgmt.v1alpha1.ConnectionService.DeleteConnection:input_type -> mgmt.v1alpha1.DeleteConnectionRequest
-	18, // 20: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable:input_type -> mgmt.v1alpha1.IsConnectionNameAvailableRequest
-	10, // 21: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig:input_type -> mgmt.v1alpha1.CheckConnectionConfigRequest
-	21, // 22: mgmt.v1alpha1.ConnectionService.GetConnectionSchema:input_type -> mgmt.v1alpha1.GetConnectionSchemaRequest
-	1,  // 23: mgmt.v1alpha1.ConnectionService.GetConnections:output_type -> mgmt.v1alpha1.GetConnectionsResponse
-	3,  // 24: mgmt.v1alpha1.ConnectionService.GetConnection:output_type -> mgmt.v1alpha1.GetConnectionResponse
-	5,  // 25: mgmt.v1alpha1.ConnectionService.CreateConnection:output_type -> mgmt.v1alpha1.CreateConnectionResponse
-	7,  // 26: mgmt.v1alpha1.ConnectionService.UpdateConnection:output_type -> mgmt.v1alpha1.UpdateConnectionResponse
-	9,  // 27: mgmt.v1alpha1.ConnectionService.DeleteConnection:output_type -> mgmt.v1alpha1.DeleteConnectionResponse
-	19, // 28: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable:output_type -> mgmt.v1alpha1.IsConnectionNameAvailableResponse
-	11, // 29: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig:output_type -> mgmt.v1alpha1.CheckConnectionConfigResponse
-	22, // 30: mgmt.v1alpha1.ConnectionService.GetConnectionSchema:output_type -> mgmt.v1alpha1.GetConnectionSchemaResponse
-	23, // [23:31] is the sub-list for method output_type
-	15, // [15:23] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	18, // 11: mgmt.v1alpha1.ConnectionConfig.aws_s3_config:type_name -> mgmt.v1alpha1.AwsS3ConnectionConfig
+	17, // 12: mgmt.v1alpha1.ConnectionConfig.mysql_config:type_name -> mgmt.v1alpha1.MysqlConnectionConfig
+	15, // 13: mgmt.v1alpha1.PostgresConnectionConfig.connection:type_name -> mgmt.v1alpha1.PostgresConnection
+	16, // 14: mgmt.v1alpha1.MysqlConnectionConfig.connection:type_name -> mgmt.v1alpha1.MysqlConnection
+	19, // 15: mgmt.v1alpha1.AwsS3ConnectionConfig.credentials:type_name -> mgmt.v1alpha1.AwsS3Credentials
+	22, // 16: mgmt.v1alpha1.GetConnectionSchemaResponse.schemas:type_name -> mgmt.v1alpha1.DatabaseColumn
+	0,  // 17: mgmt.v1alpha1.ConnectionService.GetConnections:input_type -> mgmt.v1alpha1.GetConnectionsRequest
+	2,  // 18: mgmt.v1alpha1.ConnectionService.GetConnection:input_type -> mgmt.v1alpha1.GetConnectionRequest
+	4,  // 19: mgmt.v1alpha1.ConnectionService.CreateConnection:input_type -> mgmt.v1alpha1.CreateConnectionRequest
+	6,  // 20: mgmt.v1alpha1.ConnectionService.UpdateConnection:input_type -> mgmt.v1alpha1.UpdateConnectionRequest
+	8,  // 21: mgmt.v1alpha1.ConnectionService.DeleteConnection:input_type -> mgmt.v1alpha1.DeleteConnectionRequest
+	20, // 22: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable:input_type -> mgmt.v1alpha1.IsConnectionNameAvailableRequest
+	10, // 23: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig:input_type -> mgmt.v1alpha1.CheckConnectionConfigRequest
+	23, // 24: mgmt.v1alpha1.ConnectionService.GetConnectionSchema:input_type -> mgmt.v1alpha1.GetConnectionSchemaRequest
+	1,  // 25: mgmt.v1alpha1.ConnectionService.GetConnections:output_type -> mgmt.v1alpha1.GetConnectionsResponse
+	3,  // 26: mgmt.v1alpha1.ConnectionService.GetConnection:output_type -> mgmt.v1alpha1.GetConnectionResponse
+	5,  // 27: mgmt.v1alpha1.ConnectionService.CreateConnection:output_type -> mgmt.v1alpha1.CreateConnectionResponse
+	7,  // 28: mgmt.v1alpha1.ConnectionService.UpdateConnection:output_type -> mgmt.v1alpha1.UpdateConnectionResponse
+	9,  // 29: mgmt.v1alpha1.ConnectionService.DeleteConnection:output_type -> mgmt.v1alpha1.DeleteConnectionResponse
+	21, // 30: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable:output_type -> mgmt.v1alpha1.IsConnectionNameAvailableResponse
+	11, // 31: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig:output_type -> mgmt.v1alpha1.CheckConnectionConfigResponse
+	24, // 32: mgmt.v1alpha1.ConnectionService.GetConnectionSchema:output_type -> mgmt.v1alpha1.GetConnectionSchemaResponse
+	25, // [25:33] is the sub-list for method output_type
+	17, // [17:25] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_mgmt_v1alpha1_connection_proto_init() }
@@ -1957,7 +2167,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_connection_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AwsS3ConnectionConfig); i {
+			switch v := v.(*MysqlConnection); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1969,7 +2179,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_connection_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AwsS3Credentials); i {
+			switch v := v.(*MysqlConnectionConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1981,7 +2191,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_connection_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IsConnectionNameAvailableRequest); i {
+			switch v := v.(*AwsS3ConnectionConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1993,7 +2203,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_connection_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IsConnectionNameAvailableResponse); i {
+			switch v := v.(*AwsS3Credentials); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2005,7 +2215,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_connection_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DatabaseColumn); i {
+			switch v := v.(*IsConnectionNameAvailableRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2017,7 +2227,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_connection_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetConnectionSchemaRequest); i {
+			switch v := v.(*IsConnectionNameAvailableResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -2029,6 +2239,30 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_connection_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DatabaseColumn); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_connection_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetConnectionSchemaRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_connection_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetConnectionSchemaResponse); i {
 			case 0:
 				return &v.state
@@ -2045,21 +2279,26 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 	file_mgmt_v1alpha1_connection_proto_msgTypes[13].OneofWrappers = []interface{}{
 		(*ConnectionConfig_PgConfig)(nil),
 		(*ConnectionConfig_AwsS3Config)(nil),
+		(*ConnectionConfig_MysqlConfig)(nil),
 	}
 	file_mgmt_v1alpha1_connection_proto_msgTypes[14].OneofWrappers = []interface{}{
 		(*PostgresConnectionConfig_Url)(nil),
 		(*PostgresConnectionConfig_Connection)(nil),
 	}
 	file_mgmt_v1alpha1_connection_proto_msgTypes[15].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_connection_proto_msgTypes[16].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_connection_proto_msgTypes[17].OneofWrappers = []interface{}{}
+	file_mgmt_v1alpha1_connection_proto_msgTypes[17].OneofWrappers = []interface{}{
+		(*MysqlConnectionConfig_Url)(nil),
+		(*MysqlConnectionConfig_Connection)(nil),
+	}
+	file_mgmt_v1alpha1_connection_proto_msgTypes[18].OneofWrappers = []interface{}{}
+	file_mgmt_v1alpha1_connection_proto_msgTypes[19].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_mgmt_v1alpha1_connection_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

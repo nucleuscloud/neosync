@@ -73,6 +73,7 @@ message ConnectionConfig {
 
     PostgresConnectionConfig pg_config = 1;
     AwsS3ConnectionConfig aws_s3_config = 2;
+    MysqlConnectionConfig mysql_config = 3;
   }
 }
 
@@ -92,6 +93,24 @@ message PostgresConnection {
   string user = 4;
   string pass = 5;
   optional string ssl_mode = 6;
+}
+
+message MysqlConnection {
+  string username = 1;
+  string password = 2;
+  string protocol = 3;
+  string host = 4;
+  int32 port = 5;
+  string db_name = 6;
+}
+
+message MysqlConnectionConfig {
+  oneof connection_config {
+    option (buf.validate.oneof).required = true;
+
+    string url = 1;
+    MysqlConnection connection = 2;
+  }
 }
 
 message AwsS3ConnectionConfig {
