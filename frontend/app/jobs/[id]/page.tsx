@@ -6,6 +6,7 @@ import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { ReactElement } from 'react';
+import JobNextRuns from './components/NextRuns';
 import JobPauseSwitch from './components/PauseSwitch';
 import JobRecentRuns from './components/RecentRuns';
 import JobScheduleCard from './components/ScheduleCard';
@@ -38,10 +39,9 @@ export default function Page({ params }: PageProps): ReactElement {
       <div className="space-y-10">
         <JobPauseSwitch jobId={id} status={jobStatus?.status} mutate={mutate} />
         <JobScheduleCard job={data?.job} mutate={mutate} />
-        <div className="flex md:flex-row md:space-x-8 md:space-y-0 flex-col space-y-8">
-          <div className="w-full">
-            <JobRecentRuns jobId={id} />
-          </div>
+        <JobRecentRuns jobId={id} />
+        <div className="flex">
+          <JobNextRuns jobId={id} status={jobStatus?.status} />
         </div>
       </div>
     </div>
