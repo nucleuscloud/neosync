@@ -42,7 +42,7 @@
     "date-fns": "^2.30.0",
     "nanoid": "^5.0.2",
     "next": "^13.5.5",
-    "next-auth": "^4.23.2",
+    "next-auth": "^4.24.3",
     "next-themes": "^0.2.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
