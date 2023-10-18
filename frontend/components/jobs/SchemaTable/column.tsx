@@ -1,6 +1,8 @@
 'use client';
 
-import EditTransformerOptions from '@/app/transformers/EditTransformerOptions';
+import EditTransformerOptions, {
+  handleTransformerMetadata,
+} from '@/app/transformers/EditTransformerOptions';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Button } from '@/components/ui/button';
@@ -185,11 +187,13 @@ function TansformerSelect(props: TransformersSelectProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between min-w-[141px]" //whitespace-nowrap
+          className="justify-between max-w-[141px]" //whitespace-nowrap
         >
-          {value
-            ? transformers.find((t) => t.value === value)?.value
-            : 'Transformer'}
+          <div className="truncate overflow-hidden text-ellipsis whitespace-nowrap">
+            {value
+              ? transformers.find((t) => t.value === value)?.value
+              : 'Transformer'}
+          </div>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -214,7 +218,7 @@ function TansformerSelect(props: TransformersSelectProps) {
                     value == t.value ? 'opacity-100' : 'opacity-0'
                   )}
                 />
-                {t.value}
+                {handleTransformerMetadata(t).name}
               </CommandItem>
             ))}
           </CommandGroup>
