@@ -103,8 +103,8 @@ func IntArrToStringArr(ints []int) []string {
 
 	var str []string
 
-	for i := range ints {
-		str = append(str, strconv.Itoa((i)))
+	for _, k := range ints {
+		str = append(str, strconv.Itoa((k)))
 
 	}
 
