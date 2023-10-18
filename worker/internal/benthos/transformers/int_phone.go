@@ -74,7 +74,7 @@ func ProcessIntPhoneNumber(pn int64, preserveLength bool) (int64, error) {
 	return returnValue, nil
 }
 
-func GenerateRandomInt(minInt int, maxInt int, count int) ([]int, error) {
+func GenerateRandomInt(minInt, maxInt, count int) ([]int, error) {
 	if count <= 0 {
 		return nil, fmt.Errorf("count is zero or not an int")
 	}
