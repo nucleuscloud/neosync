@@ -138,7 +138,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       })
                     );
                   }
-                  form.trigger('subsets');
                   setItemToEdit(undefined);
                 }}
               />
