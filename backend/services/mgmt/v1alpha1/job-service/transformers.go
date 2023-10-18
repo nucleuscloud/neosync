@@ -10,15 +10,16 @@ import (
 type Transformation string
 
 const (
-	Invalid     Transformation = "invalid"
-	Passthrough Transformation = "passthrough"
-	Uuid        Transformation = "uuid"
-	FirstName   Transformation = "first_name"
-	LastName    Transformation = "last_name"
-	FullName    Transformation = "full_name"
-	PhoneNumber Transformation = "phone_number"
-	Email       Transformation = "email"
-	Null        Transformation = "null"
+	Invalid        Transformation = "invalid"
+	Passthrough    Transformation = "passthrough"
+	Uuid           Transformation = "uuid"
+	FirstName      Transformation = "first_name"
+	LastName       Transformation = "last_name"
+	FullName       Transformation = "full_name"
+	PhoneNumber    Transformation = "phone_number"
+	IntPhoneNumber Transformation = "int_phone_number"
+	Email          Transformation = "email"
+	Null           Transformation = "null"
 )
 
 func (s *Service) GetTransformers(
@@ -63,6 +64,13 @@ func (s *Service) GetTransformers(
 						PreserveLength: false,
 						E164Format:     false,
 						IncludeHyphens: false,
+					},
+				},
+			}},
+			{Value: string(IntPhoneNumber), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_IntPhoneNumberConfig{
+					IntPhoneNumberConfig: &mgmtv1alpha1.IntPhoneNumber{
+						PreserveLength: false,
 					},
 				},
 			}},

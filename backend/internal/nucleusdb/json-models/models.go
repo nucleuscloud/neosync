@@ -192,14 +192,15 @@ type Transformer struct {
 }
 
 type TransformerConfigs struct {
-	EmailConfig *EmailConfigs
-	FirstName   *FirstNameConfig
-	LastName    *LastNameConfig
-	FullName    *FullNameConfig
-	Uuid        *UuidConfig
-	PhoneNumber *PhoneNumberConfig
-	Passthrough *PassthroughConfig
-	Null        *NullConfig
+	EmailConfig    *EmailConfigs
+	FirstName      *FirstNameConfig
+	LastName       *LastNameConfig
+	FullName       *FullNameConfig
+	Uuid           *UuidConfig
+	PhoneNumber    *PhoneNumberConfig
+	IntPhoneNumber *IntPhoneNumberConfig
+	Passthrough    *PassthroughConfig
+	Null           *NullConfig
 }
 
 type EmailConfigs struct {
@@ -224,6 +225,10 @@ type UuidConfig struct {
 type PhoneNumberConfig struct {
 	IncludeHyphens bool
 	E164Format     bool
+	PreserveLength bool
+}
+
+type IntPhoneNumberConfig struct {
 	PreserveLength bool
 }
 type PassthroughConfig struct {
@@ -283,6 +288,13 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 				IncludeHyphens: tr.Config.GetPhoneNumberConfig().IncludeHyphens,
 				E164Format:     tr.Config.GetPhoneNumberConfig().E164Format,
 				PreserveLength: tr.Config.GetPhoneNumberConfig().PreserveLength,
+			},
+		}
+	case *mgmtv1alpha1.TransformerConfig_IntPhoneNumberConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			IntPhoneNumber: &IntPhoneNumberConfig{
+				PreserveLength: tr.Config.GetIntPhoneNumberConfig().PreserveLength,
 			},
 		}
 	case *mgmtv1alpha1.TransformerConfig_NullConfig:
@@ -365,6 +377,17 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 						PreserveLength: t.Config.PhoneNumber.PreserveLength,
 						E164Format:     t.Config.PhoneNumber.E164Format,
 						IncludeHyphens: t.Config.PhoneNumber.IncludeHyphens,
+					},
+				},
+			},
+		}
+	case t.Config.IntPhoneNumber != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_IntPhoneNumberConfig{
+					IntPhoneNumberConfig: &mgmtv1alpha1.IntPhoneNumber{
+						PreserveLength: t.Config.IntPhoneNumber.PreserveLength,
 					},
 				},
 			},

@@ -32,7 +32,6 @@ func TestProcessIntPhoneNumber(t *testing.T) {
 		if !tt.preserveLength {
 			numStr := strconv.FormatInt(res, 10)
 			assert.Equal(t, len(numStr), 10)
-
 		}
 	}
 
