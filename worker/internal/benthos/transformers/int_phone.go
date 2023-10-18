@@ -75,21 +75,22 @@ func ProcessIntPhoneNumber(pn int64, preserveLength bool) (int64, error) {
 	return returnValue, nil
 }
 
-func GenerateRandomInt(minInt, maxInt int, count int) ([]int, error) {
+func GenerateRandomInt(minInt, maxInt, count int) ([]int, error) {
 	if count <= 0 {
 		return nil, fmt.Errorf("count is zero or not an int")
 	}
 
 	randomInts := make([]int, count)
+	const intBytes = 8
 	for i := 0; i < count; i++ {
-		randomBytes := make([]byte, 8) // 8 bytes for int64
+		randomBytes := make([]byte, intBytes) // 8 bytes for int64
 		_, err := rand.Read(randomBytes)
 		if err != nil {
 			return nil, err
 		}
 
 		// Convert the random bytes to an int64 and then to an int within the set range
-		randomInt := int(minInt) + int(binary.BigEndian.Uint64(randomBytes)%uint64(maxInt-minInt+1))
+		randomInt := minInt + int(binary.BigEndian.Uint64(randomBytes)%uint64(maxInt-minInt+1))
 		randomInts[i] = randomInt
 	}
 
