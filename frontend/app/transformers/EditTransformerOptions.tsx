@@ -14,6 +14,7 @@ import { ReactElement, useEffect, useRef, useState } from 'react';
 import EmailTransformerForm from './forms/EmailTransformerForm';
 import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
 import FullNameTransformerForm from './forms/FullnameTransformerForm';
+import IntPhoneNumberTransformerForm from './forms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
@@ -159,6 +160,13 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
+    case 'int_phone_number':
+      return (
+        <IntPhoneNumberTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -180,6 +188,13 @@ function handleTransformerMetadata(
         name: 'Phone Number',
         description:
           'Anonymizes or generates a new phone number. The default format is <XXX-XXX-XXXX>.',
+      },
+    },
+    {
+      int_phone_number: {
+        name: 'Int64 Phone Number',
+        description:
+          'Anonymizes or generates a new phone number of type int64 with a default length of 10.',
       },
     },
     {

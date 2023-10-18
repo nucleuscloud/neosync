@@ -3161,7 +3161,13 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "phoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 8;
+     * @generated from field: mgmt.v1alpha1.IntPhoneNumber int_phone_number_config = 8;
+     */
+    value: IntPhoneNumber;
+    case: "intPhoneNumberConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 9;
      */
     value: Null;
     case: "nullConfig";
@@ -3182,7 +3188,8 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 5, name: "last_name_config", kind: "message", T: LastName, oneof: "config" },
     { no: 6, name: "full_name_config", kind: "message", T: FullName, oneof: "config" },
     { no: 7, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
-    { no: 8, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 8, name: "int_phone_number_config", kind: "message", T: IntPhoneNumber, oneof: "config" },
+    { no: 9, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3470,6 +3477,43 @@ export class PhoneNumber extends Message<PhoneNumber> {
 
   static equals(a: PhoneNumber | PlainMessage<PhoneNumber> | undefined, b: PhoneNumber | PlainMessage<PhoneNumber> | undefined): boolean {
     return proto3.util.equals(PhoneNumber, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.IntPhoneNumber
+ */
+export class IntPhoneNumber extends Message<IntPhoneNumber> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
+  constructor(data?: PartialMessage<IntPhoneNumber>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.IntPhoneNumber";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): IntPhoneNumber {
+    return new IntPhoneNumber().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): IntPhoneNumber {
+    return new IntPhoneNumber().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): IntPhoneNumber {
+    return new IntPhoneNumber().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: IntPhoneNumber | PlainMessage<IntPhoneNumber> | undefined, b: IntPhoneNumber | PlainMessage<IntPhoneNumber> | undefined): boolean {
+    return proto3.util.equals(IntPhoneNumber, a, b);
   }
 }
 

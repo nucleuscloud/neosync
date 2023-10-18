@@ -367,7 +367,8 @@ message TransformerConfig {
     LastName last_name_config = 5;
     FullName full_name_config = 6;
     PhoneNumber phone_number_config = 7;
-    Null null_config = 8;
+    IntPhoneNumber int_phone_number_config = 8;
+    Null null_config = 9;
   }
 }
 
@@ -399,6 +400,11 @@ message PhoneNumber {
   bool e164_format = 2;
   bool include_hyphens = 3;
 }
+
+message IntPhoneNumber {
+  bool preserve_length = 1;
+}
+
 message Null {}
 
 service JobService {

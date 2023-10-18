@@ -822,6 +822,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		ef := col.Transformer.Config.GetPhoneNumberConfig().E164Format
 		ih := col.Transformer.Config.GetPhoneNumberConfig().IncludeHyphens
 		return fmt.Sprintf("this.%s.phonetransformer(%t, %t, %t)", col.Column, pl, ef, ih), nil
+	case "int_phone_number":
+		pl := col.Transformer.Config.GetIntPhoneNumberConfig().PreserveLength
+		return fmt.Sprintf("this.%s.intphonetransformer(%t)", col.Column, pl), nil
 	case "uuid":
 		ih := col.Transformer.Config.GetUuidConfig().IncludeHyphen
 		return fmt.Sprintf("this.%s.uuidtransformer(%t)", col.Column, ih), nil

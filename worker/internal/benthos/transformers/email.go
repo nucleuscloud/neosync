@@ -41,7 +41,7 @@ func init() {
 
 }
 
-// main plugin logic goes here
+// main transformer logic goes here
 func ProcessEmail(email string, preserveLength, preserveDomain bool) (string, error) {
 
 	parsedEmail, err := parseEmail(email)

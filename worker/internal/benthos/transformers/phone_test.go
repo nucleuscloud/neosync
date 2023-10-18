@@ -1,6 +1,7 @@
 package neosync_transformers
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -18,7 +19,7 @@ func TestProcessPhoneNumber(t *testing.T) {
 		expectedLength  int
 	}{
 		{"6183849282", false, false, false, 0},    // check base phone number generation
-		{"618384928322", true, false, false, 10},  // checks preserve length
+		{"618384928322", true, false, false, 12},  // checks preserve length
 		{"739-892-9234", false, false, true, 0},   // checks hyphens
 		{"+1892393573894", false, true, false, 0}, // checks e164 format
 		{"+18923935738", false, true, false, 13},  // checks e164 format
@@ -30,6 +31,7 @@ func TestProcessPhoneNumber(t *testing.T) {
 		assert.NoError(t, err)
 
 		if tt.preserveLength && !tt.e164_format && !tt.include_hyphens {
+			fmt.Println("res", res)
 			assert.Equal(t, len(strings.ReplaceAll(res, "-", "")), tt.expectedLength)
 		}
 

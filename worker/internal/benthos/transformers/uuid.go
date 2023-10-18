@@ -35,7 +35,7 @@ func init() {
 
 }
 
-// main plugin logic goes here
+// main transformer logic goes here
 func ProcessUuid(include_hyphen bool) (string, error) {
 
 	var returnValue string
