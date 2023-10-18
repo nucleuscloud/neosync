@@ -406,8 +406,15 @@ message IntPhoneNumber {
   bool preserve_length = 1;
 }
 message GenericString {
+  enum StringCase {
+    UPPER = 0;
+    LOWER = 1;
+    TITLE = 2;
+  }
+
   bool preserve_length = 1;
   int64 str_length = 2;
+  StringCase str_case = 3;
 }
 
 message Null {}

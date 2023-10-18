@@ -10491,6 +10491,8 @@ func (m *GenericString) validate(all bool) error {
 
 	// no validation rules for StrLength
 
+	// no validation rules for StrCase
+
 	if len(errors) > 0 {
 		return GenericStringMultiError(errors)
 	}
