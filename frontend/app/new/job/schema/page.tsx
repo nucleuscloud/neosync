@@ -116,29 +116,30 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     if (!account) {
       return;
     }
-    try {
-      const job = await createNewJob(
-        {
-          define: defineFormValues,
-          flow: flowFormValues,
-          schema: values,
-        },
-        account.id,
-        connections
-      );
-      if (job.job?.id) {
-        router.push(`/jobs/${job.job.id}`);
-      } else {
-        router.push(`/jobs`);
-      }
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: 'Unable to create job',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      });
-    }
+    router.push(`/new/job/subset?sessionId=${sessionPrefix}`);
+    // try {
+    //   const job = await createNewJob(
+    //     {
+    //       define: defineFormValues,
+    //       flow: flowFormValues,
+    //       schema: values,
+    //     },
+    //     account.id,
+    //     connections
+    //   );
+    //   if (job.job?.id) {
+    //     router.push(`/jobs/${job.job.id}`);
+    //   } else {
+    //     router.push(`/jobs`);
+    //   }
+    // } catch (err) {
+    //   console.error(err);
+    //   toast({
+    //     title: 'Unable to create job',
+    //     description: getErrorMessage(err),
+    //     variant: 'destructive',
+    //   });
+    // }
   }
 
   return (

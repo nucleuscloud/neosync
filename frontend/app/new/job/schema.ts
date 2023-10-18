@@ -46,10 +46,23 @@ export const FLOW_FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
 
 export type FlowFormValues = Yup.InferType<typeof FLOW_FORM_SCHEMA>;
 
+const SINGLE_SUBSET_FORM_SCSHEMA = Yup.object({
+  schema: Yup.string().trim().required(),
+  table: Yup.string().trim().required(),
+  whereClause: Yup.string().trim().optional(),
+});
+
+export const SUBSET_FORM_SCHEMA = Yup.object({
+  subsets: Yup.array(SINGLE_SUBSET_FORM_SCSHEMA).required(),
+});
+
+export type SubsetFormValues = Yup.InferType<typeof SUBSET_FORM_SCHEMA>;
+
 const FORM_SCHEMA = Yup.object({
   define: DEFINE_FORM_SCHEMA,
   flow: FLOW_FORM_SCHEMA,
   schema: SCHEMA_FORM_SCHEMA,
+  subset: SUBSET_FORM_SCHEMA.optional(),
 });
 
 export type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
