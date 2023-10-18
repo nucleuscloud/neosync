@@ -75,21 +75,14 @@ func ProcessIntPhoneNumber(pn int64, preserveLength bool) (int64, error) {
 }
 
 func GenerateRandomInt(minInt int, maxInt int, count int) ([]int, error) {
-
 	if count <= 0 {
 		return nil, fmt.Errorf("count is zero or not an int")
 	}
 
-	p := rand.Perm(count)
-
-	for i := range p {
-		p[i] += minInt
+	randomInts := make([]int, count)
+	for i := 0; i < count; i++ {
+		randomInts[i] = rand.Intn(maxInt-minInt+1) + minInt
 	}
 
-	if len(p) > count {
-		p = p[:count]
-	}
-
-	return p, nil
-
+	return randomInts, nil
 }
