@@ -407,6 +407,7 @@ message IntPhoneNumber {
 }
 message GenericString {
   bool preserve_length = 1;
+  int64 str_length = 2;
 }
 
 message Null {}
