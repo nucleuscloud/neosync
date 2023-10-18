@@ -22,7 +22,7 @@ func init() {
 		// Param(bloblang.NewBoolParam("char_set")).
 
 	// register the plugin
-	err := bloblang.RegisterMethodV2("genericstring", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterMethodV2("genericstringtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
 
 		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
@@ -45,13 +45,8 @@ func init() {
 			return nil, fmt.Errorf("unable to convert the string case to a defined enum value")
 		}
 
-		// charSet, err := args.GetString("char_set")
-		// if err != nil {
-		// 	return nil, err
-		// }
-
 		return bloblang.StringMethod(func(s string) (any, error) {
-			res, err := ProcessGenericString(s, preserveLength, strLength, cased) // charSet
+			res, err := ProcessGenericString(s, preserveLength, strLength, cased)
 			return res, err
 		}), nil
 	})
@@ -78,6 +73,16 @@ func ProcessGenericString(s string, preserveLength bool, strLength int64, strCas
 		returnValue = val
 
 	} else if strLength > 0 {
+
+		val, err := GenerateRandomStringWithLength(strLength)
+
+		if err != nil {
+			return "", fmt.Errorf("unable to generate a random string with length")
+		}
+
+		returnValue = val
+
+	} else if preserveLength && strLength > 0 {
 
 		val, err := GenerateRandomStringWithLength(strLength)
 

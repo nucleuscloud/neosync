@@ -56,7 +56,7 @@ func TestProcessGenericString(t *testing.T) {
 }
 
 func TestGenericStringTransformer(t *testing.T) {
-	mapping := `root = this.genericstring(true, 6, "UPPER")`
+	mapping := `root = this.genericstringtransformer(true, 6, "UPPER")`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the generic string transformer")
 
@@ -75,7 +75,7 @@ func isTitleCased(s string) bool {
 		return false
 	}
 
-	// Compare the first character with its uppercase version.
+	// Compare the first character with its uppercase version
 	return rune(s[0]) == unicode.ToUpper(rune(s[0]))
 }
 

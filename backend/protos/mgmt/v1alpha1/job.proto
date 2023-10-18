@@ -368,7 +368,7 @@ message TransformerConfig {
     FullName full_name_config = 6;
     PhoneNumber phone_number_config = 7;
     IntPhoneNumber int_phone_number_config = 8;
-    GenericString string_config = 9;
+    GenericString generic_string_config = 9;
     Null null_config = 10;
   }
 }

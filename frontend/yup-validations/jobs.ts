@@ -3,6 +3,8 @@ import {
   EmailConfig,
   FirstName,
   FullName,
+  GenericString,
+  GenericString_StringCase,
   IntPhoneNumber,
   JobDestinationOptions,
   LastName,
@@ -174,6 +176,17 @@ interface IntPhoneNumberTransformerConfigs {
   preserveLength: boolean;
 }
 
+interface GenericStringTransformer {
+  value: string;
+  config: GenericStringTransformerConfigs;
+}
+
+interface GenericStringTransformerConfigs {
+  preserveLength: boolean;
+  strCase: GenericString_StringCase;
+  strLength: number;
+}
+
 export function toTransformerConfigOptions(t: {
   value: string;
   config: {};
@@ -302,6 +315,22 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'nullConfig',
             value: new Null({}),
+          },
+        }),
+      });
+    }
+    case 'generic_string': {
+      const gs = t as GenericStringTransformer;
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'genericStringConfig',
+            value: new GenericString({
+              preserveLength: gs.config.preserveLength,
+              strCase: gs.config.strCase,
+              strLength: BigInt(gs.config.strLength ?? 10),
+            }),
           },
         }),
       });

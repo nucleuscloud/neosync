@@ -9487,7 +9487,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_StringConfig:
+	case *TransformerConfig_GenericStringConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -9500,11 +9500,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetStringConfig()).(type) {
+			switch v := interface{}(m.GetGenericStringConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "StringConfig",
+						field:  "GenericStringConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -9512,16 +9512,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "StringConfig",
+						field:  "GenericStringConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetStringConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetGenericStringConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "StringConfig",
+					field:  "GenericStringConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}

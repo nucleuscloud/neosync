@@ -14,6 +14,7 @@ import { ReactElement, useEffect, useRef, useState } from 'react';
 import EmailTransformerForm from './forms/EmailTransformerForm';
 import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
 import FullNameTransformerForm from './forms/FullnameTransformerForm';
+import GenericStringTransformerForm from './forms/GenericStringTransformerForm';
 import IntPhoneNumberTransformerForm from './forms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
@@ -167,6 +168,13 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
+    case 'generic_string':
+      return (
+        <GenericStringTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -228,6 +236,13 @@ export function handleTransformerMetadata(
       null: {
         name: 'Null',
         description: 'Inserts a <null> string instead of the source value.',
+      },
+    },
+    {
+      generic_string: {
+        name: 'Generic String',
+        description:
+          'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length or Preserve Length parameters are defined.',
       },
     },
   ];

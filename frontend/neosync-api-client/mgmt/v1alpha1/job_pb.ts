@@ -3167,10 +3167,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "intPhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenericString string_config = 9;
+     * @generated from field: mgmt.v1alpha1.GenericString generic_string_config = 9;
      */
     value: GenericString;
-    case: "stringConfig";
+    case: "genericStringConfig";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.Null null_config = 10;
@@ -3195,7 +3195,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 6, name: "full_name_config", kind: "message", T: FullName, oneof: "config" },
     { no: 7, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
     { no: 8, name: "int_phone_number_config", kind: "message", T: IntPhoneNumber, oneof: "config" },
-    { no: 9, name: "string_config", kind: "message", T: GenericString, oneof: "config" },
+    { no: 9, name: "generic_string_config", kind: "message", T: GenericString, oneof: "config" },
     { no: 10, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
