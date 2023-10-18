@@ -86,6 +86,12 @@ func (a *Activities) GenerateBenthosConfigs(
 			return nil, err
 		}
 
+		sqlOpts := job.Source.Options.GetSqlOptions()
+		var sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption
+		if sqlOpts != nil {
+			sourceTableOpts = groupSqlSourceOptionsByTable(sqlOpts.Schemas)
+		}
+
 		groupedMappings := groupMappingsByTable(job.Mappings)
 		for i := range groupedMappings {
 			tableMapping := groupedMappings[i]
@@ -94,6 +100,13 @@ func (a *Activities) GenerateBenthosConfigs(
 				// skipping table as no columns are mapped
 				continue
 			}
+
+			var where string
+			tableOpt := sourceTableOpts[buildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+			if tableOpt != nil && tableOpt.WhereClause != nil {
+				where = *tableOpt.WhereClause
+			}
+
 			bc := &neosync_benthos.BenthosConfig{
 				StreamConfig: neosync_benthos.StreamConfig{
 					Input: &neosync_benthos.InputConfig{
@@ -103,6 +116,7 @@ func (a *Activities) GenerateBenthosConfigs(
 								Dsn:    dsn,
 
 								Table:   buildBenthosTable(tableMapping.Schema, tableMapping.Table),
+								Where:   where,
 								Columns: cols,
 							},
 						},
@@ -154,7 +168,6 @@ func (a *Activities) GenerateBenthosConfigs(
 		if !areMappingsSubsetOfSchemas(dbschemas, job.Mappings) {
 			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
 		}
-		sqlOpts := job.Source.Options.GetSqlOptions()
 		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
 			shouldHaltOnSchemaAddition(dbschemas, job.Mappings) {
 			msg := "job mappings does not contain a column mapping for all " +
@@ -594,6 +607,23 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 	}
 	benthosStream = nil
 	return &SyncResponse{}, nil
+}
+
+func groupSqlSourceOptionsByTable(
+	schemaOptions []*mgmtv1alpha1.SqlSourceSchemaOption,
+) map[string]*mgmtv1alpha1.SqlSourceTableOption {
+	groupedMappings := map[string]*mgmtv1alpha1.SqlSourceTableOption{}
+
+	for idx := range schemaOptions {
+		schemaOpt := schemaOptions[idx]
+		for tidx := range schemaOpt.Tables {
+			tableOpt := schemaOpt.Tables[tidx]
+			key := buildBenthosTable(schemaOpt.Schema, tableOpt.Table)
+			groupedMappings[key] = tableOpt
+		}
+	}
+
+	return groupedMappings
 }
 
 func groupMappingsByTable(
