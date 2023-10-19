@@ -101,9 +101,11 @@ func GenerateRandomIntWithLength(l int64) (int64, error) {
 		return 0, fmt.Errorf("the length cannot be zero or negative")
 	}
 
+	newIntVal := int64(10)
+
 	// Calculate the min and max values for l
-	minValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(l-1), nil)
-	maxValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(l), nil)
+	minValue := new(big.Int).Exp(big.NewInt(newIntVal), big.NewInt(l-1), nil)
+	maxValue := new(big.Int).Exp(big.NewInt(newIntVal), big.NewInt(l), nil)
 	maxValue.Sub(maxValue, big.NewInt(1))
 
 	// Generate a random int64 value within the range
@@ -112,12 +114,12 @@ func GenerateRandomIntWithLength(l int64) (int64, error) {
 		return 0, err
 	}
 
-	// If the generated random integer is less than the minimum value, add the minimum value to it.
+	// If the generated random integer is less than the minimum value, add the minimum value to it
 	if randomValue.Cmp(minValue) < 0 {
 		randomValue.Add(randomValue, minValue)
 	}
 
-	// If the generated random integer is greater than the maximum value, subtract the maximum value from it.
+	// If the generated random integer is greater than the maximum value, subtract the maximum value from it
 	if randomValue.Cmp(maxValue) > 0 {
 		randomValue.Sub(randomValue, maxValue)
 	}
