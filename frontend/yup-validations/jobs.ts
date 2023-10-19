@@ -1,11 +1,24 @@
 import { SubsetFormValues } from '@/app/new/job/schema';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
+  EmailConfig,
+  FirstName,
+  FullName,
+  IntPhoneNumber,
   JobDestinationOptions,
+  LastName,
+  Null,
+  Passthrough,
+  PhoneNumber,
+  RandomString,
+  RandomString_StringCase,
   SqlDestinationConnectionOptions,
   SqlSourceSchemaOption,
   SqlSourceTableOption,
+  Transformer,
+  TransformerConfig,
   TruncateTableConfig,
+  Uuid,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
