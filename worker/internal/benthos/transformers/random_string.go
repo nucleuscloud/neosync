@@ -19,7 +19,6 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewInt64Param("str_length")).
 		Param(bloblang.NewStringParam("case"))
-		// Param(bloblang.NewBoolParam("char_set")).
 
 	// register the plugin
 	err := bloblang.RegisterMethodV2("randomstringtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
