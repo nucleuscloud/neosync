@@ -124,7 +124,7 @@ export default function SubsetCard(props: Props): ReactElement {
               }}
             />
           </div>
-          <div>
+          <div className="my-4">
             <Separator />
           </div>
           <div>

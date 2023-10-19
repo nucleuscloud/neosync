@@ -7,9 +7,7 @@ export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   return (
     <div className="job-details-container">
-      <div className="space-y-10">
-        <SubsetCard jobId={id} />
-      </div>
+      <SubsetCard jobId={id} />
     </div>
   );
 }

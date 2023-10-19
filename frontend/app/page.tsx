@@ -1,11 +1,15 @@
 'use client';
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
 import RunsTable from './runs/components/RunsTable';
 
 export default function Home() {
   return (
-    <div className="space-y-4 my-2">
-      <h1 className="text-lg font-semibold tracking-tight">Latest Job Runs</h1>
+    <OverviewContainer
+      Header={<PageHeader header="Latest Job Runs" description="" />}
+      containerClassName="overview-page"
+    >
       <RunsTable />
-    </div>
+    </OverviewContainer>
   );
 }

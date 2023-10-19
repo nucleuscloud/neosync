@@ -3,7 +3,7 @@ import { Separator } from '../ui/separator';
 
 interface Props {
   header: string;
-  description: string;
+  description?: string;
 
   extraHeading?: ReactNode;
   leftIcon?: ReactNode;
@@ -12,7 +12,7 @@ interface Props {
 export default function PageHeader(props: Props) {
   const { header, description, extraHeading, leftIcon } = props;
   return (
-    <div className="flex flex-col my-4 gap-2">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-row justify-between">
         <div className="flex flex-row items-center gap-1">
           {leftIcon ? leftIcon : null}
@@ -20,7 +20,9 @@ export default function PageHeader(props: Props) {
         </div>
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
-      <h3 className="text-muted-foreground">{description}</h3>
+      {description ? (
+        <h3 className="text-muted-foreground">{description}</h3>
+      ) : null}
       <div className="my-4">
         <Separator />
       </div>
