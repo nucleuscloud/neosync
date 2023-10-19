@@ -1,6 +1,7 @@
 package neosync_transformers
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -46,6 +47,8 @@ func TestIntPhoneNumberTransformer(t *testing.T) {
 
 	res, err := ex.Query(testVal)
 	assert.NoError(t, err)
+
+	fmt.Println("res", res)
 
 	numStr := strconv.FormatInt(testVal, 10)
 	resStr := strconv.FormatInt(res.(int64), 10)
