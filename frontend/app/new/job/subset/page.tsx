@@ -10,14 +10,38 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { SchemaFormValues } from '@/yup-validations/jobs';
+import { useToast } from '@/components/ui/use-toast';
+import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import {
+  CreateJobRequest,
+  CreateJobResponse,
+  JobDestination,
+  JobMapping,
+  JobSource,
+  JobSourceOptions,
+  SqlSourceConnectionOptions,
+} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { getErrorMessage } from '@/util/util';
+import {
+  SchemaFormValues,
+  toJobDestinationOptions,
+  toSqlSourceSchemaOptions,
+  toTransformerConfigOptions,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import { SUBSET_FORM_SCHEMA, SubsetFormValues } from '../schema';
+import {
+  DefineFormValues,
+  FlowFormValues,
+  FormValues,
+  SUBSET_FORM_SCHEMA,
+  SubsetFormValues,
+} from '../schema';
 import { TableRow, getColumns } from './schema-table/column';
 import { DataTable } from './schema-table/data-table';
 
@@ -29,6 +53,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       router.push(`/new/job`);
     }
   }, [searchParams?.sessionId]);
+  const { toast } = useToast();
+  const { data: connectionsData } = useGetConnections(account?.id ?? '');
+  const connections = connectionsData?.connections ?? [];
 
   const sessionPrefix = searchParams?.sessionId ?? '';
   const sessionKey = `${sessionPrefix}-new-job-subset`;
@@ -36,6 +63,29 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [subsetFormValues] = useSessionStorage<SubsetFormValues>(sessionKey, {
     subsets: [],
   });
+
+  // Used to complete the whole form
+  const [defineFormValues] = useSessionStorage<DefineFormValues>(
+    `${sessionPrefix}-new-job-define`,
+    { jobName: '' }
+  );
+
+  // Used to complete the whole form
+  const [flowFormValues] = useSessionStorage<FlowFormValues>(
+    `${sessionPrefix}-new-job-flow`,
+    {
+      sourceId: '',
+      sourceOptions: {},
+      destinations: [{ connectionId: '', destinationOptions: {} }],
+    }
+  );
+
+  const [schemaFormValues] = useSessionStorage<SchemaFormValues>(
+    `${sessionPrefix}-new-job-schema`,
+    {
+      mappings: [],
+    }
+  );
 
   const form = useForm({
     resolver: yupResolver<SubsetFormValues>(SUBSET_FORM_SCHEMA),
@@ -49,16 +99,37 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     storage: isBrowser() ? window.sessionStorage : undefined,
   });
 
-  const [schemaFormValues] = useSessionStorage<SchemaFormValues>(
-    `${sessionPrefix}-new-job-schema`,
-    {
-      mappings: [],
-    }
-  );
-
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
 
-  async function onSubmit(values: SubsetFormValues): Promise<void> {}
+  async function onSubmit(values: SubsetFormValues): Promise<void> {
+    if (!account) {
+      return;
+    }
+    try {
+      const job = await createNewJob(
+        {
+          define: defineFormValues,
+          flow: flowFormValues,
+          schema: schemaFormValues,
+          subset: values,
+        },
+        account.id,
+        connections
+      );
+      if (job.job?.id) {
+        router.push(`/jobs/${job.job.id}`);
+      } else {
+        router.push(`/jobs`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to create job',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
+  }
 
   const tableRowData = buildTableRowData(
     schemaFormValues.mappings,
@@ -259,4 +330,63 @@ function EditItem(props: EditItemProps): ReactElement {
       </div>
     </div>
   );
+}
+
+async function createNewJob(
+  formData: FormValues,
+  accountId: string,
+  connections: Connection[]
+): Promise<CreateJobResponse> {
+  const connectionIdMap = new Map(
+    connections.map((connection) => [connection.id, connection])
+  );
+  const body = new CreateJobRequest({
+    accountId,
+    jobName: formData.define.jobName,
+    cronSchedule: formData.define.cronSchedule,
+    initiateJobRun: formData.define.initiateJobRun,
+    mappings: formData.schema.mappings.map((m) => {
+      return new JobMapping({
+        schema: m.schema,
+        table: m.table,
+        column: m.column,
+        transformer: toTransformerConfigOptions(m.transformer),
+      });
+    }),
+    source: new JobSource({
+      connectionId: formData.flow.sourceId,
+      options: new JobSourceOptions({
+        config: {
+          case: 'sqlOptions',
+          value: new SqlSourceConnectionOptions({
+            haltOnNewColumnAddition:
+              formData.flow.sourceOptions.haltOnNewColumnAddition,
+            schemas: toSqlSourceSchemaOptions(formData.subset?.subsets ?? []),
+          }),
+        },
+      }),
+    }),
+    destinations: formData.flow.destinations.map((d) => {
+      return new JobDestination({
+        connectionId: d.connectionId,
+        options: toJobDestinationOptions(
+          d,
+          connectionIdMap.get(d.connectionId)
+        ),
+      });
+    }),
+  });
+
+  const res = await fetch(`/api/jobs`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return CreateJobResponse.fromJson(await res.json());
 }
