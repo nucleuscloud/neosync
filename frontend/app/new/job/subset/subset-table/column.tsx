@@ -21,23 +21,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
   return [
     {
       id: 'select',
-      // header: ({ table }) => (
-      //   <Checkbox
-      //     checked={table.getIsAllPageRowsSelected()}
-      //     onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-      //     aria-label="Select all"
-      //     className="translate-y-[2px]"
-      //   />
-      // ),
-      cell: ({ row }) => (
-        <div />
-        // <Checkbox
-        //   checked={row.getIsSelected()}
-        //   onCheckedChange={(value) => row.toggleSelected(!!value)}
-        //   aria-label="Select row"
-        //   className="translate-y-[2px] "
-        // />
-      ),
+      cell: ({}) => <div />,
       enableSorting: false,
       enableHiding: false,
       enableColumnFilter: false,
@@ -85,7 +69,6 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
       },
       enableSorting: false,
       enableColumnFilter: false,
-      // filterFn: 'arrIncludesSome',
     },
     {
       accessorKey: 'edit',
@@ -105,7 +88,6 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
       },
       enableSorting: false,
       enableColumnFilter: false,
-      // filterFn: 'arrIncludesSome',
     },
   ];
 }

@@ -11,39 +11,21 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import {
-  CreateJobRequest,
-  CreateJobResponse,
-  JobDestination,
-  JobMapping,
-  JobSource,
-  JobSourceOptions,
-  SqlSourceConnectionOptions,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
-import {
-  SCHEMA_FORM_SCHEMA,
-  SchemaFormValues,
-  toJobDestinationOptions,
-} from '@/yup-validations/jobs';
-import { toTransformerConfigOptions } from '@/yup-validations/transformers';
+import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import { DefineFormValues, FlowFormValues, FormValues } from '../schema';
+import { FlowFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const account = useAccount();
   const router = useRouter();
   const { toast } = useToast();
-  const { data: connectionsData } = useGetConnections(account?.id ?? '');
 
-  const connections = connectionsData?.connections ?? [];
   useEffect(() => {
     if (!searchParams?.sessionId) {
       router.push(`/new/job`);
@@ -51,11 +33,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [searchParams?.sessionId]);
 
   const sessionPrefix = searchParams?.sessionId ?? '';
-
-  const [defineFormValues] = useSessionStorage<DefineFormValues>(
-    `${sessionPrefix}-new-job-define`,
-    { jobName: '' }
-  );
 
   const [flowFormValues] = useSessionStorage<FlowFormValues>(
     `${sessionPrefix}-new-job-flow`,
@@ -112,7 +89,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     storage: isBrowser() ? window.sessionStorage : undefined,
   });
 
-  async function onSubmit(values: SchemaFormValues) {
+  async function onSubmit(_values: SchemaFormValues) {
     if (!account) {
       return;
     }
@@ -143,59 +120,4 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </OverviewContainer>
   );
-}
-
-async function createNewJob(
-  formData: FormValues,
-  accountId: string,
-  connections: Connection[]
-): Promise<CreateJobResponse> {
-  const body = new CreateJobRequest({
-    accountId,
-    jobName: formData.define.jobName,
-    cronSchedule: formData.define.cronSchedule,
-    initiateJobRun: formData.define.initiateJobRun,
-    mappings: formData.schema.mappings.map((m) => {
-      return new JobMapping({
-        schema: m.schema,
-        table: m.table,
-        column: m.column,
-        transformer: toTransformerConfigOptions(m.transformer),
-      });
-    }),
-    source: new JobSource({
-      connectionId: formData.flow.sourceId,
-      options: new JobSourceOptions({
-        config: {
-          case: 'sqlOptions',
-          value: new SqlSourceConnectionOptions({
-            haltOnNewColumnAddition:
-              formData.flow.sourceOptions.haltOnNewColumnAddition,
-          }),
-        },
-      }),
-    }),
-    destinations: formData.flow.destinations.map((d) => {
-      return new JobDestination({
-        connectionId: d.connectionId,
-        options: toJobDestinationOptions(
-          d,
-          connections.find((c) => c.id == d.connectionId)
-        ),
-      });
-    }),
-  });
-
-  const res = await fetch(`/api/jobs`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CreateJobResponse.fromJson(await res.json());
 }

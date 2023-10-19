@@ -24,11 +24,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useFormContext } from 'react-hook-form';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  // onEdit(data: TData): void;
 }
 
 export function DataTable<TData, TValue>({
@@ -41,7 +39,6 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  // const [filtersUpdated, setFiltersUpdated] = React.useState(false);
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const table = useReactTable({
@@ -64,7 +61,6 @@ export function DataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
-  const formCtx = useFormContext();
 
   return (
     <div className="flex flex-col">
