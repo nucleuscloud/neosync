@@ -79,19 +79,21 @@ func GenerateRandomInt(minInt, maxInt, count int) ([]int, error) {
 	if count <= 0 {
 		return nil, fmt.Errorf("count is zero or not an int")
 	}
-
-	randomInts := make([]int, count)
+	randomInts := make([]int, 0, count)
 	const intBytes = 8
-	for i := 0; i < count; i++ {
-		randomBytes := make([]byte, intBytes) // 8 bytes for int64
+	for len(randomInts) < count {
+		randomBytes := make([]byte, intBytes)
 		_, err := rand.Read(randomBytes)
 		if err != nil {
 			return nil, err
 		}
 
-		// Convert the random bytes to an int64 and then to an int within the set range
 		randomInt := minInt + int(binary.BigEndian.Uint64(randomBytes)%uint64(maxInt-minInt+1))
-		randomInts[i] = randomInt
+
+		// Ensure the generated randomInt is within the count range
+		if randomInt <= maxInt {
+			randomInts = append(randomInts, randomInt)
+		}
 	}
 
 	return randomInts, nil
