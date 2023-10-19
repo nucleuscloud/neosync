@@ -1,6 +1,7 @@
 package neosync_transformers
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -8,46 +9,57 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessEmail(t *testing.T) {
+func TestProcessEmailPreserveLengthTrue(t *testing.T) {
 
-	tests := []struct {
-		email               string
-		preserveLength      bool
-		preserveDomain      bool
-		expectedError       bool
-		expectedLength      int
-		checkEmailStructure bool
-	}{
-		{"evis@gmail.com", true, false, false, 14, false}, // checks preserve length
-		{"evis@gmail.com", false, true, false, 0, true},   // checks preserve domain
-		{"evis@gmail.com", true, true, false, 14, false},  // checks preserve length and domain
-	}
+	email := "evis@gmail.com"
 
-	for _, tt := range tests {
-		res, err := ProcessEmail(tt.email, tt.preserveLength, tt.preserveDomain)
+	res, err := ProcessEmail(email, true, true)
 
-		if tt.expectedError {
-			assert.Error(t, err)
-			continue
-		}
+	assert.NoError(t, err)
+	assert.Equal(t, len(res), len(email), "The length of the emails should be the same")
+}
 
-		assert.NoError(t, err)
+func TestProcessEmailPreserveLengthFalse(t *testing.T) {
+	email := "johndoe@gmail.com"
 
-		if tt.expectedLength > 0 {
-			assert.Equal(t, tt.expectedLength, len(res))
-		}
+	res, err := ProcessEmail(email, false, true)
 
-		if tt.preserveDomain {
-			assert.Equal(t, strings.Split(res, "@")[1], "gmail.com")
-		}
+	assert.NoError(t, err)
+	assert.Equal(t, true, isValidEmail(res), "The expected email should be have a valid email structure")
+}
 
-		if tt.preserveDomain && tt.preserveLength {
-			assert.Equal(t, strings.Split(res, "@")[1], "gmail.com")
-			assert.Equal(t, tt.expectedLength, len(res))
+func TestProcessEmailPreserveDomain(t *testing.T) {
 
-		}
+	email := "evis@gmail.com"
 
-	}
+	res, err := ProcessEmail(email, true, true)
+
+	assert.NoError(t, err)
+	assert.Equal(t, strings.Split(res, "@")[1], "gmail.com", "The domain of the input email should be the same as the output email")
+
+}
+
+func TestProcessEmailNoPreserveDomain(t *testing.T) {
+
+	email := "evis@gmail.com"
+
+	res, err := ProcessEmail(email, true, false)
+
+	assert.NoError(t, err)
+	/* There is a very small chance that the randomly generated email address actually matches
+	the input email address which is why can't do an assert.NoEqual() but instead just have to check
+	that the email has the correct structrue */
+	assert.Equal(t, true, isValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
+
+}
+
+func TestProcessEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
+	email := "johndoe@gmail.com"
+
+	res, err := ProcessEmail(email, false, false)
+
+	assert.NoError(t, err)
+	assert.Equal(t, true, isValidEmail(res), "The expected email should be have a valid email structure")
 
 }
 
@@ -63,4 +75,11 @@ func TestEmailTransformer(t *testing.T) {
 
 	assert.Len(t, res.(string), len(testVal), "Generated email must be the same length as the input email")
 	assert.Equal(t, strings.Split(res.(string), "@")[1], "gmail.com")
+}
+
+func isValidEmail(email string) bool {
+	// Regular expression pattern for a simple email validation
+	emailPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	regex := regexp.MustCompile(emailPattern)
+	return regex.MatchString(email)
 }
