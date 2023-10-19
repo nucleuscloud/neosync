@@ -18,9 +18,10 @@ func TestProcessRandomString(t *testing.T) {
 		strCase        mgmtv1alpha1.RandomString_StringCase
 		expectedLength int
 	}{
-		{"hellothere", false, 0, mgmtv1alpha1.RandomString_STRING_CASE_UPPER, 0},   // check base string generation
+		{"hellothere", false, 0, mgmtv1alpha1.RandomString_STRING_CASE_LOWER, 0},   // check base string generation
 		{"HELLOTHERE", false, 6, mgmtv1alpha1.RandomString_STRING_CASE_TITLE, 6},   // check string generation with a given length
 		{"testtesttest", true, 0, mgmtv1alpha1.RandomString_STRING_CASE_LOWER, 12}, // check preserveLength of input string
+		{"TESTEST", false, 0, mgmtv1alpha1.RandomString_STRING_CASE_UPPER, 6},      // check preserveLength of input string
 	}
 
 	for _, tt := range tests {
@@ -81,6 +82,10 @@ func isTitleCased(s string) bool {
 
 func isAllCapitalized(s string) bool {
 	for _, char := range s {
+		if unicode.IsDigit(char) {
+			// Skip digits (numbers)
+			continue
+		}
 		if !unicode.IsUpper(char) {
 			return false
 		}
