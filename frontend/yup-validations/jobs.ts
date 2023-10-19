@@ -9,6 +9,8 @@ import {
   Null,
   Passthrough,
   PhoneNumber,
+  RandomString,
+  RandomString_StringCase,
   SqlDestinationConnectionOptions,
   Transformer,
   TransformerConfig,
@@ -174,6 +176,17 @@ interface IntPhoneNumberTransformerConfigs {
   preserveLength: boolean;
 }
 
+interface RandomStringTransformer {
+  value: string;
+  config: RandomStringTransformerConfigs;
+}
+
+interface RandomStringTransformerConfigs {
+  preserveLength: boolean;
+  strCase: RandomString_StringCase;
+  strLength: number;
+}
+
 export function toTransformerConfigOptions(t: {
   value: string;
   config: {};
@@ -302,6 +315,22 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'nullConfig',
             value: new Null({}),
+          },
+        }),
+      });
+    }
+    case 'random_string': {
+      const gs = t as RandomStringTransformer;
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'randomStringConfig',
+            value: new RandomString({
+              preserveLength: gs.config.preserveLength,
+              strCase: gs.config.strCase,
+              strLength: BigInt(gs.config.strLength ?? 10),
+            }),
           },
         }),
       });

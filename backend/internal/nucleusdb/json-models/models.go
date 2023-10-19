@@ -262,6 +262,7 @@ type TransformerConfigs struct {
 	IntPhoneNumber *IntPhoneNumberConfig
 	Passthrough    *PassthroughConfig
 	Null           *NullConfig
+	RandomString   *RandomStringConfig
 }
 
 type EmailConfigs struct {
@@ -296,6 +297,12 @@ type PassthroughConfig struct {
 }
 
 type NullConfig struct{}
+
+type RandomStringConfig struct {
+	PreserveLength bool
+	StrLength      int64
+	StrCase        string
+}
 
 // from API -> DB
 func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
@@ -362,6 +369,15 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
 			Null: &NullConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_RandomStringConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			RandomString: &RandomStringConfig{
+				PreserveLength: tr.Config.GetRandomStringConfig().PreserveLength,
+				StrLength:      tr.Config.GetRandomStringConfig().GetStrLength(),
+				StrCase:        tr.Config.GetRandomStringConfig().StrCase.String(),
+			},
 		}
 	default:
 		t.Value = tr.Value
@@ -473,8 +489,40 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 				},
 			},
 		}
+	case t.Config.RandomString != nil:
+
+		strCase, err := StrCaseFromString(t.Config.RandomString.StrCase)
+		if err != nil {
+			return &mgmtv1alpha1.Transformer{Value: t.Value}
+		}
+
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_RandomStringConfig{
+					RandomStringConfig: &mgmtv1alpha1.RandomString{
+						PreserveLength: t.Config.RandomString.PreserveLength,
+						StrLength:      t.Config.RandomString.StrLength,
+						StrCase:        strCase,
+					},
+				},
+			},
+		}
 	default:
 		return &mgmtv1alpha1.Transformer{Value: t.Value}
+	}
+}
+
+func StrCaseFromString(strCase string) (mgmtv1alpha1.RandomString_StringCase, error) {
+	switch strCase {
+	case "UPPER":
+		return mgmtv1alpha1.RandomString_STRING_CASE_UPPER, nil
+	case "LOWER":
+		return mgmtv1alpha1.RandomString_STRING_CASE_LOWER, nil
+	case "TITLE":
+		return mgmtv1alpha1.RandomString_STRING_CASE_TITLE, nil
+	default:
+		return mgmtv1alpha1.RandomString_STRING_CASE_LOWER, fmt.Errorf("invalid string case: %s", strCase)
 	}
 }
 
