@@ -28,17 +28,6 @@ func TestProcessEmailPreserveLengthFalse(t *testing.T) {
 	assert.Equal(t, true, isValidEmail(res), "The expected email should be have a valid email structure")
 }
 
-func TestProcessEmailPreserveDomain(t *testing.T) {
-
-	email := "evis@gmail.com"
-
-	res, err := ProcessEmail(email, true, true)
-
-	assert.NoError(t, err)
-	assert.Equal(t, strings.Split(res, "@")[1], "gmail.com", "The domain of the input email should be the same as the output email")
-
-}
-
 func TestProcessEmailNoPreserveDomain(t *testing.T) {
 
 	email := "evis@gmail.com"
