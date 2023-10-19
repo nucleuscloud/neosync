@@ -1,7 +1,6 @@
 package neosync_transformers
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -27,7 +26,6 @@ func TestProcessFullNamePreserveLengthFalse(t *testing.T) {
 
 	res, err := ProcessFullName(name, false)
 
-	fmt.Println("len(strings.Split(res, ", strings.Split(res, " "))
 	assert.NoError(t, err)
 	assert.Equal(t, len(strings.Split(res, " ")), 2, "The full name should be more than 0 characters")
 	assert.IsType(t, "", res, "The full name should be a string") // Check if the result is a string
