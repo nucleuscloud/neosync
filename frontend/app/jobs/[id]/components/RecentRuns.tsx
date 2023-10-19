@@ -18,7 +18,6 @@ import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 
 interface Props {
@@ -30,8 +29,6 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
 
   const { data: jobRuns, isLoading: jobRunsLoading } =
     useGetJobRunsByJob(jobId);
-
-  const router = useRouter();
 
   const jobRunsIdMap =
     jobRuns?.jobRuns.reduce(
