@@ -113,7 +113,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               Back
             </Button>
             <Button key="submit" type="submit">
-              Save
+              Next
             </Button>
           </div>
         </form>
