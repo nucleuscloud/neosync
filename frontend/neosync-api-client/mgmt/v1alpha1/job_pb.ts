@@ -3179,7 +3179,13 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "randomBoolConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 11;
+     * @generated from field: mgmt.v1alpha1.RandomInt random_int_config = 11;
+     */
+    value: RandomInt;
+    case: "randomIntConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 12;
      */
     value: Null;
     case: "nullConfig";
@@ -3203,7 +3209,8 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 8, name: "int_phone_number_config", kind: "message", T: IntPhoneNumber, oneof: "config" },
     { no: 9, name: "random_string_config", kind: "message", T: RandomString, oneof: "config" },
     { no: 10, name: "random_bool_config", kind: "message", T: RandomBool, oneof: "config" },
-    { no: 11, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 11, name: "random_int_config", kind: "message", T: RandomInt, oneof: "config" },
+    { no: 12, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3671,6 +3678,49 @@ export class RandomBool extends Message<RandomBool> {
 
   static equals(a: RandomBool | PlainMessage<RandomBool> | undefined, b: RandomBool | PlainMessage<RandomBool> | undefined): boolean {
     return proto3.util.equals(RandomBool, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RandomInt
+ */
+export class RandomInt extends Message<RandomInt> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
+  /**
+   * @generated from field: int64 int_length = 2;
+   */
+  intLength = protoInt64.zero;
+
+  constructor(data?: PartialMessage<RandomInt>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RandomInt";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "int_length", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RandomInt {
+    return new RandomInt().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RandomInt {
+    return new RandomInt().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RandomInt {
+    return new RandomInt().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RandomInt | PlainMessage<RandomInt> | undefined, b: RandomInt | PlainMessage<RandomInt> | undefined): boolean {
+    return proto3.util.equals(RandomInt, a, b);
   }
 }
 

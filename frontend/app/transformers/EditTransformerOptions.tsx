@@ -17,6 +17,7 @@ import FullNameTransformerForm from './forms/FullnameTransformerForm';
 import IntPhoneNumberTransformerForm from './forms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
+import RandomIntTransformerForm from './forms/RandomIntTransformerForm';
 import RandomStringTransformerForm from './forms/RandomStringTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
 
@@ -175,6 +176,13 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
+    case 'random_int':
+      return (
+        <RandomIntTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -249,6 +257,13 @@ export function handleTransformerMetadata(
       random_bool: {
         name: 'Random Bool',
         description: 'Generates a boolean value at random.',
+      },
+    },
+    {
+      random_int: {
+        name: 'Random Integer',
+        description:
+          'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramteres are defined. .',
       },
     },
   ];

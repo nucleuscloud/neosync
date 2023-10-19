@@ -8,6 +8,7 @@ import {
   Passthrough,
   PhoneNumber,
   RandomBool,
+  RandomInt,
   RandomString,
   RandomString_StringCase,
   Transformer,
@@ -90,6 +91,16 @@ interface RandomStringTransformerConfigs {
   preserveLength: boolean;
   strCase: RandomString_StringCase;
   strLength: number;
+}
+
+interface RandomIntTransformer {
+  value: string;
+  config: RandomIntTransformerConfigs;
+}
+
+interface RandomIntTransformerConfigs {
+  preserveLength: boolean;
+  intLength: number;
 }
 
 export function toTransformerConfigOptions(t: {
@@ -247,6 +258,21 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'randomBoolConfig',
             value: new RandomBool({}),
+          },
+        }),
+      });
+    }
+    case 'random_int': {
+      const gs = t as RandomIntTransformer;
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'randomIntConfig',
+            value: new RandomInt({
+              preserveLength: gs.config.preserveLength,
+              intLength: BigInt(gs.config.intLength ?? 4),
+            }),
           },
         }),
       });

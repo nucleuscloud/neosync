@@ -421,6 +421,7 @@ message RandomString {
 }
 
 message Null {}
+
 message RandomBool {}
 
 message RandomInt {
