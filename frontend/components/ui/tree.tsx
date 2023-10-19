@@ -41,6 +41,7 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
         !item.isSelected
       );
       setTreeItems(newTree);
+
       if (onSelectChange) {
         onSelectChange(newTree);
       }
@@ -109,15 +110,17 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
     const { ref: refRoot, width, height } = useResizeObserver();
 
     return (
-      <div ref={refRoot} className={cn('p-2', className)}>
+      <div ref={refRoot} className={cn('overflow-hidden', className)}>
         <ScrollArea style={{ width, height }}>
-          <TreeItem
-            data={treeItems}
-            ref={ref}
-            handleSelectChange={handleSelectChange}
-            isIndeterminate={isIndeterminate}
-            {...props}
-          />
+          <div className="relative p-2">
+            <TreeItem
+              data={treeItems}
+              ref={ref}
+              handleSelectChange={handleSelectChange}
+              isIndeterminate={isIndeterminate}
+              {...props}
+            />
+          </div>
         </ScrollArea>
       </div>
     );
@@ -153,6 +156,7 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                             onClick={() => handleSelectChange(item)}
                             checked={item.isSelected}
                             indeterminate={isIndeterminate(item)}
+                            type="button"
                           />
                           <label
                             htmlFor={item.id}
@@ -225,6 +229,7 @@ const Leaf = React.forwardRef<
           onClick={() => handleSelectChange(item)}
           checked={item.isSelected}
           indeterminate={indeterminate}
+          type="button"
         />
         <div className="flex ">
           <TooltipProvider>
