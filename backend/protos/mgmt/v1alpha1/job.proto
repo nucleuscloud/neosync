@@ -369,7 +369,8 @@ message TransformerConfig {
     PhoneNumber phone_number_config = 7;
     IntPhoneNumber int_phone_number_config = 8;
     RandomString random_string_config = 9;
-    Null null_config = 10;
+    RandomBool random_bool_config = 10;
+    Null null_config = 11;
   }
 }
 
@@ -419,6 +420,7 @@ message RandomString {
 }
 
 message Null {}
+message RandomBool {}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}

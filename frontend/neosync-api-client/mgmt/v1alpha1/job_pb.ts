@@ -3173,7 +3173,13 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "randomStringConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 10;
+     * @generated from field: mgmt.v1alpha1.RandomBool random_bool_config = 10;
+     */
+    value: RandomBool;
+    case: "randomBoolConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 11;
      */
     value: Null;
     case: "nullConfig";
@@ -3196,7 +3202,8 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 7, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
     { no: 8, name: "int_phone_number_config", kind: "message", T: IntPhoneNumber, oneof: "config" },
     { no: 9, name: "random_string_config", kind: "message", T: RandomString, oneof: "config" },
-    { no: 10, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 10, name: "random_bool_config", kind: "message", T: RandomBool, oneof: "config" },
+    { no: 11, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3633,6 +3640,37 @@ export class Null extends Message<Null> {
 
   static equals(a: Null | PlainMessage<Null> | undefined, b: Null | PlainMessage<Null> | undefined): boolean {
     return proto3.util.equals(Null, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RandomBool
+ */
+export class RandomBool extends Message<RandomBool> {
+  constructor(data?: PartialMessage<RandomBool>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RandomBool";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RandomBool {
+    return new RandomBool().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RandomBool {
+    return new RandomBool().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RandomBool {
+    return new RandomBool().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RandomBool | PlainMessage<RandomBool> | undefined, b: RandomBool | PlainMessage<RandomBool> | undefined): boolean {
+    return proto3.util.equals(RandomBool, a, b);
   }
 }
 

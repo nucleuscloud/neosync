@@ -263,6 +263,7 @@ type TransformerConfigs struct {
 	Passthrough    *PassthroughConfig
 	Null           *NullConfig
 	RandomString   *RandomStringConfig
+	RandomBool     *RandomBoolConfig
 }
 
 type EmailConfigs struct {
@@ -303,6 +304,8 @@ type RandomStringConfig struct {
 	StrLength      int64
 	StrCase        string
 }
+
+type RandomBoolConfig struct{}
 
 // from API -> DB
 func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
@@ -378,6 +381,11 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 				StrLength:      tr.Config.GetRandomStringConfig().GetStrLength(),
 				StrCase:        tr.Config.GetRandomStringConfig().StrCase.String(),
 			},
+		}
+	case *mgmtv1alpha1.TransformerConfig_RandomBoolConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			RandomBool: &RandomBoolConfig{},
 		}
 	default:
 		t.Value = tr.Value
@@ -505,6 +513,15 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 						StrLength:      t.Config.RandomString.StrLength,
 						StrCase:        strCase,
 					},
+				},
+			},
+		}
+	case t.Config.RandomBool != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_RandomBoolConfig{
+					RandomBoolConfig: &mgmtv1alpha1.RandomBool{},
 				},
 			},
 		}
