@@ -68,6 +68,10 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
       title: 'Destinations',
       href: `${basePath}/destinations`,
     },
+    {
+      title: 'Subsets',
+      href: `${basePath}/subsets`,
+    },
   ];
 
   if (isLoading) {

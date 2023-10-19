@@ -52,6 +52,8 @@ const SINGLE_SUBSET_FORM_SCSHEMA = Yup.object({
   whereClause: Yup.string().trim().optional(),
 });
 
+// export type SingleSubset = Yup.InferType<typeof SINGLE_SUBSET_FORM_SCSHEMA>;
+
 export const SUBSET_FORM_SCHEMA = Yup.object({
   subsets: Yup.array(SINGLE_SUBSET_FORM_SCSHEMA).required(),
 });

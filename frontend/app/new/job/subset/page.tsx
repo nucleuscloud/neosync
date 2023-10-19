@@ -42,8 +42,8 @@ import {
   SUBSET_FORM_SCHEMA,
   SubsetFormValues,
 } from '../schema';
-import { TableRow, getColumns } from './schema-table/column';
-import { DataTable } from './schema-table/data-table';
+import { TableRow, getColumns } from './subset-table/column';
+import { DataTable } from './subset-table/data-table';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const account = useAccount();
@@ -158,7 +158,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             className="flex flex-col gap-2"
           >
             <div>
-              <SchemaTable
+              <SubsetTable
                 data={Object.values(tableRowData)}
                 onEdit={(schema, table) => {
                   const key = buildRowKey(schema, table);
@@ -231,12 +231,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 }
 
-interface SchemaTableProps {
+interface SubsetTableProps {
   data: TableRow[];
   onEdit(schema: string, table: string): void;
 }
 
-function SchemaTable(props: SchemaTableProps): ReactElement {
+function SubsetTable(props: SubsetTableProps): ReactElement {
   const { data, onEdit } = props;
 
   const columns = getColumns({ onEdit });
