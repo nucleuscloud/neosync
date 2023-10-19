@@ -8,13 +8,9 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+
 import { Switch } from '@/components/ui/switch';
 import { GenericString_StringCase } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { ReactElement, useState } from 'react';
@@ -42,7 +38,7 @@ export default function GenericStringTransformerForm(
   );
 
   const [sl, setSl] = useState<number>(
-    vals.mappings[index ?? 0].transformer.config.strLength
+    vals.mappings[index ?? 0].transformer.config.strLength ?? 0
   );
 
   const handleSubmit = () => {
@@ -57,6 +53,8 @@ export default function GenericStringTransformerForm(
     });
     setIsSheetOpen!(false);
   };
+
+  console.log('sl', sl);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -96,12 +94,11 @@ export default function GenericStringTransformerForm(
             <FormControl>
               <Input
                 type="number"
-                value={sl}
                 className="max-w-[180px]"
-                disabled={pl}
                 placeholder="10"
-                onChange={() => {
-                  sl ? setSl(10) : setSl(sl);
+                disabled={pl}
+                onChange={(event) => {
+                  setSl(Number(event.target.value));
                 }}
               />
             </FormControl>
@@ -120,20 +117,24 @@ export default function GenericStringTransformerForm(
               </FormDescription>
             </div>
             <FormControl>
-              <Select
-                onValueChange={(value: string) => {
-                  setSc(StrCaseToType(value));
-                }}
+              <RadioGroup
+                defaultValue="option-one"
+                className="flex flex-row"
+                onValueChange={(value: string) => setSc(StrCaseToType(value))}
               >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="lower" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lower">lower</SelectItem>
-                  <SelectItem value="upper">UPPER</SelectItem>
-                  <SelectItem value="title">Title</SelectItem>
-                </SelectContent>
-              </Select>
+                <div className="flex flex-row items-center space-x-2">
+                  <RadioGroupItem value="lower" id="lower" />
+                  <Label htmlFor="lower">lower</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="upper" id="upper" />
+                  <Label htmlFor="upper">UPPER</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="title" id="title" />
+                  <Label htmlFor="title">Title</Label>
+                </div>
+              </RadioGroup>
             </FormControl>
           </FormItem>
         )}

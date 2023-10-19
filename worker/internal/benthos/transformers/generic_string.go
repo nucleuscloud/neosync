@@ -58,8 +58,7 @@ func init() {
 }
 
 // main transformer logic goes here
-func ProcessGenericString(s string, preserveLength bool, strLength int64, strCase mgmtv1alpha1.GenericString_StringCase) (string, error) { // charSet string, strCase string)
-
+func ProcessGenericString(s string, preserveLength bool, strLength int64, strCase mgmtv1alpha1.GenericString_StringCase) (string, error) {
 	var returnValue string
 
 	if preserveLength {
