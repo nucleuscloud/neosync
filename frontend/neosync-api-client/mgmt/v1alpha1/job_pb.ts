@@ -3167,7 +3167,19 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "intPhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 9;
+     * @generated from field: mgmt.v1alpha1.RandomString random_string_config = 9;
+     */
+    value: RandomString;
+    case: "randomStringConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.RandomBool random_bool_config = 10;
+     */
+    value: RandomBool;
+    case: "randomBoolConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 11;
      */
     value: Null;
     case: "nullConfig";
@@ -3189,7 +3201,9 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 6, name: "full_name_config", kind: "message", T: FullName, oneof: "config" },
     { no: 7, name: "phone_number_config", kind: "message", T: PhoneNumber, oneof: "config" },
     { no: 8, name: "int_phone_number_config", kind: "message", T: IntPhoneNumber, oneof: "config" },
-    { no: 9, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 9, name: "random_string_config", kind: "message", T: RandomString, oneof: "config" },
+    { no: 10, name: "random_bool_config", kind: "message", T: RandomBool, oneof: "config" },
+    { no: 11, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3518,6 +3532,87 @@ export class IntPhoneNumber extends Message<IntPhoneNumber> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.RandomString
+ */
+export class RandomString extends Message<RandomString> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
+  /**
+   * @generated from field: int64 str_length = 2;
+   */
+  strLength = protoInt64.zero;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.RandomString.StringCase str_case = 3;
+   */
+  strCase = RandomString_StringCase.UNSPECIFIED;
+
+  constructor(data?: PartialMessage<RandomString>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RandomString";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "str_length", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "str_case", kind: "enum", T: proto3.getEnumType(RandomString_StringCase) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RandomString {
+    return new RandomString().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RandomString {
+    return new RandomString().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RandomString {
+    return new RandomString().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RandomString | PlainMessage<RandomString> | undefined, b: RandomString | PlainMessage<RandomString> | undefined): boolean {
+    return proto3.util.equals(RandomString, a, b);
+  }
+}
+
+/**
+ * @generated from enum mgmt.v1alpha1.RandomString.StringCase
+ */
+export enum RandomString_StringCase {
+  /**
+   * @generated from enum value: STRING_CASE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: STRING_CASE_UPPER = 1;
+   */
+  UPPER = 1,
+
+  /**
+   * @generated from enum value: STRING_CASE_LOWER = 2;
+   */
+  LOWER = 2,
+
+  /**
+   * @generated from enum value: STRING_CASE_TITLE = 3;
+   */
+  TITLE = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(RandomString_StringCase)
+proto3.util.setEnumType(RandomString_StringCase, "mgmt.v1alpha1.RandomString.StringCase", [
+  { no: 0, name: "STRING_CASE_UNSPECIFIED" },
+  { no: 1, name: "STRING_CASE_UPPER" },
+  { no: 2, name: "STRING_CASE_LOWER" },
+  { no: 3, name: "STRING_CASE_TITLE" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.Null
  */
 export class Null extends Message<Null> {
@@ -3545,6 +3640,37 @@ export class Null extends Message<Null> {
 
   static equals(a: Null | PlainMessage<Null> | undefined, b: Null | PlainMessage<Null> | undefined): boolean {
     return proto3.util.equals(Null, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RandomBool
+ */
+export class RandomBool extends Message<RandomBool> {
+  constructor(data?: PartialMessage<RandomBool>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RandomBool";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RandomBool {
+    return new RandomBool().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RandomBool {
+    return new RandomBool().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RandomBool {
+    return new RandomBool().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RandomBool | PlainMessage<RandomBool> | undefined, b: RandomBool | PlainMessage<RandomBool> | undefined): boolean {
+    return proto3.util.equals(RandomBool, a, b);
   }
 }
 

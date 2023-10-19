@@ -1,7 +1,6 @@
 package neosync_transformers
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -15,8 +14,6 @@ func TestNullTransformer(t *testing.T) {
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
-
-	fmt.Println("res", res)
 
 	assert.Equal(t, res, "null", "Generated phone number must be the same length as the input phone number")
 }

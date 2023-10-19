@@ -27,8 +27,8 @@ import {
   SCHEMA_FORM_SCHEMA,
   SchemaFormValues,
   toJobDestinationOptions,
-  toTransformerConfigOptions,
 } from '@/yup-validations/jobs';
+import { toTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';

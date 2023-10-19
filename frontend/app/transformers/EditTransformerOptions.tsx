@@ -17,6 +17,7 @@ import FullNameTransformerForm from './forms/FullnameTransformerForm';
 import IntPhoneNumberTransformerForm from './forms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
+import RandomStringTransformerForm from './forms/RandomStringTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
 
 interface Props {
@@ -167,6 +168,13 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
+    case 'random_string':
+      return (
+        <RandomStringTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -228,6 +236,19 @@ export function handleTransformerMetadata(
       null: {
         name: 'Null',
         description: 'Inserts a <null> string instead of the source value.',
+      },
+    },
+    {
+      random_string: {
+        name: 'Random String',
+        description:
+          'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length or Preserve Length parameters are defined.',
+      },
+    },
+    {
+      random_bool: {
+        name: 'Random Bool',
+        description: 'Generates a boolean value at random.',
       },
     },
   ];

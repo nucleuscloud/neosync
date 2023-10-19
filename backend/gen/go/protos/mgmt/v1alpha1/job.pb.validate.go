@@ -9487,6 +9487,88 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
+	case *TransformerConfig_RandomStringConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetRandomStringConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "RandomStringConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "RandomStringConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetRandomStringConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "RandomStringConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *TransformerConfig_RandomBoolConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetRandomBoolConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "RandomBoolConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "RandomBoolConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetRandomBoolConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "RandomBoolConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	case *TransformerConfig_NullConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
@@ -10424,6 +10506,111 @@ var _ interface {
 	ErrorName() string
 } = IntPhoneNumberValidationError{}
 
+// Validate checks the field values on RandomString with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RandomString) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RandomString with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RandomStringMultiError, or
+// nil if none found.
+func (m *RandomString) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RandomString) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for PreserveLength
+
+	// no validation rules for StrLength
+
+	// no validation rules for StrCase
+
+	if len(errors) > 0 {
+		return RandomStringMultiError(errors)
+	}
+
+	return nil
+}
+
+// RandomStringMultiError is an error wrapping multiple validation errors
+// returned by RandomString.ValidateAll() if the designated constraints aren't met.
+type RandomStringMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RandomStringMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RandomStringMultiError) AllErrors() []error { return m }
+
+// RandomStringValidationError is the validation error returned by
+// RandomString.Validate if the designated constraints aren't met.
+type RandomStringValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RandomStringValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RandomStringValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RandomStringValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RandomStringValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RandomStringValidationError) ErrorName() string { return "RandomStringValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RandomStringValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRandomString.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RandomStringValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RandomStringValidationError{}
+
 // Validate checks the field values on Null with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
 // encountered is returned, or nil if there are no violations.
@@ -10521,3 +10708,102 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = NullValidationError{}
+
+// Validate checks the field values on RandomBool with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RandomBool) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RandomBool with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RandomBoolMultiError, or
+// nil if none found.
+func (m *RandomBool) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RandomBool) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return RandomBoolMultiError(errors)
+	}
+
+	return nil
+}
+
+// RandomBoolMultiError is an error wrapping multiple validation errors
+// returned by RandomBool.ValidateAll() if the designated constraints aren't met.
+type RandomBoolMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RandomBoolMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RandomBoolMultiError) AllErrors() []error { return m }
+
+// RandomBoolValidationError is the validation error returned by
+// RandomBool.Validate if the designated constraints aren't met.
+type RandomBoolValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RandomBoolValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RandomBoolValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RandomBoolValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RandomBoolValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RandomBoolValidationError) ErrorName() string { return "RandomBoolValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RandomBoolValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRandomBool.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RandomBoolValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RandomBoolValidationError{}

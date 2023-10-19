@@ -1084,6 +1084,13 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("this.%s.uuidtransformer(%t)", col.Column, ih), nil
 	case "null":
 		return "transformernull()", nil
+	case "random_bool":
+		return "randombooltransformer()", nil
+	case "random_string":
+		pl := col.Transformer.Config.GetRandomStringConfig().PreserveLength
+		sl := col.Transformer.Config.GetRandomStringConfig().StrLength
+		sc := col.Transformer.Config.GetRandomStringConfig().StrCase
+		return fmt.Sprintf(`this.%s.randomstringtransformer(%t, %d, "%q")`, col.Column, pl, sl, sc), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
