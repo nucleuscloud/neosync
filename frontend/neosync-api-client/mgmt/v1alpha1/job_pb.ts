@@ -1210,6 +1210,86 @@ export class UpdateJobSourceConnectionResponse extends Message<UpdateJobSourceCo
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest
+ */
+export class SetJobSourceSqlConnectionSubsetsRequest extends Message<SetJobSourceSqlConnectionSubsetsRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.SqlSourceSchemaOption schemas = 2;
+   */
+  schemas: SqlSourceSchemaOption[] = [];
+
+  constructor(data?: PartialMessage<SetJobSourceSqlConnectionSubsetsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "schemas", kind: "message", T: SqlSourceSchemaOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobSourceSqlConnectionSubsetsRequest {
+    return new SetJobSourceSqlConnectionSubsetsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobSourceSqlConnectionSubsetsRequest {
+    return new SetJobSourceSqlConnectionSubsetsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobSourceSqlConnectionSubsetsRequest {
+    return new SetJobSourceSqlConnectionSubsetsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobSourceSqlConnectionSubsetsRequest | PlainMessage<SetJobSourceSqlConnectionSubsetsRequest> | undefined, b: SetJobSourceSqlConnectionSubsetsRequest | PlainMessage<SetJobSourceSqlConnectionSubsetsRequest> | undefined): boolean {
+    return proto3.util.equals(SetJobSourceSqlConnectionSubsetsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse
+ */
+export class SetJobSourceSqlConnectionSubsetsResponse extends Message<SetJobSourceSqlConnectionSubsetsResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.Job job = 1;
+   */
+  job?: Job;
+
+  constructor(data?: PartialMessage<SetJobSourceSqlConnectionSubsetsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job", kind: "message", T: Job },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobSourceSqlConnectionSubsetsResponse {
+    return new SetJobSourceSqlConnectionSubsetsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobSourceSqlConnectionSubsetsResponse {
+    return new SetJobSourceSqlConnectionSubsetsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobSourceSqlConnectionSubsetsResponse {
+    return new SetJobSourceSqlConnectionSubsetsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobSourceSqlConnectionSubsetsResponse | PlainMessage<SetJobSourceSqlConnectionSubsetsResponse> | undefined, b: SetJobSourceSqlConnectionSubsetsResponse | PlainMessage<SetJobSourceSqlConnectionSubsetsResponse> | undefined): boolean {
+    return proto3.util.equals(SetJobSourceSqlConnectionSubsetsResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.UpdateJobDestinationConnectionRequest
  */
 export class UpdateJobDestinationConnectionRequest extends Message<UpdateJobDestinationConnectionRequest> {

@@ -587,37 +587,43 @@ func (s *SqlSourceOptions) ToDto() *mgmtv1alpha1.SqlSourceConnectionOptions {
 		tables := make([]*mgmtv1alpha1.SqlSourceTableOption, len(schema.Tables))
 		for tidx := range schema.Tables {
 			table := schema.Tables[tidx]
-			tables = append(tables, &mgmtv1alpha1.SqlSourceTableOption{
+			tables[tidx] = &mgmtv1alpha1.SqlSourceTableOption{
 				Table:       table.Table,
 				WhereClause: table.WhereClause,
-			})
+			}
 		}
-		dto.Schemas = append(dto.Schemas, &mgmtv1alpha1.SqlSourceSchemaOption{
+		dto.Schemas[idx] = &mgmtv1alpha1.SqlSourceSchemaOption{
 			Schema: schema.Schema,
 			Tables: tables,
-		})
+		}
 	}
 
 	return dto
 }
 func (s *SqlSourceOptions) FromDto(dto *mgmtv1alpha1.SqlSourceConnectionOptions) {
 	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
-	s.Schemas = make([]*SqlSourceSchemaOption, len(dto.Schemas))
-	for idx := range dto.Schemas {
-		schema := dto.Schemas[idx]
+	s.Schemas = FromDtoSqlSourceSchemaOptions(dto.Schemas)
+}
+
+func FromDtoSqlSourceSchemaOptions(dtos []*mgmtv1alpha1.SqlSourceSchemaOption) []*SqlSourceSchemaOption {
+	output := make([]*SqlSourceSchemaOption, len(dtos))
+	for idx := range dtos {
+		schema := dtos[idx]
 		tables := make([]*SqlSourceTableOption, len(schema.Tables))
 		for tidx := range schema.Tables {
 			table := schema.Tables[tidx]
-			tables = append(tables, &SqlSourceTableOption{
+			tables[tidx] = &SqlSourceTableOption{
 				Table:       table.Table,
 				WhereClause: table.WhereClause,
-			})
+			}
 		}
-		s.Schemas = append(s.Schemas, &SqlSourceSchemaOption{
+		output[idx] = &SqlSourceSchemaOption{
 			Schema: schema.Schema,
 			Tables: tables,
-		})
+		}
 	}
+
+	return output
 }
 
 type SqlSourceSchemaOption struct {

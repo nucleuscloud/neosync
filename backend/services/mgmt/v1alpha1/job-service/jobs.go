@@ -793,6 +793,67 @@ func (s *Service) UpdateJobSourceConnection(
 	}), nil
 }
 
+func (s *Service) SetJobSourceSqlConnectionSubsets(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsRequest],
+) (*connect.Response[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+	logger.Info("updating job source sql connection subsets")
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	if err != nil {
+		return nil, err
+	}
+	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("unable to find job by id")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(job.AccountID))
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	connectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: nucleusdb.UUIDString(job.ConnectionSourceID),
+	}))
+	if err != nil {
+		return nil, err
+	}
+	connection := connectionResp.Msg.Connection
+
+	if connection.ConnectionConfig == nil ||
+		(connection.ConnectionConfig.GetPgConfig() == nil && connection.ConnectionConfig.GetMysqlConfig() == nil) {
+		return nil, nucleuserrors.NewBadRequest("may only update subsets if the source connection is a SQL-based connection")
+	}
+
+	if err := s.db.SetSqlSourceSubsets(
+		ctx,
+		jobUuid,
+		jsonmodels.FromDtoSqlSourceSchemaOptions(req.Msg.Schemas),
+		*userUuid,
+	); err != nil {
+		return nil, err
+	}
+	updatedJobRes, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsResponse{
+		Job: updatedJobRes.Msg.Job,
+	}), nil
+}
+
 func (s *Service) UpdateJobDestinationConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.UpdateJobDestinationConnectionRequest],

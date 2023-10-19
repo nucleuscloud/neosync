@@ -1,7 +1,10 @@
+import { SubsetFormValues } from '@/app/new/job/schema';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   JobDestinationOptions,
   SqlDestinationConnectionOptions,
+  SqlSourceSchemaOption,
+  SqlSourceTableOption,
   TruncateTableConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
@@ -95,4 +98,28 @@ export function toJobDestinationOptions(
       return new JobDestinationOptions();
     }
   }
+}
+
+export function toSqlSourceSchemaOptions(
+  subsets: SubsetFormValues['subsets']
+): SqlSourceSchemaOption[] {
+  const schemaMap = subsets.reduce(
+    (map, subset) => {
+      if (!map[subset.schema]) {
+        map[subset.schema] = new SqlSourceSchemaOption({
+          schema: subset.schema,
+          tables: [],
+        });
+      }
+      map[subset.schema].tables.push(
+        new SqlSourceTableOption({
+          table: subset.table,
+          whereClause: subset.whereClause,
+        })
+      );
+      return map;
+    },
+    {} as Record<string, SqlSourceSchemaOption>
+  );
+  return Object.values(schemaMap);
 }

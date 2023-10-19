@@ -108,8 +108,12 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   }
 
   async function onSubmit(values: SourceFormValues) {
+    const job = data?.job;
+    if (!job) {
+      return;
+    }
     try {
-      await updateJobConnection(jobId, values);
+      await updateJobConnection(job, values);
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'default',
@@ -200,17 +204,18 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
 }
 
 async function updateJobConnection(
-  jobId: string,
+  job: Job,
   values: SourceFormValues
 ): Promise<UpdateJobSourceConnectionResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/source-connection`, {
+  const existingSourceOpts = getExistingSqlSourceConnectionOptions(job);
+  const res = await fetch(`/api/jobs/${job.id}/source-connection`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',
     },
     body: JSON.stringify(
       new UpdateJobSourceConnectionRequest({
-        id: jobId,
+        id: job.id,
         mappings: values.mappings.map((m) => {
           return new JobMapping({
             schema: m.schema,
@@ -225,6 +230,7 @@ async function updateJobConnection(
             config: {
               case: 'sqlOptions',
               value: new SqlSourceConnectionOptions({
+                ...existingSourceOpts,
                 haltOnNewColumnAddition:
                   values.sourceOptions.haltOnNewColumnAddition,
               }),
@@ -239,6 +245,14 @@ async function updateJobConnection(
     throw new Error(body.message);
   }
   return UpdateJobSourceConnectionResponse.fromJson(await res.json());
+}
+
+function getExistingSqlSourceConnectionOptions(
+  job: Job
+): SqlSourceConnectionOptions | undefined {
+  return job.source?.options?.config.case === 'sqlOptions'
+    ? job.source.options.config.value
+    : undefined;
 }
 
 function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {

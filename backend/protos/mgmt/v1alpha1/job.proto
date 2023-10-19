@@ -131,6 +131,14 @@ message UpdateJobSourceConnectionResponse {
   Job job = 1;
 }
 
+message SetJobSourceSqlConnectionSubsetsRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  repeated SqlSourceSchemaOption schemas = 2;
+}
+message SetJobSourceSqlConnectionSubsetsResponse {
+  Job job = 1;
+}
+
 message UpdateJobDestinationConnectionRequest {
   string job_id = 1 [(buf.validate.field).string.uuid = true];
   string connection_id = 2 [(buf.validate.field).string.uuid = true];
@@ -437,6 +445,7 @@ service JobService {
   rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {}
   rpc UpdateJobSchedule(UpdateJobScheduleRequest) returns (UpdateJobScheduleResponse) {}
   rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
+  rpc SetJobSourceSqlConnectionSubsets(SetJobSourceSqlConnectionSubsetsRequest) returns (SetJobSourceSqlConnectionSubsetsResponse) {}
   rpc UpdateJobDestinationConnection(UpdateJobDestinationConnectionRequest) returns (UpdateJobDestinationConnectionResponse) {}
   rpc DeleteJobDestinationConnection(DeleteJobDestinationConnectionRequest) returns (DeleteJobDestinationConnectionResponse) {}
   rpc CreateJobDestinationConnections(CreateJobDestinationConnectionsRequest) returns (CreateJobDestinationConnectionsResponse) {}
