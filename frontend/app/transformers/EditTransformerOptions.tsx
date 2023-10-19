@@ -245,6 +245,12 @@ export function handleTransformerMetadata(
           'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length or Preserve Length parameters are defined.',
       },
     },
+    {
+      random_bool: {
+        name: 'Random Bool',
+        description: 'Generates a boolean value at random.',
+      },
+    },
   ];
 
   const def = {
