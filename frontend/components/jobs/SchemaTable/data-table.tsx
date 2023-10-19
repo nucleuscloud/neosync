@@ -121,10 +121,6 @@ export function DataTable<TData, TValue>({
     }
   }
 
-  React.useMemo(() => {
-    handlefilter(treeData);
-  }, [treeData]);
-
   function restoreTree(): void {
     const treedata = Object.keys(schemaMap).map((schema) => {
       const children = Object.keys(schemaMap[schema]).map((table) => {
@@ -224,7 +220,7 @@ export function DataTable<TData, TValue>({
         <Tree
           data={treeData}
           className="h-full border rounded-md"
-          onSelectChange={setTreeData}
+          onSelectChange={handlefilter}
         />
       </div>
       <div className="basis-5/6 space-y-2 pl-8">
