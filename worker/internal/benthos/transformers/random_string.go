@@ -22,7 +22,7 @@ func init() {
 		// Param(bloblang.NewBoolParam("char_set")).
 
 	// register the plugin
-	err := bloblang.RegisterMethodV2("genericstringtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterMethodV2("randomstringtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
 
 		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {

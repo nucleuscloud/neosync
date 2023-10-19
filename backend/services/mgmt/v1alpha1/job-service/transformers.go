@@ -20,7 +20,7 @@ const (
 	IntPhoneNumber Transformation = "int_phone_number"
 	Email          Transformation = "email"
 	Null           Transformation = "null"
-	RandomString   Transformation = "generic_string"
+	RandomString   Transformation = "random_string"
 )
 
 func (s *Service) GetTransformers(

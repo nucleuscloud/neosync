@@ -319,7 +319,7 @@ export function toTransformerConfigOptions(t: {
         }),
       });
     }
-    case 'generic_string': {
+    case 'random_string': {
       const gs = t as RandomStringTransformer;
       return new Transformer({
         value: t.value,

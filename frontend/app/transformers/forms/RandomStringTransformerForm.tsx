@@ -54,8 +54,6 @@ export default function RandomStringTransformerForm(
     setIsSheetOpen!(false);
   };
 
-  console.log('sl', sl);
-
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField

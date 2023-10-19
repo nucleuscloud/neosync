@@ -57,9 +57,9 @@ func TestProcessRandomString(t *testing.T) {
 }
 
 func TestRandomStringTransformer(t *testing.T) {
-	mapping := `root = this.genericstringtransformer(true, 6, "UPPER")`
+	mapping := `root = this.randomstringtransformer(true, 6, "UPPER")`
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the generic string transformer")
+	assert.NoError(t, err, "failed to parse the random string transformer")
 
 	testVal := "testte"
 

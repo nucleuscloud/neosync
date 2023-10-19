@@ -168,7 +168,7 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
-    case 'generic_string':
+    case 'random_string':
       return (
         <RandomStringTransformerForm
           index={index}
@@ -239,8 +239,8 @@ export function handleTransformerMetadata(
       },
     },
     {
-      generic_string: {
-        name: 'Generic String',
+      random_string: {
+        name: 'Random String',
         description:
           'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length or Preserve Length parameters are defined.',
       },
