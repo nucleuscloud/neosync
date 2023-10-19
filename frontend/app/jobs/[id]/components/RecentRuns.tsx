@@ -17,7 +17,7 @@ import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
 import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { ArrowRightIcon } from '@radix-ui/react-icons';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { ReactElement } from 'react';
 
 interface Props {
@@ -29,8 +29,6 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
 
   const { data: jobRuns, isLoading: jobRunsLoading } =
     useGetJobRunsByJob(jobId);
-
-  const router = useRouter();
 
   const jobRunsIdMap =
     jobRuns?.jobRuns.reduce(
@@ -69,7 +67,12 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                 return (
                   <TableRow key={r.jobRunId}>
                     <TableCell>
-                      <span className="font-medium">{r.jobRunId}</span>
+                      <Link
+                        className="hover:underline"
+                        href={`/runs/${r.jobRunId}`}
+                      >
+                        <span className="font-medium">{r.jobRunId}</span>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">
@@ -88,12 +91,11 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                     </TableCell>
                     <TableCell>
                       {jobRun && (
-                        <Button
-                          variant="ghost"
-                          onClick={() => router.push(`/runs/${r.jobRunId}`)}
-                        >
-                          <ArrowRightIcon />
-                        </Button>
+                        <Link href={`/runs/${jobRun.id}`}>
+                          <Button variant="ghost" size="icon">
+                            <ArrowRightIcon />
+                          </Button>
+                        </Link>
                       )}
                     </TableCell>
                   </TableRow>
