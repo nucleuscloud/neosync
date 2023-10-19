@@ -6,9 +6,11 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v5"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
 type DatabaseSchema struct {
@@ -37,52 +39,114 @@ func (s *Service) GetConnectionSchema(
 		return nil, err
 	}
 
-	conn, err := pgx.Connect(ctx, connectionString)
-	if err != nil {
-		logger.Error("unable to connect", err)
-		return nil, err
-	}
-	defer func() {
-		if err := conn.Close(ctx); err != nil {
-			logger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
+	switch connCfg.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		conn, err := pgx.Connect(ctx, connectionString)
+		if err != nil {
+			logger.Error("unable to connect", err)
+			return nil, err
 		}
-	}()
+		defer func() {
+			if err := conn.Close(ctx); err != nil {
+				logger.Error(fmt.Errorf("failed to close postgres connection: %w", err).Error())
+			}
+		}()
 
-	dbSchema, err := getDatabaseSchema(ctx, conn)
-	if err != nil {
-		return nil, err
+		dbSchema, err := getPostgresDatabaseSchema(ctx, conn)
+		if err != nil {
+			return nil, err
+		}
+
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
+			Schemas: ToDatabaseColumn(dbSchema),
+		}), nil
+
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		conn, err := sql.Open("mysql", connectionString)
+		if err != nil {
+			logger.Error("unable to connect", err)
+			return nil, err
+		}
+		defer func() {
+			if err := conn.Close(); err != nil {
+				logger.Error(fmt.Errorf("failed to close mysql connection: %w", err).Error())
+			}
+		}()
+
+		dbSchema, err := getMysqlDatabaseSchema(conn)
+		if err != nil {
+			return nil, err
+		}
+
+		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
+			Schemas: ToDatabaseColumn(dbSchema),
+		}), nil
+
+	default:
+		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}
-
-	schema := []*mgmtv1alpha1.DatabaseColumn{}
-	for _, row := range dbSchema {
-		schema = append(schema, &mgmtv1alpha1.DatabaseColumn{
-			Schema:   row.TableSchema,
-			Table:    row.TableName,
-			Column:   row.ColumnName,
-			DataType: row.DataType,
-		})
-	}
-
-	return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-		Schemas: schema,
-	}), nil
 }
 
-func getDatabaseSchema(ctx context.Context, conn *pgx.Conn) ([]DatabaseSchema, error) {
-	rows, err := conn.Query(ctx, `
-		SELECT
-			c.table_schema,
-			c.table_name,
-			c.column_name,
-			c.data_type
-		FROM
-			information_schema.columns AS c
-			JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
-				AND c.table_name = t.table_name
-		WHERE
-			c.table_schema NOT IN('pg_catalog', 'information_schema')
-			AND t.table_type = 'BASE TABLE';
-	`)
+const (
+	getPostgresTableSchemaSql = `-- name: GetPostgresTableSchema
+	SELECT
+	c.table_schema,
+	c.table_name,
+	c.column_name,
+	c.data_type
+	FROM
+		information_schema.columns AS c
+		JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
+			AND c.table_name = t.table_name
+	WHERE
+		c.table_schema NOT IN ('pg_catalog', 'information_schema')
+		AND t.table_type = 'BASE TABLE';
+`
+
+	getMysqlTableSchemaSql = `-- name: GetMysqlTableSchema
+	SELECT
+	c.table_schema,
+	c.table_name,
+	c.column_name,
+	c.data_type
+	FROM
+		information_schema.columns AS c
+		JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
+			AND c.table_name = t.table_name
+	WHERE
+		c.table_schema NOT IN ('sys', 'performance_schema', 'mysql')
+		AND t.table_type = 'BASE TABLE';
+`
+)
+
+func getPostgresDatabaseSchema(ctx context.Context, conn *pgx.Conn) ([]DatabaseSchema, error) {
+	rows, err := conn.Query(ctx, getPostgresTableSchemaSql)
+	if err != nil && !isNoRows(err) {
+		return nil, err
+	}
+	if err != nil && isNoRows(err) {
+		return []DatabaseSchema{}, nil
+	}
+
+	output := []DatabaseSchema{}
+	for rows.Next() {
+		var o DatabaseSchema
+		err := rows.Scan(
+			&o.TableSchema,
+			&o.TableName,
+			&o.ColumnName,
+			&o.DataType,
+		)
+		if err != nil {
+			return nil, err
+		}
+		output = append(output, o)
+	}
+	return output, nil
+}
+
+func getMysqlDatabaseSchema(conn *sql.DB) ([]DatabaseSchema, error) {
+	rows, err := conn.Query(getMysqlTableSchemaSql)
 	if err != nil && !isNoRows(err) {
 		return nil, err
 	}
@@ -109,4 +173,19 @@ func getDatabaseSchema(ctx context.Context, conn *pgx.Conn) ([]DatabaseSchema, e
 
 func isNoRows(err error) bool {
 	return err != nil && err == sql.ErrNoRows || err == pgx.ErrNoRows
+}
+
+func ToDatabaseColumn(
+	input []DatabaseSchema,
+) []*mgmtv1alpha1.DatabaseColumn {
+	columns := []*mgmtv1alpha1.DatabaseColumn{}
+	for _, col := range input {
+		columns = append(columns, &mgmtv1alpha1.DatabaseColumn{
+			Schema:   col.TableSchema,
+			Table:    col.TableName,
+			Column:   col.ColumnName,
+			DataType: col.DataType,
+		})
+	}
+	return columns
 }

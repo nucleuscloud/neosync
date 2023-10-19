@@ -270,6 +270,25 @@ func (s *Service) getConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, er
 			return "", nucleuserrors.NewBadRequest("must provide valid postgres connection")
 		}
 		return *connectionString, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		var connectionString *string
+		switch connectionConfig := config.MysqlConfig.ConnectionConfig.(type) {
+		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
+			connStr := conn_utils.GetMysqlUrl(&conn_utils.MysqlConnectConfig{
+				Host:     connectionConfig.Connection.Host,
+				Port:     connectionConfig.Connection.Port,
+				Database: connectionConfig.Connection.DbName,
+				Username: connectionConfig.Connection.Username,
+				Password: connectionConfig.Connection.Password,
+				Protocol: connectionConfig.Connection.Protocol,
+			})
+			connectionString = &connStr
+		case *mgmtv1alpha1.MysqlConnectionConfig_Url:
+			connectionString = &connectionConfig.Url
+		default:
+			return "", nucleuserrors.NewBadRequest("must provide valid mysql connection")
+		}
+		return *connectionString, nil
 	default:
 		return "", nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}

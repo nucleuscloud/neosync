@@ -93,35 +93,37 @@ export function DataTable<TData, TValue>({
   function handlefilter(items: TreeDataItem[]) {
     const schemaFilters: string[] = [];
     const tableFilters: string[] = [];
-    function walkTreeItems(items: TreeDataItem | TreeDataItem[]) {
-      if (items instanceof Array) {
-        // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].isSelected) {
-            if (items[i].children) {
-              schemaFilters.push(items[i]!.name);
-            } else {
-              tableFilters.push(items[i]!.name);
-            }
-          }
-          if (walkTreeItems(items[i]!)) {
-            return true;
+
+    const stack: TreeDataItem[] = [...items];
+    while (stack.length > 0) {
+      const item = stack.pop();
+      if (item) {
+        if (item.isSelected) {
+          if (item.children) {
+            schemaFilters.push(item.name);
+          } else {
+            tableFilters.push(item.name);
           }
         }
-      } else if (items.children) {
-        return walkTreeItems(items.children);
+        if (item.children) {
+          stack.push(...item.children);
+        }
       }
     }
 
-    walkTreeItems(items);
-    if (schemaFilters.length == 0 && tableFilters.length == 0) {
-      return setColumnFilters([]);
+    if (schemaFilters.length === 0 && tableFilters.length === 0) {
+      setColumnFilters([]);
+    } else {
+      setColumnFilters([
+        { id: 'schema', value: schemaFilters },
+        { id: 'table', value: tableFilters },
+      ]);
     }
-    setColumnFilters([
-      { id: 'schema', value: schemaFilters },
-      { id: 'table', value: tableFilters },
-    ]);
   }
+
+  React.useMemo(() => {
+    handlefilter(treeData);
+  }, [treeData]);
 
   function restoreTree(): void {
     const treedata = Object.keys(schemaMap).map((schema) => {
@@ -221,8 +223,8 @@ export function DataTable<TData, TValue>({
       <div className="basis-1/6 min-w-[170px] pt-[45px] ">
         <Tree
           data={treeData}
-          className="border rounded-md"
-          onSelectChange={handlefilter}
+          className="h-full border rounded-md"
+          onSelectChange={setTreeData}
         />
       </div>
       <div className="basis-5/6 space-y-2 pl-8">
