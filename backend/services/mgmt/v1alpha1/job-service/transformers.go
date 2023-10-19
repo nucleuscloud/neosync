@@ -20,7 +20,7 @@ const (
 	IntPhoneNumber Transformation = "int_phone_number"
 	Email          Transformation = "email"
 	Null           Transformation = "null"
-	GenericString  Transformation = "generic_string"
+	RandomString   Transformation = "generic_string"
 )
 
 func (s *Service) GetTransformers(
@@ -87,13 +87,13 @@ func (s *Service) GetTransformers(
 					},
 				}},
 			{
-				Value: string(GenericString),
+				Value: string(RandomString),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenericStringConfig{
-						GenericStringConfig: &mgmtv1alpha1.GenericString{
+					Config: &mgmtv1alpha1.TransformerConfig_RandomStringConfig{
+						RandomStringConfig: &mgmtv1alpha1.RandomString{
 							PreserveLength: false,
 							StrLength:      0,
-							StrCase:        mgmtv1alpha1.GenericString_LOWER,
+							StrCase:        mgmtv1alpha1.RandomString_STRING_CASE_LOWER,
 						},
 					},
 				}},

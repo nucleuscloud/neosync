@@ -14,10 +14,10 @@ import { ReactElement, useEffect, useRef, useState } from 'react';
 import EmailTransformerForm from './forms/EmailTransformerForm';
 import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
 import FullNameTransformerForm from './forms/FullnameTransformerForm';
-import GenericStringTransformerForm from './forms/GenericStringTransformerForm';
 import IntPhoneNumberTransformerForm from './forms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
+import RandomStringTransformerForm from './forms/RandomStringTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
 
 interface Props {
@@ -170,7 +170,7 @@ function handleTransformerForm(
       );
     case 'generic_string':
       return (
-        <GenericStringTransformerForm
+        <RandomStringTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
         />

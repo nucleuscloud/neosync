@@ -3,14 +3,14 @@ import {
   EmailConfig,
   FirstName,
   FullName,
-  GenericString,
-  GenericString_StringCase,
   IntPhoneNumber,
   JobDestinationOptions,
   LastName,
   Null,
   Passthrough,
   PhoneNumber,
+  RandomString,
+  RandomString_StringCase,
   SqlDestinationConnectionOptions,
   Transformer,
   TransformerConfig,
@@ -176,14 +176,14 @@ interface IntPhoneNumberTransformerConfigs {
   preserveLength: boolean;
 }
 
-interface GenericStringTransformer {
+interface RandomStringTransformer {
   value: string;
-  config: GenericStringTransformerConfigs;
+  config: RandomStringTransformerConfigs;
 }
 
-interface GenericStringTransformerConfigs {
+interface RandomStringTransformerConfigs {
   preserveLength: boolean;
-  strCase: GenericString_StringCase;
+  strCase: RandomString_StringCase;
   strLength: number;
 }
 
@@ -320,13 +320,13 @@ export function toTransformerConfigOptions(t: {
       });
     }
     case 'generic_string': {
-      const gs = t as GenericStringTransformer;
+      const gs = t as RandomStringTransformer;
       return new Transformer({
         value: t.value,
         config: new TransformerConfig({
           config: {
-            case: 'genericStringConfig',
-            value: new GenericString({
+            case: 'randomStringConfig',
+            value: new RandomString({
               preserveLength: gs.config.preserveLength,
               strCase: gs.config.strCase,
               strLength: BigInt(gs.config.strLength ?? 10),

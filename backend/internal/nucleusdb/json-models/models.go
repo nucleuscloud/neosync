@@ -201,7 +201,7 @@ type TransformerConfigs struct {
 	IntPhoneNumber *IntPhoneNumberConfig
 	Passthrough    *PassthroughConfig
 	Null           *NullConfig
-	GenericString  *GenericStringConfig
+	RandomString   *RandomStringConfig
 }
 
 type EmailConfigs struct {
@@ -237,7 +237,7 @@ type PassthroughConfig struct {
 
 type NullConfig struct{}
 
-type GenericStringConfig struct {
+type RandomStringConfig struct {
 	PreserveLength bool
 	StrLength      int64
 	StrCase        string
@@ -309,13 +309,13 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 		t.Config = &TransformerConfigs{
 			Null: &NullConfig{},
 		}
-	case *mgmtv1alpha1.TransformerConfig_GenericStringConfig:
+	case *mgmtv1alpha1.TransformerConfig_RandomStringConfig:
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
-			GenericString: &GenericStringConfig{
-				PreserveLength: tr.Config.GetGenericStringConfig().PreserveLength,
-				StrLength:      tr.Config.GetGenericStringConfig().GetStrLength(),
-				StrCase:        tr.Config.GetGenericStringConfig().StrCase.String(),
+			RandomString: &RandomStringConfig{
+				PreserveLength: tr.Config.GetRandomStringConfig().PreserveLength,
+				StrLength:      tr.Config.GetRandomStringConfig().GetStrLength(),
+				StrCase:        tr.Config.GetRandomStringConfig().StrCase.String(),
 			},
 		}
 	default:
@@ -428,9 +428,9 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 				},
 			},
 		}
-	case t.Config.GenericString != nil:
+	case t.Config.RandomString != nil:
 
-		strCase, err := StrCaseFromString(t.Config.GenericString.StrCase)
+		strCase, err := StrCaseFromString(t.Config.RandomString.StrCase)
 		if err != nil {
 			return &mgmtv1alpha1.Transformer{Value: t.Value}
 		}
@@ -438,10 +438,10 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 		return &mgmtv1alpha1.Transformer{
 			Value: t.Value,
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenericStringConfig{
-					GenericStringConfig: &mgmtv1alpha1.GenericString{
-						PreserveLength: t.Config.GenericString.PreserveLength,
-						StrLength:      t.Config.GenericString.StrLength,
+				Config: &mgmtv1alpha1.TransformerConfig_RandomStringConfig{
+					RandomStringConfig: &mgmtv1alpha1.RandomString{
+						PreserveLength: t.Config.RandomString.PreserveLength,
+						StrLength:      t.Config.RandomString.StrLength,
 						StrCase:        strCase,
 					},
 				},
@@ -452,16 +452,16 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 	}
 }
 
-func StrCaseFromString(strCase string) (mgmtv1alpha1.GenericString_StringCase, error) {
+func StrCaseFromString(strCase string) (mgmtv1alpha1.RandomString_StringCase, error) {
 	switch strCase {
 	case "UPPER":
-		return mgmtv1alpha1.GenericString_UPPER, nil
+		return mgmtv1alpha1.RandomString_STRING_CASE_UPPER, nil
 	case "LOWER":
-		return mgmtv1alpha1.GenericString_LOWER, nil
+		return mgmtv1alpha1.RandomString_STRING_CASE_LOWER, nil
 	case "TITLE":
-		return mgmtv1alpha1.GenericString_TITLE, nil
+		return mgmtv1alpha1.RandomString_STRING_CASE_TITLE, nil
 	default:
-		return mgmtv1alpha1.GenericString_UPPER, fmt.Errorf("invalid string case: %s", strCase)
+		return mgmtv1alpha1.RandomString_STRING_CASE_LOWER, fmt.Errorf("invalid string case: %s", strCase)
 	}
 }
 

@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 import { Switch } from '@/components/ui/switch';
-import { GenericString_StringCase } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { RandomString_StringCase } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function GenericStringTransformerForm(
+export default function RandomStringTransformerForm(
   props: Props
 ): ReactElement {
   const { index, setIsSheetOpen } = props;
@@ -33,7 +33,7 @@ export default function GenericStringTransformerForm(
   const [pl, setPl] = useState<boolean>(
     vals.mappings[index ?? 0].transformer.config.preserveLength
   );
-  const [sc, setSc] = useState<GenericString_StringCase>(
+  const [sc, setSc] = useState<RandomString_StringCase>(
     vals.mappings[index ?? 0].transformer.config.strCase
   );
 
@@ -148,15 +148,15 @@ export default function GenericStringTransformerForm(
   );
 }
 
-function StrCaseToType(s: string): GenericString_StringCase {
+function StrCaseToType(s: string): RandomString_StringCase {
   switch (s) {
     case 'lower':
-      return GenericString_StringCase.LOWER;
+      return RandomString_StringCase.LOWER;
     case 'upper':
-      return GenericString_StringCase.UPPER;
+      return RandomString_StringCase.UPPER;
     case 'title':
-      return GenericString_StringCase.TITLE;
+      return RandomString_StringCase.TITLE;
   }
 
-  return GenericString_StringCase.UPPER;
+  return RandomString_StringCase.UPPER;
 }

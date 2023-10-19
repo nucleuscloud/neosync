@@ -368,7 +368,7 @@ message TransformerConfig {
     FullName full_name_config = 6;
     PhoneNumber phone_number_config = 7;
     IntPhoneNumber int_phone_number_config = 8;
-    GenericString generic_string_config = 9;
+    RandomString random_string_config = 9;
     Null null_config = 10;
   }
 }
@@ -405,11 +405,12 @@ message PhoneNumber {
 message IntPhoneNumber {
   bool preserve_length = 1;
 }
-message GenericString {
+message RandomString {
   enum StringCase {
-    UPPER = 0;
-    LOWER = 1;
-    TITLE = 2;
+    STRING_CASE_UNSPECIFIED = 0;
+    STRING_CASE_UPPER = 1;
+    STRING_CASE_LOWER = 2;
+    STRING_CASE_TITLE = 3;
   }
 
   bool preserve_length = 1;

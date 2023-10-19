@@ -861,9 +861,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "null":
 		return "transformernull()", nil
 	case "generic_string":
-		pl := col.Transformer.Config.GetGenericStringConfig().PreserveLength
-		sl := col.Transformer.Config.GetGenericStringConfig().StrLength
-		sc := col.Transformer.Config.GetGenericStringConfig().StrCase
+		pl := col.Transformer.Config.GetRandomStringConfig().PreserveLength
+		sl := col.Transformer.Config.GetRandomStringConfig().StrLength
+		sc := col.Transformer.Config.GetRandomStringConfig().StrCase
 		return fmt.Sprintf(`this.%s.genericstringtransformer(%t, %d, "%q")`, col.Column, pl, sl, sc), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")

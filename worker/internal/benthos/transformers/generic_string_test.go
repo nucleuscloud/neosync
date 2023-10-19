@@ -9,22 +9,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessGenericString(t *testing.T) {
+func TestProcessRandomString(t *testing.T) {
 
 	tests := []struct {
 		s              string
 		preserveLength bool
 		strLength      int64
-		strCase        mgmtv1alpha1.GenericString_StringCase
+		strCase        mgmtv1alpha1.RandomString_StringCase
 		expectedLength int
 	}{
-		{"hellothere", false, 0, mgmtv1alpha1.GenericString_UPPER, 0},   // check base string generation
-		{"HELLOTHERE", false, 6, mgmtv1alpha1.GenericString_TITLE, 6},   // check string generation with a given length
-		{"testtesttest", true, 0, mgmtv1alpha1.GenericString_LOWER, 12}, // check preserveLength of input string
+		{"hellothere", false, 0, mgmtv1alpha1.RandomString_STRING_CASE_UPPER, 0},   // check base string generation
+		{"HELLOTHERE", false, 6, mgmtv1alpha1.RandomString_STRING_CASE_TITLE, 6},   // check string generation with a given length
+		{"testtesttest", true, 0, mgmtv1alpha1.RandomString_STRING_CASE_LOWER, 12}, // check preserveLength of input string
 	}
 
 	for _, tt := range tests {
-		res, err := ProcessGenericString(tt.s, tt.preserveLength, tt.strLength, tt.strCase)
+		res, err := ProcessRandomString(tt.s, tt.preserveLength, tt.strLength, tt.strCase)
 
 		assert.NoError(t, err)
 
@@ -40,22 +40,22 @@ func TestProcessGenericString(t *testing.T) {
 			assert.Equal(t, len(res), 6)
 		}
 
-		if tt.strCase == mgmtv1alpha1.GenericString_UPPER {
+		if tt.strCase == mgmtv1alpha1.RandomString_STRING_CASE_UPPER {
 			assert.True(t, isAllCapitalized(res), isAllCapitalized(tt.s))
 		}
 
-		if tt.strCase == mgmtv1alpha1.GenericString_TITLE {
+		if tt.strCase == mgmtv1alpha1.RandomString_STRING_CASE_TITLE {
 			assert.True(t, isTitleCased(res), isTitleCased(tt.s))
 		}
 
-		if tt.strCase == mgmtv1alpha1.GenericString_LOWER {
+		if tt.strCase == mgmtv1alpha1.RandomString_STRING_CASE_LOWER {
 			assert.True(t, isAllLower(res), isAllLower(tt.s))
 		}
 	}
 
 }
 
-func TestGenericStringTransformer(t *testing.T) {
+func TestRandomStringTransformer(t *testing.T) {
 	mapping := `root = this.genericstringtransformer(true, 6, "UPPER")`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the generic string transformer")

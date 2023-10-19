@@ -9487,7 +9487,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_GenericStringConfig:
+	case *TransformerConfig_RandomStringConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -9500,11 +9500,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGenericStringConfig()).(type) {
+			switch v := interface{}(m.GetRandomStringConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenericStringConfig",
+						field:  "RandomStringConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -9512,16 +9512,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenericStringConfig",
+						field:  "RandomStringConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGenericStringConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetRandomStringConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "GenericStringConfig",
+					field:  "RandomStringConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -10465,22 +10465,22 @@ var _ interface {
 	ErrorName() string
 } = IntPhoneNumberValidationError{}
 
-// Validate checks the field values on GenericString with the rules defined in
+// Validate checks the field values on RandomString with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *GenericString) Validate() error {
+func (m *RandomString) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GenericString with the rules defined
+// ValidateAll checks the field values on RandomString with the rules defined
 // in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in GenericStringMultiError, or
+// result is a list of violation errors wrapped in RandomStringMultiError, or
 // nil if none found.
-func (m *GenericString) ValidateAll() error {
+func (m *RandomString) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GenericString) validate(all bool) error {
+func (m *RandomString) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -10494,19 +10494,18 @@ func (m *GenericString) validate(all bool) error {
 	// no validation rules for StrCase
 
 	if len(errors) > 0 {
-		return GenericStringMultiError(errors)
+		return RandomStringMultiError(errors)
 	}
 
 	return nil
 }
 
-// GenericStringMultiError is an error wrapping multiple validation errors
-// returned by GenericString.ValidateAll() if the designated constraints
-// aren't met.
-type GenericStringMultiError []error
+// RandomStringMultiError is an error wrapping multiple validation errors
+// returned by RandomString.ValidateAll() if the designated constraints aren't met.
+type RandomStringMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GenericStringMultiError) Error() string {
+func (m RandomStringMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -10515,11 +10514,11 @@ func (m GenericStringMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GenericStringMultiError) AllErrors() []error { return m }
+func (m RandomStringMultiError) AllErrors() []error { return m }
 
-// GenericStringValidationError is the validation error returned by
-// GenericString.Validate if the designated constraints aren't met.
-type GenericStringValidationError struct {
+// RandomStringValidationError is the validation error returned by
+// RandomString.Validate if the designated constraints aren't met.
+type RandomStringValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -10527,22 +10526,22 @@ type GenericStringValidationError struct {
 }
 
 // Field function returns field value.
-func (e GenericStringValidationError) Field() string { return e.field }
+func (e RandomStringValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GenericStringValidationError) Reason() string { return e.reason }
+func (e RandomStringValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GenericStringValidationError) Cause() error { return e.cause }
+func (e RandomStringValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GenericStringValidationError) Key() bool { return e.key }
+func (e RandomStringValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GenericStringValidationError) ErrorName() string { return "GenericStringValidationError" }
+func (e RandomStringValidationError) ErrorName() string { return "RandomStringValidationError" }
 
 // Error satisfies the builtin error interface
-func (e GenericStringValidationError) Error() string {
+func (e RandomStringValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -10554,14 +10553,14 @@ func (e GenericStringValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGenericString.%s: %s%s",
+		"invalid %sRandomString.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GenericStringValidationError{}
+var _ error = RandomStringValidationError{}
 
 var _ interface {
 	Field() string
@@ -10569,7 +10568,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GenericStringValidationError{}
+} = RandomStringValidationError{}
 
 // Validate checks the field values on Null with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error

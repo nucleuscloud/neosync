@@ -46,7 +46,7 @@ func init() {
 		}
 
 		return bloblang.StringMethod(func(s string) (any, error) {
-			res, err := ProcessGenericString(s, preserveLength, strLength, cased)
+			res, err := ProcessRandomString(s, preserveLength, strLength, cased)
 			return res, err
 		}), nil
 	})
@@ -58,7 +58,7 @@ func init() {
 }
 
 // main transformer logic goes here
-func ProcessGenericString(s string, preserveLength bool, strLength int64, strCase mgmtv1alpha1.GenericString_StringCase) (string, error) {
+func ProcessRandomString(s string, preserveLength bool, strLength int64, strCase mgmtv1alpha1.RandomString_StringCase) (string, error) {
 	var returnValue string
 
 	if preserveLength {
@@ -104,11 +104,11 @@ func ProcessGenericString(s string, preserveLength bool, strLength int64, strCas
 	}
 
 	switch strCase {
-	case mgmtv1alpha1.GenericString_LOWER:
+	case mgmtv1alpha1.RandomString_STRING_CASE_LOWER:
 		returnValue = strings.ToLower(returnValue)
-	case mgmtv1alpha1.GenericString_UPPER:
+	case mgmtv1alpha1.RandomString_STRING_CASE_UPPER:
 		returnValue = strings.ToUpper(returnValue)
-	case mgmtv1alpha1.GenericString_TITLE:
+	case mgmtv1alpha1.RandomString_STRING_CASE_TITLE:
 		returnValue = strings.ToTitle(returnValue)
 	}
 
@@ -146,15 +146,15 @@ func GenerateRandomStringWithLength(l int64) (string, error) {
 
 }
 
-func StrCaseFromString(strCase string) (mgmtv1alpha1.GenericString_StringCase, error) {
+func StrCaseFromString(strCase string) (mgmtv1alpha1.RandomString_StringCase, error) {
 	switch strCase {
 	case "UPPER":
-		return mgmtv1alpha1.GenericString_UPPER, nil
+		return mgmtv1alpha1.RandomString_STRING_CASE_UPPER, nil
 	case "LOWER":
-		return mgmtv1alpha1.GenericString_LOWER, nil
+		return mgmtv1alpha1.RandomString_STRING_CASE_LOWER, nil
 	case "TITLE":
-		return mgmtv1alpha1.GenericString_TITLE, nil
+		return mgmtv1alpha1.RandomString_STRING_CASE_TITLE, nil
 	default:
-		return mgmtv1alpha1.GenericString_UPPER, fmt.Errorf("invalid string case: %s", strCase)
+		return mgmtv1alpha1.RandomString_STRING_CASE_UPPER, fmt.Errorf("invalid string case: %s", strCase)
 	}
 }
