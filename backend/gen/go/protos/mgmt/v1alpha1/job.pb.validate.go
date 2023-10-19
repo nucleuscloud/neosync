@@ -3358,6 +3358,283 @@ var _ interface {
 	ErrorName() string
 } = UpdateJobSourceConnectionResponseValidationError{}
 
+// Validate checks the field values on SetJobSourceSqlConnectionSubsetsRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *SetJobSourceSqlConnectionSubsetsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// SetJobSourceSqlConnectionSubsetsRequest with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// SetJobSourceSqlConnectionSubsetsRequestMultiError, or nil if none found.
+func (m *SetJobSourceSqlConnectionSubsetsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetJobSourceSqlConnectionSubsetsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	for idx, item := range m.GetSchemas() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SetJobSourceSqlConnectionSubsetsRequestValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SetJobSourceSqlConnectionSubsetsRequestValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SetJobSourceSqlConnectionSubsetsRequestValidationError{
+					field:  fmt.Sprintf("Schemas[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return SetJobSourceSqlConnectionSubsetsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetJobSourceSqlConnectionSubsetsRequestMultiError is an error wrapping
+// multiple validation errors returned by
+// SetJobSourceSqlConnectionSubsetsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SetJobSourceSqlConnectionSubsetsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetJobSourceSqlConnectionSubsetsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetJobSourceSqlConnectionSubsetsRequestMultiError) AllErrors() []error { return m }
+
+// SetJobSourceSqlConnectionSubsetsRequestValidationError is the validation
+// error returned by SetJobSourceSqlConnectionSubsetsRequest.Validate if the
+// designated constraints aren't met.
+type SetJobSourceSqlConnectionSubsetsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetJobSourceSqlConnectionSubsetsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetJobSourceSqlConnectionSubsetsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetJobSourceSqlConnectionSubsetsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetJobSourceSqlConnectionSubsetsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetJobSourceSqlConnectionSubsetsRequestValidationError) ErrorName() string {
+	return "SetJobSourceSqlConnectionSubsetsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetJobSourceSqlConnectionSubsetsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetJobSourceSqlConnectionSubsetsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetJobSourceSqlConnectionSubsetsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetJobSourceSqlConnectionSubsetsRequestValidationError{}
+
+// Validate checks the field values on SetJobSourceSqlConnectionSubsetsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *SetJobSourceSqlConnectionSubsetsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// SetJobSourceSqlConnectionSubsetsResponse with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in
+// SetJobSourceSqlConnectionSubsetsResponseMultiError, or nil if none found.
+func (m *SetJobSourceSqlConnectionSubsetsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetJobSourceSqlConnectionSubsetsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetJob()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetJobSourceSqlConnectionSubsetsResponseValidationError{
+					field:  "Job",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetJobSourceSqlConnectionSubsetsResponseValidationError{
+					field:  "Job",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetJob()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetJobSourceSqlConnectionSubsetsResponseValidationError{
+				field:  "Job",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetJobSourceSqlConnectionSubsetsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetJobSourceSqlConnectionSubsetsResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// SetJobSourceSqlConnectionSubsetsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SetJobSourceSqlConnectionSubsetsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetJobSourceSqlConnectionSubsetsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetJobSourceSqlConnectionSubsetsResponseMultiError) AllErrors() []error { return m }
+
+// SetJobSourceSqlConnectionSubsetsResponseValidationError is the validation
+// error returned by SetJobSourceSqlConnectionSubsetsResponse.Validate if the
+// designated constraints aren't met.
+type SetJobSourceSqlConnectionSubsetsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetJobSourceSqlConnectionSubsetsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetJobSourceSqlConnectionSubsetsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetJobSourceSqlConnectionSubsetsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetJobSourceSqlConnectionSubsetsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetJobSourceSqlConnectionSubsetsResponseValidationError) ErrorName() string {
+	return "SetJobSourceSqlConnectionSubsetsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetJobSourceSqlConnectionSubsetsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetJobSourceSqlConnectionSubsetsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetJobSourceSqlConnectionSubsetsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetJobSourceSqlConnectionSubsetsResponseValidationError{}
+
 // Validate checks the field values on UpdateJobDestinationConnectionRequest
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if

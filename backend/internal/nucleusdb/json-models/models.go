@@ -602,9 +602,13 @@ func (s *SqlSourceOptions) ToDto() *mgmtv1alpha1.SqlSourceConnectionOptions {
 }
 func (s *SqlSourceOptions) FromDto(dto *mgmtv1alpha1.SqlSourceConnectionOptions) {
 	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
-	s.Schemas = make([]*SqlSourceSchemaOption, len(dto.Schemas))
-	for idx := range dto.Schemas {
-		schema := dto.Schemas[idx]
+	s.Schemas = FromDtoSqlSourceSchemaOptions(dto.Schemas)
+}
+
+func FromDtoSqlSourceSchemaOptions(dtos []*mgmtv1alpha1.SqlSourceSchemaOption) []*SqlSourceSchemaOption {
+	output := make([]*SqlSourceSchemaOption, len(dtos))
+	for idx := range dtos {
+		schema := dtos[idx]
 		tables := make([]*SqlSourceTableOption, len(schema.Tables))
 		for tidx := range schema.Tables {
 			table := schema.Tables[tidx]
@@ -613,11 +617,13 @@ func (s *SqlSourceOptions) FromDto(dto *mgmtv1alpha1.SqlSourceConnectionOptions)
 				WhereClause: table.WhereClause,
 			}
 		}
-		s.Schemas[idx] = &SqlSourceSchemaOption{
+		output[idx] = &SqlSourceSchemaOption{
 			Schema: schema.Schema,
 			Tables: tables,
 		}
 	}
+
+	return output
 }
 
 type SqlSourceSchemaOption struct {
