@@ -21,6 +21,7 @@ const (
 	Email          Transformation = "email"
 	Null           Transformation = "null"
 	RandomString   Transformation = "random_string"
+	RandomBool     Transformation = "random_bool"
 )
 
 func (s *Service) GetTransformers(
@@ -97,6 +98,7 @@ func (s *Service) GetTransformers(
 						},
 					},
 				}},
+			{Value: string(RandomBool), Config: &mgmtv1alpha1.TransformerConfig{}},
 		},
 	}), nil
 }
