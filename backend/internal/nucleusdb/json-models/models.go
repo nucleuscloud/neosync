@@ -608,15 +608,15 @@ func (s *SqlSourceOptions) FromDto(dto *mgmtv1alpha1.SqlSourceConnectionOptions)
 		tables := make([]*SqlSourceTableOption, len(schema.Tables))
 		for tidx := range schema.Tables {
 			table := schema.Tables[tidx]
-			tables = append(tables, &SqlSourceTableOption{
+			tables[tidx] = &SqlSourceTableOption{
 				Table:       table.Table,
 				WhereClause: table.WhereClause,
-			})
+			}
 		}
-		s.Schemas = append(s.Schemas, &SqlSourceSchemaOption{
+		s.Schemas[idx] = &SqlSourceSchemaOption{
 			Schema: schema.Schema,
 			Tables: tables,
-		})
+		}
 	}
 }
 
