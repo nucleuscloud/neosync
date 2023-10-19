@@ -12,7 +12,7 @@ interface Props {
 export default function PageHeader(props: Props) {
   const { header, description, extraHeading, leftIcon } = props;
   return (
-    <div className="flex flex-col my-4 gap-2">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-row justify-between">
         <div className="flex flex-row items-center gap-1">
           {leftIcon ? leftIcon : null}

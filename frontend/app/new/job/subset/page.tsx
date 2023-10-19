@@ -171,7 +171,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 }}
               />
             </div>
-            <div className="my-6">
+            <div className="my-4">
               <Separator />
             </div>
             <div>
