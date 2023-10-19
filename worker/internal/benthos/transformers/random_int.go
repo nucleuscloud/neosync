@@ -1,8 +1,9 @@
 package neosync_transformers
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"strconv"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -96,23 +97,28 @@ func ProcessRandomInt(i int64, preserveLength bool, intLength int64) (int64, err
 }
 
 func GenerateRandomIntWithLength(l int64) (int64, error) {
-
 	if l <= 0 {
 		return 0, fmt.Errorf("the length cannot be zero or negative")
 	}
 
+	maxVal := 9
+
 	// Calculate the min and max values for l
 	minValue := int64(0)
-	maxValue := int64(9)
+	maxValue := int64(maxVal)
 	for i := int64(1); i < l; i++ {
 		minValue *= 10
 		maxValue *= 10
 	}
 
 	// Generate a random int64 value within the range
-	randomValue := rand.Int63n(maxValue-minValue+1) + minValue
+	max := new(big.Int).SetInt64(maxValue - minValue + 1)
+	randomValue, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return 0, err
+	}
 
-	return randomValue, nil
+	return minValue + randomValue.Int64(), nil
 }
 
 func GetIntLength(i int64) int {

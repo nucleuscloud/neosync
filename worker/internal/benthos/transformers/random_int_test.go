@@ -50,6 +50,6 @@ func TestRandomIntTransformer(t *testing.T) {
 	res, err := ex.Query(testVal)
 	assert.NoError(t, err)
 
-	assert.Equal(t, GetIntLength(testVal), GetIntLength(res.(int64))) //"Generated int must be the same length as the input int"
+	assert.Equal(t, GetIntLength(testVal), GetIntLength(res.(int64))) // Generated int must be the same length as the input int"
 	assert.IsType(t, res, testVal)
 }
