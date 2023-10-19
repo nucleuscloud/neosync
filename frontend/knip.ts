@@ -12,7 +12,7 @@ const config: KnipConfig = {
     '@radix-ui/react-accordion',
     '@radix-ui/react-avatar',
     '@radix-ui/react-checkbox',
-    '@radix-ui/react-dialog',
+    // '@radix-ui/react-dialog',
     '@radix-ui/react-label',
     '@radix-ui/react-popover',
     '@radix-ui/react-scroll-area',
