@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/testsuite"
@@ -61,7 +60,7 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	ok := shouldHaltOnSchemaAddition(
 		map[string]map[string]struct{}{
 			"public.users": {
-				"id": struct{}{},
+				"id":         struct{}{},
 				"created_by": struct{}{},
 			},
 		},
@@ -108,7 +107,7 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 				"id":         struct{}{},
 				"created_by": struct{}{},
 			},
-		},,
+		},
 		[]*mgmtv1alpha1.JobMapping{
 			{Schema: "public", Table: "users", Column: "id"},
 			{Schema: "public", Table: "users", Column: "updated_by"},

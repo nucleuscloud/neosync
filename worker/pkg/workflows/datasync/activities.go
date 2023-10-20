@@ -82,11 +82,6 @@ func (a *Activities) GenerateBenthosConfigs(
 		return nil, err
 	}
 
-	sqlOpts := job.Source.Options.GetSqlOptions()
-	var sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption
-	if sqlOpts != nil {
-		sourceTableOpts = groupSqlSourceOptionsByTable(sqlOpts.Schemas)
-	}
 	groupedMappings := groupMappingsByTable(job.Mappings)
 
 	switch connection := sourceConnection.ConnectionConfig.Config.(type) {
@@ -96,13 +91,15 @@ func (a *Activities) GenerateBenthosConfigs(
 			return nil, err
 		}
 
+		sqlOpts := job.Source.Options.GetPostgresOptions()
+		var sourceTableOpts map[string]*sourceTableOptions
+		if sqlOpts != nil {
+			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
+		}
+
 		sourceResponses, err := buildBenthosSourceConfigReponses(groupedMappings, dsn, "postgres", sourceTableOpts)
 		if err != nil {
 			return nil, err
-		sqlOpts := job.Source.Options.GetPostgresOptions()
-		var sourceTableOpts map[string]*mgmtv1alpha1.PostgresSourceTableOption
-		if sqlOpts != nil {
-			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 		responses = append(responses, sourceResponses...)
 
@@ -148,6 +145,12 @@ func (a *Activities) GenerateBenthosConfigs(
 		dsn, err := getMysqlDsn(connection.MysqlConfig)
 		if err != nil {
 			return nil, err
+		}
+
+		sqlOpts := job.Source.Options.GetMysqlOptions()
+		var sourceTableOpts map[string]*sourceTableOptions
+		if sqlOpts != nil {
+			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
 		sourceResponses, err := buildBenthosSourceConfigReponses(groupedMappings, dsn, "mysql", sourceTableOpts)
@@ -270,7 +273,7 @@ func (a *Activities) GenerateBenthosConfigs(
 
 				truncateBeforeInsert := false
 				initSchema := false
-				sqlOpts := destination.Options.GetSqlOptions()
+				sqlOpts := destination.Options.GetMysqlOptions()
 				if sqlOpts != nil {
 					initSchema = sqlOpts.InitTableSchema
 					if sqlOpts.TruncateTable != nil {
@@ -360,7 +363,16 @@ func (a *Activities) GenerateBenthosConfigs(
 	}, nil
 }
 
-func buildBenthosSourceConfigReponses(mappings []*TableMapping, dsn string, driver string, sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption) ([]*benthosConfigResponse, error) {
+type sourceTableOptions struct {
+	WhereClause *string
+}
+
+func buildBenthosSourceConfigReponses(
+	mappings []*TableMapping,
+	dsn string,
+	driver string,
+	sourceTableOpts map[string]*sourceTableOptions,
+) ([]*benthosConfigResponse, error) {
 	responses := []*benthosConfigResponse{}
 	for i := range mappings {
 		tableMapping := mappings[i]
@@ -772,37 +784,41 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 
 func groupPostgresSourceOptionsByTable(
 	schemaOptions []*mgmtv1alpha1.PostgresSourceSchemaOption,
-) map[string]*mgmtv1alpha1.PostgresSourceTableOption {
-	groupedMappings := map[string]*mgmtv1alpha1.PostgresSourceTableOption{}
+) map[string]*sourceTableOptions {
+	groupedMappings := map[string]*sourceTableOptions{}
 
 	for idx := range schemaOptions {
 		schemaOpt := schemaOptions[idx]
 		for tidx := range schemaOpt.Tables {
 			tableOpt := schemaOpt.Tables[tidx]
 			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
-			groupedMappings[key] = tableOpt
+			groupedMappings[key] = &sourceTableOptions{
+				WhereClause: tableOpt.WhereClause,
+			}
 		}
 	}
 
 	return groupedMappings
 }
 
-// func groupMysqlSourceOptionsByTable(
-// 	schemaOptions []*mgmtv1alpha1.MysqlSourceSchemaOption,
-// ) map[string]*mgmtv1alpha1.MysqlSourceTableOption {
-// 	groupedMappings := map[string]*mgmtv1alpha1.MysqlSourceTableOption{}
+func groupMysqlSourceOptionsByTable(
+	schemaOptions []*mgmtv1alpha1.MysqlSourceSchemaOption,
+) map[string]*sourceTableOptions {
+	groupedMappings := map[string]*sourceTableOptions{}
 
-// 	for idx := range schemaOptions {
-// 		schemaOpt := schemaOptions[idx]
-// 		for tidx := range schemaOpt.Tables {
-// 			tableOpt := schemaOpt.Tables[tidx]
-// 			key := buildBenthosTable(schemaOpt.Schema, tableOpt.Table)
-// 			groupedMappings[key] = tableOpt
-// 		}
-// 	}
+	for idx := range schemaOptions {
+		schemaOpt := schemaOptions[idx]
+		for tidx := range schemaOpt.Tables {
+			tableOpt := schemaOpt.Tables[tidx]
+			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
+			groupedMappings[key] = &sourceTableOptions{
+				WhereClause: tableOpt.WhereClause,
+			}
+		}
+	}
 
-// 	return groupedMappings
-// }
+	return groupedMappings
+}
 
 func groupMappingsByTable(
 	mappings []*mgmtv1alpha1.JobMapping,
