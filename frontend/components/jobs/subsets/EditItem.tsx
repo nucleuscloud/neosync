@@ -94,7 +94,7 @@ export default function EditItem(props: Props): ReactElement {
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={!item}
+                  disabled={!item || !item.where}
                   onClick={() => onValidate()}
                 >
                   <ButtonText text="Validate" />
