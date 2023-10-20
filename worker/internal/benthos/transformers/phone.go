@@ -59,13 +59,15 @@ func ProcessPhoneNumber(pn string, preserveLength, e164, includeHyphens bool) (s
 
 		const maxPhoneNum = 9
 
-		val, err := GenerateRandomInt(0, maxPhoneNum, len(pn)) // generates len(pn) random numbers from 0 -> 9
+		_, err := GenerateRandomInt(len(pn)) // generates len(pn) random numbers from 0 -> 9
 
 		if err != nil {
 			return "", nil
 		}
 
-		returnValue = strings.Join(IntArrToStringArr(val), "")
+		// returnValue = strings.Join(IntArrToStringArr(val), "")
+
+		return "tests", nil
 
 	} else if !preserveLength && includeHyphens && !e164 {
 		// only works with 10 digit-based phone numbers like in the US
