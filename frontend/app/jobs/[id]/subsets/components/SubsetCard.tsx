@@ -81,7 +81,6 @@ export default function SubsetCard(props: Props): ReactElement {
       });
     }
   }
-  console.log('errors', form.formState.errors);
   return (
     <div>
       <Form {...form}>
