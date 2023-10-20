@@ -23,7 +23,7 @@ func TestProcessPhoneNumberPreserveLengthTrue(t *testing.T) {
 func TestProcessPhoneNumberPreserveLengthTrueHyphens(t *testing.T) {
 
 	// we strip the hyphens when we process the phone number and the include hyphens param is set to false so the return val will not include hyphens
-	pn := "183-849-2832"
+	pn := "183-849-2838"
 	expectedLength := 10
 
 	res, err := ProcessPhoneNumber(pn, true, false, false)
@@ -35,7 +35,7 @@ func TestProcessPhoneNumberPreserveLengthTrueHyphens(t *testing.T) {
 
 func TestProcessPhoneNumberPreserveLengthFalseHyphens(t *testing.T) {
 
-	pn := "183-849-2832"
+	pn := "183-849-2831"
 
 	res, err := ProcessPhoneNumber(pn, false, true, true)
 
@@ -57,7 +57,7 @@ func TestProcessPhoneNumberPreserveLengthFalseNoHyphens(t *testing.T) {
 
 func TestProcessPhoneNumberPreserveLengthFalseIncludeHyphensTrue(t *testing.T) {
 
-	pn := "183-849-2832"
+	pn := "183-849-2837"
 	expectedLength := 12
 
 	res, err := ProcessPhoneNumber(pn, false, false, true)
@@ -69,7 +69,7 @@ func TestProcessPhoneNumberPreserveLengthFalseIncludeHyphensTrue(t *testing.T) {
 
 func TestProcessPhoneNumberPreserveLengthTrueIncludeHyphensTrueError(t *testing.T) {
 
-	pn := "183-849-2832"
+	pn := "183-849-2839"
 	_, err := ProcessPhoneNumber(pn, true, false, true)
 
 	assert.Error(t, err, "The include hyphens param can only be used by itself, all other params must be false")

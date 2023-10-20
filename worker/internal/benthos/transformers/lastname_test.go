@@ -9,7 +9,7 @@ import (
 
 func TestProcessLastNamePreserveLengthTrue(t *testing.T) {
 
-	name := "evis"
+	name := "jill"
 	expectedLength := 4
 
 	res, err := ProcessLastName(name, true)
@@ -21,7 +21,7 @@ func TestProcessLastNamePreserveLengthTrue(t *testing.T) {
 
 func TestProcessLastNamePreserveLengthFalse(t *testing.T) {
 
-	name := "evis"
+	name := "john"
 
 	res, err := ProcessLastName(name, false)
 

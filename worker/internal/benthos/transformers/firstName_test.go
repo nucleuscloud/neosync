@@ -21,7 +21,7 @@ func TestProcessFirstNamePreserveLengthTrue(t *testing.T) {
 
 func TestProcessFirstNamePreserveLengthFalse(t *testing.T) {
 
-	name := "evis"
+	name := "john"
 
 	res, err := ProcessFirstName(name, false)
 
@@ -35,7 +35,7 @@ func TestFirstNameTransformer(t *testing.T) {
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the first name transformer")
 
-	testVal := "evis"
+	testVal := "bill"
 
 	res, err := ex.Query(testVal)
 	assert.NoError(t, err)

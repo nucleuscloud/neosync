@@ -77,8 +77,8 @@ func GenerateRandomInt(count int64) (int64, error) {
 	}
 
 	// Calculate the min and max vas
-	minVal := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(count-1)), nil)
-	maxVal := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(count)), nil)
+	minVal := new(big.Int).Exp(big.NewInt(10), big.NewInt(count-1), nil)
+	maxVal := new(big.Int).Exp(big.NewInt(10), big.NewInt(count), nil)
 	maxVal.Sub(maxVal, big.NewInt(1))
 
 	// Generate a random integer within the specified range

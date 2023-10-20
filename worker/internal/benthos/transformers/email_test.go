@@ -11,7 +11,7 @@ import (
 
 func TestProcessEmailPreserveLengthTrue(t *testing.T) {
 
-	email := "evis@gmail.com"
+	email := "evia@gmail.com"
 
 	res, err := ProcessEmail(email, true, true)
 
@@ -57,7 +57,7 @@ func TestEmailTransformer(t *testing.T) {
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
-	testVal := "evis@gmail.com"
+	testVal := "evil@gmail.com"
 
 	res, err := ex.Query(testVal)
 	assert.NoError(t, err)
