@@ -306,28 +306,17 @@ function EditItem(props: EditItemProps): ReactElement {
         />
       </div>
       <div>
-        <Textarea
-          disabled={true}
-          value={buildSelectQuery(
-            item?.schema ?? '',
-            item?.table ?? '',
-            item?.where
-          )}
-        />
+        <Textarea disabled={true} value={buildSelectQuery(item?.where)} />
       </div>
     </div>
   );
 }
 
-function buildSelectQuery(
-  schema: string,
-  table: string,
-  whereClause?: string
-): string {
+function buildSelectQuery(whereClause?: string): string {
   if (!whereClause) {
     return '';
   }
-  return `SELECT * FROM ${schema}.${table}\nWHERE ${whereClause};`;
+  return `WHERE ${whereClause};`;
 }
 
 async function setJobSubsets(
