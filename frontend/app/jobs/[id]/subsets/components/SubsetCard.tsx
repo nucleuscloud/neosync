@@ -1,25 +1,19 @@
 import { SUBSET_FORM_SCHEMA, SubsetFormValues } from '@/app/new/job/schema';
-import { TableRow, getColumns } from '@/app/new/job/subset/subset-table/column';
-import { DataTable } from '@/app/new/job/subset/subset-table/data-table';
-import ButtonText from '@/components/ButtonText';
+import EditItem from '@/components/jobs/subsets/EditItem';
+import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
+import { TableRow } from '@/components/jobs/subsets/subset-table/column';
+import {
+  buildRowKey,
+  buildTableRowData,
+} from '@/components/jobs/subsets/utils';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetJob } from '@/libs/hooks/useGetJob';
-import { CheckSqlQueryResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   GetJobResponse,
   JobSourceOptions,
@@ -34,24 +28,6 @@ import { useForm } from 'react-hook-form';
 
 interface Props {
   jobId: string;
-}
-
-function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
-  if (!sourceOpts || sourceOpts.config.case !== 'sqlOptions') {
-    return { subsets: [] };
-  }
-
-  const schemas = sourceOpts.config.value.schemas;
-  const subsets: SubsetFormValues['subsets'] = schemas.flatMap((schema) => {
-    return schema.tables.map((table) => {
-      return {
-        schema: schema.schema,
-        table: table.table,
-        whereClause: table.whereClause,
-      };
-    });
-  });
-  return { subsets };
 }
 
 export default function SubsetCard(props: Props): ReactElement {
@@ -147,14 +123,12 @@ export default function SubsetCard(props: Props): ReactElement {
                       buildRowKey(itemToEdit.schema, itemToEdit.table)
                   );
                 if (idx >= 0) {
-                  console.log('editing idx subsets', idx, itemToEdit);
                   form.setValue(`subsets.${idx}`, {
                     schema: itemToEdit.schema,
                     table: itemToEdit.table,
                     whereClause: itemToEdit.where,
                   });
                 } else {
-                  console.log('appending subsets', itemToEdit);
                   form.setValue(
                     `subsets`,
                     form.getValues().subsets.concat({
@@ -189,235 +163,22 @@ export default function SubsetCard(props: Props): ReactElement {
   );
 }
 
-///////
+function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
+  if (!sourceOpts || sourceOpts.config.case !== 'sqlOptions') {
+    return { subsets: [] };
+  }
 
-interface SubsetTableProps {
-  data: TableRow[];
-  onEdit(schema: string, table: string): void;
-}
-
-function SubsetTable(props: SubsetTableProps): ReactElement {
-  const { data, onEdit } = props;
-
-  const columns = getColumns({ onEdit });
-
-  return <DataTable columns={columns} data={data} />;
-}
-
-interface DbCol {
-  schema: string;
-  table: string;
-}
-function buildTableRowData(
-  dbCols: DbCol[],
-  existingSubsets: SubsetFormValues['subsets']
-): Record<string, TableRow> {
-  const tableMap: Record<string, TableRow> = {};
-
-  dbCols.forEach((mapping) => {
-    const key = buildRowKey(mapping.schema, mapping.table);
-    tableMap[key] = { schema: mapping.schema, table: mapping.table };
+  const schemas = sourceOpts.config.value.schemas;
+  const subsets: SubsetFormValues['subsets'] = schemas.flatMap((schema) => {
+    return schema.tables.map((table) => {
+      return {
+        schema: schema.schema,
+        table: table.table,
+        whereClause: table.whereClause,
+      };
+    });
   });
-  existingSubsets.forEach((subset) => {
-    const key = buildRowKey(subset.schema, subset.table);
-    if (tableMap[key]) {
-      tableMap[key].where = subset.whereClause;
-    }
-  });
-
-  return tableMap;
-}
-
-function buildRowKey(schema: string, table: string): string {
-  return `${schema}.${table}`;
-}
-
-interface EditItemProps {
-  item?: TableRow;
-  onItem(item?: TableRow): void;
-  onSave(): void;
-  onCancel(): void;
-  connectionId: string;
-}
-function EditItem(props: EditItemProps): ReactElement {
-  const { item, onItem, onSave, onCancel, connectionId } = props;
-  const [validateResp, setValidateResp] = useState<
-    CheckSqlQueryResponse | undefined
-  >();
-
-  function onWhereChange(value: string): void {
-    if (!item) {
-      return;
-    }
-    onItem({ ...item, where: value });
-  }
-
-  async function onValidate(): Promise<void> {
-    try {
-      const resp = await validateSql(
-        connectionId,
-        `select * from ${item?.schema}.${item?.table} WHERE ${item?.where};`
-      );
-      setValidateResp(resp);
-    } catch (err) {
-      setValidateResp(
-        new CheckSqlQueryResponse({
-          isValid: false,
-          erorrMessage: getErrorMessage(err),
-        })
-      );
-    }
-  }
-
-  function onCancelClick(): void {
-    setValidateResp(undefined);
-    onCancel();
-  }
-  function onSaveClick(): void {
-    setValidateResp(undefined);
-    onSave();
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-row justify-between">
-        <div className="flex flex-row gap-4">
-          <div className="flex flex-row gap-2 items-center">
-            <span className="font-semibold tracking-tight">Schema</span>
-            <Badge
-              className="px-4 py-2"
-              variant={item?.schema ? 'outline' : 'secondary'}
-            >
-              {item?.schema ?? ''}
-            </Badge>
-          </div>
-          <div className="flex flex-row gap-2 items-center">
-            <span className="font-semibold tracking-tight">Table</span>
-            <Badge
-              className="px-4 py-2"
-              variant={item?.table ? 'outline' : 'secondary'}
-            >
-              {item?.table ?? ''}
-            </Badge>
-          </div>
-          <div className="flex flex-row items-center">
-            <ValidateQueryBadge resp={validateResp} />
-          </div>
-        </div>
-        <div className="flex flex-row gap-4">
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={!item}
-            onClick={() => onValidate()}
-          >
-            <ButtonText text="Validate" />
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={!item}
-            onClick={() => onCancelClick()}
-          >
-            <ButtonText text="Cancel" />
-          </Button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  disabled={!item}
-                  onClick={() => onSaveClick()}
-                >
-                  <ButtonText text="Apply" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Applies changes to table only, click Save below to fully
-                  submit changes
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </div>
-
-      <div>
-        <Textarea
-          disabled={!item}
-          placeholder={
-            !!item
-              ? 'Add a table filter here'
-              : 'Click edit on a row above to change the where clause'
-          }
-          value={item?.where ?? ''}
-          onChange={(e) => onWhereChange(e.currentTarget.value)}
-        />
-      </div>
-      <div>
-        <Textarea
-          placeholder="Where clause preview"
-          disabled={true}
-          value={buildSelectQuery(item?.where)}
-        />
-      </div>
-      <ValidateQueryErrorAlert resp={validateResp} />
-    </div>
-  );
-}
-
-interface ValidateQueryErrorAlertProps {
-  resp?: CheckSqlQueryResponse;
-}
-
-function ValidateQueryErrorAlert(
-  props: ValidateQueryErrorAlertProps
-): ReactElement | null {
-  const { resp } = props;
-  if (!resp || resp.isValid) {
-    return null;
-  }
-
-  return (
-    <div>
-      <Alert variant="destructive">
-        <AlertTitle>Invalid SQL Query</AlertTitle>
-        <AlertDescription>
-          {resp.erorrMessage ? resp.erorrMessage : 'unknown error message'}
-        </AlertDescription>
-      </Alert>
-    </div>
-  );
-}
-
-interface ValidateQueryBadgeProps {
-  resp?: CheckSqlQueryResponse;
-}
-
-function ValidateQueryBadge(
-  props: ValidateQueryBadgeProps
-): ReactElement | null {
-  const { resp } = props;
-  if (!resp) {
-    return null;
-  }
-  const text = resp.isValid ? 'VALID' : 'INVALID';
-  return (
-    <Badge
-      variant={resp.isValid ? 'success' : 'destructive'}
-      className="cursor-default px-4 py-2"
-    >
-      {text}
-    </Badge>
-  );
-}
-
-function buildSelectQuery(whereClause?: string): string {
-  if (!whereClause) {
-    return '';
-  }
-  return `WHERE ${whereClause};`;
+  return { subsets };
 }
 
 async function setJobSubsets(
@@ -441,24 +202,4 @@ async function setJobSubsets(
     throw new Error(body.message);
   }
   return SetJobSourceSqlConnectionSubsetsResponse.fromJson(await res.json());
-}
-
-async function validateSql(
-  connectionId: string,
-  query: string
-): Promise<CheckSqlQueryResponse> {
-  const queryParams = new URLSearchParams({
-    query,
-  });
-  const res = await fetch(
-    `/api/connections/${connectionId}/check-query?${queryParams.toString()}`,
-    {
-      method: 'GET',
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CheckSqlQueryResponse.fromJson(await res.json());
 }
