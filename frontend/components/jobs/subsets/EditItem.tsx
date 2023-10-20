@@ -88,14 +88,26 @@ export default function EditItem(props: Props): ReactElement {
           </div>
         </div>
         <div className="flex flex-row gap-4">
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={!item}
-            onClick={() => onValidate()}
-          >
-            <ButtonText text="Validate" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!item}
+                  onClick={() => onValidate()}
+                >
+                  <ButtonText text="Validate" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Attempts to run a SQL PREPARE statement against the source
+                  connection for the table with the included WHERE clause
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <Button
             type="button"
             variant="secondary"
