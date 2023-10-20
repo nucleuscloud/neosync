@@ -24,7 +24,7 @@ func TestProcessRandomIntPreserveLengthFalse(t *testing.T) {
 	val := int64(67543543)
 	expectedLength := int64(4)
 
-	res, err := ProcessRandomInt(val, false, int64(expectedLength))
+	res, err := ProcessRandomInt(val, false, expectedLength)
 
 	assert.NoError(t, err)
 	assert.Equal(t, GetIntLength(res), expectedLength, "The output int needs to be the same length as the input int")

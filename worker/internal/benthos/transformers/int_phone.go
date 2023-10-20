@@ -76,6 +76,7 @@ func GenerateRandomInt(count int64) (int64, error) {
 		return 0, fmt.Errorf("count is zero or not a positive integer")
 	}
 
+	// int64 only supports 18 digits, so if the count => 19, this will error out
 	if count >= 19 {
 		return 0, fmt.Errorf("count has to be less than 18 digits since int64 only supports up to 18 digits")
 	}
@@ -92,8 +93,6 @@ func GenerateRandomInt(count int64) (int64, error) {
 
 	/*
 		rand.Int generates a random number within the range [0, max-1], so if count == 8 [0 -> 9999999]. If the generated random integer is already the maximum possible value, then adding the minimum value to it will overflow it to count + 1. This is because the big.Int.Add() function adds two big integers together and returns a new big integer. If the first digit is a 9 and it's already count long then adding the min will overflow. So we only add if the digit count is not count AND the first digit is not 9.
-
-		//int64 only supports 18 digits, so if the count => 19, this will error out
 
 	*/
 
