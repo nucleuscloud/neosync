@@ -7,36 +7,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessRandomInt(t *testing.T) {
+func TestProcessRandomIntPreserveLengthTrue(t *testing.T) {
 
-	tests := []struct {
-		i              int64
-		preserveLength bool
-		intLength      int64
-		expectedLength int
-	}{
-		{67543543, false, 0, 0}, // check base int generation
-		{324356, false, 6, 6},   // check int generation with a given length
-		{324502453, true, 0, 9}, // check preserveLength of input int
-	}
+	val := int64(67543543)
+	expectedLength := 8
 
-	for _, tt := range tests {
-		res, err := ProcessRandomInt(tt.i, tt.preserveLength, tt.intLength)
+	res, err := ProcessRandomInt(val, true, 0)
 
-		assert.NoError(t, err)
+	assert.NoError(t, err)
+	assert.Equal(t, GetIntLength(res), expectedLength, "The output int needs to be the same length as the input int")
 
-		if tt.preserveLength {
-			assert.Equal(t, GetIntLength(res), tt.expectedLength)
-		}
+}
 
-		if !tt.preserveLength && tt.intLength == 0 {
-			assert.Equal(t, GetIntLength(res), 4)
-		}
+func TestProcessRandomIntPreserveLengthFalse(t *testing.T) {
 
-		if !tt.preserveLength && tt.intLength > 0 {
-			assert.Equal(t, GetIntLength(res), 6)
-		}
-	}
+	val := int64(67543543)
+	expectedLength := 4
+
+	res, err := ProcessRandomInt(val, false, int64(expectedLength))
+
+	assert.NoError(t, err)
+	assert.Equal(t, GetIntLength(res), expectedLength, "The output int needs to be the same length as the input int")
+
+}
+
+func TestProcessRandomIntPreserveLengthTrueIntLength(t *testing.T) {
+
+	val := int64(67543543)
+	expectedLength := 8
+
+	res, err := ProcessRandomInt(val, true, int64(5))
+
+	assert.NoError(t, err)
+	assert.Equal(t, GetIntLength(res), expectedLength, "The output int needs to be the same length as the input int")
 
 }
 

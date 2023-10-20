@@ -46,7 +46,7 @@ func ProcessIntPhoneNumber(pn int64, preserveLength bool) (int64, error) {
 
 		numStr := strconv.FormatInt(pn, 10)
 
-		val, err := GenerateRandomInt(len(numStr)) // generates len(pn) random numbers from 0 -> 9
+		val, err := GenerateRandomInt(int64(len(numStr))) // generates len(pn) random numbers from 0 -> 9
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate phone number")
@@ -71,7 +71,7 @@ func ProcessIntPhoneNumber(pn int64, preserveLength bool) (int64, error) {
 	return returnValue, nil
 }
 
-func GenerateRandomInt(count int) (int64, error) {
+func GenerateRandomInt(count int64) (int64, error) {
 	if count <= 0 {
 		return 0, fmt.Errorf("count is zero or not a positive integer")
 	}
