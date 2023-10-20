@@ -155,6 +155,15 @@ message GetConnectionSchemaResponse {
   repeated DatabaseColumn schemas = 1;
 }
 
+message CheckSqlQueryRequest {
+  string id = 1;
+  string query = 2;
+}
+message CheckSqlQueryResponse {
+  bool is_valid = 1;
+  optional string erorr_message = 2;
+}
+
 service ConnectionService {
   rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
   rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {}
@@ -165,4 +174,5 @@ service ConnectionService {
 
   rpc CheckConnectionConfig(CheckConnectionConfigRequest) returns (CheckConnectionConfigResponse) {}
   rpc GetConnectionSchema(GetConnectionSchemaRequest) returns (GetConnectionSchemaResponse) {}
+  rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}
 }

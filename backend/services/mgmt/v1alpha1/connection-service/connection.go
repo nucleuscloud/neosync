@@ -2,12 +2,15 @@ package v1alpha1_connectionservice
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"log"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -247,6 +250,92 @@ func (s *Service) DeleteConnection(
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.DeleteConnectionResponse{}), nil
+}
+
+func (s *Service) CheckSqlQuery(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CheckSqlQueryRequest],
+) (*connect.Response[mgmtv1alpha1.CheckSqlQueryResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("connectionId", req.Msg.Id)
+	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.Id}))
+	if err != nil {
+		return nil, err
+	}
+
+	connCfg := connection.Msg.Connection.ConnectionConfig
+	connectionString, err := s.getConnectionUrl(connCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	switch connCfg.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		conn, err := pgx.Connect(ctx, connectionString)
+		if err != nil {
+			logger.Error("unable to connect", err)
+			return nil, err
+		}
+		defer func() {
+			if err := conn.Close(ctx); err != nil {
+				logger.Error(fmt.Errorf("failed to close postgres connection: %w", err).Error())
+			}
+		}()
+
+		tx, err := conn.BeginTx(ctx, pgx.TxOptions{AccessMode: pgx.ReadOnly})
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if err := tx.Rollback(ctx); err != nil {
+				logger.Error(fmt.Errorf("failed to rollback pg tx: %w", err).Error())
+			}
+		}()
+		_, err = tx.Prepare(ctx, "todo", req.Msg.Query)
+		var errorMsg *string
+		if err != nil {
+			msg := err.Error()
+			errorMsg = &msg
+		}
+		return connect.NewResponse(&mgmtv1alpha1.CheckSqlQueryResponse{
+			IsValid:      err == nil,
+			ErorrMessage: errorMsg,
+		}), nil
+
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		conn, err := sql.Open("mysql", connectionString)
+		if err != nil {
+			logger.Error("unable to connect", err)
+			return nil, err
+		}
+		defer func() {
+			if err := conn.Close(); err != nil {
+				logger.Error(fmt.Errorf("failed to close mysql connection: %w", err).Error())
+			}
+		}()
+		tx, err := conn.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if err := tx.Rollback(); err != nil {
+				logger.Error(fmt.Errorf("failed to rollback pg tx: %w", err).Error())
+			}
+		}()
+		_, err = tx.PrepareContext(ctx, req.Msg.Query)
+		var errorMsg *string
+		if err != nil {
+			msg := err.Error()
+			errorMsg = &msg
+		}
+		return connect.NewResponse(&mgmtv1alpha1.CheckSqlQueryResponse{
+			IsValid:      err == nil,
+			ErorrMessage: errorMsg,
+		}), nil
+
+	default:
+		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+	}
 }
 
 func (s *Service) getConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, error) {
