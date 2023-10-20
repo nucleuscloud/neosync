@@ -1,15 +1,19 @@
 'use client';
 
-import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import EditItem from '@/components/jobs/subsets/EditItem';
+import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
+import { TableRow } from '@/components/jobs/subsets/subset-table/column';
+import {
+  buildRowKey,
+  buildTableRowData,
+} from '@/components/jobs/subsets/utils';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
@@ -42,8 +46,6 @@ import {
   SUBSET_FORM_SCHEMA,
   SubsetFormValues,
 } from '../schema';
-import { TableRow, getColumns } from './subset-table/column';
-import { DataTable } from './subset-table/data-table';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const account = useAccount();
@@ -176,6 +178,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             </div>
             <div>
               <EditItem
+                connectionId={flowFormValues.sourceId}
                 item={itemToEdit}
                 onItem={setItemToEdit}
                 onCancel={() => setItemToEdit(undefined)}
@@ -229,121 +232,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </div>
     </OverviewContainer>
   );
-}
-
-interface SubsetTableProps {
-  data: TableRow[];
-  onEdit(schema: string, table: string): void;
-}
-
-function SubsetTable(props: SubsetTableProps): ReactElement {
-  const { data, onEdit } = props;
-
-  const columns = getColumns({ onEdit });
-
-  return <DataTable columns={columns} data={data} />;
-}
-
-function buildTableRowData(
-  mappings: SchemaFormValues['mappings'],
-  existingSubsets: SubsetFormValues['subsets']
-): Record<string, TableRow> {
-  const tableMap: Record<string, TableRow> = {};
-
-  mappings.forEach((mapping) => {
-    const key = buildRowKey(mapping.schema, mapping.table);
-    tableMap[key] = { schema: mapping.schema, table: mapping.table };
-  });
-  existingSubsets.forEach((subset) => {
-    const key = buildRowKey(subset.schema, subset.table);
-    if (tableMap[key]) {
-      tableMap[key].where = subset.whereClause;
-    }
-  });
-
-  return tableMap;
-}
-
-function buildRowKey(schema: string, table: string): string {
-  return `${schema}.${table}`;
-}
-
-interface EditItemProps {
-  item?: TableRow;
-  onItem(item?: TableRow): void;
-  onSave(): void;
-  onCancel(): void;
-}
-function EditItem(props: EditItemProps): ReactElement {
-  const { item, onItem, onSave, onCancel } = props;
-
-  function onWhereChange(value: string): void {
-    if (!item) {
-      return;
-    }
-    onItem({ ...item, where: value });
-  }
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-row justify-between">
-        <div className="flex flex-row gap-4">
-          <div className="flex flex-row gap-2 items-center">
-            <span className="font-semibold tracking-tight">Schema</span>
-            <Badge
-              className="px-4 py-2"
-              variant={item?.schema ? 'outline' : 'secondary'}
-            >
-              {item?.schema ?? ''}
-            </Badge>
-          </div>
-          <div className="flex flex-row gap-2 items-center">
-            <span className="font-semibold tracking-tight">Table</span>
-            <Badge
-              className="px-4 py-2"
-              variant={item?.table ? 'outline' : 'secondary'}
-            >
-              {item?.table ?? ''}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex flex-row gap-4">
-          <Button
-            variant="secondary"
-            disabled={!item}
-            onClick={() => onCancel()}
-          >
-            <ButtonText text="Cancel" />
-          </Button>
-          <Button disabled={!item} onClick={() => onSave()}>
-            <ButtonText text="Save Row" />
-          </Button>
-        </div>
-      </div>
-
-      <div>
-        <Textarea
-          disabled={!item}
-          placeholder={
-            !!item
-              ? 'Add a table filter here'
-              : 'Click edit on a row above to change the where clause'
-          }
-          value={item?.where ?? ''}
-          onChange={(e) => onWhereChange(e.currentTarget.value)}
-        />
-      </div>
-      <div>
-        <Textarea disabled={true} value={buildSelectQuery(item?.where)} />
-      </div>
-    </div>
-  );
-}
-
-function buildSelectQuery(whereClause?: string): string {
-  if (!whereClause) {
-    return '';
-  }
-  return `WHERE ${whereClause};`;
 }
 
 async function createNewJob(

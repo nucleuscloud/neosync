@@ -1,20 +1,16 @@
 import { SUBSET_FORM_SCHEMA, SubsetFormValues } from '@/app/new/job/schema';
-import { TableRow, getColumns } from '@/app/new/job/subset/subset-table/column';
-import { DataTable } from '@/app/new/job/subset/subset-table/data-table';
-import ButtonText from '@/components/ButtonText';
+import EditItem from '@/components/jobs/subsets/EditItem';
+import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
+import { TableRow } from '@/components/jobs/subsets/subset-table/column';
+import {
+  buildRowKey,
+  buildTableRowData,
+} from '@/components/jobs/subsets/utils';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetJob } from '@/libs/hooks/useGetJob';
@@ -32,24 +28,6 @@ import { useForm } from 'react-hook-form';
 
 interface Props {
   jobId: string;
-}
-
-function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
-  if (!sourceOpts || sourceOpts.config.case !== 'sqlOptions') {
-    return { subsets: [] };
-  }
-
-  const schemas = sourceOpts.config.value.schemas;
-  const subsets: SubsetFormValues['subsets'] = schemas.flatMap((schema) => {
-    return schema.tables.map((table) => {
-      return {
-        schema: schema.schema,
-        table: table.table,
-        whereClause: table.whereClause,
-      };
-    });
-  });
-  return { subsets };
 }
 
 export default function SubsetCard(props: Props): ReactElement {
@@ -103,7 +81,6 @@ export default function SubsetCard(props: Props): ReactElement {
       });
     }
   }
-  console.log('errors', form.formState.errors);
   return (
     <div>
       <Form {...form}>
@@ -129,6 +106,7 @@ export default function SubsetCard(props: Props): ReactElement {
           </div>
           <div>
             <EditItem
+              connectionId={data?.job?.source?.connectionId ?? ''}
               item={itemToEdit}
               onItem={setItemToEdit}
               onCancel={() => setItemToEdit(undefined)}
@@ -144,14 +122,12 @@ export default function SubsetCard(props: Props): ReactElement {
                       buildRowKey(itemToEdit.schema, itemToEdit.table)
                   );
                 if (idx >= 0) {
-                  console.log('editing idx subsets', idx, itemToEdit);
                   form.setValue(`subsets.${idx}`, {
                     schema: itemToEdit.schema,
                     table: itemToEdit.table,
                     whereClause: itemToEdit.where,
                   });
                 } else {
-                  console.log('appending subsets', itemToEdit);
                   form.setValue(
                     `subsets`,
                     form.getValues().subsets.concat({
@@ -186,137 +162,22 @@ export default function SubsetCard(props: Props): ReactElement {
   );
 }
 
-///////
-
-interface SubsetTableProps {
-  data: TableRow[];
-  onEdit(schema: string, table: string): void;
-}
-
-function SubsetTable(props: SubsetTableProps): ReactElement {
-  const { data, onEdit } = props;
-
-  const columns = getColumns({ onEdit });
-
-  return <DataTable columns={columns} data={data} />;
-}
-
-interface DbCol {
-  schema: string;
-  table: string;
-}
-function buildTableRowData(
-  dbCols: DbCol[],
-  existingSubsets: SubsetFormValues['subsets']
-): Record<string, TableRow> {
-  const tableMap: Record<string, TableRow> = {};
-
-  dbCols.forEach((mapping) => {
-    const key = buildRowKey(mapping.schema, mapping.table);
-    tableMap[key] = { schema: mapping.schema, table: mapping.table };
-  });
-  existingSubsets.forEach((subset) => {
-    const key = buildRowKey(subset.schema, subset.table);
-    if (tableMap[key]) {
-      tableMap[key].where = subset.whereClause;
-    }
-  });
-
-  return tableMap;
-}
-
-function buildRowKey(schema: string, table: string): string {
-  return `${schema}.${table}`;
-}
-
-interface EditItemProps {
-  item?: TableRow;
-  onItem(item?: TableRow): void;
-  onSave(): void;
-  onCancel(): void;
-}
-function EditItem(props: EditItemProps): ReactElement {
-  const { item, onItem, onSave, onCancel } = props;
-
-  function onWhereChange(value: string): void {
-    if (!item) {
-      return;
-    }
-    onItem({ ...item, where: value });
+function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
+  if (!sourceOpts || sourceOpts.config.case !== 'sqlOptions') {
+    return { subsets: [] };
   }
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-row justify-between">
-        <div className="flex flex-row gap-4">
-          <div className="flex flex-row gap-2 items-center">
-            <span className="font-semibold tracking-tight">Schema</span>
-            <Badge
-              className="px-4 py-2"
-              variant={item?.schema ? 'outline' : 'secondary'}
-            >
-              {item?.schema ?? ''}
-            </Badge>
-          </div>
-          <div className="flex flex-row gap-2 items-center">
-            <span className="font-semibold tracking-tight">Table</span>
-            <Badge
-              className="px-4 py-2"
-              variant={item?.table ? 'outline' : 'secondary'}
-            >
-              {item?.table ?? ''}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex flex-row gap-4">
-          <Button
-            variant="secondary"
-            disabled={!item}
-            onClick={() => onCancel()}
-          >
-            <ButtonText text="Cancel" />
-          </Button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button disabled={!item} onClick={() => onSave()}>
-                  <ButtonText text="Apply" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Applies changes to table only, click Save below to fully
-                  submit changes
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </div>
 
-      <div>
-        <Textarea
-          disabled={!item}
-          placeholder={
-            !!item
-              ? 'Add a table filter here'
-              : 'Click edit on a row above to change the where clause'
-          }
-          value={item?.where ?? ''}
-          onChange={(e) => onWhereChange(e.currentTarget.value)}
-        />
-      </div>
-      <div>
-        <Textarea disabled={true} value={buildSelectQuery(item?.where)} />
-      </div>
-    </div>
-  );
-}
-
-function buildSelectQuery(whereClause?: string): string {
-  if (!whereClause) {
-    return '';
-  }
-  return `WHERE ${whereClause};`;
+  const schemas = sourceOpts.config.value.schemas;
+  const subsets: SubsetFormValues['subsets'] = schemas.flatMap((schema) => {
+    return schema.tables.map((table) => {
+      return {
+        schema: schema.schema,
+        table: table.table,
+        whereClause: table.whereClause,
+      };
+    });
+  });
+  return { subsets };
 }
 
 async function setJobSubsets(
