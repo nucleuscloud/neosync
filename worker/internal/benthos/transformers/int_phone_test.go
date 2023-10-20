@@ -18,7 +18,7 @@ func TestProcessIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 
 	assert.NoError(t, err)
 	numStr := strconv.FormatInt(res, 10)
-	assert.Equal(t, len(numStr), expectedLength)
+	assert.Equal(t, len(numStr), expectedLength, "The length of the output phone number should be the same as the input phone number")
 
 }
 
@@ -31,7 +31,7 @@ func TestProcessIntPhoneNumberPreserveLengthFalse(t *testing.T) {
 	numStr := strconv.FormatInt(res, 10)
 
 	assert.NoError(t, err)
-	assert.False(t, strings.Contains(numStr, "-"))
+	assert.False(t, strings.Contains(numStr, "-"), "The output int phone number should not contain hyphens and may not be the same length as the input")
 
 }
 

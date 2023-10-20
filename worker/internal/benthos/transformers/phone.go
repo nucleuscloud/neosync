@@ -1,6 +1,7 @@
 package neosync_transformers
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -46,12 +47,16 @@ func init() {
 
 }
 
-// main transformer logic goes here
-func ProcessPhoneNumber(pn string, preserveLength, e164, includeHyphens bool) (string, error) {
+// main plugin logic goes here
+func ProcessPhoneNumber(pn string, preserveLength, e164Format, includeHyphens bool) (string, error) {
 
 	var returnValue string
 
-	if preserveLength && !includeHyphens && !e164 {
+	if preserveLength && includeHyphens {
+		return "", fmt.Errorf("the preserve length param cannot be true if the include hyphens is true")
+	}
+
+	if preserveLength && !includeHyphens && !e164Format {
 
 		if strings.Contains(pn, "-") { // checks if input phone number has hyphens
 			pn = strings.ReplaceAll(pn, "-", "")
@@ -59,26 +64,24 @@ func ProcessPhoneNumber(pn string, preserveLength, e164, includeHyphens bool) (s
 
 		const maxPhoneNum = 9
 
-		_, err := GenerateRandomInt(len(pn)) // generates len(pn) random numbers from 0 -> 9
+		val, err := faker.RandomInt(0, maxPhoneNum, len(pn)) // generates len(pn) random numbers from 0 -> 9
 
 		if err != nil {
 			return "", nil
 		}
 
-		// returnValue = strings.Join(IntArrToStringArr(val), "")
+		returnValue = strings.Join(IntArrToStringArr(val), "")
 
-		return "tests", nil
-
-	} else if !preserveLength && includeHyphens && !e164 {
+	} else if !preserveLength && includeHyphens && !e164Format {
 		// only works with 10 digit-based phone numbers like in the US
 		returnValue = faker.Phonenumber()
 
-	} else if !preserveLength && !includeHyphens && e164 {
+	} else if !preserveLength && !includeHyphens && e164Format {
 
 		/* outputs in e164 format -> for ex. +873104859612, regex: ^\+[1-9]\d{1,14}$ */
 		returnValue = faker.E164PhoneNumber()
 
-	} else if e164 && preserveLength && !includeHyphens {
+	} else if e164Format && preserveLength && !includeHyphens {
 
 		val := strings.Split(pn, "+")
 
@@ -105,8 +108,8 @@ func IntArrToStringArr(ints []int) []string {
 
 	var str []string
 
-	for _, k := range ints {
-		str = append(str, strconv.Itoa((k)))
+	for i := range ints {
+		str = append(str, strconv.Itoa((i)))
 
 	}
 
