@@ -53,7 +53,7 @@ func ProcessRandomInt(i int64, preserveLength bool, intLength int64) (int64, err
 
 	if preserveLength {
 
-		val, err := GenerateRandomInt(int64(GetIntLength(i)))
+		val, err := GenerateRandomInt(GetIntLength(i))
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random string with length")
@@ -73,7 +73,7 @@ func ProcessRandomInt(i int64, preserveLength bool, intLength int64) (int64, err
 
 	} else if preserveLength && intLength > 0 {
 
-		val, err := GenerateRandomInt(int64(GetIntLength(i)))
+		val, err := GenerateRandomInt(GetIntLength(i))
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random string with length")
@@ -117,11 +117,11 @@ func GenerateRandomIntWithLength(l int64) (int64, error) {
 	return randomValue.Int64(), nil
 }
 
-func GetIntLength(i int64) int {
+func GetIntLength(i int64) int64 {
 	// Convert the int64 to a string
 	str := strconv.FormatInt(i, 10)
 
-	length := len(str)
+	length := int64(len(str))
 
 	return length
 }

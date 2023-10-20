@@ -76,6 +76,11 @@ func GenerateRandomInt(count int64) (int64, error) {
 		return 0, fmt.Errorf("count is zero or not a positive integer")
 	}
 
+	// int64 only supports 18 digits, so if the count => 19, this will error out
+	if count >= 19 {
+		return 0, fmt.Errorf("count has to be less than 18 digits since int64 only supports up to 18 digits")
+	}
+
 	// Calculate the min and max values for count
 	minValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(count-1), nil)
 	maxValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(count), nil)
@@ -87,15 +92,27 @@ func GenerateRandomInt(count int64) (int64, error) {
 	}
 
 	/*
-	 rand.Int generates a random number within the range [0, max-1], where max is the upper bound of the range.  If we set count to 9, the upper bound maxVal will be the maximum 9-digit number (999999999), but rand.Int can generatee a random number up to maxVal-1 (i.e., 999999998), which can result in an 8-digit number. If the generated random integer is already the maximum possible value, then adding the minimum value to it will result in a new big integer with the desired number of digits. This is because the big.Int.Add() function adds two big integers together and returns a new big integer.
+		rand.Int generates a random number within the range [0, max-1], so if count == 8 [0 -> 9999999]. If the generated random integer is already the maximum possible value, then adding the minimum value to it will overflow it to count + 1. This is because the big.Int.Add() function adds two big integers together and returns a new big integer. If the first digit is a 9 and it's already count long then adding the min will overflow. So we only add if the digit count is not count AND the first digit is not 9.
 
 	*/
 
-	// Add the minimum value to ensure it has the desired number of digits
-	randInt.Add(randInt, minValue)
+	if FirstDigitIsNine(randInt.Int64()) && GetIntLength(randInt.Int64()) == count {
+		return randInt.Int64(), nil
+	} else {
+		randInt.Add(randInt, minValue)
+		return randInt.Int64(), nil
 
-	// Convert the big integer to an int64 value
-	randInt64 := randInt.Int64()
+	}
+}
 
-	return randInt64, nil
+func FirstDigitIsNine(n int64) bool {
+	// Convert the int64 to a string
+	str := strconv.FormatInt(n, 10)
+
+	// Check if the string is empty or if the first character is '9'
+	if len(str) > 0 && str[0] == '9' {
+		return true
+	}
+
+	return false
 }
