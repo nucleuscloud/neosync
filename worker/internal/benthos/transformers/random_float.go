@@ -9,8 +9,8 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 )
 
-const defaultFloatLen = 5
-const defaultFloatDecimals = 3
+const defaultLenBeforeDecimals = 2
+const defaultLenAfterDecimals = 3
 
 func init() {
 
@@ -50,53 +50,66 @@ func init() {
 }
 
 // main transformer logic goes here
-func ProcessRandomFloat(i float64, preserveLength bool, digitsBeforeDecimal, digitsAfterDecimal int64) (int64, error) {
+func ProcessRandomFloat(i float64, preserveLength bool, digitsBeforeDecimal, digitsAfterDecimal int64) (float64, error) {
 
 	var returnValue float64
 
 	fLen := GetFloatLength(i)
 
+	if digitsBeforeDecimal < 0 || digitsAfterDecimal < 0 {
+		return 0.0, fmt.Errorf("digitsBefore and digitsAfter must be non-negative")
+	}
+
 	if preserveLength {
 
-		beforeDecimal, err := GenerateRandomIntWithLength(int64(GetIntLength(int64(fLen.DigitsBeforeDecimalLength))))
+		bd, err := GenerateRandomInt(int64(fLen.DigitsBeforeDecimalLength))
+		if err != nil {
+			return 0, fmt.Errorf("unable to generate a random before digits integer")
+		}
 
-		afterDecimal, err := GenerateRandomIntWithLength(int64(fLen.DigitsAfterDecimalLength))
+		ad, err := GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
+
+		if err != nil {
+			return 0, fmt.Errorf("unable to generate a random after digits integer")
+		}
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random string with length")
 		}
 
-		returnValue = 
+		combinedStr := fmt.Sprintf("%d.%d", bd, ad)
 
-	} else if intLength > 0 {
-
-		val, err := GenerateRandomIntWithLength(intLength)
-
+		result, err := strconv.ParseFloat(combinedStr, 64)
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random string with length")
+			return 0, fmt.Errorf("unable to convert string to float")
 		}
 
-		returnValue = val
-
-	} else if preserveLength && intLength > 0 {
-
-		val, err := GenerateRandomIntWithLength(intLength)
-
-		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random string with length")
-		}
-
-		returnValue = val
-
+		returnValue = result
 	} else {
 
-		val, err := GenerateRandomIntWithLength(defaultIntLength)
+		bd, err := GenerateRandomInt(int64(defaultLenBeforeDecimals))
+		if err != nil {
+			return 0, fmt.Errorf("unable to generate a random before digits integer")
+		}
+
+		ad, err := GenerateRandomInt(int64(defaultLenAfterDecimals))
+
+		if err != nil {
+			return 0, fmt.Errorf("unable to generate a random after digits integer")
+		}
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random string with length")
 		}
 
-		returnValue = val
+		combinedStr := fmt.Sprintf("%d.%d", bd, ad)
+
+		result, err := strconv.ParseFloat(combinedStr, 64)
+		if err != nil {
+			return 0, fmt.Errorf("unable to convert string to float")
+		}
+
+		returnValue = result
 
 	}
 
@@ -110,7 +123,7 @@ type FloatLength struct {
 
 func GetFloatLength(i float64) *FloatLength {
 	// Convert the int64 to a string
-	str := strconv.FormatFloat(i, 'f', -1, 64)
+	str := fmt.Sprintf("%g", i)
 
 	parsed := strings.Split(str, ".")
 

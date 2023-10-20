@@ -7,51 +7,42 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessRandomFloat(t *testing.T) {
+func TestProcessRandomFloatPreserveLength(t *testing.T) {
 
-	tests := []struct {
-		i                   int64
-		preserveLength      bool
-		digitsBeforeDecimal int64
-		digitsAfterDecimal  int64
-		intLength           int64
-		expectedLength      int
-	}{
-		{67543543, false, 0, 0}, // check base int generation
-		{324356, false, 6, 6},   // check int generation with a given length
-		{324502453, true, 0, 9}, // check preserveLength of input int
-	}
+	val := float64(6754.3543)
+	expectedLength := 8
 
-	for _, tt := range tests {
-		res, err := ProcessRandomFloat(tt.i, tt.preserveLength, tt.intLength)
+	res, err := ProcessRandomFloat(val, true, int64(3), int64(3))
 
-		assert.NoError(t, err)
+	actual := GetFloatLength(float64(res)).DigitsAfterDecimalLength + GetFloatLength(float64(res)).DigitsBeforeDecimalLength
+	assert.NoError(t, err)
+	assert.Equal(t, actual, expectedLength, "The output Float needs to be the same length as the input Float")
 
-		if tt.preserveLength {
-			assert.Equal(t, GetIntLength(res), tt.expectedLength)
-		}
+}
 
-		if !tt.preserveLength && tt.intLength == 0 {
-			assert.Equal(t, GetIntLength(res), 4)
-		}
+func TestProcessRandomFloatPreserveLengthFalse(t *testing.T) {
 
-		if !tt.preserveLength && tt.intLength > 0 {
-			assert.Equal(t, GetIntLength(res), 6)
-		}
-	}
+	val := float64(6754.3543)
+	expectedLength := 5
+
+	res, err := ProcessRandomFloat(val, false, int64(3), int64(3))
+
+	actual := GetFloatLength(float64(res)).DigitsAfterDecimalLength + GetFloatLength(float64(res)).DigitsBeforeDecimalLength
+	assert.NoError(t, err)
+	assert.Equal(t, actual, expectedLength, "The output Float needs to be the same length as the input Float")
 
 }
 
 func TestRandomFloatTransformer(t *testing.T) {
-	mapping := `root = this.randominttransformer(true, 2,3)`
+	mapping := `root = this.randomfloattransformer(true, 2,3)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random float transformer")
 
-	testVal := int64(397283)
+	testVal := float64(397283)
 
 	res, err := ex.Query(testVal)
 	assert.NoError(t, err)
 
-	assert.Equal(t, GetIntLength(testVal), GetIntLength(res.(int64))) // Generated int must be the same length as the input int"
+	assert.Equal(t, GetFloatLength(testVal), GetFloatLength(res.(float64))) // Generated Float must be the same length as the input Float"
 	assert.IsType(t, res, testVal)
 }
