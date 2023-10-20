@@ -314,6 +314,7 @@ function EditItem(props: EditItemProps): ReactElement {
             <ButtonText text="Validate" />
           </Button>
           <Button
+            type="button"
             variant="secondary"
             disabled={!item}
             onClick={() => onCancelClick()}
@@ -323,7 +324,11 @@ function EditItem(props: EditItemProps): ReactElement {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button disabled={!item} onClick={() => onSaveClick()}>
+                <Button
+                  type="button"
+                  disabled={!item}
+                  onClick={() => onSaveClick()}
+                >
                   <ButtonText text="Apply" />
                 </Button>
               </TooltipTrigger>
