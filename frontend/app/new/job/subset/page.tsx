@@ -323,13 +323,27 @@ function EditItem(props: EditItemProps): ReactElement {
       <div>
         <Textarea
           disabled={!item}
-          placeholder="Add a table filter here"
+          placeholder={
+            !!item
+              ? 'Add a table filter here'
+              : 'Click edit on a row above to change the where clause'
+          }
           value={item?.where ?? ''}
           onChange={(e) => onWhereChange(e.currentTarget.value)}
         />
       </div>
+      <div>
+        <Textarea disabled={true} value={buildSelectQuery(item?.where)} />
+      </div>
     </div>
   );
+}
+
+function buildSelectQuery(whereClause?: string): string {
+  if (!whereClause) {
+    return '';
+  }
+  return `WHERE ${whereClause};`;
 }
 
 async function createNewJob(

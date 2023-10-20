@@ -305,8 +305,18 @@ function EditItem(props: EditItemProps): ReactElement {
           onChange={(e) => onWhereChange(e.currentTarget.value)}
         />
       </div>
+      <div>
+        <Textarea disabled={true} value={buildSelectQuery(item?.where)} />
+      </div>
     </div>
   );
+}
+
+function buildSelectQuery(whereClause?: string): string {
+  if (!whereClause) {
+    return '';
+  }
+  return `WHERE ${whereClause};`;
 }
 
 async function setJobSubsets(
