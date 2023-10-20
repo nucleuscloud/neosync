@@ -2,8 +2,8 @@ package dbschemas_mysql
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
@@ -38,7 +38,7 @@ FROM
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
 		AND c.table_name = t.table_name
 WHERE
-	c.table_schema NOT IN('pg_catalog', 'information_schema')
+	c.table_schema NOT IN('sys', 'performance_schema', 'mysql')
 	AND t.table_type = 'BASE TABLE';
 	`
 	getDatabaseTableSchemaSql = `-- name: GetDatabaseTableSchema
@@ -55,7 +55,7 @@ FROM
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
 		AND c.table_name = t.table_name
 WHERE
-	c.table_schema = $1 AND t.table_name = $2
+	c.table_schema = ? AND t.table_name = ?
 	AND t.table_type = 'BASE TABLE'
 	ORDER BY c.ordinal_position ASC;
 	`
@@ -63,42 +63,9 @@ WHERE
 
 func GetDatabaseSchemas(
 	ctx context.Context,
-	conn DBTX,
+	conn *sql.DB,
 ) ([]*DatabaseSchema, error) {
-	rows, err := conn.Query(ctx, getDatabaseSchemaSql)
-	if err != nil && !isNoRows(err) {
-		return nil, err
-	} else if err != nil && isNoRows(err) {
-		return []*DatabaseSchema{}, nil
-	}
-
-	output := []*DatabaseSchema{}
-	for rows.Next() {
-		var o DatabaseSchema
-		err := rows.Scan(
-			&o.TableSchema,
-			&o.TableName,
-			&o.ColumnName,
-			&o.OrdinalPosition,
-			&o.ColumnDefault,
-			&o.IsNullable,
-			&o.DataType,
-		)
-		if err != nil {
-			return nil, err
-		}
-		output = append(output, &o)
-	}
-	return output, nil
-}
-
-func getDatabaseTableSchema(
-	ctx context.Context,
-	conn DBTX,
-	schema string,
-	table string,
-) ([]*DatabaseSchema, error) {
-	rows, err := conn.Query(ctx, getDatabaseTableSchemaSql, schema, table)
+	rows, err := conn.QueryContext(ctx, getDatabaseSchemaSql)
 	if err != nil && !isNoRows(err) {
 		return nil, err
 	} else if err != nil && isNoRows(err) {
@@ -162,17 +129,17 @@ LEFT JOIN information_schema.referential_constraints rc
 	ON
 	kcu.constraint_name = rc.constraint_name
 WHERE
-	kcu.table_schema = $1 AND kcu.table_name = $2;
+	kcu.table_schema = ? AND kcu.table_name = ?;
 `
 )
 
 func GetTableConstraints(
 	ctx context.Context,
-	conn DBTX,
+	conn *sql.DB,
 	schema string,
 	table string,
 ) ([]*DatabaseTableConstraint, error) {
-	rows, err := conn.Query(ctx, getTableConstraintsSql, schema, table)
+	rows, err := conn.QueryContext(ctx, getTableConstraintsSql, schema, table)
 	if err != nil && !isNoRows(err) {
 		return nil, err
 	} else if err != nil && isNoRows(err) {
@@ -202,23 +169,18 @@ func GetTableConstraints(
 }
 
 type DatabaseTableShowCreate struct {
-	Table       string `db:"table"`
-	CreateTable string `db:"create table"`
+	Table       string `db:"Table"`
+	CreateTable string `db:"Create Table"`
 }
-
-const (
-	getShowTableCreateSql = `-- name: GetShowTableCreate
-	SHOW CREATE TABLE $1;
-`
-)
 
 func getShowTableCreate(
 	ctx context.Context,
-	conn DBTX,
+	conn *sql.DB,
 	schema string,
 	table string,
 ) (*DatabaseTableShowCreate, error) {
-	row := conn.QueryRow(ctx, getShowTableCreateSql, fmt.Sprintf("%s.%s", schema, table))
+	getShowTableCreateSql := fmt.Sprintf(`SHOW CREATE TABLE %s.%s;`, schema, table)
+	row := conn.QueryRowContext(ctx, getShowTableCreateSql)
 
 	var output DatabaseTableShowCreate
 	err := row.Scan(
@@ -240,22 +202,22 @@ type GetTableCreateStatementRequest struct {
 	Table  string
 }
 
-type DBTX interface {
-	// Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
-	Query(context.Context, string, ...any) (pgx.Rows, error)
-	QueryRow(context.Context, string, ...any) pgx.Row
+// type DBTX interface {
+// 	// Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
+// 	Query(context.Context, string, ...any) (pgx.Rows, error)
+// 	QueryRow(context.Context, string, ...any) pgx.Row
 
-	// Begin(ctx context.Context) (pgx.Tx, error)
-	// BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
+// 	// Begin(ctx context.Context) (pgx.Tx, error)
+// 	// BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
 
-	// Ping(ctx context.Context) error
+// 	// Ping(ctx context.Context) error
 
-	// CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
-}
+// 	// CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
+// }
 
 func GetTableCreateStatement(
 	ctx context.Context,
-	conn DBTX,
+	conn *sql.DB,
 	req *GetTableCreateStatementRequest,
 ) (string, error) {
 	result, err := getShowTableCreate(ctx, conn, req.Schema, req.Table)
@@ -265,50 +227,32 @@ func GetTableCreateStatement(
 	return result.CreateTable, nil
 }
 
-func buildTableCol(record *DatabaseSchema) string {
-	pieces := []string{record.ColumnName, record.DataType, buildNullableText(record)}
-	if record.ColumnDefault != nil && *record.ColumnDefault != "" {
-		pieces = append(pieces, "DEFAULT", *record.ColumnDefault)
-	}
-	return strings.Join(pieces, " ")
-}
-func buildNullableText(record *DatabaseSchema) string {
-	if record.IsNullable == "NO" {
-		return "NOT NULL"
-	}
-	return "NULL"
-}
-
 const (
-	fkConstraintSql = `--getForeignKeyConstraints
-SELECT
-    rc.constraint_name
-    ,
-    kcu.table_schema AS schema_name
-    ,
-    kcu.table_name
-    ,
-    kcu.column_name
-    ,
-    kcu2.table_schema AS foreign_schema_name
-    ,
-    kcu2.table_name AS foreign_table_name
-    ,
-    kcu2.column_name AS foreign_column_name
+	fkConstraintSql = `
+	SELECT
+	rc.constraint_name
+	,
+	kcu.table_schema AS schema_name
+	,
+	kcu.table_name as table_name
+	,
+	kcu.column_name as column_name
+	,
+	kcu.referenced_table_schema AS foreign_schema_name
+	,
+	kcu.referenced_table_name AS foreign_table_name
+	,
+	kcu.referenced_column_name AS foreign_column_name
 FROM
-    information_schema.referential_constraints rc
+	information_schema.referential_constraints rc
 JOIN information_schema.key_column_usage kcu
-    ON
-    kcu.constraint_name = rc.constraint_name
-JOIN information_schema.key_column_usage kcu2
-    ON
-    kcu2.ordinal_position = kcu.position_in_unique_constraint
-    AND kcu2.constraint_name = rc.unique_constraint_name
+	ON
+	kcu.constraint_name = rc.constraint_name
 WHERE
-    kcu.table_schema = $1
+	kcu.table_schema = ? 
 ORDER BY
-    rc.constraint_name,
-    kcu.ordinal_position;
+	rc.constraint_name,
+	kcu.ordinal_position;
 	`
 )
 
@@ -324,11 +268,11 @@ type ForeignKeyConstraint struct {
 
 func GetForeignKeyConstraints(
 	ctx context.Context,
-	conn DBTX,
+	conn *sql.DB,
 	tableSchema string,
 ) ([]*ForeignKeyConstraint, error) {
 
-	rows, err := conn.Query(ctx, fkConstraintSql, tableSchema)
+	rows, err := conn.QueryContext(ctx, fkConstraintSql, tableSchema)
 	if err != nil && !isNoRows(err) {
 		return nil, err
 	} else if err != nil && isNoRows(err) {

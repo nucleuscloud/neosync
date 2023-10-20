@@ -280,29 +280,33 @@ func buildNullableText(record *DatabaseSchema) string {
 const (
 	fkConstraintSql = `--getForeignKeyConstraints
 	SELECT
-	rc.constraint_name
-	,
-	kcu.table_schema AS schema_name
-	,
-	kcu.table_name as table_name
-	,
-	kcu.column_name as column_name
-	,
-	kcu.referenced_table_schema AS foreign_schema_name
-	,
-	kcu.referenced_table_name AS foreign_table_name
-	,
-	kcu.referenced_column_name AS foreign_column_name
+    rc.constraint_name
+    ,
+    kcu.table_schema AS schema_name
+    ,
+    kcu.table_name
+    ,
+    kcu.column_name
+    ,
+    kcu2.table_schema AS foreign_schema_name
+    ,
+    kcu2.table_name AS foreign_table_name
+    ,
+    kcu2.column_name AS foreign_column_name
 FROM
-	information_schema.referential_constraints rc
+    information_schema.referential_constraints rc
 JOIN information_schema.key_column_usage kcu
-	ON
-	kcu.constraint_name = rc.constraint_name
+    ON
+    kcu.constraint_name = rc.constraint_name
+JOIN information_schema.key_column_usage kcu2
+    ON
+    kcu2.ordinal_position = kcu.position_in_unique_constraint
+    AND kcu2.constraint_name = rc.unique_constraint_name
 WHERE
-	kcu.table_schema = $1 
+    kcu.table_schema = $1
 ORDER BY
-	rc.constraint_name,
-	kcu.ordinal_position;
+    rc.constraint_name,
+    kcu.ordinal_position;
 	`
 )
 

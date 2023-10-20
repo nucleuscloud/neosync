@@ -2,6 +2,7 @@ package datasync
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -68,6 +69,7 @@ func (a *Activities) GenerateBenthosConfigs(
 	}()
 
 	pgpoolmap := map[string]*pgxpool.Pool{}
+	mysqlPoolMap := map[string]*sql.DB{}
 
 	job, err := a.getJobById(ctx, req.BackendUrl, req.JobId)
 	if err != nil {
@@ -80,6 +82,12 @@ func (a *Activities) GenerateBenthosConfigs(
 		return nil, err
 	}
 
+	sqlOpts := job.Source.Options.GetSqlOptions()
+	var sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption
+	if sqlOpts != nil {
+		sourceTableOpts = groupSqlSourceOptionsByTable(sqlOpts.Schemas)
+	}
+
 	switch connection := sourceConnection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		dsn, err := getPgDsn(connection.PgConfig)
@@ -87,70 +95,71 @@ func (a *Activities) GenerateBenthosConfigs(
 			return nil, err
 		}
 
-		sqlOpts := job.Source.Options.GetSqlOptions()
-		var sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption
-		if sqlOpts != nil {
-			sourceTableOpts = groupSqlSourceOptionsByTable(sqlOpts.Schemas)
-		}
+		// sqlOpts := job.Source.Options.GetSqlOptions()
+		// var sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption
+		// if sqlOpts != nil {
+		// 	sourceTableOpts = groupSqlSourceOptionsByTable(sqlOpts.Schemas)
+		// }
 
-		groupedMappings := groupMappingsByTable(job.Mappings)
-		for i := range groupedMappings {
-			tableMapping := groupedMappings[i]
-			cols := buildPlainColumns(tableMapping.Mappings)
-			if areAllColsNull(tableMapping.Mappings) {
-				// skipping table as no columns are mapped
-				continue
-			}
+		// groupedMappings := groupMappingsByTable(job.Mappings)
+		// for i := range groupedMappings {
+		// 	tableMapping := groupedMappings[i]
+		// 	cols := buildPlainColumns(tableMapping.Mappings)
+		// 	if areAllColsNull(tableMapping.Mappings) {
+		// 		// skipping table as no columns are mapped
+		// 		continue
+		// 	}
 
-			var where string
-			tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
-			if tableOpt != nil && tableOpt.WhereClause != nil {
-				where = *tableOpt.WhereClause
-			}
+		// 	var where string
+		// 	tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+		// 	if tableOpt != nil && tableOpt.WhereClause != nil {
+		// 		where = *tableOpt.WhereClause
+		// 	}
 
-			bc := &neosync_benthos.BenthosConfig{
-				StreamConfig: neosync_benthos.StreamConfig{
-					Input: &neosync_benthos.InputConfig{
-						Inputs: neosync_benthos.Inputs{
-							SqlSelect: &neosync_benthos.SqlSelect{
-								Driver: "postgres",
-								Dsn:    dsn,
+		// 	bc := &neosync_benthos.BenthosConfig{
+		// 		StreamConfig: neosync_benthos.StreamConfig{
+		// 			Input: &neosync_benthos.InputConfig{
+		// 				Inputs: neosync_benthos.Inputs{
+		// 					SqlSelect: &neosync_benthos.SqlSelect{
+		// 						Driver: "postgres",
+		// 						Dsn:    dsn,
 
-								Table:   neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table),
-								Where:   where,
-								Columns: cols,
-							},
-						},
-					},
-					Pipeline: &neosync_benthos.PipelineConfig{
-						Threads:    -1,
-						Processors: []neosync_benthos.ProcessorConfig{},
-					},
-					Output: &neosync_benthos.OutputConfig{
-						Outputs: neosync_benthos.Outputs{
-							Broker: &neosync_benthos.OutputBrokerConfig{
-								Pattern: "fan_out",
-								Outputs: []neosync_benthos.Outputs{},
-							},
-						},
-					},
-				},
-			}
-			mutation, err := buildProcessorMutation(tableMapping.Mappings)
-			if err != nil {
-				return nil, err
-			}
-			if mutation != "" {
-				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
-					Mutation: mutation,
-				})
-			}
-			responses = append(responses, &benthosConfigResponse{
-				Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
-				Config:    bc,
-				DependsOn: []string{},
-			})
-		}
+		// 						Table:   neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table),
+		// 						Where:   where,
+		// 						Columns: cols,
+		// 					},
+		// 				},
+		// 			},
+		// 			Pipeline: &neosync_benthos.PipelineConfig{
+		// 				Threads:    -1,
+		// 				Processors: []neosync_benthos.ProcessorConfig{},
+		// 			},
+		// 			Output: &neosync_benthos.OutputConfig{
+		// 				Outputs: neosync_benthos.Outputs{
+		// 					Broker: &neosync_benthos.OutputBrokerConfig{
+		// 						Pattern: "fan_out",
+		// 						Outputs: []neosync_benthos.Outputs{},
+		// 					},
+		// 				},
+		// 			},
+		// 		},
+		// 	}
+		// 	mutation, err := buildProcessorMutation(tableMapping.Mappings)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	if mutation != "" {
+		// 		bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
+		// 			Mutation: mutation,
+		// 		})
+		// 	}
+		// 	responses = append(responses, &benthosConfigResponse{
+		// 		Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
+		// 		Config:    bc,
+		// 		DependsOn: []string{},
+		// 	})
+		// }
+		sourceResponse, err := buildBenthosSourceConfigReponses(grou)
 		if _, ok := pgpoolmap[dsn]; !ok {
 			pool, err := pgxpool.New(ctx, dsn)
 			if err != nil {
@@ -195,11 +204,11 @@ func (a *Activities) GenerateBenthosConfigs(
 			return nil, err
 		}
 
-		sqlOpts := job.Source.Options.GetSqlOptions()
-		var sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption
-		if sqlOpts != nil {
-			sourceTableOpts = groupSqlSourceOptionsByTable(sqlOpts.Schemas)
-		}
+		// sqlOpts := job.Source.Options.GetSqlOptions()
+		// var sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption
+		// if sqlOpts != nil {
+		// 	sourceTableOpts = groupSqlSourceOptionsByTable(sqlOpts.Schemas)
+		// }
 
 		groupedMappings := groupMappingsByTable(job.Mappings)
 		for i := range groupedMappings {
@@ -221,9 +230,8 @@ func (a *Activities) GenerateBenthosConfigs(
 					Input: &neosync_benthos.InputConfig{
 						Inputs: neosync_benthos.Inputs{
 							SqlSelect: &neosync_benthos.SqlSelect{
-								Driver: "mysql",
-								Dsn:    dsn,
-
+								Driver:  "mysql",
+								Dsn:     dsn,
 								Table:   neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table),
 								Where:   where,
 								Columns: cols,
@@ -259,15 +267,15 @@ func (a *Activities) GenerateBenthosConfigs(
 				DependsOn: []string{},
 			})
 		}
-		if _, ok := pgpoolmap[dsn]; !ok {
-			pool, err := pgxpool.New(ctx, dsn)
+		if _, ok := mysqlPoolMap[dsn]; !ok {
+			pool, err := sql.Open("mysql", dsn)
 			if err != nil {
 				return nil, err
 			}
 			defer pool.Close()
-			pgpoolmap[dsn] = pool
+			mysqlPoolMap[dsn] = pool
 		}
-		pool := pgpoolmap[dsn]
+		pool := mysqlPoolMap[dsn]
 
 		// validate job mappings align with sql connections
 		dbschemas, err := dbschemas_mysql.GetDatabaseSchemas(ctx, pool)
@@ -383,7 +391,7 @@ func (a *Activities) GenerateBenthosConfigs(
 					}
 				}
 
-				pool := pgpoolmap[resp.Config.Input.SqlSelect.Dsn]
+				pool := mysqlPoolMap[resp.Config.Input.SqlSelect.Dsn]
 				// todo: make this more efficient to reduce amount of times we have to connect to the source database
 				schema, table := splitTableKey(resp.Config.Input.SqlSelect.Table)
 				// TODO
@@ -465,6 +473,69 @@ func (a *Activities) GenerateBenthosConfigs(
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+func buildBenthosSourceConfigReponses(mappings []*TableMapping, dsn string, driver string, sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption) ([]*benthosConfigResponse, error) {
+	responses := []*benthosConfigResponse{}
+	for i := range mappings {
+		tableMapping := mappings[i]
+		cols := buildPlainColumns(tableMapping.Mappings)
+		if areAllColsNull(tableMapping.Mappings) {
+			// skipping table as no columns are mapped
+			continue
+		}
+
+		var where string
+		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+		if tableOpt != nil && tableOpt.WhereClause != nil {
+			where = *tableOpt.WhereClause
+		}
+
+		bc := &neosync_benthos.BenthosConfig{
+			StreamConfig: neosync_benthos.StreamConfig{
+				Input: &neosync_benthos.InputConfig{
+					Inputs: neosync_benthos.Inputs{
+						SqlSelect: &neosync_benthos.SqlSelect{
+							Driver: driver,
+							Dsn:    dsn,
+
+							Table:   neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table),
+							Where:   where,
+							Columns: cols,
+						},
+					},
+				},
+				Pipeline: &neosync_benthos.PipelineConfig{
+					Threads:    -1,
+					Processors: []neosync_benthos.ProcessorConfig{},
+				},
+				Output: &neosync_benthos.OutputConfig{
+					Outputs: neosync_benthos.Outputs{
+						Broker: &neosync_benthos.OutputBrokerConfig{
+							Pattern: "fan_out",
+							Outputs: []neosync_benthos.Outputs{},
+						},
+					},
+				},
+			},
+		}
+		mutation, err := buildProcessorMutation(tableMapping.Mappings)
+		if err != nil {
+			return nil, err
+		}
+		if mutation != "" {
+			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
+				Mutation: mutation,
+			})
+		}
+		responses = append(responses, &benthosConfigResponse{
+			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
+			Config:    bc,
+			DependsOn: []string{},
+		})
+	}
+
+	return responses, nil
 }
 
 func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosync_benthos.AwsCredentials {
@@ -633,7 +704,7 @@ func (a *Activities) getAllPostgresFkConstraintsFromMappings(
 
 func (a *Activities) getAllMysqlFkConstraintsFromMappings(
 	ctx context.Context,
-	conn DBTX,
+	conn *sql.DB,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) ([]*dbschemas_mysql.ForeignKeyConstraint, error) {
 	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
@@ -705,7 +776,7 @@ func (a *Activities) getInitStatementFromPostgres(
 
 func (a *Activities) getInitStatementFromMysql(
 	ctx context.Context,
-	conn DBTX,
+	conn *sql.DB,
 	schema string,
 	table string,
 	opts *initStatementOpts,
@@ -724,7 +795,7 @@ func (a *Activities) getInitStatementFromMysql(
 	}
 	if opts != nil && opts.TruncateBeforeInsert {
 		if opts.TruncateCascade {
-			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
+			statements = append(statements, fmt.Sprintf("SET FOREIGN_KEY_CHECKS=0; TRUNCATE TABLE %s.%s; SET FOREIGN_KEY_CHECKS=1;", schema, table))
 		} else {
 			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
 		}
