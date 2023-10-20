@@ -836,11 +836,12 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 	if err := s.db.SetSqlSourceSubsets(
 		ctx,
 		jobUuid,
-		jsonmodels.FromDtoSqlSourceSchemaOptions(req.Msg.Schemas),
+		req.Msg.Schemas,
 		*userUuid,
 	); err != nil {
 		return nil, err
 	}
+
 	updatedJobRes, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
 		Id: req.Msg.Id,
 	}))

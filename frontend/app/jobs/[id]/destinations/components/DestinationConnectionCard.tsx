@@ -226,13 +226,22 @@ async function setJobConnection(
 
 function getDefaultValues(d: JobDestination): FormValues {
   switch (d.options?.config.case) {
-    case 'sqlOptions':
+    case 'postgresOptions':
       return {
         connectionId: d.connectionId,
         destinationOptions: {
           truncateBeforeInsert:
             d.options.config.value.truncateTable?.truncateBeforeInsert,
           truncateCascade: d.options.config.value.truncateTable?.cascade,
+          initTableSchema: d.options.config.value.initTableSchema,
+        },
+      };
+    case 'mysqlOptions':
+      return {
+        connectionId: d.connectionId,
+        destinationOptions: {
+          truncateBeforeInsert:
+            d.options.config.value.truncateTable?.truncateBeforeInsert,
           initTableSchema: d.options.config.value.initTableSchema,
         },
       };

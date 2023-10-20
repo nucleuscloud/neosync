@@ -86,10 +86,10 @@ func (a *Activities) GenerateBenthosConfigs(
 			return nil, err
 		}
 
-		sqlOpts := job.Source.Options.GetSqlOptions()
-		var sourceTableOpts map[string]*mgmtv1alpha1.SqlSourceTableOption
+		sqlOpts := job.Source.Options.GetPostgresOptions()
+		var sourceTableOpts map[string]*mgmtv1alpha1.PostgresSourceTableOption
 		if sqlOpts != nil {
-			sourceTableOpts = groupSqlSourceOptionsByTable(sqlOpts.Schemas)
+			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
 		groupedMappings := groupMappingsByTable(job.Mappings)
@@ -208,7 +208,7 @@ func (a *Activities) GenerateBenthosConfigs(
 				truncateBeforeInsert := false
 				truncateCascade := false
 				initSchema := false
-				sqlOpts := destination.Options.GetSqlOptions()
+				sqlOpts := destination.Options.GetPostgresOptions()
 				if sqlOpts != nil {
 					initSchema = sqlOpts.InitTableSchema
 					if sqlOpts.TruncateTable != nil {
@@ -609,10 +609,10 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 	return &SyncResponse{}, nil
 }
 
-func groupSqlSourceOptionsByTable(
-	schemaOptions []*mgmtv1alpha1.SqlSourceSchemaOption,
-) map[string]*mgmtv1alpha1.SqlSourceTableOption {
-	groupedMappings := map[string]*mgmtv1alpha1.SqlSourceTableOption{}
+func groupPostgresSourceOptionsByTable(
+	schemaOptions []*mgmtv1alpha1.PostgresSourceSchemaOption,
+) map[string]*mgmtv1alpha1.PostgresSourceTableOption {
+	groupedMappings := map[string]*mgmtv1alpha1.PostgresSourceTableOption{}
 
 	for idx := range schemaOptions {
 		schemaOpt := schemaOptions[idx]
@@ -625,6 +625,23 @@ func groupSqlSourceOptionsByTable(
 
 	return groupedMappings
 }
+
+// func groupMysqlSourceOptionsByTable(
+// 	schemaOptions []*mgmtv1alpha1.MysqlSourceSchemaOption,
+// ) map[string]*mgmtv1alpha1.MysqlSourceTableOption {
+// 	groupedMappings := map[string]*mgmtv1alpha1.MysqlSourceTableOption{}
+
+// 	for idx := range schemaOptions {
+// 		schemaOpt := schemaOptions[idx]
+// 		for tidx := range schemaOpt.Tables {
+// 			tableOpt := schemaOpt.Tables[tidx]
+// 			key := buildBenthosTable(schemaOpt.Schema, tableOpt.Table)
+// 			groupedMappings[key] = tableOpt
+// 		}
+// 	}
+
+// 	return groupedMappings
+// }
 
 func groupMappingsByTable(
 	mappings []*mgmtv1alpha1.JobMapping,

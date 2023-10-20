@@ -24,13 +24,13 @@ import {
   JobMapping,
   JobSource,
   JobSourceOptions,
-  SqlSourceConnectionOptions,
+  MysqlSourceConnectionOptions,
+  PostgresSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import {
   SchemaFormValues,
   toJobDestinationOptions,
-  toSqlSourceSchemaOptions,
 } from '@/yup-validations/jobs';
 import { toTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -242,6 +242,9 @@ async function createNewJob(
   const connectionIdMap = new Map(
     connections.map((connection) => [connection.id, connection])
   );
+  const sourceConnection = connections.find(
+    (c) => c.id == formData.flow.sourceId
+  );
   const body = new CreateJobRequest({
     accountId,
     jobName: formData.define.jobName,
@@ -257,16 +260,7 @@ async function createNewJob(
     }),
     source: new JobSource({
       connectionId: formData.flow.sourceId,
-      options: new JobSourceOptions({
-        config: {
-          case: 'sqlOptions',
-          value: new SqlSourceConnectionOptions({
-            haltOnNewColumnAddition:
-              formData.flow.sourceOptions.haltOnNewColumnAddition,
-            schemas: toSqlSourceSchemaOptions(formData.subset?.subsets ?? []),
-          }),
-        },
-      }),
+      options: toJobSourceOptions(formData, sourceConnection),
     }),
     destinations: formData.flow.destinations.map((d) => {
       return new JobDestination({
@@ -278,6 +272,39 @@ async function createNewJob(
       });
     }),
   });
+
+  function toJobSourceOptions(
+    values: FormValues,
+    connection?: Connection
+  ): JobSourceOptions {
+    if (!connection) {
+      return new JobSourceOptions();
+    }
+    switch (connection.connectionConfig?.config.case) {
+      case 'pgConfig':
+        return new JobSourceOptions({
+          config: {
+            case: 'postgresOptions',
+            value: new PostgresSourceConnectionOptions({
+              haltOnNewColumnAddition:
+                values.flow.sourceOptions.haltOnNewColumnAddition,
+            }),
+          },
+        });
+      case 'mysqlConfig':
+        return new JobSourceOptions({
+          config: {
+            case: 'mysqlOptions',
+            value: new MysqlSourceConnectionOptions({
+              haltOnNewColumnAddition:
+                values.flow.sourceOptions.haltOnNewColumnAddition,
+            }),
+          },
+        });
+      default:
+        throw new Error('unsupported connection type');
+    }
+  }
 
   const res = await fetch(`/api/jobs`, {
     method: 'POST',

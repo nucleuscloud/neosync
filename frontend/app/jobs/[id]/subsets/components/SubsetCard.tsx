@@ -17,11 +17,13 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import {
   GetJobResponse,
   JobSourceOptions,
+  JobSourceSqlSubetSchemas,
+  PostgresSourceSchemaSubset,
   SetJobSourceSqlConnectionSubsetsRequest,
   SetJobSourceSqlConnectionSubsetsResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
-import { toSqlSourceSchemaOptions } from '@/yup-validations/jobs';
+import { toPostgresSourceSchemaOptions } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -163,7 +165,11 @@ export default function SubsetCard(props: Props): ReactElement {
 }
 
 function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
-  if (!sourceOpts || sourceOpts.config.case !== 'sqlOptions') {
+  if (
+    !sourceOpts ||
+    (sourceOpts.config.case !== 'postgresOptions' &&
+      sourceOpts.config.case !== 'mysqlOptions')
+  ) {
     return { subsets: [] };
   }
 
@@ -192,7 +198,14 @@ async function setJobSubsets(
     body: JSON.stringify(
       new SetJobSourceSqlConnectionSubsetsRequest({
         id: jobId,
-        schemas: toSqlSourceSchemaOptions(values.subsets),
+        schemas: new JobSourceSqlSubetSchemas({
+          schemas: {
+            case: 'postgresSubset',
+            value: new PostgresSourceSchemaSubset({
+              postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
+            }),
+          },
+        }),
       })
     ),
   });
