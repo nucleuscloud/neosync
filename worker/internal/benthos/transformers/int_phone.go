@@ -76,19 +76,26 @@ func GenerateRandomInt(count int64) (int64, error) {
 		return 0, fmt.Errorf("count is zero or not a positive integer")
 	}
 
-	// Calculate the min and max vas
-	minVal := new(big.Int).Exp(big.NewInt(10), big.NewInt(count-1), nil)
-	maxVal := new(big.Int).Exp(big.NewInt(10), big.NewInt(count), nil)
-	maxVal.Sub(maxVal, big.NewInt(1))
+	// Calculate the min and max values for count
+	minValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(count-1), nil)
+	maxValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(count), nil)
 
 	// Generate a random integer within the specified range
-	randInt, err := rand.Int(rand.Reader, maxVal)
+	randInt, err := rand.Int(rand.Reader, maxValue)
 	if err != nil {
 		return 0, fmt.Errorf("unable to generate a random integer")
 	}
 
-	// Add the minimum value to ensure it has the desired number of digits
-	randInt.Add(randInt, minVal)
+	/*
+		// 		 rand.Int generates a random number within the range [0, max-1], where max is the upper bound of the range.  If we set count to 9, the upper bound maxVal will be the maximum 9-digit number (999999999), but rand.Int can generatee a random number up to maxVal-1 (i.e., 999999998), which can result in an 8-digit number. So we add leading zeros to make sure we always have count digits.
 
-	return randInt.Int64(), nil
+		// 	*/
+
+	// Add the minimum value to ensure it has the desired number of digits
+	randInt.Add(randInt, minValue)
+
+	// Convert the big integer to an int64 value
+	randInt64 := randInt.Int64()
+
+	return randInt64, nil
 }
