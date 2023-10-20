@@ -117,11 +117,11 @@ func GenerateRandomIntWithLength(l int64) (int64, error) {
 	return randomValue.Int64(), nil
 }
 
-func GetIntLength(i int64) int {
+func GetIntLength(i int64) int64 {
 	// Convert the int64 to a string
 	str := strconv.FormatInt(i, 10)
 
-	length := len(str)
+	length := int64(len(str))
 
 	return length
 }
