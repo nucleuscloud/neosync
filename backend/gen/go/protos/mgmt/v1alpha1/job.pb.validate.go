@@ -4341,6 +4341,195 @@ var _ interface {
 	ErrorName() string
 } = MysqlSourceSchemaSubsetValidationError{}
 
+// Validate checks the field values on JobSourceSqlSubetSchemas with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *JobSourceSqlSubetSchemas) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobSourceSqlSubetSchemas with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobSourceSqlSubetSchemasMultiError, or nil if none found.
+func (m *JobSourceSqlSubetSchemas) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobSourceSqlSubetSchemas) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	switch v := m.Schemas.(type) {
+	case *JobSourceSqlSubetSchemas_PostgresSubset:
+		if v == nil {
+			err := JobSourceSqlSubetSchemasValidationError{
+				field:  "Schemas",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPostgresSubset()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceSqlSubetSchemasValidationError{
+						field:  "PostgresSubset",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceSqlSubetSchemasValidationError{
+						field:  "PostgresSubset",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPostgresSubset()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceSqlSubetSchemasValidationError{
+					field:  "PostgresSubset",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *JobSourceSqlSubetSchemas_MysqlSubset:
+		if v == nil {
+			err := JobSourceSqlSubetSchemasValidationError{
+				field:  "Schemas",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMysqlSubset()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceSqlSubetSchemasValidationError{
+						field:  "MysqlSubset",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceSqlSubetSchemasValidationError{
+						field:  "MysqlSubset",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMysqlSubset()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceSqlSubetSchemasValidationError{
+					field:  "MysqlSubset",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return JobSourceSqlSubetSchemasMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobSourceSqlSubetSchemasMultiError is an error wrapping multiple validation
+// errors returned by JobSourceSqlSubetSchemas.ValidateAll() if the designated
+// constraints aren't met.
+type JobSourceSqlSubetSchemasMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobSourceSqlSubetSchemasMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobSourceSqlSubetSchemasMultiError) AllErrors() []error { return m }
+
+// JobSourceSqlSubetSchemasValidationError is the validation error returned by
+// JobSourceSqlSubetSchemas.Validate if the designated constraints aren't met.
+type JobSourceSqlSubetSchemasValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobSourceSqlSubetSchemasValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobSourceSqlSubetSchemasValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobSourceSqlSubetSchemasValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobSourceSqlSubetSchemasValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobSourceSqlSubetSchemasValidationError) ErrorName() string {
+	return "JobSourceSqlSubetSchemasValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e JobSourceSqlSubetSchemasValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobSourceSqlSubetSchemas.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobSourceSqlSubetSchemasValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobSourceSqlSubetSchemasValidationError{}
+
 // Validate checks the field values on SetJobSourceSqlConnectionSubsetsRequest
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if
@@ -4367,91 +4556,33 @@ func (m *SetJobSourceSqlConnectionSubsetsRequest) validate(all bool) error {
 
 	// no validation rules for Id
 
-	switch v := m.Schemas.(type) {
-	case *SetJobSourceSqlConnectionSubsetsRequest_PostgresSubset:
-		if v == nil {
-			err := SetJobSourceSqlConnectionSubsetsRequestValidationError{
-				field:  "Schemas",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(m.GetPostgresSubset()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, SetJobSourceSqlConnectionSubsetsRequestValidationError{
-						field:  "PostgresSubset",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, SetJobSourceSqlConnectionSubsetsRequestValidationError{
-						field:  "PostgresSubset",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetPostgresSubset()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return SetJobSourceSqlConnectionSubsetsRequestValidationError{
-					field:  "PostgresSubset",
+	if all {
+		switch v := interface{}(m.GetSchemas()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetJobSourceSqlConnectionSubsetsRequestValidationError{
+					field:  "Schemas",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
 			}
-		}
-
-	case *SetJobSourceSqlConnectionSubsetsRequest_MysqlSubset:
-		if v == nil {
-			err := SetJobSourceSqlConnectionSubsetsRequestValidationError{
-				field:  "Schemas",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(m.GetMysqlSubset()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, SetJobSourceSqlConnectionSubsetsRequestValidationError{
-						field:  "MysqlSubset",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, SetJobSourceSqlConnectionSubsetsRequestValidationError{
-						field:  "MysqlSubset",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetMysqlSubset()).(interface{ Validate() error }); ok {
+		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				return SetJobSourceSqlConnectionSubsetsRequestValidationError{
-					field:  "MysqlSubset",
+				errors = append(errors, SetJobSourceSqlConnectionSubsetsRequestValidationError{
+					field:  "Schemas",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
 			}
 		}
-
-	default:
-		_ = v // ensures v is used
+	} else if v, ok := interface{}(m.GetSchemas()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetJobSourceSqlConnectionSubsetsRequestValidationError{
+				field:  "Schemas",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {

@@ -53,12 +53,12 @@ message PostgresSourceTableOption {
 
 message MysqlSourceConnectionOptions {
   bool halt_on_new_column_addition = 1;
-  repeated PostgresSourceSchemaOption schemas = 2;
+  repeated MysqlSourceSchemaOption schemas = 2;
 }
 
 message MysqlSourceSchemaOption {
   string schema = 1;
-  repeated PostgresSourceTableOption tables = 2;
+  repeated MysqlSourceTableOption tables = 2;
 }
 message MysqlSourceTableOption {
   string table = 1;
@@ -164,13 +164,17 @@ message MysqlSourceSchemaSubset {
   repeated MysqlSourceSchemaOption mysql_schemas = 1;
 }
 
-message SetJobSourceSqlConnectionSubsetsRequest {
-  string id = 1 [(buf.validate.field).string.uuid = true];
+message JobSourceSqlSubetSchemas {
   oneof schemas {
     option (buf.validate.oneof).required = true;
     PostgresSourceSchemaSubset postgres_subset = 2;
     MysqlSourceSchemaSubset mysql_subset = 3;
   }
+}
+
+message SetJobSourceSqlConnectionSubsetsRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  JobSourceSqlSubetSchemas schemas = 2;
 }
 message SetJobSourceSqlConnectionSubsetsResponse {
   Job job = 1;
