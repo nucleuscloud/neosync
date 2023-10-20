@@ -242,7 +242,7 @@ func (x RandomString_StringCase) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RandomString_StringCase.Descriptor instead.
 func (RandomString_StringCase) EnumDescriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{82, 0}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{89, 0}
 }
 
 type GetJobsRequest struct {
@@ -519,8 +519,9 @@ type JobSourceOptions struct {
 
 	// Types that are assignable to Config:
 	//
-	//	*JobSourceOptions_SqlOptions
+	//	*JobSourceOptions_PostgresOptions
 	//	*JobSourceOptions_AwsS3Options
+	//	*JobSourceOptions_MysqlOptions
 	Config isJobSourceOptions_Config `protobuf_oneof:"config"`
 }
 
@@ -563,9 +564,9 @@ func (m *JobSourceOptions) GetConfig() isJobSourceOptions_Config {
 	return nil
 }
 
-func (x *JobSourceOptions) GetSqlOptions() *SqlSourceConnectionOptions {
-	if x, ok := x.GetConfig().(*JobSourceOptions_SqlOptions); ok {
-		return x.SqlOptions
+func (x *JobSourceOptions) GetPostgresOptions() *PostgresSourceConnectionOptions {
+	if x, ok := x.GetConfig().(*JobSourceOptions_PostgresOptions); ok {
+		return x.PostgresOptions
 	}
 	return nil
 }
@@ -577,33 +578,46 @@ func (x *JobSourceOptions) GetAwsS3Options() *AwsS3SourceConnectionOptions {
 	return nil
 }
 
+func (x *JobSourceOptions) GetMysqlOptions() *MysqlSourceConnectionOptions {
+	if x, ok := x.GetConfig().(*JobSourceOptions_MysqlOptions); ok {
+		return x.MysqlOptions
+	}
+	return nil
+}
+
 type isJobSourceOptions_Config interface {
 	isJobSourceOptions_Config()
 }
 
-type JobSourceOptions_SqlOptions struct {
-	SqlOptions *SqlSourceConnectionOptions `protobuf:"bytes,1,opt,name=sql_options,json=sqlOptions,proto3,oneof"`
+type JobSourceOptions_PostgresOptions struct {
+	PostgresOptions *PostgresSourceConnectionOptions `protobuf:"bytes,1,opt,name=postgres_options,json=postgresOptions,proto3,oneof"`
 }
 
 type JobSourceOptions_AwsS3Options struct {
 	AwsS3Options *AwsS3SourceConnectionOptions `protobuf:"bytes,2,opt,name=aws_s3_options,json=awsS3Options,proto3,oneof"`
 }
 
-func (*JobSourceOptions_SqlOptions) isJobSourceOptions_Config() {}
+type JobSourceOptions_MysqlOptions struct {
+	MysqlOptions *MysqlSourceConnectionOptions `protobuf:"bytes,3,opt,name=mysql_options,json=mysqlOptions,proto3,oneof"`
+}
+
+func (*JobSourceOptions_PostgresOptions) isJobSourceOptions_Config() {}
 
 func (*JobSourceOptions_AwsS3Options) isJobSourceOptions_Config() {}
 
-type SqlSourceConnectionOptions struct {
+func (*JobSourceOptions_MysqlOptions) isJobSourceOptions_Config() {}
+
+type PostgresSourceConnectionOptions struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	HaltOnNewColumnAddition bool                     `protobuf:"varint,1,opt,name=halt_on_new_column_addition,json=haltOnNewColumnAddition,proto3" json:"halt_on_new_column_addition,omitempty"`
-	Schemas                 []*SqlSourceSchemaOption `protobuf:"bytes,2,rep,name=schemas,proto3" json:"schemas,omitempty"`
+	HaltOnNewColumnAddition bool                          `protobuf:"varint,1,opt,name=halt_on_new_column_addition,json=haltOnNewColumnAddition,proto3" json:"halt_on_new_column_addition,omitempty"`
+	Schemas                 []*PostgresSourceSchemaOption `protobuf:"bytes,2,rep,name=schemas,proto3" json:"schemas,omitempty"`
 }
 
-func (x *SqlSourceConnectionOptions) Reset() {
-	*x = SqlSourceConnectionOptions{}
+func (x *PostgresSourceConnectionOptions) Reset() {
+	*x = PostgresSourceConnectionOptions{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -611,13 +625,13 @@ func (x *SqlSourceConnectionOptions) Reset() {
 	}
 }
 
-func (x *SqlSourceConnectionOptions) String() string {
+func (x *PostgresSourceConnectionOptions) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SqlSourceConnectionOptions) ProtoMessage() {}
+func (*PostgresSourceConnectionOptions) ProtoMessage() {}
 
-func (x *SqlSourceConnectionOptions) ProtoReflect() protoreflect.Message {
+func (x *PostgresSourceConnectionOptions) ProtoReflect() protoreflect.Message {
 	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -629,36 +643,36 @@ func (x *SqlSourceConnectionOptions) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SqlSourceConnectionOptions.ProtoReflect.Descriptor instead.
-func (*SqlSourceConnectionOptions) Descriptor() ([]byte, []int) {
+// Deprecated: Use PostgresSourceConnectionOptions.ProtoReflect.Descriptor instead.
+func (*PostgresSourceConnectionOptions) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *SqlSourceConnectionOptions) GetHaltOnNewColumnAddition() bool {
+func (x *PostgresSourceConnectionOptions) GetHaltOnNewColumnAddition() bool {
 	if x != nil {
 		return x.HaltOnNewColumnAddition
 	}
 	return false
 }
 
-func (x *SqlSourceConnectionOptions) GetSchemas() []*SqlSourceSchemaOption {
+func (x *PostgresSourceConnectionOptions) GetSchemas() []*PostgresSourceSchemaOption {
 	if x != nil {
 		return x.Schemas
 	}
 	return nil
 }
 
-type SqlSourceSchemaOption struct {
+type PostgresSourceSchemaOption struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Schema string                  `protobuf:"bytes,1,opt,name=schema,proto3" json:"schema,omitempty"`
-	Tables []*SqlSourceTableOption `protobuf:"bytes,2,rep,name=tables,proto3" json:"tables,omitempty"`
+	Schema string                       `protobuf:"bytes,1,opt,name=schema,proto3" json:"schema,omitempty"`
+	Tables []*PostgresSourceTableOption `protobuf:"bytes,2,rep,name=tables,proto3" json:"tables,omitempty"`
 }
 
-func (x *SqlSourceSchemaOption) Reset() {
-	*x = SqlSourceSchemaOption{}
+func (x *PostgresSourceSchemaOption) Reset() {
+	*x = PostgresSourceSchemaOption{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -666,13 +680,13 @@ func (x *SqlSourceSchemaOption) Reset() {
 	}
 }
 
-func (x *SqlSourceSchemaOption) String() string {
+func (x *PostgresSourceSchemaOption) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SqlSourceSchemaOption) ProtoMessage() {}
+func (*PostgresSourceSchemaOption) ProtoMessage() {}
 
-func (x *SqlSourceSchemaOption) ProtoReflect() protoreflect.Message {
+func (x *PostgresSourceSchemaOption) ProtoReflect() protoreflect.Message {
 	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -684,26 +698,26 @@ func (x *SqlSourceSchemaOption) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SqlSourceSchemaOption.ProtoReflect.Descriptor instead.
-func (*SqlSourceSchemaOption) Descriptor() ([]byte, []int) {
+// Deprecated: Use PostgresSourceSchemaOption.ProtoReflect.Descriptor instead.
+func (*PostgresSourceSchemaOption) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *SqlSourceSchemaOption) GetSchema() string {
+func (x *PostgresSourceSchemaOption) GetSchema() string {
 	if x != nil {
 		return x.Schema
 	}
 	return ""
 }
 
-func (x *SqlSourceSchemaOption) GetTables() []*SqlSourceTableOption {
+func (x *PostgresSourceSchemaOption) GetTables() []*PostgresSourceTableOption {
 	if x != nil {
 		return x.Tables
 	}
 	return nil
 }
 
-type SqlSourceTableOption struct {
+type PostgresSourceTableOption struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -712,8 +726,8 @@ type SqlSourceTableOption struct {
 	WhereClause *string `protobuf:"bytes,2,opt,name=where_clause,json=whereClause,proto3,oneof" json:"where_clause,omitempty"`
 }
 
-func (x *SqlSourceTableOption) Reset() {
-	*x = SqlSourceTableOption{}
+func (x *PostgresSourceTableOption) Reset() {
+	*x = PostgresSourceTableOption{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -721,13 +735,13 @@ func (x *SqlSourceTableOption) Reset() {
 	}
 }
 
-func (x *SqlSourceTableOption) String() string {
+func (x *PostgresSourceTableOption) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SqlSourceTableOption) ProtoMessage() {}
+func (*PostgresSourceTableOption) ProtoMessage() {}
 
-func (x *SqlSourceTableOption) ProtoReflect() protoreflect.Message {
+func (x *PostgresSourceTableOption) ProtoReflect() protoreflect.Message {
 	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -739,19 +753,184 @@ func (x *SqlSourceTableOption) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SqlSourceTableOption.ProtoReflect.Descriptor instead.
-func (*SqlSourceTableOption) Descriptor() ([]byte, []int) {
+// Deprecated: Use PostgresSourceTableOption.ProtoReflect.Descriptor instead.
+func (*PostgresSourceTableOption) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *SqlSourceTableOption) GetTable() string {
+func (x *PostgresSourceTableOption) GetTable() string {
 	if x != nil {
 		return x.Table
 	}
 	return ""
 }
 
-func (x *SqlSourceTableOption) GetWhereClause() string {
+func (x *PostgresSourceTableOption) GetWhereClause() string {
+	if x != nil && x.WhereClause != nil {
+		return *x.WhereClause
+	}
+	return ""
+}
+
+type MysqlSourceConnectionOptions struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	HaltOnNewColumnAddition bool                          `protobuf:"varint,1,opt,name=halt_on_new_column_addition,json=haltOnNewColumnAddition,proto3" json:"halt_on_new_column_addition,omitempty"`
+	Schemas                 []*PostgresSourceSchemaOption `protobuf:"bytes,2,rep,name=schemas,proto3" json:"schemas,omitempty"`
+}
+
+func (x *MysqlSourceConnectionOptions) Reset() {
+	*x = MysqlSourceConnectionOptions{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MysqlSourceConnectionOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MysqlSourceConnectionOptions) ProtoMessage() {}
+
+func (x *MysqlSourceConnectionOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MysqlSourceConnectionOptions.ProtoReflect.Descriptor instead.
+func (*MysqlSourceConnectionOptions) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *MysqlSourceConnectionOptions) GetHaltOnNewColumnAddition() bool {
+	if x != nil {
+		return x.HaltOnNewColumnAddition
+	}
+	return false
+}
+
+func (x *MysqlSourceConnectionOptions) GetSchemas() []*PostgresSourceSchemaOption {
+	if x != nil {
+		return x.Schemas
+	}
+	return nil
+}
+
+type MysqlSourceSchemaOption struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Schema string                       `protobuf:"bytes,1,opt,name=schema,proto3" json:"schema,omitempty"`
+	Tables []*PostgresSourceTableOption `protobuf:"bytes,2,rep,name=tables,proto3" json:"tables,omitempty"`
+}
+
+func (x *MysqlSourceSchemaOption) Reset() {
+	*x = MysqlSourceSchemaOption{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MysqlSourceSchemaOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MysqlSourceSchemaOption) ProtoMessage() {}
+
+func (x *MysqlSourceSchemaOption) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MysqlSourceSchemaOption.ProtoReflect.Descriptor instead.
+func (*MysqlSourceSchemaOption) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *MysqlSourceSchemaOption) GetSchema() string {
+	if x != nil {
+		return x.Schema
+	}
+	return ""
+}
+
+func (x *MysqlSourceSchemaOption) GetTables() []*PostgresSourceTableOption {
+	if x != nil {
+		return x.Tables
+	}
+	return nil
+}
+
+type MysqlSourceTableOption struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Table       string  `protobuf:"bytes,1,opt,name=table,proto3" json:"table,omitempty"`
+	WhereClause *string `protobuf:"bytes,2,opt,name=where_clause,json=whereClause,proto3,oneof" json:"where_clause,omitempty"`
+}
+
+func (x *MysqlSourceTableOption) Reset() {
+	*x = MysqlSourceTableOption{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MysqlSourceTableOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MysqlSourceTableOption) ProtoMessage() {}
+
+func (x *MysqlSourceTableOption) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MysqlSourceTableOption.ProtoReflect.Descriptor instead.
+func (*MysqlSourceTableOption) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *MysqlSourceTableOption) GetTable() string {
+	if x != nil {
+		return x.Table
+	}
+	return ""
+}
+
+func (x *MysqlSourceTableOption) GetWhereClause() string {
 	if x != nil && x.WhereClause != nil {
 		return *x.WhereClause
 	}
@@ -767,7 +946,7 @@ type AwsS3SourceConnectionOptions struct {
 func (x *AwsS3SourceConnectionOptions) Reset() {
 	*x = AwsS3SourceConnectionOptions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[9]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -780,7 +959,7 @@ func (x *AwsS3SourceConnectionOptions) String() string {
 func (*AwsS3SourceConnectionOptions) ProtoMessage() {}
 
 func (x *AwsS3SourceConnectionOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[9]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -793,7 +972,7 @@ func (x *AwsS3SourceConnectionOptions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AwsS3SourceConnectionOptions.ProtoReflect.Descriptor instead.
 func (*AwsS3SourceConnectionOptions) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{9}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{12}
 }
 
 type JobDestinationOptions struct {
@@ -803,15 +982,16 @@ type JobDestinationOptions struct {
 
 	// Types that are assignable to Config:
 	//
-	//	*JobDestinationOptions_SqlOptions
+	//	*JobDestinationOptions_PostgresOptions
 	//	*JobDestinationOptions_AwsS3Options
+	//	*JobDestinationOptions_MysqlOptions
 	Config isJobDestinationOptions_Config `protobuf_oneof:"config"`
 }
 
 func (x *JobDestinationOptions) Reset() {
 	*x = JobDestinationOptions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[10]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -824,7 +1004,7 @@ func (x *JobDestinationOptions) String() string {
 func (*JobDestinationOptions) ProtoMessage() {}
 
 func (x *JobDestinationOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[10]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -837,7 +1017,7 @@ func (x *JobDestinationOptions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobDestinationOptions.ProtoReflect.Descriptor instead.
 func (*JobDestinationOptions) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{10}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{13}
 }
 
 func (m *JobDestinationOptions) GetConfig() isJobDestinationOptions_Config {
@@ -847,9 +1027,9 @@ func (m *JobDestinationOptions) GetConfig() isJobDestinationOptions_Config {
 	return nil
 }
 
-func (x *JobDestinationOptions) GetSqlOptions() *SqlDestinationConnectionOptions {
-	if x, ok := x.GetConfig().(*JobDestinationOptions_SqlOptions); ok {
-		return x.SqlOptions
+func (x *JobDestinationOptions) GetPostgresOptions() *PostgresDestinationConnectionOptions {
+	if x, ok := x.GetConfig().(*JobDestinationOptions_PostgresOptions); ok {
+		return x.PostgresOptions
 	}
 	return nil
 }
@@ -861,48 +1041,61 @@ func (x *JobDestinationOptions) GetAwsS3Options() *AwsS3DestinationConnectionOpt
 	return nil
 }
 
+func (x *JobDestinationOptions) GetMysqlOptions() *MysqlDestinationConnectionOptions {
+	if x, ok := x.GetConfig().(*JobDestinationOptions_MysqlOptions); ok {
+		return x.MysqlOptions
+	}
+	return nil
+}
+
 type isJobDestinationOptions_Config interface {
 	isJobDestinationOptions_Config()
 }
 
-type JobDestinationOptions_SqlOptions struct {
-	SqlOptions *SqlDestinationConnectionOptions `protobuf:"bytes,1,opt,name=sql_options,json=sqlOptions,proto3,oneof"`
+type JobDestinationOptions_PostgresOptions struct {
+	PostgresOptions *PostgresDestinationConnectionOptions `protobuf:"bytes,1,opt,name=postgres_options,json=postgresOptions,proto3,oneof"`
 }
 
 type JobDestinationOptions_AwsS3Options struct {
 	AwsS3Options *AwsS3DestinationConnectionOptions `protobuf:"bytes,2,opt,name=aws_s3_options,json=awsS3Options,proto3,oneof"`
 }
 
-func (*JobDestinationOptions_SqlOptions) isJobDestinationOptions_Config() {}
+type JobDestinationOptions_MysqlOptions struct {
+	MysqlOptions *MysqlDestinationConnectionOptions `protobuf:"bytes,3,opt,name=mysql_options,json=mysqlOptions,proto3,oneof"`
+}
+
+func (*JobDestinationOptions_PostgresOptions) isJobDestinationOptions_Config() {}
 
 func (*JobDestinationOptions_AwsS3Options) isJobDestinationOptions_Config() {}
 
-type SqlDestinationConnectionOptions struct {
+func (*JobDestinationOptions_MysqlOptions) isJobDestinationOptions_Config() {}
+
+type PostgresDestinationConnectionOptions struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TruncateTable   *TruncateTableConfig `protobuf:"bytes,1,opt,name=truncate_table,json=truncateTable,proto3" json:"truncate_table,omitempty"`
-	InitTableSchema bool                 `protobuf:"varint,2,opt,name=init_table_schema,json=initTableSchema,proto3" json:"init_table_schema,omitempty"`
+	TruncateTable   *PostgresTruncateTableConfig `protobuf:"bytes,1,opt,name=truncate_table,json=truncateTable,proto3" json:"truncate_table,omitempty"`
+	InitTableSchema bool                         `protobuf:"varint,2,opt,name=init_table_schema,json=initTableSchema,proto3" json:"init_table_schema,omitempty"`
 }
 
-func (x *SqlDestinationConnectionOptions) Reset() {
-	*x = SqlDestinationConnectionOptions{}
+func (x *PostgresDestinationConnectionOptions) Reset() {
+	*x = PostgresDestinationConnectionOptions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[11]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *SqlDestinationConnectionOptions) String() string {
+func (x *PostgresDestinationConnectionOptions) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SqlDestinationConnectionOptions) ProtoMessage() {}
+func (*PostgresDestinationConnectionOptions) ProtoMessage() {}
 
-func (x *SqlDestinationConnectionOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[11]
+func (x *PostgresDestinationConnectionOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -913,26 +1106,26 @@ func (x *SqlDestinationConnectionOptions) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SqlDestinationConnectionOptions.ProtoReflect.Descriptor instead.
-func (*SqlDestinationConnectionOptions) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{11}
+// Deprecated: Use PostgresDestinationConnectionOptions.ProtoReflect.Descriptor instead.
+func (*PostgresDestinationConnectionOptions) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *SqlDestinationConnectionOptions) GetTruncateTable() *TruncateTableConfig {
+func (x *PostgresDestinationConnectionOptions) GetTruncateTable() *PostgresTruncateTableConfig {
 	if x != nil {
 		return x.TruncateTable
 	}
 	return nil
 }
 
-func (x *SqlDestinationConnectionOptions) GetInitTableSchema() bool {
+func (x *PostgresDestinationConnectionOptions) GetInitTableSchema() bool {
 	if x != nil {
 		return x.InitTableSchema
 	}
 	return false
 }
 
-type TruncateTableConfig struct {
+type PostgresTruncateTableConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -941,23 +1134,23 @@ type TruncateTableConfig struct {
 	Cascade              bool `protobuf:"varint,2,opt,name=cascade,proto3" json:"cascade,omitempty"`
 }
 
-func (x *TruncateTableConfig) Reset() {
-	*x = TruncateTableConfig{}
+func (x *PostgresTruncateTableConfig) Reset() {
+	*x = PostgresTruncateTableConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[12]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *TruncateTableConfig) String() string {
+func (x *PostgresTruncateTableConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*TruncateTableConfig) ProtoMessage() {}
+func (*PostgresTruncateTableConfig) ProtoMessage() {}
 
-func (x *TruncateTableConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[12]
+func (x *PostgresTruncateTableConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -968,21 +1161,123 @@ func (x *TruncateTableConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use TruncateTableConfig.ProtoReflect.Descriptor instead.
-func (*TruncateTableConfig) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{12}
+// Deprecated: Use PostgresTruncateTableConfig.ProtoReflect.Descriptor instead.
+func (*PostgresTruncateTableConfig) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *TruncateTableConfig) GetTruncateBeforeInsert() bool {
+func (x *PostgresTruncateTableConfig) GetTruncateBeforeInsert() bool {
 	if x != nil {
 		return x.TruncateBeforeInsert
 	}
 	return false
 }
 
-func (x *TruncateTableConfig) GetCascade() bool {
+func (x *PostgresTruncateTableConfig) GetCascade() bool {
 	if x != nil {
 		return x.Cascade
+	}
+	return false
+}
+
+type MysqlDestinationConnectionOptions struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	TruncateTable   *MysqlTruncateTableConfig `protobuf:"bytes,1,opt,name=truncate_table,json=truncateTable,proto3" json:"truncate_table,omitempty"`
+	InitTableSchema bool                      `protobuf:"varint,2,opt,name=init_table_schema,json=initTableSchema,proto3" json:"init_table_schema,omitempty"`
+}
+
+func (x *MysqlDestinationConnectionOptions) Reset() {
+	*x = MysqlDestinationConnectionOptions{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MysqlDestinationConnectionOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MysqlDestinationConnectionOptions) ProtoMessage() {}
+
+func (x *MysqlDestinationConnectionOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MysqlDestinationConnectionOptions.ProtoReflect.Descriptor instead.
+func (*MysqlDestinationConnectionOptions) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *MysqlDestinationConnectionOptions) GetTruncateTable() *MysqlTruncateTableConfig {
+	if x != nil {
+		return x.TruncateTable
+	}
+	return nil
+}
+
+func (x *MysqlDestinationConnectionOptions) GetInitTableSchema() bool {
+	if x != nil {
+		return x.InitTableSchema
+	}
+	return false
+}
+
+type MysqlTruncateTableConfig struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	TruncateBeforeInsert bool `protobuf:"varint,1,opt,name=truncate_before_insert,json=truncateBeforeInsert,proto3" json:"truncate_before_insert,omitempty"`
+}
+
+func (x *MysqlTruncateTableConfig) Reset() {
+	*x = MysqlTruncateTableConfig{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MysqlTruncateTableConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MysqlTruncateTableConfig) ProtoMessage() {}
+
+func (x *MysqlTruncateTableConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MysqlTruncateTableConfig.ProtoReflect.Descriptor instead.
+func (*MysqlTruncateTableConfig) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *MysqlTruncateTableConfig) GetTruncateBeforeInsert() bool {
+	if x != nil {
+		return x.TruncateBeforeInsert
 	}
 	return false
 }
@@ -996,7 +1291,7 @@ type AwsS3DestinationConnectionOptions struct {
 func (x *AwsS3DestinationConnectionOptions) Reset() {
 	*x = AwsS3DestinationConnectionOptions{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[13]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1009,7 +1304,7 @@ func (x *AwsS3DestinationConnectionOptions) String() string {
 func (*AwsS3DestinationConnectionOptions) ProtoMessage() {}
 
 func (x *AwsS3DestinationConnectionOptions) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[13]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1022,7 +1317,7 @@ func (x *AwsS3DestinationConnectionOptions) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use AwsS3DestinationConnectionOptions.ProtoReflect.Descriptor instead.
 func (*AwsS3DestinationConnectionOptions) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{13}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{18}
 }
 
 type CreateJobRequest struct {
@@ -1042,7 +1337,7 @@ type CreateJobRequest struct {
 func (x *CreateJobRequest) Reset() {
 	*x = CreateJobRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[14]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1055,7 +1350,7 @@ func (x *CreateJobRequest) String() string {
 func (*CreateJobRequest) ProtoMessage() {}
 
 func (x *CreateJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[14]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1068,7 +1363,7 @@ func (x *CreateJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateJobRequest.ProtoReflect.Descriptor instead.
 func (*CreateJobRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{14}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CreateJobRequest) GetAccountId() string {
@@ -1131,7 +1426,7 @@ type CreateJobResponse struct {
 func (x *CreateJobResponse) Reset() {
 	*x = CreateJobResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[15]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1144,7 +1439,7 @@ func (x *CreateJobResponse) String() string {
 func (*CreateJobResponse) ProtoMessage() {}
 
 func (x *CreateJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[15]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1157,7 +1452,7 @@ func (x *CreateJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateJobResponse.ProtoReflect.Descriptor instead.
 func (*CreateJobResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{15}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CreateJobResponse) GetJob() *Job {
@@ -1181,7 +1476,7 @@ type JobMapping struct {
 func (x *JobMapping) Reset() {
 	*x = JobMapping{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[16]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1194,7 +1489,7 @@ func (x *JobMapping) String() string {
 func (*JobMapping) ProtoMessage() {}
 
 func (x *JobMapping) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[16]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1207,7 +1502,7 @@ func (x *JobMapping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobMapping.ProtoReflect.Descriptor instead.
 func (*JobMapping) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{16}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *JobMapping) GetSchema() string {
@@ -1249,7 +1544,7 @@ type GetJobRequest struct {
 func (x *GetJobRequest) Reset() {
 	*x = GetJobRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[17]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1262,7 +1557,7 @@ func (x *GetJobRequest) String() string {
 func (*GetJobRequest) ProtoMessage() {}
 
 func (x *GetJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[17]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1275,7 +1570,7 @@ func (x *GetJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRequest.ProtoReflect.Descriptor instead.
 func (*GetJobRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{17}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetJobRequest) GetId() string {
@@ -1296,7 +1591,7 @@ type GetJobResponse struct {
 func (x *GetJobResponse) Reset() {
 	*x = GetJobResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[18]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1309,7 +1604,7 @@ func (x *GetJobResponse) String() string {
 func (*GetJobResponse) ProtoMessage() {}
 
 func (x *GetJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[18]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1322,7 +1617,7 @@ func (x *GetJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobResponse.ProtoReflect.Descriptor instead.
 func (*GetJobResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{18}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetJobResponse) GetJob() *Job {
@@ -1344,7 +1639,7 @@ type UpdateJobScheduleRequest struct {
 func (x *UpdateJobScheduleRequest) Reset() {
 	*x = UpdateJobScheduleRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[19]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1357,7 +1652,7 @@ func (x *UpdateJobScheduleRequest) String() string {
 func (*UpdateJobScheduleRequest) ProtoMessage() {}
 
 func (x *UpdateJobScheduleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[19]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1370,7 +1665,7 @@ func (x *UpdateJobScheduleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateJobScheduleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateJobScheduleRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{19}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *UpdateJobScheduleRequest) GetId() string {
@@ -1398,7 +1693,7 @@ type UpdateJobScheduleResponse struct {
 func (x *UpdateJobScheduleResponse) Reset() {
 	*x = UpdateJobScheduleResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[20]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1411,7 +1706,7 @@ func (x *UpdateJobScheduleResponse) String() string {
 func (*UpdateJobScheduleResponse) ProtoMessage() {}
 
 func (x *UpdateJobScheduleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[20]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1424,7 +1719,7 @@ func (x *UpdateJobScheduleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateJobScheduleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateJobScheduleResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{20}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *UpdateJobScheduleResponse) GetJob() *Job {
@@ -1447,7 +1742,7 @@ type PauseJobRequest struct {
 func (x *PauseJobRequest) Reset() {
 	*x = PauseJobRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[21]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1460,7 +1755,7 @@ func (x *PauseJobRequest) String() string {
 func (*PauseJobRequest) ProtoMessage() {}
 
 func (x *PauseJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[21]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1473,7 +1768,7 @@ func (x *PauseJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseJobRequest.ProtoReflect.Descriptor instead.
 func (*PauseJobRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{21}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *PauseJobRequest) GetId() string {
@@ -1508,7 +1803,7 @@ type PauseJobResponse struct {
 func (x *PauseJobResponse) Reset() {
 	*x = PauseJobResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[22]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1521,7 +1816,7 @@ func (x *PauseJobResponse) String() string {
 func (*PauseJobResponse) ProtoMessage() {}
 
 func (x *PauseJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[22]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1534,7 +1829,7 @@ func (x *PauseJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseJobResponse.ProtoReflect.Descriptor instead.
 func (*PauseJobResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{22}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *PauseJobResponse) GetJob() *Job {
@@ -1557,7 +1852,7 @@ type UpdateJobSourceConnectionRequest struct {
 func (x *UpdateJobSourceConnectionRequest) Reset() {
 	*x = UpdateJobSourceConnectionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[23]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1570,7 +1865,7 @@ func (x *UpdateJobSourceConnectionRequest) String() string {
 func (*UpdateJobSourceConnectionRequest) ProtoMessage() {}
 
 func (x *UpdateJobSourceConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[23]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1583,7 +1878,7 @@ func (x *UpdateJobSourceConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateJobSourceConnectionRequest.ProtoReflect.Descriptor instead.
 func (*UpdateJobSourceConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{23}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *UpdateJobSourceConnectionRequest) GetId() string {
@@ -1618,7 +1913,7 @@ type UpdateJobSourceConnectionResponse struct {
 func (x *UpdateJobSourceConnectionResponse) Reset() {
 	*x = UpdateJobSourceConnectionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[24]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1631,7 +1926,7 @@ func (x *UpdateJobSourceConnectionResponse) String() string {
 func (*UpdateJobSourceConnectionResponse) ProtoMessage() {}
 
 func (x *UpdateJobSourceConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[24]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1644,7 +1939,7 @@ func (x *UpdateJobSourceConnectionResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use UpdateJobSourceConnectionResponse.ProtoReflect.Descriptor instead.
 func (*UpdateJobSourceConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{24}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *UpdateJobSourceConnectionResponse) GetJob() *Job {
@@ -1654,19 +1949,117 @@ func (x *UpdateJobSourceConnectionResponse) GetJob() *Job {
 	return nil
 }
 
+type PostgresSourceSchemaSubset struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PostgresSchemas []*PostgresSourceSchemaOption `protobuf:"bytes,1,rep,name=postgres_schemas,json=postgresSchemas,proto3" json:"postgres_schemas,omitempty"`
+}
+
+func (x *PostgresSourceSchemaSubset) Reset() {
+	*x = PostgresSourceSchemaSubset{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[30]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PostgresSourceSchemaSubset) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PostgresSourceSchemaSubset) ProtoMessage() {}
+
+func (x *PostgresSourceSchemaSubset) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[30]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PostgresSourceSchemaSubset.ProtoReflect.Descriptor instead.
+func (*PostgresSourceSchemaSubset) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *PostgresSourceSchemaSubset) GetPostgresSchemas() []*PostgresSourceSchemaOption {
+	if x != nil {
+		return x.PostgresSchemas
+	}
+	return nil
+}
+
+type MysqlSourceSchemaSubset struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	MysqlSchemas []*MysqlSourceSchemaOption `protobuf:"bytes,1,rep,name=mysql_schemas,json=mysqlSchemas,proto3" json:"mysql_schemas,omitempty"`
+}
+
+func (x *MysqlSourceSchemaSubset) Reset() {
+	*x = MysqlSourceSchemaSubset{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[31]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *MysqlSourceSchemaSubset) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MysqlSourceSchemaSubset) ProtoMessage() {}
+
+func (x *MysqlSourceSchemaSubset) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[31]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MysqlSourceSchemaSubset.ProtoReflect.Descriptor instead.
+func (*MysqlSourceSchemaSubset) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *MysqlSourceSchemaSubset) GetMysqlSchemas() []*MysqlSourceSchemaOption {
+	if x != nil {
+		return x.MysqlSchemas
+	}
+	return nil
+}
+
 type SetJobSourceSqlConnectionSubsetsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id      string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Schemas []*SqlSourceSchemaOption `protobuf:"bytes,2,rep,name=schemas,proto3" json:"schemas,omitempty"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Types that are assignable to Schemas:
+	//
+	//	*SetJobSourceSqlConnectionSubsetsRequest_PostgresSubset
+	//	*SetJobSourceSqlConnectionSubsetsRequest_MysqlSubset
+	Schemas isSetJobSourceSqlConnectionSubsetsRequest_Schemas `protobuf_oneof:"schemas"`
 }
 
 func (x *SetJobSourceSqlConnectionSubsetsRequest) Reset() {
 	*x = SetJobSourceSqlConnectionSubsetsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[25]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1679,7 +2072,7 @@ func (x *SetJobSourceSqlConnectionSubsetsRequest) String() string {
 func (*SetJobSourceSqlConnectionSubsetsRequest) ProtoMessage() {}
 
 func (x *SetJobSourceSqlConnectionSubsetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[25]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1692,7 +2085,7 @@ func (x *SetJobSourceSqlConnectionSubsetsRequest) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use SetJobSourceSqlConnectionSubsetsRequest.ProtoReflect.Descriptor instead.
 func (*SetJobSourceSqlConnectionSubsetsRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{25}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *SetJobSourceSqlConnectionSubsetsRequest) GetId() string {
@@ -1702,11 +2095,43 @@ func (x *SetJobSourceSqlConnectionSubsetsRequest) GetId() string {
 	return ""
 }
 
-func (x *SetJobSourceSqlConnectionSubsetsRequest) GetSchemas() []*SqlSourceSchemaOption {
-	if x != nil {
-		return x.Schemas
+func (m *SetJobSourceSqlConnectionSubsetsRequest) GetSchemas() isSetJobSourceSqlConnectionSubsetsRequest_Schemas {
+	if m != nil {
+		return m.Schemas
 	}
 	return nil
+}
+
+func (x *SetJobSourceSqlConnectionSubsetsRequest) GetPostgresSubset() *PostgresSourceSchemaSubset {
+	if x, ok := x.GetSchemas().(*SetJobSourceSqlConnectionSubsetsRequest_PostgresSubset); ok {
+		return x.PostgresSubset
+	}
+	return nil
+}
+
+func (x *SetJobSourceSqlConnectionSubsetsRequest) GetMysqlSubset() *MysqlSourceSchemaSubset {
+	if x, ok := x.GetSchemas().(*SetJobSourceSqlConnectionSubsetsRequest_MysqlSubset); ok {
+		return x.MysqlSubset
+	}
+	return nil
+}
+
+type isSetJobSourceSqlConnectionSubsetsRequest_Schemas interface {
+	isSetJobSourceSqlConnectionSubsetsRequest_Schemas()
+}
+
+type SetJobSourceSqlConnectionSubsetsRequest_PostgresSubset struct {
+	PostgresSubset *PostgresSourceSchemaSubset `protobuf:"bytes,2,opt,name=postgres_subset,json=postgresSubset,proto3,oneof"`
+}
+
+type SetJobSourceSqlConnectionSubsetsRequest_MysqlSubset struct {
+	MysqlSubset *MysqlSourceSchemaSubset `protobuf:"bytes,3,opt,name=mysql_subset,json=mysqlSubset,proto3,oneof"`
+}
+
+func (*SetJobSourceSqlConnectionSubsetsRequest_PostgresSubset) isSetJobSourceSqlConnectionSubsetsRequest_Schemas() {
+}
+
+func (*SetJobSourceSqlConnectionSubsetsRequest_MysqlSubset) isSetJobSourceSqlConnectionSubsetsRequest_Schemas() {
 }
 
 type SetJobSourceSqlConnectionSubsetsResponse struct {
@@ -1720,7 +2145,7 @@ type SetJobSourceSqlConnectionSubsetsResponse struct {
 func (x *SetJobSourceSqlConnectionSubsetsResponse) Reset() {
 	*x = SetJobSourceSqlConnectionSubsetsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[26]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1733,7 +2158,7 @@ func (x *SetJobSourceSqlConnectionSubsetsResponse) String() string {
 func (*SetJobSourceSqlConnectionSubsetsResponse) ProtoMessage() {}
 
 func (x *SetJobSourceSqlConnectionSubsetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[26]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1746,7 +2171,7 @@ func (x *SetJobSourceSqlConnectionSubsetsResponse) ProtoReflect() protoreflect.M
 
 // Deprecated: Use SetJobSourceSqlConnectionSubsetsResponse.ProtoReflect.Descriptor instead.
 func (*SetJobSourceSqlConnectionSubsetsResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{26}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *SetJobSourceSqlConnectionSubsetsResponse) GetJob() *Job {
@@ -1770,7 +2195,7 @@ type UpdateJobDestinationConnectionRequest struct {
 func (x *UpdateJobDestinationConnectionRequest) Reset() {
 	*x = UpdateJobDestinationConnectionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[27]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1783,7 +2208,7 @@ func (x *UpdateJobDestinationConnectionRequest) String() string {
 func (*UpdateJobDestinationConnectionRequest) ProtoMessage() {}
 
 func (x *UpdateJobDestinationConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[27]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1796,7 +2221,7 @@ func (x *UpdateJobDestinationConnectionRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use UpdateJobDestinationConnectionRequest.ProtoReflect.Descriptor instead.
 func (*UpdateJobDestinationConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{27}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *UpdateJobDestinationConnectionRequest) GetJobId() string {
@@ -1838,7 +2263,7 @@ type UpdateJobDestinationConnectionResponse struct {
 func (x *UpdateJobDestinationConnectionResponse) Reset() {
 	*x = UpdateJobDestinationConnectionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[28]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1851,7 +2276,7 @@ func (x *UpdateJobDestinationConnectionResponse) String() string {
 func (*UpdateJobDestinationConnectionResponse) ProtoMessage() {}
 
 func (x *UpdateJobDestinationConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[28]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1864,7 +2289,7 @@ func (x *UpdateJobDestinationConnectionResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use UpdateJobDestinationConnectionResponse.ProtoReflect.Descriptor instead.
 func (*UpdateJobDestinationConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{28}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *UpdateJobDestinationConnectionResponse) GetJob() *Job {
@@ -1885,7 +2310,7 @@ type DeleteJobDestinationConnectionRequest struct {
 func (x *DeleteJobDestinationConnectionRequest) Reset() {
 	*x = DeleteJobDestinationConnectionRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[29]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1898,7 +2323,7 @@ func (x *DeleteJobDestinationConnectionRequest) String() string {
 func (*DeleteJobDestinationConnectionRequest) ProtoMessage() {}
 
 func (x *DeleteJobDestinationConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[29]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1911,7 +2336,7 @@ func (x *DeleteJobDestinationConnectionRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use DeleteJobDestinationConnectionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteJobDestinationConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{29}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DeleteJobDestinationConnectionRequest) GetDestinationId() string {
@@ -1930,7 +2355,7 @@ type DeleteJobDestinationConnectionResponse struct {
 func (x *DeleteJobDestinationConnectionResponse) Reset() {
 	*x = DeleteJobDestinationConnectionResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[30]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1943,7 +2368,7 @@ func (x *DeleteJobDestinationConnectionResponse) String() string {
 func (*DeleteJobDestinationConnectionResponse) ProtoMessage() {}
 
 func (x *DeleteJobDestinationConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[30]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1956,7 +2381,7 @@ func (x *DeleteJobDestinationConnectionResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use DeleteJobDestinationConnectionResponse.ProtoReflect.Descriptor instead.
 func (*DeleteJobDestinationConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{30}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{37}
 }
 
 type CreateJobDestinationConnectionsRequest struct {
@@ -1971,7 +2396,7 @@ type CreateJobDestinationConnectionsRequest struct {
 func (x *CreateJobDestinationConnectionsRequest) Reset() {
 	*x = CreateJobDestinationConnectionsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[31]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1984,7 +2409,7 @@ func (x *CreateJobDestinationConnectionsRequest) String() string {
 func (*CreateJobDestinationConnectionsRequest) ProtoMessage() {}
 
 func (x *CreateJobDestinationConnectionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[31]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1997,7 +2422,7 @@ func (x *CreateJobDestinationConnectionsRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use CreateJobDestinationConnectionsRequest.ProtoReflect.Descriptor instead.
 func (*CreateJobDestinationConnectionsRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{31}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *CreateJobDestinationConnectionsRequest) GetJobId() string {
@@ -2025,7 +2450,7 @@ type CreateJobDestinationConnectionsResponse struct {
 func (x *CreateJobDestinationConnectionsResponse) Reset() {
 	*x = CreateJobDestinationConnectionsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[32]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2038,7 +2463,7 @@ func (x *CreateJobDestinationConnectionsResponse) String() string {
 func (*CreateJobDestinationConnectionsResponse) ProtoMessage() {}
 
 func (x *CreateJobDestinationConnectionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[32]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2051,7 +2476,7 @@ func (x *CreateJobDestinationConnectionsResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use CreateJobDestinationConnectionsResponse.ProtoReflect.Descriptor instead.
 func (*CreateJobDestinationConnectionsResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{32}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *CreateJobDestinationConnectionsResponse) GetJob() *Job {
@@ -2072,7 +2497,7 @@ type DeleteJobRequest struct {
 func (x *DeleteJobRequest) Reset() {
 	*x = DeleteJobRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[33]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2085,7 +2510,7 @@ func (x *DeleteJobRequest) String() string {
 func (*DeleteJobRequest) ProtoMessage() {}
 
 func (x *DeleteJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[33]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2098,7 +2523,7 @@ func (x *DeleteJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteJobRequest.ProtoReflect.Descriptor instead.
 func (*DeleteJobRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{33}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *DeleteJobRequest) GetId() string {
@@ -2117,7 +2542,7 @@ type DeleteJobResponse struct {
 func (x *DeleteJobResponse) Reset() {
 	*x = DeleteJobResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[34]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2130,7 +2555,7 @@ func (x *DeleteJobResponse) String() string {
 func (*DeleteJobResponse) ProtoMessage() {}
 
 func (x *DeleteJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[34]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2143,7 +2568,7 @@ func (x *DeleteJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteJobResponse.ProtoReflect.Descriptor instead.
 func (*DeleteJobResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{34}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{41}
 }
 
 type IsJobNameAvailableRequest struct {
@@ -2158,7 +2583,7 @@ type IsJobNameAvailableRequest struct {
 func (x *IsJobNameAvailableRequest) Reset() {
 	*x = IsJobNameAvailableRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[35]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2171,7 +2596,7 @@ func (x *IsJobNameAvailableRequest) String() string {
 func (*IsJobNameAvailableRequest) ProtoMessage() {}
 
 func (x *IsJobNameAvailableRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[35]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2184,7 +2609,7 @@ func (x *IsJobNameAvailableRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsJobNameAvailableRequest.ProtoReflect.Descriptor instead.
 func (*IsJobNameAvailableRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{35}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *IsJobNameAvailableRequest) GetName() string {
@@ -2212,7 +2637,7 @@ type IsJobNameAvailableResponse struct {
 func (x *IsJobNameAvailableResponse) Reset() {
 	*x = IsJobNameAvailableResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[36]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2225,7 +2650,7 @@ func (x *IsJobNameAvailableResponse) String() string {
 func (*IsJobNameAvailableResponse) ProtoMessage() {}
 
 func (x *IsJobNameAvailableResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[36]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2238,7 +2663,7 @@ func (x *IsJobNameAvailableResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IsJobNameAvailableResponse.ProtoReflect.Descriptor instead.
 func (*IsJobNameAvailableResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{36}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *IsJobNameAvailableResponse) GetIsAvailable() bool {
@@ -2263,7 +2688,7 @@ type GetJobRunsRequest struct {
 func (x *GetJobRunsRequest) Reset() {
 	*x = GetJobRunsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[37]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2276,7 +2701,7 @@ func (x *GetJobRunsRequest) String() string {
 func (*GetJobRunsRequest) ProtoMessage() {}
 
 func (x *GetJobRunsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[37]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2289,7 +2714,7 @@ func (x *GetJobRunsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRunsRequest.ProtoReflect.Descriptor instead.
 func (*GetJobRunsRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{37}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{44}
 }
 
 func (m *GetJobRunsRequest) GetId() isGetJobRunsRequest_Id {
@@ -2340,7 +2765,7 @@ type GetJobRunsResponse struct {
 func (x *GetJobRunsResponse) Reset() {
 	*x = GetJobRunsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[38]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2353,7 +2778,7 @@ func (x *GetJobRunsResponse) String() string {
 func (*GetJobRunsResponse) ProtoMessage() {}
 
 func (x *GetJobRunsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[38]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2366,7 +2791,7 @@ func (x *GetJobRunsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRunsResponse.ProtoReflect.Descriptor instead.
 func (*GetJobRunsResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{38}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GetJobRunsResponse) GetJobRuns() []*JobRun {
@@ -2387,7 +2812,7 @@ type GetJobRunRequest struct {
 func (x *GetJobRunRequest) Reset() {
 	*x = GetJobRunRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[39]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2400,7 +2825,7 @@ func (x *GetJobRunRequest) String() string {
 func (*GetJobRunRequest) ProtoMessage() {}
 
 func (x *GetJobRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[39]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2413,7 +2838,7 @@ func (x *GetJobRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRunRequest.ProtoReflect.Descriptor instead.
 func (*GetJobRunRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{39}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *GetJobRunRequest) GetJobRunId() string {
@@ -2434,7 +2859,7 @@ type GetJobRunResponse struct {
 func (x *GetJobRunResponse) Reset() {
 	*x = GetJobRunResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[40]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2447,7 +2872,7 @@ func (x *GetJobRunResponse) String() string {
 func (*GetJobRunResponse) ProtoMessage() {}
 
 func (x *GetJobRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[40]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2460,7 +2885,7 @@ func (x *GetJobRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRunResponse.ProtoReflect.Descriptor instead.
 func (*GetJobRunResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{40}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GetJobRunResponse) GetJobRun() *JobRun {
@@ -2481,7 +2906,7 @@ type CreateJobRunRequest struct {
 func (x *CreateJobRunRequest) Reset() {
 	*x = CreateJobRunRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[41]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2494,7 +2919,7 @@ func (x *CreateJobRunRequest) String() string {
 func (*CreateJobRunRequest) ProtoMessage() {}
 
 func (x *CreateJobRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[41]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2507,7 +2932,7 @@ func (x *CreateJobRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateJobRunRequest.ProtoReflect.Descriptor instead.
 func (*CreateJobRunRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{41}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *CreateJobRunRequest) GetJobId() string {
@@ -2526,7 +2951,7 @@ type CreateJobRunResponse struct {
 func (x *CreateJobRunResponse) Reset() {
 	*x = CreateJobRunResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[42]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2539,7 +2964,7 @@ func (x *CreateJobRunResponse) String() string {
 func (*CreateJobRunResponse) ProtoMessage() {}
 
 func (x *CreateJobRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[42]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2552,7 +2977,7 @@ func (x *CreateJobRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateJobRunResponse.ProtoReflect.Descriptor instead.
 func (*CreateJobRunResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{42}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{49}
 }
 
 type CancelJobRunRequest struct {
@@ -2566,7 +2991,7 @@ type CancelJobRunRequest struct {
 func (x *CancelJobRunRequest) Reset() {
 	*x = CancelJobRunRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[43]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2579,7 +3004,7 @@ func (x *CancelJobRunRequest) String() string {
 func (*CancelJobRunRequest) ProtoMessage() {}
 
 func (x *CancelJobRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[43]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2592,7 +3017,7 @@ func (x *CancelJobRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelJobRunRequest.ProtoReflect.Descriptor instead.
 func (*CancelJobRunRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{43}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *CancelJobRunRequest) GetJobRunId() string {
@@ -2611,7 +3036,7 @@ type CancelJobRunResponse struct {
 func (x *CancelJobRunResponse) Reset() {
 	*x = CancelJobRunResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[44]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2624,7 +3049,7 @@ func (x *CancelJobRunResponse) String() string {
 func (*CancelJobRunResponse) ProtoMessage() {}
 
 func (x *CancelJobRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[44]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2637,7 +3062,7 @@ func (x *CancelJobRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelJobRunResponse.ProtoReflect.Descriptor instead.
 func (*CancelJobRunResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{44}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{51}
 }
 
 type Job struct {
@@ -2661,7 +3086,7 @@ type Job struct {
 func (x *Job) Reset() {
 	*x = Job{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[45]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2674,7 +3099,7 @@ func (x *Job) String() string {
 func (*Job) ProtoMessage() {}
 
 func (x *Job) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[45]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2687,7 +3112,7 @@ func (x *Job) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Job.ProtoReflect.Descriptor instead.
 func (*Job) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{45}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *Job) GetId() string {
@@ -2779,7 +3204,7 @@ type JobRecentRun struct {
 func (x *JobRecentRun) Reset() {
 	*x = JobRecentRun{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[46]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2792,7 +3217,7 @@ func (x *JobRecentRun) String() string {
 func (*JobRecentRun) ProtoMessage() {}
 
 func (x *JobRecentRun) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[46]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2805,7 +3230,7 @@ func (x *JobRecentRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRecentRun.ProtoReflect.Descriptor instead.
 func (*JobRecentRun) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{46}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *JobRecentRun) GetStartTime() *timestamppb.Timestamp {
@@ -2833,7 +3258,7 @@ type JobRecentRuns struct {
 func (x *JobRecentRuns) Reset() {
 	*x = JobRecentRuns{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[47]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2846,7 +3271,7 @@ func (x *JobRecentRuns) String() string {
 func (*JobRecentRuns) ProtoMessage() {}
 
 func (x *JobRecentRuns) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[47]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2859,7 +3284,7 @@ func (x *JobRecentRuns) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRecentRuns.ProtoReflect.Descriptor instead.
 func (*JobRecentRuns) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{47}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *JobRecentRuns) GetRuns() []*JobRecentRun {
@@ -2880,7 +3305,7 @@ type GetJobRecentRunsRequest struct {
 func (x *GetJobRecentRunsRequest) Reset() {
 	*x = GetJobRecentRunsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[48]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2893,7 +3318,7 @@ func (x *GetJobRecentRunsRequest) String() string {
 func (*GetJobRecentRunsRequest) ProtoMessage() {}
 
 func (x *GetJobRecentRunsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[48]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2906,7 +3331,7 @@ func (x *GetJobRecentRunsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRecentRunsRequest.ProtoReflect.Descriptor instead.
 func (*GetJobRecentRunsRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{48}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *GetJobRecentRunsRequest) GetJobId() string {
@@ -2927,7 +3352,7 @@ type GetJobRecentRunsResponse struct {
 func (x *GetJobRecentRunsResponse) Reset() {
 	*x = GetJobRecentRunsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[49]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2940,7 +3365,7 @@ func (x *GetJobRecentRunsResponse) String() string {
 func (*GetJobRecentRunsResponse) ProtoMessage() {}
 
 func (x *GetJobRecentRunsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[49]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2953,7 +3378,7 @@ func (x *GetJobRecentRunsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRecentRunsResponse.ProtoReflect.Descriptor instead.
 func (*GetJobRecentRunsResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{49}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *GetJobRecentRunsResponse) GetRecentRuns() *JobRecentRuns {
@@ -2974,7 +3399,7 @@ type JobNextRuns struct {
 func (x *JobNextRuns) Reset() {
 	*x = JobNextRuns{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[50]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2987,7 +3412,7 @@ func (x *JobNextRuns) String() string {
 func (*JobNextRuns) ProtoMessage() {}
 
 func (x *JobNextRuns) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[50]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3000,7 +3425,7 @@ func (x *JobNextRuns) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobNextRuns.ProtoReflect.Descriptor instead.
 func (*JobNextRuns) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{50}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *JobNextRuns) GetNextRunTimes() []*timestamppb.Timestamp {
@@ -3021,7 +3446,7 @@ type GetJobNextRunsRequest struct {
 func (x *GetJobNextRunsRequest) Reset() {
 	*x = GetJobNextRunsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[51]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[58]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3034,7 +3459,7 @@ func (x *GetJobNextRunsRequest) String() string {
 func (*GetJobNextRunsRequest) ProtoMessage() {}
 
 func (x *GetJobNextRunsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[51]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[58]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3047,7 +3472,7 @@ func (x *GetJobNextRunsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobNextRunsRequest.ProtoReflect.Descriptor instead.
 func (*GetJobNextRunsRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{51}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *GetJobNextRunsRequest) GetJobId() string {
@@ -3068,7 +3493,7 @@ type GetJobNextRunsResponse struct {
 func (x *GetJobNextRunsResponse) Reset() {
 	*x = GetJobNextRunsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[52]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[59]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3081,7 +3506,7 @@ func (x *GetJobNextRunsResponse) String() string {
 func (*GetJobNextRunsResponse) ProtoMessage() {}
 
 func (x *GetJobNextRunsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[52]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[59]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3094,7 +3519,7 @@ func (x *GetJobNextRunsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobNextRunsResponse.ProtoReflect.Descriptor instead.
 func (*GetJobNextRunsResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{52}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *GetJobNextRunsResponse) GetNextRuns() *JobNextRuns {
@@ -3115,7 +3540,7 @@ type GetJobStatusRequest struct {
 func (x *GetJobStatusRequest) Reset() {
 	*x = GetJobStatusRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[53]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[60]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3128,7 +3553,7 @@ func (x *GetJobStatusRequest) String() string {
 func (*GetJobStatusRequest) ProtoMessage() {}
 
 func (x *GetJobStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[53]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[60]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3141,7 +3566,7 @@ func (x *GetJobStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetJobStatusRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{53}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetJobStatusRequest) GetJobId() string {
@@ -3162,7 +3587,7 @@ type GetJobStatusResponse struct {
 func (x *GetJobStatusResponse) Reset() {
 	*x = GetJobStatusResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[54]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[61]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3175,7 +3600,7 @@ func (x *GetJobStatusResponse) String() string {
 func (*GetJobStatusResponse) ProtoMessage() {}
 
 func (x *GetJobStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[54]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[61]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3188,7 +3613,7 @@ func (x *GetJobStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetJobStatusResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{54}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *GetJobStatusResponse) GetStatus() JobStatus {
@@ -3210,7 +3635,7 @@ type JobStatusRecord struct {
 func (x *JobStatusRecord) Reset() {
 	*x = JobStatusRecord{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[55]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[62]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3223,7 +3648,7 @@ func (x *JobStatusRecord) String() string {
 func (*JobStatusRecord) ProtoMessage() {}
 
 func (x *JobStatusRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[55]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[62]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3236,7 +3661,7 @@ func (x *JobStatusRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobStatusRecord.ProtoReflect.Descriptor instead.
 func (*JobStatusRecord) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{55}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *JobStatusRecord) GetJobId() string {
@@ -3264,7 +3689,7 @@ type GetJobStatusesRequest struct {
 func (x *GetJobStatusesRequest) Reset() {
 	*x = GetJobStatusesRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[56]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[63]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3277,7 +3702,7 @@ func (x *GetJobStatusesRequest) String() string {
 func (*GetJobStatusesRequest) ProtoMessage() {}
 
 func (x *GetJobStatusesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[56]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[63]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3290,7 +3715,7 @@ func (x *GetJobStatusesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobStatusesRequest.ProtoReflect.Descriptor instead.
 func (*GetJobStatusesRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{56}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *GetJobStatusesRequest) GetAccountId() string {
@@ -3311,7 +3736,7 @@ type GetJobStatusesResponse struct {
 func (x *GetJobStatusesResponse) Reset() {
 	*x = GetJobStatusesResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[57]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[64]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3324,7 +3749,7 @@ func (x *GetJobStatusesResponse) String() string {
 func (*GetJobStatusesResponse) ProtoMessage() {}
 
 func (x *GetJobStatusesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[57]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[64]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3337,7 +3762,7 @@ func (x *GetJobStatusesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobStatusesResponse.ProtoReflect.Descriptor instead.
 func (*GetJobStatusesResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{57}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *GetJobStatusesResponse) GetStatuses() []*JobStatusRecord {
@@ -3358,7 +3783,7 @@ type ActivityFailure struct {
 func (x *ActivityFailure) Reset() {
 	*x = ActivityFailure{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[58]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[65]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3371,7 +3796,7 @@ func (x *ActivityFailure) String() string {
 func (*ActivityFailure) ProtoMessage() {}
 
 func (x *ActivityFailure) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[58]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[65]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3384,7 +3809,7 @@ func (x *ActivityFailure) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivityFailure.ProtoReflect.Descriptor instead.
 func (*ActivityFailure) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{58}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *ActivityFailure) GetMessage() string {
@@ -3407,7 +3832,7 @@ type PendingActivity struct {
 func (x *PendingActivity) Reset() {
 	*x = PendingActivity{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[59]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[66]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3420,7 +3845,7 @@ func (x *PendingActivity) String() string {
 func (*PendingActivity) ProtoMessage() {}
 
 func (x *PendingActivity) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[59]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[66]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3433,7 +3858,7 @@ func (x *PendingActivity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PendingActivity.ProtoReflect.Descriptor instead.
 func (*PendingActivity) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{59}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *PendingActivity) GetStatus() ActivityStatus {
@@ -3474,7 +3899,7 @@ type JobRun struct {
 func (x *JobRun) Reset() {
 	*x = JobRun{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[60]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[67]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3487,7 +3912,7 @@ func (x *JobRun) String() string {
 func (*JobRun) ProtoMessage() {}
 
 func (x *JobRun) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[60]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[67]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3500,7 +3925,7 @@ func (x *JobRun) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRun.ProtoReflect.Descriptor instead.
 func (*JobRun) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{60}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *JobRun) GetId() string {
@@ -3564,7 +3989,7 @@ type JobRunEventTaskError struct {
 func (x *JobRunEventTaskError) Reset() {
 	*x = JobRunEventTaskError{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[61]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[68]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3577,7 +4002,7 @@ func (x *JobRunEventTaskError) String() string {
 func (*JobRunEventTaskError) ProtoMessage() {}
 
 func (x *JobRunEventTaskError) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[61]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[68]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3590,7 +4015,7 @@ func (x *JobRunEventTaskError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRunEventTaskError.ProtoReflect.Descriptor instead.
 func (*JobRunEventTaskError) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{61}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *JobRunEventTaskError) GetMessage() string {
@@ -3621,7 +4046,7 @@ type JobRunEventTask struct {
 func (x *JobRunEventTask) Reset() {
 	*x = JobRunEventTask{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[62]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[69]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3634,7 +4059,7 @@ func (x *JobRunEventTask) String() string {
 func (*JobRunEventTask) ProtoMessage() {}
 
 func (x *JobRunEventTask) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[62]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[69]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3647,7 +4072,7 @@ func (x *JobRunEventTask) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRunEventTask.ProtoReflect.Descriptor instead.
 func (*JobRunEventTask) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{62}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *JobRunEventTask) GetId() int64 {
@@ -3690,7 +4115,7 @@ type JobRunSyncMetadata struct {
 func (x *JobRunSyncMetadata) Reset() {
 	*x = JobRunSyncMetadata{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[63]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[70]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3703,7 +4128,7 @@ func (x *JobRunSyncMetadata) String() string {
 func (*JobRunSyncMetadata) ProtoMessage() {}
 
 func (x *JobRunSyncMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[63]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[70]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3716,7 +4141,7 @@ func (x *JobRunSyncMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRunSyncMetadata.ProtoReflect.Descriptor instead.
 func (*JobRunSyncMetadata) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{63}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *JobRunSyncMetadata) GetSchema() string {
@@ -3747,7 +4172,7 @@ type JobRunEventMetadata struct {
 func (x *JobRunEventMetadata) Reset() {
 	*x = JobRunEventMetadata{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[64]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[71]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3760,7 +4185,7 @@ func (x *JobRunEventMetadata) String() string {
 func (*JobRunEventMetadata) ProtoMessage() {}
 
 func (x *JobRunEventMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[64]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[71]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3773,7 +4198,7 @@ func (x *JobRunEventMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRunEventMetadata.ProtoReflect.Descriptor instead.
 func (*JobRunEventMetadata) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{64}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{71}
 }
 
 func (m *JobRunEventMetadata) GetMetadata() isJobRunEventMetadata_Metadata {
@@ -3816,7 +4241,7 @@ type JobRunEvent struct {
 func (x *JobRunEvent) Reset() {
 	*x = JobRunEvent{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[65]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[72]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3829,7 +4254,7 @@ func (x *JobRunEvent) String() string {
 func (*JobRunEvent) ProtoMessage() {}
 
 func (x *JobRunEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[65]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[72]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3842,7 +4267,7 @@ func (x *JobRunEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRunEvent.ProtoReflect.Descriptor instead.
 func (*JobRunEvent) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{65}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *JobRunEvent) GetId() int64 {
@@ -3898,7 +4323,7 @@ type GetJobRunEventsRequest struct {
 func (x *GetJobRunEventsRequest) Reset() {
 	*x = GetJobRunEventsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[66]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[73]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3911,7 +4336,7 @@ func (x *GetJobRunEventsRequest) String() string {
 func (*GetJobRunEventsRequest) ProtoMessage() {}
 
 func (x *GetJobRunEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[66]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[73]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3924,7 +4349,7 @@ func (x *GetJobRunEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRunEventsRequest.ProtoReflect.Descriptor instead.
 func (*GetJobRunEventsRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{66}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *GetJobRunEventsRequest) GetJobRunId() string {
@@ -3945,7 +4370,7 @@ type GetJobRunEventsResponse struct {
 func (x *GetJobRunEventsResponse) Reset() {
 	*x = GetJobRunEventsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[67]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[74]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3958,7 +4383,7 @@ func (x *GetJobRunEventsResponse) String() string {
 func (*GetJobRunEventsResponse) ProtoMessage() {}
 
 func (x *GetJobRunEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[67]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[74]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3971,7 +4396,7 @@ func (x *GetJobRunEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJobRunEventsResponse.ProtoReflect.Descriptor instead.
 func (*GetJobRunEventsResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{67}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *GetJobRunEventsResponse) GetEvents() []*JobRunEvent {
@@ -3992,7 +4417,7 @@ type DeleteJobRunRequest struct {
 func (x *DeleteJobRunRequest) Reset() {
 	*x = DeleteJobRunRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[68]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[75]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4005,7 +4430,7 @@ func (x *DeleteJobRunRequest) String() string {
 func (*DeleteJobRunRequest) ProtoMessage() {}
 
 func (x *DeleteJobRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[68]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[75]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4018,7 +4443,7 @@ func (x *DeleteJobRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteJobRunRequest.ProtoReflect.Descriptor instead.
 func (*DeleteJobRunRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{68}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *DeleteJobRunRequest) GetJobRunId() string {
@@ -4037,7 +4462,7 @@ type DeleteJobRunResponse struct {
 func (x *DeleteJobRunResponse) Reset() {
 	*x = DeleteJobRunResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[69]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[76]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4050,7 +4475,7 @@ func (x *DeleteJobRunResponse) String() string {
 func (*DeleteJobRunResponse) ProtoMessage() {}
 
 func (x *DeleteJobRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[69]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[76]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4063,7 +4488,7 @@ func (x *DeleteJobRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteJobRunResponse.ProtoReflect.Descriptor instead.
 func (*DeleteJobRunResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{69}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{76}
 }
 
 type GetTransformersRequest struct {
@@ -4075,7 +4500,7 @@ type GetTransformersRequest struct {
 func (x *GetTransformersRequest) Reset() {
 	*x = GetTransformersRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[70]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[77]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4088,7 +4513,7 @@ func (x *GetTransformersRequest) String() string {
 func (*GetTransformersRequest) ProtoMessage() {}
 
 func (x *GetTransformersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[70]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[77]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4101,7 +4526,7 @@ func (x *GetTransformersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransformersRequest.ProtoReflect.Descriptor instead.
 func (*GetTransformersRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{70}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{77}
 }
 
 type GetTransformersResponse struct {
@@ -4115,7 +4540,7 @@ type GetTransformersResponse struct {
 func (x *GetTransformersResponse) Reset() {
 	*x = GetTransformersResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[71]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[78]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4128,7 +4553,7 @@ func (x *GetTransformersResponse) String() string {
 func (*GetTransformersResponse) ProtoMessage() {}
 
 func (x *GetTransformersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[71]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[78]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4141,7 +4566,7 @@ func (x *GetTransformersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransformersResponse.ProtoReflect.Descriptor instead.
 func (*GetTransformersResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{71}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *GetTransformersResponse) GetTransformers() []*Transformer {
@@ -4163,7 +4588,7 @@ type Transformer struct {
 func (x *Transformer) Reset() {
 	*x = Transformer{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[72]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[79]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4176,7 +4601,7 @@ func (x *Transformer) String() string {
 func (*Transformer) ProtoMessage() {}
 
 func (x *Transformer) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[72]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[79]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4189,7 +4614,7 @@ func (x *Transformer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Transformer.ProtoReflect.Descriptor instead.
 func (*Transformer) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{72}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *Transformer) GetValue() string {
@@ -4231,7 +4656,7 @@ type TransformerConfig struct {
 func (x *TransformerConfig) Reset() {
 	*x = TransformerConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[73]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[80]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4244,7 +4669,7 @@ func (x *TransformerConfig) String() string {
 func (*TransformerConfig) ProtoMessage() {}
 
 func (x *TransformerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[73]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[80]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4257,7 +4682,7 @@ func (x *TransformerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformerConfig.ProtoReflect.Descriptor instead.
 func (*TransformerConfig) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{73}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{80}
 }
 
 func (m *TransformerConfig) GetConfig() isTransformerConfig_Config {
@@ -4439,7 +4864,7 @@ type EmailConfig struct {
 func (x *EmailConfig) Reset() {
 	*x = EmailConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[74]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[81]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4452,7 +4877,7 @@ func (x *EmailConfig) String() string {
 func (*EmailConfig) ProtoMessage() {}
 
 func (x *EmailConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[74]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[81]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4465,7 +4890,7 @@ func (x *EmailConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailConfig.ProtoReflect.Descriptor instead.
 func (*EmailConfig) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{74}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *EmailConfig) GetPreserveDomain() bool {
@@ -4491,7 +4916,7 @@ type Passthrough struct {
 func (x *Passthrough) Reset() {
 	*x = Passthrough{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[75]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[82]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4504,7 +4929,7 @@ func (x *Passthrough) String() string {
 func (*Passthrough) ProtoMessage() {}
 
 func (x *Passthrough) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[75]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[82]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4517,7 +4942,7 @@ func (x *Passthrough) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Passthrough.ProtoReflect.Descriptor instead.
 func (*Passthrough) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{75}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{82}
 }
 
 type Uuid struct {
@@ -4531,7 +4956,7 @@ type Uuid struct {
 func (x *Uuid) Reset() {
 	*x = Uuid{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[76]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[83]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4544,7 +4969,7 @@ func (x *Uuid) String() string {
 func (*Uuid) ProtoMessage() {}
 
 func (x *Uuid) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[76]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[83]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4557,7 +4982,7 @@ func (x *Uuid) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Uuid.ProtoReflect.Descriptor instead.
 func (*Uuid) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{76}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *Uuid) GetIncludeHyphen() bool {
@@ -4578,7 +5003,7 @@ type FirstName struct {
 func (x *FirstName) Reset() {
 	*x = FirstName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[77]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[84]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4591,7 +5016,7 @@ func (x *FirstName) String() string {
 func (*FirstName) ProtoMessage() {}
 
 func (x *FirstName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[77]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[84]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4604,7 +5029,7 @@ func (x *FirstName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FirstName.ProtoReflect.Descriptor instead.
 func (*FirstName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{77}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *FirstName) GetPreserveLength() bool {
@@ -4625,7 +5050,7 @@ type LastName struct {
 func (x *LastName) Reset() {
 	*x = LastName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[78]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[85]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4638,7 +5063,7 @@ func (x *LastName) String() string {
 func (*LastName) ProtoMessage() {}
 
 func (x *LastName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[78]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[85]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4651,7 +5076,7 @@ func (x *LastName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LastName.ProtoReflect.Descriptor instead.
 func (*LastName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{78}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *LastName) GetPreserveLength() bool {
@@ -4672,7 +5097,7 @@ type FullName struct {
 func (x *FullName) Reset() {
 	*x = FullName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[79]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[86]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4685,7 +5110,7 @@ func (x *FullName) String() string {
 func (*FullName) ProtoMessage() {}
 
 func (x *FullName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[79]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[86]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4698,7 +5123,7 @@ func (x *FullName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FullName.ProtoReflect.Descriptor instead.
 func (*FullName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{79}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *FullName) GetPreserveLength() bool {
@@ -4721,7 +5146,7 @@ type PhoneNumber struct {
 func (x *PhoneNumber) Reset() {
 	*x = PhoneNumber{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[80]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[87]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4734,7 +5159,7 @@ func (x *PhoneNumber) String() string {
 func (*PhoneNumber) ProtoMessage() {}
 
 func (x *PhoneNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[80]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[87]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4747,7 +5172,7 @@ func (x *PhoneNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PhoneNumber.ProtoReflect.Descriptor instead.
 func (*PhoneNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{80}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *PhoneNumber) GetPreserveLength() bool {
@@ -4782,7 +5207,7 @@ type IntPhoneNumber struct {
 func (x *IntPhoneNumber) Reset() {
 	*x = IntPhoneNumber{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[81]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[88]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4795,7 +5220,7 @@ func (x *IntPhoneNumber) String() string {
 func (*IntPhoneNumber) ProtoMessage() {}
 
 func (x *IntPhoneNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[81]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[88]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4808,7 +5233,7 @@ func (x *IntPhoneNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IntPhoneNumber.ProtoReflect.Descriptor instead.
 func (*IntPhoneNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{81}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *IntPhoneNumber) GetPreserveLength() bool {
@@ -4831,7 +5256,7 @@ type RandomString struct {
 func (x *RandomString) Reset() {
 	*x = RandomString{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[82]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[89]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4844,7 +5269,7 @@ func (x *RandomString) String() string {
 func (*RandomString) ProtoMessage() {}
 
 func (x *RandomString) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[82]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[89]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4857,7 +5282,7 @@ func (x *RandomString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RandomString.ProtoReflect.Descriptor instead.
 func (*RandomString) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{82}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *RandomString) GetPreserveLength() bool {
@@ -4890,7 +5315,7 @@ type Null struct {
 func (x *Null) Reset() {
 	*x = Null{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[83]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[90]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4903,7 +5328,7 @@ func (x *Null) String() string {
 func (*Null) ProtoMessage() {}
 
 func (x *Null) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[83]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[90]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4916,7 +5341,7 @@ func (x *Null) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Null.ProtoReflect.Descriptor instead.
 func (*Null) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{83}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{90}
 }
 
 type RandomBool struct {
@@ -4928,7 +5353,7 @@ type RandomBool struct {
 func (x *RandomBool) Reset() {
 	*x = RandomBool{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[84]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[91]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4941,7 +5366,7 @@ func (x *RandomBool) String() string {
 func (*RandomBool) ProtoMessage() {}
 
 func (x *RandomBool) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[84]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[91]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4954,7 +5379,7 @@ func (x *RandomBool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RandomBool.ProtoReflect.Descriptor instead.
 func (*RandomBool) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{84}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{91}
 }
 
 type RandomInt struct {
@@ -4969,7 +5394,7 @@ type RandomInt struct {
 func (x *RandomInt) Reset() {
 	*x = RandomInt{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[85]
+		mi := &file_mgmt_v1alpha1_job_proto_msgTypes[92]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4982,7 +5407,7 @@ func (x *RandomInt) String() string {
 func (*RandomInt) ProtoMessage() {}
 
 func (x *RandomInt) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[85]
+	mi := &file_mgmt_v1alpha1_job_proto_msgTypes[92]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4995,7 +5420,7 @@ func (x *RandomInt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RandomInt.ProtoReflect.Descriptor instead.
 func (*RandomInt) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{85}
+	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *RandomInt) GetPreserveLength() bool {
@@ -5051,165 +5476,241 @@ var file_mgmt_v1alpha1_job_proto_rawDesc = []byte{
 	0x24, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e,
 	0x4a, 0x6f, 0x62, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70,
 	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x52, 0x07, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x0e,
-	0x0a, 0x02, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0xc6,
-	0x01, 0x0a, 0x10, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x4f, 0x70, 0x74, 0x69,
-	0x6f, 0x6e, 0x73, 0x12, 0x4c, 0x0a, 0x0b, 0x73, 0x71, 0x6c, 0x5f, 0x6f, 0x70, 0x74, 0x69, 0x6f,
-	0x6e, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
-	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x53, 0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72,
-	0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69,
-	0x6f, 0x6e, 0x73, 0x48, 0x00, 0x52, 0x0a, 0x73, 0x71, 0x6c, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e,
-	0x73, 0x12, 0x53, 0x0a, 0x0e, 0x61, 0x77, 0x73, 0x5f, 0x73, 0x33, 0x5f, 0x6f, 0x70, 0x74, 0x69,
-	0x6f, 0x6e, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2b, 0x2e, 0x6d, 0x67, 0x6d, 0x74,
-	0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x41, 0x77, 0x73, 0x53, 0x33, 0x53,
-	0x6f, 0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f,
-	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x48, 0x00, 0x52, 0x0c, 0x61, 0x77, 0x73, 0x53, 0x33, 0x4f,
-	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x42, 0x0f, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0x9a, 0x01, 0x0a, 0x1a, 0x53, 0x71, 0x6c, 0x53,
+	0x0a, 0x02, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x22, 0xa9,
+	0x02, 0x0a, 0x10, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x4f, 0x70, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x12, 0x5b, 0x0a, 0x10, 0x70, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x5f,
+	0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2e, 0x2e,
+	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x6f,
+	0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e,
+	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x48, 0x00, 0x52,
+	0x0f, 0x70, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x12, 0x53, 0x0a, 0x0e, 0x61, 0x77, 0x73, 0x5f, 0x73, 0x33, 0x5f, 0x6f, 0x70, 0x74, 0x69, 0x6f,
+	0x6e, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2b, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
+	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x41, 0x77, 0x73, 0x53, 0x33, 0x53, 0x6f,
+	0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70,
+	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x48, 0x00, 0x52, 0x0c, 0x61, 0x77, 0x73, 0x53, 0x33, 0x4f, 0x70,
+	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x52, 0x0a, 0x0d, 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x5f, 0x6f,
+	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2b, 0x2e, 0x6d,
+	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x79, 0x73,
+	0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69,
+	0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x48, 0x00, 0x52, 0x0c, 0x6d, 0x79, 0x73,
+	0x71, 0x6c, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x42, 0x0f, 0x0a, 0x06, 0x63, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0xa4, 0x01, 0x0a, 0x1f, 0x50,
+	0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e,
+	0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x3c,
+	0x0a, 0x1b, 0x68, 0x61, 0x6c, 0x74, 0x5f, 0x6f, 0x6e, 0x5f, 0x6e, 0x65, 0x77, 0x5f, 0x63, 0x6f,
+	0x6c, 0x75, 0x6d, 0x6e, 0x5f, 0x61, 0x64, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x08, 0x52, 0x17, 0x68, 0x61, 0x6c, 0x74, 0x4f, 0x6e, 0x4e, 0x65, 0x77, 0x43, 0x6f,
+	0x6c, 0x75, 0x6d, 0x6e, 0x41, 0x64, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x43, 0x0a, 0x07,
+	0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x29, 0x2e,
+	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x6f,
+	0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x53, 0x63, 0x68, 0x65,
+	0x6d, 0x61, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x07, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61,
+	0x73, 0x22, 0x76, 0x0a, 0x1a, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f, 0x75,
+	0x72, 0x63, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12,
+	0x16, 0x0a, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x40, 0x0a, 0x06, 0x74, 0x61, 0x62, 0x6c, 0x65,
+	0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76,
+	0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73,
+	0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x4f, 0x70, 0x74, 0x69, 0x6f,
+	0x6e, 0x52, 0x06, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x22, 0x6a, 0x0a, 0x19, 0x50, 0x6f, 0x73,
+	0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x54, 0x61, 0x62, 0x6c, 0x65,
+	0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x26, 0x0a, 0x0c,
+	0x77, 0x68, 0x65, 0x72, 0x65, 0x5f, 0x63, 0x6c, 0x61, 0x75, 0x73, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x48, 0x00, 0x52, 0x0b, 0x77, 0x68, 0x65, 0x72, 0x65, 0x43, 0x6c, 0x61, 0x75, 0x73,
+	0x65, 0x88, 0x01, 0x01, 0x42, 0x0f, 0x0a, 0x0d, 0x5f, 0x77, 0x68, 0x65, 0x72, 0x65, 0x5f, 0x63,
+	0x6c, 0x61, 0x75, 0x73, 0x65, 0x22, 0xa1, 0x01, 0x0a, 0x1c, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x53,
 	0x6f, 0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f,
 	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x3c, 0x0a, 0x1b, 0x68, 0x61, 0x6c, 0x74, 0x5f, 0x6f,
 	0x6e, 0x5f, 0x6e, 0x65, 0x77, 0x5f, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x5f, 0x61, 0x64, 0x64,
 	0x69, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x17, 0x68, 0x61, 0x6c,
 	0x74, 0x4f, 0x6e, 0x4e, 0x65, 0x77, 0x43, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x41, 0x64, 0x64, 0x69,
-	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x3e, 0x0a, 0x07, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x18,
-	0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x24, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
-	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x53, 0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x53,
-	0x63, 0x68, 0x65, 0x6d, 0x61, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x07, 0x73, 0x63, 0x68,
-	0x65, 0x6d, 0x61, 0x73, 0x22, 0x6c, 0x0a, 0x15, 0x53, 0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63,
-	0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x16, 0x0a,
-	0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73,
-	0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x3b, 0x0a, 0x06, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x18,
-	0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
-	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x53, 0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x54,
-	0x61, 0x62, 0x6c, 0x65, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x06, 0x74, 0x61, 0x62, 0x6c,
-	0x65, 0x73, 0x22, 0x65, 0x0a, 0x14, 0x53, 0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x54,
-	0x61, 0x62, 0x6c, 0x65, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x61,
-	0x62, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x61, 0x62, 0x6c, 0x65,
-	0x12, 0x26, 0x0a, 0x0c, 0x77, 0x68, 0x65, 0x72, 0x65, 0x5f, 0x63, 0x6c, 0x61, 0x75, 0x73, 0x65,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x0b, 0x77, 0x68, 0x65, 0x72, 0x65, 0x43,
-	0x6c, 0x61, 0x75, 0x73, 0x65, 0x88, 0x01, 0x01, 0x42, 0x0f, 0x0a, 0x0d, 0x5f, 0x77, 0x68, 0x65,
-	0x72, 0x65, 0x5f, 0x63, 0x6c, 0x61, 0x75, 0x73, 0x65, 0x22, 0x1e, 0x0a, 0x1c, 0x41, 0x77, 0x73,
-	0x53, 0x33, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69,
-	0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0xd5, 0x01, 0x0a, 0x15, 0x4a, 0x6f,
-	0x62, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69,
-	0x6f, 0x6e, 0x73, 0x12, 0x51, 0x0a, 0x0b, 0x73, 0x71, 0x6c, 0x5f, 0x6f, 0x70, 0x74, 0x69, 0x6f,
-	0x6e, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2e, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
-	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x53, 0x71, 0x6c, 0x44, 0x65, 0x73, 0x74,
-	0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f,
-	0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x48, 0x00, 0x52, 0x0a, 0x73, 0x71, 0x6c, 0x4f,
-	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x58, 0x0a, 0x0e, 0x61, 0x77, 0x73, 0x5f, 0x73, 0x33,
-	0x5f, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x30,
-	0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x41,
-	0x77, 0x73, 0x53, 0x33, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43,
+	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x43, 0x0a, 0x07, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x18,
+	0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f,
+	0x75, 0x72, 0x63, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x52, 0x07, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x22, 0x73, 0x0a, 0x17, 0x4d, 0x79, 0x73,
+	0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x4f, 0x70,
+	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x40, 0x0a, 0x06,
+	0x74, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x28, 0x2e, 0x6d,
+	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x6f, 0x73,
+	0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x54, 0x61, 0x62, 0x6c, 0x65,
+	0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x06, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x22, 0x67,
+	0x0a, 0x16, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x54, 0x61, 0x62,
+	0x6c, 0x65, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x61, 0x62, 0x6c,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x26,
+	0x0a, 0x0c, 0x77, 0x68, 0x65, 0x72, 0x65, 0x5f, 0x63, 0x6c, 0x61, 0x75, 0x73, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x0b, 0x77, 0x68, 0x65, 0x72, 0x65, 0x43, 0x6c, 0x61,
+	0x75, 0x73, 0x65, 0x88, 0x01, 0x01, 0x42, 0x0f, 0x0a, 0x0d, 0x5f, 0x77, 0x68, 0x65, 0x72, 0x65,
+	0x5f, 0x63, 0x6c, 0x61, 0x75, 0x73, 0x65, 0x22, 0x1e, 0x0a, 0x1c, 0x41, 0x77, 0x73, 0x53, 0x33,
+	0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
+	0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0xbd, 0x02, 0x0a, 0x15, 0x4a, 0x6f, 0x62, 0x44,
+	0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x73, 0x12, 0x60, 0x0a, 0x10, 0x70, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x5f, 0x6f, 0x70,
+	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x33, 0x2e, 0x6d, 0x67,
+	0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x6f, 0x73, 0x74,
+	0x67, 0x72, 0x65, 0x73, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43,
 	0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
-	0x48, 0x00, 0x52, 0x0c, 0x61, 0x77, 0x73, 0x53, 0x33, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
-	0x42, 0x0f, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x05, 0xba, 0x48, 0x02, 0x08,
-	0x01, 0x22, 0x98, 0x01, 0x0a, 0x1f, 0x53, 0x71, 0x6c, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61,
-	0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70,
-	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x49, 0x0a, 0x0e, 0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74,
-	0x65, 0x5f, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x22, 0x2e,
-	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72,
-	0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69,
-	0x67, 0x52, 0x0d, 0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x54, 0x61, 0x62, 0x6c, 0x65,
-	0x12, 0x2a, 0x0a, 0x11, 0x69, 0x6e, 0x69, 0x74, 0x5f, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x73,
-	0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0f, 0x69, 0x6e, 0x69,
-	0x74, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x22, 0x65, 0x0a, 0x13,
-	0x54, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x12, 0x34, 0x0a, 0x16, 0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x5f,
-	0x62, 0x65, 0x66, 0x6f, 0x72, 0x65, 0x5f, 0x69, 0x6e, 0x73, 0x65, 0x72, 0x74, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x08, 0x52, 0x14, 0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x42, 0x65, 0x66,
-	0x6f, 0x72, 0x65, 0x49, 0x6e, 0x73, 0x65, 0x72, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x61, 0x73,
-	0x63, 0x61, 0x64, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x63, 0x61, 0x73, 0x63,
-	0x61, 0x64, 0x65, 0x22, 0x23, 0x0a, 0x21, 0x41, 0x77, 0x73, 0x53, 0x33, 0x44, 0x65, 0x73, 0x74,
-	0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f,
-	0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0xee, 0x02, 0x0a, 0x10, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x27, 0x0a,
-	0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61, 0x63, 0x63,
-	0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x6a, 0x6f, 0x62, 0x5f, 0x6e, 0x61,
-	0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6a, 0x6f, 0x62, 0x4e, 0x61, 0x6d,
-	0x65, 0x12, 0x28, 0x0a, 0x0d, 0x63, 0x72, 0x6f, 0x6e, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75,
-	0x6c, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x0c, 0x63, 0x72, 0x6f, 0x6e,
-	0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x88, 0x01, 0x01, 0x12, 0x35, 0x0a, 0x08, 0x6d,
-	0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e,
-	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f,
-	0x62, 0x4d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x52, 0x08, 0x6d, 0x61, 0x70, 0x70, 0x69, 0x6e,
-	0x67, 0x73, 0x12, 0x30, 0x0a, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x18, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
-	0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x06, 0x73, 0x6f,
-	0x75, 0x72, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0c, 0x64, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74,
-	0x69, 0x6f, 0x6e, 0x73, 0x18, 0x06, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x6d, 0x67, 0x6d,
-	0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74,
-	0x65, 0x4a, 0x6f, 0x62, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52,
-	0x0c, 0x64, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x28, 0x0a,
-	0x10, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x5f, 0x72, 0x75,
-	0x6e, 0x18, 0x07, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x74,
-	0x65, 0x4a, 0x6f, 0x62, 0x52, 0x75, 0x6e, 0x42, 0x10, 0x0a, 0x0e, 0x5f, 0x63, 0x72, 0x6f, 0x6e,
-	0x5f, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x22, 0x39, 0x0a, 0x11, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24,
-	0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67,
-	0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52,
-	0x03, 0x6a, 0x6f, 0x62, 0x22, 0x90, 0x01, 0x0a, 0x0a, 0x4a, 0x6f, 0x62, 0x4d, 0x61, 0x70, 0x70,
-	0x69, 0x6e, 0x67, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x14, 0x0a, 0x05, 0x74,
-	0x61, 0x62, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x61, 0x62, 0x6c,
-	0x65, 0x12, 0x16, 0x0a, 0x06, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x06, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x12, 0x3c, 0x0a, 0x0b, 0x74, 0x72, 0x61,
-	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a,
-	0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54,
-	0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x0b, 0x74, 0x72, 0x61, 0x6e,
-	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x22, 0x29, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x4a, 0x6f,
-	0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02,
-	0x69, 0x64, 0x22, 0x36, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61,
-	0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22, 0x70, 0x0a, 0x18, 0x55, 0x70,
-	0x64, 0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x52,
-	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64,
+	0x48, 0x00, 0x52, 0x0f, 0x70, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x4f, 0x70, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x12, 0x58, 0x0a, 0x0e, 0x61, 0x77, 0x73, 0x5f, 0x73, 0x33, 0x5f, 0x6f, 0x70,
+	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x30, 0x2e, 0x6d, 0x67,
+	0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x41, 0x77, 0x73, 0x53,
+	0x33, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x6e,
+	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x48, 0x00, 0x52,
+	0x0c, 0x61, 0x77, 0x73, 0x53, 0x33, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x57, 0x0a,
+	0x0d, 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x5f, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x30, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c,
+	0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f,
+	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x48, 0x00, 0x52, 0x0c, 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x4f,
+	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x42, 0x0f, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67,
+	0x12, 0x05, 0xba, 0x48, 0x02, 0x08, 0x01, 0x22, 0xa5, 0x01, 0x0a, 0x24, 0x50, 0x6f, 0x73, 0x74,
+	0x67, 0x72, 0x65, 0x73, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43,
+	0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73,
+	0x12, 0x51, 0x0a, 0x0e, 0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x74, 0x61, 0x62,
+	0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
+	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65,
+	0x73, 0x54, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f,
+	0x6e, 0x66, 0x69, 0x67, 0x52, 0x0d, 0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x54, 0x61,
+	0x62, 0x6c, 0x65, 0x12, 0x2a, 0x0a, 0x11, 0x69, 0x6e, 0x69, 0x74, 0x5f, 0x74, 0x61, 0x62, 0x6c,
+	0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0f,
+	0x69, 0x6e, 0x69, 0x74, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x22,
+	0x6d, 0x0a, 0x1b, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x54, 0x72, 0x75, 0x6e, 0x63,
+	0x61, 0x74, 0x65, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x34,
+	0x0a, 0x16, 0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x62, 0x65, 0x66, 0x6f, 0x72,
+	0x65, 0x5f, 0x69, 0x6e, 0x73, 0x65, 0x72, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x14,
+	0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x42, 0x65, 0x66, 0x6f, 0x72, 0x65, 0x49, 0x6e,
+	0x73, 0x65, 0x72, 0x74, 0x12, 0x18, 0x0a, 0x07, 0x63, 0x61, 0x73, 0x63, 0x61, 0x64, 0x65, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x63, 0x61, 0x73, 0x63, 0x61, 0x64, 0x65, 0x22, 0x9f,
+	0x01, 0x0a, 0x21, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x4f, 0x70, 0x74,
+	0x69, 0x6f, 0x6e, 0x73, 0x12, 0x4e, 0x0a, 0x0e, 0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65,
+	0x5f, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x6d,
+	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x79, 0x73,
+	0x71, 0x6c, 0x54, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x43,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x0d, 0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x54,
+	0x61, 0x62, 0x6c, 0x65, 0x12, 0x2a, 0x0a, 0x11, 0x69, 0x6e, 0x69, 0x74, 0x5f, 0x74, 0x61, 0x62,
+	0x6c, 0x65, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52,
+	0x0f, 0x69, 0x6e, 0x69, 0x74, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61,
+	0x22, 0x50, 0x0a, 0x18, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x54, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74,
+	0x65, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x34, 0x0a, 0x16,
+	0x74, 0x72, 0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x5f, 0x62, 0x65, 0x66, 0x6f, 0x72, 0x65, 0x5f,
+	0x69, 0x6e, 0x73, 0x65, 0x72, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x14, 0x74, 0x72,
+	0x75, 0x6e, 0x63, 0x61, 0x74, 0x65, 0x42, 0x65, 0x66, 0x6f, 0x72, 0x65, 0x49, 0x6e, 0x73, 0x65,
+	0x72, 0x74, 0x22, 0x23, 0x0a, 0x21, 0x41, 0x77, 0x73, 0x53, 0x33, 0x44, 0x65, 0x73, 0x74, 0x69,
+	0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
+	0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0xee, 0x02, 0x0a, 0x10, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x27, 0x0a, 0x0a,
+	0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61, 0x63, 0x63, 0x6f,
+	0x75, 0x6e, 0x74, 0x49, 0x64, 0x12, 0x19, 0x0a, 0x08, 0x6a, 0x6f, 0x62, 0x5f, 0x6e, 0x61, 0x6d,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6a, 0x6f, 0x62, 0x4e, 0x61, 0x6d, 0x65,
 	0x12, 0x28, 0x0a, 0x0d, 0x63, 0x72, 0x6f, 0x6e, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c,
-	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x0c, 0x63, 0x72, 0x6f, 0x6e, 0x53,
-	0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x88, 0x01, 0x01, 0x42, 0x10, 0x0a, 0x0e, 0x5f, 0x63,
-	0x72, 0x6f, 0x6e, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x22, 0x41, 0x0a, 0x19,
-	0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a, 0x03, 0x6a, 0x6f, 0x62,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31,
-	0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22,
-	0x63, 0x0a, 0x0f, 0x50, 0x61, 0x75, 0x73, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08,
-	0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05,
-	0x70, 0x61, 0x75, 0x73, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x70, 0x61, 0x75,
-	0x73, 0x65, 0x12, 0x17, 0x0a, 0x04, 0x6e, 0x6f, 0x74, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
-	0x48, 0x00, 0x52, 0x04, 0x6e, 0x6f, 0x74, 0x65, 0x88, 0x01, 0x01, 0x42, 0x07, 0x0a, 0x05, 0x5f,
-	0x6e, 0x6f, 0x74, 0x65, 0x22, 0x38, 0x0a, 0x10, 0x50, 0x61, 0x75, 0x73, 0x65, 0x4a, 0x6f, 0x62,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
-	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22, 0xaf,
-	0x01, 0x0a, 0x20, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72,
-	0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42,
-	0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x12, 0x30, 0x0a,
-	0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e,
-	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f,
-	0x62, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12,
-	0x3f, 0x0a, 0x08, 0x6d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28,
-	0x0b, 0x32, 0x19, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61,
-	0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x4d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x42, 0x08, 0xba, 0x48,
-	0x05, 0x92, 0x01, 0x02, 0x08, 0x01, 0x52, 0x08, 0x6d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x73,
-	0x22, 0x49, 0x0a, 0x21, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75,
-	0x72, 0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
-	0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22, 0x83, 0x01, 0x0a, 0x27,
-	0x53, 0x65, 0x74, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x53, 0x71, 0x6c, 0x43,
-	0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75, 0x62, 0x73, 0x65, 0x74, 0x73,
+	0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x0c, 0x63, 0x72, 0x6f, 0x6e, 0x53,
+	0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x88, 0x01, 0x01, 0x12, 0x35, 0x0a, 0x08, 0x6d, 0x61,
+	0x70, 0x70, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x6d,
+	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62,
+	0x4d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x52, 0x08, 0x6d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67,
+	0x73, 0x12, 0x30, 0x0a, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x18, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61,
+	0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x06, 0x73, 0x6f, 0x75,
+	0x72, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0c, 0x64, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x18, 0x06, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x6d, 0x67, 0x6d, 0x74,
+	0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
+	0x4a, 0x6f, 0x62, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0c,
+	0x64, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x28, 0x0a, 0x10,
+	0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x74, 0x65, 0x5f, 0x6a, 0x6f, 0x62, 0x5f, 0x72, 0x75, 0x6e,
+	0x18, 0x07, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x69, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x74, 0x65,
+	0x4a, 0x6f, 0x62, 0x52, 0x75, 0x6e, 0x42, 0x10, 0x0a, 0x0e, 0x5f, 0x63, 0x72, 0x6f, 0x6e, 0x5f,
+	0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x22, 0x39, 0x0a, 0x11, 0x43, 0x72, 0x65, 0x61,
+	0x74, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a,
+	0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d,
+	0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03,
+	0x6a, 0x6f, 0x62, 0x22, 0x90, 0x01, 0x0a, 0x0a, 0x4a, 0x6f, 0x62, 0x4d, 0x61, 0x70, 0x70, 0x69,
+	0x6e, 0x67, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x61,
+	0x62, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x61, 0x62, 0x6c, 0x65,
+	0x12, 0x16, 0x0a, 0x06, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x06, 0x63, 0x6f, 0x6c, 0x75, 0x6d, 0x6e, 0x12, 0x3c, 0x0a, 0x0b, 0x74, 0x72, 0x61, 0x6e,
+	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
+	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72,
+	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73,
+	0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x22, 0x29, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x4a, 0x6f, 0x62,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69,
-	0x64, 0x12, 0x3e, 0x0a, 0x07, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x18, 0x02, 0x20, 0x03,
-	0x28, 0x0b, 0x32, 0x24, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
-	0x61, 0x31, 0x2e, 0x53, 0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x53, 0x63, 0x68, 0x65,
-	0x6d, 0x61, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x07, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61,
-	0x73, 0x22, 0x50, 0x0a, 0x28, 0x53, 0x65, 0x74, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72, 0x63,
+	0x64, 0x22, 0x36, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
+	0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22, 0x70, 0x0a, 0x18, 0x55, 0x70, 0x64,
+	0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x12,
+	0x28, 0x0a, 0x0d, 0x63, 0x72, 0x6f, 0x6e, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x0c, 0x63, 0x72, 0x6f, 0x6e, 0x53, 0x63,
+	0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x88, 0x01, 0x01, 0x42, 0x10, 0x0a, 0x0e, 0x5f, 0x63, 0x72,
+	0x6f, 0x6e, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x22, 0x41, 0x0a, 0x19, 0x55,
+	0x70, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x53, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22, 0x63,
+	0x0a, 0x0f, 0x50, 0x61, 0x75, 0x73, 0x65, 0x4a, 0x6f, 0x62, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba,
+	0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x70,
+	0x61, 0x75, 0x73, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x70, 0x61, 0x75, 0x73,
+	0x65, 0x12, 0x17, 0x0a, 0x04, 0x6e, 0x6f, 0x74, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x48,
+	0x00, 0x52, 0x04, 0x6e, 0x6f, 0x74, 0x65, 0x88, 0x01, 0x01, 0x42, 0x07, 0x0a, 0x05, 0x5f, 0x6e,
+	0x6f, 0x74, 0x65, 0x22, 0x38, 0x0a, 0x10, 0x50, 0x61, 0x75, 0x73, 0x65, 0x4a, 0x6f, 0x62, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c,
+	0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22, 0xaf, 0x01,
+	0x0a, 0x20, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72, 0x63,
+	0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08,
+	0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x12, 0x30, 0x0a, 0x06,
+	0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x6d,
+	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4a, 0x6f, 0x62,
+	0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x52, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x3f,
+	0x0a, 0x08, 0x6d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x19, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
+	0x2e, 0x4a, 0x6f, 0x62, 0x4d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x42, 0x08, 0xba, 0x48, 0x05,
+	0x92, 0x01, 0x02, 0x08, 0x01, 0x52, 0x08, 0x6d, 0x61, 0x70, 0x70, 0x69, 0x6e, 0x67, 0x73, 0x22,
+	0x49, 0x0a, 0x21, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72,
+	0x63, 0x65, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a, 0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61,
+	0x31, 0x2e, 0x4a, 0x6f, 0x62, 0x52, 0x03, 0x6a, 0x6f, 0x62, 0x22, 0x72, 0x0a, 0x1a, 0x50, 0x6f,
+	0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x53, 0x63, 0x68, 0x65,
+	0x6d, 0x61, 0x53, 0x75, 0x62, 0x73, 0x65, 0x74, 0x12, 0x54, 0x0a, 0x10, 0x70, 0x6f, 0x73, 0x74,
+	0x67, 0x72, 0x65, 0x73, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x18, 0x01, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x29, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
+	0x61, 0x31, 0x2e, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f, 0x75, 0x72, 0x63,
+	0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0f, 0x70,
+	0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x22, 0x66,
+	0x0a, 0x17, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x53, 0x63, 0x68,
+	0x65, 0x6d, 0x61, 0x53, 0x75, 0x62, 0x73, 0x65, 0x74, 0x12, 0x4b, 0x0a, 0x0d, 0x6d, 0x79, 0x73,
+	0x71, 0x6c, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x26, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
+	0x2e, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x53, 0x63, 0x68, 0x65,
+	0x6d, 0x61, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0c, 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x53,
+	0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x22, 0xf8, 0x01, 0x0a, 0x27, 0x53, 0x65, 0x74, 0x4a, 0x6f,
+	0x62, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x53, 0x71, 0x6c, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63,
+	0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75, 0x62, 0x73, 0x65, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08,
+	0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x12, 0x54, 0x0a, 0x0f,
+	0x70, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x5f, 0x73, 0x75, 0x62, 0x73, 0x65, 0x74, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x29, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x50, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x6f,
+	0x75, 0x72, 0x63, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x53, 0x75, 0x62, 0x73, 0x65, 0x74,
+	0x48, 0x00, 0x52, 0x0e, 0x70, 0x6f, 0x73, 0x74, 0x67, 0x72, 0x65, 0x73, 0x53, 0x75, 0x62, 0x73,
+	0x65, 0x74, 0x12, 0x4b, 0x0a, 0x0c, 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x5f, 0x73, 0x75, 0x62, 0x73,
+	0x65, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
+	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4d, 0x79, 0x73, 0x71, 0x6c, 0x53, 0x6f,
+	0x75, 0x72, 0x63, 0x65, 0x53, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x53, 0x75, 0x62, 0x73, 0x65, 0x74,
+	0x48, 0x00, 0x52, 0x0b, 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x53, 0x75, 0x62, 0x73, 0x65, 0x74, 0x42,
+	0x10, 0x0a, 0x07, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x73, 0x12, 0x05, 0xba, 0x48, 0x02, 0x08,
+	0x01, 0x22, 0x50, 0x0a, 0x28, 0x53, 0x65, 0x74, 0x4a, 0x6f, 0x62, 0x53, 0x6f, 0x75, 0x72, 0x63,
 	0x65, 0x53, 0x71, 0x6c, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75,
 	0x62, 0x73, 0x65, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x24, 0x0a,
 	0x03, 0x6a, 0x6f, 0x62, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x12, 0x2e, 0x6d, 0x67, 0x6d,
@@ -5815,7 +6316,7 @@ func file_mgmt_v1alpha1_job_proto_rawDescGZIP() []byte {
 }
 
 var file_mgmt_v1alpha1_job_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_mgmt_v1alpha1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 86)
+var file_mgmt_v1alpha1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 93)
 var file_mgmt_v1alpha1_job_proto_goTypes = []interface{}{
 	(JobStatus)(0),                                   // 0: mgmt.v1alpha1.JobStatus
 	(ActivityStatus)(0),                              // 1: mgmt.v1alpha1.ActivityStatus
@@ -5827,212 +6328,227 @@ var file_mgmt_v1alpha1_job_proto_goTypes = []interface{}{
 	(*CreateJobDestination)(nil),                     // 7: mgmt.v1alpha1.CreateJobDestination
 	(*JobDestination)(nil),                           // 8: mgmt.v1alpha1.JobDestination
 	(*JobSourceOptions)(nil),                         // 9: mgmt.v1alpha1.JobSourceOptions
-	(*SqlSourceConnectionOptions)(nil),               // 10: mgmt.v1alpha1.SqlSourceConnectionOptions
-	(*SqlSourceSchemaOption)(nil),                    // 11: mgmt.v1alpha1.SqlSourceSchemaOption
-	(*SqlSourceTableOption)(nil),                     // 12: mgmt.v1alpha1.SqlSourceTableOption
-	(*AwsS3SourceConnectionOptions)(nil),             // 13: mgmt.v1alpha1.AwsS3SourceConnectionOptions
-	(*JobDestinationOptions)(nil),                    // 14: mgmt.v1alpha1.JobDestinationOptions
-	(*SqlDestinationConnectionOptions)(nil),          // 15: mgmt.v1alpha1.SqlDestinationConnectionOptions
-	(*TruncateTableConfig)(nil),                      // 16: mgmt.v1alpha1.TruncateTableConfig
-	(*AwsS3DestinationConnectionOptions)(nil),        // 17: mgmt.v1alpha1.AwsS3DestinationConnectionOptions
-	(*CreateJobRequest)(nil),                         // 18: mgmt.v1alpha1.CreateJobRequest
-	(*CreateJobResponse)(nil),                        // 19: mgmt.v1alpha1.CreateJobResponse
-	(*JobMapping)(nil),                               // 20: mgmt.v1alpha1.JobMapping
-	(*GetJobRequest)(nil),                            // 21: mgmt.v1alpha1.GetJobRequest
-	(*GetJobResponse)(nil),                           // 22: mgmt.v1alpha1.GetJobResponse
-	(*UpdateJobScheduleRequest)(nil),                 // 23: mgmt.v1alpha1.UpdateJobScheduleRequest
-	(*UpdateJobScheduleResponse)(nil),                // 24: mgmt.v1alpha1.UpdateJobScheduleResponse
-	(*PauseJobRequest)(nil),                          // 25: mgmt.v1alpha1.PauseJobRequest
-	(*PauseJobResponse)(nil),                         // 26: mgmt.v1alpha1.PauseJobResponse
-	(*UpdateJobSourceConnectionRequest)(nil),         // 27: mgmt.v1alpha1.UpdateJobSourceConnectionRequest
-	(*UpdateJobSourceConnectionResponse)(nil),        // 28: mgmt.v1alpha1.UpdateJobSourceConnectionResponse
-	(*SetJobSourceSqlConnectionSubsetsRequest)(nil),  // 29: mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest
-	(*SetJobSourceSqlConnectionSubsetsResponse)(nil), // 30: mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse
-	(*UpdateJobDestinationConnectionRequest)(nil),    // 31: mgmt.v1alpha1.UpdateJobDestinationConnectionRequest
-	(*UpdateJobDestinationConnectionResponse)(nil),   // 32: mgmt.v1alpha1.UpdateJobDestinationConnectionResponse
-	(*DeleteJobDestinationConnectionRequest)(nil),    // 33: mgmt.v1alpha1.DeleteJobDestinationConnectionRequest
-	(*DeleteJobDestinationConnectionResponse)(nil),   // 34: mgmt.v1alpha1.DeleteJobDestinationConnectionResponse
-	(*CreateJobDestinationConnectionsRequest)(nil),   // 35: mgmt.v1alpha1.CreateJobDestinationConnectionsRequest
-	(*CreateJobDestinationConnectionsResponse)(nil),  // 36: mgmt.v1alpha1.CreateJobDestinationConnectionsResponse
-	(*DeleteJobRequest)(nil),                         // 37: mgmt.v1alpha1.DeleteJobRequest
-	(*DeleteJobResponse)(nil),                        // 38: mgmt.v1alpha1.DeleteJobResponse
-	(*IsJobNameAvailableRequest)(nil),                // 39: mgmt.v1alpha1.IsJobNameAvailableRequest
-	(*IsJobNameAvailableResponse)(nil),               // 40: mgmt.v1alpha1.IsJobNameAvailableResponse
-	(*GetJobRunsRequest)(nil),                        // 41: mgmt.v1alpha1.GetJobRunsRequest
-	(*GetJobRunsResponse)(nil),                       // 42: mgmt.v1alpha1.GetJobRunsResponse
-	(*GetJobRunRequest)(nil),                         // 43: mgmt.v1alpha1.GetJobRunRequest
-	(*GetJobRunResponse)(nil),                        // 44: mgmt.v1alpha1.GetJobRunResponse
-	(*CreateJobRunRequest)(nil),                      // 45: mgmt.v1alpha1.CreateJobRunRequest
-	(*CreateJobRunResponse)(nil),                     // 46: mgmt.v1alpha1.CreateJobRunResponse
-	(*CancelJobRunRequest)(nil),                      // 47: mgmt.v1alpha1.CancelJobRunRequest
-	(*CancelJobRunResponse)(nil),                     // 48: mgmt.v1alpha1.CancelJobRunResponse
-	(*Job)(nil),                                      // 49: mgmt.v1alpha1.Job
-	(*JobRecentRun)(nil),                             // 50: mgmt.v1alpha1.JobRecentRun
-	(*JobRecentRuns)(nil),                            // 51: mgmt.v1alpha1.JobRecentRuns
-	(*GetJobRecentRunsRequest)(nil),                  // 52: mgmt.v1alpha1.GetJobRecentRunsRequest
-	(*GetJobRecentRunsResponse)(nil),                 // 53: mgmt.v1alpha1.GetJobRecentRunsResponse
-	(*JobNextRuns)(nil),                              // 54: mgmt.v1alpha1.JobNextRuns
-	(*GetJobNextRunsRequest)(nil),                    // 55: mgmt.v1alpha1.GetJobNextRunsRequest
-	(*GetJobNextRunsResponse)(nil),                   // 56: mgmt.v1alpha1.GetJobNextRunsResponse
-	(*GetJobStatusRequest)(nil),                      // 57: mgmt.v1alpha1.GetJobStatusRequest
-	(*GetJobStatusResponse)(nil),                     // 58: mgmt.v1alpha1.GetJobStatusResponse
-	(*JobStatusRecord)(nil),                          // 59: mgmt.v1alpha1.JobStatusRecord
-	(*GetJobStatusesRequest)(nil),                    // 60: mgmt.v1alpha1.GetJobStatusesRequest
-	(*GetJobStatusesResponse)(nil),                   // 61: mgmt.v1alpha1.GetJobStatusesResponse
-	(*ActivityFailure)(nil),                          // 62: mgmt.v1alpha1.ActivityFailure
-	(*PendingActivity)(nil),                          // 63: mgmt.v1alpha1.PendingActivity
-	(*JobRun)(nil),                                   // 64: mgmt.v1alpha1.JobRun
-	(*JobRunEventTaskError)(nil),                     // 65: mgmt.v1alpha1.JobRunEventTaskError
-	(*JobRunEventTask)(nil),                          // 66: mgmt.v1alpha1.JobRunEventTask
-	(*JobRunSyncMetadata)(nil),                       // 67: mgmt.v1alpha1.JobRunSyncMetadata
-	(*JobRunEventMetadata)(nil),                      // 68: mgmt.v1alpha1.JobRunEventMetadata
-	(*JobRunEvent)(nil),                              // 69: mgmt.v1alpha1.JobRunEvent
-	(*GetJobRunEventsRequest)(nil),                   // 70: mgmt.v1alpha1.GetJobRunEventsRequest
-	(*GetJobRunEventsResponse)(nil),                  // 71: mgmt.v1alpha1.GetJobRunEventsResponse
-	(*DeleteJobRunRequest)(nil),                      // 72: mgmt.v1alpha1.DeleteJobRunRequest
-	(*DeleteJobRunResponse)(nil),                     // 73: mgmt.v1alpha1.DeleteJobRunResponse
-	(*GetTransformersRequest)(nil),                   // 74: mgmt.v1alpha1.GetTransformersRequest
-	(*GetTransformersResponse)(nil),                  // 75: mgmt.v1alpha1.GetTransformersResponse
-	(*Transformer)(nil),                              // 76: mgmt.v1alpha1.Transformer
-	(*TransformerConfig)(nil),                        // 77: mgmt.v1alpha1.TransformerConfig
-	(*EmailConfig)(nil),                              // 78: mgmt.v1alpha1.EmailConfig
-	(*Passthrough)(nil),                              // 79: mgmt.v1alpha1.Passthrough
-	(*Uuid)(nil),                                     // 80: mgmt.v1alpha1.Uuid
-	(*FirstName)(nil),                                // 81: mgmt.v1alpha1.FirstName
-	(*LastName)(nil),                                 // 82: mgmt.v1alpha1.LastName
-	(*FullName)(nil),                                 // 83: mgmt.v1alpha1.FullName
-	(*PhoneNumber)(nil),                              // 84: mgmt.v1alpha1.PhoneNumber
-	(*IntPhoneNumber)(nil),                           // 85: mgmt.v1alpha1.IntPhoneNumber
-	(*RandomString)(nil),                             // 86: mgmt.v1alpha1.RandomString
-	(*Null)(nil),                                     // 87: mgmt.v1alpha1.Null
-	(*RandomBool)(nil),                               // 88: mgmt.v1alpha1.RandomBool
-	(*RandomInt)(nil),                                // 89: mgmt.v1alpha1.RandomInt
-	(*timestamppb.Timestamp)(nil),                    // 90: google.protobuf.Timestamp
+	(*PostgresSourceConnectionOptions)(nil),          // 10: mgmt.v1alpha1.PostgresSourceConnectionOptions
+	(*PostgresSourceSchemaOption)(nil),               // 11: mgmt.v1alpha1.PostgresSourceSchemaOption
+	(*PostgresSourceTableOption)(nil),                // 12: mgmt.v1alpha1.PostgresSourceTableOption
+	(*MysqlSourceConnectionOptions)(nil),             // 13: mgmt.v1alpha1.MysqlSourceConnectionOptions
+	(*MysqlSourceSchemaOption)(nil),                  // 14: mgmt.v1alpha1.MysqlSourceSchemaOption
+	(*MysqlSourceTableOption)(nil),                   // 15: mgmt.v1alpha1.MysqlSourceTableOption
+	(*AwsS3SourceConnectionOptions)(nil),             // 16: mgmt.v1alpha1.AwsS3SourceConnectionOptions
+	(*JobDestinationOptions)(nil),                    // 17: mgmt.v1alpha1.JobDestinationOptions
+	(*PostgresDestinationConnectionOptions)(nil),     // 18: mgmt.v1alpha1.PostgresDestinationConnectionOptions
+	(*PostgresTruncateTableConfig)(nil),              // 19: mgmt.v1alpha1.PostgresTruncateTableConfig
+	(*MysqlDestinationConnectionOptions)(nil),        // 20: mgmt.v1alpha1.MysqlDestinationConnectionOptions
+	(*MysqlTruncateTableConfig)(nil),                 // 21: mgmt.v1alpha1.MysqlTruncateTableConfig
+	(*AwsS3DestinationConnectionOptions)(nil),        // 22: mgmt.v1alpha1.AwsS3DestinationConnectionOptions
+	(*CreateJobRequest)(nil),                         // 23: mgmt.v1alpha1.CreateJobRequest
+	(*CreateJobResponse)(nil),                        // 24: mgmt.v1alpha1.CreateJobResponse
+	(*JobMapping)(nil),                               // 25: mgmt.v1alpha1.JobMapping
+	(*GetJobRequest)(nil),                            // 26: mgmt.v1alpha1.GetJobRequest
+	(*GetJobResponse)(nil),                           // 27: mgmt.v1alpha1.GetJobResponse
+	(*UpdateJobScheduleRequest)(nil),                 // 28: mgmt.v1alpha1.UpdateJobScheduleRequest
+	(*UpdateJobScheduleResponse)(nil),                // 29: mgmt.v1alpha1.UpdateJobScheduleResponse
+	(*PauseJobRequest)(nil),                          // 30: mgmt.v1alpha1.PauseJobRequest
+	(*PauseJobResponse)(nil),                         // 31: mgmt.v1alpha1.PauseJobResponse
+	(*UpdateJobSourceConnectionRequest)(nil),         // 32: mgmt.v1alpha1.UpdateJobSourceConnectionRequest
+	(*UpdateJobSourceConnectionResponse)(nil),        // 33: mgmt.v1alpha1.UpdateJobSourceConnectionResponse
+	(*PostgresSourceSchemaSubset)(nil),               // 34: mgmt.v1alpha1.PostgresSourceSchemaSubset
+	(*MysqlSourceSchemaSubset)(nil),                  // 35: mgmt.v1alpha1.MysqlSourceSchemaSubset
+	(*SetJobSourceSqlConnectionSubsetsRequest)(nil),  // 36: mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest
+	(*SetJobSourceSqlConnectionSubsetsResponse)(nil), // 37: mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse
+	(*UpdateJobDestinationConnectionRequest)(nil),    // 38: mgmt.v1alpha1.UpdateJobDestinationConnectionRequest
+	(*UpdateJobDestinationConnectionResponse)(nil),   // 39: mgmt.v1alpha1.UpdateJobDestinationConnectionResponse
+	(*DeleteJobDestinationConnectionRequest)(nil),    // 40: mgmt.v1alpha1.DeleteJobDestinationConnectionRequest
+	(*DeleteJobDestinationConnectionResponse)(nil),   // 41: mgmt.v1alpha1.DeleteJobDestinationConnectionResponse
+	(*CreateJobDestinationConnectionsRequest)(nil),   // 42: mgmt.v1alpha1.CreateJobDestinationConnectionsRequest
+	(*CreateJobDestinationConnectionsResponse)(nil),  // 43: mgmt.v1alpha1.CreateJobDestinationConnectionsResponse
+	(*DeleteJobRequest)(nil),                         // 44: mgmt.v1alpha1.DeleteJobRequest
+	(*DeleteJobResponse)(nil),                        // 45: mgmt.v1alpha1.DeleteJobResponse
+	(*IsJobNameAvailableRequest)(nil),                // 46: mgmt.v1alpha1.IsJobNameAvailableRequest
+	(*IsJobNameAvailableResponse)(nil),               // 47: mgmt.v1alpha1.IsJobNameAvailableResponse
+	(*GetJobRunsRequest)(nil),                        // 48: mgmt.v1alpha1.GetJobRunsRequest
+	(*GetJobRunsResponse)(nil),                       // 49: mgmt.v1alpha1.GetJobRunsResponse
+	(*GetJobRunRequest)(nil),                         // 50: mgmt.v1alpha1.GetJobRunRequest
+	(*GetJobRunResponse)(nil),                        // 51: mgmt.v1alpha1.GetJobRunResponse
+	(*CreateJobRunRequest)(nil),                      // 52: mgmt.v1alpha1.CreateJobRunRequest
+	(*CreateJobRunResponse)(nil),                     // 53: mgmt.v1alpha1.CreateJobRunResponse
+	(*CancelJobRunRequest)(nil),                      // 54: mgmt.v1alpha1.CancelJobRunRequest
+	(*CancelJobRunResponse)(nil),                     // 55: mgmt.v1alpha1.CancelJobRunResponse
+	(*Job)(nil),                                      // 56: mgmt.v1alpha1.Job
+	(*JobRecentRun)(nil),                             // 57: mgmt.v1alpha1.JobRecentRun
+	(*JobRecentRuns)(nil),                            // 58: mgmt.v1alpha1.JobRecentRuns
+	(*GetJobRecentRunsRequest)(nil),                  // 59: mgmt.v1alpha1.GetJobRecentRunsRequest
+	(*GetJobRecentRunsResponse)(nil),                 // 60: mgmt.v1alpha1.GetJobRecentRunsResponse
+	(*JobNextRuns)(nil),                              // 61: mgmt.v1alpha1.JobNextRuns
+	(*GetJobNextRunsRequest)(nil),                    // 62: mgmt.v1alpha1.GetJobNextRunsRequest
+	(*GetJobNextRunsResponse)(nil),                   // 63: mgmt.v1alpha1.GetJobNextRunsResponse
+	(*GetJobStatusRequest)(nil),                      // 64: mgmt.v1alpha1.GetJobStatusRequest
+	(*GetJobStatusResponse)(nil),                     // 65: mgmt.v1alpha1.GetJobStatusResponse
+	(*JobStatusRecord)(nil),                          // 66: mgmt.v1alpha1.JobStatusRecord
+	(*GetJobStatusesRequest)(nil),                    // 67: mgmt.v1alpha1.GetJobStatusesRequest
+	(*GetJobStatusesResponse)(nil),                   // 68: mgmt.v1alpha1.GetJobStatusesResponse
+	(*ActivityFailure)(nil),                          // 69: mgmt.v1alpha1.ActivityFailure
+	(*PendingActivity)(nil),                          // 70: mgmt.v1alpha1.PendingActivity
+	(*JobRun)(nil),                                   // 71: mgmt.v1alpha1.JobRun
+	(*JobRunEventTaskError)(nil),                     // 72: mgmt.v1alpha1.JobRunEventTaskError
+	(*JobRunEventTask)(nil),                          // 73: mgmt.v1alpha1.JobRunEventTask
+	(*JobRunSyncMetadata)(nil),                       // 74: mgmt.v1alpha1.JobRunSyncMetadata
+	(*JobRunEventMetadata)(nil),                      // 75: mgmt.v1alpha1.JobRunEventMetadata
+	(*JobRunEvent)(nil),                              // 76: mgmt.v1alpha1.JobRunEvent
+	(*GetJobRunEventsRequest)(nil),                   // 77: mgmt.v1alpha1.GetJobRunEventsRequest
+	(*GetJobRunEventsResponse)(nil),                  // 78: mgmt.v1alpha1.GetJobRunEventsResponse
+	(*DeleteJobRunRequest)(nil),                      // 79: mgmt.v1alpha1.DeleteJobRunRequest
+	(*DeleteJobRunResponse)(nil),                     // 80: mgmt.v1alpha1.DeleteJobRunResponse
+	(*GetTransformersRequest)(nil),                   // 81: mgmt.v1alpha1.GetTransformersRequest
+	(*GetTransformersResponse)(nil),                  // 82: mgmt.v1alpha1.GetTransformersResponse
+	(*Transformer)(nil),                              // 83: mgmt.v1alpha1.Transformer
+	(*TransformerConfig)(nil),                        // 84: mgmt.v1alpha1.TransformerConfig
+	(*EmailConfig)(nil),                              // 85: mgmt.v1alpha1.EmailConfig
+	(*Passthrough)(nil),                              // 86: mgmt.v1alpha1.Passthrough
+	(*Uuid)(nil),                                     // 87: mgmt.v1alpha1.Uuid
+	(*FirstName)(nil),                                // 88: mgmt.v1alpha1.FirstName
+	(*LastName)(nil),                                 // 89: mgmt.v1alpha1.LastName
+	(*FullName)(nil),                                 // 90: mgmt.v1alpha1.FullName
+	(*PhoneNumber)(nil),                              // 91: mgmt.v1alpha1.PhoneNumber
+	(*IntPhoneNumber)(nil),                           // 92: mgmt.v1alpha1.IntPhoneNumber
+	(*RandomString)(nil),                             // 93: mgmt.v1alpha1.RandomString
+	(*Null)(nil),                                     // 94: mgmt.v1alpha1.Null
+	(*RandomBool)(nil),                               // 95: mgmt.v1alpha1.RandomBool
+	(*RandomInt)(nil),                                // 96: mgmt.v1alpha1.RandomInt
+	(*timestamppb.Timestamp)(nil),                    // 97: google.protobuf.Timestamp
 }
 var file_mgmt_v1alpha1_job_proto_depIdxs = []int32{
-	49, // 0: mgmt.v1alpha1.GetJobsResponse.jobs:type_name -> mgmt.v1alpha1.Job
-	9,  // 1: mgmt.v1alpha1.JobSource.options:type_name -> mgmt.v1alpha1.JobSourceOptions
-	14, // 2: mgmt.v1alpha1.CreateJobDestination.options:type_name -> mgmt.v1alpha1.JobDestinationOptions
-	14, // 3: mgmt.v1alpha1.JobDestination.options:type_name -> mgmt.v1alpha1.JobDestinationOptions
-	10, // 4: mgmt.v1alpha1.JobSourceOptions.sql_options:type_name -> mgmt.v1alpha1.SqlSourceConnectionOptions
-	13, // 5: mgmt.v1alpha1.JobSourceOptions.aws_s3_options:type_name -> mgmt.v1alpha1.AwsS3SourceConnectionOptions
-	11, // 6: mgmt.v1alpha1.SqlSourceConnectionOptions.schemas:type_name -> mgmt.v1alpha1.SqlSourceSchemaOption
-	12, // 7: mgmt.v1alpha1.SqlSourceSchemaOption.tables:type_name -> mgmt.v1alpha1.SqlSourceTableOption
-	15, // 8: mgmt.v1alpha1.JobDestinationOptions.sql_options:type_name -> mgmt.v1alpha1.SqlDestinationConnectionOptions
-	17, // 9: mgmt.v1alpha1.JobDestinationOptions.aws_s3_options:type_name -> mgmt.v1alpha1.AwsS3DestinationConnectionOptions
-	16, // 10: mgmt.v1alpha1.SqlDestinationConnectionOptions.truncate_table:type_name -> mgmt.v1alpha1.TruncateTableConfig
-	20, // 11: mgmt.v1alpha1.CreateJobRequest.mappings:type_name -> mgmt.v1alpha1.JobMapping
-	6,  // 12: mgmt.v1alpha1.CreateJobRequest.source:type_name -> mgmt.v1alpha1.JobSource
-	7,  // 13: mgmt.v1alpha1.CreateJobRequest.destinations:type_name -> mgmt.v1alpha1.CreateJobDestination
-	49, // 14: mgmt.v1alpha1.CreateJobResponse.job:type_name -> mgmt.v1alpha1.Job
-	76, // 15: mgmt.v1alpha1.JobMapping.transformer:type_name -> mgmt.v1alpha1.Transformer
-	49, // 16: mgmt.v1alpha1.GetJobResponse.job:type_name -> mgmt.v1alpha1.Job
-	49, // 17: mgmt.v1alpha1.UpdateJobScheduleResponse.job:type_name -> mgmt.v1alpha1.Job
-	49, // 18: mgmt.v1alpha1.PauseJobResponse.job:type_name -> mgmt.v1alpha1.Job
-	6,  // 19: mgmt.v1alpha1.UpdateJobSourceConnectionRequest.source:type_name -> mgmt.v1alpha1.JobSource
-	20, // 20: mgmt.v1alpha1.UpdateJobSourceConnectionRequest.mappings:type_name -> mgmt.v1alpha1.JobMapping
-	49, // 21: mgmt.v1alpha1.UpdateJobSourceConnectionResponse.job:type_name -> mgmt.v1alpha1.Job
-	11, // 22: mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest.schemas:type_name -> mgmt.v1alpha1.SqlSourceSchemaOption
-	49, // 23: mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse.job:type_name -> mgmt.v1alpha1.Job
-	14, // 24: mgmt.v1alpha1.UpdateJobDestinationConnectionRequest.options:type_name -> mgmt.v1alpha1.JobDestinationOptions
-	49, // 25: mgmt.v1alpha1.UpdateJobDestinationConnectionResponse.job:type_name -> mgmt.v1alpha1.Job
-	7,  // 26: mgmt.v1alpha1.CreateJobDestinationConnectionsRequest.destinations:type_name -> mgmt.v1alpha1.CreateJobDestination
-	49, // 27: mgmt.v1alpha1.CreateJobDestinationConnectionsResponse.job:type_name -> mgmt.v1alpha1.Job
-	64, // 28: mgmt.v1alpha1.GetJobRunsResponse.job_runs:type_name -> mgmt.v1alpha1.JobRun
-	64, // 29: mgmt.v1alpha1.GetJobRunResponse.job_run:type_name -> mgmt.v1alpha1.JobRun
-	90, // 30: mgmt.v1alpha1.Job.created_at:type_name -> google.protobuf.Timestamp
-	90, // 31: mgmt.v1alpha1.Job.updated_at:type_name -> google.protobuf.Timestamp
-	6,  // 32: mgmt.v1alpha1.Job.source:type_name -> mgmt.v1alpha1.JobSource
-	8,  // 33: mgmt.v1alpha1.Job.destinations:type_name -> mgmt.v1alpha1.JobDestination
-	20, // 34: mgmt.v1alpha1.Job.mappings:type_name -> mgmt.v1alpha1.JobMapping
-	90, // 35: mgmt.v1alpha1.JobRecentRun.start_time:type_name -> google.protobuf.Timestamp
-	50, // 36: mgmt.v1alpha1.JobRecentRuns.runs:type_name -> mgmt.v1alpha1.JobRecentRun
-	51, // 37: mgmt.v1alpha1.GetJobRecentRunsResponse.recent_runs:type_name -> mgmt.v1alpha1.JobRecentRuns
-	90, // 38: mgmt.v1alpha1.JobNextRuns.next_run_times:type_name -> google.protobuf.Timestamp
-	54, // 39: mgmt.v1alpha1.GetJobNextRunsResponse.next_runs:type_name -> mgmt.v1alpha1.JobNextRuns
-	0,  // 40: mgmt.v1alpha1.GetJobStatusResponse.status:type_name -> mgmt.v1alpha1.JobStatus
-	0,  // 41: mgmt.v1alpha1.JobStatusRecord.status:type_name -> mgmt.v1alpha1.JobStatus
-	59, // 42: mgmt.v1alpha1.GetJobStatusesResponse.statuses:type_name -> mgmt.v1alpha1.JobStatusRecord
-	1,  // 43: mgmt.v1alpha1.PendingActivity.status:type_name -> mgmt.v1alpha1.ActivityStatus
-	62, // 44: mgmt.v1alpha1.PendingActivity.last_failure:type_name -> mgmt.v1alpha1.ActivityFailure
-	2,  // 45: mgmt.v1alpha1.JobRun.status:type_name -> mgmt.v1alpha1.JobRunStatus
-	90, // 46: mgmt.v1alpha1.JobRun.started_at:type_name -> google.protobuf.Timestamp
-	90, // 47: mgmt.v1alpha1.JobRun.completed_at:type_name -> google.protobuf.Timestamp
-	63, // 48: mgmt.v1alpha1.JobRun.pending_activities:type_name -> mgmt.v1alpha1.PendingActivity
-	90, // 49: mgmt.v1alpha1.JobRunEventTask.event_time:type_name -> google.protobuf.Timestamp
-	65, // 50: mgmt.v1alpha1.JobRunEventTask.error:type_name -> mgmt.v1alpha1.JobRunEventTaskError
-	67, // 51: mgmt.v1alpha1.JobRunEventMetadata.sync_metadata:type_name -> mgmt.v1alpha1.JobRunSyncMetadata
-	90, // 52: mgmt.v1alpha1.JobRunEvent.start_time:type_name -> google.protobuf.Timestamp
-	90, // 53: mgmt.v1alpha1.JobRunEvent.close_time:type_name -> google.protobuf.Timestamp
-	68, // 54: mgmt.v1alpha1.JobRunEvent.metadata:type_name -> mgmt.v1alpha1.JobRunEventMetadata
-	66, // 55: mgmt.v1alpha1.JobRunEvent.tasks:type_name -> mgmt.v1alpha1.JobRunEventTask
-	69, // 56: mgmt.v1alpha1.GetJobRunEventsResponse.events:type_name -> mgmt.v1alpha1.JobRunEvent
-	76, // 57: mgmt.v1alpha1.GetTransformersResponse.transformers:type_name -> mgmt.v1alpha1.Transformer
-	77, // 58: mgmt.v1alpha1.Transformer.config:type_name -> mgmt.v1alpha1.TransformerConfig
-	78, // 59: mgmt.v1alpha1.TransformerConfig.email_config:type_name -> mgmt.v1alpha1.EmailConfig
-	79, // 60: mgmt.v1alpha1.TransformerConfig.passthrough_config:type_name -> mgmt.v1alpha1.Passthrough
-	80, // 61: mgmt.v1alpha1.TransformerConfig.uuid_config:type_name -> mgmt.v1alpha1.Uuid
-	81, // 62: mgmt.v1alpha1.TransformerConfig.first_name_config:type_name -> mgmt.v1alpha1.FirstName
-	82, // 63: mgmt.v1alpha1.TransformerConfig.last_name_config:type_name -> mgmt.v1alpha1.LastName
-	83, // 64: mgmt.v1alpha1.TransformerConfig.full_name_config:type_name -> mgmt.v1alpha1.FullName
-	84, // 65: mgmt.v1alpha1.TransformerConfig.phone_number_config:type_name -> mgmt.v1alpha1.PhoneNumber
-	85, // 66: mgmt.v1alpha1.TransformerConfig.int_phone_number_config:type_name -> mgmt.v1alpha1.IntPhoneNumber
-	86, // 67: mgmt.v1alpha1.TransformerConfig.random_string_config:type_name -> mgmt.v1alpha1.RandomString
-	88, // 68: mgmt.v1alpha1.TransformerConfig.random_bool_config:type_name -> mgmt.v1alpha1.RandomBool
-	89, // 69: mgmt.v1alpha1.TransformerConfig.random_int_config:type_name -> mgmt.v1alpha1.RandomInt
-	87, // 70: mgmt.v1alpha1.TransformerConfig.null_config:type_name -> mgmt.v1alpha1.Null
-	3,  // 71: mgmt.v1alpha1.RandomString.str_case:type_name -> mgmt.v1alpha1.RandomString.StringCase
-	4,  // 72: mgmt.v1alpha1.JobService.GetJobs:input_type -> mgmt.v1alpha1.GetJobsRequest
-	21, // 73: mgmt.v1alpha1.JobService.GetJob:input_type -> mgmt.v1alpha1.GetJobRequest
-	18, // 74: mgmt.v1alpha1.JobService.CreateJob:input_type -> mgmt.v1alpha1.CreateJobRequest
-	37, // 75: mgmt.v1alpha1.JobService.DeleteJob:input_type -> mgmt.v1alpha1.DeleteJobRequest
-	39, // 76: mgmt.v1alpha1.JobService.IsJobNameAvailable:input_type -> mgmt.v1alpha1.IsJobNameAvailableRequest
-	23, // 77: mgmt.v1alpha1.JobService.UpdateJobSchedule:input_type -> mgmt.v1alpha1.UpdateJobScheduleRequest
-	27, // 78: mgmt.v1alpha1.JobService.UpdateJobSourceConnection:input_type -> mgmt.v1alpha1.UpdateJobSourceConnectionRequest
-	29, // 79: mgmt.v1alpha1.JobService.SetJobSourceSqlConnectionSubsets:input_type -> mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest
-	31, // 80: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection:input_type -> mgmt.v1alpha1.UpdateJobDestinationConnectionRequest
-	33, // 81: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection:input_type -> mgmt.v1alpha1.DeleteJobDestinationConnectionRequest
-	35, // 82: mgmt.v1alpha1.JobService.CreateJobDestinationConnections:input_type -> mgmt.v1alpha1.CreateJobDestinationConnectionsRequest
-	25, // 83: mgmt.v1alpha1.JobService.PauseJob:input_type -> mgmt.v1alpha1.PauseJobRequest
-	52, // 84: mgmt.v1alpha1.JobService.GetJobRecentRuns:input_type -> mgmt.v1alpha1.GetJobRecentRunsRequest
-	55, // 85: mgmt.v1alpha1.JobService.GetJobNextRuns:input_type -> mgmt.v1alpha1.GetJobNextRunsRequest
-	57, // 86: mgmt.v1alpha1.JobService.GetJobStatus:input_type -> mgmt.v1alpha1.GetJobStatusRequest
-	60, // 87: mgmt.v1alpha1.JobService.GetJobStatuses:input_type -> mgmt.v1alpha1.GetJobStatusesRequest
-	41, // 88: mgmt.v1alpha1.JobService.GetJobRuns:input_type -> mgmt.v1alpha1.GetJobRunsRequest
-	70, // 89: mgmt.v1alpha1.JobService.GetJobRunEvents:input_type -> mgmt.v1alpha1.GetJobRunEventsRequest
-	43, // 90: mgmt.v1alpha1.JobService.GetJobRun:input_type -> mgmt.v1alpha1.GetJobRunRequest
-	72, // 91: mgmt.v1alpha1.JobService.DeleteJobRun:input_type -> mgmt.v1alpha1.DeleteJobRunRequest
-	45, // 92: mgmt.v1alpha1.JobService.CreateJobRun:input_type -> mgmt.v1alpha1.CreateJobRunRequest
-	47, // 93: mgmt.v1alpha1.JobService.CancelJobRun:input_type -> mgmt.v1alpha1.CancelJobRunRequest
-	74, // 94: mgmt.v1alpha1.JobService.GetTransformers:input_type -> mgmt.v1alpha1.GetTransformersRequest
-	5,  // 95: mgmt.v1alpha1.JobService.GetJobs:output_type -> mgmt.v1alpha1.GetJobsResponse
-	22, // 96: mgmt.v1alpha1.JobService.GetJob:output_type -> mgmt.v1alpha1.GetJobResponse
-	19, // 97: mgmt.v1alpha1.JobService.CreateJob:output_type -> mgmt.v1alpha1.CreateJobResponse
-	38, // 98: mgmt.v1alpha1.JobService.DeleteJob:output_type -> mgmt.v1alpha1.DeleteJobResponse
-	40, // 99: mgmt.v1alpha1.JobService.IsJobNameAvailable:output_type -> mgmt.v1alpha1.IsJobNameAvailableResponse
-	24, // 100: mgmt.v1alpha1.JobService.UpdateJobSchedule:output_type -> mgmt.v1alpha1.UpdateJobScheduleResponse
-	28, // 101: mgmt.v1alpha1.JobService.UpdateJobSourceConnection:output_type -> mgmt.v1alpha1.UpdateJobSourceConnectionResponse
-	30, // 102: mgmt.v1alpha1.JobService.SetJobSourceSqlConnectionSubsets:output_type -> mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse
-	32, // 103: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection:output_type -> mgmt.v1alpha1.UpdateJobDestinationConnectionResponse
-	34, // 104: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection:output_type -> mgmt.v1alpha1.DeleteJobDestinationConnectionResponse
-	36, // 105: mgmt.v1alpha1.JobService.CreateJobDestinationConnections:output_type -> mgmt.v1alpha1.CreateJobDestinationConnectionsResponse
-	26, // 106: mgmt.v1alpha1.JobService.PauseJob:output_type -> mgmt.v1alpha1.PauseJobResponse
-	53, // 107: mgmt.v1alpha1.JobService.GetJobRecentRuns:output_type -> mgmt.v1alpha1.GetJobRecentRunsResponse
-	56, // 108: mgmt.v1alpha1.JobService.GetJobNextRuns:output_type -> mgmt.v1alpha1.GetJobNextRunsResponse
-	58, // 109: mgmt.v1alpha1.JobService.GetJobStatus:output_type -> mgmt.v1alpha1.GetJobStatusResponse
-	61, // 110: mgmt.v1alpha1.JobService.GetJobStatuses:output_type -> mgmt.v1alpha1.GetJobStatusesResponse
-	42, // 111: mgmt.v1alpha1.JobService.GetJobRuns:output_type -> mgmt.v1alpha1.GetJobRunsResponse
-	71, // 112: mgmt.v1alpha1.JobService.GetJobRunEvents:output_type -> mgmt.v1alpha1.GetJobRunEventsResponse
-	44, // 113: mgmt.v1alpha1.JobService.GetJobRun:output_type -> mgmt.v1alpha1.GetJobRunResponse
-	73, // 114: mgmt.v1alpha1.JobService.DeleteJobRun:output_type -> mgmt.v1alpha1.DeleteJobRunResponse
-	46, // 115: mgmt.v1alpha1.JobService.CreateJobRun:output_type -> mgmt.v1alpha1.CreateJobRunResponse
-	48, // 116: mgmt.v1alpha1.JobService.CancelJobRun:output_type -> mgmt.v1alpha1.CancelJobRunResponse
-	75, // 117: mgmt.v1alpha1.JobService.GetTransformers:output_type -> mgmt.v1alpha1.GetTransformersResponse
-	95, // [95:118] is the sub-list for method output_type
-	72, // [72:95] is the sub-list for method input_type
-	72, // [72:72] is the sub-list for extension type_name
-	72, // [72:72] is the sub-list for extension extendee
-	0,  // [0:72] is the sub-list for field type_name
+	56,  // 0: mgmt.v1alpha1.GetJobsResponse.jobs:type_name -> mgmt.v1alpha1.Job
+	9,   // 1: mgmt.v1alpha1.JobSource.options:type_name -> mgmt.v1alpha1.JobSourceOptions
+	17,  // 2: mgmt.v1alpha1.CreateJobDestination.options:type_name -> mgmt.v1alpha1.JobDestinationOptions
+	17,  // 3: mgmt.v1alpha1.JobDestination.options:type_name -> mgmt.v1alpha1.JobDestinationOptions
+	10,  // 4: mgmt.v1alpha1.JobSourceOptions.postgres_options:type_name -> mgmt.v1alpha1.PostgresSourceConnectionOptions
+	16,  // 5: mgmt.v1alpha1.JobSourceOptions.aws_s3_options:type_name -> mgmt.v1alpha1.AwsS3SourceConnectionOptions
+	13,  // 6: mgmt.v1alpha1.JobSourceOptions.mysql_options:type_name -> mgmt.v1alpha1.MysqlSourceConnectionOptions
+	11,  // 7: mgmt.v1alpha1.PostgresSourceConnectionOptions.schemas:type_name -> mgmt.v1alpha1.PostgresSourceSchemaOption
+	12,  // 8: mgmt.v1alpha1.PostgresSourceSchemaOption.tables:type_name -> mgmt.v1alpha1.PostgresSourceTableOption
+	11,  // 9: mgmt.v1alpha1.MysqlSourceConnectionOptions.schemas:type_name -> mgmt.v1alpha1.PostgresSourceSchemaOption
+	12,  // 10: mgmt.v1alpha1.MysqlSourceSchemaOption.tables:type_name -> mgmt.v1alpha1.PostgresSourceTableOption
+	18,  // 11: mgmt.v1alpha1.JobDestinationOptions.postgres_options:type_name -> mgmt.v1alpha1.PostgresDestinationConnectionOptions
+	22,  // 12: mgmt.v1alpha1.JobDestinationOptions.aws_s3_options:type_name -> mgmt.v1alpha1.AwsS3DestinationConnectionOptions
+	20,  // 13: mgmt.v1alpha1.JobDestinationOptions.mysql_options:type_name -> mgmt.v1alpha1.MysqlDestinationConnectionOptions
+	19,  // 14: mgmt.v1alpha1.PostgresDestinationConnectionOptions.truncate_table:type_name -> mgmt.v1alpha1.PostgresTruncateTableConfig
+	21,  // 15: mgmt.v1alpha1.MysqlDestinationConnectionOptions.truncate_table:type_name -> mgmt.v1alpha1.MysqlTruncateTableConfig
+	25,  // 16: mgmt.v1alpha1.CreateJobRequest.mappings:type_name -> mgmt.v1alpha1.JobMapping
+	6,   // 17: mgmt.v1alpha1.CreateJobRequest.source:type_name -> mgmt.v1alpha1.JobSource
+	7,   // 18: mgmt.v1alpha1.CreateJobRequest.destinations:type_name -> mgmt.v1alpha1.CreateJobDestination
+	56,  // 19: mgmt.v1alpha1.CreateJobResponse.job:type_name -> mgmt.v1alpha1.Job
+	83,  // 20: mgmt.v1alpha1.JobMapping.transformer:type_name -> mgmt.v1alpha1.Transformer
+	56,  // 21: mgmt.v1alpha1.GetJobResponse.job:type_name -> mgmt.v1alpha1.Job
+	56,  // 22: mgmt.v1alpha1.UpdateJobScheduleResponse.job:type_name -> mgmt.v1alpha1.Job
+	56,  // 23: mgmt.v1alpha1.PauseJobResponse.job:type_name -> mgmt.v1alpha1.Job
+	6,   // 24: mgmt.v1alpha1.UpdateJobSourceConnectionRequest.source:type_name -> mgmt.v1alpha1.JobSource
+	25,  // 25: mgmt.v1alpha1.UpdateJobSourceConnectionRequest.mappings:type_name -> mgmt.v1alpha1.JobMapping
+	56,  // 26: mgmt.v1alpha1.UpdateJobSourceConnectionResponse.job:type_name -> mgmt.v1alpha1.Job
+	11,  // 27: mgmt.v1alpha1.PostgresSourceSchemaSubset.postgres_schemas:type_name -> mgmt.v1alpha1.PostgresSourceSchemaOption
+	14,  // 28: mgmt.v1alpha1.MysqlSourceSchemaSubset.mysql_schemas:type_name -> mgmt.v1alpha1.MysqlSourceSchemaOption
+	34,  // 29: mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest.postgres_subset:type_name -> mgmt.v1alpha1.PostgresSourceSchemaSubset
+	35,  // 30: mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest.mysql_subset:type_name -> mgmt.v1alpha1.MysqlSourceSchemaSubset
+	56,  // 31: mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse.job:type_name -> mgmt.v1alpha1.Job
+	17,  // 32: mgmt.v1alpha1.UpdateJobDestinationConnectionRequest.options:type_name -> mgmt.v1alpha1.JobDestinationOptions
+	56,  // 33: mgmt.v1alpha1.UpdateJobDestinationConnectionResponse.job:type_name -> mgmt.v1alpha1.Job
+	7,   // 34: mgmt.v1alpha1.CreateJobDestinationConnectionsRequest.destinations:type_name -> mgmt.v1alpha1.CreateJobDestination
+	56,  // 35: mgmt.v1alpha1.CreateJobDestinationConnectionsResponse.job:type_name -> mgmt.v1alpha1.Job
+	71,  // 36: mgmt.v1alpha1.GetJobRunsResponse.job_runs:type_name -> mgmt.v1alpha1.JobRun
+	71,  // 37: mgmt.v1alpha1.GetJobRunResponse.job_run:type_name -> mgmt.v1alpha1.JobRun
+	97,  // 38: mgmt.v1alpha1.Job.created_at:type_name -> google.protobuf.Timestamp
+	97,  // 39: mgmt.v1alpha1.Job.updated_at:type_name -> google.protobuf.Timestamp
+	6,   // 40: mgmt.v1alpha1.Job.source:type_name -> mgmt.v1alpha1.JobSource
+	8,   // 41: mgmt.v1alpha1.Job.destinations:type_name -> mgmt.v1alpha1.JobDestination
+	25,  // 42: mgmt.v1alpha1.Job.mappings:type_name -> mgmt.v1alpha1.JobMapping
+	97,  // 43: mgmt.v1alpha1.JobRecentRun.start_time:type_name -> google.protobuf.Timestamp
+	57,  // 44: mgmt.v1alpha1.JobRecentRuns.runs:type_name -> mgmt.v1alpha1.JobRecentRun
+	58,  // 45: mgmt.v1alpha1.GetJobRecentRunsResponse.recent_runs:type_name -> mgmt.v1alpha1.JobRecentRuns
+	97,  // 46: mgmt.v1alpha1.JobNextRuns.next_run_times:type_name -> google.protobuf.Timestamp
+	61,  // 47: mgmt.v1alpha1.GetJobNextRunsResponse.next_runs:type_name -> mgmt.v1alpha1.JobNextRuns
+	0,   // 48: mgmt.v1alpha1.GetJobStatusResponse.status:type_name -> mgmt.v1alpha1.JobStatus
+	0,   // 49: mgmt.v1alpha1.JobStatusRecord.status:type_name -> mgmt.v1alpha1.JobStatus
+	66,  // 50: mgmt.v1alpha1.GetJobStatusesResponse.statuses:type_name -> mgmt.v1alpha1.JobStatusRecord
+	1,   // 51: mgmt.v1alpha1.PendingActivity.status:type_name -> mgmt.v1alpha1.ActivityStatus
+	69,  // 52: mgmt.v1alpha1.PendingActivity.last_failure:type_name -> mgmt.v1alpha1.ActivityFailure
+	2,   // 53: mgmt.v1alpha1.JobRun.status:type_name -> mgmt.v1alpha1.JobRunStatus
+	97,  // 54: mgmt.v1alpha1.JobRun.started_at:type_name -> google.protobuf.Timestamp
+	97,  // 55: mgmt.v1alpha1.JobRun.completed_at:type_name -> google.protobuf.Timestamp
+	70,  // 56: mgmt.v1alpha1.JobRun.pending_activities:type_name -> mgmt.v1alpha1.PendingActivity
+	97,  // 57: mgmt.v1alpha1.JobRunEventTask.event_time:type_name -> google.protobuf.Timestamp
+	72,  // 58: mgmt.v1alpha1.JobRunEventTask.error:type_name -> mgmt.v1alpha1.JobRunEventTaskError
+	74,  // 59: mgmt.v1alpha1.JobRunEventMetadata.sync_metadata:type_name -> mgmt.v1alpha1.JobRunSyncMetadata
+	97,  // 60: mgmt.v1alpha1.JobRunEvent.start_time:type_name -> google.protobuf.Timestamp
+	97,  // 61: mgmt.v1alpha1.JobRunEvent.close_time:type_name -> google.protobuf.Timestamp
+	75,  // 62: mgmt.v1alpha1.JobRunEvent.metadata:type_name -> mgmt.v1alpha1.JobRunEventMetadata
+	73,  // 63: mgmt.v1alpha1.JobRunEvent.tasks:type_name -> mgmt.v1alpha1.JobRunEventTask
+	76,  // 64: mgmt.v1alpha1.GetJobRunEventsResponse.events:type_name -> mgmt.v1alpha1.JobRunEvent
+	83,  // 65: mgmt.v1alpha1.GetTransformersResponse.transformers:type_name -> mgmt.v1alpha1.Transformer
+	84,  // 66: mgmt.v1alpha1.Transformer.config:type_name -> mgmt.v1alpha1.TransformerConfig
+	85,  // 67: mgmt.v1alpha1.TransformerConfig.email_config:type_name -> mgmt.v1alpha1.EmailConfig
+	86,  // 68: mgmt.v1alpha1.TransformerConfig.passthrough_config:type_name -> mgmt.v1alpha1.Passthrough
+	87,  // 69: mgmt.v1alpha1.TransformerConfig.uuid_config:type_name -> mgmt.v1alpha1.Uuid
+	88,  // 70: mgmt.v1alpha1.TransformerConfig.first_name_config:type_name -> mgmt.v1alpha1.FirstName
+	89,  // 71: mgmt.v1alpha1.TransformerConfig.last_name_config:type_name -> mgmt.v1alpha1.LastName
+	90,  // 72: mgmt.v1alpha1.TransformerConfig.full_name_config:type_name -> mgmt.v1alpha1.FullName
+	91,  // 73: mgmt.v1alpha1.TransformerConfig.phone_number_config:type_name -> mgmt.v1alpha1.PhoneNumber
+	92,  // 74: mgmt.v1alpha1.TransformerConfig.int_phone_number_config:type_name -> mgmt.v1alpha1.IntPhoneNumber
+	93,  // 75: mgmt.v1alpha1.TransformerConfig.random_string_config:type_name -> mgmt.v1alpha1.RandomString
+	95,  // 76: mgmt.v1alpha1.TransformerConfig.random_bool_config:type_name -> mgmt.v1alpha1.RandomBool
+	96,  // 77: mgmt.v1alpha1.TransformerConfig.random_int_config:type_name -> mgmt.v1alpha1.RandomInt
+	94,  // 78: mgmt.v1alpha1.TransformerConfig.null_config:type_name -> mgmt.v1alpha1.Null
+	3,   // 79: mgmt.v1alpha1.RandomString.str_case:type_name -> mgmt.v1alpha1.RandomString.StringCase
+	4,   // 80: mgmt.v1alpha1.JobService.GetJobs:input_type -> mgmt.v1alpha1.GetJobsRequest
+	26,  // 81: mgmt.v1alpha1.JobService.GetJob:input_type -> mgmt.v1alpha1.GetJobRequest
+	23,  // 82: mgmt.v1alpha1.JobService.CreateJob:input_type -> mgmt.v1alpha1.CreateJobRequest
+	44,  // 83: mgmt.v1alpha1.JobService.DeleteJob:input_type -> mgmt.v1alpha1.DeleteJobRequest
+	46,  // 84: mgmt.v1alpha1.JobService.IsJobNameAvailable:input_type -> mgmt.v1alpha1.IsJobNameAvailableRequest
+	28,  // 85: mgmt.v1alpha1.JobService.UpdateJobSchedule:input_type -> mgmt.v1alpha1.UpdateJobScheduleRequest
+	32,  // 86: mgmt.v1alpha1.JobService.UpdateJobSourceConnection:input_type -> mgmt.v1alpha1.UpdateJobSourceConnectionRequest
+	36,  // 87: mgmt.v1alpha1.JobService.SetJobSourceSqlConnectionSubsets:input_type -> mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest
+	38,  // 88: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection:input_type -> mgmt.v1alpha1.UpdateJobDestinationConnectionRequest
+	40,  // 89: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection:input_type -> mgmt.v1alpha1.DeleteJobDestinationConnectionRequest
+	42,  // 90: mgmt.v1alpha1.JobService.CreateJobDestinationConnections:input_type -> mgmt.v1alpha1.CreateJobDestinationConnectionsRequest
+	30,  // 91: mgmt.v1alpha1.JobService.PauseJob:input_type -> mgmt.v1alpha1.PauseJobRequest
+	59,  // 92: mgmt.v1alpha1.JobService.GetJobRecentRuns:input_type -> mgmt.v1alpha1.GetJobRecentRunsRequest
+	62,  // 93: mgmt.v1alpha1.JobService.GetJobNextRuns:input_type -> mgmt.v1alpha1.GetJobNextRunsRequest
+	64,  // 94: mgmt.v1alpha1.JobService.GetJobStatus:input_type -> mgmt.v1alpha1.GetJobStatusRequest
+	67,  // 95: mgmt.v1alpha1.JobService.GetJobStatuses:input_type -> mgmt.v1alpha1.GetJobStatusesRequest
+	48,  // 96: mgmt.v1alpha1.JobService.GetJobRuns:input_type -> mgmt.v1alpha1.GetJobRunsRequest
+	77,  // 97: mgmt.v1alpha1.JobService.GetJobRunEvents:input_type -> mgmt.v1alpha1.GetJobRunEventsRequest
+	50,  // 98: mgmt.v1alpha1.JobService.GetJobRun:input_type -> mgmt.v1alpha1.GetJobRunRequest
+	79,  // 99: mgmt.v1alpha1.JobService.DeleteJobRun:input_type -> mgmt.v1alpha1.DeleteJobRunRequest
+	52,  // 100: mgmt.v1alpha1.JobService.CreateJobRun:input_type -> mgmt.v1alpha1.CreateJobRunRequest
+	54,  // 101: mgmt.v1alpha1.JobService.CancelJobRun:input_type -> mgmt.v1alpha1.CancelJobRunRequest
+	81,  // 102: mgmt.v1alpha1.JobService.GetTransformers:input_type -> mgmt.v1alpha1.GetTransformersRequest
+	5,   // 103: mgmt.v1alpha1.JobService.GetJobs:output_type -> mgmt.v1alpha1.GetJobsResponse
+	27,  // 104: mgmt.v1alpha1.JobService.GetJob:output_type -> mgmt.v1alpha1.GetJobResponse
+	24,  // 105: mgmt.v1alpha1.JobService.CreateJob:output_type -> mgmt.v1alpha1.CreateJobResponse
+	45,  // 106: mgmt.v1alpha1.JobService.DeleteJob:output_type -> mgmt.v1alpha1.DeleteJobResponse
+	47,  // 107: mgmt.v1alpha1.JobService.IsJobNameAvailable:output_type -> mgmt.v1alpha1.IsJobNameAvailableResponse
+	29,  // 108: mgmt.v1alpha1.JobService.UpdateJobSchedule:output_type -> mgmt.v1alpha1.UpdateJobScheduleResponse
+	33,  // 109: mgmt.v1alpha1.JobService.UpdateJobSourceConnection:output_type -> mgmt.v1alpha1.UpdateJobSourceConnectionResponse
+	37,  // 110: mgmt.v1alpha1.JobService.SetJobSourceSqlConnectionSubsets:output_type -> mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse
+	39,  // 111: mgmt.v1alpha1.JobService.UpdateJobDestinationConnection:output_type -> mgmt.v1alpha1.UpdateJobDestinationConnectionResponse
+	41,  // 112: mgmt.v1alpha1.JobService.DeleteJobDestinationConnection:output_type -> mgmt.v1alpha1.DeleteJobDestinationConnectionResponse
+	43,  // 113: mgmt.v1alpha1.JobService.CreateJobDestinationConnections:output_type -> mgmt.v1alpha1.CreateJobDestinationConnectionsResponse
+	31,  // 114: mgmt.v1alpha1.JobService.PauseJob:output_type -> mgmt.v1alpha1.PauseJobResponse
+	60,  // 115: mgmt.v1alpha1.JobService.GetJobRecentRuns:output_type -> mgmt.v1alpha1.GetJobRecentRunsResponse
+	63,  // 116: mgmt.v1alpha1.JobService.GetJobNextRuns:output_type -> mgmt.v1alpha1.GetJobNextRunsResponse
+	65,  // 117: mgmt.v1alpha1.JobService.GetJobStatus:output_type -> mgmt.v1alpha1.GetJobStatusResponse
+	68,  // 118: mgmt.v1alpha1.JobService.GetJobStatuses:output_type -> mgmt.v1alpha1.GetJobStatusesResponse
+	49,  // 119: mgmt.v1alpha1.JobService.GetJobRuns:output_type -> mgmt.v1alpha1.GetJobRunsResponse
+	78,  // 120: mgmt.v1alpha1.JobService.GetJobRunEvents:output_type -> mgmt.v1alpha1.GetJobRunEventsResponse
+	51,  // 121: mgmt.v1alpha1.JobService.GetJobRun:output_type -> mgmt.v1alpha1.GetJobRunResponse
+	80,  // 122: mgmt.v1alpha1.JobService.DeleteJobRun:output_type -> mgmt.v1alpha1.DeleteJobRunResponse
+	53,  // 123: mgmt.v1alpha1.JobService.CreateJobRun:output_type -> mgmt.v1alpha1.CreateJobRunResponse
+	55,  // 124: mgmt.v1alpha1.JobService.CancelJobRun:output_type -> mgmt.v1alpha1.CancelJobRunResponse
+	82,  // 125: mgmt.v1alpha1.JobService.GetTransformers:output_type -> mgmt.v1alpha1.GetTransformersResponse
+	103, // [103:126] is the sub-list for method output_type
+	80,  // [80:103] is the sub-list for method input_type
+	80,  // [80:80] is the sub-list for extension type_name
+	80,  // [80:80] is the sub-list for extension extendee
+	0,   // [0:80] is the sub-list for field type_name
 }
 
 func init() { file_mgmt_v1alpha1_job_proto_init() }
@@ -6114,7 +6630,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SqlSourceConnectionOptions); i {
+			switch v := v.(*PostgresSourceConnectionOptions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6126,7 +6642,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SqlSourceSchemaOption); i {
+			switch v := v.(*PostgresSourceSchemaOption); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6138,7 +6654,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SqlSourceTableOption); i {
+			switch v := v.(*PostgresSourceTableOption); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6150,7 +6666,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AwsS3SourceConnectionOptions); i {
+			switch v := v.(*MysqlSourceConnectionOptions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6162,7 +6678,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobDestinationOptions); i {
+			switch v := v.(*MysqlSourceSchemaOption); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6174,7 +6690,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SqlDestinationConnectionOptions); i {
+			switch v := v.(*MysqlSourceTableOption); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6186,7 +6702,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TruncateTableConfig); i {
+			switch v := v.(*AwsS3SourceConnectionOptions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6198,7 +6714,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*AwsS3DestinationConnectionOptions); i {
+			switch v := v.(*JobDestinationOptions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6210,7 +6726,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateJobRequest); i {
+			switch v := v.(*PostgresDestinationConnectionOptions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6222,7 +6738,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateJobResponse); i {
+			switch v := v.(*PostgresTruncateTableConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6234,7 +6750,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobMapping); i {
+			switch v := v.(*MysqlDestinationConnectionOptions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6246,7 +6762,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobRequest); i {
+			switch v := v.(*MysqlTruncateTableConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6258,7 +6774,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobResponse); i {
+			switch v := v.(*AwsS3DestinationConnectionOptions); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6270,7 +6786,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateJobScheduleRequest); i {
+			switch v := v.(*CreateJobRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6282,7 +6798,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateJobScheduleResponse); i {
+			switch v := v.(*CreateJobResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6294,7 +6810,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PauseJobRequest); i {
+			switch v := v.(*JobMapping); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6306,7 +6822,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PauseJobResponse); i {
+			switch v := v.(*GetJobRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6318,7 +6834,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateJobSourceConnectionRequest); i {
+			switch v := v.(*GetJobResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6330,7 +6846,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateJobSourceConnectionResponse); i {
+			switch v := v.(*UpdateJobScheduleRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6342,7 +6858,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SetJobSourceSqlConnectionSubsetsRequest); i {
+			switch v := v.(*UpdateJobScheduleResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6354,7 +6870,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SetJobSourceSqlConnectionSubsetsResponse); i {
+			switch v := v.(*PauseJobRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6366,7 +6882,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateJobDestinationConnectionRequest); i {
+			switch v := v.(*PauseJobResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6378,7 +6894,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*UpdateJobDestinationConnectionResponse); i {
+			switch v := v.(*UpdateJobSourceConnectionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6390,7 +6906,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteJobDestinationConnectionRequest); i {
+			switch v := v.(*UpdateJobSourceConnectionResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6402,7 +6918,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteJobDestinationConnectionResponse); i {
+			switch v := v.(*PostgresSourceSchemaSubset); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6414,7 +6930,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateJobDestinationConnectionsRequest); i {
+			switch v := v.(*MysqlSourceSchemaSubset); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6426,7 +6942,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateJobDestinationConnectionsResponse); i {
+			switch v := v.(*SetJobSourceSqlConnectionSubsetsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6438,7 +6954,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteJobRequest); i {
+			switch v := v.(*SetJobSourceSqlConnectionSubsetsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6450,7 +6966,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteJobResponse); i {
+			switch v := v.(*UpdateJobDestinationConnectionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6462,7 +6978,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IsJobNameAvailableRequest); i {
+			switch v := v.(*UpdateJobDestinationConnectionResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6474,7 +6990,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IsJobNameAvailableResponse); i {
+			switch v := v.(*DeleteJobDestinationConnectionRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6486,7 +7002,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobRunsRequest); i {
+			switch v := v.(*DeleteJobDestinationConnectionResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6498,7 +7014,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobRunsResponse); i {
+			switch v := v.(*CreateJobDestinationConnectionsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6510,7 +7026,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobRunRequest); i {
+			switch v := v.(*CreateJobDestinationConnectionsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6522,7 +7038,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobRunResponse); i {
+			switch v := v.(*DeleteJobRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6534,7 +7050,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateJobRunRequest); i {
+			switch v := v.(*DeleteJobResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6546,7 +7062,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreateJobRunResponse); i {
+			switch v := v.(*IsJobNameAvailableRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6558,7 +7074,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CancelJobRunRequest); i {
+			switch v := v.(*IsJobNameAvailableResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6570,7 +7086,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CancelJobRunResponse); i {
+			switch v := v.(*GetJobRunsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6582,7 +7098,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Job); i {
+			switch v := v.(*GetJobRunsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6594,7 +7110,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobRecentRun); i {
+			switch v := v.(*GetJobRunRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6606,7 +7122,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobRecentRuns); i {
+			switch v := v.(*GetJobRunResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6618,7 +7134,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobRecentRunsRequest); i {
+			switch v := v.(*CreateJobRunRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6630,7 +7146,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobRecentRunsResponse); i {
+			switch v := v.(*CreateJobRunResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6642,7 +7158,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobNextRuns); i {
+			switch v := v.(*CancelJobRunRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6654,7 +7170,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobNextRunsRequest); i {
+			switch v := v.(*CancelJobRunResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6666,7 +7182,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobNextRunsResponse); i {
+			switch v := v.(*Job); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6678,7 +7194,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobStatusRequest); i {
+			switch v := v.(*JobRecentRun); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6690,7 +7206,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobStatusResponse); i {
+			switch v := v.(*JobRecentRuns); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6702,7 +7218,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobStatusRecord); i {
+			switch v := v.(*GetJobRecentRunsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6714,7 +7230,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobStatusesRequest); i {
+			switch v := v.(*GetJobRecentRunsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6726,7 +7242,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobStatusesResponse); i {
+			switch v := v.(*JobNextRuns); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6738,7 +7254,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ActivityFailure); i {
+			switch v := v.(*GetJobNextRunsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6750,7 +7266,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[59].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PendingActivity); i {
+			switch v := v.(*GetJobNextRunsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6762,7 +7278,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[60].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobRun); i {
+			switch v := v.(*GetJobStatusRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6774,7 +7290,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[61].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobRunEventTaskError); i {
+			switch v := v.(*GetJobStatusResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6786,7 +7302,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[62].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobRunEventTask); i {
+			switch v := v.(*JobStatusRecord); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6798,7 +7314,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[63].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobRunSyncMetadata); i {
+			switch v := v.(*GetJobStatusesRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6810,7 +7326,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[64].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobRunEventMetadata); i {
+			switch v := v.(*GetJobStatusesResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6822,7 +7338,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[65].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*JobRunEvent); i {
+			switch v := v.(*ActivityFailure); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6834,7 +7350,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[66].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobRunEventsRequest); i {
+			switch v := v.(*PendingActivity); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6846,7 +7362,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[67].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetJobRunEventsResponse); i {
+			switch v := v.(*JobRun); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6858,7 +7374,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[68].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteJobRunRequest); i {
+			switch v := v.(*JobRunEventTaskError); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6870,7 +7386,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[69].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeleteJobRunResponse); i {
+			switch v := v.(*JobRunEventTask); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6882,7 +7398,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[70].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetTransformersRequest); i {
+			switch v := v.(*JobRunSyncMetadata); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6894,7 +7410,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[71].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetTransformersResponse); i {
+			switch v := v.(*JobRunEventMetadata); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6906,7 +7422,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[72].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Transformer); i {
+			switch v := v.(*JobRunEvent); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6918,7 +7434,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[73].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*TransformerConfig); i {
+			switch v := v.(*GetJobRunEventsRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6930,7 +7446,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[74].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EmailConfig); i {
+			switch v := v.(*GetJobRunEventsResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6942,7 +7458,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[75].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Passthrough); i {
+			switch v := v.(*DeleteJobRunRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6954,7 +7470,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[76].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Uuid); i {
+			switch v := v.(*DeleteJobRunResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6966,7 +7482,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[77].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FirstName); i {
+			switch v := v.(*GetTransformersRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6978,7 +7494,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*LastName); i {
+			switch v := v.(*GetTransformersResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6990,7 +7506,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FullName); i {
+			switch v := v.(*Transformer); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7002,7 +7518,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PhoneNumber); i {
+			switch v := v.(*TransformerConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7014,7 +7530,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*IntPhoneNumber); i {
+			switch v := v.(*EmailConfig); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7026,7 +7542,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RandomString); i {
+			switch v := v.(*Passthrough); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7038,7 +7554,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Null); i {
+			switch v := v.(*Uuid); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7050,7 +7566,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RandomBool); i {
+			switch v := v.(*FirstName); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -7062,6 +7578,90 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_job_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*LastName); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*FullName); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[87].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PhoneNumber); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[88].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IntPhoneNumber); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[89].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RandomString); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[90].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Null); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[91].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RandomBool); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_mgmt_v1alpha1_job_proto_msgTypes[92].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RandomInt); i {
 			case 0:
 				return &v.state
@@ -7075,28 +7675,35 @@ func file_mgmt_v1alpha1_job_proto_init() {
 		}
 	}
 	file_mgmt_v1alpha1_job_proto_msgTypes[5].OneofWrappers = []interface{}{
-		(*JobSourceOptions_SqlOptions)(nil),
+		(*JobSourceOptions_PostgresOptions)(nil),
 		(*JobSourceOptions_AwsS3Options)(nil),
+		(*JobSourceOptions_MysqlOptions)(nil),
 	}
 	file_mgmt_v1alpha1_job_proto_msgTypes[8].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_job_proto_msgTypes[10].OneofWrappers = []interface{}{
-		(*JobDestinationOptions_SqlOptions)(nil),
+	file_mgmt_v1alpha1_job_proto_msgTypes[11].OneofWrappers = []interface{}{}
+	file_mgmt_v1alpha1_job_proto_msgTypes[13].OneofWrappers = []interface{}{
+		(*JobDestinationOptions_PostgresOptions)(nil),
 		(*JobDestinationOptions_AwsS3Options)(nil),
+		(*JobDestinationOptions_MysqlOptions)(nil),
 	}
-	file_mgmt_v1alpha1_job_proto_msgTypes[14].OneofWrappers = []interface{}{}
 	file_mgmt_v1alpha1_job_proto_msgTypes[19].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_job_proto_msgTypes[21].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_job_proto_msgTypes[37].OneofWrappers = []interface{}{
+	file_mgmt_v1alpha1_job_proto_msgTypes[24].OneofWrappers = []interface{}{}
+	file_mgmt_v1alpha1_job_proto_msgTypes[26].OneofWrappers = []interface{}{}
+	file_mgmt_v1alpha1_job_proto_msgTypes[32].OneofWrappers = []interface{}{
+		(*SetJobSourceSqlConnectionSubsetsRequest_PostgresSubset)(nil),
+		(*SetJobSourceSqlConnectionSubsetsRequest_MysqlSubset)(nil),
+	}
+	file_mgmt_v1alpha1_job_proto_msgTypes[44].OneofWrappers = []interface{}{
 		(*GetJobRunsRequest_JobId)(nil),
 		(*GetJobRunsRequest_AccountId)(nil),
 	}
-	file_mgmt_v1alpha1_job_proto_msgTypes[45].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_job_proto_msgTypes[59].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_job_proto_msgTypes[60].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_job_proto_msgTypes[64].OneofWrappers = []interface{}{
+	file_mgmt_v1alpha1_job_proto_msgTypes[52].OneofWrappers = []interface{}{}
+	file_mgmt_v1alpha1_job_proto_msgTypes[66].OneofWrappers = []interface{}{}
+	file_mgmt_v1alpha1_job_proto_msgTypes[67].OneofWrappers = []interface{}{}
+	file_mgmt_v1alpha1_job_proto_msgTypes[71].OneofWrappers = []interface{}{
 		(*JobRunEventMetadata_SyncMetadata)(nil),
 	}
-	file_mgmt_v1alpha1_job_proto_msgTypes[73].OneofWrappers = []interface{}{
+	file_mgmt_v1alpha1_job_proto_msgTypes[80].OneofWrappers = []interface{}{
 		(*TransformerConfig_EmailConfig)(nil),
 		(*TransformerConfig_PassthroughConfig)(nil),
 		(*TransformerConfig_UuidConfig)(nil),
@@ -7116,7 +7723,7 @@ func file_mgmt_v1alpha1_job_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_mgmt_v1alpha1_job_proto_rawDesc,
 			NumEnums:      4,
-			NumMessages:   86,
+			NumMessages:   93,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
