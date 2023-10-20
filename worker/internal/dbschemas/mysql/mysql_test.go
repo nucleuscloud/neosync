@@ -68,7 +68,3 @@ func TestGetUniqueSchemaColMappings(t *testing.T) {
 	assert.Contains(t, mappings["neosync_api.accounts"], "id", "")
 
 }
-
-func strPtr(val string) *string {
-	return &val
-}
