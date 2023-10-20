@@ -10,7 +10,7 @@ import (
 func TestProcessRandomIntPreserveLengthTrue(t *testing.T) {
 
 	val := int64(67543543)
-	expectedLength := 8
+	expectedLength := int64(8)
 
 	res, err := ProcessRandomInt(val, true, 0)
 
@@ -22,7 +22,7 @@ func TestProcessRandomIntPreserveLengthTrue(t *testing.T) {
 func TestProcessRandomIntPreserveLengthFalse(t *testing.T) {
 
 	val := int64(67543543)
-	expectedLength := 4
+	expectedLength := int64(4)
 
 	res, err := ProcessRandomInt(val, false, int64(expectedLength))
 
@@ -34,7 +34,7 @@ func TestProcessRandomIntPreserveLengthFalse(t *testing.T) {
 func TestProcessRandomIntPreserveLengthTrueIntLength(t *testing.T) {
 
 	val := int64(67543543)
-	expectedLength := 8
+	expectedLength := int64(8)
 
 	res, err := ProcessRandomInt(val, true, int64(5))
 
