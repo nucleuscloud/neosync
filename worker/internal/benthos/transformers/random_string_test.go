@@ -9,50 +9,42 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessRandomString(t *testing.T) {
+func TestRandomStringPreserveLengthTrue(t *testing.T) {
 
-	tests := []struct {
-		s              string
-		preserveLength bool
-		strLength      int64
-		strCase        mgmtv1alpha1.RandomString_StringCase
-		expectedLength int
-	}{
-		{"hellothere", false, 0, mgmtv1alpha1.RandomString_STRING_CASE_LOWER, 0},   // check base string generation
-		{"HELLOTHERE", false, 6, mgmtv1alpha1.RandomString_STRING_CASE_TITLE, 6},   // check string generation with a given length
-		{"testtesttest", true, 0, mgmtv1alpha1.RandomString_STRING_CASE_LOWER, 12}, // check preserveLength of input string
-		{"TESTEST", false, 0, mgmtv1alpha1.RandomString_STRING_CASE_UPPER, 6},      // check preserveLength of input string
-	}
+	val := "hellothe"
+	expectedLength := 8
 
-	for _, tt := range tests {
-		res, err := ProcessRandomString(tt.s, tt.preserveLength, tt.strLength, tt.strCase)
+	res, err := ProcessRandomString(val, true, 0, mgmtv1alpha1.RandomString_STRING_CASE_UPPER)
 
-		assert.NoError(t, err)
+	assert.NoError(t, err)
+	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")
+	assert.True(t, isAllCapitalized(res), isAllCapitalized(val))
 
-		if tt.preserveLength {
-			assert.Equal(t, len(res), tt.expectedLength)
-		}
+}
 
-		if !tt.preserveLength && tt.strLength == 0 {
-			assert.Equal(t, len(res), 10)
-		}
+func TestRandomStringPreserveLengthFalse(t *testing.T) {
 
-		if !tt.preserveLength && tt.strLength > 0 {
-			assert.Equal(t, len(res), 6)
-		}
+	val := "hello"
+	expectedLength := 10
 
-		if tt.strCase == mgmtv1alpha1.RandomString_STRING_CASE_UPPER {
-			assert.True(t, isAllCapitalized(res), isAllCapitalized(tt.s))
-		}
+	res, err := ProcessRandomString(val, false, 0, mgmtv1alpha1.RandomString_STRING_CASE_LOWER)
 
-		if tt.strCase == mgmtv1alpha1.RandomString_STRING_CASE_TITLE {
-			assert.True(t, isTitleCased(res), isTitleCased(tt.s))
-		}
+	assert.NoError(t, err)
+	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")
+	assert.True(t, isAllLower(res), isAllLower(val))
 
-		if tt.strCase == mgmtv1alpha1.RandomString_STRING_CASE_LOWER {
-			assert.True(t, isAllLower(res), isAllLower(tt.s))
-		}
-	}
+}
+
+func TestRandomStringPreserveLengthFalseStrLength(t *testing.T) {
+
+	val := "hello"
+	expectedLength := 14
+
+	res, err := ProcessRandomString(val, false, int64(expectedLength), mgmtv1alpha1.RandomString_STRING_CASE_TITLE)
+
+	assert.NoError(t, err)
+	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")
+	assert.True(t, isTitleCased(res), isTitleCased(val))
 
 }
 
