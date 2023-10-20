@@ -1,37 +1,34 @@
 package neosync_transformers
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessFulltName(t *testing.T) {
+func TestProcessFullNamePreserveLengthTrue(t *testing.T) {
 
-	tests := []struct {
-		fn             string
-		preserveLength bool
-		expectedLength int
-	}{
-		{"frank johnson", false, 0},
-		{"evis drenova", true, 12}, // checks preserve length
-	}
+	name := "john doe"
+	expectedLength := 8
 
-	for _, tt := range tests {
-		res, err := ProcessFullName(tt.fn, tt.preserveLength)
+	res, err := ProcessFullName(name, true)
 
-		assert.NoError(t, err)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedLength, len(res), "The full name output should be the same length as the input")
+	assert.IsType(t, "", res, "The full name should be a string")
+}
 
-		if tt.preserveLength {
-			assert.Equal(t, tt.expectedLength, len(res))
+func TestProcessFullNamePreserveLengthFalse(t *testing.T) {
 
-		} else {
-			assert.IsType(t, "", res) // Check if the result is a string
-		}
+	name := "evis drenova"
 
-	}
+	res, err := ProcessFullName(name, false)
 
+	assert.NoError(t, err)
+	assert.Equal(t, len(strings.Split(res, " ")), 2, "The full name should be more than 0 characters")
+	assert.IsType(t, "", res, "The full name should be a string") // Check if the result is a string
 }
 
 func TestFullNameTransformer(t *testing.T) {

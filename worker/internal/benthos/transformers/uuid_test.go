@@ -1,6 +1,7 @@
 package neosync_transformers
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -8,27 +9,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessUuid(t *testing.T) {
+func TestProcessUuidPreserveHyphhensTrue(t *testing.T) {
 
-	tests := []struct {
-		includeHyphens bool
-	}{
-		{true},  // checks hyphens
-		{false}, // checks no hyphens
-	}
+	res, err := ProcessUuid(true)
 
-	for _, tt := range tests {
-		uuidString, err := ProcessUuid(tt.includeHyphens)
+	assert.NoError(t, err)
+	assert.True(t, strings.Contains(res, "-"))
+	assert.True(t, isValidUuid(res), "The UUID should have the right format and be valid")
 
-		if err != nil {
-			assert.Error(t, err)
-		} else {
-			assert.NoError(t, err)
+}
 
-			assert.True(t, isValidUuid(uuidString))
+func TestProcessUuidPreserveHyphhensFalse(t *testing.T) {
 
-		}
-	}
+	res, err := ProcessUuid(false)
+
+	assert.NoError(t, err)
+	assert.True(t, isValidUuid(res), "The UUID should have the right format and be valid")
+	assert.False(t, strings.Contains(res, "-"))
 
 }
 

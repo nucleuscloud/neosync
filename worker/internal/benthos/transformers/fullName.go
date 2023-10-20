@@ -5,7 +5,6 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	"github.com/bxcodec/faker/v4"
 )
 
 func init() {
@@ -57,9 +56,21 @@ func ProcessFullName(fn string, preserveLength bool) (string, error) {
 
 	} else {
 
-		// generate random first name
-		returnValue = faker.Name()
+		// generate random full name
+
+		fn, err := ProcessFirstName(parsedName[0], false)
+		if err != nil {
+			return "", err
+		}
+
+		ln, err := ProcessLastName(parsedName[1], false)
+		if err != nil {
+			return "", err
+		}
+
+		returnValue = fn + " " + ln
+
+		return returnValue, err
 	}
 
-	return returnValue, nil
 }

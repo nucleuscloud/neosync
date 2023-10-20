@@ -7,31 +7,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessLastName(t *testing.T) {
+func TestProcessLastNamePreserveLengthTrue(t *testing.T) {
 
-	tests := []struct {
-		fn             string
-		preserveLength bool
-		expectedLength int
-	}{
-		{"johnson", false, 0},
-		{"smith", true, 5}, // checks preserve length
-	}
+	name := "jill"
+	expectedLength := 4
 
-	for _, tt := range tests {
-		res, err := ProcessLastName(tt.fn, tt.preserveLength)
+	res, err := ProcessLastName(name, true)
 
-		assert.NoError(t, err)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedLength, len(res), "The first name output should be the same length as the input")
+	assert.IsType(t, "", res, "The first name should be a string") // Check if the result is a string
+}
 
-		if tt.preserveLength {
-			assert.Equal(t, tt.expectedLength, len(res))
+func TestProcessLastNamePreserveLengthFalse(t *testing.T) {
 
-		} else {
-			assert.IsType(t, "", res) // Check if the result is a string
-		}
+	name := "john"
 
-	}
+	res, err := ProcessLastName(name, false)
 
+	assert.NoError(t, err)
+	assert.Greater(t, len(res), 0, "The first name should be more than 0 characters")
+	assert.IsType(t, "", res, "The first name should be a string") // Check if the result is a string
 }
 
 func TestLastNameTransformer(t *testing.T) {
