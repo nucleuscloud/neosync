@@ -156,8 +156,8 @@ message GetConnectionSchemaResponse {
 }
 
 message CheckSqlQueryRequest {
-  string id = 1;
-  string query = 2;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string query = 2 [(buf.validate.field).string.min_len = 1];
 }
 message CheckSqlQueryResponse {
   bool is_valid = 1;

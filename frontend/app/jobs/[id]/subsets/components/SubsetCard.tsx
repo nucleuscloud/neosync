@@ -3,6 +3,7 @@ import { TableRow, getColumns } from '@/app/new/job/subset/subset-table/column';
 import { DataTable } from '@/app/new/job/subset/subset-table/data-table';
 import ButtonText from '@/components/ButtonText';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -18,6 +19,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { CheckSqlQueryResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   GetJobResponse,
   JobSourceOptions,
@@ -129,6 +131,7 @@ export default function SubsetCard(props: Props): ReactElement {
           </div>
           <div>
             <EditItem
+              connectionId={data?.job?.source?.connectionId ?? ''}
               item={itemToEdit}
               onItem={setItemToEdit}
               onCancel={() => setItemToEdit(undefined)}
@@ -234,9 +237,13 @@ interface EditItemProps {
   onItem(item?: TableRow): void;
   onSave(): void;
   onCancel(): void;
+  connectionId: string;
 }
 function EditItem(props: EditItemProps): ReactElement {
-  const { item, onItem, onSave, onCancel } = props;
+  const { item, onItem, onSave, onCancel, connectionId } = props;
+  const [validateResp, setValidateResp] = useState<
+    CheckSqlQueryResponse | undefined
+  >();
 
   function onWhereChange(value: string): void {
     if (!item) {
@@ -244,6 +251,33 @@ function EditItem(props: EditItemProps): ReactElement {
     }
     onItem({ ...item, where: value });
   }
+
+  async function onValidate(): Promise<void> {
+    try {
+      const resp = await validateSql(
+        connectionId,
+        `select * from ${item?.schema}.${item?.table} WHERE ${item?.where};`
+      );
+      setValidateResp(resp);
+    } catch (err) {
+      setValidateResp(
+        new CheckSqlQueryResponse({
+          isValid: false,
+          erorrMessage: getErrorMessage(err),
+        })
+      );
+    }
+  }
+
+  function onCancelClick(): void {
+    setValidateResp(undefined);
+    onCancel();
+  }
+  function onSaveClick(): void {
+    setValidateResp(undefined);
+    onSave();
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-row justify-between">
@@ -266,19 +300,30 @@ function EditItem(props: EditItemProps): ReactElement {
               {item?.table ?? ''}
             </Badge>
           </div>
+          <div className="flex flex-row items-center">
+            <ValidateQueryBadge resp={validateResp} />
+          </div>
         </div>
         <div className="flex flex-row gap-4">
           <Button
+            type="button"
             variant="secondary"
             disabled={!item}
-            onClick={() => onCancel()}
+            onClick={() => onValidate()}
+          >
+            <ButtonText text="Validate" />
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={!item}
+            onClick={() => onCancelClick()}
           >
             <ButtonText text="Cancel" />
           </Button>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button disabled={!item} onClick={() => onSave()}>
+                <Button disabled={!item} onClick={() => onSaveClick()}>
                   <ButtonText text="Apply" />
                 </Button>
               </TooltipTrigger>
@@ -306,9 +351,60 @@ function EditItem(props: EditItemProps): ReactElement {
         />
       </div>
       <div>
-        <Textarea disabled={true} value={buildSelectQuery(item?.where)} />
+        <Textarea
+          placeholder="Where clause preview"
+          disabled={true}
+          value={buildSelectQuery(item?.where)}
+        />
       </div>
+      <ValidateQueryErrorAlert resp={validateResp} />
     </div>
+  );
+}
+
+interface ValidateQueryErrorAlertProps {
+  resp?: CheckSqlQueryResponse;
+}
+
+function ValidateQueryErrorAlert(
+  props: ValidateQueryErrorAlertProps
+): ReactElement | null {
+  const { resp } = props;
+  if (!resp || resp.isValid) {
+    return null;
+  }
+
+  return (
+    <div>
+      <Alert variant="destructive">
+        <AlertTitle>Invalid SQL Query</AlertTitle>
+        <AlertDescription>
+          {resp.erorrMessage ? resp.erorrMessage : 'unknown error message'}
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
+interface ValidateQueryBadgeProps {
+  resp?: CheckSqlQueryResponse;
+}
+
+function ValidateQueryBadge(
+  props: ValidateQueryBadgeProps
+): ReactElement | null {
+  const { resp } = props;
+  if (!resp) {
+    return null;
+  }
+  const text = resp.isValid ? 'VALID' : 'INVALID';
+  return (
+    <Badge
+      variant={resp.isValid ? 'success' : 'destructive'}
+      className="cursor-default px-4 py-2"
+    >
+      {text}
+    </Badge>
   );
 }
 
@@ -340,4 +436,24 @@ async function setJobSubsets(
     throw new Error(body.message);
   }
   return SetJobSourceSqlConnectionSubsetsResponse.fromJson(await res.json());
+}
+
+async function validateSql(
+  connectionId: string,
+  query: string
+): Promise<CheckSqlQueryResponse> {
+  const queryParams = new URLSearchParams({
+    query,
+  });
+  const res = await fetch(
+    `/api/connections/${connectionId}/check-query?${queryParams.toString()}`,
+    {
+      method: 'GET',
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return CheckSqlQueryResponse.fromJson(await res.json());
 }
