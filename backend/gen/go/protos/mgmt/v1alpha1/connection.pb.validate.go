@@ -3300,3 +3300,217 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetConnectionSchemaResponseValidationError{}
+
+// Validate checks the field values on CheckSqlQueryRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CheckSqlQueryRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CheckSqlQueryRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CheckSqlQueryRequestMultiError, or nil if none found.
+func (m *CheckSqlQueryRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckSqlQueryRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Query
+
+	if len(errors) > 0 {
+		return CheckSqlQueryRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckSqlQueryRequestMultiError is an error wrapping multiple validation
+// errors returned by CheckSqlQueryRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CheckSqlQueryRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckSqlQueryRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckSqlQueryRequestMultiError) AllErrors() []error { return m }
+
+// CheckSqlQueryRequestValidationError is the validation error returned by
+// CheckSqlQueryRequest.Validate if the designated constraints aren't met.
+type CheckSqlQueryRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckSqlQueryRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckSqlQueryRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckSqlQueryRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckSqlQueryRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckSqlQueryRequestValidationError) ErrorName() string {
+	return "CheckSqlQueryRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckSqlQueryRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckSqlQueryRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckSqlQueryRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckSqlQueryRequestValidationError{}
+
+// Validate checks the field values on CheckSqlQueryResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CheckSqlQueryResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CheckSqlQueryResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CheckSqlQueryResponseMultiError, or nil if none found.
+func (m *CheckSqlQueryResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckSqlQueryResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for IsValid
+
+	if m.ErorrMessage != nil {
+		// no validation rules for ErorrMessage
+	}
+
+	if len(errors) > 0 {
+		return CheckSqlQueryResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckSqlQueryResponseMultiError is an error wrapping multiple validation
+// errors returned by CheckSqlQueryResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CheckSqlQueryResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckSqlQueryResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckSqlQueryResponseMultiError) AllErrors() []error { return m }
+
+// CheckSqlQueryResponseValidationError is the validation error returned by
+// CheckSqlQueryResponse.Validate if the designated constraints aren't met.
+type CheckSqlQueryResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckSqlQueryResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckSqlQueryResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckSqlQueryResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckSqlQueryResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckSqlQueryResponseValidationError) ErrorName() string {
+	return "CheckSqlQueryResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckSqlQueryResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckSqlQueryResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckSqlQueryResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckSqlQueryResponseValidationError{}

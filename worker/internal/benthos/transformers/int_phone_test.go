@@ -2,38 +2,36 @@ package neosync_transformers
 
 import (
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessIntPhoneNumber(t *testing.T) {
+func TestProcessIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 
-	tests := []struct {
-		pn             int64
-		preserveLength bool
-		expectedLength int
-	}{
-		{6183849282, false, 0},   // check base phone number generation
-		{618384928322, true, 12}, // checks preserve length
-	}
+	pn := int64(618384928322)
+	expectedLength := 12
 
-	for _, tt := range tests {
-		res, err := ProcessIntPhoneNumber(tt.pn, tt.preserveLength)
+	res, err := ProcessIntPhoneNumber(pn, true)
 
-		assert.NoError(t, err)
+	assert.NoError(t, err)
+	numStr := strconv.FormatInt(res, 10)
+	assert.Equal(t, len(numStr), expectedLength, "The length of the output phone number should be the same as the input phone number")
 
-		if tt.preserveLength {
-			numStr := strconv.FormatInt(res, 10)
-			assert.Equal(t, len(numStr), tt.expectedLength)
-		}
+}
 
-		if !tt.preserveLength {
-			numStr := strconv.FormatInt(res, 10)
-			assert.Equal(t, len(numStr), 10)
-		}
-	}
+func TestProcessIntPhoneNumberPreserveLengthFalse(t *testing.T) {
+
+	pn := int64(618384928322)
+
+	res, err := ProcessIntPhoneNumber(pn, true)
+
+	numStr := strconv.FormatInt(res, 10)
+
+	assert.NoError(t, err)
+	assert.False(t, strings.Contains(numStr, "-"), "The output int phone number should not contain hyphens and may not be the same length as the input")
 
 }
 

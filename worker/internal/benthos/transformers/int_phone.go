@@ -2,8 +2,8 @@ package neosync_transformers
 
 import (
 	"crypto/rand"
-	"encoding/binary"
 	"fmt"
+	"math/big"
 	"strconv"
 	"strings"
 
@@ -44,19 +44,15 @@ func ProcessIntPhoneNumber(pn int64, preserveLength bool) (int64, error) {
 
 	if preserveLength {
 
-		const maxPhoneNum = 9
-
 		numStr := strconv.FormatInt(pn, 10)
 
-		val, err := GenerateRandomInt(0, maxPhoneNum, len(numStr)) // generates len(pn) random numbers from 0 -> 9
+		val, err := GenerateRandomInt(int64(len(numStr))) // generates len(pn) random numbers from 0 -> 9
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate phone number")
 		}
 
-		for _, int := range val {
-			returnValue = returnValue*10 + int64(int)
-		}
+		returnValue = val
 
 	} else {
 
@@ -75,24 +71,48 @@ func ProcessIntPhoneNumber(pn int64, preserveLength bool) (int64, error) {
 	return returnValue, nil
 }
 
-func GenerateRandomInt(minInt, maxInt, count int) ([]int, error) {
+func GenerateRandomInt(count int64) (int64, error) {
 	if count <= 0 {
-		return nil, fmt.Errorf("count is zero or not an int")
+		return 0, fmt.Errorf("count is zero or not a positive integer")
 	}
 
-	randomInts := make([]int, count)
-	const intBytes = 8
-	for i := 0; i < count; i++ {
-		randomBytes := make([]byte, intBytes) // 8 bytes for int64
-		_, err := rand.Read(randomBytes)
-		if err != nil {
-			return nil, err
-		}
-
-		// Convert the random bytes to an int64 and then to an int within the set range
-		randomInt := minInt + int(binary.BigEndian.Uint64(randomBytes)%uint64(maxInt-minInt+1))
-		randomInts[i] = randomInt
+	// int64 only supports 18 digits, so if the count => 19, this will error out
+	if count >= 19 {
+		return 0, fmt.Errorf("count has to be less than 18 digits since int64 only supports up to 18 digits")
 	}
 
-	return randomInts, nil
+	// Calculate the min and max values for count
+	minValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(count-1), nil)
+	maxValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(count), nil)
+
+	// Generate a random integer within the specified range
+	randInt, err := rand.Int(rand.Reader, maxValue)
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate a random integer")
+	}
+
+	/*
+		rand.Int generates a random number within the range [0, max-1], so if count == 8 [0 -> 9999999]. If the generated random integer is already the maximum possible value, then adding the minimum value to it will overflow it to count + 1. This is because the big.Int.Add() function adds two big integers together and returns a new big integer. If the first digit is a 9 and it's already count long then adding the min will overflow. So we only add if the digit count is not count AND the first digit is not 9.
+
+	*/
+
+	if FirstDigitIsNine(randInt.Int64()) && GetIntLength(randInt.Int64()) == count {
+		return randInt.Int64(), nil
+	} else {
+		randInt.Add(randInt, minValue)
+		return randInt.Int64(), nil
+
+	}
+}
+
+func FirstDigitIsNine(n int64) bool {
+	// Convert the int64 to a string
+	str := strconv.FormatInt(n, 10)
+
+	// Check if the string is empty or if the first character is '9'
+	if len(str) > 0 && str[0] == '9' {
+		return true
+	}
+
+	return false
 }

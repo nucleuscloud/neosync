@@ -36,7 +36,7 @@ export default function Page({ params }: PageProps): ReactElement {
 
   return (
     <div className="job-details-container">
-      <div className="space-y-10">
+      <div className="flex flex-col gap-5">
         <JobPauseSwitch jobId={id} status={jobStatus?.status} mutate={mutate} />
         <JobScheduleCard job={data?.job} mutate={mutate} />
         <JobRecentRuns jobId={id} />

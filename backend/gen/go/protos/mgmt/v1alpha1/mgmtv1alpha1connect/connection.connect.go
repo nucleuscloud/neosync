@@ -57,6 +57,9 @@ const (
 	// ConnectionServiceGetConnectionSchemaProcedure is the fully-qualified name of the
 	// ConnectionService's GetConnectionSchema RPC.
 	ConnectionServiceGetConnectionSchemaProcedure = "/mgmt.v1alpha1.ConnectionService/GetConnectionSchema"
+	// ConnectionServiceCheckSqlQueryProcedure is the fully-qualified name of the ConnectionService's
+	// CheckSqlQuery RPC.
+	ConnectionServiceCheckSqlQueryProcedure = "/mgmt.v1alpha1.ConnectionService/CheckSqlQuery"
 )
 
 // ConnectionServiceClient is a client for the mgmt.v1alpha1.ConnectionService service.
@@ -69,6 +72,7 @@ type ConnectionServiceClient interface {
 	IsConnectionNameAvailable(context.Context, *connect.Request[v1alpha1.IsConnectionNameAvailableRequest]) (*connect.Response[v1alpha1.IsConnectionNameAvailableResponse], error)
 	CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error)
 	GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error)
+	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
 }
 
 // NewConnectionServiceClient constructs a client for the mgmt.v1alpha1.ConnectionService service.
@@ -121,6 +125,11 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			baseURL+ConnectionServiceGetConnectionSchemaProcedure,
 			opts...,
 		),
+		checkSqlQuery: connect.NewClient[v1alpha1.CheckSqlQueryRequest, v1alpha1.CheckSqlQueryResponse](
+			httpClient,
+			baseURL+ConnectionServiceCheckSqlQueryProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -134,6 +143,7 @@ type connectionServiceClient struct {
 	isConnectionNameAvailable *connect.Client[v1alpha1.IsConnectionNameAvailableRequest, v1alpha1.IsConnectionNameAvailableResponse]
 	checkConnectionConfig     *connect.Client[v1alpha1.CheckConnectionConfigRequest, v1alpha1.CheckConnectionConfigResponse]
 	getConnectionSchema       *connect.Client[v1alpha1.GetConnectionSchemaRequest, v1alpha1.GetConnectionSchemaResponse]
+	checkSqlQuery             *connect.Client[v1alpha1.CheckSqlQueryRequest, v1alpha1.CheckSqlQueryResponse]
 }
 
 // GetConnections calls mgmt.v1alpha1.ConnectionService.GetConnections.
@@ -176,6 +186,11 @@ func (c *connectionServiceClient) GetConnectionSchema(ctx context.Context, req *
 	return c.getConnectionSchema.CallUnary(ctx, req)
 }
 
+// CheckSqlQuery calls mgmt.v1alpha1.ConnectionService.CheckSqlQuery.
+func (c *connectionServiceClient) CheckSqlQuery(ctx context.Context, req *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error) {
+	return c.checkSqlQuery.CallUnary(ctx, req)
+}
+
 // ConnectionServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionService service.
 type ConnectionServiceHandler interface {
 	GetConnections(context.Context, *connect.Request[v1alpha1.GetConnectionsRequest]) (*connect.Response[v1alpha1.GetConnectionsResponse], error)
@@ -186,6 +201,7 @@ type ConnectionServiceHandler interface {
 	IsConnectionNameAvailable(context.Context, *connect.Request[v1alpha1.IsConnectionNameAvailableRequest]) (*connect.Response[v1alpha1.IsConnectionNameAvailableResponse], error)
 	CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error)
 	GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error)
+	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
 }
 
 // NewConnectionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -234,6 +250,11 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		svc.GetConnectionSchema,
 		opts...,
 	)
+	connectionServiceCheckSqlQueryHandler := connect.NewUnaryHandler(
+		ConnectionServiceCheckSqlQueryProcedure,
+		svc.CheckSqlQuery,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.ConnectionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionServiceGetConnectionsProcedure:
@@ -252,6 +273,8 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 			connectionServiceCheckConnectionConfigHandler.ServeHTTP(w, r)
 		case ConnectionServiceGetConnectionSchemaProcedure:
 			connectionServiceGetConnectionSchemaHandler.ServeHTTP(w, r)
+		case ConnectionServiceCheckSqlQueryProcedure:
+			connectionServiceCheckSqlQueryHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -291,4 +314,8 @@ func (UnimplementedConnectionServiceHandler) CheckConnectionConfig(context.Conte
 
 func (UnimplementedConnectionServiceHandler) GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.GetConnectionSchema is not implemented"))
+}
+
+func (UnimplementedConnectionServiceHandler) CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.CheckSqlQuery is not implemented"))
 }

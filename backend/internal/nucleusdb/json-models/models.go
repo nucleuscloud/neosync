@@ -264,6 +264,7 @@ type TransformerConfigs struct {
 	Null           *NullConfig
 	RandomString   *RandomStringConfig
 	RandomBool     *RandomBoolConfig
+	RandomInt      *RandomIntConfig
 }
 
 type EmailConfigs struct {
@@ -306,6 +307,11 @@ type RandomStringConfig struct {
 }
 
 type RandomBoolConfig struct{}
+
+type RandomIntConfig struct {
+	PreserveLength bool
+	IntLength      int64
+}
 
 // from API -> DB
 func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
@@ -386,6 +392,14 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
 			RandomBool: &RandomBoolConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_RandomIntConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			RandomInt: &RandomIntConfig{
+				PreserveLength: tr.Config.GetRandomIntConfig().PreserveLength,
+				IntLength:      tr.Config.GetRandomIntConfig().IntLength,
+			},
 		}
 	default:
 		t.Value = tr.Value
@@ -525,6 +539,18 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 				},
 			},
 		}
+	case t.Config.RandomInt != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_RandomIntConfig{
+					RandomIntConfig: &mgmtv1alpha1.RandomInt{
+						PreserveLength: t.Config.RandomInt.PreserveLength,
+						IntLength:      t.Config.RandomInt.IntLength,
+					},
+				},
+			},
+		}
 	default:
 		return &mgmtv1alpha1.Transformer{Value: t.Value}
 	}
@@ -544,70 +570,147 @@ func StrCaseFromString(strCase string) (mgmtv1alpha1.RandomString_StringCase, er
 }
 
 type JobSourceOptions struct {
-	SqlOptions *SqlSourceOptions
-}
-type SqlSourceOptions struct {
-	HaltOnNewColumnAddition bool
-	Schemas                 []*SqlSourceSchemaOption
+	PostgresOptions *PostgresSourceOptions
+	MysqlOptions    *MysqlSourceOptions
 }
 
-func (s *SqlSourceOptions) ToDto() *mgmtv1alpha1.SqlSourceConnectionOptions {
-	dto := &mgmtv1alpha1.SqlSourceConnectionOptions{
+type MysqlSourceOptions struct {
+	HaltOnNewColumnAddition bool
+	Schemas                 []*MysqlSourceSchemaOption
+}
+type PostgresSourceOptions struct {
+	HaltOnNewColumnAddition bool
+	Schemas                 []*PostgresSourceSchemaOption
+}
+
+func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions {
+	dto := &mgmtv1alpha1.PostgresSourceConnectionOptions{
 		HaltOnNewColumnAddition: s.HaltOnNewColumnAddition,
 	}
-	dto.Schemas = make([]*mgmtv1alpha1.SqlSourceSchemaOption, len(s.Schemas))
+	dto.Schemas = make([]*mgmtv1alpha1.PostgresSourceSchemaOption, len(s.Schemas))
 	for idx := range s.Schemas {
 		schema := s.Schemas[idx]
-		tables := make([]*mgmtv1alpha1.SqlSourceTableOption, len(schema.Tables))
+		tables := make([]*mgmtv1alpha1.PostgresSourceTableOption, len(schema.Tables))
 		for tidx := range schema.Tables {
 			table := schema.Tables[tidx]
-			tables = append(tables, &mgmtv1alpha1.SqlSourceTableOption{
+			tables[tidx] = &mgmtv1alpha1.PostgresSourceTableOption{
 				Table:       table.Table,
 				WhereClause: table.WhereClause,
-			})
+			}
 		}
-		dto.Schemas = append(dto.Schemas, &mgmtv1alpha1.SqlSourceSchemaOption{
+		dto.Schemas[idx] = &mgmtv1alpha1.PostgresSourceSchemaOption{
 			Schema: schema.Schema,
 			Tables: tables,
-		})
+		}
 	}
 
 	return dto
 }
-func (s *SqlSourceOptions) FromDto(dto *mgmtv1alpha1.SqlSourceConnectionOptions) {
+func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions) {
 	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
-	s.Schemas = make([]*SqlSourceSchemaOption, len(dto.Schemas))
-	for idx := range dto.Schemas {
-		schema := dto.Schemas[idx]
-		tables := make([]*SqlSourceTableOption, len(schema.Tables))
-		for tidx := range schema.Tables {
-			table := schema.Tables[tidx]
-			tables = append(tables, &SqlSourceTableOption{
-				Table:       table.Table,
-				WhereClause: table.WhereClause,
-			})
-		}
-		s.Schemas = append(s.Schemas, &SqlSourceSchemaOption{
-			Schema: schema.Schema,
-			Tables: tables,
-		})
-	}
+	s.Schemas = FromDtoPostgresSourceSchemaOptions(dto.Schemas)
 }
 
-type SqlSourceSchemaOption struct {
-	Schema string
-	Tables []*SqlSourceTableOption
+func FromDtoPostgresSourceSchemaOptions(dtos []*mgmtv1alpha1.PostgresSourceSchemaOption) []*PostgresSourceSchemaOption {
+	output := make([]*PostgresSourceSchemaOption, len(dtos))
+	for idx := range dtos {
+		schema := dtos[idx]
+		tables := make([]*PostgresSourceTableOption, len(schema.Tables))
+		for tidx := range schema.Tables {
+			table := schema.Tables[tidx]
+			tables[tidx] = &PostgresSourceTableOption{
+				Table:       table.Table,
+				WhereClause: table.WhereClause,
+			}
+		}
+		output[idx] = &PostgresSourceSchemaOption{
+			Schema: schema.Schema,
+			Tables: tables,
+		}
+	}
+
+	return output
 }
-type SqlSourceTableOption struct {
+
+func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions {
+	dto := &mgmtv1alpha1.MysqlSourceConnectionOptions{
+		HaltOnNewColumnAddition: s.HaltOnNewColumnAddition,
+	}
+	dto.Schemas = make([]*mgmtv1alpha1.MysqlSourceSchemaOption, len(s.Schemas))
+	for idx := range s.Schemas {
+		schema := s.Schemas[idx]
+		tables := make([]*mgmtv1alpha1.MysqlSourceTableOption, len(schema.Tables))
+		for tidx := range schema.Tables {
+			table := schema.Tables[tidx]
+			tables[tidx] = &mgmtv1alpha1.MysqlSourceTableOption{
+				Table:       table.Table,
+				WhereClause: table.WhereClause,
+			}
+		}
+		dto.Schemas[idx] = &mgmtv1alpha1.MysqlSourceSchemaOption{
+			Schema: schema.Schema,
+			Tables: tables,
+		}
+	}
+
+	return dto
+}
+func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions) {
+	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
+	s.Schemas = FromDtoMysqlSourceSchemaOptions(dto.Schemas)
+}
+
+func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOption) []*MysqlSourceSchemaOption {
+	output := make([]*MysqlSourceSchemaOption, len(dtos))
+	for idx := range dtos {
+		schema := dtos[idx]
+		tables := make([]*MysqlSourceTableOption, len(schema.Tables))
+		for tidx := range schema.Tables {
+			table := schema.Tables[tidx]
+			tables[tidx] = &MysqlSourceTableOption{
+				Table:       table.Table,
+				WhereClause: table.WhereClause,
+			}
+		}
+		output[idx] = &MysqlSourceSchemaOption{
+			Schema: schema.Schema,
+			Tables: tables,
+		}
+	}
+
+	return output
+}
+
+type PostgresSourceSchemaOption struct {
+	Schema string
+	Tables []*PostgresSourceTableOption
+}
+type PostgresSourceTableOption struct {
+	Table       string
+	WhereClause *string
+}
+
+type MysqlSourceSchemaOption struct {
+	Schema string
+	Tables []*MysqlSourceTableOption
+}
+type MysqlSourceTableOption struct {
 	Table       string
 	WhereClause *string
 }
 
 func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
-	if j.SqlOptions != nil {
+	if j.PostgresOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
-			Config: &mgmtv1alpha1.JobSourceOptions_SqlOptions{
-				SqlOptions: j.SqlOptions.ToDto(),
+			Config: &mgmtv1alpha1.JobSourceOptions_PostgresOptions{
+				PostgresOptions: j.PostgresOptions.ToDto(),
+			},
+		}
+	}
+	if j.MysqlOptions != nil {
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_MysqlOptions{
+				MysqlOptions: j.MysqlOptions.ToDto(),
 			},
 		}
 	}
@@ -616,10 +719,14 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 
 func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 	switch config := dto.Config.(type) {
-	case *mgmtv1alpha1.JobSourceOptions_SqlOptions:
-		sqlOpts := &SqlSourceOptions{}
-		sqlOpts.FromDto(config.SqlOptions)
-		j.SqlOptions = sqlOpts
+	case *mgmtv1alpha1.JobSourceOptions_PostgresOptions:
+		sqlOpts := &PostgresSourceOptions{}
+		sqlOpts.FromDto(config.PostgresOptions)
+		j.PostgresOptions = sqlOpts
+	case *mgmtv1alpha1.JobSourceOptions_MysqlOptions:
+		sqlOpts := &MysqlSourceOptions{}
+		sqlOpts.FromDto(config.MysqlOptions)
+		j.MysqlOptions = sqlOpts
 	default:
 		return fmt.Errorf("invalid config")
 	}
@@ -627,41 +734,73 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 }
 
 type JobDestinationOptions struct {
-	SqlOptions   *SqlDestinationOptions
-	AwsS3Options *AwsS3DestinationOptions
+	PostgresOptions *PostgresDestinationOptions
+	AwsS3Options    *AwsS3DestinationOptions
+	MysqlOptions    *MysqlDestinationOptions
 }
 type AwsS3DestinationOptions struct{}
-type SqlDestinationOptions struct {
-	TruncateTableConfig *TruncateTableConfig
+type PostgresDestinationOptions struct {
+	TruncateTableConfig *PostgresTruncateTableConfig
 	InitTableSchema     bool
 }
-type TruncateTableConfig struct {
+type PostgresTruncateTableConfig struct {
 	TruncateBeforeInsert bool
 	TruncateCascade      bool
 }
 
-func (t *TruncateTableConfig) ToDto() *mgmtv1alpha1.TruncateTableConfig {
-	return &mgmtv1alpha1.TruncateTableConfig{
+func (t *PostgresTruncateTableConfig) ToDto() *mgmtv1alpha1.PostgresTruncateTableConfig {
+	return &mgmtv1alpha1.PostgresTruncateTableConfig{
 		TruncateBeforeInsert: t.TruncateBeforeInsert,
 		Cascade:              t.TruncateCascade,
 	}
 }
 
-func (t *TruncateTableConfig) FromDto(dto *mgmtv1alpha1.TruncateTableConfig) {
+func (t *PostgresTruncateTableConfig) FromDto(dto *mgmtv1alpha1.PostgresTruncateTableConfig) {
 	t.TruncateBeforeInsert = dto.TruncateBeforeInsert
 	t.TruncateCascade = dto.Cascade
 }
 
+type MysqlDestinationOptions struct {
+	TruncateTableConfig *MysqlTruncateTableConfig
+	InitTableSchema     bool
+}
+type MysqlTruncateTableConfig struct {
+	TruncateBeforeInsert bool
+}
+
+func (t *MysqlTruncateTableConfig) ToDto() *mgmtv1alpha1.MysqlTruncateTableConfig {
+	return &mgmtv1alpha1.MysqlTruncateTableConfig{
+		TruncateBeforeInsert: t.TruncateBeforeInsert,
+	}
+}
+
+func (t *MysqlTruncateTableConfig) FromDto(dto *mgmtv1alpha1.MysqlTruncateTableConfig) {
+	t.TruncateBeforeInsert = dto.TruncateBeforeInsert
+}
+
 func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
-	if j.SqlOptions != nil {
-		if j.SqlOptions.TruncateTableConfig == nil {
-			j.SqlOptions.TruncateTableConfig = &TruncateTableConfig{}
+	if j.PostgresOptions != nil {
+		if j.PostgresOptions.TruncateTableConfig == nil {
+			j.PostgresOptions.TruncateTableConfig = &PostgresTruncateTableConfig{}
 		}
 		return &mgmtv1alpha1.JobDestinationOptions{
-			Config: &mgmtv1alpha1.JobDestinationOptions_SqlOptions{
-				SqlOptions: &mgmtv1alpha1.SqlDestinationConnectionOptions{
-					TruncateTable:   j.SqlOptions.TruncateTableConfig.ToDto(),
-					InitTableSchema: j.SqlOptions.InitTableSchema,
+			Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+				PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+					TruncateTable:   j.PostgresOptions.TruncateTableConfig.ToDto(),
+					InitTableSchema: j.PostgresOptions.InitTableSchema,
+				},
+			},
+		}
+	}
+	if j.MysqlOptions != nil {
+		if j.MysqlOptions.TruncateTableConfig == nil {
+			j.MysqlOptions.TruncateTableConfig = &MysqlTruncateTableConfig{}
+		}
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
+				MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
+					TruncateTable:   j.MysqlOptions.TruncateTableConfig.ToDto(),
+					InitTableSchema: j.MysqlOptions.InitTableSchema,
 				},
 			},
 		}
@@ -679,11 +818,18 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 
 func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions) error {
 	switch config := dto.Config.(type) {
-	case *mgmtv1alpha1.JobDestinationOptions_SqlOptions:
-		truncateCfg := &TruncateTableConfig{}
-		truncateCfg.FromDto(config.SqlOptions.TruncateTable)
-		j.SqlOptions = &SqlDestinationOptions{
-			InitTableSchema:     config.SqlOptions.InitTableSchema,
+	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
+		truncateCfg := &PostgresTruncateTableConfig{}
+		truncateCfg.FromDto(config.PostgresOptions.TruncateTable)
+		j.PostgresOptions = &PostgresDestinationOptions{
+			InitTableSchema:     config.PostgresOptions.InitTableSchema,
+			TruncateTableConfig: truncateCfg,
+		}
+	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
+		truncateCfg := &MysqlTruncateTableConfig{}
+		truncateCfg.FromDto(config.MysqlOptions.TruncateTable)
+		j.MysqlOptions = &MysqlDestinationOptions{
+			InitTableSchema:     config.MysqlOptions.InitTableSchema,
 			TruncateTableConfig: truncateCfg,
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:

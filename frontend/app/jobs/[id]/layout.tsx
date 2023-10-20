@@ -1,7 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
-import SubPageHeader from '@/components/headers/SubPageHeader';
+import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { LayoutProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -14,7 +14,7 @@ import { TrashIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
-export default function SettingsLayout({ children, params }: LayoutProps) {
+export default function JobIdLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
   const basePath = `/jobs/${params?.id}`;
   const { data, isLoading } = useGetJob(id);
@@ -68,6 +68,10 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
       title: 'Destinations',
       href: `${basePath}/destinations`,
     },
+    {
+      title: 'Subsets',
+      href: `${basePath}/subsets`,
+    },
   ];
 
   if (isLoading) {
@@ -89,10 +93,10 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
   }
 
   return (
-    <div className="space-y-6 p-10 pb-16 md:block">
-      <div className="space-y-1">
+    <div className="p-5">
+      <div className="flex flex-col gap-1">
         <h2 className="text-2xl font-bold tracking-tight">Job Overview</h2>
-        <SubPageHeader
+        <PageHeader
           header={data?.job?.name || ''}
           description={data?.job?.id || ''}
           extraHeading={
@@ -112,7 +116,7 @@ export default function SettingsLayout({ children, params }: LayoutProps) {
           }
         />
       </div>
-      <div className="flex flex-col space-y-8">
+      <div className="flex flex-col gap-6">
         <SubNav items={sidebarNavItems} />
         <div>{children}</div>
       </div>
@@ -156,7 +160,7 @@ function SubNav({ className, items, buttonClassName, ...props }: SubNavProps) {
   return (
     <nav
       className={cn(
-        'flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-2',
+        'flex flex-col lg:flex-row gap-2 lg:gap-y-0 lg:gap-x-2',
         className
       )}
       {...props}

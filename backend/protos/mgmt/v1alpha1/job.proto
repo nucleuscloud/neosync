@@ -31,21 +31,36 @@ message JobDestination {
 message JobSourceOptions {
   oneof config {
     option (buf.validate.oneof).required = true;
-    SqlSourceConnectionOptions sql_options = 1;
+    PostgresSourceConnectionOptions postgres_options = 1;
     AwsS3SourceConnectionOptions aws_s3_options = 2;
+    MysqlSourceConnectionOptions mysql_options = 3;
   }
 }
 
-message SqlSourceConnectionOptions {
+message PostgresSourceConnectionOptions {
   bool halt_on_new_column_addition = 1;
-  repeated SqlSourceSchemaOption schemas = 2;
+  repeated PostgresSourceSchemaOption schemas = 2;
 }
 
-message SqlSourceSchemaOption {
+message PostgresSourceSchemaOption {
   string schema = 1;
-  repeated SqlSourceTableOption tables = 2;
+  repeated PostgresSourceTableOption tables = 2;
 }
-message SqlSourceTableOption {
+message PostgresSourceTableOption {
+  string table = 1;
+  optional string where_clause = 2;
+}
+
+message MysqlSourceConnectionOptions {
+  bool halt_on_new_column_addition = 1;
+  repeated MysqlSourceSchemaOption schemas = 2;
+}
+
+message MysqlSourceSchemaOption {
+  string schema = 1;
+  repeated MysqlSourceTableOption tables = 2;
+}
+message MysqlSourceTableOption {
   string table = 1;
   optional string where_clause = 2;
 }
@@ -55,20 +70,30 @@ message AwsS3SourceConnectionOptions {}
 message JobDestinationOptions {
   oneof config {
     option (buf.validate.oneof).required = true;
-    SqlDestinationConnectionOptions sql_options = 1;
+    PostgresDestinationConnectionOptions postgres_options = 1;
     AwsS3DestinationConnectionOptions aws_s3_options = 2;
+    MysqlDestinationConnectionOptions mysql_options = 3;
   }
 }
 
-message SqlDestinationConnectionOptions {
-  TruncateTableConfig truncate_table = 1;
+message PostgresDestinationConnectionOptions {
+  PostgresTruncateTableConfig truncate_table = 1;
   bool init_table_schema = 2;
 }
 
-message TruncateTableConfig {
+message PostgresTruncateTableConfig {
   bool truncate_before_insert = 1;
   bool cascade = 2;
 }
+
+message MysqlDestinationConnectionOptions {
+  MysqlTruncateTableConfig truncate_table = 1;
+  bool init_table_schema = 2;
+}
+message MysqlTruncateTableConfig {
+  bool truncate_before_insert = 1;
+}
+
 message AwsS3DestinationConnectionOptions {}
 
 message CreateJobRequest {
@@ -128,6 +153,30 @@ message UpdateJobSourceConnectionRequest {
   repeated JobMapping mappings = 3 [(buf.validate.field).repeated = {min_items: 1}];
 }
 message UpdateJobSourceConnectionResponse {
+  Job job = 1;
+}
+
+message PostgresSourceSchemaSubset {
+  repeated PostgresSourceSchemaOption postgres_schemas = 1;
+}
+
+message MysqlSourceSchemaSubset {
+  repeated MysqlSourceSchemaOption mysql_schemas = 1;
+}
+
+message JobSourceSqlSubetSchemas {
+  oneof schemas {
+    option (buf.validate.oneof).required = true;
+    PostgresSourceSchemaSubset postgres_subset = 2;
+    MysqlSourceSchemaSubset mysql_subset = 3;
+  }
+}
+
+message SetJobSourceSqlConnectionSubsetsRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  JobSourceSqlSubetSchemas schemas = 2;
+}
+message SetJobSourceSqlConnectionSubsetsResponse {
   Job job = 1;
 }
 
@@ -370,7 +419,8 @@ message TransformerConfig {
     IntPhoneNumber int_phone_number_config = 8;
     RandomString random_string_config = 9;
     RandomBool random_bool_config = 10;
-    Null null_config = 11;
+    RandomInt random_int_config = 11;
+    Null null_config = 12;
   }
 }
 
@@ -420,7 +470,13 @@ message RandomString {
 }
 
 message Null {}
+
 message RandomBool {}
+
+message RandomInt {
+  bool preserve_length = 1;
+  int64 int_length = 2;
+}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
@@ -430,6 +486,7 @@ service JobService {
   rpc IsJobNameAvailable(IsJobNameAvailableRequest) returns (IsJobNameAvailableResponse) {}
   rpc UpdateJobSchedule(UpdateJobScheduleRequest) returns (UpdateJobScheduleResponse) {}
   rpc UpdateJobSourceConnection(UpdateJobSourceConnectionRequest) returns (UpdateJobSourceConnectionResponse) {}
+  rpc SetJobSourceSqlConnectionSubsets(SetJobSourceSqlConnectionSubsetsRequest) returns (SetJobSourceSqlConnectionSubsetsResponse) {}
   rpc UpdateJobDestinationConnection(UpdateJobDestinationConnectionRequest) returns (UpdateJobDestinationConnectionResponse) {}
   rpc DeleteJobDestinationConnection(DeleteJobDestinationConnectionRequest) returns (DeleteJobDestinationConnectionResponse) {}
   rpc CreateJobDestinationConnections(CreateJobDestinationConnectionsRequest) returns (CreateJobDestinationConnectionsResponse) {}

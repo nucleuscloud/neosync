@@ -28,13 +28,17 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
-import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import {
+  Connection,
+  DatabaseColumn,
+} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   Job,
   JobMapping,
   JobSource,
   JobSourceOptions,
-  SqlSourceConnectionOptions,
+  MysqlSourceConnectionOptions,
+  PostgresSourceConnectionOptions,
   Transformer,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
@@ -108,8 +112,13 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   }
 
   async function onSubmit(values: SourceFormValues) {
+    const connection = connections.find((c) => (c.id = values.sourceId));
+    const job = data?.job;
+    if (!job || !connection) {
+      return;
+    }
     try {
-      await updateJobConnection(jobId, values);
+      await updateJobConnection(job, values, connection);
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'default',
@@ -200,17 +209,18 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
 }
 
 async function updateJobConnection(
-  jobId: string,
-  values: SourceFormValues
+  job: Job,
+  values: SourceFormValues,
+  connection: Connection
 ): Promise<UpdateJobSourceConnectionResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/source-connection`, {
+  const res = await fetch(`/api/jobs/${job.id}/source-connection`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',
     },
     body: JSON.stringify(
       new UpdateJobSourceConnectionRequest({
-        id: jobId,
+        id: job.id,
         mappings: values.mappings.map((m) => {
           return new JobMapping({
             schema: m.schema,
@@ -221,15 +231,7 @@ async function updateJobConnection(
         }),
         source: new JobSource({
           connectionId: values.sourceId,
-          options: new JobSourceOptions({
-            config: {
-              case: 'sqlOptions',
-              value: new SqlSourceConnectionOptions({
-                haltOnNewColumnAddition:
-                  values.sourceOptions.haltOnNewColumnAddition,
-              }),
-            },
-          }),
+          options: toJobSourceOptions(values, job, connection),
         }),
       })
     ),
@@ -239,6 +241,55 @@ async function updateJobConnection(
     throw new Error(body.message);
   }
   return UpdateJobSourceConnectionResponse.fromJson(await res.json());
+}
+
+function toJobSourceOptions(
+  values: SourceFormValues,
+  job: Job,
+  connection: Connection
+): JobSourceOptions {
+  switch (connection.connectionConfig?.config.case) {
+    case 'pgConfig':
+      return new JobSourceOptions({
+        config: {
+          case: 'postgresOptions',
+          value: new PostgresSourceConnectionOptions({
+            ...getExistingPostgresSourceConnectionOptions(job),
+            haltOnNewColumnAddition:
+              values.sourceOptions.haltOnNewColumnAddition,
+          }),
+        },
+      });
+    case 'mysqlConfig':
+      return new JobSourceOptions({
+        config: {
+          case: 'mysqlOptions',
+          value: new MysqlSourceConnectionOptions({
+            ...getExistingMysqlSourceConnectionOptions(job),
+            haltOnNewColumnAddition:
+              values.sourceOptions.haltOnNewColumnAddition,
+          }),
+        },
+      });
+    default:
+      throw new Error('unsupported connection type');
+  }
+}
+
+function getExistingPostgresSourceConnectionOptions(
+  job: Job
+): PostgresSourceConnectionOptions | undefined {
+  return job.source?.options?.config.case === 'postgresOptions'
+    ? job.source.options.config.value
+    : undefined;
+}
+
+function getExistingMysqlSourceConnectionOptions(
+  job: Job
+): MysqlSourceConnectionOptions | undefined {
+  return job.source?.options?.config.case === 'mysqlOptions'
+    ? job.source.options.config.value
+    : undefined;
 }
 
 function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
@@ -309,7 +360,15 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
   };
 
   switch (job?.source?.options?.config.case) {
-    case 'sqlOptions':
+    case 'postgresOptions':
+      return {
+        ...yupValidationValues,
+        sourceOptions: {
+          haltOnNewColumnAddition:
+            job?.source?.options?.config.value.haltOnNewColumnAddition,
+        },
+      };
+    case 'postgresOptions':
       return {
         ...yupValidationValues,
         sourceOptions: {

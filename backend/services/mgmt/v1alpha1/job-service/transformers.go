@@ -22,6 +22,7 @@ const (
 	Null           Transformation = "null"
 	RandomString   Transformation = "random_string"
 	RandomBool     Transformation = "random_bool"
+	RandomInt      Transformation = "random_int"
 )
 
 func (s *Service) GetTransformers(
@@ -99,6 +100,16 @@ func (s *Service) GetTransformers(
 					},
 				}},
 			{Value: string(RandomBool), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{
+				Value: string(RandomInt),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_RandomIntConfig{
+						RandomIntConfig: &mgmtv1alpha1.RandomInt{
+							PreserveLength: false,
+							IntLength:      0,
+						},
+					},
+				}},
 		},
 	}), nil
 }

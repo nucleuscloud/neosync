@@ -17,7 +17,7 @@ export default function OverviewContainer(props: Props): ReactElement {
 
   return (
     <div className={containerClassName}>
-      <div className="header-container mt-12">{Header}</div>
+      <div className="header-container mt-4">{Header}</div>
       <div className={cn('gap-5', childrenStackClassnames)}>{children}</div>
     </div>
   );

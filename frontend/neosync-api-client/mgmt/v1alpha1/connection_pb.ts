@@ -1181,3 +1181,89 @@ export class GetConnectionSchemaResponse extends Message<GetConnectionSchemaResp
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.CheckSqlQueryRequest
+ */
+export class CheckSqlQueryRequest extends Message<CheckSqlQueryRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string query = 2;
+   */
+  query = "";
+
+  constructor(data?: PartialMessage<CheckSqlQueryRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.CheckSqlQueryRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "query", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckSqlQueryRequest {
+    return new CheckSqlQueryRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CheckSqlQueryRequest {
+    return new CheckSqlQueryRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CheckSqlQueryRequest {
+    return new CheckSqlQueryRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CheckSqlQueryRequest | PlainMessage<CheckSqlQueryRequest> | undefined, b: CheckSqlQueryRequest | PlainMessage<CheckSqlQueryRequest> | undefined): boolean {
+    return proto3.util.equals(CheckSqlQueryRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.CheckSqlQueryResponse
+ */
+export class CheckSqlQueryResponse extends Message<CheckSqlQueryResponse> {
+  /**
+   * @generated from field: bool is_valid = 1;
+   */
+  isValid = false;
+
+  /**
+   * @generated from field: optional string erorr_message = 2;
+   */
+  erorrMessage?: string;
+
+  constructor(data?: PartialMessage<CheckSqlQueryResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.CheckSqlQueryResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "is_valid", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "erorr_message", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckSqlQueryResponse {
+    return new CheckSqlQueryResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CheckSqlQueryResponse {
+    return new CheckSqlQueryResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CheckSqlQueryResponse {
+    return new CheckSqlQueryResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CheckSqlQueryResponse | PlainMessage<CheckSqlQueryResponse> | undefined, b: CheckSqlQueryResponse | PlainMessage<CheckSqlQueryResponse> | undefined): boolean {
+    return proto3.util.equals(CheckSqlQueryResponse, a, b);
+  }
+}
+

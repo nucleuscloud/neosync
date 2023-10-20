@@ -1,8 +1,13 @@
+import { SubsetFormValues } from '@/app/new/job/schema';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   JobDestinationOptions,
-  SqlDestinationConnectionOptions,
-  TruncateTableConfig,
+  MysqlDestinationConnectionOptions,
+  MysqlTruncateTableConfig,
+  PostgresDestinationConnectionOptions,
+  PostgresSourceSchemaOption,
+  PostgresSourceTableOption,
+  PostgresTruncateTableConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
@@ -79,12 +84,26 @@ export function toJobDestinationOptions(
     case 'pgConfig': {
       return new JobDestinationOptions({
         config: {
-          case: 'sqlOptions',
-          value: new SqlDestinationConnectionOptions({
-            truncateTable: new TruncateTableConfig({
+          case: 'postgresOptions',
+          value: new PostgresDestinationConnectionOptions({
+            truncateTable: new PostgresTruncateTableConfig({
               truncateBeforeInsert:
                 values.destinationOptions.truncateBeforeInsert ?? false,
               cascade: values.destinationOptions.truncateCascade ?? false,
+            }),
+            initTableSchema: values.destinationOptions.initTableSchema,
+          }),
+        },
+      });
+    }
+    case 'mysqlConfig': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'mysqlOptions',
+          value: new MysqlDestinationConnectionOptions({
+            truncateTable: new MysqlTruncateTableConfig({
+              truncateBeforeInsert:
+                values.destinationOptions.truncateBeforeInsert ?? false,
             }),
             initTableSchema: values.destinationOptions.initTableSchema,
           }),
@@ -95,4 +114,28 @@ export function toJobDestinationOptions(
       return new JobDestinationOptions();
     }
   }
+}
+
+export function toPostgresSourceSchemaOptions(
+  subsets: SubsetFormValues['subsets']
+): PostgresSourceSchemaOption[] {
+  const schemaMap = subsets.reduce(
+    (map, subset) => {
+      if (!map[subset.schema]) {
+        map[subset.schema] = new PostgresSourceSchemaOption({
+          schema: subset.schema,
+          tables: [],
+        });
+      }
+      map[subset.schema].tables.push(
+        new PostgresSourceTableOption({
+          table: subset.table,
+          whereClause: subset.whereClause,
+        })
+      );
+      return map;
+    },
+    {} as Record<string, PostgresSourceSchemaOption>
+  );
+  return Object.values(schemaMap);
 }

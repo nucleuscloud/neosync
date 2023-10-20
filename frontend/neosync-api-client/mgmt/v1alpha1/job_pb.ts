@@ -350,16 +350,22 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
    */
   config: {
     /**
-     * @generated from field: mgmt.v1alpha1.SqlSourceConnectionOptions sql_options = 1;
+     * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions postgres_options = 1;
      */
-    value: SqlSourceConnectionOptions;
-    case: "sqlOptions";
+    value: PostgresSourceConnectionOptions;
+    case: "postgresOptions";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.AwsS3SourceConnectionOptions aws_s3_options = 2;
      */
     value: AwsS3SourceConnectionOptions;
     case: "awsS3Options";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MysqlSourceConnectionOptions mysql_options = 3;
+     */
+    value: MysqlSourceConnectionOptions;
+    case: "mysqlOptions";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobSourceOptions>) {
@@ -370,8 +376,9 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.JobSourceOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "sql_options", kind: "message", T: SqlSourceConnectionOptions, oneof: "config" },
+    { no: 1, name: "postgres_options", kind: "message", T: PostgresSourceConnectionOptions, oneof: "config" },
     { no: 2, name: "aws_s3_options", kind: "message", T: AwsS3SourceConnectionOptions, oneof: "config" },
+    { no: 3, name: "mysql_options", kind: "message", T: MysqlSourceConnectionOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceOptions {
@@ -392,95 +399,95 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.SqlSourceConnectionOptions
+ * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions
  */
-export class SqlSourceConnectionOptions extends Message<SqlSourceConnectionOptions> {
+export class PostgresSourceConnectionOptions extends Message<PostgresSourceConnectionOptions> {
   /**
    * @generated from field: bool halt_on_new_column_addition = 1;
    */
   haltOnNewColumnAddition = false;
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.SqlSourceSchemaOption schemas = 2;
+   * @generated from field: repeated mgmt.v1alpha1.PostgresSourceSchemaOption schemas = 2;
    */
-  schemas: SqlSourceSchemaOption[] = [];
+  schemas: PostgresSourceSchemaOption[] = [];
 
-  constructor(data?: PartialMessage<SqlSourceConnectionOptions>) {
+  constructor(data?: PartialMessage<PostgresSourceConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.SqlSourceConnectionOptions";
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "schemas", kind: "message", T: SqlSourceSchemaOption, repeated: true },
+    { no: 2, name: "schemas", kind: "message", T: PostgresSourceSchemaOption, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlSourceConnectionOptions {
-    return new SqlSourceConnectionOptions().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceConnectionOptions {
+    return new PostgresSourceConnectionOptions().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SqlSourceConnectionOptions {
-    return new SqlSourceConnectionOptions().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions {
+    return new PostgresSourceConnectionOptions().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SqlSourceConnectionOptions {
-    return new SqlSourceConnectionOptions().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceConnectionOptions {
+    return new PostgresSourceConnectionOptions().fromJsonString(jsonString, options);
   }
 
-  static equals(a: SqlSourceConnectionOptions | PlainMessage<SqlSourceConnectionOptions> | undefined, b: SqlSourceConnectionOptions | PlainMessage<SqlSourceConnectionOptions> | undefined): boolean {
-    return proto3.util.equals(SqlSourceConnectionOptions, a, b);
+  static equals(a: PostgresSourceConnectionOptions | PlainMessage<PostgresSourceConnectionOptions> | undefined, b: PostgresSourceConnectionOptions | PlainMessage<PostgresSourceConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceConnectionOptions, a, b);
   }
 }
 
 /**
- * @generated from message mgmt.v1alpha1.SqlSourceSchemaOption
+ * @generated from message mgmt.v1alpha1.PostgresSourceSchemaOption
  */
-export class SqlSourceSchemaOption extends Message<SqlSourceSchemaOption> {
+export class PostgresSourceSchemaOption extends Message<PostgresSourceSchemaOption> {
   /**
    * @generated from field: string schema = 1;
    */
   schema = "";
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.SqlSourceTableOption tables = 2;
+   * @generated from field: repeated mgmt.v1alpha1.PostgresSourceTableOption tables = 2;
    */
-  tables: SqlSourceTableOption[] = [];
+  tables: PostgresSourceTableOption[] = [];
 
-  constructor(data?: PartialMessage<SqlSourceSchemaOption>) {
+  constructor(data?: PartialMessage<PostgresSourceSchemaOption>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.SqlSourceSchemaOption";
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceSchemaOption";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "tables", kind: "message", T: SqlSourceTableOption, repeated: true },
+    { no: 2, name: "tables", kind: "message", T: PostgresSourceTableOption, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlSourceSchemaOption {
-    return new SqlSourceSchemaOption().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceSchemaOption {
+    return new PostgresSourceSchemaOption().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SqlSourceSchemaOption {
-    return new SqlSourceSchemaOption().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceSchemaOption {
+    return new PostgresSourceSchemaOption().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SqlSourceSchemaOption {
-    return new SqlSourceSchemaOption().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceSchemaOption {
+    return new PostgresSourceSchemaOption().fromJsonString(jsonString, options);
   }
 
-  static equals(a: SqlSourceSchemaOption | PlainMessage<SqlSourceSchemaOption> | undefined, b: SqlSourceSchemaOption | PlainMessage<SqlSourceSchemaOption> | undefined): boolean {
-    return proto3.util.equals(SqlSourceSchemaOption, a, b);
+  static equals(a: PostgresSourceSchemaOption | PlainMessage<PostgresSourceSchemaOption> | undefined, b: PostgresSourceSchemaOption | PlainMessage<PostgresSourceSchemaOption> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceSchemaOption, a, b);
   }
 }
 
 /**
- * @generated from message mgmt.v1alpha1.SqlSourceTableOption
+ * @generated from message mgmt.v1alpha1.PostgresSourceTableOption
  */
-export class SqlSourceTableOption extends Message<SqlSourceTableOption> {
+export class PostgresSourceTableOption extends Message<PostgresSourceTableOption> {
   /**
    * @generated from field: string table = 1;
    */
@@ -491,32 +498,161 @@ export class SqlSourceTableOption extends Message<SqlSourceTableOption> {
    */
   whereClause?: string;
 
-  constructor(data?: PartialMessage<SqlSourceTableOption>) {
+  constructor(data?: PartialMessage<PostgresSourceTableOption>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.SqlSourceTableOption";
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceTableOption";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "where_clause", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlSourceTableOption {
-    return new SqlSourceTableOption().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceTableOption {
+    return new PostgresSourceTableOption().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SqlSourceTableOption {
-    return new SqlSourceTableOption().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceTableOption {
+    return new PostgresSourceTableOption().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SqlSourceTableOption {
-    return new SqlSourceTableOption().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceTableOption {
+    return new PostgresSourceTableOption().fromJsonString(jsonString, options);
   }
 
-  static equals(a: SqlSourceTableOption | PlainMessage<SqlSourceTableOption> | undefined, b: SqlSourceTableOption | PlainMessage<SqlSourceTableOption> | undefined): boolean {
-    return proto3.util.equals(SqlSourceTableOption, a, b);
+  static equals(a: PostgresSourceTableOption | PlainMessage<PostgresSourceTableOption> | undefined, b: PostgresSourceTableOption | PlainMessage<PostgresSourceTableOption> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceTableOption, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MysqlSourceConnectionOptions
+ */
+export class MysqlSourceConnectionOptions extends Message<MysqlSourceConnectionOptions> {
+  /**
+   * @generated from field: bool halt_on_new_column_addition = 1;
+   */
+  haltOnNewColumnAddition = false;
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.MysqlSourceSchemaOption schemas = 2;
+   */
+  schemas: MysqlSourceSchemaOption[] = [];
+
+  constructor(data?: PartialMessage<MysqlSourceConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MysqlSourceConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "halt_on_new_column_addition", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "schemas", kind: "message", T: MysqlSourceSchemaOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlSourceConnectionOptions {
+    return new MysqlSourceConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MysqlSourceConnectionOptions {
+    return new MysqlSourceConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MysqlSourceConnectionOptions {
+    return new MysqlSourceConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MysqlSourceConnectionOptions | PlainMessage<MysqlSourceConnectionOptions> | undefined, b: MysqlSourceConnectionOptions | PlainMessage<MysqlSourceConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(MysqlSourceConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MysqlSourceSchemaOption
+ */
+export class MysqlSourceSchemaOption extends Message<MysqlSourceSchemaOption> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.MysqlSourceTableOption tables = 2;
+   */
+  tables: MysqlSourceTableOption[] = [];
+
+  constructor(data?: PartialMessage<MysqlSourceSchemaOption>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MysqlSourceSchemaOption";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "tables", kind: "message", T: MysqlSourceTableOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlSourceSchemaOption {
+    return new MysqlSourceSchemaOption().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MysqlSourceSchemaOption {
+    return new MysqlSourceSchemaOption().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MysqlSourceSchemaOption {
+    return new MysqlSourceSchemaOption().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MysqlSourceSchemaOption | PlainMessage<MysqlSourceSchemaOption> | undefined, b: MysqlSourceSchemaOption | PlainMessage<MysqlSourceSchemaOption> | undefined): boolean {
+    return proto3.util.equals(MysqlSourceSchemaOption, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MysqlSourceTableOption
+ */
+export class MysqlSourceTableOption extends Message<MysqlSourceTableOption> {
+  /**
+   * @generated from field: string table = 1;
+   */
+  table = "";
+
+  /**
+   * @generated from field: optional string where_clause = 2;
+   */
+  whereClause?: string;
+
+  constructor(data?: PartialMessage<MysqlSourceTableOption>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MysqlSourceTableOption";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "where_clause", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlSourceTableOption {
+    return new MysqlSourceTableOption().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MysqlSourceTableOption {
+    return new MysqlSourceTableOption().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MysqlSourceTableOption {
+    return new MysqlSourceTableOption().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MysqlSourceTableOption | PlainMessage<MysqlSourceTableOption> | undefined, b: MysqlSourceTableOption | PlainMessage<MysqlSourceTableOption> | undefined): boolean {
+    return proto3.util.equals(MysqlSourceTableOption, a, b);
   }
 }
 
@@ -560,16 +696,22 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
    */
   config: {
     /**
-     * @generated from field: mgmt.v1alpha1.SqlDestinationConnectionOptions sql_options = 1;
+     * @generated from field: mgmt.v1alpha1.PostgresDestinationConnectionOptions postgres_options = 1;
      */
-    value: SqlDestinationConnectionOptions;
-    case: "sqlOptions";
+    value: PostgresDestinationConnectionOptions;
+    case: "postgresOptions";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.AwsS3DestinationConnectionOptions aws_s3_options = 2;
      */
     value: AwsS3DestinationConnectionOptions;
     case: "awsS3Options";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MysqlDestinationConnectionOptions mysql_options = 3;
+     */
+    value: MysqlDestinationConnectionOptions;
+    case: "mysqlOptions";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobDestinationOptions>) {
@@ -580,8 +722,9 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.JobDestinationOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "sql_options", kind: "message", T: SqlDestinationConnectionOptions, oneof: "config" },
+    { no: 1, name: "postgres_options", kind: "message", T: PostgresDestinationConnectionOptions, oneof: "config" },
     { no: 2, name: "aws_s3_options", kind: "message", T: AwsS3DestinationConnectionOptions, oneof: "config" },
+    { no: 3, name: "mysql_options", kind: "message", T: MysqlDestinationConnectionOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobDestinationOptions {
@@ -602,52 +745,52 @@ export class JobDestinationOptions extends Message<JobDestinationOptions> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.SqlDestinationConnectionOptions
+ * @generated from message mgmt.v1alpha1.PostgresDestinationConnectionOptions
  */
-export class SqlDestinationConnectionOptions extends Message<SqlDestinationConnectionOptions> {
+export class PostgresDestinationConnectionOptions extends Message<PostgresDestinationConnectionOptions> {
   /**
-   * @generated from field: mgmt.v1alpha1.TruncateTableConfig truncate_table = 1;
+   * @generated from field: mgmt.v1alpha1.PostgresTruncateTableConfig truncate_table = 1;
    */
-  truncateTable?: TruncateTableConfig;
+  truncateTable?: PostgresTruncateTableConfig;
 
   /**
    * @generated from field: bool init_table_schema = 2;
    */
   initTableSchema = false;
 
-  constructor(data?: PartialMessage<SqlDestinationConnectionOptions>) {
+  constructor(data?: PartialMessage<PostgresDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.SqlDestinationConnectionOptions";
+  static readonly typeName = "mgmt.v1alpha1.PostgresDestinationConnectionOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "truncate_table", kind: "message", T: TruncateTableConfig },
+    { no: 1, name: "truncate_table", kind: "message", T: PostgresTruncateTableConfig },
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlDestinationConnectionOptions {
-    return new SqlDestinationConnectionOptions().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresDestinationConnectionOptions {
+    return new PostgresDestinationConnectionOptions().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SqlDestinationConnectionOptions {
-    return new SqlDestinationConnectionOptions().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresDestinationConnectionOptions {
+    return new PostgresDestinationConnectionOptions().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SqlDestinationConnectionOptions {
-    return new SqlDestinationConnectionOptions().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresDestinationConnectionOptions {
+    return new PostgresDestinationConnectionOptions().fromJsonString(jsonString, options);
   }
 
-  static equals(a: SqlDestinationConnectionOptions | PlainMessage<SqlDestinationConnectionOptions> | undefined, b: SqlDestinationConnectionOptions | PlainMessage<SqlDestinationConnectionOptions> | undefined): boolean {
-    return proto3.util.equals(SqlDestinationConnectionOptions, a, b);
+  static equals(a: PostgresDestinationConnectionOptions | PlainMessage<PostgresDestinationConnectionOptions> | undefined, b: PostgresDestinationConnectionOptions | PlainMessage<PostgresDestinationConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(PostgresDestinationConnectionOptions, a, b);
   }
 }
 
 /**
- * @generated from message mgmt.v1alpha1.TruncateTableConfig
+ * @generated from message mgmt.v1alpha1.PostgresTruncateTableConfig
  */
-export class TruncateTableConfig extends Message<TruncateTableConfig> {
+export class PostgresTruncateTableConfig extends Message<PostgresTruncateTableConfig> {
   /**
    * @generated from field: bool truncate_before_insert = 1;
    */
@@ -658,32 +801,112 @@ export class TruncateTableConfig extends Message<TruncateTableConfig> {
    */
   cascade = false;
 
-  constructor(data?: PartialMessage<TruncateTableConfig>) {
+  constructor(data?: PartialMessage<PostgresTruncateTableConfig>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.TruncateTableConfig";
+  static readonly typeName = "mgmt.v1alpha1.PostgresTruncateTableConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "truncate_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "cascade", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TruncateTableConfig {
-    return new TruncateTableConfig().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresTruncateTableConfig {
+    return new PostgresTruncateTableConfig().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TruncateTableConfig {
-    return new TruncateTableConfig().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresTruncateTableConfig {
+    return new PostgresTruncateTableConfig().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TruncateTableConfig {
-    return new TruncateTableConfig().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresTruncateTableConfig {
+    return new PostgresTruncateTableConfig().fromJsonString(jsonString, options);
   }
 
-  static equals(a: TruncateTableConfig | PlainMessage<TruncateTableConfig> | undefined, b: TruncateTableConfig | PlainMessage<TruncateTableConfig> | undefined): boolean {
-    return proto3.util.equals(TruncateTableConfig, a, b);
+  static equals(a: PostgresTruncateTableConfig | PlainMessage<PostgresTruncateTableConfig> | undefined, b: PostgresTruncateTableConfig | PlainMessage<PostgresTruncateTableConfig> | undefined): boolean {
+    return proto3.util.equals(PostgresTruncateTableConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MysqlDestinationConnectionOptions
+ */
+export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationConnectionOptions> {
+  /**
+   * @generated from field: mgmt.v1alpha1.MysqlTruncateTableConfig truncate_table = 1;
+   */
+  truncateTable?: MysqlTruncateTableConfig;
+
+  /**
+   * @generated from field: bool init_table_schema = 2;
+   */
+  initTableSchema = false;
+
+  constructor(data?: PartialMessage<MysqlDestinationConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MysqlDestinationConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "truncate_table", kind: "message", T: MysqlTruncateTableConfig },
+    { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlDestinationConnectionOptions {
+    return new MysqlDestinationConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MysqlDestinationConnectionOptions {
+    return new MysqlDestinationConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MysqlDestinationConnectionOptions {
+    return new MysqlDestinationConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MysqlDestinationConnectionOptions | PlainMessage<MysqlDestinationConnectionOptions> | undefined, b: MysqlDestinationConnectionOptions | PlainMessage<MysqlDestinationConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(MysqlDestinationConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MysqlTruncateTableConfig
+ */
+export class MysqlTruncateTableConfig extends Message<MysqlTruncateTableConfig> {
+  /**
+   * @generated from field: bool truncate_before_insert = 1;
+   */
+  truncateBeforeInsert = false;
+
+  constructor(data?: PartialMessage<MysqlTruncateTableConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MysqlTruncateTableConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "truncate_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlTruncateTableConfig {
+    return new MysqlTruncateTableConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MysqlTruncateTableConfig {
+    return new MysqlTruncateTableConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MysqlTruncateTableConfig {
+    return new MysqlTruncateTableConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MysqlTruncateTableConfig | PlainMessage<MysqlTruncateTableConfig> | undefined, b: MysqlTruncateTableConfig | PlainMessage<MysqlTruncateTableConfig> | undefined): boolean {
+    return proto3.util.equals(MysqlTruncateTableConfig, a, b);
   }
 }
 
@@ -1206,6 +1429,210 @@ export class UpdateJobSourceConnectionResponse extends Message<UpdateJobSourceCo
 
   static equals(a: UpdateJobSourceConnectionResponse | PlainMessage<UpdateJobSourceConnectionResponse> | undefined, b: UpdateJobSourceConnectionResponse | PlainMessage<UpdateJobSourceConnectionResponse> | undefined): boolean {
     return proto3.util.equals(UpdateJobSourceConnectionResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PostgresSourceSchemaSubset
+ */
+export class PostgresSourceSchemaSubset extends Message<PostgresSourceSchemaSubset> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.PostgresSourceSchemaOption postgres_schemas = 1;
+   */
+  postgresSchemas: PostgresSourceSchemaOption[] = [];
+
+  constructor(data?: PartialMessage<PostgresSourceSchemaSubset>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PostgresSourceSchemaSubset";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "postgres_schemas", kind: "message", T: PostgresSourceSchemaOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresSourceSchemaSubset {
+    return new PostgresSourceSchemaSubset().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresSourceSchemaSubset {
+    return new PostgresSourceSchemaSubset().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresSourceSchemaSubset {
+    return new PostgresSourceSchemaSubset().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PostgresSourceSchemaSubset | PlainMessage<PostgresSourceSchemaSubset> | undefined, b: PostgresSourceSchemaSubset | PlainMessage<PostgresSourceSchemaSubset> | undefined): boolean {
+    return proto3.util.equals(PostgresSourceSchemaSubset, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MysqlSourceSchemaSubset
+ */
+export class MysqlSourceSchemaSubset extends Message<MysqlSourceSchemaSubset> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.MysqlSourceSchemaOption mysql_schemas = 1;
+   */
+  mysqlSchemas: MysqlSourceSchemaOption[] = [];
+
+  constructor(data?: PartialMessage<MysqlSourceSchemaSubset>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MysqlSourceSchemaSubset";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "mysql_schemas", kind: "message", T: MysqlSourceSchemaOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlSourceSchemaSubset {
+    return new MysqlSourceSchemaSubset().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MysqlSourceSchemaSubset {
+    return new MysqlSourceSchemaSubset().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MysqlSourceSchemaSubset {
+    return new MysqlSourceSchemaSubset().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MysqlSourceSchemaSubset | PlainMessage<MysqlSourceSchemaSubset> | undefined, b: MysqlSourceSchemaSubset | PlainMessage<MysqlSourceSchemaSubset> | undefined): boolean {
+    return proto3.util.equals(MysqlSourceSchemaSubset, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.JobSourceSqlSubetSchemas
+ */
+export class JobSourceSqlSubetSchemas extends Message<JobSourceSqlSubetSchemas> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.JobSourceSqlSubetSchemas.schemas
+   */
+  schemas: {
+    /**
+     * @generated from field: mgmt.v1alpha1.PostgresSourceSchemaSubset postgres_subset = 2;
+     */
+    value: PostgresSourceSchemaSubset;
+    case: "postgresSubset";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.MysqlSourceSchemaSubset mysql_subset = 3;
+     */
+    value: MysqlSourceSchemaSubset;
+    case: "mysqlSubset";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<JobSourceSqlSubetSchemas>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobSourceSqlSubetSchemas";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 2, name: "postgres_subset", kind: "message", T: PostgresSourceSchemaSubset, oneof: "schemas" },
+    { no: 3, name: "mysql_subset", kind: "message", T: MysqlSourceSchemaSubset, oneof: "schemas" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceSqlSubetSchemas {
+    return new JobSourceSqlSubetSchemas().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobSourceSqlSubetSchemas {
+    return new JobSourceSqlSubetSchemas().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobSourceSqlSubetSchemas {
+    return new JobSourceSqlSubetSchemas().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobSourceSqlSubetSchemas | PlainMessage<JobSourceSqlSubetSchemas> | undefined, b: JobSourceSqlSubetSchemas | PlainMessage<JobSourceSqlSubetSchemas> | undefined): boolean {
+    return proto3.util.equals(JobSourceSqlSubetSchemas, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest
+ */
+export class SetJobSourceSqlConnectionSubsetsRequest extends Message<SetJobSourceSqlConnectionSubsetsRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.JobSourceSqlSubetSchemas schemas = 2;
+   */
+  schemas?: JobSourceSqlSubetSchemas;
+
+  constructor(data?: PartialMessage<SetJobSourceSqlConnectionSubsetsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "schemas", kind: "message", T: JobSourceSqlSubetSchemas },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobSourceSqlConnectionSubsetsRequest {
+    return new SetJobSourceSqlConnectionSubsetsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobSourceSqlConnectionSubsetsRequest {
+    return new SetJobSourceSqlConnectionSubsetsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobSourceSqlConnectionSubsetsRequest {
+    return new SetJobSourceSqlConnectionSubsetsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobSourceSqlConnectionSubsetsRequest | PlainMessage<SetJobSourceSqlConnectionSubsetsRequest> | undefined, b: SetJobSourceSqlConnectionSubsetsRequest | PlainMessage<SetJobSourceSqlConnectionSubsetsRequest> | undefined): boolean {
+    return proto3.util.equals(SetJobSourceSqlConnectionSubsetsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse
+ */
+export class SetJobSourceSqlConnectionSubsetsResponse extends Message<SetJobSourceSqlConnectionSubsetsResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.Job job = 1;
+   */
+  job?: Job;
+
+  constructor(data?: PartialMessage<SetJobSourceSqlConnectionSubsetsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job", kind: "message", T: Job },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobSourceSqlConnectionSubsetsResponse {
+    return new SetJobSourceSqlConnectionSubsetsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobSourceSqlConnectionSubsetsResponse {
+    return new SetJobSourceSqlConnectionSubsetsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobSourceSqlConnectionSubsetsResponse {
+    return new SetJobSourceSqlConnectionSubsetsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobSourceSqlConnectionSubsetsResponse | PlainMessage<SetJobSourceSqlConnectionSubsetsResponse> | undefined, b: SetJobSourceSqlConnectionSubsetsResponse | PlainMessage<SetJobSourceSqlConnectionSubsetsResponse> | undefined): boolean {
+    return proto3.util.equals(SetJobSourceSqlConnectionSubsetsResponse, a, b);
   }
 }
 
@@ -3179,7 +3606,13 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "randomBoolConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 11;
+     * @generated from field: mgmt.v1alpha1.RandomInt random_int_config = 11;
+     */
+    value: RandomInt;
+    case: "randomIntConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 12;
      */
     value: Null;
     case: "nullConfig";
@@ -3203,7 +3636,8 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 8, name: "int_phone_number_config", kind: "message", T: IntPhoneNumber, oneof: "config" },
     { no: 9, name: "random_string_config", kind: "message", T: RandomString, oneof: "config" },
     { no: 10, name: "random_bool_config", kind: "message", T: RandomBool, oneof: "config" },
-    { no: 11, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 11, name: "random_int_config", kind: "message", T: RandomInt, oneof: "config" },
+    { no: 12, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3671,6 +4105,49 @@ export class RandomBool extends Message<RandomBool> {
 
   static equals(a: RandomBool | PlainMessage<RandomBool> | undefined, b: RandomBool | PlainMessage<RandomBool> | undefined): boolean {
     return proto3.util.equals(RandomBool, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RandomInt
+ */
+export class RandomInt extends Message<RandomInt> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
+  /**
+   * @generated from field: int64 int_length = 2;
+   */
+  intLength = protoInt64.zero;
+
+  constructor(data?: PartialMessage<RandomInt>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RandomInt";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "int_length", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RandomInt {
+    return new RandomInt().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RandomInt {
+    return new RandomInt().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RandomInt {
+    return new RandomInt().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RandomInt | PlainMessage<RandomInt> | undefined, b: RandomInt | PlainMessage<RandomInt> | undefined): boolean {
+    return proto3.util.equals(RandomInt, a, b);
   }
 }
 

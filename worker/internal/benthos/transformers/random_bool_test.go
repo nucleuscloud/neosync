@@ -9,21 +9,12 @@ import (
 
 func TestProcessRandomBool(t *testing.T) {
 
-	tests := []struct {
-		expectedType bool
-	}{
-		{false}, // check bool gen
-		{true},  // check bool gen
-	}
+	testVal := false // check bool gen
 
-	for _, tt := range tests {
-		res, err := GenerateRandomBool()
+	res, err := GenerateRandomBool()
 
-		assert.NoError(t, err)
-
-		assert.IsType(t, res, tt.expectedType)
-
-	}
+	assert.NoError(t, err)
+	assert.IsType(t, res, testVal)
 
 }
 
