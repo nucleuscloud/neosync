@@ -150,8 +150,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 message:
                                   'Source must be different from destination',
                               });
-                            } else if (value !== sourceConn) {
-                              form.clearErrors();
                             }
                             if (
                               !isValidConnectionPair(
@@ -169,12 +167,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   connections
                                 )}`,
                               });
-                            } else if (
+                            }
+
+                            if (
                               isValidConnectionPair(
                                 value,
                                 destConn,
                                 connections
-                              )
+                              ) &&
+                              value != destConn
                             ) {
                               form.clearErrors();
                             }
@@ -300,8 +301,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                               'Destination must be different from source',
                                           }
                                         );
-                                      } else if (value !== sourceConn) {
-                                        form.clearErrors();
                                       }
                                       if (
                                         !isValidConnectionPair(
@@ -322,12 +321,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             )}`,
                                           }
                                         );
-                                      } else if (
+                                      }
+                                      if (
                                         isValidConnectionPair(
                                           value,
                                           sourceConn,
                                           connections
-                                        )
+                                        ) &&
+                                        value != sourceConn
                                       ) {
                                         form.clearErrors();
                                       }
