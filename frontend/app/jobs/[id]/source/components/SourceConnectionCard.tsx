@@ -368,7 +368,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
             job?.source?.options?.config.value.haltOnNewColumnAddition,
         },
       };
-    case 'postgresOptions':
+    case 'mysqlOptions':
       return {
         ...yupValidationValues,
         sourceOptions: {

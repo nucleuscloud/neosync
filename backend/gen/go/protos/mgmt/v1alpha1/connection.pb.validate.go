@@ -2209,9 +2209,9 @@ func (m *MysqlConnection) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Username
+	// no validation rules for User
 
-	// no validation rules for Password
+	// no validation rules for Pass
 
 	// no validation rules for Protocol
 
@@ -2219,7 +2219,7 @@ func (m *MysqlConnection) validate(all bool) error {
 
 	// no validation rules for Port
 
-	// no validation rules for DbName
+	// no validation rules for Name
 
 	if len(errors) > 0 {
 		return MysqlConnectionMultiError(errors)

@@ -16,13 +16,16 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
@@ -85,6 +88,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const errors = form.formState.errors;
 
+  const mysqlConns = connections.filter(
+    (c) => c.connectionConfig?.config.case == 'mysqlConfig'
+  );
+  const postgresConns = connections.filter(
+    (c) => c.connectionConfig?.config.case == 'pgConfig'
+  );
+  const awsS3Conns = connections.filter(
+    (c) => c.connectionConfig?.config.case == 'awsS3Config'
+  );
+
   return (
     <OverviewContainer
       Header={
@@ -140,6 +153,31 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             } else if (value !== sourceConn) {
                               form.clearErrors();
                             }
+                            if (
+                              !isValidConnectionPair(
+                                value,
+                                destConn,
+                                connections
+                              )
+                            ) {
+                              const isSource = true;
+                              form.setError(`sourceId`, {
+                                type: 'string',
+                                message: `Source connection type must one of ${getErrorConnectionTypes(
+                                  isSource,
+                                  value,
+                                  connections
+                                )}`,
+                              });
+                            } else if (
+                              isValidConnectionPair(
+                                value,
+                                destConn,
+                                connections
+                              )
+                            ) {
+                              form.clearErrors();
+                            }
                             setSourceConn(value);
                             if (form.formState.errors) {
                               form.clearErrors;
@@ -155,21 +193,35 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {connections
-                              .filter(
-                                (c) =>
-                                  c.connectionConfig?.config.case !=
-                                  'awsS3Config'
-                              )
-                              .map((connection) => (
-                                <SelectItem
-                                  className="cursor-pointer"
-                                  key={connection.id}
-                                  value={connection.id}
-                                >
-                                  {connection.name}
-                                </SelectItem>
-                              ))}
+                            {postgresConns.length > 0 && (
+                              <SelectGroup>
+                                <SelectLabel>Postgres</SelectLabel>
+                                {postgresConns.map((connection) => (
+                                  <SelectItem
+                                    className="cursor-pointer"
+                                    key={connection.id}
+                                    value={connection.id}
+                                  >
+                                    {connection.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            )}
+
+                            {mysqlConns.length > 0 && (
+                              <SelectGroup>
+                                <SelectLabel>Mysql</SelectLabel>
+                                {mysqlConns.map((connection) => (
+                                  <SelectItem
+                                    className="cursor-pointer"
+                                    key={connection.id}
+                                    value={connection.id}
+                                  >
+                                    {connection.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            )}
                             <SelectItem
                               className="cursor-pointer"
                               key="new-src-connection"
@@ -251,6 +303,34 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                       } else if (value !== sourceConn) {
                                         form.clearErrors();
                                       }
+                                      if (
+                                        !isValidConnectionPair(
+                                          value,
+                                          sourceConn,
+                                          connections
+                                        )
+                                      ) {
+                                        const isSource = false;
+                                        form.setError(
+                                          `destinations.${index}.connectionId`,
+                                          {
+                                            type: 'string',
+                                            message: `Destination connection type must one of ${getErrorConnectionTypes(
+                                              isSource,
+                                              value,
+                                              connections
+                                            )}`,
+                                          }
+                                        );
+                                      } else if (
+                                        isValidConnectionPair(
+                                          value,
+                                          sourceConn,
+                                          connections
+                                        )
+                                      ) {
+                                        form.clearErrors();
+                                      }
                                       form.setValue(
                                         `destinations.${index}.destinationOptions`,
                                         {
@@ -267,15 +347,49 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {connections.map((connection) => (
-                                        <SelectItem
-                                          className="cursor-pointer"
-                                          key={connection.id}
-                                          value={connection.id}
-                                        >
-                                          {connection.name}
-                                        </SelectItem>
-                                      ))}
+                                      {postgresConns.length > 0 && (
+                                        <SelectGroup>
+                                          <SelectLabel>Postgres</SelectLabel>
+                                          {postgresConns.map((connection) => (
+                                            <SelectItem
+                                              className="cursor-pointer"
+                                              key={connection.id}
+                                              value={connection.id}
+                                            >
+                                              {connection.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectGroup>
+                                      )}
+
+                                      {mysqlConns.length > 0 && (
+                                        <SelectGroup>
+                                          <SelectLabel>Mysql</SelectLabel>
+                                          {mysqlConns.map((connection) => (
+                                            <SelectItem
+                                              className="cursor-pointer"
+                                              key={connection.id}
+                                              value={connection.id}
+                                            >
+                                              {connection.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectGroup>
+                                      )}
+                                      {awsS3Conns.length > 0 && (
+                                        <SelectGroup>
+                                          <SelectLabel>AWS S3</SelectLabel>
+                                          {awsS3Conns.map((connection) => (
+                                            <SelectItem
+                                              className="cursor-pointer"
+                                              key={connection.id}
+                                              value={connection.id}
+                                            >
+                                              {connection.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectGroup>
+                                      )}
                                       <SelectItem
                                         className="cursor-pointer"
                                         key="new-dst-connection"
@@ -360,4 +474,53 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </OverviewContainer>
   );
+}
+
+function getErrorConnectionTypes(
+  isSource: boolean,
+  connId: string,
+  connections: Connection[]
+): string {
+  const conn = connections.find((c) => c.id == connId);
+  if (!conn) {
+    return isSource ? '[Postgres, Mysql]' : '[Postgres, Mysql, AWS S3]';
+  }
+  if (conn.connectionConfig?.config.case == 'awsS3Config') {
+    return '[Mysql, Postgres]';
+  }
+  if (conn.connectionConfig?.config.case == 'mysqlConfig') {
+    return isSource ? '[Mysql]' : '[Mysql, AWS S3]';
+  }
+
+  if (conn.connectionConfig?.config.case == 'pgConfig') {
+    return isSource ? '[Postgres]' : '[Postgres, AWS S3]';
+  }
+  return '';
+}
+
+function isValidConnectionPair(
+  connId1: string,
+  connId2: string,
+  connections: Connection[]
+): boolean {
+  const conn1 = connections.find((c) => c.id == connId1);
+  const conn2 = connections.find((c) => c.id == connId2);
+
+  if (!conn1 || !conn2) {
+    return true;
+  }
+  if (
+    conn1.connectionConfig?.config.case == 'awsS3Config' ||
+    conn2.connectionConfig?.config.case == 'awsS3Config'
+  ) {
+    return true;
+  }
+
+  if (
+    conn1.connectionConfig?.config.case == conn2.connectionConfig?.config.case
+  ) {
+    return true;
+  }
+
+  return false;
 }

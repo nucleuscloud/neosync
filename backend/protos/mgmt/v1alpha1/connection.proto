@@ -96,12 +96,12 @@ message PostgresConnection {
 }
 
 message MysqlConnection {
-  string username = 1;
-  string password = 2;
+  string user = 1;
+  string pass = 2;
   string protocol = 3;
   string host = 4;
   int32 port = 5;
-  string db_name = 6;
+  string name = 6;
 }
 
 message MysqlConnectionConfig {

@@ -7,6 +7,7 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
+import MysqlForm from './MysqlForm';
 import PostgresForm from './PostgresForm';
 
 interface ConnectionComponent {
@@ -27,6 +28,26 @@ export function getConnectionComponentDetails(
   props: GetConnectionComponentDetailsProps
 ): ConnectionComponent {
   const { connection, onSaved, extraPageHeading, onSaveFailed } = props;
+  const defaultComponent = {
+    name: 'Invalid Connection',
+    summary: (
+      <div>
+        <p>No summary found.</p>
+      </div>
+    ),
+    header: (
+      <PageHeader
+        header="Unknown Connection"
+        description="Update this connection"
+      />
+    ),
+    body: (
+      <div>
+        No connection component found for: ({connection?.name ?? 'unknown name'}
+        )
+      </div>
+    ),
+  };
 
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
@@ -68,26 +89,47 @@ export function getConnectionComponentDetails(
             ),
           };
       }
-      return {
-        name: connection.name,
-        summary: (
-          <div>
-            <p>No summary found.</p>
-          </div>
-        ),
-        header: (
-          <PageHeader
-            header="Unknown Connection"
-            description="Update this connection"
-          />
-        ),
-        body: (
-          <div>
-            No connection component found for: (
-            {connection?.name ?? 'unknown name'})
-          </div>
-        ),
-      };
+      return defaultComponent;
+    case 'mysqlConfig':
+      const mysqlValue = connection.connectionConfig.config.value;
+      switch (mysqlValue.connectionConfig.case) {
+        case 'connection':
+          return {
+            name: connection.name,
+            summary: (
+              <div>
+                <p>No summary found.</p>
+              </div>
+            ),
+            header: (
+              <PageHeader
+                header="Mysql"
+                description="Update this connection"
+                leftIcon={<ConnectionIcon name="mysql" />}
+                extraHeading={extraPageHeading}
+              />
+            ),
+            body: (
+              <MysqlForm
+                connectionId={connection.id}
+                defaultValues={{
+                  connectionName: connection.name,
+                  db: {
+                    host: mysqlValue.connectionConfig.value.host,
+                    port: mysqlValue.connectionConfig.value.port,
+                    name: mysqlValue.connectionConfig.value.name,
+                    user: mysqlValue.connectionConfig.value.user,
+                    pass: mysqlValue.connectionConfig.value.pass,
+                    protocol: mysqlValue.connectionConfig.value.protocol,
+                  },
+                }}
+                onSaved={(resp) => onSaved(resp)}
+                onSaveFailed={onSaveFailed}
+              />
+            ),
+          };
+      }
+      return defaultComponent;
     case 'awsS3Config':
       return {
         name: connection.name,
@@ -124,25 +166,6 @@ export function getConnectionComponentDetails(
         ),
       };
     default:
-      return {
-        name: 'Invalid Connection',
-        summary: (
-          <div>
-            <p>No summary found.</p>
-          </div>
-        ),
-        header: (
-          <PageHeader
-            header="Unknown Connection"
-            description="Update this connection"
-          />
-        ),
-        body: (
-          <div>
-            No connection component found for: (
-            {connection?.name ?? 'unknown name'})
-          </div>
-        ),
-      };
+      return defaultComponent;
   }
 }

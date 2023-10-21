@@ -726,14 +726,14 @@ export class PostgresConnection extends Message<PostgresConnection> {
  */
 export class MysqlConnection extends Message<MysqlConnection> {
   /**
-   * @generated from field: string username = 1;
+   * @generated from field: string user = 1;
    */
-  username = "";
+  user = "";
 
   /**
-   * @generated from field: string password = 2;
+   * @generated from field: string pass = 2;
    */
-  password = "";
+  pass = "";
 
   /**
    * @generated from field: string protocol = 3;
@@ -751,9 +751,9 @@ export class MysqlConnection extends Message<MysqlConnection> {
   port = 0;
 
   /**
-   * @generated from field: string db_name = 6;
+   * @generated from field: string name = 6;
    */
-  dbName = "";
+  name = "";
 
   constructor(data?: PartialMessage<MysqlConnection>) {
     super();
@@ -763,12 +763,12 @@ export class MysqlConnection extends Message<MysqlConnection> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.MysqlConnection";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "username", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "password", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "user", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "pass", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "protocol", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "host", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "port", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
-    { no: 6, name: "db_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlConnection {

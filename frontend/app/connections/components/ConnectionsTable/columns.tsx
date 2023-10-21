@@ -132,6 +132,8 @@ function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
   switch (cc.config.case) {
     case 'pgConfig':
       return 'Postgres';
+    case 'mysqlConfig':
+      return 'Mysql';
     case 'awsS3Config':
       return 'AWS S3';
     default:
