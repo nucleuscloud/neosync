@@ -14,7 +14,7 @@ func TestProcessRandomFloatPreserveLength(t *testing.T) {
 
 	res, err := ProcessRandomFloat(val, true, int64(3), int64(3))
 
-	actual := GetFloatLength(float64(res)).DigitsBeforeDecimalLength + GetFloatLength(float64(res)).DigitsAfterDecimalLength
+	actual := GetFloatLength(res).DigitsBeforeDecimalLength + GetFloatLength(res).DigitsAfterDecimalLength
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedLength, actual, "The output float needs to be the same length as the input Float")
@@ -28,7 +28,7 @@ func TestProcessRandomFloatPreserveLengthFalse(t *testing.T) {
 
 	res, err := ProcessRandomFloat(val, false, int64(3), int64(3))
 
-	actual := GetFloatLength(float64(res)).DigitsAfterDecimalLength + GetFloatLength(float64(res)).DigitsBeforeDecimalLength
+	actual := GetFloatLength(res).DigitsAfterDecimalLength + GetFloatLength(res).DigitsBeforeDecimalLength
 	assert.NoError(t, err)
 	assert.Equal(t, actual, expectedLength, "The output Float needs to be the same length as the input Float")
 
