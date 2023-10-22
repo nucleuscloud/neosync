@@ -73,10 +73,6 @@ func ProcessRandomFloat(i float64, preserveLength bool, digitsBeforeDecimal, dig
 			return 0, fmt.Errorf("unable to generate a random after digits integer")
 		}
 
-		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random string with length")
-		}
-
 		combinedStr := fmt.Sprintf("%d.%d", bd, ad)
 
 		result, err := strconv.ParseFloat(combinedStr, 64)
@@ -93,6 +89,19 @@ func ProcessRandomFloat(i float64, preserveLength bool, digitsBeforeDecimal, dig
 		}
 
 		ad, err := GenerateRandomInt(int64(defaultLenAfterDecimals))
+
+		// generate a new number if it ends in a zero so that the trailing zero doesn't get stripped and return
+		// a value that is shorter than what the user asks for. This happens in the when we convert the string to a float64
+		for {
+			if !LastDigitAZero(ad) {
+				break // Exit the loop when i is greater than or equal to 5
+			}
+			ad, err = GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
+
+			if err != nil {
+				return 0, fmt.Errorf("unable to generate a random int64 to convert to a float")
+			}
+		}
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random after digits integer")
@@ -131,4 +140,16 @@ func GetFloatLength(i float64) *FloatLength {
 		DigitsBeforeDecimalLength: len(parsed[0]),
 		DigitsAfterDecimalLength:  len(parsed[1]),
 	}
+}
+
+func LastDigitAZero(n int64) bool {
+	// Convert the int64 to a string
+	str := strconv.FormatInt(n, 10)
+
+	// Check if the string is empty or if the last character is '0'
+	if len(str) > 0 && str[len(str)-1] == '0' {
+		return true
+	}
+
+	return false
 }

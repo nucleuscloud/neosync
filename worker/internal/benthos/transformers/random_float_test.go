@@ -14,9 +14,10 @@ func TestProcessRandomFloatPreserveLength(t *testing.T) {
 
 	res, err := ProcessRandomFloat(val, true, int64(3), int64(3))
 
-	actual := GetFloatLength(float64(res)).DigitsAfterDecimalLength + GetFloatLength(float64(res)).DigitsBeforeDecimalLength
+	actual := GetFloatLength(float64(res)).DigitsBeforeDecimalLength + GetFloatLength(float64(res)).DigitsAfterDecimalLength
+
 	assert.NoError(t, err)
-	assert.Equal(t, actual, expectedLength, "The output Float needs to be the same length as the input Float")
+	assert.Equal(t, expectedLength, actual, "The output float needs to be the same length as the input Float")
 
 }
 
@@ -38,7 +39,7 @@ func TestRandomFloatTransformer(t *testing.T) {
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random float transformer")
 
-	testVal := float64(397283)
+	testVal := float64(397.34)
 
 	res, err := ex.Query(testVal)
 	assert.NoError(t, err)
