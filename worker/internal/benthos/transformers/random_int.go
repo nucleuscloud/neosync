@@ -31,10 +31,6 @@ func init() {
 			return nil, err
 		}
 
-		if err != nil {
-			return nil, fmt.Errorf("unable to convert the string case to a defined enum value")
-		}
-
 		return bloblang.Int64Method(func(i int64) (any, error) {
 			res, err := ProcessRandomInt(i, preserveLength, intLength)
 			return res, err
