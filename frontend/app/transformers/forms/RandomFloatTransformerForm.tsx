@@ -77,7 +77,6 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
       <FormField
         name={`mappings.${index}.transformer.config.bd`}
         defaultValue={bd}
-        disabled={pl}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -109,7 +108,6 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
       <FormField
         name={`mappings.${index}.transformer.config.ad`}
         defaultValue={ad}
-        disabled={pl}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
