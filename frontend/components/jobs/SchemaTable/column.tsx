@@ -187,7 +187,7 @@ function TansformerSelect(props: TransformersSelectProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between max-w-[141px]" //whitespace-nowrap
+          className="justify-between  min-w-[141px] max-w-[141px]" //whitespace-nowrap
         >
           <div className="truncate overflow-hidden text-ellipsis whitespace-nowrap">
             {value

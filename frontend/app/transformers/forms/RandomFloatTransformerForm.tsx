@@ -77,6 +77,7 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
       <FormField
         name={`mappings.${index}.transformer.config.bd`}
         defaultValue={bd}
+        disabled={pl}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -89,13 +90,16 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
             </div>
             <FormControl>
               <Input
-                type="number"
                 className="max-w-[180px]"
                 placeholder="10"
-                maxLength={8}
+                max={9}
                 disabled={pl}
                 onChange={(event) => {
-                  setBd(Number(event.target.value));
+                  const inputValue = Math.min(
+                    9,
+                    Math.max(0, Number(event.target.value))
+                  );
+                  setBd(inputValue);
                 }}
               />
             </FormControl>
@@ -105,6 +109,7 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
       <FormField
         name={`mappings.${index}.transformer.config.ad`}
         defaultValue={ad}
+        disabled={pl}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -118,13 +123,16 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
             </div>
             <FormControl>
               <Input
-                type="number"
                 className="max-w-[180px]"
                 placeholder="10"
-                maxLength={8}
                 disabled={pl}
+                max={9}
                 onChange={(event) => {
-                  setAd(Number(event.target.value));
+                  const inputValue = Math.min(
+                    9,
+                    Math.max(0, Number(event.target.value))
+                  );
+                  setAd(inputValue);
                 }}
               />
             </FormControl>
