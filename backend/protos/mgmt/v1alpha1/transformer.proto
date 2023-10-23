@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+message GetTransformersRequest {}
+
+message GetTransformersResponse {
+  repeated Transformer transformers = 1;
+}
+
+message Transformer {
+  string value = 1;
+  TransformerConfig config = 2;
+}
+
+message TransformerConfig {
+  oneof config {
+    option (buf.validate.oneof).required = true;
+
+    EmailConfig email_config = 1;
+    Passthrough passthrough_config = 2;
+    Uuid uuid_config = 3;
+    FirstName first_name_config = 4;
+    LastName last_name_config = 5;
+    FullName full_name_config = 6;
+    PhoneNumber phone_number_config = 7;
+    IntPhoneNumber int_phone_number_config = 8;
+    RandomString random_string_config = 9;
+    RandomBool random_bool_config = 10;
+    RandomInt random_int_config = 11;
+    RandomFloat random_float_config = 12;
+    Gender gender_config = 13;
+    Null null_config = 14;
+    UTCTimestamp utc_timestamp_config = 15;
+    UnixTimestamp unix_timestamp_config = 16;
+    StreetAddress street_address_config = 17;
+    City city_config = 18;
+    Zipcode zipcode_config = 19;
+    State state_config = 20;
+    FullAddress full_address_config = 21;
+  }
+}
+
+message EmailConfig {
+  bool preserve_domain = 1;
+  bool preserve_length = 2;
+}
+
+message Passthrough {}
+
+message Uuid {
+  bool include_hyphen = 1;
+}
+
+message FirstName {
+  bool preserve_length = 1;
+}
+
+message LastName {
+  bool preserve_length = 1;
+}
+
+message FullName {
+  bool preserve_length = 1;
+}
+
+message PhoneNumber {
+  bool preserve_length = 1;
+  bool e164_format = 2;
+  bool include_hyphens = 3;
+}
+
+message IntPhoneNumber {
+  bool preserve_length = 1;
+}
+message RandomString {
+  enum StringCase {
+    STRING_CASE_UNSPECIFIED = 0;
+    STRING_CASE_UPPER = 1;
+    STRING_CASE_LOWER = 2;
+    STRING_CASE_TITLE = 3;
+  }
+
+  bool preserve_length = 1;
+  int64 str_length = 2;
+  StringCase str_case = 3;
+}
+
+message Null {}
+
+message RandomBool {}
+
+message RandomInt {
+  bool preserve_length = 1;
+  int64 int_length = 2;
+}
+
+message RandomFloat {
+  bool preserve_length = 1;
+  int64 digits_before_decimal = 2;
+  int64 digits_after_decimal = 3;
+}
+message Gender {
+  bool abbreviate = 1;
+}
+
+message UTCTimestamp {}
+
+message UnixTimestamp {}
+
+message StreetAddress {}
+
+message Zipcode {}
+
+message City {}
+
+message State {}
+
+message FullAddress {}
+
+service TransformersService {
+  rpc GetTransformers(GetTransformersRequest) returns (GetTransformersResponse) {}
+}

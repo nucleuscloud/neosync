@@ -1,4 +1,4 @@
-package v1alpha1_jobservice
+package v1alpha1_transformersservice
 
 import (
 	"context"
