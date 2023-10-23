@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -31,6 +32,7 @@ interface Props {
 interface TransformerMetadata {
   name: string;
   description: string;
+  type: string;
 }
 
 export default function EditTransformerOptions(props: Props): ReactElement {
@@ -106,9 +108,14 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         <SheetHeader>
           <div className="flex flex-row justify-between w-full">
             <div className="flex flex-col space-y-2">
-              <SheetTitle>
-                {handleTransformerMetadata(transformer).name}
-              </SheetTitle>
+              <div className="flex flex-row gap-2">
+                <SheetTitle>
+                  {handleTransformerMetadata(transformer).name}
+                </SheetTitle>
+                <Badge variant="outline">
+                  {handleTransformerMetadata(transformer).type}
+                </Badge>
+              </div>
               <SheetDescription>
                 {handleTransformerMetadata(transformer).description}
               </SheetDescription>
@@ -216,6 +223,7 @@ export function handleTransformerMetadata(
       email: {
         name: 'Email',
         description: 'Anonymizes or generates a new email.',
+        type: 'string',
       },
     },
     {
@@ -223,6 +231,7 @@ export function handleTransformerMetadata(
         name: 'Phone Number',
         description:
           'Anonymizes or generates a new phone number. The default format is <XXX-XXX-XXXX>.',
+        type: 'string',
       },
     },
     {
@@ -230,18 +239,21 @@ export function handleTransformerMetadata(
         name: 'Int64 Phone Number',
         description:
           'Anonymizes or generates a new phone number of type int64 with a default length of 10.',
+        type: 'int64',
       },
     },
     {
       first_name: {
         name: 'First Name',
         description: 'Anonymizes or generates a new first name.',
+        type: 'string',
       },
     },
     {
       last_name: {
         name: 'Last Name',
         description: 'Anonymizes or generates a new last name.',
+        type: 'string',
       },
     },
     {
@@ -249,20 +261,29 @@ export function handleTransformerMetadata(
         name: 'Full Name',
         description:
           'Anonymizes or generates a new full name consisting of a first and last name.',
+        type: 'string',
       },
     },
-    { uuid: { name: 'UUID', description: 'Generates a new UUIDv4 id.' } },
+    {
+      uuid: {
+        name: 'UUID',
+        description: 'Generates a new UUIDv4 id.',
+        type: 'uuid',
+      },
+    },
     {
       passthrough: {
         name: 'Passthrough',
         description:
           'Passes the input value through to the desination with no changes.',
+        type: 'passthrough',
       },
     },
     {
       null: {
         name: 'Null',
         description: 'Inserts a <null> string instead of the source value.',
+        type: 'null',
       },
     },
     {
@@ -270,12 +291,14 @@ export function handleTransformerMetadata(
         name: 'Random String',
         description:
           'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length or Preserve Length parameters are defined.',
+        type: 'string',
       },
     },
     {
       random_bool: {
         name: 'Random Bool',
         description: 'Generates a boolean value at random.',
+        type: 'bool',
       },
     },
     {
@@ -283,6 +306,7 @@ export function handleTransformerMetadata(
         name: 'Random Integer',
         description:
           'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramters are defined. .',
+        type: 'int64',
       },
     },
     {
@@ -290,6 +314,7 @@ export function handleTransformerMetadata(
         name: 'Random Float',
         description:
           'Generates a random float value with a default length of <XX.XXX>.',
+        type: 'float',
       },
     },
     {
@@ -297,18 +322,21 @@ export function handleTransformerMetadata(
         name: 'Gender',
         description:
           'Randomly generates one of the following genders: female, male, undefined, nonbinary.',
+        type: 'string',
       },
     },
     {
       utc_timestamp: {
         name: 'UTC Timestamp',
         description: 'Randomly generates a UTC timestamp.',
+        type: 'time',
       },
     },
     {
-      utc_timestamp: {
+      unix_timestamp: {
         name: 'Unix Timestamp',
         description: 'Randomly generates a Unix timestamp.',
+        type: 'int64',
       },
     },
   ];
@@ -317,6 +345,7 @@ export function handleTransformerMetadata(
     default: {
       name: 'Undefined',
       description: 'Undefined Transformer',
+      type: 'undefined',
     },
   };
 
