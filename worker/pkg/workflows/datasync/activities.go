@@ -1092,6 +1092,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "unixtimestamptransformer()", nil
 	case "street_address":
 		return "streetaddresstransformer()", nil
+	case "city":
+		return "citytransformer()", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

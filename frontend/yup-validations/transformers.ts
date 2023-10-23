@@ -1,4 +1,5 @@
 import {
+  City,
   EmailConfig,
   FirstName,
   FullName,
@@ -360,6 +361,17 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'streetAddressConfig',
             value: new StreetAddress({}),
+          },
+        }),
+      });
+    }
+    case 'city': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'cityConfig',
+            value: new City({}),
           },
         }),
       });
