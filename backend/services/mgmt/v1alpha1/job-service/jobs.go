@@ -1126,7 +1126,8 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 		return false, err
 	}
 
-	for _, d := range dests {
+	for i := range dests {
+		d := dests[i]
 		// AWS S3 is always a valid destination regardless of source connection type
 		if d.ConnectionConfig.AwsS3Config != nil {
 			continue
