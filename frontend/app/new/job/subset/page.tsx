@@ -142,7 +142,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     const key = buildRowKey(schema, table);
     const trData = tableRowData[key];
     const svrData = subsetFormValues.subsets.find(
-      (ss) => ss.schema === schema && ss.table === table
+      (ss) => buildRowKey(ss.schema, ss.table) === key
     );
     if (!svrData && !!trData.where) {
       return true;
@@ -151,15 +151,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   function onLocalRowReset(schema: string, table: string): void {
+    const key = buildRowKey(schema, table);
     const idx = form
       .getValues()
       .subsets.findIndex(
-        (item) =>
-          buildRowKey(item.schema, item.table) === buildRowKey(schema, table)
+        (item) => buildRowKey(item.schema, item.table) === key
       );
     if (idx >= 0) {
       const svrData = subsetFormValues.subsets.find(
-        (ss) => ss.schema === schema && ss.table === table
+        (ss) => buildRowKey(ss.schema, ss.table) === key
       );
 
       form.setValue(`subsets.${idx}`, {
@@ -220,15 +220,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   if (!itemToEdit) {
                     return;
                   }
+                  const key = buildRowKey(itemToEdit.schema, itemToEdit.table);
                   const idx = form
                     .getValues()
                     .subsets.findIndex(
-                      (item) =>
-                        buildRowKey(item.schema, item.table) ===
-                        buildRowKey(
-                          itemToEdit?.schema ?? '',
-                          itemToEdit?.table ?? ''
-                        )
+                      (item) => buildRowKey(item.schema, item.table) === key
                     );
                   if (idx >= 0) {
                     form.setValue(`subsets.${idx}`, {
