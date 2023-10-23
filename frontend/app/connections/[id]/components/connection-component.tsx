@@ -28,26 +28,6 @@ export function getConnectionComponentDetails(
   props: GetConnectionComponentDetailsProps
 ): ConnectionComponent {
   const { connection, onSaved, extraPageHeading, onSaveFailed } = props;
-  const defaultComponent = {
-    name: 'Invalid Connection',
-    summary: (
-      <div>
-        <p>No summary found.</p>
-      </div>
-    ),
-    header: (
-      <PageHeader
-        header="Unknown Connection"
-        description="Update this connection"
-      />
-    ),
-    body: (
-      <div>
-        No connection component found for: ({connection?.name ?? 'unknown name'}
-        )
-      </div>
-    ),
-  };
 
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
@@ -88,7 +68,21 @@ export function getConnectionComponentDetails(
             ),
           };
       }
-      return defaultComponent;
+      return {
+        name: connection.name,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: <PageHeader header="Unknown Connection" />,
+        body: (
+          <div>
+            No connection component found for: (
+            {connection?.name ?? 'unknown name'})
+          </div>
+        ),
+      };
     case 'mysqlConfig':
       const mysqlValue = connection.connectionConfig.config.value;
       switch (mysqlValue.connectionConfig.case) {
@@ -128,7 +122,21 @@ export function getConnectionComponentDetails(
             ),
           };
       }
-      return defaultComponent;
+      return {
+        name: connection.name,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: <PageHeader header="Unknown Connection" />,
+        body: (
+          <div>
+            No connection component found for: (
+            {connection?.name ?? 'unknown name'})
+          </div>
+        ),
+      };
     case 'awsS3Config':
       return {
         name: connection.name,
@@ -164,6 +172,20 @@ export function getConnectionComponentDetails(
         ),
       };
     default:
-      return defaultComponent;
+      return {
+        name: 'Invalid Connection',
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: <PageHeader header="Unknown Connection" />,
+        body: (
+          <div>
+            No connection component found for: (
+            {connection?.name ?? 'unknown name'})
+          </div>
+        ),
+      };
   }
 }
