@@ -15,6 +15,7 @@ import {
   RandomString_StringCase,
   Transformer,
   TransformerConfig,
+  UTCTimestamp,
   Uuid,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 
@@ -324,6 +325,17 @@ export function toTransformerConfigOptions(t: {
             value: new Gender({
               abbreviate: g.config.abbreviate,
             }),
+          },
+        }),
+      });
+    }
+    case 'utc_timestamp': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'utcTimestampConfig',
+            value: new UTCTimestamp({}),
           },
         }),
       });

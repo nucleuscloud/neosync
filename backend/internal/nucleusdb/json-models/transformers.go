@@ -26,6 +26,7 @@ type TransformerConfigs struct {
 	RandomInt      *RandomIntConfig
 	RandomFloat    *RandomFloatConfig
 	Gender         *GenderConfig
+	UTCTimestamp   *UTCTimestampConfig
 }
 
 type EmailConfigs struct {
@@ -83,6 +84,8 @@ type RandomFloatConfig struct {
 type GenderConfig struct {
 	Abbreviate bool
 }
+
+type UTCTimestampConfig struct{}
 
 // from API -> DB
 func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
@@ -187,6 +190,11 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 			Gender: &GenderConfig{
 				Abbreviate: tr.Config.GetGenderConfig().Abbreviate,
 			},
+		}
+	case *mgmtv1alpha1.TransformerConfig_UtcTimestampConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			UTCTimestamp: &UTCTimestampConfig{},
 		}
 	default:
 		t.Value = tr.Value
@@ -359,6 +367,15 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 					GenderConfig: &mgmtv1alpha1.Gender{
 						Abbreviate: t.Config.Gender.Abbreviate,
 					},
+				},
+			},
+		}
+	case t.Config.UTCTimestamp != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_UtcTimestampConfig{
+					UtcTimestampConfig: &mgmtv1alpha1.UTCTimestamp{},
 				},
 			},
 		}

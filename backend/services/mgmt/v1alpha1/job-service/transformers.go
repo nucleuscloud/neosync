@@ -25,6 +25,7 @@ const (
 	RandomInt      Transformation = "random_int"
 	RandomFloat    Transformation = "random_float"
 	Gender         Transformation = "gender"
+	UTCTimestamp   Transformation = "utc_timestamp"
 )
 
 func (s *Service) GetTransformers(
@@ -132,6 +133,7 @@ func (s *Service) GetTransformers(
 						},
 					},
 				}},
+			{Value: string(UTCTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
 		},
 	}), nil
 }
