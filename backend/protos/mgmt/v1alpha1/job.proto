@@ -4,7 +4,7 @@ package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
-// import "transformer.proto";
+import "transformer.proto";
 
 message GetJobsRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
@@ -114,7 +114,7 @@ message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  // transformer.Transformer transformer = 5;
+  transformer.Transformer transformer = 5;
 }
 
 enum JobStatus {

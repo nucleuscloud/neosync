@@ -1552,6 +1552,8 @@ github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 h1:NHrXEjTNQY7P0Zfx1a
 github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249/go.mod h1:mpRZBD8SJ55OIICQ3iWH0Yz3cjzA61JdqMLoWXeB2+8=
 github.com/nucleuscloud/neosync v0.0.10-0.20231023224958-cad81e11a3ca h1:bkdk0i85wx+uCSNZ4/LpjcwOMKEZlNXVPzqFGitP3QM=
 github.com/nucleuscloud/neosync v0.0.10-0.20231023224958-cad81e11a3ca/go.mod h1:NoXfa9HP5+LJlajQ/TW7n7GiFBXAbcxqogxcLQMJrFs=
+github.com/nucleuscloud/neosync v0.0.10-0.20231023230344-368e04d042f7 h1:Uz/Axa4zlOu/F4FzjHHM3wgSDd8k0Rpl1N/yIPK0ITU=
+github.com/nucleuscloud/neosync v0.0.10-0.20231023230344-368e04d042f7/go.mod h1:NoXfa9HP5+LJlajQ/TW7n7GiFBXAbcxqogxcLQMJrFs=
 github.com/nucleuscloud/neosync/worker v0.0.0-20231010232040-8e7d46d995f8 h1:hJlv+ZaasgMzq+jvtdJrjZMZ+EsW7vrdZL3gFQbC3l0=
 github.com/nucleuscloud/neosync/worker v0.0.0-20231010232040-8e7d46d995f8/go.mod h1:Zzy/pHdLhGrlsZHk+tQTop+u3bqOZB2QpOloeSrjrFE=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
