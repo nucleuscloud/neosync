@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/go
 {
-	"name": "Go",
+	"name": "neosync",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	// "image": "mcr.microsoft.com/devcontainers/go:1-1.21-bullseye",
 	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
@@ -14,6 +14,7 @@
 		/* K8s */
 		"ghcr.io/mpriscella/features/kind:1": {},
 		"ghcr.io/lentzi90/features/tilt:0": {},
+		"ghcr.io/nucleuscloud/devcontainer-features/ctlptl:0": {},
 		"ghcr.io/devcontainers-contrib/features/kubectl-asdf:2": {},
 		"ghcr.io/rio/features/kustomize:1": {},
 
@@ -24,6 +25,7 @@
 		/* Golang */
 		"ghcr.io/devcontainers/features/go:1": {},
 		"ghcr.io/guiyomh/features/golangci-lint:0": {},
+		"ghcr.io/nucleuscloud/devcontainer-features/sqlc:1": {},
 
 		/* NodeJS/Browser */
 		"ghcr.io/devcontainers/features/node:1": {},
@@ -31,7 +33,7 @@
 		/* Temporal */
 		"ghcr.io/devcontainers-contrib/features/temporal-cli:1": {},
 
-		// todo: helm, helmfile, sqlc, ctlptl, benthos
+		// todo: helm, helmfile, benthos
 	}
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
