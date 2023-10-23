@@ -286,11 +286,8 @@ func (s *Service) CheckSqlQuery(
 		if err != nil {
 			return nil, err
 		}
-		defer func() {
-			if err := tx.Rollback(ctx); err != nil {
-				logger.Error(fmt.Errorf("failed to rollback pg tx: %w", err).Error())
-			}
-		}()
+		defer nucleusdb.HandlePgxRollback(ctx, tx, logger)
+
 		_, err = tx.Prepare(ctx, "todo", req.Msg.Query)
 		var errorMsg *string
 		if err != nil {
@@ -317,11 +314,8 @@ func (s *Service) CheckSqlQuery(
 		if err != nil {
 			return nil, err
 		}
-		defer func() {
-			if err := tx.Rollback(); err != nil {
-				logger.Error(fmt.Errorf("failed to rollback pg tx: %w", err).Error())
-			}
-		}()
+		defer nucleusdb.HandleSqlRollback(tx, logger)
+
 		_, err = tx.PrepareContext(ctx, req.Msg.Query)
 		var errorMsg *string
 		if err != nil {

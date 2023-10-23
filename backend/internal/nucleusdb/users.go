@@ -2,7 +2,7 @@ package nucleusdb
 
 import (
 	"context"
-	"log"
+	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -16,11 +16,7 @@ func (d *NucleusDb) SetUserByAuth0Id(
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil {
-			log.Println(err)
-		}
-	}()
+	defer HandlePgxRollback(ctx, tx, slog.Default())
 	q := d.Q.WithTx(tx)
 
 	user, err := q.GetUserByAuth0Id(ctx, auth0UserId)
@@ -71,11 +67,7 @@ func (d *NucleusDb) SetPersonalAccount(
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil {
-			log.Println("called rollback", err)
-		}
-	}()
+	defer HandlePgxRollback(ctx, tx, slog.Default())
 
 	q := d.Q.WithTx(tx)
 	account, err := q.GetPersonalAccountByUserId(ctx, userId)

@@ -3,6 +3,7 @@ package serve_connect
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -56,6 +57,8 @@ func serve() error {
 		With("nucleusEnv", environment)
 	loglogger := neosynclogger.NewLogLogger(neosynclogger.ShouldFormatAsJson(), nil)
 
+	slog.SetDefault(logger) // set default logger for methods that can't easily access the configured logger
+
 	mux := http.NewServeMux()
 
 	services := []string{
@@ -82,7 +85,7 @@ func serve() error {
 		return err
 	}
 
-	temporalConfig := getTemporalConfig()
+	temporalConfig := getTemporalConfig(logger)
 	temporalClient, err := temporalclient.Dial(*temporalConfig)
 	if err != nil {
 		return err
@@ -211,7 +214,9 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 	}, nil
 }
 
-func getTemporalConfig() *temporalclient.Options {
+func getTemporalConfig(
+	logger *slog.Logger,
+) *temporalclient.Options {
 	temporalUrl := viper.GetString("TEMPORAL_URL")
 	if temporalUrl == "" {
 		temporalUrl = "localhost:7233"
@@ -220,7 +225,7 @@ func getTemporalConfig() *temporalclient.Options {
 	temporalNamespace := getTemporalNamespace()
 
 	return &temporalclient.Options{
-		// Logger: ,
+		Logger:    logger.With("temporalClient", "true"),
 		HostPort:  temporalUrl,
 		Namespace: temporalNamespace,
 		// Interceptors: ,

@@ -2,6 +2,8 @@ package nucleusdb
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
@@ -61,11 +63,7 @@ func (d *NucleusDb) WithTx(
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := tx.Rollback(ctx); err != nil {
-			slog.Warn(err.Error())
-		}
-	}()
+	defer HandlePgxRollback(ctx, tx, slog.Default())
 
 	if err := fn(d.Q.WithTx(tx)); err != nil {
 		return err
@@ -81,4 +79,32 @@ func (d *NucleusDb) getTx(
 		return d.db.Begin(ctx)
 	}
 	return d.db.BeginTx(ctx, *opts)
+}
+
+type PgxRollbackInterface interface {
+	Rollback(context.Context) error
+}
+
+// Only logs if error is not ErrTxClosed
+func HandlePgxRollback(ctx context.Context, tx PgxRollbackInterface, logger *slog.Logger) {
+	if err := tx.Rollback(ctx); err != nil && !isTxDone(err) {
+		logger.ErrorContext(ctx, err.Error())
+	}
+}
+
+type SqlRollbackInterface interface {
+	Rollback() error
+}
+
+func HandleSqlRollback(
+	tx SqlRollbackInterface,
+	logger *slog.Logger,
+) {
+	if err := tx.Rollback(); err != nil && !isTxDone(err) {
+		logger.Error(err.Error())
+	}
+}
+
+func isTxDone(err error) bool {
+	return errors.Is(err, pgx.ErrTxClosed) || errors.Is(err, sql.ErrTxDone)
 }
