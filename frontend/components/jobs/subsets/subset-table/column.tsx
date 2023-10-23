@@ -81,7 +81,7 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
     {
       accessorKey: 'edit',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Edit" />
+        <DataTableColumnHeader column={column} title="Actions" />
       ),
       cell: ({ row }) => {
         const schema = row.getValue<string>('schema');
