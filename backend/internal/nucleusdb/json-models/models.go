@@ -7,9 +7,9 @@ import (
 )
 
 type ConnectionConfig struct {
-	PgConfig    *PostgresConnectionConfig
-	AwsS3Config *AwsS3ConnectionConfig
-	MysqlConfig *MysqlConnectionConfig
+	PgConfig    *PostgresConnectionConfig `json:"pgConfig,omitempty"`
+	AwsS3Config *AwsS3ConnectionConfig    `json:"awsS3Config,omitempty"`
+	MysqlConfig *MysqlConnectionConfig    `json:"mysqlConfig,omitempty"`
 }
 
 func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
@@ -130,41 +130,41 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 }
 
 type PostgresConnectionConfig struct {
-	Connection *PostgresConnection
-	Url        *string
+	Connection *PostgresConnection `json:"connection,omitempty"`
+	Url        *string             `json:"url,omitempty"`
 }
 
 type PostgresConnection struct {
-	Host    string
-	Port    int32
-	Name    string
-	User    string
-	Pass    string
-	SslMode *string
+	Host    string  `json:"host"`
+	Port    int32   `json:"port"`
+	Name    string  `json:"name"`
+	User    string  `json:"user"`
+	Pass    string  `json:"pass"`
+	SslMode *string `json:"sslMode,omitempty"`
 }
 
 type MysqlConnectionConfig struct {
-	Connection *MysqlConnection
+	Connection *MysqlConnection `json:"connection,omitempty"`
 	Url        *string
 }
 
 type MysqlConnection struct {
-	User     string
-	Pass     string
-	Protocol string
-	Host     string
-	Port     int32
-	Name     string
+	User     string `json:"user"`
+	Pass     string `json:"pass"`
+	Protocol string `json:"protocol"`
+	Host     string `json:"host"`
+	Port     int32  `json:"port"`
+	Name     string `json:"name"`
 }
 
 type AwsS3Credentials struct {
-	Profile         *string
-	AccessKeyId     *string
-	SecretAccessKey *string
-	SessionToken    *string
-	FromEc2Role     *bool
-	RoleArn         *string
-	RoleExternalId  *string
+	Profile         *string `json:"profile,omitempty"`
+	AccessKeyId     *string `json:"accessKeyId,omitempty"`
+	SecretAccessKey *string `json:"secretAccessKey,omitempty"`
+	SessionToken    *string `json:"sessionToken,omitempty"`
+	FromEc2Role     *bool   `json:"fromEc2Role,omitempty"`
+	RoleArn         *string `json:"roleArn,omitempty"`
+	RoleExternalId  *string `json:"roleExternalId,omitempty"`
 }
 
 func (a *AwsS3Credentials) ToDto() *mgmtv1alpha1.AwsS3Credentials {
@@ -219,10 +219,10 @@ func (a *AwsS3ConnectionConfig) FromDto(dto *mgmtv1alpha1.AwsS3ConnectionConfig)
 }
 
 type JobMapping struct {
-	Schema      string
-	Table       string
-	Column      string
-	Transformer *Transformer
+	Schema      string       `json:"schema"`
+	Table       string       `json:"table"`
+	Column      string       `json:"column"`
+	Transformer *Transformer `json:"transformer,omitempty"`
 }
 
 func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
@@ -248,17 +248,17 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 }
 
 type JobSourceOptions struct {
-	PostgresOptions *PostgresSourceOptions
-	MysqlOptions    *MysqlSourceOptions
+	PostgresOptions *PostgresSourceOptions `json:"postgresOptions,omitempty"`
+	MysqlOptions    *MysqlSourceOptions    `json:"mysqlOptions,omitempty"`
 }
 
 type MysqlSourceOptions struct {
-	HaltOnNewColumnAddition bool
-	Schemas                 []*MysqlSourceSchemaOption
+	HaltOnNewColumnAddition bool                       `json:"haltOnNewColumnAddition"`
+	Schemas                 []*MysqlSourceSchemaOption `json:"schemas"`
 }
 type PostgresSourceOptions struct {
-	HaltOnNewColumnAddition bool
-	Schemas                 []*PostgresSourceSchemaOption
+	HaltOnNewColumnAddition bool                          `json:"haltOnNewColumnAddition"`
+	Schemas                 []*PostgresSourceSchemaOption `json:"schemas"`
 }
 
 func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions {
@@ -360,21 +360,21 @@ func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOptio
 }
 
 type PostgresSourceSchemaOption struct {
-	Schema string
-	Tables []*PostgresSourceTableOption
+	Schema string                       `json:"schema"`
+	Tables []*PostgresSourceTableOption `json:"tables"`
 }
 type PostgresSourceTableOption struct {
-	Table       string
-	WhereClause *string
+	Table       string  `json:"table"`
+	WhereClause *string `json:"whereClause,omitempty"`
 }
 
 type MysqlSourceSchemaOption struct {
-	Schema string
-	Tables []*MysqlSourceTableOption
+	Schema string                    `json:"schema"`
+	Tables []*MysqlSourceTableOption `json:"tables"`
 }
 type MysqlSourceTableOption struct {
-	Table       string
-	WhereClause *string
+	Table       string  `json:"table"`
+	WhereClause *string `json:"whereClause,omitempty"`
 }
 
 func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
@@ -412,18 +412,18 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 }
 
 type JobDestinationOptions struct {
-	PostgresOptions *PostgresDestinationOptions
-	AwsS3Options    *AwsS3DestinationOptions
-	MysqlOptions    *MysqlDestinationOptions
+	PostgresOptions *PostgresDestinationOptions `json:"postgresOptions,omitempty"`
+	AwsS3Options    *AwsS3DestinationOptions    `json:"awsS3Options,omitempty"`
+	MysqlOptions    *MysqlDestinationOptions    `json:"mysqlOptions,omitempty"`
 }
 type AwsS3DestinationOptions struct{}
 type PostgresDestinationOptions struct {
-	TruncateTableConfig *PostgresTruncateTableConfig
-	InitTableSchema     bool
+	TruncateTableConfig *PostgresTruncateTableConfig `json:"truncateTableconfig,omitempty"`
+	InitTableSchema     bool                         `json:"initTableSchema"`
 }
 type PostgresTruncateTableConfig struct {
-	TruncateBeforeInsert bool
-	TruncateCascade      bool
+	TruncateBeforeInsert bool `json:"truncateBeforeInsert"`
+	TruncateCascade      bool `json:"truncateCascade"`
 }
 
 func (t *PostgresTruncateTableConfig) ToDto() *mgmtv1alpha1.PostgresTruncateTableConfig {
@@ -439,11 +439,11 @@ func (t *PostgresTruncateTableConfig) FromDto(dto *mgmtv1alpha1.PostgresTruncate
 }
 
 type MysqlDestinationOptions struct {
-	TruncateTableConfig *MysqlTruncateTableConfig
-	InitTableSchema     bool
+	TruncateTableConfig *MysqlTruncateTableConfig `json:"truncateTableConfig,omitempty"`
+	InitTableSchema     bool                      `json:"initTableSchema"`
 }
 type MysqlTruncateTableConfig struct {
-	TruncateBeforeInsert bool
+	TruncateBeforeInsert bool `json:"truncateBeforeInsert"`
 }
 
 func (t *MysqlTruncateTableConfig) ToDto() *mgmtv1alpha1.MysqlTruncateTableConfig {

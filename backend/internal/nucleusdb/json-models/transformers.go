@@ -12,51 +12,51 @@ type Transformer struct {
 }
 
 type TransformerConfigs struct {
-	EmailConfig    *EmailConfigs
-	FirstName      *FirstNameConfig
-	LastName       *LastNameConfig
-	FullName       *FullNameConfig
-	Uuid           *UuidConfig
-	PhoneNumber    *PhoneNumberConfig
-	IntPhoneNumber *IntPhoneNumberConfig
-	Passthrough    *PassthroughConfig
-	Null           *NullConfig
-	RandomString   *RandomStringConfig
-	RandomBool     *RandomBoolConfig
-	RandomInt      *RandomIntConfig
-	RandomFloat    *RandomFloatConfig
-	Gender         *GenderConfig
-	UTCTimestamp   *UTCTimestampConfig
-	UnixTimestamp  *UnixTimestampConfig
+	EmailConfig    *EmailConfigs         `json:"emailConfig,omitempty"`
+	FirstName      *FirstNameConfig      `json:"firstName,omitempty"`
+	LastName       *LastNameConfig       `json:"lastName,omitempty"`
+	FullName       *FullNameConfig       `json:"fullName,omitempty"`
+	Uuid           *UuidConfig           `json:"uuid,omitempty"`
+	PhoneNumber    *PhoneNumberConfig    `json:"phoneNumber,omitempty"`
+	IntPhoneNumber *IntPhoneNumberConfig `json:"intPhoneNumber,omitempty"`
+	Passthrough    *PassthroughConfig    `json:"passthrough,omitempty"`
+	Null           *NullConfig           `json:"null,omitempty"`
+	RandomString   *RandomStringConfig   `json:"randomString,omitempty"`
+	RandomBool     *RandomBoolConfig     `json:"randomBool,omitempty"`
+	RandomInt      *RandomIntConfig      `json:"randomInt,omitempty"`
+	RandomFloat    *RandomFloatConfig    `json:"randomFloat,omitempty"`
+	Gender         *GenderConfig         `json:"gender,omitempty"`
+	UTCTimestamp   *UTCTimestampConfig   `json:"utcTimestamp,omitempty"`
+	UnixTimestamp  *UnixTimestampConfig  `json:"unixTimestamp,omitempty"`
 }
 
 type EmailConfigs struct {
-	PreserveLength bool
-	PreserveDomain bool
+	PreserveLength bool `json:"preserveLength"`
+	PreserveDomain bool `json:"preserveDomain"`
 }
 
 type FirstNameConfig struct {
-	PreserveLength bool
+	PreserveLength bool `json:"preserveLength"`
 }
 
 type LastNameConfig struct {
-	PreserveLength bool
+	PreserveLength bool `json:"preserveLength"`
 }
 
 type FullNameConfig struct {
-	PreserveLength bool
+	PreserveLength bool `json:"preserveLength"`
 }
 type UuidConfig struct {
-	IncludeHyphen bool
+	IncludeHyphen bool `json:"includeHyphen"`
 }
 type PhoneNumberConfig struct {
-	IncludeHyphens bool
-	E164Format     bool
-	PreserveLength bool
+	IncludeHyphens bool `json:"includeHyphens"`
+	E164Format     bool `json:"e164Format"`
+	PreserveLength bool `json:"preserveLength"`
 }
 
 type IntPhoneNumberConfig struct {
-	PreserveLength bool
+	PreserveLength bool `json:"preserveLength"`
 }
 type PassthroughConfig struct {
 }
@@ -64,26 +64,26 @@ type PassthroughConfig struct {
 type NullConfig struct{}
 
 type RandomStringConfig struct {
-	PreserveLength bool
-	StrLength      int64
-	StrCase        string
+	PreserveLength bool   `json:"preserveLength"`
+	StrLength      int64  `json:"strLength"`
+	StrCase        string `json:"strCase"`
 }
 
 type RandomBoolConfig struct{}
 
 type RandomIntConfig struct {
-	PreserveLength bool
-	IntLength      int64
+	PreserveLength bool  `json:"preserveLength"`
+	IntLength      int64 `json:"intLength"`
 }
 
 type RandomFloatConfig struct {
-	PreserveLength      bool
-	DigitsBeforeDecimal int64
-	DigitsAfterDecimal  int64
+	PreserveLength      bool  `json:"preserveLength"`
+	DigitsBeforeDecimal int64 `json:"digitsBeforeDecimal"`
+	DigitsAfterDecimal  int64 `json:"digitsAfterDecimal"`
 }
 
 type GenderConfig struct {
-	Abbreviate bool
+	Abbreviate bool `json:"abbreviate"`
 }
 
 type UTCTimestampConfig struct{}
