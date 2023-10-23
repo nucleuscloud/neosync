@@ -294,7 +294,7 @@ export function toTransformerConfigOptions(t: {
         value: t.value,
         config: new TransformerConfig({
           config: {
-            case: 'randomIntConfig',
+            case: 'randomFloatConfig',
             value: new RandomFloat({
               preserveLength: rf.config.preserveLength,
               digitsBeforeDecimal: BigInt(rf.config.digitsBeforeDecimal ?? 2),
