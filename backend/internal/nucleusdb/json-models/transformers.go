@@ -27,6 +27,7 @@ type TransformerConfigs struct {
 	RandomFloat    *RandomFloatConfig
 	Gender         *GenderConfig
 	UTCTimestamp   *UTCTimestampConfig
+	UnixTimestamp  *UnixTimestampConfig
 }
 
 type EmailConfigs struct {
@@ -86,6 +87,8 @@ type GenderConfig struct {
 }
 
 type UTCTimestampConfig struct{}
+
+type UnixTimestampConfig struct{}
 
 // from API -> DB
 func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
@@ -195,6 +198,11 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
 			UTCTimestamp: &UTCTimestampConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_UnixTimestampConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			UnixTimestamp: &UnixTimestampConfig{},
 		}
 	default:
 		t.Value = tr.Value
@@ -376,6 +384,15 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_UtcTimestampConfig{
 					UtcTimestampConfig: &mgmtv1alpha1.UTCTimestamp{},
+				},
+			},
+		}
+	case t.Config.UnixTimestamp != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_UnixTimestampConfig{
+					UnixTimestampConfig: &mgmtv1alpha1.UnixTimestamp{},
 				},
 			},
 		}

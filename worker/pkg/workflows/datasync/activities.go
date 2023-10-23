@@ -1085,6 +1085,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf(`gendertransformer(%t)`, ab), nil
 	case "utc_timestamp":
 		return "utctimestamptransformer()", nil
+	case "unix_timestamp":
+		return "unixtimestamptransformer()", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
