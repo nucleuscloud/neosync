@@ -75,29 +75,12 @@ export default function EditTransformerOptions(props: Props): ReactElement {
     };
   }, []);
 
-  // the sheet button will be disabled for any of these transformers that don't have configs
-  const disabledSheetValues = [
-    'passthrough',
-    'null',
-    'utc_timestamp',
-    'unix_timestamp',
-  ];
-
-  const handleDisableSheet = () => {
-    if (!transformer) {
-      return true;
-    }
-
-    return disabledSheetValues.includes(transformer.value);
-  };
-
   return (
     <Sheet open={isSheetOpen} onOpenChange={() => setIsSheetOpen(true)}>
       <SheetTrigger asChild>
         <Button
           variant="outline"
           size="sm"
-          disabled={handleDisableSheet()}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >
@@ -337,6 +320,14 @@ export function handleTransformerMetadata(
         name: 'Unix Timestamp',
         description: 'Randomly generates a Unix timestamp.',
         type: 'int64',
+      },
+    },
+    {
+      street_address: {
+        name: 'Street Address',
+        description:
+          'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}',
+        type: 'string',
       },
     },
   ];

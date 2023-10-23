@@ -3640,6 +3640,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: UnixTimestamp;
     case: "unixTimestampConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.StreetAddress street_address_config = 17;
+     */
+    value: StreetAddress;
+    case: "streetAddressConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -3666,6 +3672,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 14, name: "null_config", kind: "message", T: Null, oneof: "config" },
     { no: 15, name: "utc_timestamp_config", kind: "message", T: UTCTimestamp, oneof: "config" },
     { no: 16, name: "unix_timestamp_config", kind: "message", T: UnixTimestamp, oneof: "config" },
+    { no: 17, name: "street_address_config", kind: "message", T: StreetAddress, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -4324,6 +4331,37 @@ export class UnixTimestamp extends Message<UnixTimestamp> {
 
   static equals(a: UnixTimestamp | PlainMessage<UnixTimestamp> | undefined, b: UnixTimestamp | PlainMessage<UnixTimestamp> | undefined): boolean {
     return proto3.util.equals(UnixTimestamp, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.StreetAddress
+ */
+export class StreetAddress extends Message<StreetAddress> {
+  constructor(data?: PartialMessage<StreetAddress>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.StreetAddress";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreetAddress {
+    return new StreetAddress().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StreetAddress {
+    return new StreetAddress().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StreetAddress {
+    return new StreetAddress().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StreetAddress | PlainMessage<StreetAddress> | undefined, b: StreetAddress | PlainMessage<StreetAddress> | undefined): boolean {
+    return proto3.util.equals(StreetAddress, a, b);
   }
 }
 

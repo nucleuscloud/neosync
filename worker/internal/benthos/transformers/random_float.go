@@ -69,6 +69,17 @@ func ProcessRandomFloat(i float64, preserveLength bool, digitsBeforeDecimal, dig
 
 		ad, err := GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
 
+		for {
+			if !LastDigitAZero(ad) {
+				break // Exit the loop when i is greater than or equal to 5
+			}
+			ad, err = GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
+
+			if err != nil {
+				return 0, fmt.Errorf("unable to generate a random int64 to convert to a float")
+			}
+		}
+
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random after digits integer")
 		}

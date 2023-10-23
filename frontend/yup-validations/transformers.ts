@@ -13,6 +13,7 @@ import {
   RandomInt,
   RandomString,
   RandomString_StringCase,
+  StreetAddress,
   Transformer,
   TransformerConfig,
   UTCTimestamp,
@@ -348,6 +349,17 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'unixTimestampConfig',
             value: new UnixTimestamp({}),
+          },
+        }),
+      });
+    }
+    case 'street_address': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'streetAddressConfig',
+            value: new StreetAddress({}),
           },
         }),
       });

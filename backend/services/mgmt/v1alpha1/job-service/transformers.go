@@ -27,6 +27,7 @@ const (
 	Gender         Transformation = "gender"
 	UTCTimestamp   Transformation = "utc_timestamp"
 	UnixTimestamp  Transformation = "unix_timestamp"
+	StreetAddress  Transformation = "street_address"
 )
 
 func (s *Service) GetTransformers(
@@ -136,6 +137,7 @@ func (s *Service) GetTransformers(
 				}},
 			{Value: string(UTCTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(UnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(StreetAddress), Config: &mgmtv1alpha1.TransformerConfig{}},
 		},
 	}), nil
 }
