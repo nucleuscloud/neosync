@@ -15,8 +15,18 @@
 		"ghcr.io/mpriscella/features/kind:1": {},
 		"ghcr.io/lentzi90/features/tilt:0": {},
 		"ghcr.io/nucleuscloud/devcontainer-features/ctlptl:0": {},
-		"ghcr.io/devcontainers-contrib/features/kubectl-asdf:2": {},
-		"ghcr.io/rio/features/kustomize:1": {},
+		"ghcr.io/devcontainers-contrib/features/kubectl-asdf:2": {
+			"version": "1.28.2"
+		},
+		"ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+			"version": "none",
+			"helm": "latest",
+			"minikube": "none"
+		},
+		"ghcr.io/rio/features/kustomize:1": {
+			"version": "5.1.1" // https://github.com/rio/features/issues/37
+		},
+		"ghcr.io/nucleuscloud/devcontainer-features/helmfile:0": {},
 
 		/* Protobuf */
 		"ghcr.io/marcozac/devcontainer-features/buf:1": {},
