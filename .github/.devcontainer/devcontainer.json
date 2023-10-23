@@ -41,7 +41,7 @@
 		"ghcr.io/devcontainers/features/node:1": {},
 
 		/* Temporal */
-		"ghcr.io/devcontainers-contrib/features/temporal-cli:1": {},
+		"ghcr.io/devcontainers-contrib/features/temporal-cli:1": {}
 
 		// todo: benthos
 	}
