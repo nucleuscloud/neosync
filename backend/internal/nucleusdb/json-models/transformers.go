@@ -28,6 +28,7 @@ type TransformerConfigs struct {
 	Gender         *GenderConfig         `json:"gender,omitempty"`
 	UTCTimestamp   *UTCTimestampConfig   `json:"utcTimestamp,omitempty"`
 	UnixTimestamp  *UnixTimestampConfig  `json:"unixTimestamp,omitempty"`
+	StreetAddress  *StreetAddressConfig  `json:"streetAddress,omitempty"`
 }
 
 type EmailConfigs struct {
@@ -89,6 +90,8 @@ type GenderConfig struct {
 type UTCTimestampConfig struct{}
 
 type UnixTimestampConfig struct{}
+
+type StreetAddressConfig struct{}
 
 // from API -> DB
 func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
@@ -203,6 +206,11 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
 			UnixTimestamp: &UnixTimestampConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_StreetAddressConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			StreetAddress: &StreetAddressConfig{},
 		}
 	default:
 		t.Value = tr.Value
@@ -393,6 +401,15 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_UnixTimestampConfig{
 					UnixTimestampConfig: &mgmtv1alpha1.UnixTimestamp{},
+				},
+			},
+		}
+	case t.Config.StreetAddress != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_StreetAddressConfig{
+					StreetAddressConfig: &mgmtv1alpha1.StreetAddress{},
 				},
 			},
 		}
