@@ -3618,7 +3618,13 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "randomFloatConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 13;
+     * @generated from field: mgmt.v1alpha1.Gender gender_config = 13;
+     */
+    value: Gender;
+    case: "genderConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 14;
      */
     value: Null;
     case: "nullConfig";
@@ -3644,7 +3650,8 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 10, name: "random_bool_config", kind: "message", T: RandomBool, oneof: "config" },
     { no: 11, name: "random_int_config", kind: "message", T: RandomInt, oneof: "config" },
     { no: 12, name: "random_float_config", kind: "message", T: RandomFloat, oneof: "config" },
-    { no: 13, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 13, name: "gender_config", kind: "message", T: Gender, oneof: "config" },
+    { no: 14, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -4204,6 +4211,43 @@ export class RandomFloat extends Message<RandomFloat> {
 
   static equals(a: RandomFloat | PlainMessage<RandomFloat> | undefined, b: RandomFloat | PlainMessage<RandomFloat> | undefined): boolean {
     return proto3.util.equals(RandomFloat, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.Gender
+ */
+export class Gender extends Message<Gender> {
+  /**
+   * @generated from field: bool abbreviate = 1;
+   */
+  abbreviate = false;
+
+  constructor(data?: PartialMessage<Gender>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.Gender";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "abbreviate", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Gender {
+    return new Gender().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Gender {
+    return new Gender().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Gender {
+    return new Gender().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Gender | PlainMessage<Gender> | undefined, b: Gender | PlainMessage<Gender> | undefined): boolean {
+    return proto3.util.equals(Gender, a, b);
   }
 }
 

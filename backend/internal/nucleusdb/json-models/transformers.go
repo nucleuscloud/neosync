@@ -25,6 +25,7 @@ type TransformerConfigs struct {
 	RandomBool     *RandomBoolConfig
 	RandomInt      *RandomIntConfig
 	RandomFloat    *RandomFloatConfig
+	Gender         *GenderConfig
 }
 
 type EmailConfigs struct {
@@ -77,6 +78,10 @@ type RandomFloatConfig struct {
 	PreserveLength      bool
 	DigitsBeforeDecimal int64
 	DigitsAfterDecimal  int64
+}
+
+type GenderConfig struct {
+	Abbreviate bool
 }
 
 // from API -> DB
@@ -174,6 +179,13 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 				PreserveLength:      tr.Config.GetRandomFloatConfig().PreserveLength,
 				DigitsBeforeDecimal: tr.Config.GetRandomFloatConfig().DigitsBeforeDecimal,
 				DigitsAfterDecimal:  tr.Config.GetRandomFloatConfig().DigitsAfterDecimal,
+			},
+		}
+	case *mgmtv1alpha1.TransformerConfig_GenderConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			Gender: &GenderConfig{
+				Abbreviate: tr.Config.GetGenderConfig().Abbreviate,
 			},
 		}
 	default:
@@ -335,6 +347,17 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 						PreserveLength:      t.Config.RandomFloat.PreserveLength,
 						DigitsBeforeDecimal: t.Config.RandomFloat.DigitsBeforeDecimal,
 						DigitsAfterDecimal:  t.Config.RandomFloat.DigitsAfterDecimal,
+					},
+				},
+			},
+		}
+	case t.Config.Gender != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenderConfig{
+					GenderConfig: &mgmtv1alpha1.Gender{
+						Abbreviate: t.Config.Gender.Abbreviate,
 					},
 				},
 			},
