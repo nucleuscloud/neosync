@@ -306,7 +306,7 @@ export function handleTransformerMetadata(
       },
     },
     {
-      utc_timestamp: {
+      unix_timestamp: {
         name: 'Unix Timestamp',
         description: 'Randomly generates a Unix timestamp.',
       },
