@@ -113,6 +113,62 @@ export default function DestinationOptionsForm(
           );
       }
       return <></>;
+    case 'mysqlConfig':
+      const mysqlValue = connection.connectionConfig.config.value;
+      const mysqltruncateBeforeInsertName =
+        index != null
+          ? `destinations.${index}.destinationOptions.truncateBeforeInsert`
+          : `destinationOptions.truncateBeforeInsert`;
+      switch (mysqlValue.connectionConfig.case) {
+        case 'connection':
+          return (
+            <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
+              <div>
+                <FormField
+                  name={mysqltruncateBeforeInsertName}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SwitchCard
+                          isChecked={field.value || false}
+                          onCheckedChange={(newVal) => {
+                            field.onChange(newVal);
+                          }}
+                          title="Truncate Before Insert"
+                          description="Truncates table before inserting data"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div>
+                <FormField
+                  name={
+                    index != null
+                      ? `destinations.${index}.destinationOptions.initTableSchema`
+                      : `destinationOptions.initTableSchema`
+                  }
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SwitchCard
+                          isChecked={field.value || false}
+                          onCheckedChange={field.onChange}
+                          title="Init Table Schema"
+                          description="Creates the table schema and its constraints"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          );
+      }
+      return <></>;
     case 'awsS3Config':
       return <></>;
     default:

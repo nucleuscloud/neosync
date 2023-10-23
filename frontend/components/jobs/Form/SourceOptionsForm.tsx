@@ -51,6 +51,34 @@ export default function SourceOptionsForm(
           );
       }
       return <></>;
+    case 'mysqlConfig':
+      const mysqlValue = connection.connectionConfig.config.value;
+      switch (mysqlValue.connectionConfig.case) {
+        case 'connection':
+          return (
+            <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
+              <div>
+                <FormField
+                  name="sourceOptions.haltOnNewColumnAddition"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <SwitchCard
+                          isChecked={field.value || false}
+                          onCheckedChange={field.onChange}
+                          title="Halt Job on new column addition"
+                          description="Stops job runs if new column is detected"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          );
+      }
+      return <></>;
     case 'awsS3Config':
       return <></>;
     default:

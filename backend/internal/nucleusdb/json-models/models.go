@@ -49,12 +49,12 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
 							Connection: &mgmtv1alpha1.MysqlConnection{
-								Username: c.MysqlConfig.Connection.Username,
-								Password: c.MysqlConfig.Connection.Password,
+								User:     c.MysqlConfig.Connection.User,
+								Pass:     c.MysqlConfig.Connection.Pass,
 								Protocol: c.MysqlConfig.Connection.Protocol,
 								Host:     c.MysqlConfig.Connection.Host,
 								Port:     c.MysqlConfig.Connection.Port,
-								DbName:   c.MysqlConfig.Connection.DbName,
+								Name:     c.MysqlConfig.Connection.Name,
 							},
 						},
 					},
@@ -105,12 +105,12 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		switch mysqlcfg := config.MysqlConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
 			c.MysqlConfig.Connection = &MysqlConnection{
-				Username: mysqlcfg.Connection.Username,
-				Password: mysqlcfg.Connection.Password,
+				User:     mysqlcfg.Connection.User,
+				Pass:     mysqlcfg.Connection.Pass,
 				Protocol: mysqlcfg.Connection.Protocol,
 				Host:     mysqlcfg.Connection.Host,
 				Port:     mysqlcfg.Connection.Port,
-				DbName:   mysqlcfg.Connection.DbName,
+				Name:     mysqlcfg.Connection.Name,
 			}
 		case *mgmtv1alpha1.MysqlConnectionConfig_Url:
 			c.MysqlConfig.Url = &mysqlcfg.Url
@@ -149,12 +149,12 @@ type MysqlConnectionConfig struct {
 }
 
 type MysqlConnection struct {
-	Username string
-	Password string
+	User     string
+	Pass     string
 	Protocol string
 	Host     string
 	Port     int32
-	DbName   string
+	Name     string
 }
 
 type AwsS3Credentials struct {

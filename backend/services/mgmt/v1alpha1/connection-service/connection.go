@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
@@ -22,6 +21,7 @@ func (s *Service) CheckConnectionConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	switch config := req.Msg.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		var connectionString *string
@@ -52,10 +52,49 @@ func (s *Service) CheckConnectionConfig(
 		}
 		defer func() {
 			if err := conn.Close(ctx); err != nil {
-				log.Println("failed to close connection", err)
+				logger.Error(fmt.Errorf("failed to close postgres connection: %w", err).Error())
 			}
 		}()
 		err = conn.Ping(ctx)
+		if err != nil {
+			msg := err.Error()
+			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+				IsConnected:     false,
+				ConnectionError: &msg,
+			}), nil
+		}
+		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+			IsConnected:     true,
+			ConnectionError: nil,
+		}), nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		var connectionString *string
+		switch connectionConfig := config.MysqlConfig.ConnectionConfig.(type) {
+		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
+			connStr := conn_utils.GetMysqlUrl(&conn_utils.MysqlConnectConfig{
+				Host:     connectionConfig.Connection.Host,
+				Port:     connectionConfig.Connection.Port,
+				Database: connectionConfig.Connection.Name,
+				Username: connectionConfig.Connection.User,
+				Password: connectionConfig.Connection.Pass,
+				Protocol: connectionConfig.Connection.Protocol,
+			})
+			connectionString = &connStr
+		case *mgmtv1alpha1.MysqlConnectionConfig_Url:
+			connectionString = &connectionConfig.Url
+		default:
+			return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
+		}
+		conn, err := sql.Open("mysql", *connectionString)
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if err := conn.Close(); err != nil {
+				logger.Error(fmt.Errorf("failed to close mysql connection: %w", err).Error())
+			}
+		}()
+		err = conn.PingContext(ctx)
 		if err != nil {
 			msg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
@@ -360,9 +399,9 @@ func (s *Service) getConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, er
 			connStr := conn_utils.GetMysqlUrl(&conn_utils.MysqlConnectConfig{
 				Host:     connectionConfig.Connection.Host,
 				Port:     connectionConfig.Connection.Port,
-				Database: connectionConfig.Connection.DbName,
-				Username: connectionConfig.Connection.Username,
-				Password: connectionConfig.Connection.Password,
+				Database: connectionConfig.Connection.Name,
+				Username: connectionConfig.Connection.User,
+				Password: connectionConfig.Connection.Pass,
 				Protocol: connectionConfig.Connection.Protocol,
 			})
 			connectionString = &connStr

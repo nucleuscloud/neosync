@@ -305,6 +305,19 @@ func (s *Service) CreateJob(
 		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
 	}
 
+	sourceUuid, err := nucleusdb.ToUuid(req.Msg.Source.ConnectionId)
+	if err != nil {
+		return nil, err
+	}
+	areConnectionsCompatible, err := verifyConnectionsAreCompatible(ctx, s.db, sourceUuid, destinations)
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to verify if connections are compatible: %w", err).Error())
+		return nil, err
+	}
+	if !areConnectionsCompatible {
+		return nil, nucleuserrors.NewBadRequest("connection types are incompatible")
+	}
+
 	cron := pgtype.Text{}
 	if req.Msg.CronSchedule != nil {
 		err := cron.Scan(req.Msg.GetCronSchedule())
@@ -1081,4 +1094,53 @@ func verifyConnectionIdsUnique(connectionIds []string) bool {
 		occurrenceMap[id] = true
 	}
 	return true
+}
+
+func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb, sourceConnId pgtype.UUID, destinations []*Destination) (bool, error) {
+	var sourceConnection db_queries.NeosyncApiConnection
+	dests := make([]db_queries.NeosyncApiConnection, len(destinations))
+	group := new(errgroup.Group)
+	group.Go(func() error {
+		source, err := db.Q.GetConnectionById(ctx, sourceConnId)
+		if err != nil {
+			return err
+		}
+		sourceConnection = source
+		return nil
+	})
+	for i := range destinations {
+		i := i
+		d := destinations[i]
+		group.Go(func() error {
+			connection, err := db.Q.GetConnectionById(ctx, d.ConnectionId)
+			if err != nil {
+				return err
+			}
+			dests[i] = connection
+			return nil
+		})
+	}
+
+	err := group.Wait()
+	if err != nil {
+		return false, err
+	}
+
+	for i := range dests {
+		d := dests[i]
+		// AWS S3 is always a valid destination regardless of source connection type
+		if d.ConnectionConfig.AwsS3Config != nil {
+			continue
+		}
+		if sourceConnection.ConnectionConfig.PgConfig != nil && d.ConnectionConfig.MysqlConfig != nil {
+			// invalid Postgres source cannot have Mysql destination
+			return false, nil
+		}
+		if sourceConnection.ConnectionConfig.MysqlConfig != nil && d.ConnectionConfig.PgConfig != nil {
+			// invalid Mysql source cannot habe Postgres destination
+			return false, nil
+		}
+	}
+
+	return true, nil
 }

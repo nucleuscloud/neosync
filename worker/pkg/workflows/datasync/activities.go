@@ -924,12 +924,12 @@ func getMysqlDsn(
 	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
 		dburl := fmt.Sprintf(
 			"%s:%s@%s(%s:%d)/%s",
-			cfg.Connection.Username,
-			cfg.Connection.Password,
+			cfg.Connection.User,
+			cfg.Connection.Pass,
 			cfg.Connection.Protocol,
 			cfg.Connection.Host,
 			cfg.Connection.Port,
-			cfg.Connection.DbName,
+			cfg.Connection.Name,
 		)
 		return dburl, nil
 	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
