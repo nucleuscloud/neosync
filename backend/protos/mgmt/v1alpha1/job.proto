@@ -423,6 +423,7 @@ message TransformerConfig {
     RandomFloat random_float_config = 12;
     Gender gender_config = 13;
     Null null_config = 14;
+    UTCTimestamp utc_timestamp_config = 15;
   }
 }
 
@@ -488,6 +489,8 @@ message RandomFloat {
 message Gender {
   bool abbreviate = 1;
 }
+
+message UTCTimestamp {}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}

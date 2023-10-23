@@ -11177,6 +11177,47 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
+	case *TransformerConfig_UtcTimestampConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetUtcTimestampConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "UtcTimestampConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "UtcTimestampConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUtcTimestampConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "UtcTimestampConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -12682,3 +12723,102 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GenderValidationError{}
+
+// Validate checks the field values on UTCTimestamp with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *UTCTimestamp) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UTCTimestamp with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in UTCTimestampMultiError, or
+// nil if none found.
+func (m *UTCTimestamp) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UTCTimestamp) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return UTCTimestampMultiError(errors)
+	}
+
+	return nil
+}
+
+// UTCTimestampMultiError is an error wrapping multiple validation errors
+// returned by UTCTimestamp.ValidateAll() if the designated constraints aren't met.
+type UTCTimestampMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UTCTimestampMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UTCTimestampMultiError) AllErrors() []error { return m }
+
+// UTCTimestampValidationError is the validation error returned by
+// UTCTimestamp.Validate if the designated constraints aren't met.
+type UTCTimestampValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UTCTimestampValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UTCTimestampValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UTCTimestampValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UTCTimestampValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UTCTimestampValidationError) ErrorName() string { return "UTCTimestampValidationError" }
+
+// Error satisfies the builtin error interface
+func (e UTCTimestampValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUTCTimestamp.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UTCTimestampValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UTCTimestampValidationError{}
