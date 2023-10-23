@@ -1,7 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Pencil1Icon } from '@radix-ui/react-icons';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Pencil1Icon, ReloadIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { ReactElement } from 'react';
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -14,10 +20,12 @@ export interface TableRow {
 
 interface GetColumnsProps {
   onEdit(schema: string, table: string): void;
+  hasLocalChange(schema: string, table: string): boolean;
+  onReset(schema: string, table: string): void;
 }
 
 export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
-  const { onEdit } = props;
+  const { onEdit, hasLocalChange, onReset } = props;
   return [
     {
       id: 'select',
@@ -73,15 +81,17 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
     {
       accessorKey: 'edit',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Edit" />
+        <DataTableColumnHeader column={column} title="Actions" />
       ),
       cell: ({ row }) => {
+        const schema = row.getValue<string>('schema');
+        const table = row.getValue<string>('table');
         return (
-          <div className="flex space-x-2">
-            <EditAction
-              onClick={() =>
-                onEdit(row.getValue('schema'), row.getValue('table'))
-              }
+          <div className="flex gap-2">
+            <EditAction onClick={() => onEdit(schema, table)} />
+            <ResetAction
+              onClick={() => onReset(schema, table)}
+              isDisabled={!hasLocalChange(schema, table)}
             />
           </div>
         );
@@ -99,8 +109,43 @@ interface EditActionProps {
 function EditAction(props: EditActionProps): ReactElement {
   const { onClick } = props;
   return (
-    <Button variant="outline" size="icon" onClick={() => onClick()}>
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      onClick={() => onClick()}
+    >
       <Pencil1Icon />
     </Button>
+  );
+}
+
+interface ResetActionProps {
+  onClick(): void;
+  isDisabled: boolean;
+}
+
+function ResetAction(props: ResetActionProps): ReactElement {
+  const { onClick, isDisabled } = props;
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            className="scale-x-[-1]"
+            variant="outline"
+            size="icon"
+            onClick={() => onClick()}
+            disabled={isDisabled}
+          >
+            <ReloadIcon />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Reset changes made locally to this row</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

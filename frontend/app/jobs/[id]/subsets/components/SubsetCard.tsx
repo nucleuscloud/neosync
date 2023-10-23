@@ -40,17 +40,22 @@ export default function SubsetCard(props: Props): ReactElement {
     data?.job?.source?.connectionId
   );
 
+  const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({
     resolver: yupResolver<SubsetFormValues>(SUBSET_FORM_SCHEMA),
     defaultValues: { subsets: [] },
-    values: getFormValues(data?.job?.source?.options),
+    values: formValues,
   });
 
   const tableRowData = buildTableRowData(
     schema?.schemas ?? [],
-    form.getValues().subsets
+    form.watch().subsets // ensures that all form changes cause a re-render since stuff happens outside of the form that depends on the form values
   );
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
+
+  const formValuesMap = new Map(
+    formValues.subsets.map((ss) => [buildRowKey(ss.schema, ss.table), ss])
+  );
 
   if (isJobLoading || isSchemaLoading) {
     return (
@@ -83,6 +88,36 @@ export default function SubsetCard(props: Props): ReactElement {
       });
     }
   }
+
+  function hasLocalChange(schema: string, table: string): boolean {
+    const key = buildRowKey(schema, table);
+    const trData = tableRowData[key];
+
+    const svrData = formValuesMap.get(key);
+
+    if (!svrData && !!trData.where) {
+      return true;
+    }
+
+    return trData.where !== svrData?.whereClause;
+  }
+
+  function onLocalRowReset(schema: string, table: string): void {
+    const key = buildRowKey(schema, table);
+    const idx = form
+      .getValues()
+      .subsets.findIndex(
+        (item) => buildRowKey(item.schema, item.table) === key
+      );
+    if (idx >= 0) {
+      const svrData = formValuesMap.get(key);
+      form.setValue(`subsets.${idx}`, {
+        schema: schema,
+        table: table,
+        whereClause: svrData?.whereClause ?? undefined,
+      });
+    }
+  }
   return (
     <div>
       <Form {...form}>
@@ -101,6 +136,8 @@ export default function SubsetCard(props: Props): ReactElement {
                   });
                 }
               }}
+              hasLocalChange={hasLocalChange}
+              onReset={onLocalRowReset}
             />
           </div>
           <div className="my-4">
@@ -116,12 +153,11 @@ export default function SubsetCard(props: Props): ReactElement {
                 if (!itemToEdit) {
                   return;
                 }
+                const key = buildRowKey(itemToEdit.schema, itemToEdit.table);
                 const idx = form
                   .getValues()
                   .subsets.findIndex(
-                    (item) =>
-                      buildRowKey(item.schema, item.table) ===
-                      buildRowKey(itemToEdit.schema, itemToEdit.table)
+                    (item) => buildRowKey(item.schema, item.table) === key
                   );
                 if (idx >= 0) {
                   form.setValue(`subsets.${idx}`, {

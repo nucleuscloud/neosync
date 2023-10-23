@@ -135,8 +135,40 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const tableRowData = buildTableRowData(
     schemaFormValues.mappings,
-    form.getValues().subsets
+    form.watch().subsets
   );
+
+  function hasLocalChange(schema: string, table: string): boolean {
+    const key = buildRowKey(schema, table);
+    const trData = tableRowData[key];
+    const svrData = subsetFormValues.subsets.find(
+      (ss) => buildRowKey(ss.schema, ss.table) === key
+    );
+    if (!svrData && !!trData.where) {
+      return true;
+    }
+    return trData.where !== svrData?.whereClause;
+  }
+
+  function onLocalRowReset(schema: string, table: string): void {
+    const key = buildRowKey(schema, table);
+    const idx = form
+      .getValues()
+      .subsets.findIndex(
+        (item) => buildRowKey(item.schema, item.table) === key
+      );
+    if (idx >= 0) {
+      const svrData = subsetFormValues.subsets.find(
+        (ss) => buildRowKey(ss.schema, ss.table) === key
+      );
+
+      form.setValue(`subsets.${idx}`, {
+        schema: schema,
+        table: table,
+        whereClause: svrData?.whereClause ?? undefined,
+      });
+    }
+  }
 
   return (
     <OverviewContainer
@@ -171,6 +203,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     });
                   }
                 }}
+                hasLocalChange={hasLocalChange}
+                onReset={onLocalRowReset}
               />
             </div>
             <div className="my-4">
@@ -186,15 +220,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   if (!itemToEdit) {
                     return;
                   }
+                  const key = buildRowKey(itemToEdit.schema, itemToEdit.table);
                   const idx = form
                     .getValues()
                     .subsets.findIndex(
-                      (item) =>
-                        buildRowKey(item.schema, item.table) ===
-                        buildRowKey(
-                          itemToEdit?.schema ?? '',
-                          itemToEdit?.table ?? ''
-                        )
+                      (item) => buildRowKey(item.schema, item.table) === key
                     );
                   if (idx >= 0) {
                     form.setValue(`subsets.${idx}`, {
