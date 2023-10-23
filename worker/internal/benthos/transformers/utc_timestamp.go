@@ -32,7 +32,7 @@ func init() {
 	}
 }
 
-func GenerateRandomUTCTimestamp() (string, error) {
+func GenerateRandomUTCTimestamp() (time.Time, error) {
 	// get the current UTC time
 	currentTime := time.Now().UTC()
 
@@ -40,13 +40,11 @@ func GenerateRandomUTCTimestamp() (string, error) {
 	maxSeconds := big.NewInt(int64(365 * 24 * 60 * 60)) // Max seconds in a year
 	randomSeconds, err := rand.Int(rand.Reader, maxSeconds)
 	if err != nil {
-		return "", err
+		return time.Time{}, err
 	}
 
 	// subtract the random number of seconds from the current time
 	randomTime := currentTime.Add(-time.Duration(randomSeconds.Int64()) * time.Second)
 
-	formattedTime := randomTime.Format("2006-01-02 15:04:05 +0000")
-
-	return formattedTime, nil
+	return randomTime, nil
 }

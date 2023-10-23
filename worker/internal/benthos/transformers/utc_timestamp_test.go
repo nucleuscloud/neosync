@@ -10,15 +10,12 @@ import (
 
 func TestProcessUTCTimestamp(t *testing.T) {
 
-	res, err := GenerateRandomUTCTimestamp()
-	assert.NoError(t, err, "Error parsing generated timestamp")
+	timestamp, err := GenerateRandomUTCTimestamp()
+	assert.NoError(t, err, "Error generating random UTC timestamp")
 
-	parsedTime, parseErr := time.Parse("2006-01-02 15:04:05 +0000", res)
-	assert.NoError(t, parseErr, "Error parsing generated timestamp")
-
-	// Check if the time zone of the parsed time is UTC
-	_, offset := parsedTime.Zone()
-	assert.Equal(t, offset, 0, "Generated timestamp is not in UTC")
+	// Check if the timestamp's time zone is UTC
+	location := timestamp.Location()
+	assert.Equal(t, location, time.UTC, "Generated timestamp is not in UTC")
 }
 
 func TestUTCTimestampTransformer(t *testing.T) {
@@ -29,10 +26,6 @@ func TestUTCTimestampTransformer(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	parsedTime, parseErr := time.Parse("2006-01-02 15:04:05 +0000", res.(string))
-	assert.NoError(t, parseErr, "Error parsing generated timestamp")
-
-	// Check if the time zone of the parsed time is UTC
-	_, offset := parsedTime.Zone()
-	assert.Equal(t, offset, 0, "Generated timestamp is not in UTC")
+	location := res.(time.Time).Location()
+	assert.Equal(t, location, time.UTC, "Generated timestamp is not in UTC")
 }
