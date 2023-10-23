@@ -1,6 +1,8 @@
 import {
+  City,
   EmailConfig,
   FirstName,
+  FullAddress,
   FullName,
   Gender,
   IntPhoneNumber,
@@ -13,12 +15,14 @@ import {
   RandomInt,
   RandomString,
   RandomString_StringCase,
+  State,
   StreetAddress,
   Transformer,
   TransformerConfig,
   UTCTimestamp,
   UnixTimestamp,
   Uuid,
+  Zipcode,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 
 interface EmailTransformer {
@@ -360,6 +364,50 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'streetAddressConfig',
             value: new StreetAddress({}),
+          },
+        }),
+      });
+    }
+    case 'city': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'cityConfig',
+            value: new City({}),
+          },
+        }),
+      });
+    }
+    case 'zipcode': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'zipcodeConfig',
+            value: new Zipcode({}),
+          },
+        }),
+      });
+    }
+    case 'state': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'stateConfig',
+            value: new State({}),
+          },
+        }),
+      });
+    }
+    case 'full_address': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'fullAddressConfig',
+            value: new FullAddress({}),
           },
         }),
       });

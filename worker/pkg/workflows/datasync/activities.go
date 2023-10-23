@@ -979,8 +979,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "longitude":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "unix_time":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "date":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "time_string":
@@ -1092,6 +1090,14 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "unixtimestamptransformer()", nil
 	case "street_address":
 		return "streetaddresstransformer()", nil
+	case "city":
+		return "citytransformer()", nil
+	case "zipcode":
+		return "zipcodetransformer()", nil
+	case "state":
+		return "statetransformer()", nil
+	case "full_address":
+		return "fulladdresstransformer()", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
