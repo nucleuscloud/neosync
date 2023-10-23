@@ -4,12 +4,7 @@ import PageHeader from '@/components/headers/PageHeader';
 export default function Settings() {
   return (
     <OverviewContainer
-      Header={
-        <PageHeader
-          header="Settings"
-          description="Configure account-wide settings here."
-        />
-      }
+      Header={<PageHeader header="Settings" />}
       containerClassName="settings-page"
     >
       <div>

@@ -3612,10 +3612,34 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "randomIntConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 12;
+     * @generated from field: mgmt.v1alpha1.RandomFloat random_float_config = 12;
+     */
+    value: RandomFloat;
+    case: "randomFloatConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Gender gender_config = 13;
+     */
+    value: Gender;
+    case: "genderConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 14;
      */
     value: Null;
     case: "nullConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.UTCTimestamp utc_timestamp_config = 15;
+     */
+    value: UTCTimestamp;
+    case: "utcTimestampConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.UnixTimestamp unix_timestamp_config = 16;
+     */
+    value: UnixTimestamp;
+    case: "unixTimestampConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -3637,7 +3661,11 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 9, name: "random_string_config", kind: "message", T: RandomString, oneof: "config" },
     { no: 10, name: "random_bool_config", kind: "message", T: RandomBool, oneof: "config" },
     { no: 11, name: "random_int_config", kind: "message", T: RandomInt, oneof: "config" },
-    { no: 12, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 12, name: "random_float_config", kind: "message", T: RandomFloat, oneof: "config" },
+    { no: 13, name: "gender_config", kind: "message", T: Gender, oneof: "config" },
+    { no: 14, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 15, name: "utc_timestamp_config", kind: "message", T: UTCTimestamp, oneof: "config" },
+    { no: 16, name: "unix_timestamp_config", kind: "message", T: UnixTimestamp, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -4148,6 +4176,154 @@ export class RandomInt extends Message<RandomInt> {
 
   static equals(a: RandomInt | PlainMessage<RandomInt> | undefined, b: RandomInt | PlainMessage<RandomInt> | undefined): boolean {
     return proto3.util.equals(RandomInt, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RandomFloat
+ */
+export class RandomFloat extends Message<RandomFloat> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
+  /**
+   * @generated from field: int64 digits_before_decimal = 2;
+   */
+  digitsBeforeDecimal = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 digits_after_decimal = 3;
+   */
+  digitsAfterDecimal = protoInt64.zero;
+
+  constructor(data?: PartialMessage<RandomFloat>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RandomFloat";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "digits_before_decimal", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "digits_after_decimal", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RandomFloat {
+    return new RandomFloat().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RandomFloat {
+    return new RandomFloat().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RandomFloat {
+    return new RandomFloat().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RandomFloat | PlainMessage<RandomFloat> | undefined, b: RandomFloat | PlainMessage<RandomFloat> | undefined): boolean {
+    return proto3.util.equals(RandomFloat, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.Gender
+ */
+export class Gender extends Message<Gender> {
+  /**
+   * @generated from field: bool abbreviate = 1;
+   */
+  abbreviate = false;
+
+  constructor(data?: PartialMessage<Gender>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.Gender";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "abbreviate", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Gender {
+    return new Gender().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Gender {
+    return new Gender().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Gender {
+    return new Gender().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Gender | PlainMessage<Gender> | undefined, b: Gender | PlainMessage<Gender> | undefined): boolean {
+    return proto3.util.equals(Gender, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.UTCTimestamp
+ */
+export class UTCTimestamp extends Message<UTCTimestamp> {
+  constructor(data?: PartialMessage<UTCTimestamp>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.UTCTimestamp";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UTCTimestamp {
+    return new UTCTimestamp().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UTCTimestamp {
+    return new UTCTimestamp().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UTCTimestamp {
+    return new UTCTimestamp().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UTCTimestamp | PlainMessage<UTCTimestamp> | undefined, b: UTCTimestamp | PlainMessage<UTCTimestamp> | undefined): boolean {
+    return proto3.util.equals(UTCTimestamp, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.UnixTimestamp
+ */
+export class UnixTimestamp extends Message<UnixTimestamp> {
+  constructor(data?: PartialMessage<UnixTimestamp>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.UnixTimestamp";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnixTimestamp {
+    return new UnixTimestamp().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnixTimestamp {
+    return new UnixTimestamp().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnixTimestamp {
+    return new UnixTimestamp().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnixTimestamp | PlainMessage<UnixTimestamp> | undefined, b: UnixTimestamp | PlainMessage<UnixTimestamp> | undefined): boolean {
+    return proto3.util.equals(UnixTimestamp, a, b);
   }
 }
 

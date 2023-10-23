@@ -73,7 +73,7 @@ func (s *Service) GetConnectionSchema(
 			}
 		}()
 
-		dbSchema, err := getMysqlDatabaseSchema(conn)
+		dbSchema, err := getMysqlDatabaseSchema(ctx, conn)
 		if err != nil {
 			return nil, err
 		}
@@ -145,8 +145,8 @@ func getPostgresDatabaseSchema(ctx context.Context, conn *pgx.Conn) ([]DatabaseS
 	return output, nil
 }
 
-func getMysqlDatabaseSchema(conn *sql.DB) ([]DatabaseSchema, error) {
-	rows, err := conn.Query(getMysqlTableSchemaSql)
+func getMysqlDatabaseSchema(ctx context.Context, conn *sql.DB) ([]DatabaseSchema, error) {
+	rows, err := conn.QueryContext(ctx, getMysqlTableSchemaSql)
 	if err != nil && !isNoRows(err) {
 		return nil, err
 	}

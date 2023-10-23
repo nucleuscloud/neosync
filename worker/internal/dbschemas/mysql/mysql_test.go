@@ -1,4 +1,4 @@
-package dbschemas_postgres
+package dbschemas_mysql
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetPostgresTableDependencies(t *testing.T) {
+func TestGetMysqlTableDependencies(t *testing.T) {
 	constraints := []*ForeignKeyConstraint{
 		{ConstraintName: "fk_account_user_associations_account_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id"},               //nolint
 		{ConstraintName: "fk_account_user_associations_user_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id"},                        //nolint
@@ -22,7 +22,7 @@ func TestGetPostgresTableDependencies(t *testing.T) {
 		{ConstraintName: "fk_user_identity_provider_user_id", SchemaName: "neosync_api", TableName: "user_identity_provider_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id"},                 //nolint
 	}
 
-	td := GetPostgresTableDependencies(constraints)
+	td := GetMysqlTableDependencies(constraints)
 	assert.Equal(t, td, TableDependency{
 		"neosync_api.account_user_associations":               {"neosync_api.accounts", "neosync_api.users"},
 		"neosync_api.connections":                             {"neosync_api.accounts", "neosync_api.users"},
@@ -32,7 +32,7 @@ func TestGetPostgresTableDependencies(t *testing.T) {
 	})
 }
 
-func TestGetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
+func TestGetMysqlTableDependenciesExtraEdgeCases(t *testing.T) {
 	constraints := []*ForeignKeyConstraint{
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "account_id"}, //nolint
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "c", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "user_id"},    //nolint
@@ -41,60 +41,13 @@ func TestGetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
 		{ConstraintName: "t4_b_fkey", SchemaName: "neosync_api", TableName: "t4", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t3", ForeignColumnName: "a"},                                   //nolint
 	}
 
-	td := GetPostgresTableDependencies(constraints)
+	td := GetMysqlTableDependencies(constraints)
 	assert.Equal(t, td, TableDependency{
 		"neosync_api.t1": {"neosync_api.account_user_associations"},
 		"neosync_api.t2": {"neosync_api.t2"},
 		"neosync_api.t3": {"neosync_api.t4"},
 		"neosync_api.t4": {"neosync_api.t3"},
 	}, "Testing composite foreign keys, table self-referencing, and table cycles")
-}
-
-func TestGenerateCreateTableStatement(t *testing.T) {
-	result := generateCreateTableStatement(
-		"public", "users",
-		[]*DatabaseSchema{
-			{
-				ColumnName:      "id",
-				DataType:        "uuid",
-				OrdinalPosition: 1,
-				IsNullable:      "NO",
-				ColumnDefault:   strPtr("gen_random_uuid()"),
-			},
-			{
-				ColumnName:      "created_at",
-				DataType:        "timestamp without time zone",
-				OrdinalPosition: 2,
-				IsNullable:      "NO",
-				ColumnDefault:   strPtr("now()"),
-			},
-			{
-				ColumnName:      "updated_at",
-				DataType:        "timestamp",
-				OrdinalPosition: 3,
-				IsNullable:      "NO",
-				ColumnDefault:   strPtr("CURRENT_TIMESTAMP"),
-			},
-			{
-				ColumnName:      "extra",
-				DataType:        "varchar",
-				OrdinalPosition: 5,
-				IsNullable:      "YES",
-			},
-		},
-		[]*DatabaseTableConstraint{
-			{
-				ConstraintName:       "users_pkey",
-				ConstraintDefinition: "PRIMARY KEY (id)",
-			},
-		},
-	)
-
-	assert.Equal(
-		t,
-		result,
-		"CREATE TABLE IF NOT EXISTS public.users (id uuid NOT NULL DEFAULT gen_random_uuid(), created_at timestamp without time zone NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, extra varchar NULL, CONSTRAINT users_pkey PRIMARY KEY (id));", //nolint
-	)
 }
 
 func TestGetUniqueSchemaColMappings(t *testing.T) {
@@ -114,8 +67,4 @@ func TestGetUniqueSchemaColMappings(t *testing.T) {
 	assert.Contains(t, mappings["public.users"], "updated_by", "")
 	assert.Contains(t, mappings["neosync_api.accounts"], "id", "")
 
-}
-
-func strPtr(val string) *string {
-	return &val
 }

@@ -23,6 +23,10 @@ const (
 	RandomString   Transformation = "random_string"
 	RandomBool     Transformation = "random_bool"
 	RandomInt      Transformation = "random_int"
+	RandomFloat    Transformation = "random_float"
+	Gender         Transformation = "gender"
+	UTCTimestamp   Transformation = "utc_timestamp"
+	UnixTimestamp  Transformation = "unix_timestamp"
 )
 
 func (s *Service) GetTransformers(
@@ -110,6 +114,28 @@ func (s *Service) GetTransformers(
 						},
 					},
 				}},
+			{
+				Value: string(RandomFloat),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_RandomFloatConfig{
+						RandomFloatConfig: &mgmtv1alpha1.RandomFloat{
+							PreserveLength:      false,
+							DigitsBeforeDecimal: 3,
+							DigitsAfterDecimal:  3,
+						},
+					},
+				}},
+			{
+				Value: string(Gender),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenderConfig{
+						GenderConfig: &mgmtv1alpha1.Gender{
+							Abbreviate: false,
+						},
+					},
+				}},
+			{Value: string(UTCTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(UnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
 		},
 	}), nil
 }
