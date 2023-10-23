@@ -3646,6 +3646,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: StreetAddress;
     case: "streetAddressConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.City city_config = 18;
+     */
+    value: City;
+    case: "cityConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -3673,6 +3679,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 15, name: "utc_timestamp_config", kind: "message", T: UTCTimestamp, oneof: "config" },
     { no: 16, name: "unix_timestamp_config", kind: "message", T: UnixTimestamp, oneof: "config" },
     { no: 17, name: "street_address_config", kind: "message", T: StreetAddress, oneof: "config" },
+    { no: 18, name: "city_config", kind: "message", T: City, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -4362,6 +4369,37 @@ export class StreetAddress extends Message<StreetAddress> {
 
   static equals(a: StreetAddress | PlainMessage<StreetAddress> | undefined, b: StreetAddress | PlainMessage<StreetAddress> | undefined): boolean {
     return proto3.util.equals(StreetAddress, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.City
+ */
+export class City extends Message<City> {
+  constructor(data?: PartialMessage<City>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.City";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): City {
+    return new City().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): City {
+    return new City().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): City {
+    return new City().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: City | PlainMessage<City> | undefined, b: City | PlainMessage<City> | undefined): boolean {
+    return proto3.util.equals(City, a, b);
   }
 }
 

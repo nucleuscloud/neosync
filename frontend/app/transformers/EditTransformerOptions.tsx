@@ -330,6 +330,14 @@ export function handleTransformerMetadata(
         type: 'string',
       },
     },
+    {
+      city: {
+        name: 'City',
+        description:
+          'Randomly selects a city from a list of predefined US cities.',
+        type: 'string',
+      },
+    },
   ];
 
   const def = {

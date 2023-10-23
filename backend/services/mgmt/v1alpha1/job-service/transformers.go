@@ -28,6 +28,7 @@ const (
 	UTCTimestamp   Transformation = "utc_timestamp"
 	UnixTimestamp  Transformation = "unix_timestamp"
 	StreetAddress  Transformation = "street_address"
+	City           Transformation = "city"
 )
 
 func (s *Service) GetTransformers(
@@ -138,6 +139,7 @@ func (s *Service) GetTransformers(
 			{Value: string(UTCTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(UnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(StreetAddress), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(City), Config: &mgmtv1alpha1.TransformerConfig{}},
 		},
 	}), nil
 }
