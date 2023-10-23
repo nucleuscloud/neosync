@@ -145,7 +145,7 @@ type PostgresConnection struct {
 
 type MysqlConnectionConfig struct {
 	Connection *MysqlConnection `json:"connection,omitempty"`
-	Url        *string
+	Url        *string          `json:"url,omitempty"`
 }
 
 type MysqlConnection struct {
