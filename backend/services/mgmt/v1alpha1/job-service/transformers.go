@@ -24,6 +24,7 @@ const (
 	RandomBool     Transformation = "random_bool"
 	RandomInt      Transformation = "random_int"
 	RandomFloat    Transformation = "random_float"
+	Gender         Transformation = "gender"
 )
 
 func (s *Service) GetTransformers(
@@ -119,6 +120,15 @@ func (s *Service) GetTransformers(
 							PreserveLength:      false,
 							DigitsBeforeDecimal: 3,
 							DigitsAfterDecimal:  3,
+						},
+					},
+				}},
+			{
+				Value: string(Gender),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenderConfig{
+						GenderConfig: &mgmtv1alpha1.Gender{
+							Abbreviate: false,
 						},
 					},
 				}},

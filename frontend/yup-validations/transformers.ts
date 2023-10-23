@@ -2,6 +2,7 @@ import {
   EmailConfig,
   FirstName,
   FullName,
+  Gender,
   IntPhoneNumber,
   LastName,
   Null,
@@ -112,6 +113,15 @@ interface RandomFloatTransformerConfigs {
   preserveLength: boolean;
   digitsBeforeDecimal: number;
   digitsAftereDecimal: number;
+}
+
+interface GenderTransformer {
+  value: string;
+  config: GenderTransformerConfigs;
+}
+
+interface GenderTransformerConfigs {
+  abbreviate: boolean;
 }
 
 export function toTransformerConfigOptions(t: {
@@ -299,6 +309,20 @@ export function toTransformerConfigOptions(t: {
               preserveLength: rf.config.preserveLength,
               digitsBeforeDecimal: BigInt(rf.config.digitsBeforeDecimal ?? 2),
               digitsAfterDecimal: BigInt(rf.config.digitsAftereDecimal ?? 3),
+            }),
+          },
+        }),
+      });
+    }
+    case 'gender': {
+      const g = t as GenderTransformer;
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'genderConfig',
+            value: new Gender({
+              abbreviate: g.config.abbreviate,
             }),
           },
         }),

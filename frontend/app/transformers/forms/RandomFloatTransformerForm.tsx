@@ -50,9 +50,6 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
     setIsSheetOpen!(false);
   };
 
-  console.log('vals', fc.getValues());
-  console.log('pl', pl);
-
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField

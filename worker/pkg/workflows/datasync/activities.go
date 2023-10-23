@@ -1047,8 +1047,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "full_name":
 		pl := col.Transformer.Config.GetFullNameConfig().PreserveLength
 		return fmt.Sprintf("this.%s.fullnametransformer(%t)", col.Column, pl), nil
-	case "gender":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "chinese_first_name":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "chinese_last_name":
@@ -1084,6 +1082,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		bd := col.Transformer.Config.GetRandomFloatConfig().DigitsBeforeDecimal
 		ad := col.Transformer.Config.GetRandomFloatConfig().DigitsAfterDecimal
 		return fmt.Sprintf(`this.%s.randomfloattransformer(%t, %d, %d)`, col.Column, pl, bd, ad), nil
+	case "gender":
+		ab := col.Transformer.Config.GetGenderConfig().Abbreviate
+		return fmt.Sprintf(`gendertransformer(%t)`, ab), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

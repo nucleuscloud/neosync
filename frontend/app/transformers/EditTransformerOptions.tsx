@@ -14,6 +14,7 @@ import { ReactElement, useEffect, useRef, useState } from 'react';
 import EmailTransformerForm from './forms/EmailTransformerForm';
 import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
 import FullNameTransformerForm from './forms/FullnameTransformerForm';
+import GenderTransformerForm from './forms/GenderTransformerForm';
 import IntPhoneNumberTransformerForm from './forms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
@@ -191,6 +192,10 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
+    case 'gender':
+      return (
+        <GenderTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -279,6 +284,13 @@ export function handleTransformerMetadata(
         name: 'Random Float',
         description:
           'Generates a random float value with a default length of <XX.XXX>.',
+      },
+    },
+    {
+      gender: {
+        name: 'Gender',
+        description:
+          'Randomly generates one of the following genders: female, male, undefined, nonbinary.',
       },
     },
   ];
