@@ -425,6 +425,7 @@ message TransformerConfig {
     Null null_config = 14;
     UTCTimestamp utc_timestamp_config = 15;
     UnixTimestamp unix_timestamp_config = 16;
+    StreetAddress street_address_config = 17;
   }
 }
 
@@ -494,6 +495,8 @@ message Gender {
 message UTCTimestamp {}
 
 message UnixTimestamp {}
+
+message StreetAddress {}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}

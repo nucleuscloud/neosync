@@ -966,8 +966,11 @@ func buildPlainInsertArgs(cols []string) string {
 }
 
 /*
-root.{destination_col} = this.{source_col}.mutationmethod(args)
-.mutationmethod(args) -> this the name of the custom plugin and then it's args as well
+method transformers
+root.{destination_col} = this.{source_col}.transformermethod(args)
+
+function transformers
+root.{destination_col} = transformerfunction(args)
 */
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
@@ -1087,6 +1090,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "utctimestamptransformer()", nil
 	case "unix_timestamp":
 		return "unixtimestamptransformer()", nil
+	case "street_address":
+		return "streetaddresstransformer()", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
