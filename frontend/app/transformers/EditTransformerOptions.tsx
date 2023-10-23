@@ -346,6 +346,14 @@ export function handleTransformerMetadata(
         type: 'string',
       },
     },
+    {
+      state: {
+        name: 'State',
+        description:
+          'Randomly selects a US state and returns the two-character state code.',
+        type: 'string',
+      },
+    },
   ];
 
   const def = {

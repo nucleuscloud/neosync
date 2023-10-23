@@ -30,6 +30,7 @@ const (
 	StreetAddress  Transformation = "street_address"
 	City           Transformation = "city"
 	Zipcode        Transformation = "zipcode"
+	State          Transformation = "state"
 )
 
 func (s *Service) GetTransformers(
@@ -142,6 +143,7 @@ func (s *Service) GetTransformers(
 			{Value: string(StreetAddress), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(City), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(Zipcode), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(State), Config: &mgmtv1alpha1.TransformerConfig{}},
 		},
 	}), nil
 }
