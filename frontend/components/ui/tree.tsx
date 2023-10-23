@@ -10,9 +10,9 @@ import { cn } from '@/libs/utils';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import { ChevronRightIcon } from '@radix-ui/react-icons';
 import * as React from 'react';
+import { FixedSizeList as List } from 'react-window';
 import useResizeObserver from 'use-resize-observer';
 import { Checkbox } from './checkbox';
-import { ScrollArea } from './scroll-area';
 
 interface TreeDataItem {
   id: string;
@@ -47,82 +47,31 @@ const Tree = React.forwardRef<HTMLDivElement, TreeProps>(
       }
     }
 
-    function updateItemAndChildren(
-      items: TreeDataItem[],
-      id: string,
-      isSelected: boolean,
-      foundItem: boolean = false
-    ): TreeDataItem[] {
-      return items.map((item) => {
-        const isCurrentOrFound = item.id === id || foundItem;
-
-        let updatedChildren = item.children;
-        if (item.children) {
-          updatedChildren = updateItemAndChildren(
-            item.children,
-            id,
-            isSelected,
-            isCurrentOrFound
-          );
-        }
-
-        let updatedIsSelected = item.isSelected;
-        if (isCurrentOrFound) {
-          updatedIsSelected = isSelected;
-        } else if (item.children) {
-          updatedIsSelected = updatedChildren?.some(
-            (child) => child.isSelected
-          );
-        }
-
-        return {
-          ...item,
-          isSelected: updatedIsSelected,
-          children: updatedChildren,
-        };
-      });
-    }
-
-    function isIndeterminate(item: TreeDataItem): boolean {
-      if (!item.children) {
-        return false;
-      }
-      function walkTreeItems(items: TreeDataItem | TreeDataItem[]) {
-        if (items instanceof Array) {
-          // eslint-disable-next-line @typescript-eslint/prefer-for-of
-          for (let i = 0; i < items.length; i++) {
-            if (!items[i].isSelected) {
-              return true;
-            }
-            if (walkTreeItems(items[i])) {
-              return true;
-            }
-          }
-        } else if (items.children) {
-          return walkTreeItems(items.children);
-        }
-        return false;
-      }
-
-      return walkTreeItems(item);
-    }
-
     const { ref: refRoot, width, height } = useResizeObserver();
 
     return (
-      <div ref={refRoot} className={cn('overflow-hidden', className)}>
-        <ScrollArea style={{ width, height }}>
-          <div className="relative p-2">
-            <TreeItem
-              data={treeItems}
-              ref={ref}
-              handleSelectChange={handleSelectChange}
-              isIndeterminate={isIndeterminate}
-              {...props}
-            />
-          </div>
-        </ScrollArea>
-      </div>
+      // <div ref={refRoot} className={cn('overflow-hidden', className)}>
+      //   <ScrollArea style={{ width, height }}>
+      //     <div className="relative p-2">
+      //       <TreeItem
+      //         data={treeItems}
+      //         ref={ref}
+      //         handleSelectChange={handleSelectChange}
+      //         isIndeterminate={isIndeterminate}
+      //         {...props}
+      //       />
+      //     </div>
+      //   </ScrollArea>
+      // </div>
+      <List
+        className="List"
+        height={700}
+        itemCount={treeItems.length}
+        itemSize={50}
+        // width={300}
+      >
+        {Row}
+      </List>
     );
   }
 );
@@ -287,3 +236,67 @@ const AccordionContent = React.forwardRef<
 AccordionContent.displayName = AccordionPrimitive.Content.displayName;
 
 export { Tree, type TreeDataItem };
+
+function isIndeterminate(item: TreeDataItem): boolean {
+  return true;
+  // function walkTreeItems(items: TreeDataItem | TreeDataItem[]) {
+  //   if (items instanceof Array) {
+  //     // eslint-disable-next-line @typescript-eslint/prefer-for-of
+  //     for (let i = 0; i < items.length; i++) {
+  //       if (!items[i].isSelected) {
+  //         return true;
+  //       }
+  //       if (walkTreeItems(items[i])) {
+  //         return true;
+  //       }
+  //     }
+  //   } else if (items.children) {
+  //     return walkTreeItems(items.children);
+  //   }
+  //   return false;
+  // }
+}
+
+function updateItemAndChildren(
+  items: TreeDataItem[],
+  id: string,
+  isSelected: boolean,
+  foundItem: boolean = false
+): TreeDataItem[] {
+  return items.map((item) => {
+    const isCurrentOrFound = item.id === id || foundItem;
+
+    let updatedChildren = item.children;
+    if (item.children) {
+      updatedChildren = updateItemAndChildren(
+        item.children,
+        id,
+        isSelected,
+        isCurrentOrFound
+      );
+    }
+
+    let updatedIsSelected = item.isSelected;
+    if (isCurrentOrFound) {
+      updatedIsSelected = isSelected;
+    } else if (item.children) {
+      updatedIsSelected = updatedChildren?.some((child) => child.isSelected);
+    }
+
+    return {
+      ...item,
+      isSelected: updatedIsSelected,
+      children: updatedChildren,
+    };
+  });
+}
+
+const Row = React.memo(function Row({ name }) {
+  console.log('Greeting was rendered at', new Date().toLocaleTimeString());
+  return (
+    <h3>
+      Hello{name && ', '}
+      {name}!
+    </h3>
+  );
+});

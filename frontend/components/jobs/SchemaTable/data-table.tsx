@@ -91,34 +91,36 @@ export function DataTable<TData, TValue>({
   const [treeData, setTreeData] = React.useState<TreeDataItem[]>([]);
 
   function handlefilter(items: TreeDataItem[]) {
+    console.time('filter');
     const schemaFilters: string[] = [];
     const tableFilters: string[] = [];
 
-    const stack: TreeDataItem[] = [...items];
-    while (stack.length > 0) {
-      const item = stack.pop();
-      if (item) {
-        if (item.isSelected) {
-          if (item.children) {
-            schemaFilters.push(item.name);
-          } else {
-            tableFilters.push(item.name);
-          }
-        }
-        if (item.children) {
-          stack.push(...item.children);
-        }
-      }
-    }
+    // const stack: TreeDataItem[] = [...items];
+    // while (stack.length > 0) {
+    //   const item = stack.pop();
+    //   if (item) {
+    //     if (item.isSelected) {
+    //       if (item.children) {
+    //         schemaFilters.push(item.name);
+    //       } else {
+    //         tableFilters.push(item.name);
+    //       }
+    //     }
+    //     if (item.children) {
+    //       stack.push(...item.children);
+    //     }
+    //   }
+    // }
 
-    if (schemaFilters.length === 0 && tableFilters.length === 0) {
-      setColumnFilters([]);
-    } else {
-      setColumnFilters([
-        { id: 'schema', value: schemaFilters },
-        { id: 'table', value: tableFilters },
-      ]);
-    }
+    // if (schemaFilters.length === 0 && tableFilters.length === 0) {
+    //   setColumnFilters([]);
+    // } else {
+    //   setColumnFilters([
+    //     { id: 'schema', value: schemaFilters },
+    //     { id: 'table', value: tableFilters },
+    //   ]);
+    // }
+    console.timeEnd('filter');
   }
 
   function restoreTree(): void {
@@ -195,18 +197,20 @@ export function DataTable<TData, TValue>({
     setTreeData(treedata);
   }
 
-  React.useEffect(() => {
-    if (filtersUpdated) {
-      if (columnFilters.length == 0) {
-        restoreTree();
-      } else {
-        updateTree();
-      }
-    }
-    setFiltersUpdated(false);
-  }, [filtersUpdated]);
+  // React.useEffect(() => {
+  //   console.log('Filters updated useEffect');
+  //   if (filtersUpdated) {
+  //     if (columnFilters.length == 0) {
+  //       restoreTree();
+  //     } else {
+  //       updateTree();
+  //     }
+  //   }
+  //   setFiltersUpdated(false);
+  // }, [filtersUpdated]);
 
   React.useEffect(() => {
+    console.log('RESTORE tree useEffect');
     restoreTree();
   }, [JSON.stringify(schemaMap)]);
 
@@ -220,7 +224,7 @@ export function DataTable<TData, TValue>({
         <Tree
           data={treeData}
           className="h-full border rounded-md"
-          onSelectChange={handlefilter}
+          // onSelectChange={handlefilter}
         />
       </div>
       <div className="basis-5/6 space-y-2 pl-8">
