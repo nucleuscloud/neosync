@@ -2,6 +2,7 @@ import {
   City,
   EmailConfig,
   FirstName,
+  FullAddress,
   FullName,
   Gender,
   IntPhoneNumber,
@@ -396,6 +397,17 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'stateConfig',
             value: new State({}),
+          },
+        }),
+      });
+    }
+    case 'full_address': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'fullAddressConfig',
+            value: new FullAddress({}),
           },
         }),
       });

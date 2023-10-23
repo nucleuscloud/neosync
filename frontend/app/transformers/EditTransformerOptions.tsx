@@ -326,7 +326,7 @@ export function handleTransformerMetadata(
       street_address: {
         name: 'Street Address',
         description:
-          'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}',
+          'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}. For example, 123 Main Street.',
         type: 'string',
       },
     },
@@ -351,6 +351,14 @@ export function handleTransformerMetadata(
         name: 'State',
         description:
           'Randomly selects a US state and returns the two-character state code.',
+        type: 'string',
+      },
+    },
+    {
+      full_address: {
+        name: 'Full Address',
+        description:
+          'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169. ',
         type: 'string',
       },
     },
