@@ -43,7 +43,7 @@
 		/* Temporal */
 		"ghcr.io/devcontainers-contrib/features/temporal-cli:1": {},
 
-		// todo: helm, helmfile, benthos
+		// todo: benthos
 	}
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
