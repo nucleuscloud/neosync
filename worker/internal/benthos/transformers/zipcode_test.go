@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateCity(t *testing.T) {
+func TestGenerateZipcode(t *testing.T) {
 
-	res, err := GenerateRandomCity()
+	res, err := GenerateRandomZipcode()
 
 	assert.NoError(t, err)
-	assert.IsType(t, Address{}.City, res, "The returned city should be a string")
+	assert.IsType(t, Address{}.Zipcode, res, "The returned zipcode should be a string")
 
 	data := struct {
 		Addresses []Address `json:"addresses"`
@@ -23,19 +23,19 @@ func TestGenerateCity(t *testing.T) {
 	}
 	addresses := data.Addresses
 
-	cityExists := false
+	zipcodeExists := false
 	for _, address := range addresses {
-		if address.City == res {
-			cityExists = true
+		if address.Zipcode == res {
+			zipcodeExists = true
 			break
 		}
 	}
 
-	assert.True(t, cityExists, "The generated city should exist in the addresses array")
+	assert.True(t, zipcodeExists, "The generated city should exist in the addresses array")
 }
 
-func TestCityTransformer(t *testing.T) {
-	mapping := `root = citytransformer()`
+func TestZipcodeTransformer(t *testing.T) {
+	mapping := `root = zipcodetransformer()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the city transformer")
 
@@ -52,13 +52,13 @@ func TestCityTransformer(t *testing.T) {
 	}
 	addresses := data.Addresses
 
-	cityExists := false
+	zipcodeExists := false
 	for _, address := range addresses {
-		if address.City == res {
-			cityExists = true
+		if address.Zipcode == res {
+			zipcodeExists = true
 			break
 		}
 	}
 
-	assert.True(t, cityExists, "The generated city should exist in the addresses array")
+	assert.True(t, zipcodeExists, "The generated city should exist in the addresses array")
 }

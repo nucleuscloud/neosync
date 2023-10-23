@@ -427,6 +427,7 @@ message TransformerConfig {
     UnixTimestamp unix_timestamp_config = 16;
     StreetAddress street_address_config = 17;
     City city_config = 18;
+    Zipcode zipcode_config = 19;
   }
 }
 
@@ -498,6 +499,8 @@ message UTCTimestamp {}
 message UnixTimestamp {}
 
 message StreetAddress {}
+
+message Zipcode {}
 
 message City {}
 

@@ -338,6 +338,14 @@ export function handleTransformerMetadata(
         type: 'string',
       },
     },
+    {
+      zipcode: {
+        name: 'Zip Code',
+        description:
+          'Randomly selects a zip code from a list of predefined US cities.',
+        type: 'string',
+      },
+    },
   ];
 
   const def = {
