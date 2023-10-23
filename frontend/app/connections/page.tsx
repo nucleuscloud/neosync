@@ -18,7 +18,6 @@ export default function Connections(): ReactElement {
       Header={
         <PageHeader
           header="Connections"
-          description="Create and manage connections to send and receive data"
           extraHeading={<NewConnectionButton />}
         />
       }

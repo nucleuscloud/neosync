@@ -7,12 +7,7 @@ import RunsTable from './components/RunsTable';
 export default function JobRuns(): ReactElement {
   return (
     <OverviewContainer
-      Header={
-        <PageHeader
-          header="Runs"
-          description="Create and manage job runs to send and receive data"
-        />
-      }
+      Header={<PageHeader header="Runs" />}
       containerClassName="runs-page"
     >
       <RunsTable />
