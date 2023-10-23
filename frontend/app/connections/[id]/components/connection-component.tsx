@@ -43,7 +43,6 @@ export function getConnectionComponentDetails(
             header: (
               <PageHeader
                 header="PostgreSQL"
-                description="Update this connection"
                 leftIcon={<ConnectionIcon name="postgres" />}
                 extraHeading={extraPageHeading}
               />
@@ -75,12 +74,7 @@ export function getConnectionComponentDetails(
             <p>No summary found.</p>
           </div>
         ),
-        header: (
-          <PageHeader
-            header="Unknown Connection"
-            description="Update this connection"
-          />
-        ),
+        header: <PageHeader header="Unknown Connection" />,
         body: (
           <div>
             No connection component found for: (
@@ -99,7 +93,6 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="AWS S3"
-            description="Update this connection"
             leftIcon={<ConnectionIcon name="awsS3" />}
             extraHeading={extraPageHeading}
           />
@@ -131,12 +124,7 @@ export function getConnectionComponentDetails(
             <p>No summary found.</p>
           </div>
         ),
-        header: (
-          <PageHeader
-            header="Unknown Connection"
-            description="Update this connection"
-          />
-        ),
+        header: <PageHeader header="Unknown Connection" />,
         body: (
           <div>
             No connection component found for: (

@@ -17,13 +17,7 @@ import { DataTable } from './components/DataTable/data-table';
 export default function Jobs() {
   return (
     <OverviewContainer
-      Header={
-        <PageHeader
-          header="Jobs"
-          description="Jobs are asynchronous tasks that move, transform, or scan data"
-          extraHeading={<NewJobButton />}
-        />
-      }
+      Header={<PageHeader header="Jobs" extraHeading={<NewJobButton />} />}
       containerClassName="jobs-page"
     >
       <div>

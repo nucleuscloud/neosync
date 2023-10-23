@@ -6,7 +6,7 @@ import RunsTable from './runs/components/RunsTable';
 export default function Home() {
   return (
     <OverviewContainer
-      Header={<PageHeader header="Latest Job Runs" description="" />}
+      Header={<PageHeader header="Latest Job Runs" />}
       containerClassName="overview-page"
     >
       <RunsTable />
