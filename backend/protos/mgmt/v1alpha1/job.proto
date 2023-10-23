@@ -424,6 +424,7 @@ message TransformerConfig {
     Gender gender_config = 13;
     Null null_config = 14;
     UTCTimestamp utc_timestamp_config = 15;
+    UnixTimestamp unix_timestamp_config = 16;
   }
 }
 
@@ -491,6 +492,8 @@ message Gender {
 }
 
 message UTCTimestamp {}
+
+message UnixTimestamp {}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}

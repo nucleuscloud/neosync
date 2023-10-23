@@ -16,6 +16,7 @@ import {
   Transformer,
   TransformerConfig,
   UTCTimestamp,
+  UnixTimestamp,
   Uuid,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 
@@ -336,6 +337,17 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'utcTimestampConfig',
             value: new UTCTimestamp({}),
+          },
+        }),
+      });
+    }
+    case 'unix_timestamp': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'unixTimestampConfig',
+            value: new UnixTimestamp({}),
           },
         }),
       });

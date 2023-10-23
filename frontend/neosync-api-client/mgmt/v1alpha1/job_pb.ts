@@ -3634,6 +3634,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: UTCTimestamp;
     case: "utcTimestampConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.UnixTimestamp unix_timestamp_config = 16;
+     */
+    value: UnixTimestamp;
+    case: "unixTimestampConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -3659,6 +3665,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 13, name: "gender_config", kind: "message", T: Gender, oneof: "config" },
     { no: 14, name: "null_config", kind: "message", T: Null, oneof: "config" },
     { no: 15, name: "utc_timestamp_config", kind: "message", T: UTCTimestamp, oneof: "config" },
+    { no: 16, name: "unix_timestamp_config", kind: "message", T: UnixTimestamp, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -4286,6 +4293,37 @@ export class UTCTimestamp extends Message<UTCTimestamp> {
 
   static equals(a: UTCTimestamp | PlainMessage<UTCTimestamp> | undefined, b: UTCTimestamp | PlainMessage<UTCTimestamp> | undefined): boolean {
     return proto3.util.equals(UTCTimestamp, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.UnixTimestamp
+ */
+export class UnixTimestamp extends Message<UnixTimestamp> {
+  constructor(data?: PartialMessage<UnixTimestamp>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.UnixTimestamp";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UnixTimestamp {
+    return new UnixTimestamp().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UnixTimestamp {
+    return new UnixTimestamp().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UnixTimestamp {
+    return new UnixTimestamp().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UnixTimestamp | PlainMessage<UnixTimestamp> | undefined, b: UnixTimestamp | PlainMessage<UnixTimestamp> | undefined): boolean {
+    return proto3.util.equals(UnixTimestamp, a, b);
   }
 }
 
