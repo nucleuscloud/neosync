@@ -1083,9 +1083,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		pl := col.Transformer.Config.GetRandomFloatConfig().PreserveLength
 		bd := col.Transformer.Config.GetRandomFloatConfig().DigitsBeforeDecimal
 		ad := col.Transformer.Config.GetRandomFloatConfig().DigitsAfterDecimal
-		fmt.Println("pl", pl)
-		fmt.Println("bd", bd)
-		fmt.Println("ad", ad)
 		return fmt.Sprintf(`this.%s.randomfloattransformer(%t, %d, %d)`, col.Column, pl, bd, ad), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
