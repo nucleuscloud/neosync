@@ -40,10 +40,11 @@ export default function SubsetCard(props: Props): ReactElement {
     data?.job?.source?.connectionId
   );
 
+  const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({
     resolver: yupResolver<SubsetFormValues>(SUBSET_FORM_SCHEMA),
     defaultValues: { subsets: [] },
-    values: getFormValues(data?.job?.source?.options),
+    values: formValues,
   });
 
   const tableRowData = buildTableRowData(
@@ -51,6 +52,10 @@ export default function SubsetCard(props: Props): ReactElement {
     form.watch().subsets // ensures that all form changes cause a re-render since stuff happens outside of the form that depends on the form values
   );
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
+
+  const formValuesMap = new Map(
+    formValues.subsets.map((ss) => [buildRowKey(ss.schema, ss.table), ss])
+  );
 
   if (isJobLoading || isSchemaLoading) {
     return (
@@ -88,30 +93,13 @@ export default function SubsetCard(props: Props): ReactElement {
     const key = buildRowKey(schema, table);
     const trData = tableRowData[key];
 
-    const svrData = data?.job?.source?.options;
+    const svrData = formValuesMap.get(key);
 
     if (!svrData && !!trData.where) {
       return true;
     }
 
-    if (
-      svrData &&
-      (svrData.config.case === 'mysqlOptions' ||
-        svrData?.config.case === 'postgresOptions')
-    ) {
-      const schemaData = svrData.config.value.schemas.find(
-        (s) => s.schema === schema
-      );
-      if (!schemaData) {
-        return !!trData.where;
-      }
-      const tabledata = schemaData.tables.find((t) => t.table === table);
-      if (!tabledata) {
-        return !!trData.where;
-      }
-      return trData.where !== tabledata.whereClause;
-    }
-    return false;
+    return trData.where !== svrData?.whereClause;
   }
 
   function onLocalRowReset(schema: string, table: string): void {
