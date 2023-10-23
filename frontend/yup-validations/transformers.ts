@@ -8,6 +8,7 @@ import {
   Passthrough,
   PhoneNumber,
   RandomBool,
+  RandomFloat,
   RandomInt,
   RandomString,
   RandomString_StringCase,
@@ -101,6 +102,16 @@ interface RandomIntTransformer {
 interface RandomIntTransformerConfigs {
   preserveLength: boolean;
   intLength: number;
+}
+interface RandomFloatTransformer {
+  value: string;
+  config: RandomFloatTransformerConfigs;
+}
+
+interface RandomFloatTransformerConfigs {
+  preserveLength: boolean;
+  digitsBeforeDecimal: number;
+  digitsAftereDecimal: number;
 }
 
 export function toTransformerConfigOptions(t: {
@@ -236,16 +247,16 @@ export function toTransformerConfigOptions(t: {
       });
     }
     case 'random_string': {
-      const gs = t as RandomStringTransformer;
+      const rs = t as RandomStringTransformer;
       return new Transformer({
         value: t.value,
         config: new TransformerConfig({
           config: {
             case: 'randomStringConfig',
             value: new RandomString({
-              preserveLength: gs.config.preserveLength,
-              strCase: gs.config.strCase,
-              strLength: BigInt(gs.config.strLength ?? 10),
+              preserveLength: rs.config.preserveLength,
+              strCase: rs.config.strCase,
+              strLength: BigInt(rs.config.strLength ?? 10),
             }),
           },
         }),
@@ -263,15 +274,31 @@ export function toTransformerConfigOptions(t: {
       });
     }
     case 'random_int': {
-      const gs = t as RandomIntTransformer;
+      const ri = t as RandomIntTransformer;
       return new Transformer({
         value: t.value,
         config: new TransformerConfig({
           config: {
             case: 'randomIntConfig',
             value: new RandomInt({
-              preserveLength: gs.config.preserveLength,
-              intLength: BigInt(gs.config.intLength ?? 4),
+              preserveLength: ri.config.preserveLength,
+              intLength: BigInt(ri.config.intLength ?? 4),
+            }),
+          },
+        }),
+      });
+    }
+    case 'random_float': {
+      const rf = t as RandomFloatTransformer;
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'randomFloatConfig',
+            value: new RandomFloat({
+              preserveLength: rf.config.preserveLength,
+              digitsBeforeDecimal: BigInt(rf.config.digitsBeforeDecimal ?? 2),
+              digitsAfterDecimal: BigInt(rf.config.digitsAftereDecimal ?? 3),
             }),
           },
         }),

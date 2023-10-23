@@ -17,6 +17,7 @@ import FullNameTransformerForm from './forms/FullnameTransformerForm';
 import IntPhoneNumberTransformerForm from './forms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './forms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
+import RandomFloatTransformerForm from './forms/RandomFloatTransformerForm';
 import RandomIntTransformerForm from './forms/RandomIntTransformerForm';
 import RandomStringTransformerForm from './forms/RandomStringTransformerForm';
 import UuidTransformerForm from './forms/UuidTransformerForm';
@@ -183,6 +184,13 @@ function handleTransformerForm(
           setIsSheetOpen={setIsSheetOpen}
         />
       );
+    case 'random_float':
+      return (
+        <RandomFloatTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -263,7 +271,14 @@ export function handleTransformerMetadata(
       random_int: {
         name: 'Random Integer',
         description:
-          'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramteres are defined. .',
+          'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramters are defined. .',
+      },
+    },
+    {
+      random_float: {
+        name: 'Random Float',
+        description:
+          'Generates a random float value with a default length of <XX.XXX>.',
       },
     },
   ];

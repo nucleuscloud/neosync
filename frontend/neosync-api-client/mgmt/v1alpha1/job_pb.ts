@@ -3612,7 +3612,13 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "randomIntConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null null_config = 12;
+     * @generated from field: mgmt.v1alpha1.RandomFloat random_float_config = 12;
+     */
+    value: RandomFloat;
+    case: "randomFloatConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Null null_config = 13;
      */
     value: Null;
     case: "nullConfig";
@@ -3637,7 +3643,8 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 9, name: "random_string_config", kind: "message", T: RandomString, oneof: "config" },
     { no: 10, name: "random_bool_config", kind: "message", T: RandomBool, oneof: "config" },
     { no: 11, name: "random_int_config", kind: "message", T: RandomInt, oneof: "config" },
-    { no: 12, name: "null_config", kind: "message", T: Null, oneof: "config" },
+    { no: 12, name: "random_float_config", kind: "message", T: RandomFloat, oneof: "config" },
+    { no: 13, name: "null_config", kind: "message", T: Null, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -4148,6 +4155,55 @@ export class RandomInt extends Message<RandomInt> {
 
   static equals(a: RandomInt | PlainMessage<RandomInt> | undefined, b: RandomInt | PlainMessage<RandomInt> | undefined): boolean {
     return proto3.util.equals(RandomInt, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RandomFloat
+ */
+export class RandomFloat extends Message<RandomFloat> {
+  /**
+   * @generated from field: bool preserve_length = 1;
+   */
+  preserveLength = false;
+
+  /**
+   * @generated from field: int64 digits_before_decimal = 2;
+   */
+  digitsBeforeDecimal = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 digits_after_decimal = 3;
+   */
+  digitsAfterDecimal = protoInt64.zero;
+
+  constructor(data?: PartialMessage<RandomFloat>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RandomFloat";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "digits_before_decimal", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "digits_after_decimal", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RandomFloat {
+    return new RandomFloat().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RandomFloat {
+    return new RandomFloat().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RandomFloat {
+    return new RandomFloat().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RandomFloat | PlainMessage<RandomFloat> | undefined, b: RandomFloat | PlainMessage<RandomFloat> | undefined): boolean {
+    return proto3.util.equals(RandomFloat, a, b);
   }
 }
 

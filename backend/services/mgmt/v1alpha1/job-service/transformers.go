@@ -23,6 +23,7 @@ const (
 	RandomString   Transformation = "random_string"
 	RandomBool     Transformation = "random_bool"
 	RandomInt      Transformation = "random_int"
+	RandomFloat    Transformation = "random_float"
 )
 
 func (s *Service) GetTransformers(
@@ -107,6 +108,17 @@ func (s *Service) GetTransformers(
 						RandomIntConfig: &mgmtv1alpha1.RandomInt{
 							PreserveLength: false,
 							IntLength:      0,
+						},
+					},
+				}},
+			{
+				Value: string(RandomFloat),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_RandomFloatConfig{
+						RandomFloatConfig: &mgmtv1alpha1.RandomFloat{
+							PreserveLength:      false,
+							DigitsBeforeDecimal: 3,
+							DigitsAfterDecimal:  3,
 						},
 					},
 				}},

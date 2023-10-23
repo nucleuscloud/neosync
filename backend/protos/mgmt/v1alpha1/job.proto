@@ -420,7 +420,8 @@ message TransformerConfig {
     RandomString random_string_config = 9;
     RandomBool random_bool_config = 10;
     RandomInt random_int_config = 11;
-    Null null_config = 12;
+    RandomFloat random_float_config = 12;
+    Null null_config = 13;
   }
 }
 
@@ -476,6 +477,12 @@ message RandomBool {}
 message RandomInt {
   bool preserve_length = 1;
   int64 int_length = 2;
+}
+
+message RandomFloat {
+  bool preserve_length = 1;
+  int64 digits_before_decimal = 2;
+  int64 digits_after_decimal = 3;
 }
 
 service JobService {
