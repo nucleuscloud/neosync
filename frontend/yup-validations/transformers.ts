@@ -20,6 +20,7 @@ import {
   UTCTimestamp,
   UnixTimestamp,
   Uuid,
+  Zipcode,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 
 interface EmailTransformer {
@@ -372,6 +373,17 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'cityConfig',
             value: new City({}),
+          },
+        }),
+      });
+    }
+    case 'zipcode': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'zipcodeConfig',
+            value: new Zipcode({}),
           },
         }),
       });

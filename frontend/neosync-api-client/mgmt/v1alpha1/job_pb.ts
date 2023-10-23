@@ -3652,6 +3652,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: City;
     case: "cityConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Zipcode zipcode_config = 19;
+     */
+    value: Zipcode;
+    case: "zipcodeConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -3680,6 +3686,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 16, name: "unix_timestamp_config", kind: "message", T: UnixTimestamp, oneof: "config" },
     { no: 17, name: "street_address_config", kind: "message", T: StreetAddress, oneof: "config" },
     { no: 18, name: "city_config", kind: "message", T: City, oneof: "config" },
+    { no: 19, name: "zipcode_config", kind: "message", T: Zipcode, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -4369,6 +4376,37 @@ export class StreetAddress extends Message<StreetAddress> {
 
   static equals(a: StreetAddress | PlainMessage<StreetAddress> | undefined, b: StreetAddress | PlainMessage<StreetAddress> | undefined): boolean {
     return proto3.util.equals(StreetAddress, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.Zipcode
+ */
+export class Zipcode extends Message<Zipcode> {
+  constructor(data?: PartialMessage<Zipcode>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.Zipcode";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Zipcode {
+    return new Zipcode().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Zipcode {
+    return new Zipcode().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Zipcode {
+    return new Zipcode().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Zipcode | PlainMessage<Zipcode> | undefined, b: Zipcode | PlainMessage<Zipcode> | undefined): boolean {
+    return proto3.util.equals(Zipcode, a, b);
   }
 }
 
