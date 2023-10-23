@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessStreetAddress(t *testing.T) {
+func TestGenerateStreetAddress(t *testing.T) {
 
 	res, err := GenerateRandomStreetAddress()
 

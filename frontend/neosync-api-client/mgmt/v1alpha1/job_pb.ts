@@ -3664,6 +3664,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: State;
     case: "stateConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.FullAddress full_address_config = 21;
+     */
+    value: FullAddress;
+    case: "fullAddressConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -3694,6 +3700,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 18, name: "city_config", kind: "message", T: City, oneof: "config" },
     { no: 19, name: "zipcode_config", kind: "message", T: Zipcode, oneof: "config" },
     { no: 20, name: "state_config", kind: "message", T: State, oneof: "config" },
+    { no: 21, name: "full_address_config", kind: "message", T: FullAddress, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -4476,6 +4483,37 @@ export class State extends Message<State> {
 
   static equals(a: State | PlainMessage<State> | undefined, b: State | PlainMessage<State> | undefined): boolean {
     return proto3.util.equals(State, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.FullAddress
+ */
+export class FullAddress extends Message<FullAddress> {
+  constructor(data?: PartialMessage<FullAddress>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.FullAddress";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): FullAddress {
+    return new FullAddress().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): FullAddress {
+    return new FullAddress().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): FullAddress {
+    return new FullAddress().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: FullAddress | PlainMessage<FullAddress> | undefined, b: FullAddress | PlainMessage<FullAddress> | undefined): boolean {
+    return proto3.util.equals(FullAddress, a, b);
   }
 }
 
