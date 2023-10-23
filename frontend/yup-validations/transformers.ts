@@ -14,6 +14,7 @@ import {
   RandomInt,
   RandomString,
   RandomString_StringCase,
+  State,
   StreetAddress,
   Transformer,
   TransformerConfig,
@@ -384,6 +385,17 @@ export function toTransformerConfigOptions(t: {
           config: {
             case: 'zipcodeConfig',
             value: new Zipcode({}),
+          },
+        }),
+      });
+    }
+    case 'state': {
+      return new Transformer({
+        value: t.value,
+        config: new TransformerConfig({
+          config: {
+            case: 'stateConfig',
+            value: new State({}),
           },
         }),
       });

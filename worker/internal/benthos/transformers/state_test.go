@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateZipcode(t *testing.T) {
+func TestGenerateState(t *testing.T) {
 
-	res, err := GenerateRandomZipcode()
+	res, err := GenerateRandomState()
 
 	assert.NoError(t, err)
-	assert.IsType(t, Address{}.Zipcode, res, "The returned zipcode should be a string")
+	assert.IsType(t, Address{}.Zipcode, res, "The returned state should be a string")
 
 	data := struct {
 		Addresses []Address `json:"addresses"`
@@ -23,26 +23,26 @@ func TestGenerateZipcode(t *testing.T) {
 	}
 	addresses := data.Addresses
 
-	zipcodeExists := false
+	stateExists := false
 	for _, address := range addresses {
-		if address.Zipcode == res {
-			zipcodeExists = true
+		if address.State == res {
+			stateExists = true
 			break
 		}
 	}
 
-	assert.True(t, zipcodeExists, "The generated zipcode should exist in the addresses array")
+	assert.True(t, stateExists, "The generated state should exist in the addresses array")
 }
 
-func TestZipcodeTransformer(t *testing.T) {
-	mapping := `root = zipcodetransformer()`
+func TestStateTransformer(t *testing.T) {
+	mapping := `root = statetransformer()`
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the zipcode transformer")
+	assert.NoError(t, err, "failed to parse the state transformer")
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.IsType(t, Address{}.City, res, "The returned zipcode should be a string")
+	assert.IsType(t, Address{}.City, res, "The returned state should be a string")
 
 	data := struct {
 		Addresses []Address `json:"addresses"`
@@ -52,13 +52,13 @@ func TestZipcodeTransformer(t *testing.T) {
 	}
 	addresses := data.Addresses
 
-	zipcodeExists := false
+	stateExists := false
 	for _, address := range addresses {
-		if address.Zipcode == res {
-			zipcodeExists = true
+		if address.State == res {
+			stateExists = true
 			break
 		}
 	}
 
-	assert.True(t, zipcodeExists, "The generated city should exist in the addresses array")
+	assert.True(t, stateExists, "The generated state should exist in the addresses array")
 }

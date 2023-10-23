@@ -428,6 +428,7 @@ message TransformerConfig {
     StreetAddress street_address_config = 17;
     City city_config = 18;
     Zipcode zipcode_config = 19;
+    State state_config = 20;
   }
 }
 
@@ -503,6 +504,8 @@ message StreetAddress {}
 message Zipcode {}
 
 message City {}
+
+message State {}
 
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}

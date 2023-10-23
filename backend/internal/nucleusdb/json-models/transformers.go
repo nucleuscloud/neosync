@@ -31,6 +31,7 @@ type TransformerConfigs struct {
 	StreetAddress  *StreetAddressConfig
 	City           *CityConfig
 	Zipcode        *ZipcodeConfig
+	State          *StateConfig
 }
 
 type EmailConfigs struct {
@@ -98,6 +99,8 @@ type StreetAddressConfig struct{}
 type CityConfig struct{}
 
 type ZipcodeConfig struct{}
+
+type StateConfig struct{}
 
 // from API -> DB
 func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
@@ -227,6 +230,11 @@ func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
 		t.Value = tr.Value
 		t.Config = &TransformerConfigs{
 			Zipcode: &ZipcodeConfig{},
+		}
+	case *mgmtv1alpha1.TransformerConfig_StateConfig:
+		t.Value = tr.Value
+		t.Config = &TransformerConfigs{
+			State: &StateConfig{},
 		}
 	default:
 		t.Value = tr.Value
@@ -444,6 +452,15 @@ func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_ZipcodeConfig{
 					ZipcodeConfig: &mgmtv1alpha1.Zipcode{},
+				},
+			},
+		}
+	case t.Config.State != nil:
+		return &mgmtv1alpha1.Transformer{
+			Value: t.Value,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_StateConfig{
+					StateConfig: &mgmtv1alpha1.State{},
 				},
 			},
 		}

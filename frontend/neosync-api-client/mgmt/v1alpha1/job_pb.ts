@@ -3658,6 +3658,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: Zipcode;
     case: "zipcodeConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.State state_config = 20;
+     */
+    value: State;
+    case: "stateConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -3687,6 +3693,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 17, name: "street_address_config", kind: "message", T: StreetAddress, oneof: "config" },
     { no: 18, name: "city_config", kind: "message", T: City, oneof: "config" },
     { no: 19, name: "zipcode_config", kind: "message", T: Zipcode, oneof: "config" },
+    { no: 20, name: "state_config", kind: "message", T: State, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -4438,6 +4445,37 @@ export class City extends Message<City> {
 
   static equals(a: City | PlainMessage<City> | undefined, b: City | PlainMessage<City> | undefined): boolean {
     return proto3.util.equals(City, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.State
+ */
+export class State extends Message<State> {
+  constructor(data?: PartialMessage<State>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.State";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): State {
+    return new State().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): State {
+    return new State().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): State {
+    return new State().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: State | PlainMessage<State> | undefined, b: State | PlainMessage<State> | undefined): boolean {
+    return proto3.util.equals(State, a, b);
   }
 }
 
