@@ -48,7 +48,7 @@ export default function SubsetCard(props: Props): ReactElement {
 
   const tableRowData = buildTableRowData(
     schema?.schemas ?? [],
-    form.getValues().subsets
+    form.watch().subsets // ensures that all form changes cause a re-render since stuff happens outside of the form that depends on the form values
   );
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
 
@@ -83,6 +83,69 @@ export default function SubsetCard(props: Props): ReactElement {
       });
     }
   }
+
+  function hasLocalChange(schema: string, table: string): boolean {
+    const key = buildRowKey(schema, table);
+    const trData = tableRowData[key];
+
+    const svrData = data?.job?.source?.options;
+
+    if (!svrData && !!trData.where) {
+      return true;
+    }
+
+    if (
+      svrData &&
+      (svrData.config.case === 'mysqlOptions' ||
+        svrData?.config.case === 'postgresOptions')
+    ) {
+      const schemaData = svrData.config.value.schemas.find(
+        (s) => s.schema === schema
+      );
+      if (!schemaData) {
+        return !!trData.where;
+      }
+      const tabledata = schemaData.tables.find((t) => t.table === table);
+      if (!tabledata) {
+        return !!trData.where;
+      }
+      return trData.where !== tabledata.whereClause;
+    }
+    return false;
+  }
+
+  function onLocalRowReset(schema: string, table: string): void {
+    const idx = form
+      .getValues()
+      .subsets.findIndex(
+        (item) =>
+          buildRowKey(item.schema, item.table) === buildRowKey(schema, table)
+      );
+    if (idx >= 0) {
+      let whereToUpdate: string | undefined = undefined;
+      const svrData = data?.job?.source?.options;
+      if (
+        svrData &&
+        (svrData.config.case === 'mysqlOptions' ||
+          svrData?.config.case === 'postgresOptions')
+      ) {
+        const schemaData = svrData.config.value.schemas.find(
+          (s) => s.schema === schema
+        );
+        if (schemaData) {
+          const tabledata = schemaData.tables.find((t) => t.table === table);
+          if (tabledata) {
+            whereToUpdate = tabledata.whereClause;
+          }
+        }
+      }
+      form.setValue(`subsets.${idx}`, {
+        schema: schema,
+        table: table,
+        whereClause: whereToUpdate,
+      });
+    }
+  }
   return (
     <div>
       <Form {...form}>
@@ -101,6 +164,8 @@ export default function SubsetCard(props: Props): ReactElement {
                   });
                 }
               }}
+              hasLocalChange={hasLocalChange}
+              onReset={onLocalRowReset}
             />
           </div>
           <div className="my-4">

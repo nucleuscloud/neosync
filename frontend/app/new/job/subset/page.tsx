@@ -135,8 +135,40 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const tableRowData = buildTableRowData(
     schemaFormValues.mappings,
-    form.getValues().subsets
+    form.watch().subsets
   );
+
+  function hasLocalChange(schema: string, table: string): boolean {
+    const key = buildRowKey(schema, table);
+    const trData = tableRowData[key];
+    const svrData = subsetFormValues.subsets.find(
+      (ss) => ss.schema === schema && ss.table === table
+    );
+    if (!svrData && !!trData.where) {
+      return true;
+    }
+    return trData.where !== svrData?.whereClause;
+  }
+
+  function onLocalRowReset(schema: string, table: string): void {
+    const idx = form
+      .getValues()
+      .subsets.findIndex(
+        (item) =>
+          buildRowKey(item.schema, item.table) === buildRowKey(schema, table)
+      );
+    if (idx >= 0) {
+      const svrData = subsetFormValues.subsets.find(
+        (ss) => ss.schema === schema && ss.table === table
+      );
+
+      form.setValue(`subsets.${idx}`, {
+        schema: schema,
+        table: table,
+        whereClause: svrData?.whereClause ?? undefined,
+      });
+    }
+  }
 
   return (
     <OverviewContainer
@@ -171,6 +203,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     });
                   }
                 }}
+                hasLocalChange={hasLocalChange}
+                onReset={onLocalRowReset}
               />
             </div>
             <div className="my-4">
