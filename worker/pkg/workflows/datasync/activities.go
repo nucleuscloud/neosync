@@ -990,8 +990,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "day_of_month":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "timestamp":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "century":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "timezone":
@@ -1085,6 +1083,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "gender":
 		ab := col.Transformer.Config.GetGenderConfig().Abbreviate
 		return fmt.Sprintf(`gendertransformer(%t)`, ab), nil
+	case "utc_timestamp":
+		return "utctimestamptransformer()", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

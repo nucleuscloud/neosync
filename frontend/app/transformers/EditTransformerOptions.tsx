@@ -73,7 +73,8 @@ export default function EditTransformerOptions(props: Props): ReactElement {
     };
   }, []);
 
-  const disabledSheetValues = ['passthrough', 'null']; // the sheet button will be disabled for any transformer with these values
+  // the sheet button will be disabled for any of these transformers that don't have configs
+  const disabledSheetValues = ['passthrough', 'null', 'utc_timestamp'];
 
   const handleDisableSheet = () => {
     if (!transformer) {
@@ -291,6 +292,13 @@ export function handleTransformerMetadata(
         name: 'Gender',
         description:
           'Randomly generates one of the following genders: female, male, undefined, nonbinary.',
+      },
+    },
+    {
+      utc_timestamp: {
+        name: 'UTC Timestamp',
+        description:
+          'Randomly generates a UTC timestamp formatted as a string.',
       },
     },
   ];
