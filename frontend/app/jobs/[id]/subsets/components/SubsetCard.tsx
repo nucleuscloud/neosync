@@ -110,27 +110,11 @@ export default function SubsetCard(props: Props): ReactElement {
         (item) => buildRowKey(item.schema, item.table) === key
       );
     if (idx >= 0) {
-      let whereToUpdate: string | undefined = undefined;
-      const svrData = data?.job?.source?.options;
-      if (
-        svrData &&
-        (svrData.config.case === 'mysqlOptions' ||
-          svrData?.config.case === 'postgresOptions')
-      ) {
-        const schemaData = svrData.config.value.schemas.find(
-          (s) => s.schema === schema
-        );
-        if (schemaData) {
-          const tabledata = schemaData.tables.find((t) => t.table === table);
-          if (tabledata) {
-            whereToUpdate = tabledata.whereClause;
-          }
-        }
-      }
+      const svrData = formValuesMap.get(key);
       form.setValue(`subsets.${idx}`, {
         schema: schema,
         table: table,
-        whereClause: whereToUpdate,
+        whereClause: svrData?.whereClause ?? undefined,
       });
     }
   }
