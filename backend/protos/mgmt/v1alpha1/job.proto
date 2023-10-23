@@ -421,7 +421,8 @@ message TransformerConfig {
     RandomBool random_bool_config = 10;
     RandomInt random_int_config = 11;
     RandomFloat random_float_config = 12;
-    Null null_config = 13;
+    Gender gender_config = 13;
+    Null null_config = 14;
   }
 }
 
@@ -483,6 +484,9 @@ message RandomFloat {
   bool preserve_length = 1;
   int64 digits_before_decimal = 2;
   int64 digits_after_decimal = 3;
+}
+message Gender {
+  bool abbreviate = 1;
 }
 
 service JobService {
