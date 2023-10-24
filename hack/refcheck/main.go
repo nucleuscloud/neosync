@@ -22,7 +22,6 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
 
 	parentRef := "refs/heads/main"
-	fmt.Println(os.Args)
 	if len(os.Args) == 2 {
 		parentRef = os.Args[1]
 	}
@@ -111,7 +110,7 @@ func main() {
 
 	ok := len(invalidVersions) == 0
 	for gomodpath, badVersions := range invalidVersions {
-		logger.Info("found bad version(s)", gomodpath, badVersions)
+		logger.Info(fmt.Sprintf("bad versions (%s) in module: %s", strings.Join(badVersions, ","), gomodpath))
 	}
 	if !ok {
 		panic("found invalid versions")
