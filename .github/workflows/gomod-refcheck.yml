@@ -20,6 +20,12 @@ jobs:
       - name: Git
         run: git fetch --all
 
+      - name: Foo
+        run: |
+          ls -l .git
+          ls -l .git/refs
+          ls -l .git/refs/heads
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
