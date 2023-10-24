@@ -45,7 +45,7 @@ export function SchemaTable(props: JobTableProps): ReactElement {
         transformers={transformers?.transformers}
         schemaMap={schemaMap}
       /> */}
-      <TableList data={tableData} />
+      <TableList data={tableData} transformers={transformers?.transformers} />
     </div>
   );
 }
