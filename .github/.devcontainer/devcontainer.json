@@ -29,6 +29,7 @@
 			"version": "5.1.1" // https://github.com/rio/features/issues/37
 		},
 		"ghcr.io/nucleuscloud/devcontainer-features/helmfile:0": {},
+		"ghcr.io/dhoeric/features/k9s:1": {},
 		/* Protobuf */
 		"ghcr.io/marcozac/devcontainer-features/buf:1": {},
 		"ghcr.io/devcontainers-contrib/features/grpcurl-asdf:2": {},
@@ -41,13 +42,28 @@
 		/* Temporal */
 		"ghcr.io/devcontainers-contrib/features/temporal-cli:1": {}
 		// todo: benthos
-	}
+	},
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	"forwardPorts": [
+		10350, // tilt
+		8080, // neosync api
+		3000, // neosync app
+		5432, // neosync db
+		8233 // temporal ui
+	],
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"bufbuild.vscode-buf",
+				"golang.Go",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss"
+			]
+		}
+	}
 	// Use 'postCreateCommand' to run commands after the container is created.
 	// "postCreateCommand": "go version",
 	// Configure tool-specific properties.
-	// "customizations": {},
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
 }
