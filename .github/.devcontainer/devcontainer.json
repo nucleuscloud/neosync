@@ -29,6 +29,7 @@
 			"version": "5.1.1" // https://github.com/rio/features/issues/37
 		},
 		"ghcr.io/nucleuscloud/devcontainer-features/helmfile:0": {},
+		"ghcr.io/dhoeric/features/k9s:1": {},
 		/* Protobuf */
 		"ghcr.io/marcozac/devcontainer-features/buf:1": {},
 		"ghcr.io/devcontainers-contrib/features/grpcurl-asdf:2": {},
