@@ -1,4 +1,4 @@
-import { TableList } from '@/components/VirtualizedTable';
+import { TableList } from '@/components/jobs/SchemaTable/VirtualizedSchemaTable';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
 import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
@@ -30,6 +30,13 @@ export function SchemaTable(props: JobTableProps): ReactElement {
     }
   });
 
+  const tableData = data.map((d) => {
+    return {
+      ...d,
+      isSelected: false,
+    };
+  });
+
   return (
     <div>
       {/* <DataTable
@@ -38,7 +45,7 @@ export function SchemaTable(props: JobTableProps): ReactElement {
         transformers={transformers?.transformers}
         schemaMap={schemaMap}
       /> */}
-      <TableList />
+      <TableList data={tableData} />
     </div>
   );
 }

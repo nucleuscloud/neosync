@@ -1,14 +1,7 @@
+import { Checkbox } from '@/components/ui/checkbox';
 import memoize from 'memoize-one';
 import { memo, useCallback, useState } from 'react';
 import { FixedSizeList as List, areEqual } from 'react-window';
-
-const generateItems = (numItems) =>
-  Array(numItems)
-    .fill(true)
-    .map((_) => ({
-      isActive: false,
-      label: Math.random().toString(36).substr(2),
-    }));
 
 // If list items are expensive to render,
 // Consider using PureComponent to avoid unnecessary re-renders.
@@ -19,8 +12,23 @@ const Row = memo(({ data, index, style }) => {
   const item = items[index];
 
   return (
-    <div onClick={() => toggleItemActive(index)} style={style}>
-      {item.label} is {item.isActive ? 'active' : 'inactive'}
+    // <div onClick={() => toggleItemActive(index)} style={style}>
+    //   {`${item.schema} ${item.table} ${item.column} ${item.dataType} ${item.transformer.value}`}
+    // </div>
+    <div className="grid grid-cols-6 gap-4">
+      <div>
+        <Checkbox
+          id={`${item.schema}-${item.table}-${item.column}`}
+          onClick={() => toggleItemActive(index)}
+          checked={item.isSelected}
+          type="button"
+        />
+      </div>
+      <div>{item.schema}</div>
+      <div>{item.table}</div>
+      <div>{item.column}</div>
+      <div>{item.dataType}</div>
+      <div>{item.transformer.value}</div>
     </div>
   );
 }, areEqual);
@@ -58,15 +66,31 @@ function Example({ height, items, toggleItemActive, width }) {
   );
 }
 
-export const TableList = memo(function TreeList2({}) {
-  const [items, setItems] = useState(generateItems(3000));
+interface TableRow {
+  transformer: {
+    value: string;
+    config: {};
+  };
+  schema: string;
+  table: string;
+  column: string;
+  dataType: string;
+  isSelected: boolean;
+}
+
+interface TableProps {
+  data: TableRow[];
+}
+
+export const TableList = memo(function TableList({ data }: TableProps) {
+  const [items, setItems] = useState(data);
 
   const toggleItemActive = useCallback((index) => {
     setItems((prevItems) => {
       const newItems = [...prevItems];
       newItems[index] = {
         ...newItems[index],
-        isActive: !newItems[index].isActive,
+        isSelected: !newItems[index].isSelected,
       };
       return newItems;
     });
@@ -77,7 +101,7 @@ export const TableList = memo(function TreeList2({}) {
       height={700}
       items={items}
       toggleItemActive={toggleItemActive}
-      width={250}
+      width={1300}
     />
   );
 });
