@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5"
-	_ "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"golang.org/x/mod/modfile"
 )

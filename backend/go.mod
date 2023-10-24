@@ -13,7 +13,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/jackc/pgx/v5 v5.4.3
-	github.com/nucleuscloud/neosync/worker v0.0.0-20231024190303-a76ecf39fdcc
+	github.com/nucleuscloud/neosync/worker v0.0.0-20231024190303-a76ecf39fdcd
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
 	go.temporal.io/api v1.24.0
