@@ -30,7 +30,7 @@ jobs:
           git --version
           ls -l .git
           ls -l .git/refs
-          ls -l .git/refs/heads
+          ls -l .git/refs/remotes
 
       - name: Set up Go
         uses: actions/setup-go@v4
