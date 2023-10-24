@@ -10,14 +10,10 @@ import { getTransformerComponentDetails } from './components/transformer-compone
 
 export default function TransformerPage({ params }: PageProps) {
   const id = params?.id ?? '';
-  const { data, isLoading, mutate } = useGetSystemTransformers(); //udpate with tranformesr
+  const { data, isLoading, mutate } = useGetSystemTransformers();
 
   const { toast } = useToast();
 
-  console.log('id', id);
-  // if (id) {
-  //   return <div>Not Found ... yet</div>;
-  // }
   if (isLoading) {
     return (
       <div className="mt-10">
@@ -26,7 +22,7 @@ export default function TransformerPage({ params }: PageProps) {
     );
   }
   const tranformerComponent = getTransformerComponentDetails({
-    transformer: data?.transformers[0]!,
+    transformer: data?.transformers.find((item) => item.value == id),
     onSaved: (resp) => {
       mutate();
       // new GetConnectionResponse({

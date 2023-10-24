@@ -218,7 +218,7 @@ function TansformerSelect(props: TransformersSelectProps) {
                     value == t.value ? 'opacity-100' : 'opacity-0'
                   )}
                 />
-                {handleTransformerMetadata(t).name}
+                {handleTransformerMetadata(t.value).name}
               </CommandItem>
             ))}
           </CommandGroup>

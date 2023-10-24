@@ -111,19 +111,19 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         </SheetHeader>
         <div className="pt-8">
           {transformer &&
-            handleTransformerForm(transformer!, index, setIsSheetOpen)}
+            handleTransformerForm(transformer.value, index, setIsSheetOpen)}
         </div>
       </SheetContent>
     </Sheet>
   );
 }
 
-function handleTransformerForm(
-  transformer: Transformer,
+export function handleTransformerForm(
+  value: string,
   index?: number,
   setIsSheetOpen?: (val: boolean) => void
 ): ReactElement {
-  switch (transformer.value) {
+  switch (value) {
     case 'email':
       return (
         <EmailTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
