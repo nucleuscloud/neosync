@@ -6,20 +6,20 @@ on:
       - worker/go.mod
       - hack/refcheck/go.mod
 
-  name: Go Mod Ref Check
-  jobs:
-    ref-check:
-      name: go.mod ref check
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
+name: Go Mod Ref Check
+jobs:
+  ref-check:
+    name: go.mod ref check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        - name: Set up Go
-          uses: actions/setup-go@v4
-          with:
-            go-version-file: hack/refcheck/go.mod
-            cache-dependency-path: hack/refcheck/go.sum
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: hack/refcheck/go.mod
+          cache-dependency-path: hack/refcheck/go.sum
 
-        - name: Ensure go.mod doesn't contain branch refs
-          run: go run hack/refcheck/main.go
+      - name: Ensure go.mod doesn't contain branch refs
+        run: go run hack/refcheck/main.go
