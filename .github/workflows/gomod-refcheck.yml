@@ -20,13 +20,17 @@ jobs:
       - name: Git
         run: git fetch --all
 
+      - name: Set ownership
+        run: |
+          # this is to fix GIT not liking owner of the checkout dir
+          chown -R $(id -u):$(id -g) $PWD
+
       - name: Foo
         run: |
           git --version
           ls -l .git
           ls -l .git/refs
           ls -l .git/refs/heads
-          ls -l .git/branches
 
       - name: Set up Go
         uses: actions/setup-go@v4
