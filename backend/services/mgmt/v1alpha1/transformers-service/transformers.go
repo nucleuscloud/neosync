@@ -5,6 +5,7 @@ import (
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 )
 
 type Transformation string
@@ -147,5 +148,31 @@ func (s *Service) GetSystemTransformers(
 			{Value: string(State), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(FullAddress), Config: &mgmtv1alpha1.TransformerConfig{}},
 		},
+	}), nil
+}
+
+func (s *Service) GetCustomTransformers(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetCustomTransformersRequest],
+) (*connect.Response[mgmtv1alpha1.GetCustomTransformersResponse], error) {
+
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	transformers, err := s.db.Q.GetCustomTransformersByAccount(ctx, *accountUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	dtoTransformers := []*mgmtv1alpha1.CustomTransformer{}
+	for idx := range transformers {
+		transformer := transformers[idx]
+		dtoTransformers = append(dtoTransformers, dtomaps.ToCustomTransformerDto(&transformer))
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformersResponse{
+		Transformers: dtoTransformers,
 	}), nil
 }

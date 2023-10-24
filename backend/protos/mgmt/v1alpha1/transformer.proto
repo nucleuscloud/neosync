@@ -3,11 +3,36 @@ syntax = "proto3";
 package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
 
 message GetSystemTransformersRequest {}
 
 message GetSystemTransformersResponse {
   repeated Transformer transformers = 1;
+}
+
+message GetCustomTransformersRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetCustomTransformersResponse {
+  repeated CustomTransformer transformers = 1;
+}
+
+message CustomTransformer {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2;
+  string description = 3;
+
+  string created_by_user_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+
+  string updated_by_user_id = 6;
+  google.protobuf.Timestamp updated_at = 7;
+
+  TransformerConfig config = 8;
+
+  string account_id = 9;
 }
 
 message Transformer {
@@ -122,4 +147,5 @@ message FullAddress {}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
+  rpc GetCustomTransformers(GetCustomTransformersRequest) returns (GetCustomTransformersResponse) {}
 }
