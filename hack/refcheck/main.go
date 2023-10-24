@@ -81,7 +81,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	branchRefName := plumbing.ReferenceName("refs/heads/main")
+	branchRefName := plumbing.ReferenceName("refs/remotes/origin/main")
 	branchRef, err := gitRepo.Reference(branchRefName, true)
 	if err != nil {
 		panic(fmt.Errorf("unable to find reference for %s: %w", branchRefName.String(), err))
