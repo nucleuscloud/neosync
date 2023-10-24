@@ -1,0 +1,27 @@
+on:
+  pull_request:
+    paths:
+      - cli/go.mod
+      - backend/go.mod
+      - worker/go.mod
+      - hack/refcheck/go.mod
+
+name: Go Mod Ref Check
+jobs:
+  ref-check:
+    name: go.mod ref check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # required to checkout all branches and history
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: hack/refcheck/go.mod
+          cache-dependency-path: hack/refcheck/go.sum
+
+      - name: Ensure go.mod doesn't contain branch refs
+        run: go run hack/refcheck/main.go refs/remotes/origin/main
