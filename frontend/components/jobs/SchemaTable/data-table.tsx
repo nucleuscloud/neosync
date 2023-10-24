@@ -39,7 +39,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Tree, TreeDataItem } from '@/components/ui/tree';
+import { TreeDataItem } from '@/components/ui/tree';
+import { TreeList2 } from '@/components/ui/treetest2';
 import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { CheckIcon } from '@radix-ui/react-icons';
@@ -221,11 +222,13 @@ export function DataTable<TData, TValue>({
   return (
     <div className="flex flex-row">
       <div className="basis-1/6 min-w-[170px] pt-[45px] ">
-        <Tree
+        {/* <Tree
           data={treeData}
           className="h-full border rounded-md"
           // onSelectChange={handlefilter}
-        />
+        /> */}
+        {/* <TreeList data={treeData} /> */}
+        <TreeList2 />
       </div>
       <div className="basis-5/6 space-y-2 pl-8">
         <DataTableToolbar
