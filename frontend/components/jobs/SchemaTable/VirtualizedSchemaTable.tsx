@@ -103,6 +103,8 @@ function Example({
   toggleAllItemActive,
   width,
   transformers,
+  bulkSelect,
+  setBulkSelect,
 }) {
   // Bundle additional data to list items using the "itemData" prop.
   // It will be accessible to item renderers as props.data.
@@ -113,7 +115,6 @@ function Example({
     toggleAllItemActive,
     transformers
   );
-  const [allToggled, setAllToggled] = useState(false);
 
   return (
     <div className={`space-y-4 border rounded-md p-4 w-[${width + 20}px]`}>
@@ -123,10 +124,10 @@ function Example({
             <Checkbox
               id="select"
               onClick={() => {
-                toggleAllItemActive(!allToggled);
-                setAllToggled(!allToggled);
+                toggleAllItemActive(!bulkSelect);
+                setBulkSelect(!bulkSelect);
               }}
-              checked={allToggled}
+              checked={bulkSelect}
               type="button"
               className="self-center mr-4"
             />
@@ -177,6 +178,7 @@ export const TableList = memo(function TableList({
 }: SchemaListProps) {
   const [items, setItems] = useState(data);
   const [transformer, setTransformer] = useState<string>('');
+  const [bulkSelect, setBulkSelect] = useState(false);
   const form = useFormContext();
 
   const toggleItemActive = useCallback((index: number) => {
@@ -218,6 +220,7 @@ export const TableList = memo(function TableList({
                 }
               });
               toggleAllItemActive(false);
+              setBulkSelect(false);
               setTransformer('');
             }}
           />
@@ -241,6 +244,8 @@ export const TableList = memo(function TableList({
         toggleItemActive={toggleItemActive}
         toggleAllItemActive={toggleAllItemActive}
         transformers={transformers}
+        bulkSelect={bulkSelect}
+        setBulkSelect={setBulkSelect}
         width={width}
       />
     </div>
