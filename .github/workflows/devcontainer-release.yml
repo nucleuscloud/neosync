@@ -1,7 +1,6 @@
 name: Dev Container Build and Push Image
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - "devcontainer/v*.*.*"
