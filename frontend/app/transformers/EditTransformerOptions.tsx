@@ -93,14 +93,14 @@ export default function EditTransformerOptions(props: Props): ReactElement {
             <div className="flex flex-col space-y-2">
               <div className="flex flex-row gap-2">
                 <SheetTitle>
-                  {handleTransformerMetadata(transformer).name}
+                  {handleTransformerMetadata(transformer?.value).name}
                 </SheetTitle>
                 <Badge variant="outline">
-                  {handleTransformerMetadata(transformer).type}
+                  {handleTransformerMetadata(transformer?.value).type}
                 </Badge>
               </div>
               <SheetDescription>
-                {handleTransformerMetadata(transformer).description}
+                {handleTransformerMetadata(transformer?.value).description}
               </SheetDescription>
             </div>
             <Button variant="ghost" onClick={() => setIsSheetOpen(false)}>
@@ -111,7 +111,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         </SheetHeader>
         <div className="pt-8">
           {transformer &&
-            handleTransformerForm(transformer!, index, setIsSheetOpen)}
+            handleTransformerForm(transformer.value, index, setIsSheetOpen)}
         </div>
       </SheetContent>
     </Sheet>
@@ -119,11 +119,11 @@ export default function EditTransformerOptions(props: Props): ReactElement {
 }
 
 function handleTransformerForm(
-  transformer: Transformer,
+  value: string,
   index?: number,
   setIsSheetOpen?: (val: boolean) => void
 ): ReactElement {
-  switch (transformer.value) {
+  switch (value) {
     case 'email':
       return (
         <EmailTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
@@ -199,7 +199,7 @@ function handleTransformerForm(
 }
 
 export function handleTransformerMetadata(
-  t: Transformer | undefined
+  value: string | undefined
 ): TransformerMetadata {
   const tEntries: Record<string, TransformerMetadata>[] = [
     {
@@ -372,10 +372,10 @@ export function handleTransformerMetadata(
     },
   };
 
-  if (!t) {
+  if (!value) {
     return def.default;
   }
-  const res = tEntries.find((item) => item[t.value]);
+  const res = tEntries.find((item) => item[value]);
 
-  return res ? res[t.value] : def.default;
+  return res ? res[value] : def.default;
 }
