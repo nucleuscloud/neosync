@@ -4,9 +4,9 @@ package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
 
-message GetTransformersRequest {}
+message GetSystemTransformersRequest {}
 
-message GetTransformersResponse {
+message GetSystemTransformersResponse {
   repeated Transformer transformers = 1;
 }
 
@@ -121,5 +121,5 @@ message State {}
 message FullAddress {}
 
 service TransformersService {
-  rpc GetTransformers(GetTransformersRequest) returns (GetTransformersResponse) {}
+  rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
 }

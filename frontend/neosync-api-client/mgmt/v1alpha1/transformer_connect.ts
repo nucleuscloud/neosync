@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetTransformersRequest, GetTransformersResponse } from "./transformer_pb";
+import { GetSystemTransformersRequest, GetSystemTransformersResponse } from "./transformer_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -13,12 +13,12 @@ export const TransformersService = {
   typeName: "mgmt.v1alpha1.TransformersService",
   methods: {
     /**
-     * @generated from rpc mgmt.v1alpha1.TransformersService.GetTransformers
+     * @generated from rpc mgmt.v1alpha1.TransformersService.GetSystemTransformers
      */
-    getTransformers: {
-      name: "GetTransformers",
-      I: GetTransformersRequest,
-      O: GetTransformersResponse,
+    getSystemTransformers: {
+      name: "GetSystemTransformers",
+      I: GetSystemTransformersRequest,
+      O: GetSystemTransformersResponse,
       kind: MethodKind.Unary,
     },
   }

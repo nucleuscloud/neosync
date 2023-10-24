@@ -7,70 +7,70 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 
 /**
- * @generated from message mgmt.v1alpha1.GetTransformersRequest
+ * @generated from message mgmt.v1alpha1.GetSystemTransformersRequest
  */
-export class GetTransformersRequest extends Message<GetTransformersRequest> {
-  constructor(data?: PartialMessage<GetTransformersRequest>) {
+export class GetSystemTransformersRequest extends Message<GetSystemTransformersRequest> {
+  constructor(data?: PartialMessage<GetSystemTransformersRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GetTransformersRequest";
+  static readonly typeName = "mgmt.v1alpha1.GetSystemTransformersRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTransformersRequest {
-    return new GetTransformersRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetSystemTransformersRequest {
+    return new GetSystemTransformersRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTransformersRequest {
-    return new GetTransformersRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetSystemTransformersRequest {
+    return new GetSystemTransformersRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTransformersRequest {
-    return new GetTransformersRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetSystemTransformersRequest {
+    return new GetSystemTransformersRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetTransformersRequest | PlainMessage<GetTransformersRequest> | undefined, b: GetTransformersRequest | PlainMessage<GetTransformersRequest> | undefined): boolean {
-    return proto3.util.equals(GetTransformersRequest, a, b);
+  static equals(a: GetSystemTransformersRequest | PlainMessage<GetSystemTransformersRequest> | undefined, b: GetSystemTransformersRequest | PlainMessage<GetSystemTransformersRequest> | undefined): boolean {
+    return proto3.util.equals(GetSystemTransformersRequest, a, b);
   }
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GetTransformersResponse
+ * @generated from message mgmt.v1alpha1.GetSystemTransformersResponse
  */
-export class GetTransformersResponse extends Message<GetTransformersResponse> {
+export class GetSystemTransformersResponse extends Message<GetSystemTransformersResponse> {
   /**
    * @generated from field: repeated mgmt.v1alpha1.Transformer transformers = 1;
    */
   transformers: Transformer[] = [];
 
-  constructor(data?: PartialMessage<GetTransformersResponse>) {
+  constructor(data?: PartialMessage<GetSystemTransformersResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GetTransformersResponse";
+  static readonly typeName = "mgmt.v1alpha1.GetSystemTransformersResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "transformers", kind: "message", T: Transformer, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTransformersResponse {
-    return new GetTransformersResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetSystemTransformersResponse {
+    return new GetSystemTransformersResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTransformersResponse {
-    return new GetTransformersResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetSystemTransformersResponse {
+    return new GetSystemTransformersResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTransformersResponse {
-    return new GetTransformersResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetSystemTransformersResponse {
+    return new GetSystemTransformersResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetTransformersResponse | PlainMessage<GetTransformersResponse> | undefined, b: GetTransformersResponse | PlainMessage<GetTransformersResponse> | undefined): boolean {
-    return proto3.util.equals(GetTransformersResponse, a, b);
+  static equals(a: GetSystemTransformersResponse | PlainMessage<GetSystemTransformersResponse> | undefined, b: GetSystemTransformersResponse | PlainMessage<GetSystemTransformersResponse> | undefined): boolean {
+    return proto3.util.equals(GetSystemTransformersResponse, a, b);
   }
 }
 

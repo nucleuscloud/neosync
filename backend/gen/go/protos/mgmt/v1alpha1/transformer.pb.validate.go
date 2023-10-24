@@ -35,22 +35,22 @@ var (
 	_ = sort.Sort
 )
 
-// Validate checks the field values on GetTransformersRequest with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on GetSystemTransformersRequest with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetTransformersRequest) Validate() error {
+func (m *GetSystemTransformersRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetTransformersRequest with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on GetSystemTransformersRequest with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GetTransformersRequestMultiError, or nil if none found.
-func (m *GetTransformersRequest) ValidateAll() error {
+// GetSystemTransformersRequestMultiError, or nil if none found.
+func (m *GetSystemTransformersRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetTransformersRequest) validate(all bool) error {
+func (m *GetSystemTransformersRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -58,19 +58,19 @@ func (m *GetTransformersRequest) validate(all bool) error {
 	var errors []error
 
 	if len(errors) > 0 {
-		return GetTransformersRequestMultiError(errors)
+		return GetSystemTransformersRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetTransformersRequestMultiError is an error wrapping multiple validation
-// errors returned by GetTransformersRequest.ValidateAll() if the designated
-// constraints aren't met.
-type GetTransformersRequestMultiError []error
+// GetSystemTransformersRequestMultiError is an error wrapping multiple
+// validation errors returned by GetSystemTransformersRequest.ValidateAll() if
+// the designated constraints aren't met.
+type GetSystemTransformersRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetTransformersRequestMultiError) Error() string {
+func (m GetSystemTransformersRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -79,11 +79,12 @@ func (m GetTransformersRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetTransformersRequestMultiError) AllErrors() []error { return m }
+func (m GetSystemTransformersRequestMultiError) AllErrors() []error { return m }
 
-// GetTransformersRequestValidationError is the validation error returned by
-// GetTransformersRequest.Validate if the designated constraints aren't met.
-type GetTransformersRequestValidationError struct {
+// GetSystemTransformersRequestValidationError is the validation error returned
+// by GetSystemTransformersRequest.Validate if the designated constraints
+// aren't met.
+type GetSystemTransformersRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -91,24 +92,24 @@ type GetTransformersRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetTransformersRequestValidationError) Field() string { return e.field }
+func (e GetSystemTransformersRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetTransformersRequestValidationError) Reason() string { return e.reason }
+func (e GetSystemTransformersRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetTransformersRequestValidationError) Cause() error { return e.cause }
+func (e GetSystemTransformersRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetTransformersRequestValidationError) Key() bool { return e.key }
+func (e GetSystemTransformersRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetTransformersRequestValidationError) ErrorName() string {
-	return "GetTransformersRequestValidationError"
+func (e GetSystemTransformersRequestValidationError) ErrorName() string {
+	return "GetSystemTransformersRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GetTransformersRequestValidationError) Error() string {
+func (e GetSystemTransformersRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -120,14 +121,14 @@ func (e GetTransformersRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetTransformersRequest.%s: %s%s",
+		"invalid %sGetSystemTransformersRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetTransformersRequestValidationError{}
+var _ error = GetSystemTransformersRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -135,24 +136,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetTransformersRequestValidationError{}
+} = GetSystemTransformersRequestValidationError{}
 
-// Validate checks the field values on GetTransformersResponse with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on GetSystemTransformersResponse with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetTransformersResponse) Validate() error {
+func (m *GetSystemTransformersResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetTransformersResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// GetTransformersResponseMultiError, or nil if none found.
-func (m *GetTransformersResponse) ValidateAll() error {
+// ValidateAll checks the field values on GetSystemTransformersResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetSystemTransformersResponseMultiError, or nil if none found.
+func (m *GetSystemTransformersResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetTransformersResponse) validate(all bool) error {
+func (m *GetSystemTransformersResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -166,7 +167,7 @@ func (m *GetTransformersResponse) validate(all bool) error {
 			switch v := interface{}(item).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, GetTransformersResponseValidationError{
+					errors = append(errors, GetSystemTransformersResponseValidationError{
 						field:  fmt.Sprintf("Transformers[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -174,7 +175,7 @@ func (m *GetTransformersResponse) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, GetTransformersResponseValidationError{
+					errors = append(errors, GetSystemTransformersResponseValidationError{
 						field:  fmt.Sprintf("Transformers[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -183,7 +184,7 @@ func (m *GetTransformersResponse) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return GetTransformersResponseValidationError{
+				return GetSystemTransformersResponseValidationError{
 					field:  fmt.Sprintf("Transformers[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -194,19 +195,19 @@ func (m *GetTransformersResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return GetTransformersResponseMultiError(errors)
+		return GetSystemTransformersResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetTransformersResponseMultiError is an error wrapping multiple validation
-// errors returned by GetTransformersResponse.ValidateAll() if the designated
-// constraints aren't met.
-type GetTransformersResponseMultiError []error
+// GetSystemTransformersResponseMultiError is an error wrapping multiple
+// validation errors returned by GetSystemTransformersResponse.ValidateAll()
+// if the designated constraints aren't met.
+type GetSystemTransformersResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetTransformersResponseMultiError) Error() string {
+func (m GetSystemTransformersResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -215,11 +216,12 @@ func (m GetTransformersResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetTransformersResponseMultiError) AllErrors() []error { return m }
+func (m GetSystemTransformersResponseMultiError) AllErrors() []error { return m }
 
-// GetTransformersResponseValidationError is the validation error returned by
-// GetTransformersResponse.Validate if the designated constraints aren't met.
-type GetTransformersResponseValidationError struct {
+// GetSystemTransformersResponseValidationError is the validation error
+// returned by GetSystemTransformersResponse.Validate if the designated
+// constraints aren't met.
+type GetSystemTransformersResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -227,24 +229,24 @@ type GetTransformersResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetTransformersResponseValidationError) Field() string { return e.field }
+func (e GetSystemTransformersResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetTransformersResponseValidationError) Reason() string { return e.reason }
+func (e GetSystemTransformersResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetTransformersResponseValidationError) Cause() error { return e.cause }
+func (e GetSystemTransformersResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetTransformersResponseValidationError) Key() bool { return e.key }
+func (e GetSystemTransformersResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetTransformersResponseValidationError) ErrorName() string {
-	return "GetTransformersResponseValidationError"
+func (e GetSystemTransformersResponseValidationError) ErrorName() string {
+	return "GetSystemTransformersResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GetTransformersResponseValidationError) Error() string {
+func (e GetSystemTransformersResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -256,14 +258,14 @@ func (e GetTransformersResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetTransformersResponse.%s: %s%s",
+		"invalid %sGetSystemTransformersResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetTransformersResponseValidationError{}
+var _ error = GetSystemTransformersResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -271,7 +273,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetTransformersResponseValidationError{}
+} = GetSystemTransformersResponseValidationError{}
 
 // Validate checks the field values on Transformer with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

@@ -33,14 +33,14 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// TransformersServiceGetTransformersProcedure is the fully-qualified name of the
-	// TransformersService's GetTransformers RPC.
-	TransformersServiceGetTransformersProcedure = "/mgmt.v1alpha1.TransformersService/GetTransformers"
+	// TransformersServiceGetSystemTransformersProcedure is the fully-qualified name of the
+	// TransformersService's GetSystemTransformers RPC.
+	TransformersServiceGetSystemTransformersProcedure = "/mgmt.v1alpha1.TransformersService/GetSystemTransformers"
 )
 
 // TransformersServiceClient is a client for the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceClient interface {
-	GetTransformers(context.Context, *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error)
+	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
 }
 
 // NewTransformersServiceClient constructs a client for the mgmt.v1alpha1.TransformersService
@@ -53,9 +53,9 @@ type TransformersServiceClient interface {
 func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) TransformersServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &transformersServiceClient{
-		getTransformers: connect.NewClient[v1alpha1.GetTransformersRequest, v1alpha1.GetTransformersResponse](
+		getSystemTransformers: connect.NewClient[v1alpha1.GetSystemTransformersRequest, v1alpha1.GetSystemTransformersResponse](
 			httpClient,
-			baseURL+TransformersServiceGetTransformersProcedure,
+			baseURL+TransformersServiceGetSystemTransformersProcedure,
 			opts...,
 		),
 	}
@@ -63,17 +63,17 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 
 // transformersServiceClient implements TransformersServiceClient.
 type transformersServiceClient struct {
-	getTransformers *connect.Client[v1alpha1.GetTransformersRequest, v1alpha1.GetTransformersResponse]
+	getSystemTransformers *connect.Client[v1alpha1.GetSystemTransformersRequest, v1alpha1.GetSystemTransformersResponse]
 }
 
-// GetTransformers calls mgmt.v1alpha1.TransformersService.GetTransformers.
-func (c *transformersServiceClient) GetTransformers(ctx context.Context, req *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error) {
-	return c.getTransformers.CallUnary(ctx, req)
+// GetSystemTransformers calls mgmt.v1alpha1.TransformersService.GetSystemTransformers.
+func (c *transformersServiceClient) GetSystemTransformers(ctx context.Context, req *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error) {
+	return c.getSystemTransformers.CallUnary(ctx, req)
 }
 
 // TransformersServiceHandler is an implementation of the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceHandler interface {
-	GetTransformers(context.Context, *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error)
+	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
 }
 
 // NewTransformersServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -82,15 +82,15 @@ type TransformersServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	transformersServiceGetTransformersHandler := connect.NewUnaryHandler(
-		TransformersServiceGetTransformersProcedure,
-		svc.GetTransformers,
+	transformersServiceGetSystemTransformersHandler := connect.NewUnaryHandler(
+		TransformersServiceGetSystemTransformersProcedure,
+		svc.GetSystemTransformers,
 		opts...,
 	)
 	return "/mgmt.v1alpha1.TransformersService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case TransformersServiceGetTransformersProcedure:
-			transformersServiceGetTransformersHandler.ServeHTTP(w, r)
+		case TransformersServiceGetSystemTransformersProcedure:
+			transformersServiceGetSystemTransformersHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -100,6 +100,6 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 // UnimplementedTransformersServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedTransformersServiceHandler struct{}
 
-func (UnimplementedTransformersServiceHandler) GetTransformers(context.Context, *connect.Request[v1alpha1.GetTransformersRequest]) (*connect.Response[v1alpha1.GetTransformersResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetTransformers is not implemented"))
+func (UnimplementedTransformersServiceHandler) GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetSystemTransformers is not implemented"))
 }

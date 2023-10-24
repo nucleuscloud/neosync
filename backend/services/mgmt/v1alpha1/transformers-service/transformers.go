@@ -34,11 +34,11 @@ const (
 	FullAddress    Transformation = "full_address"
 )
 
-func (s *Service) GetTransformers(
+func (s *Service) GetSystemTransformers(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetTransformersRequest],
-) (*connect.Response[mgmtv1alpha1.GetTransformersResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.GetTransformersResponse{
+	req *connect.Request[mgmtv1alpha1.GetSystemTransformersRequest],
+) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
 		Transformers: []*mgmtv1alpha1.Transformer{
 			{Value: string(Passthrough), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(Uuid), Config: &mgmtv1alpha1.TransformerConfig{
