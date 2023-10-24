@@ -118,7 +118,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
   );
 }
 
-export function handleTransformerForm(
+function handleTransformerForm(
   value: string,
   index?: number,
   setIsSheetOpen?: (val: boolean) => void
