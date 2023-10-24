@@ -70,7 +70,17 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("unable to open git repo: %w", err))
 	}
-
+	iter, err := gitRepo.Branches()
+	if err != nil {
+		panic(err)
+	}
+	err = iter.ForEach(func(r *plumbing.Reference) error {
+		logger.Info(r.Name().String())
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
 	branchRefName := plumbing.ReferenceName("refs/heads/main")
 	branchRef, err := gitRepo.Reference(branchRefName, true)
 	if err != nil {
