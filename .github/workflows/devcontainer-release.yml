@@ -3,7 +3,7 @@ name: Dev Container Build and Push Image
 on:
   push:
     tags:
-      - "devcontainer/v*.*.*"
+      - "devcontainer/v.*"
 jobs:
   devcontainer-build-and-push:
     runs-on: ubuntu-latest
@@ -21,7 +21,7 @@ jobs:
             name=ghcr.io/${{ github.repository }}/devcontainer
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=match,pattern=devcontainer/v(\d.\d.\d),group=1
+            type=match,pattern=devcontainer/v(.*),group=1
           sep-tags: ","
 
       - name: Update Tags to Fit into devcontainers/cli format
