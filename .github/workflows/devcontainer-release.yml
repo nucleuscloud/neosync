@@ -50,6 +50,9 @@ jobs:
 
       - name: Build and release devcontainer Multi-Platform
         uses: devcontainers/ci@v0.3
+        env:
+          # see: https://github.com/devcontainers/ci/issues/191#issuecomment-1603857155
+          BUILDX_NO_DEFAULT_ATTESTATIONS: true
         with:
           imageName: ghcr.io/${{ github.repository }}/devcontainer
           imageTag: ${{ steps.dcmeta.outputs.tags }}
