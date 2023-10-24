@@ -58,8 +58,7 @@ function Example({ height, items, toggleItemActive, width }) {
   );
 }
 
-
-export const TreeList2 = memo(function TreeList2({}) {
+export const TableList = memo(function TreeList2({}) {
   const [items, setItems] = useState(generateItems(3000));
 
   const toggleItemActive = useCallback((index) => {
@@ -71,7 +70,7 @@ export const TreeList2 = memo(function TreeList2({}) {
       };
       return newItems;
     });
-  }, [];
+  }, []);
 
   return (
     <Example

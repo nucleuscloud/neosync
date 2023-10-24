@@ -1,10 +1,10 @@
+import { TableList } from '@/components/VirtualizedTable';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetTransformers } from '@/libs/hooks/useGetTransformers';
 import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { ReactElement } from 'react';
 import { getColumns } from './column';
-import { DataTable } from './data-table';
 
 interface JobTableProps {
   data: JobMappingFormValues[];
@@ -32,12 +32,13 @@ export function SchemaTable(props: JobTableProps): ReactElement {
 
   return (
     <div>
-      <DataTable
+      {/* <DataTable
         columns={columns}
         data={data}
         transformers={transformers?.transformers}
         schemaMap={schemaMap}
-      />
+      /> */}
+      <TableList />
     </div>
   );
 }
