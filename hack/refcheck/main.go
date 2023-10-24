@@ -70,7 +70,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("unable to open git repo: %w", err))
 	}
-	branchRefName := plumbing.ReferenceName("main")
+	branchRefName := plumbing.ReferenceName("refs/heads/main")
 	branchRef, err := gitRepo.Reference(branchRefName, true)
 	if err != nil {
 		panic(fmt.Errorf("unable to find reference for %s: %w", branchRefName.String(), err))
