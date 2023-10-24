@@ -13,20 +13,21 @@ const Row = memo(({ data, index, style }) => {
 
   return (
     <div style={style}>
-      <div className="grid grid-cols-11 gap-2">
-        <div className="col-span-1">
+      <div className="grid grid-cols-5 gap-2">
+        <div className="flex flex-row truncate">
           <Checkbox
             id="select"
             onClick={() => toggleItemActive(index)}
             checked={item.isSelected}
             type="button"
+            className="self-center mr-2"
           />
+          {item.schema}
         </div>
-        <div className="col-span-2 truncate">{item.schema}</div>
-        <div className="col-span-2 truncate">{item.table}</div>
-        <div className="col-span-2 truncate">{item.column}</div>
-        <div className="col-span-2 truncate">{item.dataType}</div>
-        <div className="col-span-2 truncate">{item.transformer.value}</div>
+        <div className=" truncate">{item.table}</div>
+        <div className=" truncate">{item.column}</div>
+        <div className=" truncate">{item.dataType}</div>
+        <div className=" truncate">{item.transformer.value}</div>
       </div>
     </div>
   );
@@ -64,23 +65,26 @@ function Example({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-11 gap-2">
-        <div className="col-span-1">
-          <Checkbox
-            id="select"
-            onClick={() => {
-              toggleAllItemActive(!allToggled);
-              setAllToggled(!allToggled);
-            }}
-            checked={allToggled}
-            type="button"
-          />
+      <div className="grid grid-cols-5 gap-2">
+        <div className="">
+          <div className="flex flex-row">
+            <Checkbox
+              id="select"
+              onClick={() => {
+                toggleAllItemActive(!allToggled);
+                setAllToggled(!allToggled);
+              }}
+              checked={allToggled}
+              type="button"
+              className="self-center mr-2"
+            />
+            Schema
+          </div>
         </div>
-        <div className="col-span-2">Schema</div>
-        <div className="col-span-2">Table</div>
-        <div className="col-span-2">Column</div>
-        <div className="col-span-2">Data Type</div>
-        <div className="col-span-2">Transformer</div>
+        <div className="">Table</div>
+        <div className="">Column</div>
+        <div className="">Data Type</div>
+        <div className="">Transformer</div>
       </div>
       <List
         height={height}
