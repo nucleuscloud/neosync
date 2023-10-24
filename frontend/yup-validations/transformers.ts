@@ -23,7 +23,7 @@ import {
   UnixTimestamp,
   Uuid,
   Zipcode,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 
 interface EmailTransformer {
   value: string;
