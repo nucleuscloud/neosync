@@ -17,13 +17,26 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           # list of Docker images to use as base name for tags
-          # disable tag base name because devcontainers cli automatically adds it based on the "imageName" input
           images: |
-            name=ghcr.io/${{ github.repository }}/devcontainer,enable=false
+            name=ghcr.io/${{ github.repository }}/devcontainer
           # generate Docker tags based on the following events/attributes
           tags: |
             type=match,pattern=devcontainer/v(\d.\d.\d),group=1
           sep-tags: ","
+
+      - name: Update Tags to Fit into devcontainers/cli format
+        id: dcmeta
+        run: |
+          # Define the prefix you want to remove
+          prefix="ghcr.io/${{ github.repository }}/devcontainer"
+
+          # Define the input list and delimiter
+          input_list="${{ steps.meta.output.tags }}""
+          delimiter=","
+
+          # Remove the specified prefix from each item in the list
+          result_list=$(echo "$input_list" | sed "s|${prefix}:||g")
+          echo "tags=$result_list" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -42,7 +55,7 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           imageName: ghcr.io/${{ github.repository }}/devcontainer
-          imageTag: ${{ steps.meta.outputs.tags }}
+          imageTag: ${{ steps.dcmeta.outputs.tags }}
           cacheFrom: ghcr.io/${{ github.repository }}/devcontainer
           platform: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
