@@ -26,7 +26,7 @@ jobs:
           ls -l .git
           ls -l .git/refs
           ls -l .git/refs/heads
-          ls -l .git/refs/branches
+          ls -l .git/branches
 
       - name: Set up Go
         uses: actions/setup-go@v4
