@@ -60,6 +60,17 @@ type NeosyncApiJobDestinationConnectionAssociation struct {
 	Options      *jsonmodels.JobDestinationOptions
 }
 
+type NeosyncApiTransformer struct {
+	ID                pgtype.UUID
+	CreatedAt         pgtype.Timestamp
+	UpdatedAt         pgtype.Timestamp
+	Name              string
+	AccountID         pgtype.UUID
+	TransformerConfig *jsonmodels.Transformer
+	CreatedByID       pgtype.UUID
+	UpdatedByID       pgtype.UUID
+}
+
 type NeosyncApiUser struct {
 	ID        pgtype.UUID
 	CreatedAt pgtype.Timestamp

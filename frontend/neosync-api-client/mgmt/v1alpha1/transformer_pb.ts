@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from message mgmt.v1alpha1.GetSystemTransformersRequest
@@ -71,6 +71,165 @@ export class GetSystemTransformersResponse extends Message<GetSystemTransformers
 
   static equals(a: GetSystemTransformersResponse | PlainMessage<GetSystemTransformersResponse> | undefined, b: GetSystemTransformersResponse | PlainMessage<GetSystemTransformersResponse> | undefined): boolean {
     return proto3.util.equals(GetSystemTransformersResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetCustomTransformersRequest
+ */
+export class GetCustomTransformersRequest extends Message<GetCustomTransformersRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetCustomTransformersRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetCustomTransformersRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCustomTransformersRequest {
+    return new GetCustomTransformersRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCustomTransformersRequest {
+    return new GetCustomTransformersRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCustomTransformersRequest {
+    return new GetCustomTransformersRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCustomTransformersRequest | PlainMessage<GetCustomTransformersRequest> | undefined, b: GetCustomTransformersRequest | PlainMessage<GetCustomTransformersRequest> | undefined): boolean {
+    return proto3.util.equals(GetCustomTransformersRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetCustomTransformersResponse
+ */
+export class GetCustomTransformersResponse extends Message<GetCustomTransformersResponse> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.CustomTransformer transformers = 1;
+   */
+  transformers: CustomTransformer[] = [];
+
+  constructor(data?: PartialMessage<GetCustomTransformersResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetCustomTransformersResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transformers", kind: "message", T: CustomTransformer, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCustomTransformersResponse {
+    return new GetCustomTransformersResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCustomTransformersResponse {
+    return new GetCustomTransformersResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCustomTransformersResponse {
+    return new GetCustomTransformersResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCustomTransformersResponse | PlainMessage<GetCustomTransformersResponse> | undefined, b: GetCustomTransformersResponse | PlainMessage<GetCustomTransformersResponse> | undefined): boolean {
+    return proto3.util.equals(GetCustomTransformersResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.CustomTransformer
+ */
+export class CustomTransformer extends Message<CustomTransformer> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string description = 3;
+   */
+  description = "";
+
+  /**
+   * @generated from field: string created_by_user_id = 4;
+   */
+  createdByUserId = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 5;
+   */
+  createdAt?: Timestamp;
+
+  /**
+   * @generated from field: string updated_by_user_id = 6;
+   */
+  updatedByUserId = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp updated_at = 7;
+   */
+  updatedAt?: Timestamp;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 8;
+   */
+  config?: TransformerConfig;
+
+  /**
+   * @generated from field: string account_id = 9;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<CustomTransformer>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.CustomTransformer";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "created_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "created_at", kind: "message", T: Timestamp },
+    { no: 6, name: "updated_by_user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "updated_at", kind: "message", T: Timestamp },
+    { no: 8, name: "config", kind: "message", T: TransformerConfig },
+    { no: 9, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CustomTransformer {
+    return new CustomTransformer().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CustomTransformer {
+    return new CustomTransformer().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CustomTransformer {
+    return new CustomTransformer().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CustomTransformer | PlainMessage<CustomTransformer> | undefined, b: CustomTransformer | PlainMessage<CustomTransformer> | undefined): boolean {
+    return proto3.util.equals(CustomTransformer, a, b);
   }
 }
 

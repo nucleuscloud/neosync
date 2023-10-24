@@ -36,11 +36,15 @@ const (
 	// TransformersServiceGetSystemTransformersProcedure is the fully-qualified name of the
 	// TransformersService's GetSystemTransformers RPC.
 	TransformersServiceGetSystemTransformersProcedure = "/mgmt.v1alpha1.TransformersService/GetSystemTransformers"
+	// TransformersServiceGetCustomTransformersProcedure is the fully-qualified name of the
+	// TransformersService's GetCustomTransformers RPC.
+	TransformersServiceGetCustomTransformersProcedure = "/mgmt.v1alpha1.TransformersService/GetCustomTransformers"
 )
 
 // TransformersServiceClient is a client for the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceClient interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
+	GetCustomTransformers(context.Context, *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error)
 }
 
 // NewTransformersServiceClient constructs a client for the mgmt.v1alpha1.TransformersService
@@ -58,12 +62,18 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 			baseURL+TransformersServiceGetSystemTransformersProcedure,
 			opts...,
 		),
+		getCustomTransformers: connect.NewClient[v1alpha1.GetCustomTransformersRequest, v1alpha1.GetCustomTransformersResponse](
+			httpClient,
+			baseURL+TransformersServiceGetCustomTransformersProcedure,
+			opts...,
+		),
 	}
 }
 
 // transformersServiceClient implements TransformersServiceClient.
 type transformersServiceClient struct {
 	getSystemTransformers *connect.Client[v1alpha1.GetSystemTransformersRequest, v1alpha1.GetSystemTransformersResponse]
+	getCustomTransformers *connect.Client[v1alpha1.GetCustomTransformersRequest, v1alpha1.GetCustomTransformersResponse]
 }
 
 // GetSystemTransformers calls mgmt.v1alpha1.TransformersService.GetSystemTransformers.
@@ -71,9 +81,15 @@ func (c *transformersServiceClient) GetSystemTransformers(ctx context.Context, r
 	return c.getSystemTransformers.CallUnary(ctx, req)
 }
 
+// GetCustomTransformers calls mgmt.v1alpha1.TransformersService.GetCustomTransformers.
+func (c *transformersServiceClient) GetCustomTransformers(ctx context.Context, req *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error) {
+	return c.getCustomTransformers.CallUnary(ctx, req)
+}
+
 // TransformersServiceHandler is an implementation of the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceHandler interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
+	GetCustomTransformers(context.Context, *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error)
 }
 
 // NewTransformersServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -87,10 +103,17 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 		svc.GetSystemTransformers,
 		opts...,
 	)
+	transformersServiceGetCustomTransformersHandler := connect.NewUnaryHandler(
+		TransformersServiceGetCustomTransformersProcedure,
+		svc.GetCustomTransformers,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.TransformersService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TransformersServiceGetSystemTransformersProcedure:
 			transformersServiceGetSystemTransformersHandler.ServeHTTP(w, r)
+		case TransformersServiceGetCustomTransformersProcedure:
+			transformersServiceGetCustomTransformersHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -102,4 +125,8 @@ type UnimplementedTransformersServiceHandler struct{}
 
 func (UnimplementedTransformersServiceHandler) GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetSystemTransformers is not implemented"))
+}
+
+func (UnimplementedTransformersServiceHandler) GetCustomTransformers(context.Context, *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetCustomTransformers is not implemented"))
 }

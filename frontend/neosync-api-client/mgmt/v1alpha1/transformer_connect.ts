@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetSystemTransformersRequest, GetSystemTransformersResponse } from "./transformer_pb";
+import { GetCustomTransformersRequest, GetCustomTransformersResponse, GetSystemTransformersRequest, GetSystemTransformersResponse } from "./transformer_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -19,6 +19,15 @@ export const TransformersService = {
       name: "GetSystemTransformers",
       I: GetSystemTransformersRequest,
       O: GetSystemTransformersResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.TransformersService.GetCustomTransformers
+     */
+    getCustomTransformers: {
+      name: "GetCustomTransformers",
+      I: GetCustomTransformersRequest,
+      O: GetCustomTransformersResponse,
       kind: MethodKind.Unary,
     },
   }
