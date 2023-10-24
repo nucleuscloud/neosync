@@ -21,6 +21,13 @@ const (
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
 
+	parentRef := "refs/heads/main"
+	fmt.Println(os.Args)
+	if len(os.Args) == 2 {
+		parentRef = os.Args[1]
+	}
+	logger.Info(fmt.Sprintf("parent ref %s", parentRef))
+
 	workbits, err := os.ReadFile(goWorkName)
 	if err != nil {
 		panic(err)
@@ -69,18 +76,8 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("unable to open git repo: %w", err))
 	}
-	iter, err := gitRepo.Branches()
-	if err != nil {
-		panic(err)
-	}
-	err = iter.ForEach(func(r *plumbing.Reference) error {
-		logger.Info(r.Name().String())
-		return nil
-	})
-	if err != nil {
-		panic(err)
-	}
-	branchRefName := plumbing.ReferenceName("refs/remotes/origin/main")
+
+	branchRefName := plumbing.ReferenceName(parentRef)
 	branchRef, err := gitRepo.Reference(branchRefName, true)
 	if err != nil {
 		panic(fmt.Errorf("unable to find reference for %s: %w", branchRefName.String(), err))
