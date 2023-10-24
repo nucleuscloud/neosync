@@ -60,5 +60,5 @@ jobs:
           imageTag: ${{ steps.dcmeta.outputs.tags }}
           cacheFrom: ghcr.io/${{ github.repository }}/devcontainer
           platform: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: always
           subFolder: .github
