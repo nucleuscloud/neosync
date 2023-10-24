@@ -3,7 +3,7 @@ name: Dev Container Build and Push Image
 on:
   push:
     tags:
-      - "devcontainer/v*.*.*"
+      - "devcontainer/v.*"
 jobs:
   devcontainer-build-and-push:
     runs-on: ubuntu-latest
