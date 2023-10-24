@@ -19,8 +19,7 @@ jobs:
           # list of Docker images to use as base name for tags
           # disable tag base name because devcontainers cli automatically adds it based on the "imageName" input
           images: |
-            ghcr.io/${{ github.repository }}/devcontainer
-            enable=false
+            name=,enable=false
           # generate Docker tags based on the following events/attributes
           tags: |
             type=match,pattern=devcontainer/v(\d.\d.\d),group=1
