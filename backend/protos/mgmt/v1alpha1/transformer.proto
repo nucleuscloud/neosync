@@ -3,7 +3,6 @@ syntax = "proto3";
 package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
-import "google/protobuf/timestamp.proto";
 
 message GetTransformersRequest {}
 

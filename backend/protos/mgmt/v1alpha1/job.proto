@@ -114,7 +114,7 @@ message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  Transformer transformer = 5;
+  mgmt.v1alpha1.Transformer transformer = 5;
 }
 
 enum JobStatus {
