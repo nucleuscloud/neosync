@@ -28,7 +28,7 @@ jobs:
         id: dcmeta
         run: |
           prefix="ghcr.io/${{ github.repository }}/devcontainer"
-          input_list="${{ steps.meta.output.tags }}"
+          input_list="$DOCKER_METADATA_OUTPUT_TAGS"
           delimiter=","
 
           result_list=$(echo "$input_list" | sed "s|${prefix}:||g")
