@@ -17,6 +17,9 @@ jobs:
         with:
           fetch-depth: 0 # required to checkout all branches and history
 
+      - name: Git
+        run: git fetch --all
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
