@@ -6,6 +6,6 @@ cluster-create:
 .PHONY: cluster-create
 
 cluster-destroy:
-	sh ./tilt/scripts/assert-context.sh
+	bash ./tilt/scripts/assert-context.sh
 	sh ./tilt/scripts/cluster-destroy.sh
 .PHONY: cluster-destroy

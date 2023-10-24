@@ -1,3 +1,4 @@
+#!/bin/bash
 VALID_CONTEXTS=("kind-neosync-dev")
 
 assert_context()
