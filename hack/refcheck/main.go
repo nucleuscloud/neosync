@@ -21,12 +21,78 @@ const (
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))
 
+	gitRepo, err := git.PlainOpen(".")
+	if err != nil {
+		panic(fmt.Errorf("unable to open git repo: %w", err))
+	}
+
 	parentRef := "refs/heads/main"
 	if len(os.Args) == 2 {
 		parentRef = os.Args[1]
 	}
 	logger.Info(fmt.Sprintf("parent ref %s", parentRef))
+	branchRefName := plumbing.ReferenceName(parentRef)
+	branchRef, err := gitRepo.Reference(branchRefName, true)
+	if err != nil {
+		panic(fmt.Errorf("unable to find reference for %s: %w", branchRefName.String(), err))
+	}
+	branchRefObject, err := gitRepo.CommitObject(branchRef.Hash())
+	if err != nil {
+		panic(fmt.Errorf("unable to find commit object for branch ref %s: %w", branchRef.Hash(), err))
+	}
 
+	invalidVersions := map[string][]string{}
+	for gomodpath, gitVersions := range getGitShasByGoMod() {
+		for _, gitVersion := range gitVersions {
+			ref, err := gitRepo.ResolveRevision(plumbing.Revision(gitVersion))
+			if err != nil {
+				panic(fmt.Errorf("unable to resolve revision %s: %w", gitVersion, err))
+			}
+			commitObject, err := gitRepo.CommitObject(plumbing.NewHash(ref.String()))
+			if err != nil {
+				panic(fmt.Errorf("unable to find commit object %s: %w", ref.String(), err))
+			}
+
+			ok, err := commitObject.IsAncestor(branchRefObject)
+			if err != nil {
+				panic(fmt.Errorf("unable to check if commit object is ancestor of branch: %w", err))
+			}
+			if !ok {
+				invalidVersions[gomodpath] = append(invalidVersions[gomodpath], gitVersion)
+			}
+		}
+	}
+
+	ok := len(invalidVersions) == 0
+	for gomodpath, badVersions := range invalidVersions {
+		logger.Info(fmt.Sprintf("bad versions (%s) in module: %s", strings.Join(badVersions, ","), gomodpath))
+	}
+	if !ok {
+		panic("found invalid versions")
+	}
+}
+
+func getGitShasByGoMod() map[string][]string {
+	// example: v0.0.0-20231024190303-a76ecf39fdcd
+	regex, err := regexp.Compile(`v\d+\.\d+\.\d+\-\d+\-([a-zA-Z0-9]+)`) //nolint
+	if err != nil {
+		panic(err)
+	}
+
+	gitVersions := map[string][]string{}
+	for gomodpath, modVersions := range getGoModVersions() {
+		for _, version := range modVersions {
+			output := regex.FindStringSubmatch(version)
+			if len(output) != 2 {
+				continue
+			}
+			gitVersions[gomodpath] = append(gitVersions[gomodpath], output[1])
+		}
+	}
+	return gitVersions
+}
+
+func getGoModVersions() map[string][]string {
 	workbits, err := os.ReadFile(goWorkName)
 	if err != nil {
 		panic(err)
@@ -55,64 +121,5 @@ func main() {
 		}
 	}
 
-	regex, err := regexp.Compile(`v\d+\.\d+\.\d+\-\d+\-([a-zA-Z0-9]+)`) //nolint
-	if err != nil {
-		panic(err)
-	}
-
-	gitVersions := map[string][]string{}
-	for gomodpath, modVersions := range versions {
-		for _, version := range modVersions {
-			output := regex.FindStringSubmatch(version)
-			if len(output) != 2 {
-				continue
-			}
-			gitVersions[gomodpath] = append(gitVersions[gomodpath], output[1])
-		}
-	}
-
-	gitRepo, err := git.PlainOpen(".")
-	if err != nil {
-		panic(fmt.Errorf("unable to open git repo: %w", err))
-	}
-
-	branchRefName := plumbing.ReferenceName(parentRef)
-	branchRef, err := gitRepo.Reference(branchRefName, true)
-	if err != nil {
-		panic(fmt.Errorf("unable to find reference for %s: %w", branchRefName.String(), err))
-	}
-	branchRefObject, err := gitRepo.CommitObject(branchRef.Hash())
-	if err != nil {
-		panic(fmt.Errorf("unable to find commit object for branch ref %s: %w", branchRef.Hash(), err))
-	}
-
-	invalidVersions := map[string][]string{}
-	for gomodpath, gitVersions := range gitVersions {
-		for _, gitVersion := range gitVersions {
-			ref, err := gitRepo.ResolveRevision(plumbing.Revision(gitVersion))
-			if err != nil {
-				panic(fmt.Errorf("unable to resolve revision %s: %w", gitVersion, err))
-			}
-			commitObject, err := gitRepo.CommitObject(plumbing.NewHash(ref.String()))
-			if err != nil {
-				panic(fmt.Errorf("unable to find commit object %s: %w", ref.String(), err))
-			}
-
-			ok, err := commitObject.IsAncestor(branchRefObject)
-			if err != nil {
-				panic(fmt.Errorf("unable to check if commit object is ancestor of branch: %w", err))
-			}
-			if !ok {
-				invalidVersions[gomodpath] = append(invalidVersions[gomodpath], gitVersion)
-			}
-		}
-	}
-
-	ok := len(invalidVersions) == 0
-	for gomodpath, badVersions := range invalidVersions {
-		logger.Info(fmt.Sprintf("bad versions (%s) in module: %s", strings.Join(badVersions, ","), gomodpath))
-	}
-	if !ok {
-		panic("found invalid versions")
-	}
+	return versions
 }
