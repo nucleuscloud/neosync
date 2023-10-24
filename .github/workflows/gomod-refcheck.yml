@@ -17,22 +17,22 @@ jobs:
         with:
           fetch-depth: 0 # required to checkout all branches and history
 
-      - name: Git
-        run: git fetch --all
+      # - name: Git
+      #   run: git fetch --all
 
-      - name: Set ownership
-        run: |
-          # this is to fix GIT not liking owner of the checkout dir
-          chown -R $(id -u):$(id -g) $PWD
+      # - name: Set ownership
+      #   run: |
+      #     # this is to fix GIT not liking owner of the checkout dir
+      #     chown -R $(id -u):$(id -g) $PWD
 
-      - name: Foo
-        run: |
-          git --version
-          ls -l .git
-          ls -l .git/branches
-          ls -l .git/refs
-          ls -l .git/refs/remotes
-          ls -l .git/refs/remotes/origin
+      # - name: Foo
+      #   run: |
+      #     git --version
+      #     ls -l .git
+      #     ls -l .git/branches
+      #     ls -l .git/refs
+      #     ls -l .git/refs/remotes
+      #     ls -l .git/refs/remotes/origin
 
       - name: Set up Go
         uses: actions/setup-go@v4
