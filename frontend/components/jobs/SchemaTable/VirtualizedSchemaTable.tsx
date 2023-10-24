@@ -16,12 +16,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { CaretSortIcon, CheckIcon, UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import { memo, useCallback, useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { FixedSizeList as List, areEqual } from 'react-window';
 
 // If list items are expensive to render,
@@ -33,7 +33,7 @@ const Row = memo(function Row({ data, index, style }) {
   const item = items[index];
 
   return (
-    <div style={style} className="border-b">
+    <div style={style} className="border-t">
       <div className="grid grid-cols-5 gap-4 items-center p-2">
         <div className="flex flex-row truncate ">
           <Checkbox
@@ -75,7 +75,6 @@ const Row = memo(function Row({ data, index, style }) {
           />
         </div>
       </div>
-      {/* <Separator /> */}
     </div>
   );
 }, areEqual);
@@ -139,8 +138,6 @@ function Example({
         <div className="">Data Type</div>
         <div className="">Transformer</div>
       </div>
-      <Separator />
-
       <List
         height={height}
         itemCount={items.length}
@@ -168,13 +165,19 @@ interface Row {
 interface SchemaListProps {
   data: Row[];
   transformers?: Transformer[];
+  width: number;
+  height: number;
 }
 
 export const TableList = memo(function TableList({
   data,
   transformers,
+  width,
+  height,
 }: SchemaListProps) {
   const [items, setItems] = useState(data);
+  const [transformer, setTransformer] = useState<string>('');
+  const form = useFormContext();
 
   const toggleItemActive = useCallback((index: number) => {
     setItems((prevItems) => {
@@ -188,7 +191,6 @@ export const TableList = memo(function TableList({
   }, []);
 
   const toggleAllItemActive = useCallback((isSelected: boolean) => {
-    console.log('isSelected', isSelected);
     setItems((prevItems) => {
       const newItems = [...prevItems];
       return newItems.map((i) => {
@@ -201,21 +203,22 @@ export const TableList = memo(function TableList({
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 w-[${width + 20}px]`}>
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2">
           <BulkTansformerSelect
             transformers={transformers || []}
-            value={''}
+            value={transformer}
             onSelect={(value) => {
-              // const rows = table.getSelectedRowModel();
-              // rows.rows.forEach((r) => {
-              //   form.setValue(`mappings.${r.index}.transformer.value`, value, {
-              //     shouldDirty: true,
-              //   });
-              // });
-              // table.resetRowSelection();
-              // setTransformer('');
+              items.forEach((r, index) => {
+                if (r.isSelected) {
+                  form.setValue(`mappings.${index}.transformer.value`, value, {
+                    shouldDirty: true,
+                  });
+                }
+              });
+              toggleAllItemActive(false);
+              setTransformer('');
             }}
           />
         </div>
@@ -233,12 +236,12 @@ export const TableList = memo(function TableList({
       </div>
 
       <Example
-        height={700}
+        height={height}
         items={items}
         toggleItemActive={toggleItemActive}
         toggleAllItemActive={toggleAllItemActive}
         transformers={transformers}
-        width={1300}
+        width={width}
       />
     </div>
   );
@@ -364,5 +367,5 @@ interface CellProps {
 function Cell(props: CellProps) {
   const { value } = props;
 
-  return <span className="truncate font-medium">{value}</span>;
+  return <span className="truncate font-medium text-sm">{value}</span>;
 }
