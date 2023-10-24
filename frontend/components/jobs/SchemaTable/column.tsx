@@ -27,7 +27,7 @@ import {
 
 import { cn } from '@/libs/utils';
 import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';

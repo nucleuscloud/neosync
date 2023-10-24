@@ -22,6 +22,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
+	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	temporalclient "go.temporal.io/sdk/client"
 
@@ -66,6 +67,7 @@ func serve() error {
 		mgmtv1alpha1connect.AuthServiceName,
 		mgmtv1alpha1connect.ConnectionServiceName,
 		mgmtv1alpha1connect.JobServiceName,
+		mgmtv1alpha1connect.TransformersServiceName,
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
@@ -151,6 +153,14 @@ func serve() error {
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
+			stdInterceptorConnectOpt,
+		),
+	)
+
+	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{}, db, useraccountService)
+	api.Handle(
+		mgmtv1alpha1connect.NewTransformersServiceHandler(
+			transformerService,
 			stdInterceptorConnectOpt,
 		),
 	)
