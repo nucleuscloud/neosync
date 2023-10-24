@@ -27,15 +27,12 @@ jobs:
       - name: Update Tags to Fit into devcontainers/cli format
         id: dcmeta
         run: |
-          # Define the prefix you want to remove
           prefix="ghcr.io/${{ github.repository }}/devcontainer"
-
-          # Define the input list and delimiter
           input_list="${{ steps.meta.output.tags }}"
           delimiter=","
 
-          # Remove the specified prefix from each item in the list
           result_list=$(echo "$input_list" | sed "s|${prefix}:||g")
+
           echo "tags=$result_list" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
