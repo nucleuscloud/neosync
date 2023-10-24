@@ -31,7 +31,7 @@ jobs:
           prefix="ghcr.io/${{ github.repository }}/devcontainer"
 
           # Define the input list and delimiter
-          input_list="${{ steps.meta.output.tags }}""
+          input_list="${{ steps.meta.output.tags }}"
           delimiter=","
 
           # Remove the specified prefix from each item in the list
