@@ -67,8 +67,7 @@ export function SchemaTable(props: JobTableProps): ReactElement {
         data={tableData}
         treedata={treedata}
         transformers={transformers?.transformers}
-        width={1100}
-        height={700}
+        className="w-full h-[700px]"
       />
     </div>
   );

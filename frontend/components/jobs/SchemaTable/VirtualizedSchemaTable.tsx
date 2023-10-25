@@ -2,11 +2,13 @@ import EditTransformerOptions from '@/app/transformers/EditTransformerOptions';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import { CSSProperties, memo, useCallback, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import ColumnFilterSelect from './ColumnFilterSelect';
 import { SchemaTreeAutoResize } from './SchemaTree2';
@@ -162,8 +164,6 @@ const createRowData = memoize(
 );
 
 interface VirtualizedSchemaListProps {
-  height: number;
-  width: number;
   rows: Row[];
   allRows: Row[];
   onSelect: (index: number) => void;
@@ -177,12 +177,10 @@ interface VirtualizedSchemaListProps {
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.
 function VirtualizedSchemaList({
-  height,
   rows,
   allRows,
   onSelect,
   onSelectAll,
-  width,
   transformers,
   bulkSelect,
   setBulkSelect,
@@ -199,7 +197,7 @@ function VirtualizedSchemaList({
   );
 
   return (
-    <div className={` border rounded-md w-[${width}px] `}>
+    <div className={`border rounded-md`}>
       <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 pb-1 bg-muted`}>
         <div className="flex flex-row">
           <Checkbox
@@ -258,15 +256,20 @@ function VirtualizedSchemaList({
           />
         </div>
       </div>
-      <List
-        height={height}
-        itemCount={rows.length}
-        itemData={rowData}
-        itemSize={50}
-        width={width}
-      >
-        {Row}
-      </List>
+
+      <AutoSizer>
+        {({ height, width }) => (
+          <List
+            height={height}
+            itemCount={rows.length}
+            itemData={rowData}
+            itemSize={50}
+            width={width}
+          >
+            {Row}
+          </List>
+        )}
+      </AutoSizer>
     </div>
   );
 }
@@ -286,15 +289,13 @@ interface Row {
 interface SchemaListProps {
   data: Row[];
   transformers?: Transformer[];
-  width: number;
-  height: number;
+  className: string;
 }
 
 export const TableList = memo(function TableList({
   data,
   transformers,
-  width,
-  height,
+  className,
 }: SchemaListProps) {
   const [rows, setRows] = useState(data);
   const [transformer, setTransformer] = useState<string>('');
@@ -369,13 +370,11 @@ export const TableList = memo(function TableList({
   });
 
   return (
-    <div className="flex flex-row">
+    <div className={cn('flex flex-row', className)}>
       <div className="basis-1/6  pt-[45px] ">
-        {/* <SchemaTree height={height} width={300} data={treedata} /> */}
         <SchemaTreeAutoResize data={treedata} />
       </div>
-      <div className={`space-y-2 pl-8 w-[${width}px]`}>
-        {/* <div className={`space-y-2 w-[${width}px]`}> */}
+      <div className={`space-y-2 pl-8 basis-5/6`}>
         <div className="flex items-center justify-between">
           <div className="w-[250px]">
             <TansformerSelect
@@ -414,7 +413,6 @@ export const TableList = memo(function TableList({
         </div>
 
         <VirtualizedSchemaList
-          height={height}
           rows={rows}
           allRows={data}
           onSelect={onSelect}
@@ -424,10 +422,8 @@ export const TableList = memo(function TableList({
           setBulkSelect={setBulkSelect}
           columnFilters={columnFilters}
           onFilterSelect={onFilterSelect}
-          width={width}
         />
       </div>
-      {/* </div> */}
     </div>
   );
 });
