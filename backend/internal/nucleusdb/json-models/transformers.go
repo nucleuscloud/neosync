@@ -106,383 +106,291 @@ type StateConfig struct{}
 type FullAddressConfig struct{}
 
 // from API -> DB
-func (t *Transformer) FromDto(tr *mgmtv1alpha1.Transformer) error {
+func (t *Transformer) FromTransformerDto(tr *mgmtv1alpha1.Transformer) error {
 
-	switch tr.Config.Config.(type) {
+	t.Value = tr.Value
+
+	config := &TransformerConfigs{}
+
+	if err := config.FromTransformerConfigDto(tr.Config); err != nil {
+		return err
+	}
+
+	t.Config = config
+
+	return nil
+}
+
+func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.TransformerConfig) error {
+
+	switch tr.Config.(type) {
 	case *mgmtv1alpha1.TransformerConfig_EmailConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			EmailConfig: &EmailConfigs{
-				PreserveLength: tr.Config.GetEmailConfig().PreserveLength,
-				PreserveDomain: tr.Config.GetEmailConfig().PreserveDomain,
-			},
+		t.EmailConfig = &EmailConfigs{
+			PreserveLength: tr.GetEmailConfig().PreserveLength,
+			PreserveDomain: tr.GetEmailConfig().PreserveDomain,
 		}
 	case *mgmtv1alpha1.TransformerConfig_FirstNameConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			FirstName: &FirstNameConfig{
-				PreserveLength: tr.Config.GetFirstNameConfig().PreserveLength,
-			},
+		t.FirstName = &FirstNameConfig{
+			PreserveLength: tr.GetFirstNameConfig().PreserveLength,
 		}
 	case *mgmtv1alpha1.TransformerConfig_LastNameConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			LastName: &LastNameConfig{
-				PreserveLength: tr.Config.GetLastNameConfig().PreserveLength,
-			},
+		t.LastName = &LastNameConfig{
+			PreserveLength: tr.GetLastNameConfig().PreserveLength,
 		}
 	case *mgmtv1alpha1.TransformerConfig_FullNameConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			FullName: &FullNameConfig{
-				PreserveLength: tr.Config.GetFullNameConfig().PreserveLength,
-			},
+		t.FullName = &FullNameConfig{
+			PreserveLength: tr.GetFullNameConfig().PreserveLength,
 		}
 	case *mgmtv1alpha1.TransformerConfig_PassthroughConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			Passthrough: &PassthroughConfig{},
-		}
+		t.Passthrough = &PassthroughConfig{}
+
 	case *mgmtv1alpha1.TransformerConfig_UuidConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			Uuid: &UuidConfig{
-				IncludeHyphen: tr.Config.GetUuidConfig().IncludeHyphen,
-			},
+		t.Uuid = &UuidConfig{
+			IncludeHyphen: tr.GetUuidConfig().IncludeHyphen,
 		}
 	case *mgmtv1alpha1.TransformerConfig_PhoneNumberConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			PhoneNumber: &PhoneNumberConfig{
-				IncludeHyphens: tr.Config.GetPhoneNumberConfig().IncludeHyphens,
-				E164Format:     tr.Config.GetPhoneNumberConfig().E164Format,
-				PreserveLength: tr.Config.GetPhoneNumberConfig().PreserveLength,
-			},
+		t.PhoneNumber = &PhoneNumberConfig{
+			IncludeHyphens: tr.GetPhoneNumberConfig().IncludeHyphens,
+			E164Format:     tr.GetPhoneNumberConfig().E164Format,
+			PreserveLength: tr.GetPhoneNumberConfig().PreserveLength,
 		}
 	case *mgmtv1alpha1.TransformerConfig_IntPhoneNumberConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			IntPhoneNumber: &IntPhoneNumberConfig{
-				PreserveLength: tr.Config.GetIntPhoneNumberConfig().PreserveLength,
-			},
+		t.IntPhoneNumber = &IntPhoneNumberConfig{
+			PreserveLength: tr.GetIntPhoneNumberConfig().PreserveLength,
 		}
 	case *mgmtv1alpha1.TransformerConfig_NullConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			Null: &NullConfig{},
-		}
+		t.Null = &NullConfig{}
+
 	case *mgmtv1alpha1.TransformerConfig_RandomStringConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			RandomString: &RandomStringConfig{
-				PreserveLength: tr.Config.GetRandomStringConfig().PreserveLength,
-				StrLength:      tr.Config.GetRandomStringConfig().GetStrLength(),
-				StrCase:        tr.Config.GetRandomStringConfig().StrCase.String(),
-			},
+		t.RandomString = &RandomStringConfig{
+			PreserveLength: tr.GetRandomStringConfig().PreserveLength,
+			StrLength:      tr.GetRandomStringConfig().GetStrLength(),
+			StrCase:        tr.GetRandomStringConfig().StrCase.String(),
 		}
 	case *mgmtv1alpha1.TransformerConfig_RandomBoolConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			RandomBool: &RandomBoolConfig{},
-		}
+		t.RandomBool = &RandomBoolConfig{}
+
 	case *mgmtv1alpha1.TransformerConfig_RandomIntConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			RandomInt: &RandomIntConfig{
-				PreserveLength: tr.Config.GetRandomIntConfig().PreserveLength,
-				IntLength:      tr.Config.GetRandomIntConfig().IntLength,
-			},
+		t.RandomInt = &RandomIntConfig{
+			PreserveLength: tr.GetRandomIntConfig().PreserveLength,
+			IntLength:      tr.GetRandomIntConfig().IntLength,
 		}
 	case *mgmtv1alpha1.TransformerConfig_RandomFloatConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			RandomFloat: &RandomFloatConfig{
-				PreserveLength:      tr.Config.GetRandomFloatConfig().PreserveLength,
-				DigitsBeforeDecimal: tr.Config.GetRandomFloatConfig().DigitsBeforeDecimal,
-				DigitsAfterDecimal:  tr.Config.GetRandomFloatConfig().DigitsAfterDecimal,
-			},
+		t.RandomFloat = &RandomFloatConfig{
+			PreserveLength:      tr.GetRandomFloatConfig().PreserveLength,
+			DigitsBeforeDecimal: tr.GetRandomFloatConfig().DigitsBeforeDecimal,
+			DigitsAfterDecimal:  tr.GetRandomFloatConfig().DigitsAfterDecimal,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenderConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			Gender: &GenderConfig{
-				Abbreviate: tr.Config.GetGenderConfig().Abbreviate,
-			},
+		t.Gender = &GenderConfig{
+			Abbreviate: tr.GetGenderConfig().Abbreviate,
 		}
 	case *mgmtv1alpha1.TransformerConfig_UtcTimestampConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			UTCTimestamp: &UTCTimestampConfig{},
-		}
+		t.UTCTimestamp = &UTCTimestampConfig{}
+
 	case *mgmtv1alpha1.TransformerConfig_UnixTimestampConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			UnixTimestamp: &UnixTimestampConfig{},
-		}
+		t.UnixTimestamp = &UnixTimestampConfig{}
+
 	case *mgmtv1alpha1.TransformerConfig_StreetAddressConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			StreetAddress: &StreetAddressConfig{},
-		}
+		t.StreetAddress = &StreetAddressConfig{}
+
 	case *mgmtv1alpha1.TransformerConfig_CityConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			City: &CityConfig{},
-		}
+		t.City = &CityConfig{}
+
 	case *mgmtv1alpha1.TransformerConfig_ZipcodeConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			Zipcode: &ZipcodeConfig{},
-		}
+		t.Zipcode = &ZipcodeConfig{}
 	case *mgmtv1alpha1.TransformerConfig_StateConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			State: &StateConfig{},
-		}
+		t.State = &StateConfig{}
+
 	case *mgmtv1alpha1.TransformerConfig_FullAddressConfig:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{
-			FullAddress: &FullAddressConfig{},
-		}
+		t.FullAddress = &FullAddressConfig{}
 	default:
-		t.Value = tr.Value
-		t.Config = &TransformerConfigs{}
+		t = &TransformerConfigs{}
 	}
 
 	return nil
 }
 
 // DB -> API
-func (t *Transformer) ToDto() *mgmtv1alpha1.Transformer {
+
+func (t *Transformer) ToTransformerDto() *mgmtv1alpha1.Transformer {
+
+	config := &TransformerConfigs{}
+	config.ToTransformerConfigDto(t.Config)
+
+	t.Config = config
+
+	return nil
+}
+
+func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgmtv1alpha1.TransformerConfig {
 
 	switch {
-	case t.Config.EmailConfig != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
-					EmailConfig: &mgmtv1alpha1.EmailConfig{
-						PreserveDomain: t.Config.EmailConfig.PreserveDomain,
-						PreserveLength: t.Config.EmailConfig.PreserveLength,
-					},
+	case tr.EmailConfig != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
+				EmailConfig: &mgmtv1alpha1.EmailConfig{
+					PreserveDomain: tr.EmailConfig.PreserveDomain,
+					PreserveLength: tr.EmailConfig.PreserveLength,
 				},
 			},
 		}
-	case t.Config.FirstName != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_FirstNameConfig{
-					FirstNameConfig: &mgmtv1alpha1.FirstName{
-						PreserveLength: t.Config.FirstName.PreserveLength,
-					},
+	case tr.FirstName != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_FirstNameConfig{
+				FirstNameConfig: &mgmtv1alpha1.FirstName{
+					PreserveLength: tr.FirstName.PreserveLength,
 				},
 			},
 		}
-	case t.Config.LastName != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_LastNameConfig{
-					LastNameConfig: &mgmtv1alpha1.LastName{
-						PreserveLength: t.Config.LastName.PreserveLength,
-					},
+	case tr.LastName != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_LastNameConfig{
+				LastNameConfig: &mgmtv1alpha1.LastName{
+					PreserveLength: tr.LastName.PreserveLength,
 				},
 			},
 		}
-	case t.Config.FullName != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_FullNameConfig{
-					FullNameConfig: &mgmtv1alpha1.FullName{
-						PreserveLength: t.Config.FullName.PreserveLength,
-					},
+	case tr.FullName != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_FullNameConfig{
+				FullNameConfig: &mgmtv1alpha1.FullName{
+					PreserveLength: tr.FullName.PreserveLength,
 				},
 			},
 		}
-	case t.Config.Passthrough != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
-					PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+	case tr.Passthrough != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+			},
+		}
+	case tr.PhoneNumber != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_PhoneNumberConfig{
+				PhoneNumberConfig: &mgmtv1alpha1.PhoneNumber{
+					PreserveLength: tr.PhoneNumber.PreserveLength,
+					E164Format:     tr.PhoneNumber.E164Format,
+					IncludeHyphens: tr.PhoneNumber.IncludeHyphens,
 				},
 			},
 		}
-	case t.Config.PhoneNumber != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_PhoneNumberConfig{
-					PhoneNumberConfig: &mgmtv1alpha1.PhoneNumber{
-						PreserveLength: t.Config.PhoneNumber.PreserveLength,
-						E164Format:     t.Config.PhoneNumber.E164Format,
-						IncludeHyphens: t.Config.PhoneNumber.IncludeHyphens,
-					},
+	case tr.IntPhoneNumber != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_IntPhoneNumberConfig{
+				IntPhoneNumberConfig: &mgmtv1alpha1.IntPhoneNumber{
+					PreserveLength: tr.IntPhoneNumber.PreserveLength,
 				},
 			},
 		}
-	case t.Config.IntPhoneNumber != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_IntPhoneNumberConfig{
-					IntPhoneNumberConfig: &mgmtv1alpha1.IntPhoneNumber{
-						PreserveLength: t.Config.IntPhoneNumber.PreserveLength,
-					},
-				},
-			},
-		}
-	case t.Config.Uuid != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_UuidConfig{
-					UuidConfig: &mgmtv1alpha1.Uuid{
-						IncludeHyphen: t.Config.Uuid.IncludeHyphen,
-					},
-				},
-			},
-		}
-	case t.Config.Null != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_NullConfig{
-					NullConfig: &mgmtv1alpha1.Null{},
-				},
-			},
-		}
-	case t.Config.RandomString != nil:
 
-		strCase, err := StrCaseFromString(t.Config.RandomString.StrCase)
+	case tr.Uuid != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_UuidConfig{
+				UuidConfig: &mgmtv1alpha1.Uuid{
+					IncludeHyphen: tr.Uuid.IncludeHyphen,
+				},
+			},
+		}
+	case tr.Null != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_NullConfig{
+				NullConfig: &mgmtv1alpha1.Null{},
+			},
+		}
+	case tr.RandomString != nil:
+
+		strCase, err := StrCaseFromString(tr.RandomString.StrCase)
 		if err != nil {
-			return &mgmtv1alpha1.Transformer{Value: t.Value}
+			return &mgmtv1alpha1.TransformerConfig{}
 		}
 
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_RandomStringConfig{
-					RandomStringConfig: &mgmtv1alpha1.RandomString{
-						PreserveLength: t.Config.RandomString.PreserveLength,
-						StrLength:      t.Config.RandomString.StrLength,
-						StrCase:        strCase,
-					},
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_RandomStringConfig{
+				RandomStringConfig: &mgmtv1alpha1.RandomString{
+					PreserveLength: t.RandomString.PreserveLength,
+					StrLength:      t.RandomString.StrLength,
+					StrCase:        strCase,
 				},
 			},
 		}
-	case t.Config.RandomBool != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_RandomBoolConfig{
-					RandomBoolConfig: &mgmtv1alpha1.RandomBool{},
+	case tr.RandomBool != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_RandomBoolConfig{
+				RandomBoolConfig: &mgmtv1alpha1.RandomBool{},
+			},
+		}
+	case tr.RandomInt != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_RandomIntConfig{
+				RandomIntConfig: &mgmtv1alpha1.RandomInt{
+					PreserveLength: t.RandomInt.PreserveLength,
+					IntLength:      t.RandomInt.IntLength,
 				},
 			},
 		}
-	case t.Config.RandomInt != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_RandomIntConfig{
-					RandomIntConfig: &mgmtv1alpha1.RandomInt{
-						PreserveLength: t.Config.RandomInt.PreserveLength,
-						IntLength:      t.Config.RandomInt.IntLength,
-					},
+	case t.RandomFloat != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_RandomFloatConfig{
+				RandomFloatConfig: &mgmtv1alpha1.RandomFloat{
+					PreserveLength:      t.RandomFloat.PreserveLength,
+					DigitsBeforeDecimal: t.RandomFloat.DigitsBeforeDecimal,
+					DigitsAfterDecimal:  t.RandomFloat.DigitsAfterDecimal,
 				},
 			},
 		}
-	case t.Config.RandomFloat != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_RandomFloatConfig{
-					RandomFloatConfig: &mgmtv1alpha1.RandomFloat{
-						PreserveLength:      t.Config.RandomFloat.PreserveLength,
-						DigitsBeforeDecimal: t.Config.RandomFloat.DigitsBeforeDecimal,
-						DigitsAfterDecimal:  t.Config.RandomFloat.DigitsAfterDecimal,
-					},
+	case tr.Gender != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenderConfig{
+				GenderConfig: &mgmtv1alpha1.Gender{
+					Abbreviate: t.Gender.Abbreviate,
 				},
 			},
 		}
-	case t.Config.Gender != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenderConfig{
-					GenderConfig: &mgmtv1alpha1.Gender{
-						Abbreviate: t.Config.Gender.Abbreviate,
-					},
-				},
+	case tr.UTCTimestamp != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_UtcTimestampConfig{
+				UtcTimestampConfig: &mgmtv1alpha1.UTCTimestamp{},
 			},
 		}
-	case t.Config.UTCTimestamp != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_UtcTimestampConfig{
-					UtcTimestampConfig: &mgmtv1alpha1.UTCTimestamp{},
-				},
+	case tr.UnixTimestamp != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_UnixTimestampConfig{
+				UnixTimestampConfig: &mgmtv1alpha1.UnixTimestamp{},
 			},
 		}
-	case t.Config.UnixTimestamp != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_UnixTimestampConfig{
-					UnixTimestampConfig: &mgmtv1alpha1.UnixTimestamp{},
-				},
+	case tr.StreetAddress != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_StreetAddressConfig{
+				StreetAddressConfig: &mgmtv1alpha1.StreetAddress{},
 			},
 		}
-	case t.Config.StreetAddress != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_StreetAddressConfig{
-					StreetAddressConfig: &mgmtv1alpha1.StreetAddress{},
-				},
+	case tr.City != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_CityConfig{
+				CityConfig: &mgmtv1alpha1.City{},
 			},
 		}
-	case t.Config.City != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_CityConfig{
-					CityConfig: &mgmtv1alpha1.City{},
-				},
+	case t.Zipcode != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_ZipcodeConfig{
+				ZipcodeConfig: &mgmtv1alpha1.Zipcode{},
 			},
 		}
-	case t.Config.Zipcode != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_ZipcodeConfig{
-					ZipcodeConfig: &mgmtv1alpha1.Zipcode{},
-				},
+	case tr.State != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_StateConfig{
+				StateConfig: &mgmtv1alpha1.State{},
 			},
 		}
-	case t.Config.State != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_StateConfig{
-					StateConfig: &mgmtv1alpha1.State{},
-				},
-			},
-		}
-	case t.Config.FullAddress != nil:
-		return &mgmtv1alpha1.Transformer{
-			Value: t.Value,
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_FullAddressConfig{
-					FullAddressConfig: &mgmtv1alpha1.FullAddress{},
-				},
+	case tr.FullAddress != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_FullAddressConfig{
+				FullAddressConfig: &mgmtv1alpha1.FullAddress{},
 			},
 		}
 	default:
-		return &mgmtv1alpha1.Transformer{Value: t.Value}
+		return &mgmtv1alpha1.TransformerConfig{}
 	}
 }
 

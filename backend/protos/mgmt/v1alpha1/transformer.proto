@@ -3,7 +3,6 @@ syntax = "proto3";
 package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
-import "google/protobuf/timestamp.proto";
 
 message GetSystemTransformersRequest {}
 
@@ -19,19 +18,49 @@ message GetCustomTransformersResponse {
   repeated CustomTransformer transformers = 1;
 }
 
+message CreateCustomTransformerRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2;
+  string description = 3;
+  string type = 4;
+  TransformerConfig transformer_config = 5;
+}
+
+message CreateCustomTransformerResponse {
+  CustomTransformer transformer = 1;
+}
+
+message DeleteCustomTransformerRequest {
+  string transformer_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeleteCustomTransformerResponse {}
+
+message UpdateCustomTransformerRequest {
+  string transformer_id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2;
+  string description = 3;
+  TransformerConfig transformer_config = 4;
+}
+
+message UpdateCustomTransformerResponse {
+  CustomTransformer transformer = 1;
+}
+
+message IsTransformerNameAvailableRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  string transformer_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
+}
+
+message IsTransformerNameAvailableResponse {
+  bool is_available = 1;
+}
+
 message CustomTransformer {
   string id = 1 [(buf.validate.field).string.uuid = true];
   string name = 2;
   string description = 3;
-
-  string created_by_user_id = 4;
-  google.protobuf.Timestamp created_at = 5;
-
-  string updated_by_user_id = 6;
-  google.protobuf.Timestamp updated_at = 7;
-
   TransformerConfig config = 8;
-
   string account_id = 9;
 }
 
@@ -148,4 +177,8 @@ message FullAddress {}
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
   rpc GetCustomTransformers(GetCustomTransformersRequest) returns (GetCustomTransformersResponse) {}
+  rpc CreateCustomTransformer(CreateCustomTransformerRequest) returns (CreateCustomTransformerResponse) {}
+  rpc DeleteCustomTransformer(DeleteCustomTransformerRequest) returns (DeleteCustomTransformerResponse) {}
+  rpc UpdateCustomTransformer(UpdateCustomTransformerRequest) returns (UpdateCustomTransformerResponse) {}
+  rpc IsTransformerNameAvailable(IsTransformerNameAvailableRequest) returns (IsTransformerNameAvailableResponse) {}
 }

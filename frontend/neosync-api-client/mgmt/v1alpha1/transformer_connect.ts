@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetCustomTransformersRequest, GetCustomTransformersResponse, GetSystemTransformersRequest, GetSystemTransformersResponse } from "./transformer_pb";
+import { CreateCustomTransformerRequest, CreateCustomTransformerResponse, DeleteCustomTransformerRequest, DeleteCustomTransformerResponse, GetCustomTransformersRequest, GetCustomTransformersResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateCustomTransformerRequest, UpdateCustomTransformerResponse } from "./transformer_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -28,6 +28,42 @@ export const TransformersService = {
       name: "GetCustomTransformers",
       I: GetCustomTransformersRequest,
       O: GetCustomTransformersResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.TransformersService.CreateCustomTransformer
+     */
+    createCustomTransformer: {
+      name: "CreateCustomTransformer",
+      I: CreateCustomTransformerRequest,
+      O: CreateCustomTransformerResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.TransformersService.DeleteCustomTransformer
+     */
+    deleteCustomTransformer: {
+      name: "DeleteCustomTransformer",
+      I: DeleteCustomTransformerRequest,
+      O: DeleteCustomTransformerResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.TransformersService.UpdateCustomTransformer
+     */
+    updateCustomTransformer: {
+      name: "UpdateCustomTransformer",
+      I: UpdateCustomTransformerRequest,
+      O: UpdateCustomTransformerResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable
+     */
+    isTransformerNameAvailable: {
+      name: "IsTransformerNameAvailable",
+      I: IsTransformerNameAvailableRequest,
+      O: IsTransformerNameAvailableResponse,
       kind: MethodKind.Unary,
     },
   }

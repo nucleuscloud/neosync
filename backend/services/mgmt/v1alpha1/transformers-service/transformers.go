@@ -4,8 +4,13 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
+	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 )
 
 type Transformation string
@@ -175,4 +180,142 @@ func (s *Service) GetCustomTransformers(
 	return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformersResponse{
 		Transformers: dtoTransformers,
 	}), nil
+}
+
+func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.CreateCustomTransformerRequest]) (*connect.Response[mgmtv1alpha1.CreateCustomTransformerResponse], error) {
+
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	customTransformer := &db_queries.CreateCustomTransformerParams{
+		AccountID:         *accountUuid,
+		Name:              req.Msg.Name,
+		Description:       req.Msg.Description,
+		TransformerConfig: &jsonmodels.TransformerConfigs{},
+		Type:              req.Msg.Type,
+		CreatedByID:       *userUuid,
+		UpdatedByID:       *userUuid,
+	}
+
+	err = customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	ct, err := s.db.Q.CreateCustomTransformer(ctx, *customTransformer)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.CreateCustomTransformerResponse{
+		Transformer: dtomaps.ToCustomTransformerDto(&ct),
+	}), nil
+
+}
+
+func (s *Service) DeleteCustomTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]) (*connect.Response[mgmtv1alpha1.DeleteCustomTransformerResponse], error) {
+
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("transformer", req.Msg.TransformerId)
+
+	tId, err := nucleusdb.ToUuid(req.Msg.TransformerId)
+	if err != nil {
+		return nil, err
+	}
+
+	transformer, err := s.db.Q.GetCustomTransformersById(ctx, tId)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return connect.NewResponse(&mgmtv1alpha1.DeleteCustomTransformerResponse{}), nil
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(transformer.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.db.Q.DeleteCustomTransformerById(ctx, transformer.ID)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		logger.Info("destination not found")
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.DeleteCustomTransformerResponse{}), nil
+
+}
+
+func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]) (*connect.Response[mgmtv1alpha1.UpdateCustomTransformerResponse], error) {
+
+	tUuid, err := nucleusdb.ToUuid(req.Msg.TransformerId)
+	if err != nil {
+		return nil, err
+	}
+	transformer, err := s.db.Q.GetCustomTransformersById(ctx, tUuid)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return nil, nucleuserrors.NewNotFound("unable to find connection by id")
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(transformer.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	customTransformer := &db_queries.UpdateCustomTransformerParams{
+		Name:              req.Msg.Name,
+		Description:       req.Msg.Description,
+		TransformerConfig: &jsonmodels.TransformerConfigs{},
+		UpdatedByID:       *userUuid,
+		ID:                tUuid,
+	}
+
+	err = customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	t, err := s.db.Q.UpdateCustomTransformer(ctx, *customTransformer)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.UpdateCustomTransformerResponse{
+		Transformer: dtomaps.ToCustomTransformerDto(&t),
+	}), err
+}
+
+func (s *Service) IsTransformerNameAvailable(ctx context.Context, req *connect.Request[mgmtv1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[mgmtv1alpha1.IsTransformerNameAvailableResponse], error) {
+
+	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	count, err := s.db.Q.IsTransformerNameAvailable(ctx, db_queries.IsTransformerNameAvailableParams{
+		AccountId:       *accountUuid,
+		TransformerName: req.Msg.TransformerName,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.IsTransformerNameAvailableResponse{
+		IsAvailable: count == 0,
+	}), nil
+
 }

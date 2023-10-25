@@ -28,3 +28,17 @@ func (s *Service) verifyUserInAccount(
 	}
 	return &accountUuid, nil
 }
+
+func (s *Service) getUserUuid(
+	ctx context.Context,
+) (*pgtype.UUID, error) {
+	user, err := s.useraccountService.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
+	if err != nil {
+		return nil, err
+	}
+	return &userUuid, nil
+}
