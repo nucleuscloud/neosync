@@ -2,6 +2,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - backend/**
+      - cli/**
+      - worker/**
 
 name: Main Tests
 jobs:
