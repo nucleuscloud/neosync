@@ -3,7 +3,7 @@ module github.com/nucleuscloud/neosync/worker
 go 1.21.1
 
 require (
-	connectrpc.com/connect v1.11.1
+	connectrpc.com/connect v1.12.0
 	connectrpc.com/grpchealth v1.3.0
 	connectrpc.com/grpcreflect v1.2.0
 	github.com/benthosdev/benthos/v4 v4.22.0
