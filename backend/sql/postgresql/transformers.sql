@@ -31,6 +31,6 @@ RETURNING *;
 
 
 -- name: IsTransformerNameAvailable :one
-SELECT count(c.id) from neosync_api.transformers t
+SELECT count(t.id) from neosync_api.transformers t
 INNER JOIN neosync_api.accounts a ON a.id = t.account_id
 WHERE a.id = sqlc.arg('accountId') and t.name = sqlc.arg('transformerName');
