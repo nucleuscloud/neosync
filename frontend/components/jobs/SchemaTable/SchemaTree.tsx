@@ -1,7 +1,7 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import memoize from 'memoize-one';
 import { CSSProperties, memo, useCallback, useState } from 'react';
-import { FixedSizeList as List, areEqual } from 'react-window';
+import { VariableSizeList as List, areEqual } from 'react-window';
 
 interface Row {
   isSelected: boolean;
@@ -31,6 +31,22 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
   const { rows, onSelect } = data;
   const row = rows[index];
 
+  // const renderChildren = (children: Row[], depth: number) => {
+  //   return children.map((child, i) => (
+  //     <div key={i} style={style}>
+  //       <Checkbox
+  //         id="select"
+  //         onClick={() => onSelect(index)}
+  //         checked={child.isSelected}
+  //         type="button"
+  //         className="self-center mr-4"
+  //       />
+  //       <span className="truncate font-medium text-sm">{child.name}</span>
+  //       {child.children && renderChildren(child.children, depth + 1)}
+  //     </div>
+  //   ));
+  // };
+
   return (
     <div style={style}>
       <div className="flex flex-row truncate ">
@@ -43,6 +59,21 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
         />
         <span className="truncate font-medium text-sm">{row.name}</span>
       </div>
+      {row.children &&
+        row.children.map((r) => {
+          return (
+            <div className="flex flex-row truncate" key={r.id}>
+              <Checkbox
+                id="select"
+                onClick={() => onSelect(index)}
+                checked={r.isSelected}
+                type="button"
+                className="self-center mr-4"
+              />
+              <span className="truncate font-medium text-sm">{r.name}</span>
+            </div>
+          );
+        })}
     </div>
   );
 }, areEqual);
@@ -68,13 +99,22 @@ function Example({ height, items, onSelect, width }) {
   // Memoize this data to avoid bypassing shouldComponentUpdate().
   const itemData = createRowData(items, onSelect);
 
+  function getItemSize(index: number) {
+    // A function to calculate the size of each row based on its content
+    // This is a simplified example, you'll need to calculate the actual height
+    // based on the content of the row and its children
+    // return items[index].children ? 100 : 50;
+    return 200;
+  }
+
   return (
     <div className="border rounded-md p-4">
       <List
         height={height}
         itemCount={items.length}
         itemData={itemData}
-        itemSize={35}
+        // itemSize={35}
+        itemSize={getItemSize}
         width={width}
       >
         {Row}

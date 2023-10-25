@@ -51,6 +51,7 @@
     "react-hook-form": "^7.47.0",
     "react-hook-form-persist": "^3.0.0",
     "react-icons": "^4.11.0",
+    "react-virtualized-auto-sizer": "^1.0.20",
     "react-window": "^1.8.9",
     "swr": "^2.2.4",
     "tailwind-merge": "^1.14.0",

@@ -9,7 +9,7 @@ import { CSSProperties, memo, useCallback, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import ColumnFilterSelect from './ColumnFilterSelect';
-import { SchemaTree } from './SchemaTree';
+import { SchemaTreeAutoResize } from './SchemaTree2';
 import TansformerSelect from './TransformerSelect';
 
 interface RowProps {
@@ -371,7 +371,8 @@ export const TableList = memo(function TableList({
   return (
     <div className="flex flex-row">
       <div className="basis-1/6  pt-[45px] ">
-        <SchemaTree height={height} width={300} data={treedata} />
+        {/* <SchemaTree height={height} width={300} data={treedata} /> */}
+        <SchemaTreeAutoResize data={treedata} />
       </div>
       <div className={`space-y-2 pl-8 w-[${width}px]`}>
         {/* <div className={`space-y-2 w-[${width}px]`}> */}
