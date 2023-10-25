@@ -14,20 +14,22 @@ const Row = memo(({ data, index, style }) => {
     <div style={style}>
       <div className={`flex flex-row ${left} ${hover}`}>
         <Checkbox
-          id="select"
+          id={node.id}
           onClick={() => onSelect(index)}
           checked={node.isSelected}
           type="button"
           className="self-center mr-2"
         />
+        <label htmlFor={node.id} className={`text-sm font-medium`}>
+          {node.name}
+        </label>
 
         <div
-          className="flex flex-row w-full justify-between items-center"
+          className="flex flex-row w-full items-center justify-end"
           onClick={() => {
             onOpen(node);
           }}
         >
-          <span className="truncate font-medium text-sm">{node.name}</span>
           <div className="mr-2">
             {node.hasChildren && node.collapsed && <ChevronDownIcon />}
             {node.hasChildren && !node.collapsed && <ChevronUpIcon />}
@@ -102,7 +104,7 @@ export const SchemaTreeAutoResize = ({ data }: SchemaTreeProps) => {
     <AutoSizer>
       {({ height, width }) => (
         <List
-          className="List"
+          className="border rounded-md"
           height={height}
           itemCount={flattenedData.length}
           itemSize={38}
