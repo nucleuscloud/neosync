@@ -20,16 +20,84 @@ const range = (len: number) => {
   return arr;
 };
 
-const newPerson = (index: number): Person => {
+const datatypes = [
+  'varchar',
+  'bigint',
+  'timestamp',
+  'int',
+  'text',
+  'time',
+  'binary',
+  'boolean',
+  'blob',
+  'bit',
+  'date',
+  'decimal',
+  'float',
+  'datetime',
+  'double',
+  'tinyint',
+];
+
+const schema = [
+  'nucleus',
+  'neosync',
+  'sample',
+  'accounts',
+  'man_city',
+  'chelsea',
+  'newcastle',
+  'liverpool',
+  'tottenham',
+  'real_madrid',
+  'barcelona',
+  'seville',
+  'premier_league',
+  'la_liga',
+  'arsenal',
+  'lyon',
+];
+
+const tables = [
+  'users',
+  'accounts',
+  'employees',
+  'products',
+  'stats',
+  'dogs',
+  'cats',
+  'inventory',
+  'sales',
+  'people',
+  'managers',
+  'orders',
+  'posts',
+  'comments',
+  'images',
+  'tasks',
+  'workflows',
+  'admins',
+  'queues',
+  'overtime',
+  'teams',
+  'players',
+  'staff',
+  'leagues',
+  'referees',
+  'var',
+];
+
+const newPerson = (): Person => {
   return {
-    dataType: faker.database.type(),
+    dataType:
+      datatypes[faker.number.int({ min: 0, max: 100 }) % datatypes.length],
     transformer: {
-      value: faker.animal.dog(),
+      value: 'passthrough',
       config: {},
     },
-    table: faker.person.firstName(),
-    schema: faker.person.lastName(),
-    column: faker.person.jobTitle(),
+    table: tables[faker.number.int({ min: 0, max: 100 }) % tables.length],
+    schema: schema[faker.number.int({ min: 0, max: 100 }) % schema.length],
+    column: faker.database.column(),
     isSelected: false,
   };
 };

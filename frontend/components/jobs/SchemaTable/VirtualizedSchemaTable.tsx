@@ -9,6 +9,7 @@ import { CSSProperties, memo, useCallback, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import ColumnFilterSelect from './ColumnFilterSelect';
+import { SchemaTree } from './SchemaTree';
 import TansformerSelect from './TransformerSelect';
 
 interface RowProps {
@@ -188,7 +189,7 @@ function VirtualizedSchemaList({
   columnFilters,
   onFilterSelect,
 }: VirtualizedSchemaListProps) {
-  // Bundle additional data to list items using the "itemData" prop.
+  // Bundle additional data to list rows using the "rowData" prop.
   // It will be accessible to item renderers as props.data.
   // Memoize this data to avoid bypassing shouldComponentUpdate().
   const rowData = createRowData(rows, onSelect, onSelectAll, transformers);
@@ -341,54 +342,91 @@ export const TableList = memo(function TableList({
     });
   }, []);
 
-  return (
-    <div className={`space-y-2 w-[${width}px]`}>
-      <div className="flex items-center justify-between">
-        <div className="w-[250px]">
-          <TansformerSelect
-            transformers={transformers || []}
-            value={transformer}
-            onSelect={(value) => {
-              rows.forEach((r, index) => {
-                if (r.isSelected) {
-                  form.setValue(`mappings.${index}.transformer.value`, value, {
-                    shouldDirty: true,
-                  });
-                }
-              });
-              onSelectAll(false);
-              setBulkSelect(false);
-              setTransformer('');
-            }}
-            placeholder="Bulk update transformers..."
-          />
-        </div>
-        <Button
-          variant="outline"
-          type="button"
-          onClick={() => {
-            setColumnFilters({});
-            setRows(data);
-          }}
-        >
-          Clear filters
-          <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </div>
+  const schemaMap: Record<string, Record<string, string>> = {};
+  data.forEach((row) => {
+    if (!schemaMap[row.schema]) {
+      schemaMap[row.schema] = { [row.table]: row.table };
+    } else {
+      schemaMap[row.schema][row.table] = row.table;
+    }
+  });
 
-      <VirtualizedSchemaList
-        height={height}
-        rows={rows}
-        allRows={data}
-        onSelect={onSelect}
-        onSelectAll={onSelectAll}
-        transformers={transformers}
-        bulkSelect={bulkSelect}
-        setBulkSelect={setBulkSelect}
-        columnFilters={columnFilters}
-        onFilterSelect={onFilterSelect}
-        width={width}
-      />
+  const treedata = Object.keys(schemaMap).map((schema) => {
+    const children = Object.keys(schemaMap[schema]).map((table) => {
+      return {
+        id: `${schema}.${table}`,
+        name: table,
+        isSelected: false,
+      };
+    });
+
+    return {
+      id: schema,
+      name: schema,
+      isSelected: false,
+      children,
+    };
+  });
+
+  return (
+    <div className="flex flex-row">
+      <div className="basis-1/6  pt-[45px] ">
+        <SchemaTree height={height} width={300} data={treedata} />
+      </div>
+      <div className={`space-y-2 pl-8 w-[${width}px]`}>
+        {/* <div className={`space-y-2 w-[${width}px]`}> */}
+        <div className="flex items-center justify-between">
+          <div className="w-[250px]">
+            <TansformerSelect
+              transformers={transformers || []}
+              value={transformer}
+              onSelect={(value) => {
+                rows.forEach((r, index) => {
+                  if (r.isSelected) {
+                    form.setValue(
+                      `mappings.${index}.transformer.value`,
+                      value,
+                      {
+                        shouldDirty: true,
+                      }
+                    );
+                  }
+                });
+                onSelectAll(false);
+                setBulkSelect(false);
+                setTransformer('');
+              }}
+              placeholder="Bulk update transformers..."
+            />
+          </div>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => {
+              setColumnFilters({});
+              setRows(data);
+            }}
+          >
+            Clear filters
+            <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </div>
+
+        <VirtualizedSchemaList
+          height={height}
+          rows={rows}
+          allRows={data}
+          onSelect={onSelect}
+          onSelectAll={onSelectAll}
+          transformers={transformers}
+          bulkSelect={bulkSelect}
+          setBulkSelect={setBulkSelect}
+          columnFilters={columnFilters}
+          onFilterSelect={onFilterSelect}
+          width={width}
+        />
+      </div>
+      {/* </div> */}
     </div>
   );
 });

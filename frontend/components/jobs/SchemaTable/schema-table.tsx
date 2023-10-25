@@ -38,6 +38,23 @@ export function SchemaTable(props: JobTableProps): ReactElement {
   });
   // const tableData = makeData(10000);
 
+  const treedata = Object.keys(schemaMap).map((schema) => {
+    const children = Object.keys(schemaMap[schema]).map((table) => {
+      return {
+        id: `${schema}.${table}`,
+        name: table,
+        isSelected: false,
+      };
+    });
+
+    return {
+      id: schema,
+      name: schema,
+      isSelected: false,
+      children,
+    };
+  });
+
   return (
     <div>
       {/* <DataTable
@@ -48,8 +65,9 @@ export function SchemaTable(props: JobTableProps): ReactElement {
       /> */}
       <TableList
         data={tableData}
+        treedata={treedata}
         transformers={transformers?.transformers}
-        width={1300}
+        width={1100}
         height={700}
       />
     </div>
