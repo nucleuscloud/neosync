@@ -1,4 +1,3 @@
-name: neosync
 services:
   app:
     container_name: neosync-app

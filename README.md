@@ -165,6 +165,7 @@ Once everything is up and running, the app can be accessed at locally at `http:/
 
 Neosync can be run with compose. This works pretty well, but is a bit more manual today than with Tilt.
 Not everything is hot-reload, but you can successfully run everything using just compose instead of having to manage a kubernetes cluster and running Tilt.
+To enable hot reloading, must run `docker compose watch` instead of `up`. Currently there is a limitation with devcontainers where this command must be run via `sudo`.
 
 There are two compose files that need to be run today. The first is the Temporal compose, the second is the Neosync compose.
 It's suggested you run these separate (as of today) for a clean separation of concerns.
