@@ -38,5 +38,5 @@ sql:
             go_type:
               import: github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models
               package: jsonmodels
-              type: Transformer
+              type: TransformerConfigs
               pointer: true

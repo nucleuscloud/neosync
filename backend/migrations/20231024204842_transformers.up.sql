@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS neosync_api.transformers (
 	created_at timestamp NOT NULL DEFAULT now(),
 	updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   name varchar NOT NULL,
+  description varchar NOT NULL,
+  type varchar NOT NULL,
   account_id uuid NOT NULL,
   transformer_config jsonb NOT NULL,
 

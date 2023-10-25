@@ -39,12 +39,20 @@ const (
 	// TransformersServiceGetCustomTransformersProcedure is the fully-qualified name of the
 	// TransformersService's GetCustomTransformers RPC.
 	TransformersServiceGetCustomTransformersProcedure = "/mgmt.v1alpha1.TransformersService/GetCustomTransformers"
+	// TransformersServiceCreateCustomTransformerProcedure is the fully-qualified name of the
+	// TransformersService's CreateCustomTransformer RPC.
+	TransformersServiceCreateCustomTransformerProcedure = "/mgmt.v1alpha1.TransformersService/CreateCustomTransformer"
+	// TransformersServiceDeleteCustomTransformerProcedure is the fully-qualified name of the
+	// TransformersService's DeleteCustomTransformer RPC.
+	TransformersServiceDeleteCustomTransformerProcedure = "/mgmt.v1alpha1.TransformersService/DeleteCustomTransformer"
 )
 
 // TransformersServiceClient is a client for the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceClient interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
 	GetCustomTransformers(context.Context, *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error)
+	CreateCustomTransformer(context.Context, *connect.Request[v1alpha1.CreateCustomTransformerRequest]) (*connect.Response[v1alpha1.CreateCustomTransformerResponse], error)
+	DeleteCustomTransformer(context.Context, *connect.Request[v1alpha1.DeleteCustomTransformerRequest]) (*connect.Response[v1alpha1.DeleteCustomTransformerResponse], error)
 }
 
 // NewTransformersServiceClient constructs a client for the mgmt.v1alpha1.TransformersService
@@ -67,13 +75,25 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 			baseURL+TransformersServiceGetCustomTransformersProcedure,
 			opts...,
 		),
+		createCustomTransformer: connect.NewClient[v1alpha1.CreateCustomTransformerRequest, v1alpha1.CreateCustomTransformerResponse](
+			httpClient,
+			baseURL+TransformersServiceCreateCustomTransformerProcedure,
+			opts...,
+		),
+		deleteCustomTransformer: connect.NewClient[v1alpha1.DeleteCustomTransformerRequest, v1alpha1.DeleteCustomTransformerResponse](
+			httpClient,
+			baseURL+TransformersServiceDeleteCustomTransformerProcedure,
+			opts...,
+		),
 	}
 }
 
 // transformersServiceClient implements TransformersServiceClient.
 type transformersServiceClient struct {
-	getSystemTransformers *connect.Client[v1alpha1.GetSystemTransformersRequest, v1alpha1.GetSystemTransformersResponse]
-	getCustomTransformers *connect.Client[v1alpha1.GetCustomTransformersRequest, v1alpha1.GetCustomTransformersResponse]
+	getSystemTransformers   *connect.Client[v1alpha1.GetSystemTransformersRequest, v1alpha1.GetSystemTransformersResponse]
+	getCustomTransformers   *connect.Client[v1alpha1.GetCustomTransformersRequest, v1alpha1.GetCustomTransformersResponse]
+	createCustomTransformer *connect.Client[v1alpha1.CreateCustomTransformerRequest, v1alpha1.CreateCustomTransformerResponse]
+	deleteCustomTransformer *connect.Client[v1alpha1.DeleteCustomTransformerRequest, v1alpha1.DeleteCustomTransformerResponse]
 }
 
 // GetSystemTransformers calls mgmt.v1alpha1.TransformersService.GetSystemTransformers.
@@ -86,10 +106,22 @@ func (c *transformersServiceClient) GetCustomTransformers(ctx context.Context, r
 	return c.getCustomTransformers.CallUnary(ctx, req)
 }
 
+// CreateCustomTransformer calls mgmt.v1alpha1.TransformersService.CreateCustomTransformer.
+func (c *transformersServiceClient) CreateCustomTransformer(ctx context.Context, req *connect.Request[v1alpha1.CreateCustomTransformerRequest]) (*connect.Response[v1alpha1.CreateCustomTransformerResponse], error) {
+	return c.createCustomTransformer.CallUnary(ctx, req)
+}
+
+// DeleteCustomTransformer calls mgmt.v1alpha1.TransformersService.DeleteCustomTransformer.
+func (c *transformersServiceClient) DeleteCustomTransformer(ctx context.Context, req *connect.Request[v1alpha1.DeleteCustomTransformerRequest]) (*connect.Response[v1alpha1.DeleteCustomTransformerResponse], error) {
+	return c.deleteCustomTransformer.CallUnary(ctx, req)
+}
+
 // TransformersServiceHandler is an implementation of the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceHandler interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
 	GetCustomTransformers(context.Context, *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error)
+	CreateCustomTransformer(context.Context, *connect.Request[v1alpha1.CreateCustomTransformerRequest]) (*connect.Response[v1alpha1.CreateCustomTransformerResponse], error)
+	DeleteCustomTransformer(context.Context, *connect.Request[v1alpha1.DeleteCustomTransformerRequest]) (*connect.Response[v1alpha1.DeleteCustomTransformerResponse], error)
 }
 
 // NewTransformersServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -108,12 +140,26 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 		svc.GetCustomTransformers,
 		opts...,
 	)
+	transformersServiceCreateCustomTransformerHandler := connect.NewUnaryHandler(
+		TransformersServiceCreateCustomTransformerProcedure,
+		svc.CreateCustomTransformer,
+		opts...,
+	)
+	transformersServiceDeleteCustomTransformerHandler := connect.NewUnaryHandler(
+		TransformersServiceDeleteCustomTransformerProcedure,
+		svc.DeleteCustomTransformer,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.TransformersService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TransformersServiceGetSystemTransformersProcedure:
 			transformersServiceGetSystemTransformersHandler.ServeHTTP(w, r)
 		case TransformersServiceGetCustomTransformersProcedure:
 			transformersServiceGetCustomTransformersHandler.ServeHTTP(w, r)
+		case TransformersServiceCreateCustomTransformerProcedure:
+			transformersServiceCreateCustomTransformerHandler.ServeHTTP(w, r)
+		case TransformersServiceDeleteCustomTransformerProcedure:
+			transformersServiceDeleteCustomTransformerHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -129,4 +175,12 @@ func (UnimplementedTransformersServiceHandler) GetSystemTransformers(context.Con
 
 func (UnimplementedTransformersServiceHandler) GetCustomTransformers(context.Context, *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetCustomTransformers is not implemented"))
+}
+
+func (UnimplementedTransformersServiceHandler) CreateCustomTransformer(context.Context, *connect.Request[v1alpha1.CreateCustomTransformerRequest]) (*connect.Response[v1alpha1.CreateCustomTransformerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.CreateCustomTransformer is not implemented"))
+}
+
+func (UnimplementedTransformersServiceHandler) DeleteCustomTransformer(context.Context, *connect.Request[v1alpha1.DeleteCustomTransformerRequest]) (*connect.Response[v1alpha1.DeleteCustomTransformerResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.DeleteCustomTransformer is not implemented"))
 }
