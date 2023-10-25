@@ -173,7 +173,7 @@ interface VirtualizedSchemaListProps {
   columnFilters: Record<string, string[]>;
   onFilterSelect: (columnId: string, newValues: string[]) => void;
   transformers?: Transformer[];
-  className: string;
+  height: number;
 }
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.
@@ -187,7 +187,7 @@ function VirtualizedSchemaList({
   setBulkSelect,
   columnFilters,
   onFilterSelect,
-  className,
+  height,
 }: VirtualizedSchemaListProps) {
   // Bundle additional data to list rows using the "rowData" prop.
   // It will be accessible to item renderers as props.data.
@@ -260,11 +260,11 @@ function VirtualizedSchemaList({
         <div className="col-span-5"></div>
       </div>
 
-      <div className="h-[600px]">
+      <div className={`h-[${height - 100}px]`}>
         <AutoSizer>
-          {({ height, width }) => (
+          {({ height: tableHeight, width }) => (
             <List
-              height={height}
+              height={tableHeight}
               itemCount={rows.length}
               itemData={rowData}
               itemSize={50}
@@ -283,16 +283,28 @@ function VirtualizedSchemaList({
   );
 }
 
+interface Row {
+  table: string;
+  transformer: {
+    value: string;
+    config: {};
+  };
+  schema: string;
+  column: string;
+  dataType: string;
+  isSelected: boolean;
+}
+
 interface SchemaListProps {
   data: Row[];
   transformers?: Transformer[];
-  className: string;
+  height: string;
 }
 
 export const TableList = memo(function TableList({
   data,
   transformers,
-  className,
+  height,
 }: SchemaListProps) {
   const [rows, setRows] = useState(data);
   const [transformer, setTransformer] = useState<string>('');
@@ -367,7 +379,7 @@ export const TableList = memo(function TableList({
   });
 
   return (
-    <div className={cn('flex flex-row', className)}>
+    <div className="flex flex-row w-full">
       <div className="basis-1/6  pt-[45px] ">
         <SchemaTreeAutoResize data={treedata} />
       </div>
@@ -419,7 +431,7 @@ export const TableList = memo(function TableList({
           setBulkSelect={setBulkSelect}
           columnFilters={columnFilters}
           onFilterSelect={onFilterSelect}
-          className={className}
+          height={height}
         />
       </div>
     </div>
