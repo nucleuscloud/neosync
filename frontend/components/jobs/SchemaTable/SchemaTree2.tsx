@@ -1,4 +1,5 @@
 import { Checkbox } from '@/components/ui/checkbox';
+import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 import memoizeOne from 'memoize-one';
 import { memo, useState } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -7,31 +8,30 @@ import { FixedSizeList as List, areEqual } from 'react-window';
 const Row = memo(({ data, index, style }) => {
   const { flattenedData, onOpen, onSelect } = data;
   const node = flattenedData[index];
-  const left = node.depth * 20;
+  const left = node.depth != 1 && `pl-${node.depth * 4}`;
+  const hover = node.hasChildren && `hover:bg-muted p-2`;
   return (
-    <div className="item-background" style={style}>
-      <div className="flex flex-row ">
+    <div style={style}>
+      <div className={`flex flex-row ${left} ${hover}`}>
         <Checkbox
           id="select"
           onClick={() => onSelect(index)}
           checked={node.isSelected}
           type="button"
-          className="self-center mr-4"
+          className="self-center mr-2"
         />
 
         <div
-          className={`${node.hasChildren ? 'tree-branch' : ''} ${
-            node.collapsed ? 'tree-item-closed' : 'tree-item-open'
-          }`}
-          // onClick={(e) => onSelect(e, node)}
-          onClick={() => onOpen(node)}
-          style={{
-            position: 'absolute',
-            left: `${left}px`,
-            width: `calc(100% - ${left}px)`,
+          className="flex flex-row w-full justify-between items-center"
+          onClick={() => {
+            onOpen(node);
           }}
         >
           <span className="truncate font-medium text-sm">{node.name}</span>
+          <div className="mr-2">
+            {node.hasChildren && node.collapsed && <ChevronDownIcon />}
+            {node.hasChildren && !node.collapsed && <ChevronUpIcon />}
+          </div>
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@ export const SchemaTreeAutoResize = ({ data }: SchemaTreeProps) => {
           className="List"
           height={height}
           itemCount={flattenedData.length}
-          itemSize={32}
+          itemSize={38}
           width={width}
           itemKey={(index) => flattenedData[index].id}
           itemData={itemData}
