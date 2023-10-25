@@ -187,8 +187,7 @@ Some resources to help you along the way:
 
 - [Docs](https://docs.neosync.dev) for comprehensive documentation and guides: Note these are still a work in progress.
 - [Slack](https://join.slack.com/t/neosynccommunity/shared_invite/zt-1o3g7cned-OTBKzNj3InDm1YmpYdqRXg) for discussion with the community and Neosync team
-  <!-- - [Github](https://github.com/nucleuscloud/neosync) -->
-- [X](https://x.com/neosyncloud) for the latest updates
+- [X](https://x.com/neosynccloud) for the latest updates
 <!-- - [Blog](https://neosync.com/blog) for insights, articles and more
 - [Roadmap](https://neosync.dev/roadmap) for future development -->
 
