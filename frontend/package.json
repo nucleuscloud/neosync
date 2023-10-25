@@ -66,7 +66,7 @@
     "autoprefixer": "^10.4.16",
     "eslint": "8.52.0",
     "eslint-config-next": "13.5.6",
-    "knip": "^2.38.0",
+    "knip": "^2.38.1",
     "postcss": "^8.4.31",
     "prettier": "^3.0.3",
     "tailwindcss": "^3.3.3",
