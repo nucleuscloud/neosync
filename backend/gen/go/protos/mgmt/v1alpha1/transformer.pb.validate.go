@@ -997,6 +997,492 @@ var _ interface {
 	ErrorName() string
 } = DeleteCustomTransformerResponseValidationError{}
 
+// Validate checks the field values on UpdateCustomTransformerRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateCustomTransformerRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateCustomTransformerRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// UpdateCustomTransformerRequestMultiError, or nil if none found.
+func (m *UpdateCustomTransformerRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateCustomTransformerRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for TransformerId
+
+	// no validation rules for Name
+
+	// no validation rules for Description
+
+	if all {
+		switch v := interface{}(m.GetTransformerConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateCustomTransformerRequestValidationError{
+					field:  "TransformerConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateCustomTransformerRequestValidationError{
+					field:  "TransformerConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTransformerConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateCustomTransformerRequestValidationError{
+				field:  "TransformerConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateCustomTransformerRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateCustomTransformerRequestMultiError is an error wrapping multiple
+// validation errors returned by UpdateCustomTransformerRequest.ValidateAll()
+// if the designated constraints aren't met.
+type UpdateCustomTransformerRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateCustomTransformerRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateCustomTransformerRequestMultiError) AllErrors() []error { return m }
+
+// UpdateCustomTransformerRequestValidationError is the validation error
+// returned by UpdateCustomTransformerRequest.Validate if the designated
+// constraints aren't met.
+type UpdateCustomTransformerRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateCustomTransformerRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateCustomTransformerRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateCustomTransformerRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateCustomTransformerRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateCustomTransformerRequestValidationError) ErrorName() string {
+	return "UpdateCustomTransformerRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateCustomTransformerRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateCustomTransformerRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateCustomTransformerRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateCustomTransformerRequestValidationError{}
+
+// Validate checks the field values on UpdateCustomTransformerResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpdateCustomTransformerResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateCustomTransformerResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// UpdateCustomTransformerResponseMultiError, or nil if none found.
+func (m *UpdateCustomTransformerResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateCustomTransformerResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetTransformer()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpdateCustomTransformerResponseValidationError{
+					field:  "Transformer",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpdateCustomTransformerResponseValidationError{
+					field:  "Transformer",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTransformer()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdateCustomTransformerResponseValidationError{
+				field:  "Transformer",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpdateCustomTransformerResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateCustomTransformerResponseMultiError is an error wrapping multiple
+// validation errors returned by UpdateCustomTransformerResponse.ValidateAll()
+// if the designated constraints aren't met.
+type UpdateCustomTransformerResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateCustomTransformerResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateCustomTransformerResponseMultiError) AllErrors() []error { return m }
+
+// UpdateCustomTransformerResponseValidationError is the validation error
+// returned by UpdateCustomTransformerResponse.Validate if the designated
+// constraints aren't met.
+type UpdateCustomTransformerResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateCustomTransformerResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateCustomTransformerResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateCustomTransformerResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateCustomTransformerResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateCustomTransformerResponseValidationError) ErrorName() string {
+	return "UpdateCustomTransformerResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateCustomTransformerResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateCustomTransformerResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateCustomTransformerResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateCustomTransformerResponseValidationError{}
+
+// Validate checks the field values on IsTransformerNameAvailableRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *IsTransformerNameAvailableRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on IsTransformerNameAvailableRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// IsTransformerNameAvailableRequestMultiError, or nil if none found.
+func (m *IsTransformerNameAvailableRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *IsTransformerNameAvailableRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	// no validation rules for TransformerName
+
+	if len(errors) > 0 {
+		return IsTransformerNameAvailableRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// IsTransformerNameAvailableRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// IsTransformerNameAvailableRequest.ValidateAll() if the designated
+// constraints aren't met.
+type IsTransformerNameAvailableRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m IsTransformerNameAvailableRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m IsTransformerNameAvailableRequestMultiError) AllErrors() []error { return m }
+
+// IsTransformerNameAvailableRequestValidationError is the validation error
+// returned by IsTransformerNameAvailableRequest.Validate if the designated
+// constraints aren't met.
+type IsTransformerNameAvailableRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e IsTransformerNameAvailableRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e IsTransformerNameAvailableRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e IsTransformerNameAvailableRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e IsTransformerNameAvailableRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e IsTransformerNameAvailableRequestValidationError) ErrorName() string {
+	return "IsTransformerNameAvailableRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e IsTransformerNameAvailableRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sIsTransformerNameAvailableRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = IsTransformerNameAvailableRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = IsTransformerNameAvailableRequestValidationError{}
+
+// Validate checks the field values on IsTransformerNameAvailableResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *IsTransformerNameAvailableResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on IsTransformerNameAvailableResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// IsTransformerNameAvailableResponseMultiError, or nil if none found.
+func (m *IsTransformerNameAvailableResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *IsTransformerNameAvailableResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for IsAvailable
+
+	if len(errors) > 0 {
+		return IsTransformerNameAvailableResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// IsTransformerNameAvailableResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// IsTransformerNameAvailableResponse.ValidateAll() if the designated
+// constraints aren't met.
+type IsTransformerNameAvailableResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m IsTransformerNameAvailableResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m IsTransformerNameAvailableResponseMultiError) AllErrors() []error { return m }
+
+// IsTransformerNameAvailableResponseValidationError is the validation error
+// returned by IsTransformerNameAvailableResponse.Validate if the designated
+// constraints aren't met.
+type IsTransformerNameAvailableResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e IsTransformerNameAvailableResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e IsTransformerNameAvailableResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e IsTransformerNameAvailableResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e IsTransformerNameAvailableResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e IsTransformerNameAvailableResponseValidationError) ErrorName() string {
+	return "IsTransformerNameAvailableResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e IsTransformerNameAvailableResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sIsTransformerNameAvailableResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = IsTransformerNameAvailableResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = IsTransformerNameAvailableResponseValidationError{}
+
 // Validate checks the field values on CustomTransformer with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.

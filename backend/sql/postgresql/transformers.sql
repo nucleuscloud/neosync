@@ -17,3 +17,20 @@ RETURNING *;
 
 -- name: DeleteCustomTransformerById :exec
 DELETE FROM neosync_api.transformers WHERE id = $1;
+
+
+-- name: UpdateCustomTransformer :one
+UPDATE neosync_api.transformers
+SET 
+  name = $1,
+  description = $2,
+  transformer_config = $3,
+  updated_by_id = $4
+WHERE id = $5
+RETURNING *;
+
+
+-- name: IsTransformerNameAvailable :one
+SELECT count(c.id) from neosync_api.transformers t
+INNER JOIN neosync_api.accounts a ON a.id = t.account_id
+WHERE a.id = sqlc.arg('accountId') and t.name = sqlc.arg('transformerName');
