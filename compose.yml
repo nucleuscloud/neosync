@@ -1,6 +1,7 @@
 name: neosync
 services:
-  webapp:
+  app:
+    container_name: neosync-app
     image: neosync-app
     build:
       context: ./frontend
@@ -27,6 +28,7 @@ services:
             - frontend/node_modules/
 
   db:
+    container_name: neosync-db
     image: postgres:15
     ports:
       - 5432:5432
@@ -43,6 +45,7 @@ services:
       - neosync-network
 
   db-migrations:
+    container_name: neosync-db-migrations
     image: neosync-api-db-migrations
     build:
       context: ./backend
@@ -59,6 +62,7 @@ services:
         restart: true
 
   api:
+    container_name: neosync-api
     image: neosync-api
     build:
       context: ./backend
@@ -90,6 +94,7 @@ services:
           target: /app
 
   worker:
+    container_name: neosync-worker
     image: neosync-worker
     build:
       context: ./worker
