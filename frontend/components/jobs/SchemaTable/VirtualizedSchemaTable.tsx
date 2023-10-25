@@ -18,7 +18,7 @@ import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { CheckIcon, UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { AiOutlineFilter } from 'react-icons/ai';
 import { FixedSizeList as List, areEqual } from 'react-window';
@@ -96,29 +96,56 @@ function Cell(props: CellProps) {
   return <span className="truncate font-medium text-sm">{value}</span>;
 }
 
-function getUniqueFilters(rows: Row[]): Record<string, string[]> {
-  const filterSet: Record<string, Record<string, string>> = {
-    schema: {},
-    table: {},
-    column: {},
-    dataType: {},
-    transformer: {},
+function shouldFilterRowByColumnId(
+  row: Row,
+  columnFilters: Record<string, string[]>,
+  columnId: string
+): boolean {
+  for (const key of Object.keys(columnFilters)) {
+    if (key == columnId) {
+      continue;
+    }
+    const filters = columnFilters[key];
+    if (filters.length == 0) {
+      continue;
+    }
+    const value = row[key];
+    if (!filters.includes(value)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function getUniqueFiltersByColumn(
+  rows: Row[],
+  columnFilters: Record<string, string[]>,
+  columnId: string
+): string[] {
+  const uniqueColFilters: Record<string, string> = {};
+  const filteredRows = rows.filter((r) =>
+    shouldFilterRowByColumnId(r, columnFilters, columnId)
+  );
+  filteredRows.forEach((r) => {
+    const value = r[columnId];
+    uniqueColFilters[value] = value;
+  });
+
+  return Object.keys(uniqueColFilters).sort();
+}
+
+function getUniqueFilters(
+  rows: Row[],
+  columnFilters: Record<string, string[]>
+): Record<string, string[]> {
+  const filterSet: Record<string, string[]> = {
+    schema: getUniqueFiltersByColumn(rows, columnFilters, 'schema'),
+    table: getUniqueFiltersByColumn(rows, columnFilters, 'table'),
+    column: getUniqueFiltersByColumn(rows, columnFilters, 'column'),
+    dataType: getUniqueFiltersByColumn(rows, columnFilters, 'dataType'),
+    transformer: getUniqueFiltersByColumn(rows, columnFilters, 'transformer'),
   };
-
-  rows.forEach((r) => {
-    filterSet.schema[r.schema] = r.schema;
-    filterSet.table[r.table] = r.table;
-    filterSet.column[r.column] = r.column;
-    filterSet.dataType[r.dataType] = r.dataType;
-    filterSet.transformer[r.transformer.value] = r.transformer.value;
-  });
-
-  const uniqueFilters: Record<string, string[]> = {};
-  Object.keys(filterSet).forEach((k) => {
-    const filters = filterSet[k];
-    uniqueFilters[k] = Object.keys(filters).sort();
-  });
-  return uniqueFilters;
+  return filterSet;
 }
 
 // This helper function memoizes incoming props,
@@ -137,6 +164,7 @@ interface VirtualizedSchemaListProps {
   height: number;
   width: number;
   rows: Row[];
+  allRows: Row[];
   onSelect: (index: number) => void;
   onSelectAll: (value: boolean) => void;
   bulkSelect: boolean;
@@ -150,6 +178,7 @@ interface VirtualizedSchemaListProps {
 function VirtualizedSchemaList({
   height,
   rows,
+  allRows,
   onSelect,
   onSelectAll,
   width,
@@ -163,7 +192,10 @@ function VirtualizedSchemaList({
   // It will be accessible to item renderers as props.data.
   // Memoize this data to avoid bypassing shouldComponentUpdate().
   const rowData = createRowData(rows, onSelect, onSelectAll, transformers);
-  const uniqueFilters = getUniqueFilters(rows);
+  const uniqueFilters = useMemo(
+    () => getUniqueFilters(allRows, columnFilters),
+    [allRows, columnFilters]
+  );
 
   return (
     <div className={` border rounded-md w-[${width}px] `}>
@@ -278,9 +310,7 @@ export const TableList = memo(function TableList({
         if (colFilters.length == 0) {
           delete newFilters[columnId];
         }
-        const filteredRows = data.filter((r) => {
-          return shouldFilterRow(r, newFilters);
-        });
+        const filteredRows = data.filter((r) => shouldFilterRow(r, newFilters));
         setRows(filteredRows);
         return newFilters;
       });
@@ -349,6 +379,7 @@ export const TableList = memo(function TableList({
       <VirtualizedSchemaList
         height={height}
         rows={rows}
+        allRows={data}
         onSelect={onSelect}
         onSelectAll={onSelectAll}
         transformers={transformers}
