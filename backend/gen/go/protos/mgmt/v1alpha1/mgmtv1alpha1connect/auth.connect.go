@@ -33,18 +33,22 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// AuthServiceGetNewAccessTokenProcedure is the fully-qualified name of the AuthService's
-	// GetNewAccessToken RPC.
-	AuthServiceGetNewAccessTokenProcedure = "/mgmt.v1alpha1.AuthService/GetNewAccessToken"
 	// AuthServiceGetAccessTokenProcedure is the fully-qualified name of the AuthService's
 	// GetAccessToken RPC.
 	AuthServiceGetAccessTokenProcedure = "/mgmt.v1alpha1.AuthService/GetAccessToken"
+	// AuthServiceRefreshAccessTokenProcedure is the fully-qualified name of the AuthService's
+	// RefreshAccessToken RPC.
+	AuthServiceRefreshAccessTokenProcedure = "/mgmt.v1alpha1.AuthService/RefreshAccessToken"
+	// AuthServiceGetAuthStatusProcedure is the fully-qualified name of the AuthService's GetAuthStatus
+	// RPC.
+	AuthServiceGetAuthStatusProcedure = "/mgmt.v1alpha1.AuthService/GetAuthStatus"
 )
 
 // AuthServiceClient is a client for the mgmt.v1alpha1.AuthService service.
 type AuthServiceClient interface {
-	GetNewAccessToken(context.Context, *connect.Request[v1alpha1.GetNewAccessTokenRequest]) (*connect.Response[v1alpha1.GetNewAccessTokenResponse], error)
 	GetAccessToken(context.Context, *connect.Request[v1alpha1.GetAccessTokenRequest]) (*connect.Response[v1alpha1.GetAccessTokenResponse], error)
+	RefreshAccessToken(context.Context, *connect.Request[v1alpha1.RefreshAccessTokenRequest]) (*connect.Response[v1alpha1.RefreshAccessTokenResponse], error)
+	GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the mgmt.v1alpha1.AuthService service. By default,
@@ -57,14 +61,19 @@ type AuthServiceClient interface {
 func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AuthServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &authServiceClient{
-		getNewAccessToken: connect.NewClient[v1alpha1.GetNewAccessTokenRequest, v1alpha1.GetNewAccessTokenResponse](
-			httpClient,
-			baseURL+AuthServiceGetNewAccessTokenProcedure,
-			opts...,
-		),
 		getAccessToken: connect.NewClient[v1alpha1.GetAccessTokenRequest, v1alpha1.GetAccessTokenResponse](
 			httpClient,
 			baseURL+AuthServiceGetAccessTokenProcedure,
+			opts...,
+		),
+		refreshAccessToken: connect.NewClient[v1alpha1.RefreshAccessTokenRequest, v1alpha1.RefreshAccessTokenResponse](
+			httpClient,
+			baseURL+AuthServiceRefreshAccessTokenProcedure,
+			opts...,
+		),
+		getAuthStatus: connect.NewClient[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse](
+			httpClient,
+			baseURL+AuthServiceGetAuthStatusProcedure,
 			opts...,
 		),
 	}
@@ -72,13 +81,9 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	getNewAccessToken *connect.Client[v1alpha1.GetNewAccessTokenRequest, v1alpha1.GetNewAccessTokenResponse]
-	getAccessToken    *connect.Client[v1alpha1.GetAccessTokenRequest, v1alpha1.GetAccessTokenResponse]
-}
-
-// GetNewAccessToken calls mgmt.v1alpha1.AuthService.GetNewAccessToken.
-func (c *authServiceClient) GetNewAccessToken(ctx context.Context, req *connect.Request[v1alpha1.GetNewAccessTokenRequest]) (*connect.Response[v1alpha1.GetNewAccessTokenResponse], error) {
-	return c.getNewAccessToken.CallUnary(ctx, req)
+	getAccessToken     *connect.Client[v1alpha1.GetAccessTokenRequest, v1alpha1.GetAccessTokenResponse]
+	refreshAccessToken *connect.Client[v1alpha1.RefreshAccessTokenRequest, v1alpha1.RefreshAccessTokenResponse]
+	getAuthStatus      *connect.Client[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse]
 }
 
 // GetAccessToken calls mgmt.v1alpha1.AuthService.GetAccessToken.
@@ -86,10 +91,21 @@ func (c *authServiceClient) GetAccessToken(ctx context.Context, req *connect.Req
 	return c.getAccessToken.CallUnary(ctx, req)
 }
 
+// RefreshAccessToken calls mgmt.v1alpha1.AuthService.RefreshAccessToken.
+func (c *authServiceClient) RefreshAccessToken(ctx context.Context, req *connect.Request[v1alpha1.RefreshAccessTokenRequest]) (*connect.Response[v1alpha1.RefreshAccessTokenResponse], error) {
+	return c.refreshAccessToken.CallUnary(ctx, req)
+}
+
+// GetAuthStatus calls mgmt.v1alpha1.AuthService.GetAuthStatus.
+func (c *authServiceClient) GetAuthStatus(ctx context.Context, req *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error) {
+	return c.getAuthStatus.CallUnary(ctx, req)
+}
+
 // AuthServiceHandler is an implementation of the mgmt.v1alpha1.AuthService service.
 type AuthServiceHandler interface {
-	GetNewAccessToken(context.Context, *connect.Request[v1alpha1.GetNewAccessTokenRequest]) (*connect.Response[v1alpha1.GetNewAccessTokenResponse], error)
 	GetAccessToken(context.Context, *connect.Request[v1alpha1.GetAccessTokenRequest]) (*connect.Response[v1alpha1.GetAccessTokenResponse], error)
+	RefreshAccessToken(context.Context, *connect.Request[v1alpha1.RefreshAccessTokenRequest]) (*connect.Response[v1alpha1.RefreshAccessTokenResponse], error)
+	GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -98,22 +114,29 @@ type AuthServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	authServiceGetNewAccessTokenHandler := connect.NewUnaryHandler(
-		AuthServiceGetNewAccessTokenProcedure,
-		svc.GetNewAccessToken,
-		opts...,
-	)
 	authServiceGetAccessTokenHandler := connect.NewUnaryHandler(
 		AuthServiceGetAccessTokenProcedure,
 		svc.GetAccessToken,
 		opts...,
 	)
+	authServiceRefreshAccessTokenHandler := connect.NewUnaryHandler(
+		AuthServiceRefreshAccessTokenProcedure,
+		svc.RefreshAccessToken,
+		opts...,
+	)
+	authServiceGetAuthStatusHandler := connect.NewUnaryHandler(
+		AuthServiceGetAuthStatusProcedure,
+		svc.GetAuthStatus,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case AuthServiceGetNewAccessTokenProcedure:
-			authServiceGetNewAccessTokenHandler.ServeHTTP(w, r)
 		case AuthServiceGetAccessTokenProcedure:
 			authServiceGetAccessTokenHandler.ServeHTTP(w, r)
+		case AuthServiceRefreshAccessTokenProcedure:
+			authServiceRefreshAccessTokenHandler.ServeHTTP(w, r)
+		case AuthServiceGetAuthStatusProcedure:
+			authServiceGetAuthStatusHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -123,10 +146,14 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 // UnimplementedAuthServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAuthServiceHandler struct{}
 
-func (UnimplementedAuthServiceHandler) GetNewAccessToken(context.Context, *connect.Request[v1alpha1.GetNewAccessTokenRequest]) (*connect.Response[v1alpha1.GetNewAccessTokenResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.GetNewAccessToken is not implemented"))
-}
-
 func (UnimplementedAuthServiceHandler) GetAccessToken(context.Context, *connect.Request[v1alpha1.GetAccessTokenRequest]) (*connect.Response[v1alpha1.GetAccessTokenResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.GetAccessToken is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) RefreshAccessToken(context.Context, *connect.Request[v1alpha1.RefreshAccessTokenRequest]) (*connect.Response[v1alpha1.RefreshAccessTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.RefreshAccessToken is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.GetAuthStatus is not implemented"))
 }

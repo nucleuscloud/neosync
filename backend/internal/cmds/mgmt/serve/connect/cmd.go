@@ -20,6 +20,7 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
@@ -88,7 +89,7 @@ func serve() error {
 	}
 
 	temporalConfig := getTemporalConfig(logger)
-	temporalClient, err := temporalclient.Dial(*temporalConfig)
+	temporalClient, err := temporalclient.NewLazyClient(*temporalConfig)
 	if err != nil {
 		return err
 	}
@@ -165,17 +166,28 @@ func serve() error {
 		),
 	)
 
+	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{})
+	api.Handle(
+		mgmtv1alpha1connect.NewAuthServiceHandler(
+			authService,
+			connect.WithInterceptors(
+				otelconnect.NewInterceptor(),
+				logger_interceptor.NewInterceptor(logger),
+				validateInterceptor,
+			),
+		),
+	)
+
 	mux.Handle("/", api)
 
-	addr := fmt.Sprintf("%s:%d", host, port)
-
-	logger.Info(fmt.Sprintf("listening on %s", addr))
 	httpServer := http.Server{
-		Addr:              addr,
+		Addr:              fmt.Sprintf("%s:%d", host, port),
 		Handler:           h2c.NewHandler(mux, &http2.Server{}),
 		ErrorLog:          loglogger,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
+
+	logger.Info(fmt.Sprintf("listening on %s", httpServer.Addr))
 
 	if err = httpServer.ListenAndServe(); err != nil {
 		logger.Error(err.Error())

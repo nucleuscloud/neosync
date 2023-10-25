@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetAccessTokenRequest, GetAccessTokenResponse, GetNewAccessTokenRequest, GetNewAccessTokenResponse } from "./auth_pb";
+import { GetAccessTokenRequest, GetAccessTokenResponse, GetAuthStatusRequest, GetAuthStatusResponse, RefreshAccessTokenRequest, RefreshAccessTokenResponse } from "./auth_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -13,21 +13,30 @@ export const AuthService = {
   typeName: "mgmt.v1alpha1.AuthService",
   methods: {
     /**
-     * @generated from rpc mgmt.v1alpha1.AuthService.GetNewAccessToken
-     */
-    getNewAccessToken: {
-      name: "GetNewAccessToken",
-      I: GetNewAccessTokenRequest,
-      O: GetNewAccessTokenResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * @generated from rpc mgmt.v1alpha1.AuthService.GetAccessToken
      */
     getAccessToken: {
       name: "GetAccessToken",
       I: GetAccessTokenRequest,
       O: GetAccessTokenResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.AuthService.RefreshAccessToken
+     */
+    refreshAccessToken: {
+      name: "RefreshAccessToken",
+      I: RefreshAccessTokenRequest,
+      O: RefreshAccessTokenResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.AuthService.GetAuthStatus
+     */
+    getAuthStatus: {
+      name: "GetAuthStatus",
+      I: GetAuthStatusRequest,
+      O: GetAuthStatusResponse,
       kind: MethodKind.Unary,
     },
   }
