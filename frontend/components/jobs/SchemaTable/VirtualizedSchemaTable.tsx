@@ -1,19 +1,38 @@
 import EditTransformerOptions from '@/app/transformers/EditTransformerOptions';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { UpdateIcon } from '@radix-ui/react-icons';
+import { CheckIcon, UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import { memo, useCallback, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { AiOutlineFilter } from 'react-icons/ai';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import TansformerSelect from './TransformerSelect';
+
+interface RowProps {
+  index: number;
+  // data:
+}
 
 // If list items are expensive to render,
 // Consider using PureComponent to avoid unnecessary re-renders.
 // https://reactjs.org/docs/react-api.html#reactpurecomponent
-const Row = memo(function Row({ data, index, style }) {
+const Row = memo(function Row({ data, index, style }: RowProps) {
   // Data passed to List as "itemData" is available as props.data
   const { items, onSelect, transformers } = data;
   const item = items[index];
@@ -68,6 +87,40 @@ const Row = memo(function Row({ data, index, style }) {
 }, areEqual);
 Row.displayName = 'row';
 
+interface CellProps {
+  value: string;
+}
+
+function Cell(props: CellProps) {
+  const { value } = props;
+  return <span className="truncate font-medium text-sm">{value}</span>;
+}
+
+function getUniqueFilters(rows: Row[]): Record<string, string[]> {
+  const filterSet: Record<string, Record<string, string>> = {
+    schema: {},
+    table: {},
+    column: {},
+    dataType: {},
+    transformer: {},
+  };
+
+  rows.forEach((r) => {
+    filterSet.schema[r.schema] = r.schema;
+    filterSet.table[r.table] = r.table;
+    filterSet.column[r.column] = r.column;
+    filterSet.dataType[r.dataType] = r.dataType;
+    filterSet.transformer[r.transformer.value] = r.transformer.value;
+  });
+
+  const uniqueFilters: Record<string, string[]> = {};
+  Object.keys(filterSet).forEach((k) => {
+    const filters = filterSet[k];
+    uniqueFilters[k] = Object.keys(filters).sort();
+  });
+  return uniqueFilters;
+}
+
 // This helper function memoizes incoming props,
 // To avoid causing unnecessary re-renders pure Row components.
 // This is only needed since we are passing multiple props with a wrapper object.
@@ -80,9 +133,21 @@ const createRowData = memoize((items, onSelect, onSelectAll, transformers) => ({
   transformers,
 }));
 
+interface VirtualizedSchemaListProps {
+  height: number;
+  width: number;
+  rows: Row[];
+  onSelect: (index: number) => void;
+  onSelectAll: (value: boolean) => void;
+  bulkSelect: boolean;
+  setBulkSelect: (value: boolean) => void;
+  columnFilters: Record<string, string[]>;
+  onFilterSelect: (columnId: string, newValues: string[]) => void;
+  transformers?: Transformer[];
+}
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.
-function Example({
+function VirtualizedSchemaList({
   height,
   rows,
   onSelect,
@@ -91,15 +156,18 @@ function Example({
   transformers,
   bulkSelect,
   setBulkSelect,
-}) {
+  columnFilters,
+  onFilterSelect,
+}: VirtualizedSchemaListProps) {
   // Bundle additional data to list items using the "itemData" prop.
   // It will be accessible to item renderers as props.data.
   // Memoize this data to avoid bypassing shouldComponentUpdate().
   const rowData = createRowData(rows, onSelect, onSelectAll, transformers);
+  const uniqueFilters = getUniqueFilters(rows);
 
   return (
-    <div className={`space-y-4 border rounded-md w-[${width}px]`}>
-      <div className={`grid grid-cols-5 gap-2 pl-2 pt-4`}>
+    <div className={` border rounded-md w-[${width}px] `}>
+      <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 pb-1 bg-muted`}>
         <div className="flex flex-row">
           <Checkbox
             id="select"
@@ -111,12 +179,51 @@ function Example({
             type="button"
             className="self-center mr-4"
           />
-          Schema
+
+          <span className="text-xs self-center">Schema</span>
+          <FilterSelect
+            columnId="schema"
+            allColumnFilters={columnFilters}
+            setColumnFilters={onFilterSelect}
+            possibleFilters={uniqueFilters.schema}
+          />
         </div>
-        <div className="">Table</div>
-        <div className="">Column</div>
-        <div className="">Data Type</div>
-        <div className="">Transformer</div>
+        <div className="flex flex-row">
+          <span className="text-xs self-center">Table</span>
+          <FilterSelect
+            columnId="table"
+            allColumnFilters={columnFilters}
+            setColumnFilters={onFilterSelect}
+            possibleFilters={uniqueFilters.table}
+          />
+        </div>
+        <div className="flex flex-row">
+          <span className="text-xs self-center">Column</span>
+          <FilterSelect
+            columnId="column"
+            allColumnFilters={columnFilters}
+            setColumnFilters={onFilterSelect}
+            possibleFilters={uniqueFilters.column}
+          />
+        </div>
+        <div className="flex flex-row">
+          <span className="text-xs self-center">Data Type</span>
+          <FilterSelect
+            columnId="dataType"
+            allColumnFilters={columnFilters}
+            setColumnFilters={onFilterSelect}
+            possibleFilters={uniqueFilters.dataType}
+          />
+        </div>
+        <div className="flex flex-row">
+          <span className="text-xs self-center">Transformer</span>
+          <FilterSelect
+            columnId="transformer"
+            allColumnFilters={columnFilters}
+            setColumnFilters={onFilterSelect}
+            possibleFilters={uniqueFilters.transformer}
+          />
+        </div>
       </div>
       <List
         height={height}
@@ -129,6 +236,18 @@ function Example({
       </List>
     </div>
   );
+}
+
+interface Row {
+  table: string;
+  transformer: {
+    value: string;
+    config: {};
+  };
+  schema: string;
+  column: string;
+  dataType: string;
+  isSelected: boolean;
 }
 
 interface SchemaListProps {
@@ -147,7 +266,25 @@ export const TableList = memo(function TableList({
   const [rows, setRows] = useState(data);
   const [transformer, setTransformer] = useState<string>('');
   const [bulkSelect, setBulkSelect] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>(
+    {}
+  );
   const form = useFormContext();
+
+  const onFilterSelect = useCallback(
+    (columnId: string, newValues: string[]) => {
+      setColumnFilters((prevFilters) => {
+        const newItems = prevFilters;
+        newItems[columnId] = newValues;
+        return newItems;
+      });
+      setRows((prevItems) => {
+        const newItems = [...prevItems];
+        return newItems.filter((r) => newValues.includes(r[columnId]));
+      });
+    },
+    []
+  );
 
   const onSelect = useCallback((index: number) => {
     setRows((prevItems) => {
@@ -173,7 +310,7 @@ export const TableList = memo(function TableList({
   }, []);
 
   return (
-    <div className={`space-y-4 w-[${width + 20}px]`}>
+    <div className={`space-y-2 w-[${width}px]`}>
       <div className="flex items-center justify-between">
         <div className="w-[250px]">
           <TansformerSelect
@@ -197,17 +334,17 @@ export const TableList = memo(function TableList({
         <Button
           variant="outline"
           type="button"
-          // onClick={() => {
-          //   table.setColumnFilters([]);
-          //   onClearFilters();
-          // }}
+          onClick={() => {
+            setColumnFilters({});
+            setRows(data);
+          }}
         >
           Clear filters
           <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </div>
 
-      <Example
+      <VirtualizedSchemaList
         height={height}
         rows={rows}
         onSelect={onSelect}
@@ -215,17 +352,84 @@ export const TableList = memo(function TableList({
         transformers={transformers}
         bulkSelect={bulkSelect}
         setBulkSelect={setBulkSelect}
+        columnFilters={columnFilters}
+        onFilterSelect={onFilterSelect}
         width={width}
       />
     </div>
   );
 });
 
-interface CellProps {
-  value: string;
+interface FilterSelectProps {
+  allColumnFilters: Record<string, string[]>;
+  setColumnFilters: (columnId: string, newValues: string[]) => void;
+  columnId: string;
+  possibleFilters: string[];
 }
 
-function Cell(props: CellProps) {
-  const { value } = props;
-  return <span className="truncate font-medium text-sm">{value}</span>;
+function FilterSelect(props: FilterSelectProps) {
+  const { allColumnFilters, setColumnFilters, columnId, possibleFilters } =
+    props;
+  const [open, setOpen] = useState(false);
+
+  const columnFilters = allColumnFilters[columnId];
+
+  function computeFilters(newValue: string, currentValues: string[]): string[] {
+    if (currentValues.includes(newValue)) {
+      return currentValues.filter((v) => v != newValue);
+    }
+    return [...currentValues, newValue];
+  }
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          role="combobox"
+          aria-expanded={open}
+          className="hover:bg-gray-200 p-2"
+        >
+          <AiOutlineFilter />
+          {columnFilters && columnFilters.length ? (
+            <div
+              id="notifbadge"
+              className="bg-blue-500 w-[6px] h-[6px] text-white rounded-full text-[8px] relative top-[-8px] right-0"
+            />
+          ) : null}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="min-w-[175px] p-0">
+        <Command>
+          <CommandInput placeholder="Search filters..." />
+          <CommandEmpty>No filters found.</CommandEmpty>
+          <CommandGroup>
+            {possibleFilters.map((i, index) => (
+              <CommandItem
+                key={`${i}-${index}`}
+                onSelect={(currentValue) => {
+                  const newValues = computeFilters(
+                    currentValue,
+                    columnFilters || []
+                  );
+                  setColumnFilters(columnId, newValues);
+                  setOpen(false);
+                }}
+                value={i}
+              >
+                <CheckIcon
+                  className={cn(
+                    'mr-2 h-4 w-4',
+                    columnFilters && columnFilters.includes(i)
+                      ? 'opacity-100'
+                      : 'opacity-0'
+                  )}
+                />
+                <span className="truncate">{i}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
 }
