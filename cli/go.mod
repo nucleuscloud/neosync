@@ -3,7 +3,7 @@ module github.com/nucleuscloud/neosync/cli
 go 1.21.1
 
 require (
-	connectrpc.com/connect v1.11.1
+	connectrpc.com/connect v1.12.0
 	github.com/fatih/color v1.15.0
 	github.com/google/uuid v1.3.1
 	github.com/nucleuscloud/neosync/backend v0.0.0-20231013222221-e455d40191d0
