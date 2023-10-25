@@ -5,8 +5,8 @@ package mgmt.v1alpha1;
 import "buf/validate/validate.proto";
 
 message RefreshAccessTokenRequest {
-  string client_id = 1 [(buf.validate.field).string.min_len = 1];
-  string refresh_token = 2 [(buf.validate.field).string.min_len = 1];
+  string refresh_token = 1 [(buf.validate.field).string.min_len = 1];
+  optional string client_id = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message RefreshAccessTokenResponse {
@@ -19,9 +19,9 @@ message RefreshAccessTokenResponse {
 }
 
 message GetAccessTokenRequest {
-  string client_id = 1 [(buf.validate.field).string.min_len = 1];
-  string code = 2 [(buf.validate.field).string.min_len = 1];
-  string redirect_uri = 3 [(buf.validate.field).string.min_len = 1];
+  string code = 1 [(buf.validate.field).string.min_len = 1];
+  optional string client_id = 2 [(buf.validate.field).string.min_len = 1];
+  optional string redirect_uri = 3 [(buf.validate.field).string.min_len = 1];
 }
 
 message GetAccessTokenResponse {
