@@ -64,12 +64,24 @@ You can also check out our [Docs](https://docs.neosync.dev) for more guides incl
 
 To set up and run Neosync locally, make sure you have Git and Docker installed on your system.
 
+The sections below detail the tools required to build and run the Neosync development environment.
+This can be circumvented by using our official devcontainer which comes pre-installed with all of the tools necessary.
+
+There are then two ways to start Neosync:
+
+- Tilt
+- Docker Compose
+
+Tilt is the method we currently use to development Neosync. This lets us develop as if we are running inside of a Kubernetes cluster.
+This isn't for everyone, which is we also offer a compose method for a simpler, kubernetesless approach.
+
+Check out the sections below for which method applies to you.
+
 ### Tools
 
 Currently, the primary development environment is done by deploying the app and its dependent resources into a `kind` cluster using `tilt`.
 We utilize `helm` charts to wrap up deployable artifacts and have `tilt` install these to closely mimic a production environment.
 Due to this, there are a number of dependencies that must be installed on a host system prior to being able to run `neosync` locally.
-We are working on making this smoother by providing a `devcontainer` that comes pre-installed with all of the dependencies required.
 
 Detailed below are the main dependencies are descriptions of how they are utilized:
 
@@ -122,6 +134,12 @@ Each tool above can be straightforwardly installed with brew if on Linux/MacOS
 brew install kind tilt-dev/tap/tilt tilt-dev/tap/ctlptl kubernetes-cli kustomize helm helmfile go sqlc buf golangci-lint node
 ```
 
+### Devcontainer
+
+Host machine setup can be skipped by developing inside of a vscode devcontainer.
+This container comes pre-baked with all of the tools we use to develop and work on neosync.
+This container also supports running neosync with compose or tilt.
+
 ### Setup with Tilt
 
 Step 1 is to ensure that the `kind` cluster is up and running along with its registry.
@@ -145,20 +163,32 @@ Once everything is up and running, the app can be accessed at locally at `http:/
 
 ### Setup with Docker Compose
 
-We've spent time making the development process smooth with kind and Tilt.
-However, we understand not everyone wants to develop or is comfortable working inside of a Kubernetes cluster.
+Neosync can be run with compose. This works pretty well, but is a bit more manual today than with Tilt.
+Not everything is hot-reload, but you can successfully run everything using just compose instead of having to manage a kubernetes cluster and running Tilt.
+To enable hot reloading, must run `docker compose watch` instead of `up`. Currently there is a limitation with devcontainers where this command must be run via `sudo`.
 
-We'd like to support a pure docker compose flow, but haven't had the time to invest into providing that experience yet.
-If this is a killer development feature for you, let us know by submitting a feature request!
+There are two compose files that need to be run today. The first is the Temporal compose, the second is the Neosync compose.
+It's suggested you run these separate (as of today) for a clean separation of concerns.
+
+```
+$ docker compose -f temporal/compose.yml up -d
+$ docker compose -f compose.yml up -d
+```
+
+Once everything is up and running, the app can be accessed locally at `http://localhost:3000`.
+
+Work to be done:
+
+- inherit the temporal compose inside of the neosync compose, separate with compose profiles.
 
 ## Resources
 
 Some resources to help you along the way:
 
 - [Docs](https://docs.neosync.dev) for comprehensive documentation and guides: Note these are still a work in progress.
-  - [Slack](https://join.slack.com/t/neosynccommunity/shared_invite/zt-1o3g7cned-OTBKzNj3InDm1YmpYdqRXg) for discussion with the community and Neosync team
+- [Slack](https://join.slack.com/t/neosynccommunity/shared_invite/zt-1o3g7cned-OTBKzNj3InDm1YmpYdqRXg) for discussion with the community and Neosync team
   <!-- - [Github](https://github.com/nucleuscloud/neosync) -->
-- [Twitter](https://twitter.com/neosyncloud) for the latest updates
+- [X](https://x.com/neosyncloud) for the latest updates
 <!-- - [Blog](https://neosync.com/blog) for insights, articles and more
 - [Roadmap](https://neosync.dev/roadmap) for future development -->
 
@@ -186,8 +216,9 @@ This causes all artifacts for the various components in the system to build and 
 The tag format is a semver compliant tag that starts with `v`.
 
 Examples:
-* `v0.0.1`
-* `v0.0.1-nick.1`
+
+- `v0.0.1`
+- `v0.0.1-nick.1`
 
 This is done by running the `hack/tag.sh` script like so:
 
@@ -196,6 +227,7 @@ $ ./hack/tag.sh <tag>
 ```
 
 Example:
+
 ```sh
 $ ./hack/tag.sh v0.0.1
 ```

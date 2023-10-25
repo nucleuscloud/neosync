@@ -38,6 +38,9 @@ fi
 if [ "$PG_HOSTNAME" = "neosync-postgresql:5432/nucleus" ]; then
     PG_OPTIONS="${PG_OPTIONS}&sslmode=disable"
 fi
+if [ "$PG_HOSTNAME" = "db:5432/nucleus" ]; then
+    PG_OPTIONS="${PG_OPTIONS}&sslmode=disable"
+fi
 
 SCRIPT_DIR=$(basename "$0")
 
