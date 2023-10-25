@@ -1,32 +1,25 @@
 import EditTransformerOptions from '@/app/transformers/EditTransformerOptions';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { CheckIcon, UpdateIcon } from '@radix-ui/react-icons';
+import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { CSSProperties, memo, useCallback, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { AiOutlineFilter } from 'react-icons/ai';
 import { FixedSizeList as List, areEqual } from 'react-window';
+import ColumnFilterSelect from './ColumnFilterSelect';
 import TansformerSelect from './TransformerSelect';
 
 interface RowProps {
   index: number;
-  // data:
+  style: CSSProperties;
+  data: {
+    rows: Row[];
+    onSelect: (index: number) => void;
+    onSelectAll: (value: boolean) => void;
+    transformers?: Transformer[];
+  };
 }
 
 // If list items are expensive to render,
@@ -34,8 +27,8 @@ interface RowProps {
 // https://reactjs.org/docs/react-api.html#reactpurecomponent
 const Row = memo(function Row({ data, index, style }: RowProps) {
   // Data passed to List as "itemData" is available as props.data
-  const { items, onSelect, transformers } = data;
-  const item = items[index];
+  const { rows, onSelect, transformers } = data;
+  const row = rows[index];
 
   return (
     <div style={style} className="border-t">
@@ -44,15 +37,15 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
           <Checkbox
             id="select"
             onClick={() => onSelect(index)}
-            checked={item.isSelected}
+            checked={row.isSelected}
             type="button"
             className="self-center mr-4"
           />
-          <Cell value={item.schema} />
+          <Cell value={row.schema} />
         </div>
-        <Cell value={item.table} />
-        <Cell value={item.column} />
-        <Cell value={item.dataType} />
+        <Cell value={row.table} />
+        <Cell value={row.column} />
+        <Cell value={row.dataType} />
         <div className=" ">
           <FormField
             name={`mappings.${index}.transformer.value`}
@@ -109,7 +102,7 @@ function shouldFilterRowByColumnId(
     if (filters.length == 0) {
       continue;
     }
-    const value = row[key];
+    const value = key == 'transformer' ? row[key].value : row[key];
     if (!filters.includes(value)) {
       return false;
     }
@@ -127,7 +120,7 @@ function getUniqueFiltersByColumn(
     shouldFilterRowByColumnId(r, columnFilters, columnId)
   );
   filteredRows.forEach((r) => {
-    const value = r[columnId];
+    const value = columnId == 'transformer' ? r[columnId].value : r[columnId];
     uniqueColFilters[value] = value;
   });
 
@@ -153,12 +146,19 @@ function getUniqueFilters(
 // This is only needed since we are passing multiple props with a wrapper object.
 // If we were only passing a single, stable value (e.g. items),
 // We could just pass the value directly.
-const createRowData = memoize((items, onSelect, onSelectAll, transformers) => ({
-  items,
-  onSelect,
-  onSelectAll,
-  transformers,
-}));
+const createRowData = memoize(
+  (
+    rows: Row[],
+    onSelect: (index: number) => void,
+    onSelectAll: (value: boolean) => void,
+    transformers?: Transformer[]
+  ) => ({
+    rows,
+    onSelect,
+    onSelectAll,
+    transformers,
+  })
+);
 
 interface VirtualizedSchemaListProps {
   height: number;
@@ -213,7 +213,7 @@ function VirtualizedSchemaList({
           />
 
           <span className="text-xs self-center">Schema</span>
-          <FilterSelect
+          <ColumnFilterSelect
             columnId="schema"
             allColumnFilters={columnFilters}
             setColumnFilters={onFilterSelect}
@@ -222,7 +222,7 @@ function VirtualizedSchemaList({
         </div>
         <div className="flex flex-row">
           <span className="text-xs self-center">Table</span>
-          <FilterSelect
+          <ColumnFilterSelect
             columnId="table"
             allColumnFilters={columnFilters}
             setColumnFilters={onFilterSelect}
@@ -231,7 +231,7 @@ function VirtualizedSchemaList({
         </div>
         <div className="flex flex-row">
           <span className="text-xs self-center">Column</span>
-          <FilterSelect
+          <ColumnFilterSelect
             columnId="column"
             allColumnFilters={columnFilters}
             setColumnFilters={onFilterSelect}
@@ -240,7 +240,7 @@ function VirtualizedSchemaList({
         </div>
         <div className="flex flex-row">
           <span className="text-xs self-center">Data Type</span>
-          <FilterSelect
+          <ColumnFilterSelect
             columnId="dataType"
             allColumnFilters={columnFilters}
             setColumnFilters={onFilterSelect}
@@ -249,7 +249,7 @@ function VirtualizedSchemaList({
         </div>
         <div className="flex flex-row">
           <span className="text-xs self-center">Transformer</span>
-          <FilterSelect
+          <ColumnFilterSelect
             columnId="transformer"
             allColumnFilters={columnFilters}
             setColumnFilters={onFilterSelect}
@@ -402,84 +402,10 @@ function shouldFilterRow(
     if (filters.length == 0) {
       continue;
     }
-    const value = row[key];
+    const value = key == 'transformer' ? row[key].value : row[key];
     if (!filters.includes(value)) {
       return false;
     }
   }
   return true;
-}
-
-interface FilterSelectProps {
-  allColumnFilters: Record<string, string[]>;
-  setColumnFilters: (columnId: string, newValues: string[]) => void;
-  columnId: string;
-  possibleFilters: string[];
-}
-
-function FilterSelect(props: FilterSelectProps) {
-  const { allColumnFilters, setColumnFilters, columnId, possibleFilters } =
-    props;
-  const [open, setOpen] = useState(false);
-
-  const columnFilters = allColumnFilters[columnId];
-
-  function computeFilters(newValue: string, currentValues: string[]): string[] {
-    if (currentValues.includes(newValue)) {
-      return currentValues.filter((v) => v != newValue);
-    }
-    return [...currentValues, newValue];
-  }
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          role="combobox"
-          aria-expanded={open}
-          className="hover:bg-gray-200 p-2"
-        >
-          <AiOutlineFilter />
-          {columnFilters && columnFilters.length ? (
-            <div
-              id="notifbadge"
-              className="bg-blue-500 w-[6px] h-[6px] text-white rounded-full text-[8px] relative top-[-8px] right-0"
-            />
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="min-w-[175px] p-0">
-        <Command>
-          <CommandInput placeholder="Search filters..." />
-          <CommandEmpty>No filters found.</CommandEmpty>
-          <CommandGroup>
-            {possibleFilters.map((i, index) => (
-              <CommandItem
-                key={`${i}-${index}`}
-                onSelect={(currentValue) => {
-                  const newValues = computeFilters(
-                    currentValue,
-                    columnFilters || []
-                  );
-                  setColumnFilters(columnId, newValues);
-                  setOpen(false);
-                }}
-                value={i}
-              >
-                <CheckIcon
-                  className={cn(
-                    'mr-2 h-4 w-4',
-                    columnFilters && columnFilters.includes(i)
-                      ? 'opacity-100'
-                      : 'opacity-0'
-                  )}
-                />
-                <span className="truncate">{i}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
 }

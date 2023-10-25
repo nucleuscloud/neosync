@@ -36,6 +36,7 @@ export function SchemaTable(props: JobTableProps): ReactElement {
       isSelected: false,
     };
   });
+  // const tableData = makeData(10000);
 
   return (
     <div>
