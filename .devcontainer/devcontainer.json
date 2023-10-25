@@ -1,21 +1,4 @@
 {
   "name": "neosync",
-  "image": "ghcr.io/nucleuscloud/neosync/devcontainer:latest",
-  "forwardPorts": [
-    10350, // tilt
-    8080, // neosync api
-    3000, // neosync app
-    5432, // neosync db
-    8233 // temporal ui
-  ],
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "bufbuild.vscode-buf",
-        "golang.Go",
-        "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss"
-      ]
-    }
-  }
+  "image": "ghcr.io/nucleuscloud/neosync/devcontainer:latest"
 }
