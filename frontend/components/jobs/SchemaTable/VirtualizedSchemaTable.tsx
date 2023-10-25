@@ -272,15 +272,17 @@ export const TableList = memo(function TableList({
   const form = useFormContext();
 
   const onFilterSelect = useCallback(
-    (columnId: string, newValues: string[]) => {
+    (columnId: string, colFilters: string[]) => {
       setColumnFilters((prevFilters) => {
-        const newItems = prevFilters;
-        newItems[columnId] = newValues;
-        return newItems;
-      });
-      setRows((prevItems) => {
-        const newItems = [...prevItems];
-        return newItems.filter((r) => newValues.includes(r[columnId]));
+        const newFilters = { ...prevFilters, [columnId]: colFilters };
+        if (colFilters.length == 0) {
+          delete newFilters[columnId];
+        }
+        const filteredRows = data.filter((r) => {
+          return shouldFilterRow(r, newFilters);
+        });
+        setRows(filteredRows);
+        return newFilters;
       });
     },
     []
@@ -359,6 +361,23 @@ export const TableList = memo(function TableList({
     </div>
   );
 });
+
+function shouldFilterRow(
+  row: Row,
+  columnFilters: Record<string, string[]>
+): boolean {
+  for (const key of Object.keys(columnFilters)) {
+    const filters = columnFilters[key];
+    if (filters.length == 0) {
+      continue;
+    }
+    const value = row[key];
+    if (!filters.includes(value)) {
+      return false;
+    }
+  }
+  return true;
+}
 
 interface FilterSelectProps {
   allColumnFilters: Record<string, string[]>;
