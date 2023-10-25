@@ -111,7 +111,10 @@ func (t *Transformer) FromTransformerDto(tr *mgmtv1alpha1.Transformer) error {
 	t.Value = tr.Value
 
 	config := &TransformerConfigs{}
-	config.FromTransformerConfigDto(tr.Config)
+
+	if err := config.FromTransformerConfigDto(tr.Config); err != nil {
+		return err
+	}
 
 	t.Config = config
 
@@ -211,8 +214,6 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 // DB -> API
 
 func (t *Transformer) ToTransformerDto() *mgmtv1alpha1.Transformer {
-
-	t.Value = t.Value
 
 	config := &TransformerConfigs{}
 	config.ToTransformerConfigDto(t.Config)

@@ -204,7 +204,7 @@ func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Requ
 		UpdatedByID:       *userUuid,
 	}
 
-	customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
+	err = customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -276,11 +276,6 @@ func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	tConfig := &jsonmodels.TransformerConfigs{}
-	if err := tConfig.FromTransformerConfigDto(req.Msg.TransformerConfig); err != nil {
-		return nil, err
-	}
-
 	customTransformer := &db_queries.UpdateCustomTransformerParams{
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
@@ -289,7 +284,7 @@ func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Requ
 		ID:                tUuid,
 	}
 
-	customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
+	err = customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
 	if err != nil {
 		return nil, err
 	}
