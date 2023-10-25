@@ -173,6 +173,7 @@ interface VirtualizedSchemaListProps {
   columnFilters: Record<string, string[]>;
   onFilterSelect: (columnId: string, newValues: string[]) => void;
   transformers?: Transformer[];
+  className: string;
 }
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.
@@ -186,6 +187,7 @@ function VirtualizedSchemaList({
   setBulkSelect,
   columnFilters,
   onFilterSelect,
+  className,
 }: VirtualizedSchemaListProps) {
   // Bundle additional data to list rows using the "rowData" prop.
   // It will be accessible to item renderers as props.data.
@@ -197,7 +199,7 @@ function VirtualizedSchemaList({
   );
 
   return (
-    <div className={`border rounded-md`}>
+    <div className={cn(`grid grid-col-1 border rounded-md`)}>
       <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 pb-1 bg-muted`}>
         <div className="flex flex-row">
           <Checkbox
@@ -255,35 +257,30 @@ function VirtualizedSchemaList({
             possibleFilters={uniqueFilters.transformer}
           />
         </div>
+        <div className="col-span-5"></div>
       </div>
 
-      <AutoSizer>
-        {({ height, width }) => (
-          <List
-            height={height}
-            itemCount={rows.length}
-            itemData={rowData}
-            itemSize={50}
-            width={width}
-          >
-            {Row}
-          </List>
-        )}
-      </AutoSizer>
+      <div className="h-[600px]">
+        <AutoSizer>
+          {({ height, width }) => (
+            <List
+              height={height}
+              itemCount={rows.length}
+              itemData={rowData}
+              itemSize={50}
+              width={width}
+              itemKey={(index) => {
+                const r = rows[index];
+                return `${r.schema}-${r.table}-${r.column}`;
+              }}
+            >
+              {Row}
+            </List>
+          )}
+        </AutoSizer>
+      </div>
     </div>
   );
-}
-
-interface Row {
-  table: string;
-  transformer: {
-    value: string;
-    config: {};
-  };
-  schema: string;
-  column: string;
-  dataType: string;
-  isSelected: boolean;
 }
 
 interface SchemaListProps {
@@ -422,6 +419,7 @@ export const TableList = memo(function TableList({
           setBulkSelect={setBulkSelect}
           columnFilters={columnFilters}
           onFilterSelect={onFilterSelect}
+          className={className}
         />
       </div>
     </div>
