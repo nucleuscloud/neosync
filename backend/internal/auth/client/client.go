@@ -61,9 +61,6 @@ func (c *Client) GetTokenResponse(
 	}
 
 	clientSecret := c.clientIdSecretMap[clientId]
-	// queryVals := url.Values{}
-	// queryVals.Add("grant_type", "authorization_code")
-	// queryVals.Add("client_id", )
 	payload := strings.NewReader(
 		fmt.Sprintf(
 			"grant_type=authorization_code&client_id=%s&client_secret=%s&code=%s&redirect_uri=%s",
