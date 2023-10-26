@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/toqueteos/webbrowser"
@@ -112,7 +113,16 @@ func oAuthLogin(
 		if err != nil {
 			return err
 		}
-		fmt.Println("AccessToken", loginResp.Msg.AccessToken.AccessToken)
+		err = userconfig.SetAccessToken(loginResp.Msg.AccessToken.AccessToken)
+		if err != nil {
+			return err
+		}
+		if loginResp.Msg.AccessToken.RefreshToken != nil {
+			err = userconfig.SetRefreshToken(*loginResp.Msg.AccessToken.RefreshToken)
+			if err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 }
