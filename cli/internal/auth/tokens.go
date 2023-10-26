@@ -39,6 +39,10 @@ func GetToken(ctx context.Context) (string, error) {
 	}
 	_, err = jwtvalidator.ValidateToken(ctx, accessToken)
 	if err != nil {
+		err = userconfig.RemoveAccessToken()
+		if err != nil {
+			return "", err
+		}
 		fmt.Println("access token is no longer valid. attempting to refresh...")
 		refreshtoken, err := userconfig.GetRefreshToken()
 		if err != nil {
