@@ -10,9 +10,166 @@ import { CSSProperties, memo, useCallback, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List, areEqual } from 'react-window';
+import { VirtualizedTree } from '../../VirtualizedTree';
 import ColumnFilterSelect from './ColumnFilterSelect';
 import TansformerSelect from './TransformerSelect';
-import { VirtualizedTree } from './VirtualizedTree';
+
+interface Row {
+  table: string;
+  transformer: {
+    value: string;
+    config: {};
+  };
+  schema: string;
+  column: string;
+  dataType: string;
+  isSelected: boolean;
+}
+
+interface VirtualizedSchemaTableProps {
+  data: Row[];
+  transformers?: Transformer[];
+}
+
+export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
+  data,
+  transformers,
+}: VirtualizedSchemaTableProps) {
+  const [rows, setRows] = useState(data);
+  const [transformer, setTransformer] = useState<string>('');
+  const [bulkSelect, setBulkSelect] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>(
+    {}
+  );
+  const form = useFormContext();
+  const treedata = useMemo(
+    () => getSchemaTreeData(data, columnFilters),
+    [data, columnFilters]
+  );
+  const [treeData, setTreeData] = useState(treedata);
+
+  const onFilterSelect = useCallback(
+    (columnId: string, colFilters: string[]) => {
+      setColumnFilters((prevFilters) => {
+        const newFilters = { ...prevFilters, [columnId]: colFilters };
+        if (colFilters.length == 0) {
+          delete newFilters[columnId];
+        }
+        const filteredRows = data.filter((r) => shouldFilterRow(r, newFilters));
+        setRows(filteredRows);
+        setTreeData(getSchemaTreeData(data, newFilters));
+        return newFilters;
+      });
+    },
+    []
+  );
+
+  const onSelect = useCallback((index: number) => {
+    setRows((prevItems) => {
+      const newItems = [...prevItems];
+      newItems[index] = {
+        ...newItems[index],
+        isSelected: !newItems[index].isSelected,
+      };
+      return newItems;
+    });
+  }, []);
+
+  const onSelectAll = useCallback((isSelected: boolean) => {
+    setRows((prevItems) => {
+      const newItems = [...prevItems];
+      return newItems.map((i) => {
+        return {
+          ...i,
+          isSelected,
+        };
+      });
+    });
+  }, []);
+
+  const onTreeFilterSelect = useCallback((id: string, isSelected: boolean) => {
+    setColumnFilters((prevFilters) => {
+      const [schema, table] = id.split('.');
+      const newFilters = { ...prevFilters };
+      if (isSelected) {
+        newFilters['schema'] = newFilters['schema']
+          ? [...newFilters['schema'], schema]
+          : [schema];
+        if (table) {
+          newFilters['table'] = newFilters['table']
+            ? [...newFilters['table'], table]
+            : [table];
+        }
+      } else {
+        newFilters['schema'] = newFilters['schema'].filter((s) => s != schema);
+        if (table) {
+          newFilters['table'] = newFilters['table'].filter((t) => t != table);
+        }
+      }
+      const filteredRows = data.filter((r) => shouldFilterRow(r, newFilters));
+      setRows(filteredRows);
+      return newFilters;
+    });
+  }, []);
+
+  return (
+    <div className="flex flex-row w-full">
+      <div className="basis-1/6  pt-[45px] ">
+        <VirtualizedTree data={treeData} onNodeSelect={onTreeFilterSelect} />
+      </div>
+      <div className={`space-y-2 pl-8 basis-5/6`}>
+        <div className="flex items-center justify-between">
+          <div className="w-[250px]">
+            <TansformerSelect
+              transformers={transformers || []}
+              value={transformer}
+              onSelect={(value) => {
+                rows.forEach((r, index) => {
+                  if (r.isSelected) {
+                    form.setValue(
+                      `mappings.${index}.transformer.value`,
+                      value,
+                      {
+                        shouldDirty: true,
+                      }
+                    );
+                  }
+                });
+                onSelectAll(false);
+                setBulkSelect(false);
+                setTransformer('');
+              }}
+              placeholder="Bulk update transformers..."
+            />
+          </div>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => {
+              setColumnFilters({});
+              setRows(data);
+            }}
+          >
+            Clear filters
+            <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </div>
+
+        <VirtualizedSchemaList
+          rows={rows}
+          allRows={data}
+          onSelect={onSelect}
+          onSelectAll={onSelectAll}
+          transformers={transformers}
+          bulkSelect={bulkSelect}
+          setBulkSelect={setBulkSelect}
+          columnFilters={columnFilters}
+          onFilterSelect={onFilterSelect}
+        />
+      </div>
+    </div>
+  );
+});
 
 interface RowProps {
   index: number;
@@ -173,7 +330,6 @@ interface VirtualizedSchemaListProps {
   columnFilters: Record<string, string[]>;
   onFilterSelect: (columnId: string, newValues: string[]) => void;
   transformers?: Transformer[];
-  height: number;
 }
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.
@@ -187,7 +343,6 @@ function VirtualizedSchemaList({
   setBulkSelect,
   columnFilters,
   onFilterSelect,
-  height,
 }: VirtualizedSchemaListProps) {
   // Bundle additional data to list rows using the "rowData" prop.
   // It will be accessible to item renderers as props.data.
@@ -259,12 +414,12 @@ function VirtualizedSchemaList({
         </div>
         <div className="col-span-5"></div>
       </div>
-      // TODO fix height
-      <div className={`h-[700px]`}>
+      {/* TODO fix height */}
+      <div className="h-[700px]">
         <AutoSizer>
-          {({ height: tableHeight, width }) => (
+          {({ height, width }) => (
             <List
-              height={tableHeight}
+              height={height}
               itemCount={rows.length}
               itemData={rowData}
               itemSize={50}
@@ -283,136 +438,6 @@ function VirtualizedSchemaList({
   );
 }
 
-interface Row {
-  table: string;
-  transformer: {
-    value: string;
-    config: {};
-  };
-  schema: string;
-  column: string;
-  dataType: string;
-  isSelected: boolean;
-}
-
-interface SchemaListProps {
-  data: Row[];
-  transformers?: Transformer[];
-  height: number;
-}
-
-export const TableList = memo(function TableList({
-  data,
-  transformers,
-  height,
-}: SchemaListProps) {
-  const [rows, setRows] = useState(data);
-  const [transformer, setTransformer] = useState<string>('');
-  const [bulkSelect, setBulkSelect] = useState(false);
-  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>(
-    {}
-  );
-  const form = useFormContext();
-  const treedata = useMemo(() => getSchemaTreeData(data), [data]);
-
-  const onFilterSelect = useCallback(
-    (columnId: string, colFilters: string[]) => {
-      setColumnFilters((prevFilters) => {
-        const newFilters = { ...prevFilters, [columnId]: colFilters };
-        if (colFilters.length == 0) {
-          delete newFilters[columnId];
-        }
-        const filteredRows = data.filter((r) => shouldFilterRow(r, newFilters));
-        setRows(filteredRows);
-        return newFilters;
-      });
-    },
-    []
-  );
-
-  const onSelect = useCallback((index: number) => {
-    setRows((prevItems) => {
-      const newItems = [...prevItems];
-      newItems[index] = {
-        ...newItems[index],
-        isSelected: !newItems[index].isSelected,
-      };
-      return newItems;
-    });
-  }, []);
-
-  const onSelectAll = useCallback((isSelected: boolean) => {
-    setRows((prevItems) => {
-      const newItems = [...prevItems];
-      return newItems.map((i) => {
-        return {
-          ...i,
-          isSelected,
-        };
-      });
-    });
-  }, []);
-
-  return (
-    <div className="flex flex-row w-full">
-      <div className="basis-1/6  pt-[45px] ">
-        <VirtualizedTree data={treedata} />
-      </div>
-      <div className={`space-y-2 pl-8 basis-5/6`}>
-        <div className="flex items-center justify-between">
-          <div className="w-[250px]">
-            <TansformerSelect
-              transformers={transformers || []}
-              value={transformer}
-              onSelect={(value) => {
-                rows.forEach((r, index) => {
-                  if (r.isSelected) {
-                    form.setValue(
-                      `mappings.${index}.transformer.value`,
-                      value,
-                      {
-                        shouldDirty: true,
-                      }
-                    );
-                  }
-                });
-                onSelectAll(false);
-                setBulkSelect(false);
-                setTransformer('');
-              }}
-              placeholder="Bulk update transformers..."
-            />
-          </div>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => {
-              setColumnFilters({});
-              setRows(data);
-            }}
-          >
-            Clear filters
-            <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </div>
-
-        <VirtualizedSchemaList
-          rows={rows}
-          allRows={data}
-          onSelect={onSelect}
-          onSelectAll={onSelectAll}
-          transformers={transformers}
-          bulkSelect={bulkSelect}
-          setBulkSelect={setBulkSelect}
-          columnFilters={columnFilters}
-          onFilterSelect={onFilterSelect}
-          height={height}
-        />
-      </div>
-    </div>
-  );
-});
-
 function shouldFilterRow(
   row: Row,
   columnFilters: Record<string, string[]>
@@ -430,7 +455,10 @@ function shouldFilterRow(
   return true;
 }
 
-function getSchemaTreeData(data: Row[]) {
+function getSchemaTreeData(
+  data: Row[],
+  columnFilters: Record<string, string[]>
+) {
   const schemaMap: Record<string, Record<string, string>> = {};
   data.forEach((row) => {
     if (!schemaMap[row.schema]) {
@@ -440,19 +468,28 @@ function getSchemaTreeData(data: Row[]) {
     }
   });
 
+  const schemaFilters = new Set(columnFilters['schema'] || []);
+  const tableFilters = new Set(columnFilters['table'] || []);
+
   return Object.keys(schemaMap).map((schema) => {
+    const isSchemaSelected = schemaFilters.has(schema);
+    var isAnyTableSelected = false;
     const children = Object.keys(schemaMap[schema]).map((table) => {
+      const isTableSelected = tableFilters.has(table);
+      if (isTableSelected) {
+        isAnyTableSelected = true;
+      }
       return {
         id: `${schema}.${table}`,
         name: table,
-        isSelected: false,
+        isSelected: isSchemaSelected || isTableSelected,
       };
     });
 
     return {
       id: schema,
       name: schema,
-      isSelected: false,
+      isSelected: isSchemaSelected || isAnyTableSelected,
       children,
     };
   });
