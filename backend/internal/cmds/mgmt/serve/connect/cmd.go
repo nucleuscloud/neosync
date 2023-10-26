@@ -172,7 +172,6 @@ func serve() error {
 		return err
 	}
 	clientIdSecretMap := getAuthClientIdSecretMap()
-	fmt.Println(clientIdSecretMap)
 
 	authclient := auth_client.New(tokenUrl, clientIdSecretMap)
 
