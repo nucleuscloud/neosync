@@ -617,8 +617,6 @@ func (m *GetAuthorizeUrlRequest) validate(all bool) error {
 
 	// no validation rules for Scope
 
-	// no validation rules for Audience
-
 	if len(errors) > 0 {
 		return GetAuthorizeUrlRequestMultiError(errors)
 	}

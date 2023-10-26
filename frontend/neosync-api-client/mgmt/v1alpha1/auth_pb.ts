@@ -240,11 +240,6 @@ export class GetAuthorizeUrlRequest extends Message<GetAuthorizeUrlRequest> {
    */
   scope = "";
 
-  /**
-   * @generated from field: string audience = 4;
-   */
-  audience = "";
-
   constructor(data?: PartialMessage<GetAuthorizeUrlRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -256,7 +251,6 @@ export class GetAuthorizeUrlRequest extends Message<GetAuthorizeUrlRequest> {
     { no: 1, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "redirect_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "scope", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "audience", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAuthorizeUrlRequest {

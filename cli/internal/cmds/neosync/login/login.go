@@ -68,7 +68,6 @@ func oAuthLogin(
 		State:       state,
 		RedirectUri: redirectUri,
 		Scope:       "openid profile",
-		Audience:    "https://api.nucleuscloud.com",
 	}))
 	if err != nil {
 		return err

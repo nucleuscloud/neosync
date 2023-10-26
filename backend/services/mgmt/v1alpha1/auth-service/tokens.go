@@ -62,7 +62,7 @@ func (s *Service) GetAuthorizeUrl(
 ) (*connect.Response[mgmtv1alpha1.GetAuthorizeUrlResponse], error) {
 	params := url.Values{}
 	params.Add("client_id", s.cfg.CliClientId)
-	params.Add("audience", req.Msg.Audience)
+	params.Add("audience", s.cfg.CliAudience)
 	params.Add("scope", req.Msg.Scope)
 	params.Add("redirect_uri", req.Msg.RedirectUri)
 	params.Add("state", req.Msg.State)

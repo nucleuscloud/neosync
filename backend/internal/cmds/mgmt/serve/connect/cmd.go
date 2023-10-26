@@ -177,6 +177,7 @@ func serve() error {
 	authclient := auth_client.New(tokenUrl, clientIdSecretMap)
 
 	cliClientId := viper.GetString("AUTH_CLI_CLIENT_ID")
+	cliAudience := viper.GetString("AUTH_CLI_AUDIENCE")
 	authAuthorizeUrl, err := getAuthAuthorizeUrl()
 	if err != nil {
 		return err
@@ -186,6 +187,7 @@ func serve() error {
 		IsAuthEnabled: isAuthEnabled,
 		AuthorizeUrl:  authAuthorizeUrl,
 		CliClientId:   cliClientId,
+		CliAudience:   cliAudience,
 	}, authclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(

@@ -53,7 +53,7 @@ const (
             text-align: center;
         }
 
-        .nucleusLogo {
+        .neosyncLogo {
             height: '40px';
             width: 40px;
         }
@@ -90,10 +90,10 @@ const (
 	`
 
 	loginPageSuccess = `
-  <div class='nav'><a href="https:nucleuscloud.com"><img class='nucleusLogo' src="https://assets.nucleuscloud.com/Nucleus_logo_transparent.svg"></a></div>
+  <div class='nav'><a href="https://neosync.dev"><img class='neosyncLogo' src="https://assets.nucleuscloud.com/neosync/neosync_black.svg"></a></div>
   <div class='successText'>
       <h1>Login Success!</h1>
-      <p>You've successfully logged in to Nucleus CLI.</p>
+      <p>You've successfully logged in to Neosync CLI.</p>
       <p>You may now close this window and return to your terminal.</p>
   </div>
   <div>
@@ -102,7 +102,7 @@ const (
 	`
 
 	loginPageError = `
-    <div><a href="https:nucleuscloud.com"><img class='nucleusLogo' src="https://assets.nucleuscloud.com/favicon_transparent.ico"></a></div>
+    <div><a href="https://neosync.dev"><img class='neosyncLogo' src="https://assets.nucleuscloud.com/neosync/neosync_black.svg"></a></div>
     <div class='successText'>
         <h1>There was a problem logging you in!</h1>
         <p class="error-text">Error Code: {{ .ErrorCode }}</p>
