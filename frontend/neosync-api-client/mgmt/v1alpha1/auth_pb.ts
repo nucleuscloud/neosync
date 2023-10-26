@@ -307,3 +307,77 @@ export class GetAuthorizeUrlResponse extends Message<GetAuthorizeUrlResponse> {
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetCliIssuerRequest
+ */
+export class GetCliIssuerRequest extends Message<GetCliIssuerRequest> {
+  constructor(data?: PartialMessage<GetCliIssuerRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetCliIssuerRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCliIssuerRequest {
+    return new GetCliIssuerRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCliIssuerRequest {
+    return new GetCliIssuerRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCliIssuerRequest {
+    return new GetCliIssuerRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCliIssuerRequest | PlainMessage<GetCliIssuerRequest> | undefined, b: GetCliIssuerRequest | PlainMessage<GetCliIssuerRequest> | undefined): boolean {
+    return proto3.util.equals(GetCliIssuerRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetCliIssuerResponse
+ */
+export class GetCliIssuerResponse extends Message<GetCliIssuerResponse> {
+  /**
+   * @generated from field: string issuer_url = 1;
+   */
+  issuerUrl = "";
+
+  /**
+   * @generated from field: string audience = 2;
+   */
+  audience = "";
+
+  constructor(data?: PartialMessage<GetCliIssuerResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetCliIssuerResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "issuer_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "audience", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCliIssuerResponse {
+    return new GetCliIssuerResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCliIssuerResponse {
+    return new GetCliIssuerResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCliIssuerResponse {
+    return new GetCliIssuerResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCliIssuerResponse | PlainMessage<GetCliIssuerResponse> | undefined, b: GetCliIssuerResponse | PlainMessage<GetCliIssuerResponse> | undefined): boolean {
+    return proto3.util.equals(GetCliIssuerResponse, a, b);
+  }
+}
+

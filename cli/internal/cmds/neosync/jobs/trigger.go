@@ -9,6 +9,9 @@ import (
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/cli/internal/auth"
+	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
+	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/spf13/cobra"
 )
 
@@ -38,11 +41,16 @@ func triggerJob(
 	ctx context.Context,
 	jobId string,
 ) error {
+	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
+	if err != nil {
+		return err
+	}
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		http.DefaultClient,
-		"http://localhost:8080",
+		serverconfig.GetApiBaseUrl(),
+		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetToken)),
 	)
-	_, err := jobclient.CreateJobRun(ctx, connect.NewRequest[mgmtv1alpha1.CreateJobRunRequest](&mgmtv1alpha1.CreateJobRunRequest{
+	_, err = jobclient.CreateJobRun(ctx, connect.NewRequest[mgmtv1alpha1.CreateJobRunRequest](&mgmtv1alpha1.CreateJobRunRequest{
 		JobId: jobId,
 	}))
 	if err != nil {

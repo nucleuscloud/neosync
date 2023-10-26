@@ -64,8 +64,15 @@ message GetAuthorizeUrlResponse {
   string url = 1;
 }
 
+message GetCliIssuerRequest {}
+message GetCliIssuerResponse {
+  string issuer_url = 1;
+  string audience = 2;
+}
+
 service AuthService {
   rpc LoginCli(LoginCliRequest) returns (LoginCliResponse) {}
+  rpc GetCliIssuer(GetCliIssuerRequest) returns (GetCliIssuerResponse) {}
   rpc GetAuthorizeUrl(GetAuthorizeUrlRequest) returns (GetAuthorizeUrlResponse) {}
   // rpc GetAccessToken(GetAccessTokenRequest) returns (GetAccessTokenResponse) {}
   // rpc RefreshAccessToken(RefreshAccessTokenRequest) returns (RefreshAccessTokenResponse) {}

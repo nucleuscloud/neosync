@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetAuthorizeUrlRequest, GetAuthorizeUrlResponse, GetAuthStatusRequest, GetAuthStatusResponse, LoginCliRequest, LoginCliResponse } from "./auth_pb";
+import { GetAuthorizeUrlRequest, GetAuthorizeUrlResponse, GetAuthStatusRequest, GetAuthStatusResponse, GetCliIssuerRequest, GetCliIssuerResponse, LoginCliRequest, LoginCliResponse } from "./auth_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -19,6 +19,15 @@ export const AuthService = {
       name: "LoginCli",
       I: LoginCliRequest,
       O: LoginCliResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.AuthService.GetCliIssuer
+     */
+    getCliIssuer: {
+      name: "GetCliIssuer",
+      I: GetCliIssuerRequest,
+      O: GetCliIssuerResponse,
       kind: MethodKind.Unary,
     },
     /**

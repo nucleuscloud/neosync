@@ -800,3 +800,211 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetAuthorizeUrlResponseValidationError{}
+
+// Validate checks the field values on GetCliIssuerRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetCliIssuerRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetCliIssuerRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetCliIssuerRequestMultiError, or nil if none found.
+func (m *GetCliIssuerRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetCliIssuerRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return GetCliIssuerRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetCliIssuerRequestMultiError is an error wrapping multiple validation
+// errors returned by GetCliIssuerRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetCliIssuerRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetCliIssuerRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetCliIssuerRequestMultiError) AllErrors() []error { return m }
+
+// GetCliIssuerRequestValidationError is the validation error returned by
+// GetCliIssuerRequest.Validate if the designated constraints aren't met.
+type GetCliIssuerRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetCliIssuerRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetCliIssuerRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetCliIssuerRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetCliIssuerRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetCliIssuerRequestValidationError) ErrorName() string {
+	return "GetCliIssuerRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetCliIssuerRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetCliIssuerRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetCliIssuerRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetCliIssuerRequestValidationError{}
+
+// Validate checks the field values on GetCliIssuerResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetCliIssuerResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetCliIssuerResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetCliIssuerResponseMultiError, or nil if none found.
+func (m *GetCliIssuerResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetCliIssuerResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for IssuerUrl
+
+	// no validation rules for Audience
+
+	if len(errors) > 0 {
+		return GetCliIssuerResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetCliIssuerResponseMultiError is an error wrapping multiple validation
+// errors returned by GetCliIssuerResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetCliIssuerResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetCliIssuerResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetCliIssuerResponseMultiError) AllErrors() []error { return m }
+
+// GetCliIssuerResponseValidationError is the validation error returned by
+// GetCliIssuerResponse.Validate if the designated constraints aren't met.
+type GetCliIssuerResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetCliIssuerResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetCliIssuerResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetCliIssuerResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetCliIssuerResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetCliIssuerResponseValidationError) ErrorName() string {
+	return "GetCliIssuerResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetCliIssuerResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetCliIssuerResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetCliIssuerResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetCliIssuerResponseValidationError{}

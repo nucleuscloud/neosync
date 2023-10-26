@@ -74,6 +74,16 @@ func (s *Service) GetAuthorizeUrl(
 	}), nil
 }
 
+func (s *Service) GetCliIssuer(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetCliIssuerRequest],
+) (*connect.Response[mgmtv1alpha1.GetCliIssuerResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.GetCliIssuerResponse{
+		Audience:  s.cfg.CliAudience,
+		IssuerUrl: s.cfg.IssuerUrl,
+	}), nil
+}
+
 // func (s *Service) GetAccessToken(
 // 	ctx context.Context,
 // 	req *connect.Request[mgmtv1alpha1.GetAccessTokenRequest],

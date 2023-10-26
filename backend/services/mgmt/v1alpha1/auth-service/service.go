@@ -16,6 +16,7 @@ type Config struct {
 
 	CliClientId  string
 	CliAudience  string
+	IssuerUrl    string
 	AuthorizeUrl string
 }
 

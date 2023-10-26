@@ -167,6 +167,11 @@ func serve() error {
 		),
 	)
 
+	authBaseUrl, err := getAuthBaseUrl()
+	if err != nil {
+		return err
+	}
+
 	tokenUrl, err := getAuthTokenUrl()
 	if err != nil {
 		return err
@@ -187,6 +192,7 @@ func serve() error {
 		AuthorizeUrl:  authAuthorizeUrl,
 		CliClientId:   cliClientId,
 		CliAudience:   cliAudience,
+		IssuerUrl:     authBaseUrl,
 	}, authclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(
