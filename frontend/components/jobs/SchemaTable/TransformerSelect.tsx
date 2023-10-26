@@ -24,7 +24,7 @@ interface Props {
   defaultValue?: string;
 }
 
-export default function TansformerSelect(props: Props): ReactElement {
+export default function TransformerSelect(props: Props): ReactElement {
   const { transformers, value, onSelect, placeholder, defaultValue } = props;
   const [open, setOpen] = useState(false);
 

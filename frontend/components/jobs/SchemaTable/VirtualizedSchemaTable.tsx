@@ -12,7 +12,7 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import { VirtualizedTree } from '../../VirtualizedTree';
 import ColumnFilterSelect from './ColumnFilterSelect';
-import TansformerSelect from './TransformerSelect';
+import TransformerSelect from './TransformerSelect';
 
 interface Row {
   table: string;
@@ -26,6 +26,8 @@ interface Row {
   isSelected: boolean;
 }
 
+type ColumnFilters = Record<string, string[]>;
+
 interface VirtualizedSchemaTableProps {
   data: Row[];
   transformers?: Transformer[];
@@ -38,26 +40,24 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   const [rows, setRows] = useState(data);
   const [transformer, setTransformer] = useState<string>('');
   const [bulkSelect, setBulkSelect] = useState(false);
-  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>(
-    {}
-  );
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const form = useFormContext();
-  const treedata = useMemo(
+
+  const treeData = useMemo(
     () => getSchemaTreeData(data, columnFilters),
     [data, columnFilters]
   );
-  const [treeData, setTreeData] = useState(treedata);
 
   const onFilterSelect = useCallback(
     (columnId: string, colFilters: string[]) => {
       setColumnFilters((prevFilters) => {
         const newFilters = { ...prevFilters, [columnId]: colFilters };
         if (colFilters.length == 0) {
-          delete newFilters[columnId];
+          delete newFilters[columnId as keyof ColumnFilters];
         }
         const filteredRows = data.filter((r) => shouldFilterRow(r, newFilters));
         setRows(filteredRows);
-        setTreeData(getSchemaTreeData(data, newFilters));
+        // setTreeData(getSchemaTreeData(data, newFilters));
         return newFilters;
       });
     },
@@ -120,7 +120,7 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
       <div className={`space-y-2 pl-8 basis-5/6`}>
         <div className="flex items-center justify-between">
           <div className="w-[250px]">
-            <TansformerSelect
+            <TransformerSelect
               transformers={transformers || []}
               value={transformer}
               onSelect={(value) => {
@@ -148,6 +148,7 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
             onClick={() => {
               setColumnFilters({});
               setRows(data);
+              setTreeData(getSchemaTreeData(data, {}));
             }}
           >
             Clear filters
@@ -214,7 +215,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                 <FormControl>
                   <div className="flex flex-row space-x-2  ">
                     <div className="w-[175px]">
-                      <TansformerSelect
+                      <TransformerSelect
                         transformers={transformers || []}
                         value={field.value}
                         onSelect={field.onChange}
@@ -249,58 +250,6 @@ function Cell(props: CellProps) {
   return <span className="truncate font-medium text-sm">{value}</span>;
 }
 
-function shouldFilterRowByColumnId(
-  row: Row,
-  columnFilters: Record<string, string[]>,
-  columnId: string
-): boolean {
-  for (const key of Object.keys(columnFilters)) {
-    if (key == columnId) {
-      continue;
-    }
-    const filters = columnFilters[key];
-    if (filters.length == 0) {
-      continue;
-    }
-    const value = key == 'transformer' ? row[key].value : row[key];
-    if (!filters.includes(value)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function getUniqueFiltersByColumn(
-  rows: Row[],
-  columnFilters: Record<string, string[]>,
-  columnId: string
-): string[] {
-  const uniqueColFilters: Record<string, string> = {};
-  const filteredRows = rows.filter((r) =>
-    shouldFilterRowByColumnId(r, columnFilters, columnId)
-  );
-  filteredRows.forEach((r) => {
-    const value = columnId == 'transformer' ? r[columnId].value : r[columnId];
-    uniqueColFilters[value] = value;
-  });
-
-  return Object.keys(uniqueColFilters).sort();
-}
-
-function getUniqueFilters(
-  rows: Row[],
-  columnFilters: Record<string, string[]>
-): Record<string, string[]> {
-  const filterSet: Record<string, string[]> = {
-    schema: getUniqueFiltersByColumn(rows, columnFilters, 'schema'),
-    table: getUniqueFiltersByColumn(rows, columnFilters, 'table'),
-    column: getUniqueFiltersByColumn(rows, columnFilters, 'column'),
-    dataType: getUniqueFiltersByColumn(rows, columnFilters, 'dataType'),
-    transformer: getUniqueFiltersByColumn(rows, columnFilters, 'transformer'),
-  };
-  return filterSet;
-}
-
 // This helper function memoizes incoming props,
 // To avoid causing unnecessary re-renders pure Row components.
 // This is only needed since we are passing multiple props with a wrapper object.
@@ -327,7 +276,7 @@ interface VirtualizedSchemaListProps {
   onSelectAll: (value: boolean) => void;
   bulkSelect: boolean;
   setBulkSelect: (value: boolean) => void;
-  columnFilters: Record<string, string[]>;
+  columnFilters: ColumnFilters;
   onFilterSelect: (columnId: string, newValues: string[]) => void;
   transformers?: Transformer[];
 }
@@ -414,9 +363,8 @@ function VirtualizedSchemaList({
         </div>
         <div className="col-span-5"></div>
       </div>
-      {/* TODO fix height */}
       <div className="h-[700px]">
-        <AutoSizer>
+        <AutoSizer defaultHeight={700}>
           {({ height, width }) => (
             <List
               height={height}
@@ -424,7 +372,7 @@ function VirtualizedSchemaList({
               itemData={rowData}
               itemSize={50}
               width={width}
-              itemKey={(index) => {
+              itemKey={(index: number) => {
                 const r = rows[index];
                 return `${r.schema}-${r.table}-${r.column}`;
               }}
@@ -440,14 +388,22 @@ function VirtualizedSchemaList({
 
 function shouldFilterRow(
   row: Row,
-  columnFilters: Record<string, string[]>
+  columnFilters: ColumnFilters,
+  columnId?: string
 ): boolean {
   for (const key of Object.keys(columnFilters)) {
-    const filters = columnFilters[key];
+    if (columnId && key == columnId) {
+      continue;
+    }
+    const filters = columnFilters[key as keyof ColumnFilters];
     if (filters.length == 0) {
       continue;
     }
-    const value = key == 'transformer' ? row[key].value : row[key];
+    const value =
+      key == 'transformer'
+        ? (row[key as 'transformer'].value as string)
+        : (row[key as keyof Row] as string);
+
     if (!filters.includes(value)) {
       return false;
     }
@@ -455,10 +411,7 @@ function shouldFilterRow(
   return true;
 }
 
-function getSchemaTreeData(
-  data: Row[],
-  columnFilters: Record<string, string[]>
-) {
+function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
   const schemaMap: Record<string, Record<string, string>> = {};
   data.forEach((row) => {
     if (!schemaMap[row.schema]) {
@@ -493,4 +446,38 @@ function getSchemaTreeData(
       children,
     };
   });
+}
+
+function getUniqueFiltersByColumn(
+  rows: Row[],
+  columnFilters: ColumnFilters,
+  columnId: string
+): string[] {
+  const uniqueColFilters: Record<string, string> = {};
+  const filteredRows = rows.filter((r) =>
+    shouldFilterRow(r, columnFilters, columnId)
+  );
+  filteredRows.forEach((r) => {
+    const value =
+      columnId == 'transformer'
+        ? (r[columnId as 'transformer'].value as string)
+        : (r[columnId as keyof Row] as string);
+    uniqueColFilters[value] = value;
+  });
+
+  return Object.keys(uniqueColFilters).sort();
+}
+
+function getUniqueFilters(
+  rows: Row[],
+  columnFilters: ColumnFilters
+): Record<string, string[]> {
+  const filterSet: Record<string, string[]> = {
+    schema: getUniqueFiltersByColumn(rows, columnFilters, 'schema'),
+    table: getUniqueFiltersByColumn(rows, columnFilters, 'table'),
+    column: getUniqueFiltersByColumn(rows, columnFilters, 'column'),
+    dataType: getUniqueFiltersByColumn(rows, columnFilters, 'dataType'),
+    transformer: getUniqueFiltersByColumn(rows, columnFilters, 'transformer'),
+  };
+  return filterSet;
 }

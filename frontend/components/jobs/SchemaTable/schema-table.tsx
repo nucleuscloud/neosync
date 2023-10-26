@@ -6,7 +6,7 @@ import { ReactElement } from 'react';
 import { VirtualizedSchemaTable } from './VirtualizedSchemaTable';
 
 interface JobTableProps {
-  data: JobMappingFormValues[];
+  data?: JobMappingFormValues[];
 }
 
 export function SchemaTable(props: JobTableProps): ReactElement {
@@ -14,17 +14,16 @@ export function SchemaTable(props: JobTableProps): ReactElement {
   const { data: transformers, isLoading: transformersIsLoading } =
     useGetTransformers();
 
-  if (transformersIsLoading) {
-    return <SkeletonTable />;
-  }
-
-  const tableData = data.map((d) => {
+  const tableData = data?.map((d) => {
     return {
       ...d,
       isSelected: false,
     };
   });
-  // const tableData = makeData(10000);
+
+  if (transformersIsLoading || !tableData) {
+    return <SkeletonTable />;
+  }
 
   return (
     <div>
