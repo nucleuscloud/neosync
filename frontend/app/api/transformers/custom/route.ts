@@ -1,5 +1,6 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
 import {
+  CreateCustomTransformerRequest,
   DeleteCustomTransformerRequest,
   GetCustomTransformersRequest,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
@@ -22,5 +23,12 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     return ctx.transformerClient.deleteCustomTransformer(
       new DeleteCustomTransformerRequest({ transformerId: tId })
     );
+  })(req);
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  return withNeosyncContext(async (ctx) => {
+    const body = CreateCustomTransformerRequest.fromJson(await req.json());
+    return ctx.transformerClient.createCustomTransformer(body);
   })(req);
 }

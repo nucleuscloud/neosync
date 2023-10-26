@@ -3,7 +3,7 @@ import { IsTransformerNameAvailableResponse } from '@/neosync-api-client/mgmt/v1
 import * as Yup from 'yup';
 
 export const DEFINE_NEW_TRANSFORMER_SCHEMA = Yup.object({
-  transformerName: Yup.string()
+  name: Yup.string()
     .trim()
     .required('Name is a required field')
     .min(3)
@@ -19,7 +19,10 @@ export const DEFINE_NEW_TRANSFORMER_SCHEMA = Yup.object({
       const res = await isTransformerNameAvailable(value, account.id);
       return res.isAvailable;
     }),
-  baseTransformer: Yup.string(),
+  base: Yup.string(),
+  description: Yup.string().required(),
+  type: Yup.string().required(),
+  transformerConfig: Yup.object().shape({}),
 });
 
 export type DefineNewTransformer = Yup.InferType<
@@ -31,7 +34,7 @@ async function isTransformerNameAvailable(
   accountId: string
 ): Promise<IsTransformerNameAvailableResponse> {
   const res = await fetch(
-    `/api/transformer/is-transformer-name-available?transformerName=${name}&accountId=${accountId}`,
+    `/api/transformers/is-transformer-name-available?transformerName=${name}&accountId=${accountId}`,
     {
       method: 'GET',
       headers: {

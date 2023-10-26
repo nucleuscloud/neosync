@@ -1,9 +1,10 @@
 'use client';
 
+import { handleTransformerMetadata } from '@/app/transformers/EditTransformerOptions';
 import CustomEmailTransformerForm from '@/app/transformers/[id]/components/CustomEmailTransformerForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { PageProps } from '@/components/types';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -28,45 +29,61 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from '@/components/ui/use-toast';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { cn } from '@/libs/utils';
+import {
+  CreateCustomTransformerRequest,
+  CreateCustomTransformerResponse,
+  Transformer,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { getErrorMessage } from '@/util/util';
+import { toTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CheckIcon } from '@radix-ui/react-icons';
+import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import useFormPersist from 'react-hook-form-persist';
-import { useSessionStorage } from 'usehooks-ts';
-import { DefineFormValues } from '../job/schema';
 import { DEFINE_NEW_TRANSFORMER_SCHEMA, DefineNewTransformer } from './schema';
 
-export default function NewTransformer({
-  searchParams,
-}: PageProps): ReactElement {
-  const sessionPrefix = searchParams?.sessionId ?? '';
-  const [defaultValues] = useSessionStorage<DefineNewTransformer>(
-    `${sessionPrefix}-new-transformer-define`,
-    {
-      transformerName: '',
-      baseTransformer: '',
+export default function NewTransformer(): ReactElement {
+  const [base, setBase] = useState<string>('Select a source Transformer');
+  const [openBaseSelect, setOpenBaseSelect] = useState(false);
+  const [selectedTransformer, setSelectedTransformer] = useState<Transformer>();
+
+  const form = useForm<DefineNewTransformer>({
+    resolver: yupResolver(DEFINE_NEW_TRANSFORMER_SCHEMA),
+    defaultValues: {
+      name: '',
+      base: '',
+      description: '',
+      type: '',
+      transformerConfig: { config: {} },
+    },
+  });
+
+  const router = useRouter();
+  const account = useAccount();
+
+  async function onSubmit(values: DefineNewTransformer): Promise<void> {
+    if (!account) {
+      return;
     }
-  );
-
-  const [baseTransformer, setBaseTransformer] = useState<string>('');
-  const [openBaseTransformerSelect, setOpenBaseTransformerSelect] =
-    useState(false);
-
-  const form = useForm({
-    resolver: yupResolver<DefineNewTransformer>(DEFINE_NEW_TRANSFORMER_SCHEMA),
-    defaultValues,
-  });
-  useFormPersist(`${sessionPrefix}-new-job-define`, {
-    watch: form.watch,
-    setValue: form.setValue,
-    storage: window.sessionStorage,
-  });
-
-  async function onSubmit(_values: DefineFormValues) {
-    console.log('creating transformer');
+    try {
+      const transformer = await createNewTransformer(account.id, values);
+      if (transformer.transformer?.id) {
+        router.push(`/transformers/${transformer.transformer?.id}`);
+      } else {
+        router.push(`/transformers`);
+      }
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to create transformer',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
   }
 
   const { data } = useGetSystemTransformers();
@@ -82,38 +99,17 @@ export default function NewTransformer({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name="transformerName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Transformer Name"
-                    {...field}
-                    className="w-[1000px]"
-                  />
-                </FormControl>
-                <FormDescription>
-                  The unique name of the Transformer.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="baseTransformer"
+            name="base"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Source Transformer</FormLabel>
                 <FormControl>
                   <Select
-                    open={openBaseTransformerSelect}
-                    onOpenChange={setOpenBaseTransformerSelect}
+                    open={openBaseSelect}
+                    onOpenChange={setOpenBaseSelect}
                   >
                     <SelectTrigger className="w-[1000px]">
-                      <SelectValue placeholder="Select a base transformer"></SelectValue>
+                      <SelectValue placeholder={base} />
                     </SelectTrigger>
                     <SelectContent>
                       <Command className="overflow-auto">
@@ -123,10 +119,20 @@ export default function NewTransformer({
                           {transformers.map((t, index) => (
                             <CommandItem
                               key={`${t.value}-${index}`}
-                              onSelect={() => {
+                              onSelect={(value: string) => {
                                 field.onChange;
-                                setBaseTransformer(t.value);
-                                setOpenBaseTransformerSelect(false);
+                                setBase(value);
+                                form.setValue(
+                                  'type',
+                                  handleTransformerMetadata(value).type
+                                );
+                                form.setValue('base', value);
+                                setSelectedTransformer(
+                                  transformers.find(
+                                    (item) => item.value == t.value
+                                  )
+                                );
+                                setOpenBaseSelect(false);
                               }}
                               value={t.value}
                               defaultValue={'passthrough'}
@@ -134,9 +140,7 @@ export default function NewTransformer({
                               <CheckIcon
                                 className={cn(
                                   'mr-2 h-4 w-4',
-                                  baseTransformer == t.value
-                                    ? 'opacity-100'
-                                    : 'opacity-0'
+                                  base == t.value ? 'opacity-100' : 'opacity-0'
                                 )}
                               />
                               {t.value}
@@ -154,8 +158,54 @@ export default function NewTransformer({
               </FormItem>
             )}
           />
+          {base != 'Select a source Transformer' && (
+            <div>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Transformer Name"
+                        {...field}
+                        className="w-[1000px]"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      The unique name of the Transformer.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="pt-10">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Transformer Name"
+                          {...field}
+                          className="w-[1000px]"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        The Transformer decription.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          )}
           <div className="w-[1000px]">
-            {handleNewTransformerForm(baseTransformer)}
+            {handleNewTransformerForm(base, selectedTransformer)}
           </div>
           <div className="flex flex-row justify-end">
             <Button type="submit">Next</Button>
@@ -166,10 +216,17 @@ export default function NewTransformer({
   );
 }
 
-function handleNewTransformerForm(name: string): ReactElement {
+function handleNewTransformerForm(
+  name: string,
+  transformer: Transformer | undefined
+): ReactElement {
   switch (name) {
     case 'email':
-      return <CustomEmailTransformerForm />;
+      return (
+        <CustomEmailTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
     // case 'uuid':
     //   return (
     //     <UuidTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
@@ -238,4 +295,36 @@ function handleNewTransformerForm(name: string): ReactElement {
       <div>No transformer component found</div>;
   }
   return <div></div>;
+}
+
+async function createNewTransformer(
+  accountId: string,
+  formData: DefineNewTransformer
+): Promise<CreateCustomTransformerResponse> {
+  console.log('formdata', formData);
+  const body = new CreateCustomTransformerRequest({
+    accountId: accountId,
+    name: formData.name,
+    description: formData.description,
+    type: formData.type,
+    transformerConfig: toTransformerConfigOptions({
+      value: formData.base ?? 'passthrough',
+      config: formData.transformerConfig,
+    }).config,
+  });
+
+  console.log('body in page', body);
+
+  const res = await fetch(`/api/transformers/custom`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return CreateCustomTransformerResponse.fromJson(await res.json());
 }
