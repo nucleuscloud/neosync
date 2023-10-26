@@ -55,6 +55,9 @@ func serve() error {
 		host = "127.0.0.1"
 	}
 	environment := viper.GetString("NUCLEUS_ENV")
+	if environment == "" {
+		environment = "unknown"
+	}
 
 	logger := neosynclogger.New(neosynclogger.ShouldFormatAsJson(), nil).
 		With("nucleusEnv", environment)
