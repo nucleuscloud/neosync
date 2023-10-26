@@ -1,7 +1,6 @@
 package serve_connect
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -90,19 +89,6 @@ func serve() error {
 		return err
 	}
 
-	temporalConfig := getTemporalConfig(logger)
-	temporalClient, err := temporalclient.NewLazyClient(*temporalConfig)
-	if err != nil {
-		return err
-	}
-	defer temporalClient.Close()
-
-	temporalTaskQueue, err := getTemporalTaskQueue()
-	if err != nil {
-		return err
-	}
-	temporalNamespace := getTemporalNamespace()
-
 	validateInterceptor, err := validate.NewInterceptor()
 	if err != nil {
 		return err
@@ -116,11 +102,7 @@ func serve() error {
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
-		jwtClientCfg, err := getJwtClientConfig()
-		if err != nil {
-			return err
-		}
-		jwtclient, err := auth_jwt.New(jwtClientCfg)
+		jwtclient, err := auth_jwt.New(getJwtClientConfig())
 		if err != nil {
 			return err
 		}
@@ -151,7 +133,16 @@ func serve() error {
 		),
 	)
 
-	jobServiceConfig := &v1alpha1_jobservice.Config{TemporalTaskQueue: temporalTaskQueue, TemporalNamespace: temporalNamespace}
+	temporalConfig := getTemporalConfig(logger)
+	temporalClient, err := temporalclient.NewLazyClient(*temporalConfig)
+	if err != nil {
+		return err
+	}
+	defer temporalClient.Close()
+	jobServiceConfig := &v1alpha1_jobservice.Config{
+		TemporalTaskQueue: getTemporalTaskQueue(),
+		TemporalNamespace: getTemporalNamespace(),
+	}
 	jobService := v1alpha1_jobservice.New(jobServiceConfig, db, temporalClient, connectionService, useraccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
@@ -287,26 +278,22 @@ func getTemporalNamespace() string {
 	return temporalNamespace
 }
 
-func getTemporalTaskQueue() (string, error) {
+func getTemporalTaskQueue() string {
 	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
 	if taskQueue == "" {
-		return "", errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
+		return "default"
 	}
-	return taskQueue, nil
+	return taskQueue
 }
 
-func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
-	authBaseUrl, err := getAuthBaseUrl()
-	if err != nil {
-		return nil, err
-	}
-
+func getJwtClientConfig() *auth_jwt.ClientConfig {
+	authBaseUrl := getAuthBaseUrl()
 	authAudiences := getAuthAudiences()
 
 	return &auth_jwt.ClientConfig{
 		BaseUrl:      authBaseUrl,
 		ApiAudiences: authAudiences,
-	}, nil
+	}
 }
 
 func getAuthCliAudience() string {
