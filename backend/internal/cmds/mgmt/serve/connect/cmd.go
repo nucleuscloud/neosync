@@ -168,37 +168,28 @@ func serve() error {
 		),
 	)
 
-	authBaseUrl, err := getAuthBaseUrl()
-	if err != nil {
-		return err
-	}
-
-	tokenUrl, err := getAuthTokenUrl()
-	if err != nil {
-		return err
-	}
+	authBaseUrl := getAuthBaseUrl()
+	tokenUrl := getAuthTokenUrl()
 	clientIdSecretMap := getAuthClientIdSecretMap()
 
 	authclient := auth_client.New(tokenUrl, clientIdSecretMap)
 
-	cliClientId := viper.GetString("AUTH_CLI_CLIENT_ID")
-	cliAudience := viper.GetString("AUTH_CLI_AUDIENCE")
-	authAuthorizeUrl, err := getAuthAuthorizeUrl()
-	if err != nil {
-		return err
-	}
-
+	var issuerStr string
 	issuerUrl, err := url.Parse(authBaseUrl + "/")
 	if err != nil {
-		return err
+		if isAuthEnabled {
+			return err
+		}
+	} else {
+		issuerStr = issuerUrl.String()
 	}
 
 	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{
 		IsAuthEnabled: isAuthEnabled,
-		AuthorizeUrl:  authAuthorizeUrl,
-		CliClientId:   cliClientId,
-		CliAudience:   cliAudience,
-		IssuerUrl:     issuerUrl.String(),
+		AuthorizeUrl:  getAuthAuthorizeUrl(),
+		CliClientId:   viper.GetString("AUTH_CLI_CLIENT_ID"),
+		CliAudience:   getAuthCliAudience(),
+		IssuerUrl:     issuerStr,
 	}, authclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(
@@ -310,10 +301,7 @@ func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
 		return nil, err
 	}
 
-	authAudiences := viper.GetStringSlice("AUTH_AUDIENCE")
-	if len(authAudiences) == 0 {
-		return nil, errors.New("must provide AUTH_AUDIENCE with at least one audience in environment")
-	}
+	authAudiences := getAuthAudiences()
 
 	return &auth_jwt.ClientConfig{
 		BaseUrl:      authBaseUrl,
@@ -321,28 +309,34 @@ func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
 	}, nil
 }
 
-func getAuthBaseUrl() (string, error) {
+func getAuthCliAudience() string {
+	aud := viper.GetString("AUTH_CLI_AUDIENCE")
+	if aud == "" {
+		auds := getAuthAudiences()
+		if len(auds) > 0 {
+			return auds[0]
+		}
+	}
+	return aud
+}
+
+func getAuthAudiences() []string {
+	return viper.GetStringSlice("AUTH_AUDIENCE")
+}
+
+func getAuthBaseUrl() string {
 	authBaseUrl := viper.GetString("AUTH_BASEURL")
-	if authBaseUrl == "" {
-		return "", errors.New("must provide AUTH_BASEURL in environment")
-	}
-	return authBaseUrl, nil
+	return authBaseUrl
 }
 
-func getAuthTokenUrl() (string, error) {
-	baseUrl, err := getAuthBaseUrl()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s/oauth/token", baseUrl), nil
+func getAuthTokenUrl() string {
+	baseUrl := getAuthBaseUrl()
+	return fmt.Sprintf("%s/oauth/token", baseUrl)
 }
 
-func getAuthAuthorizeUrl() (string, error) {
-	baseUrl, err := getAuthBaseUrl()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s/authorize", baseUrl), nil
+func getAuthAuthorizeUrl() string {
+	baseUrl := getAuthBaseUrl()
+	return fmt.Sprintf("%s/authorize", baseUrl)
 }
 
 func getAuthClientIdSecretMap() map[string]string {
