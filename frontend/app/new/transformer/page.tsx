@@ -58,7 +58,7 @@ export default function NewTransformer(): ReactElement {
       base: '',
       description: '',
       type: '',
-      transformerConfig: { config: {} },
+      transformerConfig: {},
     },
   });
 
@@ -301,7 +301,6 @@ async function createNewTransformer(
   accountId: string,
   formData: DefineNewTransformer
 ): Promise<CreateCustomTransformerResponse> {
-  console.log('formdata', formData);
   const body = new CreateCustomTransformerRequest({
     accountId: accountId,
     name: formData.name,
@@ -312,8 +311,6 @@ async function createNewTransformer(
       config: formData.transformerConfig,
     }).config,
   });
-
-  console.log('body in page', body);
 
   const res = await fetch(`/api/transformers/custom`, {
     method: 'POST',
