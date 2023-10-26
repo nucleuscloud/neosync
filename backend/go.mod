@@ -11,6 +11,7 @@ require (
 	connectrpc.com/validate v0.1.0
 	github.com/auth0/go-jwt-middleware/v2 v2.1.0
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/gogo/status v1.1.1
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/nucleuscloud/neosync/worker v0.0.0-20231024190303-a76ecf39fdcd
@@ -121,7 +122,6 @@ require (
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/gogo/status v1.1.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
