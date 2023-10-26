@@ -11,12 +11,8 @@ services:
       - NUCLEUS_ENV=dev
       - NEXTAUTH_SECRET=foo
       - NEOSYNC_API_BASE_URL=http://api:8082
-      - AUTH_ENABLED=true
-      - AUTH0_CLIENT_ID=toXbXZXIYD3ni7MheOrU6J70j8lNtiSt
-      - AUTH0_CLIENT_SECRET=c-uuvwzNHx7dPdSKjGO1rSOypnKiTvGV7Ivh80VZHkjmZXLAwSma__FzCxeDoHeA
-      - AUTH0_ISSUER=https://auth.nucleuscloud.dev
-      - AUTH0_AUDIENCE=https://api.nucleuscloud.com
-      - AUTH0_SCOPE=openid email profile offline_access
+
+      - AUTH_ENABLED=false
 
     networks:
       - neosync-network
@@ -89,12 +85,7 @@ services:
       - DB_PASS=foofar
       - DB_SSL_DISABLE=true
 
-      - AUTH_ENABLED=true
-      - AUTH_AUDIENCE=https://api.nucleuscloud.com
-      - AUTH_BASEURL=https://auth.nucleuscloud.dev
-      - AUTH_CLIENTID_SECRET={"N53szkXwrMZmWiMQ96bJVCSuafn6myMR":"ZggNj5-HTCOdYzovNBZTDIys9sdLIl9aKOqn23yXMonECpG7N2qELVwQEfY_It5T"}
-      - AUTH_CLI_CLIENT_ID=N53szkXwrMZmWiMQ96bJVCSuafn6myMR
-      - AUTH_CLI_AUDIENCE=https://api.nucleuscloud.com
+      - AUTH_ENABLED=false
 
     networks:
       - neosync-network
