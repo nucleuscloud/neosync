@@ -12,17 +12,17 @@ import {
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useRef, useState } from 'react';
-import EmailTransformerForm from './forms/EmailTransformerForm';
-import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
-import FullNameTransformerForm from './forms/FullnameTransformerForm';
-import GenderTransformerForm from './forms/GenderTransformerForm';
-import IntPhoneNumberTransformerForm from './forms/IntPhoneNumberTransformerForm';
-import LastNameTransformerForm from './forms/LastnameTransformerForm';
-import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
-import RandomFloatTransformerForm from './forms/RandomFloatTransformerForm';
-import RandomIntTransformerForm from './forms/RandomIntTransformerForm';
-import RandomStringTransformerForm from './forms/RandomStringTransformerForm';
-import UuidTransformerForm from './forms/UuidTransformerForm';
+import EmailTransformerForm from './Sheetforms/EmailTransformerForm';
+import FirstNameTransformerForm from './Sheetforms/FirstnameTransformerForm';
+import FullNameTransformerForm from './Sheetforms/FullnameTransformerForm';
+import GenderTransformerForm from './Sheetforms/GenderTransformerForm';
+import IntPhoneNumberTransformerForm from './Sheetforms/IntPhoneNumberTransformerForm';
+import LastNameTransformerForm from './Sheetforms/LastnameTransformerForm';
+import PhoneNumberTransformerForm from './Sheetforms/PhoneNumberTransformerForm';
+import RandomFloatTransformerForm from './Sheetforms/RandomFloatTransformerForm';
+import RandomIntTransformerForm from './Sheetforms/RandomIntTransformerForm';
+import RandomStringTransformerForm from './Sheetforms/RandomStringTransformerForm';
+import UuidTransformerForm from './Sheetforms/UuidTransformerForm';
 
 interface Props {
   transformer: Transformer | undefined;

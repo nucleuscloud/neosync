@@ -5,7 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Badge } from '@/components/ui/badge';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { handleTransformerMetadata } from '../../EditTransformerOptions';
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -15,7 +15,9 @@ import { DataTableRowActions } from './data-table-row-actions';
 //   onTransformerDeleted(id: string): void;
 // }
 
-export function getColumns(): ColumnDef<PlainMessage<Transformer>>[] {
+export function getCustomTransformerColumns(): ColumnDef<
+  PlainMessage<CustomTransformer>
+>[] {
   // props: GetTransformerProps
   // const { onTransformerDeleted } = props;
 
@@ -42,12 +44,13 @@ export function getColumns(): ColumnDef<PlainMessage<Transformer>>[] {
       enableHiding: false,
     },
     {
+      id: 'name',
       accessorKey: 'name',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Name" />
       ),
       cell: ({ row }) => {
-        const t = handleTransformerMetadata(row.original.value);
+        const t = handleTransformerMetadata(row.original.name);
 
         return (
           <div className="flex space-x-2">
@@ -57,29 +60,13 @@ export function getColumns(): ColumnDef<PlainMessage<Transformer>>[] {
       },
     },
     {
-      accessorKey: 'category',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Category" />
-      ),
-      cell: () => {
-        // const t = handleTransformerMetadata(row.original.value);
-
-        return (
-          <div className="flex space-x-2">
-            <Badge variant="outline" className="bg-blue-100">
-              system
-            </Badge>
-          </div>
-        );
-      },
-    },
-    {
+      id: 'type',
       accessorKey: 'type',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Type" />
       ),
       cell: ({ row }) => {
-        const t = handleTransformerMetadata(row.original.value);
+        const t = handleTransformerMetadata(row.original.name);
 
         return (
           <div className="flex space-x-2">
@@ -94,7 +81,7 @@ export function getColumns(): ColumnDef<PlainMessage<Transformer>>[] {
         <DataTableColumnHeader column={column} title="Description" />
       ),
       cell: ({ row }) => {
-        const t = handleTransformerMetadata(row.original.value);
+        const t = handleTransformerMetadata(row.original.name);
 
         return (
           <div className="flex space-x-2">
@@ -117,19 +104,3 @@ export function getColumns(): ColumnDef<PlainMessage<Transformer>>[] {
     },
   ];
 }
-
-//define the two tranformer types: system-generated and custom
-
-// function getCategory(cc?: PlainMessage<TransformerConfig>): string {
-//   if (!cc) {
-//     return '-';
-//   }
-//   switch (cc.config.case) {
-//     case 'pgConfig':
-//       return 'Database';
-//     case 'awsS3Config':
-//       return 'File Storage';
-//     default:
-//       return '-';
-//   }
-// }

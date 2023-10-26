@@ -7,7 +7,7 @@ export function useGetSystemTransformers(): HookReply<GetSystemTransformersRespo
   return useNucleusAuthenticatedFetch<
     GetSystemTransformersResponse,
     JsonValue | GetSystemTransformersResponse
-  >(`/api/transformers`, undefined, undefined, (data) =>
+  >(`/api/transformers/system`, undefined, undefined, (data) =>
     data instanceof GetSystemTransformersResponse
       ? data
       : GetSystemTransformersResponse.fromJson(data)
