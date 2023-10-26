@@ -260,7 +260,7 @@ function VirtualizedSchemaList({
         <div className="col-span-5"></div>
       </div>
 
-      <div className={`h-[${height - 100}px]`}>
+      <div className={`h-[700px]`}>
         <AutoSizer>
           {({ height: tableHeight, width }) => (
             <List

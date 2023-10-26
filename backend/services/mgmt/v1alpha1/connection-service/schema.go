@@ -114,7 +114,8 @@ const (
 		JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
 			AND c.table_name = t.table_name
 	WHERE
-		t.table_type = 'BASE TABLE';
+		c.table_schema NOT IN ('sys', 'performance_schema', 'mysql')
+		AND t.table_type = 'BASE TABLE';
 `
 )
 
