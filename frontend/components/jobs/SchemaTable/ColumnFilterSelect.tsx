@@ -62,11 +62,9 @@ export default function ColumnFilterSelect(props: Props) {
             {possibleFilters.map((i, index) => (
               <CommandItem
                 key={`${i}-${index}`}
-                onSelect={(currentValue) => {
-                  const newValues = computeFilters(
-                    currentValue,
-                    columnFilters || []
-                  );
+                onSelect={() => {
+                  // use i here instead of value because it lowercases the value
+                  const newValues = computeFilters(i, columnFilters || []);
                   setColumnFilters(columnId, newValues);
                   setOpen(false);
                 }}

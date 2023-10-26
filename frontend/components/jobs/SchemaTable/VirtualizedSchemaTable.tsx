@@ -298,7 +298,7 @@ interface Row {
 interface SchemaListProps {
   data: Row[];
   transformers?: Transformer[];
-  height: string;
+  height: number;
 }
 
 export const TableList = memo(function TableList({
