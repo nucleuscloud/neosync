@@ -13,7 +13,7 @@ import {
 import { createConnectTransport } from '@connectrpc/connect-node';
 import { GetTokenParams, getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
-import { IS_AUTH_ENABLED } from './auth-config';
+import { isAuthEnabled } from './auth-config';
 
 interface NeosyncContext {
   connectionClient: PromiseClient<typeof ConnectionService>;
@@ -70,7 +70,7 @@ async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
 }
 
 async function getTransport(params: GetTokenParams<true>): Promise<Transport> {
-  if (!IS_AUTH_ENABLED) {
+  if (!isAuthEnabled()) {
     return getAuthenticatedConnectTransport(getApiBaseUrlFromEnv());
   }
   const jwt = await getToken(params);
