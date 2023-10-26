@@ -35,7 +35,7 @@ func whoami(ctx context.Context) error {
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetToken)),
+		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
 	)
 	resp, err := userclient.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {

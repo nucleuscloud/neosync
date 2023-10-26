@@ -48,7 +48,7 @@ func triggerJob(
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetToken)),
+		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
 	)
 	_, err = jobclient.CreateJobRun(ctx, connect.NewRequest[mgmtv1alpha1.CreateJobRunRequest](&mgmtv1alpha1.CreateJobRunRequest{
 		JobId: jobId,

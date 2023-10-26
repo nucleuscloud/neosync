@@ -20,7 +20,15 @@ const (
 	AuthHeader = "Authorization"
 )
 
-func GetToken(ctx context.Context) (string, error) {
+func GetAuthHeaderToken(ctx context.Context) (string, error) {
+	token, err := getToken(ctx)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("Bearer %s", token), nil
+}
+
+func getToken(ctx context.Context) (string, error) {
 	authclient := mgmtv1alpha1connect.NewAuthServiceClient(http.DefaultClient, serverconfig.GetApiBaseUrl())
 
 	issuerResp, err := authclient.GetCliIssuer(ctx, connect.NewRequest(&mgmtv1alpha1.GetCliIssuerRequest{}))

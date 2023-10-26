@@ -40,7 +40,7 @@ func listJobs(
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetToken)),
+		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
 	)
 
 	// todo: this should be settable via cli context in the future to allow users to switch active accounts
@@ -60,7 +60,7 @@ func listJobs(
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetToken)),
+		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
 	)
 	res, err := jobclient.GetJobs(ctx, connect.NewRequest[mgmtv1alpha1.GetJobsRequest](&mgmtv1alpha1.GetJobsRequest{
 		AccountId: account.Id,

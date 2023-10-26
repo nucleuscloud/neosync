@@ -57,10 +57,7 @@ export function withNeosyncContext<T = unknown>(
 }
 
 async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
-  // const res = new NextResponse();
-
-  const transport = await getTransport({ req: req, raw: true });
-
+  const transport = await getTransport({ req });
   return {
     connectionClient: createPromiseClient(ConnectionService, transport),
     userClient: createPromiseClient(UserAccountService, transport),
@@ -69,19 +66,19 @@ async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
   };
 }
 
-async function getTransport(params: GetTokenParams<true>): Promise<Transport> {
+async function getTransport(params: GetTokenParams): Promise<Transport> {
   if (!isAuthEnabled()) {
-    return getAuthenticatedConnectTransport(getApiBaseUrlFromEnv());
+    return getConnectTransport(getApiBaseUrlFromEnv());
   }
   const jwt = await getToken(params);
-  if (!jwt) {
+  const accessToken = jwt?.accessToken;
+  if (!accessToken) {
     throw new Error('no session provided');
   }
-
-  return getAuthenticatedConnectTransport(getApiBaseUrlFromEnv(), () => jwt);
+  return getConnectTransport(getApiBaseUrlFromEnv(), () => accessToken);
 }
 
-function getAuthenticatedConnectTransport(
+function getConnectTransport(
   baseUrl: string,
   getAccessToken?: () => Promise<string> | string
 ): Transport {
