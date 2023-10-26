@@ -4,33 +4,41 @@ package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
 
-message RefreshAccessTokenRequest {
-  string refresh_token = 1 [(buf.validate.field).string.min_len = 1];
-  optional string client_id = 2 [(buf.validate.field).string.min_len = 1];
-}
+// message RefreshAccessTokenRequest {
+//   string refresh_token = 1 [(buf.validate.field).string.min_len = 1];
+//   optional string client_id = 2 [(buf.validate.field).string.min_len = 1];
+// }
 
-message RefreshAccessTokenResponse {
-  string access_token = 1;
-  string refresh_token = 2;
-  int64 expires_in = 3;
-  string scope = 4;
-  string id_token = 5;
-  string token_type = 6;
-}
+// message RefreshAccessTokenResponse {
+//   string access_token = 1;
+//   string refresh_token = 2;
+//   int64 expires_in = 3;
+//   string scope = 4;
+//   string id_token = 5;
+//   string token_type = 6;
+// }
 
-message GetAccessTokenRequest {
+// message GetAccessTokenRequest {
+//   string code = 1 [(buf.validate.field).string.min_len = 1];
+//   optional string client_id = 2 [(buf.validate.field).string.min_len = 1];
+//   optional string redirect_uri = 3 [(buf.validate.field).string.min_len = 1];
+// }
+
+// message GetAccessTokenResponse {
+//   string access_token = 1;
+//   string refresh_token = 2;
+//   int64 expires_in = 3;
+//   string scope = 4;
+//   string id_token = 5;
+//   string token_type = 6;
+// }
+
+message LoginCliRequest {
   string code = 1 [(buf.validate.field).string.min_len = 1];
-  optional string client_id = 2 [(buf.validate.field).string.min_len = 1];
-  optional string redirect_uri = 3 [(buf.validate.field).string.min_len = 1];
+  string redirect_uri = 2 [(buf.validate.field).string.min_len = 1];
 }
-
-message GetAccessTokenResponse {
-  string access_token = 1;
-  string refresh_token = 2;
-  int64 expires_in = 3;
-  string scope = 4;
-  string id_token = 5;
-  string token_type = 6;
+message LoginCliResponse {
+  AccessToken access_token = 1;
 }
 
 message GetAuthStatusRequest {}
@@ -38,9 +46,28 @@ message GetAuthStatusResponse {
   bool is_enabled = 1;
 }
 
+message AccessToken {
+  string access_token = 1;
+  optional string refresh_token = 2;
+  int64 expires_in = 3;
+  string scope = 4;
+  optional string id_token = 5;
+  string token_type = 6;
+}
+
+message GetAuthorizeUrlRequest {
+  string state = 1 [(buf.validate.field).string.min_len = 1];
+  string redirect_uri = 2 [(buf.validate.field).string.min_len = 1];
+}
+message GetAuthorizeUrlResponse {
+  string url = 1;
+}
+
 service AuthService {
-  rpc GetAccessToken(GetAccessTokenRequest) returns (GetAccessTokenResponse) {}
-  rpc RefreshAccessToken(RefreshAccessTokenRequest) returns (RefreshAccessTokenResponse) {}
+  rpc LoginCli(LoginCliRequest) returns (LoginCliResponse) {}
+  rpc GetAuthorizeUrl(GetAuthorizeUrlRequest) returns (GetAuthorizeUrlResponse) {}
+  // rpc GetAccessToken(GetAccessTokenRequest) returns (GetAccessTokenResponse) {}
+  // rpc RefreshAccessToken(RefreshAccessTokenRequest) returns (RefreshAccessTokenResponse) {}
 
   rpc GetAuthStatus(GetAuthStatusRequest) returns (GetAuthStatusResponse) {}
 }

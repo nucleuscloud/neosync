@@ -7,228 +7,82 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 
 /**
- * @generated from message mgmt.v1alpha1.RefreshAccessTokenRequest
+ * @generated from message mgmt.v1alpha1.LoginCliRequest
  */
-export class RefreshAccessTokenRequest extends Message<RefreshAccessTokenRequest> {
+export class LoginCliRequest extends Message<LoginCliRequest> {
   /**
-   * @generated from field: string client_id = 1;
-   */
-  clientId = "";
-
-  /**
-   * @generated from field: string refresh_token = 2;
-   */
-  refreshToken = "";
-
-  constructor(data?: PartialMessage<RefreshAccessTokenRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.RefreshAccessTokenRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "client_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "refresh_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RefreshAccessTokenRequest {
-    return new RefreshAccessTokenRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RefreshAccessTokenRequest {
-    return new RefreshAccessTokenRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RefreshAccessTokenRequest {
-    return new RefreshAccessTokenRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: RefreshAccessTokenRequest | PlainMessage<RefreshAccessTokenRequest> | undefined, b: RefreshAccessTokenRequest | PlainMessage<RefreshAccessTokenRequest> | undefined): boolean {
-    return proto3.util.equals(RefreshAccessTokenRequest, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.RefreshAccessTokenResponse
- */
-export class RefreshAccessTokenResponse extends Message<RefreshAccessTokenResponse> {
-  /**
-   * @generated from field: string access_token = 1;
-   */
-  accessToken = "";
-
-  /**
-   * @generated from field: string refresh_token = 2;
-   */
-  refreshToken = "";
-
-  /**
-   * @generated from field: int64 expires_in = 3;
-   */
-  expiresIn = protoInt64.zero;
-
-  /**
-   * @generated from field: string scope = 4;
-   */
-  scope = "";
-
-  /**
-   * @generated from field: string id_token = 5;
-   */
-  idToken = "";
-
-  /**
-   * @generated from field: string token_type = 6;
-   */
-  tokenType = "";
-
-  constructor(data?: PartialMessage<RefreshAccessTokenResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.RefreshAccessTokenResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "access_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "refresh_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "expires_in", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 4, name: "scope", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "id_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "token_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RefreshAccessTokenResponse {
-    return new RefreshAccessTokenResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RefreshAccessTokenResponse {
-    return new RefreshAccessTokenResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RefreshAccessTokenResponse {
-    return new RefreshAccessTokenResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: RefreshAccessTokenResponse | PlainMessage<RefreshAccessTokenResponse> | undefined, b: RefreshAccessTokenResponse | PlainMessage<RefreshAccessTokenResponse> | undefined): boolean {
-    return proto3.util.equals(RefreshAccessTokenResponse, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.GetAccessTokenRequest
- */
-export class GetAccessTokenRequest extends Message<GetAccessTokenRequest> {
-  /**
-   * @generated from field: string client_id = 1;
-   */
-  clientId = "";
-
-  /**
-   * @generated from field: string code = 2;
+   * @generated from field: string code = 1;
    */
   code = "";
 
   /**
-   * @generated from field: string redirect_uri = 3;
+   * @generated from field: string redirect_uri = 2;
    */
   redirectUri = "";
 
-  constructor(data?: PartialMessage<GetAccessTokenRequest>) {
+  constructor(data?: PartialMessage<LoginCliRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GetAccessTokenRequest";
+  static readonly typeName = "mgmt.v1alpha1.LoginCliRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "client_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "redirect_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "redirect_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccessTokenRequest {
-    return new GetAccessTokenRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LoginCliRequest {
+    return new LoginCliRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccessTokenRequest {
-    return new GetAccessTokenRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LoginCliRequest {
+    return new LoginCliRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccessTokenRequest {
-    return new GetAccessTokenRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LoginCliRequest {
+    return new LoginCliRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetAccessTokenRequest | PlainMessage<GetAccessTokenRequest> | undefined, b: GetAccessTokenRequest | PlainMessage<GetAccessTokenRequest> | undefined): boolean {
-    return proto3.util.equals(GetAccessTokenRequest, a, b);
+  static equals(a: LoginCliRequest | PlainMessage<LoginCliRequest> | undefined, b: LoginCliRequest | PlainMessage<LoginCliRequest> | undefined): boolean {
+    return proto3.util.equals(LoginCliRequest, a, b);
   }
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GetAccessTokenResponse
+ * @generated from message mgmt.v1alpha1.LoginCliResponse
  */
-export class GetAccessTokenResponse extends Message<GetAccessTokenResponse> {
+export class LoginCliResponse extends Message<LoginCliResponse> {
   /**
-   * @generated from field: string access_token = 1;
+   * @generated from field: mgmt.v1alpha1.AccessToken access_token = 1;
    */
-  accessToken = "";
+  accessToken?: AccessToken;
 
-  /**
-   * @generated from field: string refresh_token = 2;
-   */
-  refreshToken = "";
-
-  /**
-   * @generated from field: int64 expires_in = 3;
-   */
-  expiresIn = protoInt64.zero;
-
-  /**
-   * @generated from field: string scope = 4;
-   */
-  scope = "";
-
-  /**
-   * @generated from field: string id_token = 5;
-   */
-  idToken = "";
-
-  /**
-   * @generated from field: string token_type = 6;
-   */
-  tokenType = "";
-
-  constructor(data?: PartialMessage<GetAccessTokenResponse>) {
+  constructor(data?: PartialMessage<LoginCliResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GetAccessTokenResponse";
+  static readonly typeName = "mgmt.v1alpha1.LoginCliResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "access_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "refresh_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "expires_in", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 4, name: "scope", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "id_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "token_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "access_token", kind: "message", T: AccessToken },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccessTokenResponse {
-    return new GetAccessTokenResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LoginCliResponse {
+    return new LoginCliResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccessTokenResponse {
-    return new GetAccessTokenResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LoginCliResponse {
+    return new LoginCliResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccessTokenResponse {
-    return new GetAccessTokenResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LoginCliResponse {
+    return new LoginCliResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetAccessTokenResponse | PlainMessage<GetAccessTokenResponse> | undefined, b: GetAccessTokenResponse | PlainMessage<GetAccessTokenResponse> | undefined): boolean {
-    return proto3.util.equals(GetAccessTokenResponse, a, b);
+  static equals(a: LoginCliResponse | PlainMessage<LoginCliResponse> | undefined, b: LoginCliResponse | PlainMessage<LoginCliResponse> | undefined): boolean {
+    return proto3.util.equals(LoginCliResponse, a, b);
   }
 }
 
@@ -297,6 +151,153 @@ export class GetAuthStatusResponse extends Message<GetAuthStatusResponse> {
 
   static equals(a: GetAuthStatusResponse | PlainMessage<GetAuthStatusResponse> | undefined, b: GetAuthStatusResponse | PlainMessage<GetAuthStatusResponse> | undefined): boolean {
     return proto3.util.equals(GetAuthStatusResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AccessToken
+ */
+export class AccessToken extends Message<AccessToken> {
+  /**
+   * @generated from field: string access_token = 1;
+   */
+  accessToken = "";
+
+  /**
+   * @generated from field: optional string refresh_token = 2;
+   */
+  refreshToken?: string;
+
+  /**
+   * @generated from field: int64 expires_in = 3;
+   */
+  expiresIn = protoInt64.zero;
+
+  /**
+   * @generated from field: string scope = 4;
+   */
+  scope = "";
+
+  /**
+   * @generated from field: optional string id_token = 5;
+   */
+  idToken?: string;
+
+  /**
+   * @generated from field: string token_type = 6;
+   */
+  tokenType = "";
+
+  constructor(data?: PartialMessage<AccessToken>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AccessToken";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "access_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "refresh_token", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "expires_in", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 4, name: "scope", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "id_token", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 6, name: "token_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccessToken {
+    return new AccessToken().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AccessToken {
+    return new AccessToken().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AccessToken {
+    return new AccessToken().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AccessToken | PlainMessage<AccessToken> | undefined, b: AccessToken | PlainMessage<AccessToken> | undefined): boolean {
+    return proto3.util.equals(AccessToken, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAuthorizeUrlRequest
+ */
+export class GetAuthorizeUrlRequest extends Message<GetAuthorizeUrlRequest> {
+  /**
+   * @generated from field: string state = 1;
+   */
+  state = "";
+
+  /**
+   * @generated from field: string redirect_uri = 2;
+   */
+  redirectUri = "";
+
+  constructor(data?: PartialMessage<GetAuthorizeUrlRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAuthorizeUrlRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "state", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "redirect_uri", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAuthorizeUrlRequest {
+    return new GetAuthorizeUrlRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAuthorizeUrlRequest {
+    return new GetAuthorizeUrlRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAuthorizeUrlRequest {
+    return new GetAuthorizeUrlRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAuthorizeUrlRequest | PlainMessage<GetAuthorizeUrlRequest> | undefined, b: GetAuthorizeUrlRequest | PlainMessage<GetAuthorizeUrlRequest> | undefined): boolean {
+    return proto3.util.equals(GetAuthorizeUrlRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAuthorizeUrlResponse
+ */
+export class GetAuthorizeUrlResponse extends Message<GetAuthorizeUrlResponse> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  constructor(data?: PartialMessage<GetAuthorizeUrlResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAuthorizeUrlResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAuthorizeUrlResponse {
+    return new GetAuthorizeUrlResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAuthorizeUrlResponse {
+    return new GetAuthorizeUrlResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAuthorizeUrlResponse {
+    return new GetAuthorizeUrlResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAuthorizeUrlResponse | PlainMessage<GetAuthorizeUrlResponse> | undefined, b: GetAuthorizeUrlResponse | PlainMessage<GetAuthorizeUrlResponse> | undefined): boolean {
+    return proto3.util.equals(GetAuthorizeUrlResponse, a, b);
   }
 }
 

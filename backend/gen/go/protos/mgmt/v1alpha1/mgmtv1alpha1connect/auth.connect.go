@@ -33,12 +33,11 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// AuthServiceGetAccessTokenProcedure is the fully-qualified name of the AuthService's
-	// GetAccessToken RPC.
-	AuthServiceGetAccessTokenProcedure = "/mgmt.v1alpha1.AuthService/GetAccessToken"
-	// AuthServiceRefreshAccessTokenProcedure is the fully-qualified name of the AuthService's
-	// RefreshAccessToken RPC.
-	AuthServiceRefreshAccessTokenProcedure = "/mgmt.v1alpha1.AuthService/RefreshAccessToken"
+	// AuthServiceLoginCliProcedure is the fully-qualified name of the AuthService's LoginCli RPC.
+	AuthServiceLoginCliProcedure = "/mgmt.v1alpha1.AuthService/LoginCli"
+	// AuthServiceGetAuthorizeUrlProcedure is the fully-qualified name of the AuthService's
+	// GetAuthorizeUrl RPC.
+	AuthServiceGetAuthorizeUrlProcedure = "/mgmt.v1alpha1.AuthService/GetAuthorizeUrl"
 	// AuthServiceGetAuthStatusProcedure is the fully-qualified name of the AuthService's GetAuthStatus
 	// RPC.
 	AuthServiceGetAuthStatusProcedure = "/mgmt.v1alpha1.AuthService/GetAuthStatus"
@@ -46,8 +45,8 @@ const (
 
 // AuthServiceClient is a client for the mgmt.v1alpha1.AuthService service.
 type AuthServiceClient interface {
-	GetAccessToken(context.Context, *connect.Request[v1alpha1.GetAccessTokenRequest]) (*connect.Response[v1alpha1.GetAccessTokenResponse], error)
-	RefreshAccessToken(context.Context, *connect.Request[v1alpha1.RefreshAccessTokenRequest]) (*connect.Response[v1alpha1.RefreshAccessTokenResponse], error)
+	LoginCli(context.Context, *connect.Request[v1alpha1.LoginCliRequest]) (*connect.Response[v1alpha1.LoginCliResponse], error)
+	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
 	GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error)
 }
 
@@ -61,14 +60,14 @@ type AuthServiceClient interface {
 func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AuthServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &authServiceClient{
-		getAccessToken: connect.NewClient[v1alpha1.GetAccessTokenRequest, v1alpha1.GetAccessTokenResponse](
+		loginCli: connect.NewClient[v1alpha1.LoginCliRequest, v1alpha1.LoginCliResponse](
 			httpClient,
-			baseURL+AuthServiceGetAccessTokenProcedure,
+			baseURL+AuthServiceLoginCliProcedure,
 			opts...,
 		),
-		refreshAccessToken: connect.NewClient[v1alpha1.RefreshAccessTokenRequest, v1alpha1.RefreshAccessTokenResponse](
+		getAuthorizeUrl: connect.NewClient[v1alpha1.GetAuthorizeUrlRequest, v1alpha1.GetAuthorizeUrlResponse](
 			httpClient,
-			baseURL+AuthServiceRefreshAccessTokenProcedure,
+			baseURL+AuthServiceGetAuthorizeUrlProcedure,
 			opts...,
 		),
 		getAuthStatus: connect.NewClient[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse](
@@ -81,19 +80,19 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	getAccessToken     *connect.Client[v1alpha1.GetAccessTokenRequest, v1alpha1.GetAccessTokenResponse]
-	refreshAccessToken *connect.Client[v1alpha1.RefreshAccessTokenRequest, v1alpha1.RefreshAccessTokenResponse]
-	getAuthStatus      *connect.Client[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse]
+	loginCli        *connect.Client[v1alpha1.LoginCliRequest, v1alpha1.LoginCliResponse]
+	getAuthorizeUrl *connect.Client[v1alpha1.GetAuthorizeUrlRequest, v1alpha1.GetAuthorizeUrlResponse]
+	getAuthStatus   *connect.Client[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse]
 }
 
-// GetAccessToken calls mgmt.v1alpha1.AuthService.GetAccessToken.
-func (c *authServiceClient) GetAccessToken(ctx context.Context, req *connect.Request[v1alpha1.GetAccessTokenRequest]) (*connect.Response[v1alpha1.GetAccessTokenResponse], error) {
-	return c.getAccessToken.CallUnary(ctx, req)
+// LoginCli calls mgmt.v1alpha1.AuthService.LoginCli.
+func (c *authServiceClient) LoginCli(ctx context.Context, req *connect.Request[v1alpha1.LoginCliRequest]) (*connect.Response[v1alpha1.LoginCliResponse], error) {
+	return c.loginCli.CallUnary(ctx, req)
 }
 
-// RefreshAccessToken calls mgmt.v1alpha1.AuthService.RefreshAccessToken.
-func (c *authServiceClient) RefreshAccessToken(ctx context.Context, req *connect.Request[v1alpha1.RefreshAccessTokenRequest]) (*connect.Response[v1alpha1.RefreshAccessTokenResponse], error) {
-	return c.refreshAccessToken.CallUnary(ctx, req)
+// GetAuthorizeUrl calls mgmt.v1alpha1.AuthService.GetAuthorizeUrl.
+func (c *authServiceClient) GetAuthorizeUrl(ctx context.Context, req *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error) {
+	return c.getAuthorizeUrl.CallUnary(ctx, req)
 }
 
 // GetAuthStatus calls mgmt.v1alpha1.AuthService.GetAuthStatus.
@@ -103,8 +102,8 @@ func (c *authServiceClient) GetAuthStatus(ctx context.Context, req *connect.Requ
 
 // AuthServiceHandler is an implementation of the mgmt.v1alpha1.AuthService service.
 type AuthServiceHandler interface {
-	GetAccessToken(context.Context, *connect.Request[v1alpha1.GetAccessTokenRequest]) (*connect.Response[v1alpha1.GetAccessTokenResponse], error)
-	RefreshAccessToken(context.Context, *connect.Request[v1alpha1.RefreshAccessTokenRequest]) (*connect.Response[v1alpha1.RefreshAccessTokenResponse], error)
+	LoginCli(context.Context, *connect.Request[v1alpha1.LoginCliRequest]) (*connect.Response[v1alpha1.LoginCliResponse], error)
+	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
 	GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error)
 }
 
@@ -114,14 +113,14 @@ type AuthServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	authServiceGetAccessTokenHandler := connect.NewUnaryHandler(
-		AuthServiceGetAccessTokenProcedure,
-		svc.GetAccessToken,
+	authServiceLoginCliHandler := connect.NewUnaryHandler(
+		AuthServiceLoginCliProcedure,
+		svc.LoginCli,
 		opts...,
 	)
-	authServiceRefreshAccessTokenHandler := connect.NewUnaryHandler(
-		AuthServiceRefreshAccessTokenProcedure,
-		svc.RefreshAccessToken,
+	authServiceGetAuthorizeUrlHandler := connect.NewUnaryHandler(
+		AuthServiceGetAuthorizeUrlProcedure,
+		svc.GetAuthorizeUrl,
 		opts...,
 	)
 	authServiceGetAuthStatusHandler := connect.NewUnaryHandler(
@@ -131,10 +130,10 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 	)
 	return "/mgmt.v1alpha1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case AuthServiceGetAccessTokenProcedure:
-			authServiceGetAccessTokenHandler.ServeHTTP(w, r)
-		case AuthServiceRefreshAccessTokenProcedure:
-			authServiceRefreshAccessTokenHandler.ServeHTTP(w, r)
+		case AuthServiceLoginCliProcedure:
+			authServiceLoginCliHandler.ServeHTTP(w, r)
+		case AuthServiceGetAuthorizeUrlProcedure:
+			authServiceGetAuthorizeUrlHandler.ServeHTTP(w, r)
 		case AuthServiceGetAuthStatusProcedure:
 			authServiceGetAuthStatusHandler.ServeHTTP(w, r)
 		default:
@@ -146,12 +145,12 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 // UnimplementedAuthServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAuthServiceHandler struct{}
 
-func (UnimplementedAuthServiceHandler) GetAccessToken(context.Context, *connect.Request[v1alpha1.GetAccessTokenRequest]) (*connect.Response[v1alpha1.GetAccessTokenResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.GetAccessToken is not implemented"))
+func (UnimplementedAuthServiceHandler) LoginCli(context.Context, *connect.Request[v1alpha1.LoginCliRequest]) (*connect.Response[v1alpha1.LoginCliResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.LoginCli is not implemented"))
 }
 
-func (UnimplementedAuthServiceHandler) RefreshAccessToken(context.Context, *connect.Request[v1alpha1.RefreshAccessTokenRequest]) (*connect.Response[v1alpha1.RefreshAccessTokenResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.RefreshAccessToken is not implemented"))
+func (UnimplementedAuthServiceHandler) GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.GetAuthorizeUrl is not implemented"))
 }
 
 func (UnimplementedAuthServiceHandler) GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error) {
