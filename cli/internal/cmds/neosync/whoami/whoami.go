@@ -41,6 +41,7 @@ func whoami(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	// todo: layer in account data and access/id token information for even more goodness
 	fmt.Println("UserId:", resp.Msg.UserId)
 	return nil
 }
