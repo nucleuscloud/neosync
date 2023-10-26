@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from message mgmt.v1alpha1.GetSystemTransformersRequest
@@ -506,12 +506,27 @@ export class CustomTransformer extends Message<CustomTransformer> {
   description = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 8;
+   * @generated from field: string type = 4;
+   */
+  type = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 5;
    */
   config?: TransformerConfig;
 
   /**
-   * @generated from field: string account_id = 9;
+   * @generated from field: google.protobuf.Timestamp created_at = 6;
+   */
+  createdAt?: Timestamp;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp updated_at = 7;
+   */
+  updatedAt?: Timestamp;
+
+  /**
+   * @generated from field: string account_id = 8;
    */
   accountId = "";
 
@@ -526,8 +541,11 @@ export class CustomTransformer extends Message<CustomTransformer> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 8, name: "config", kind: "message", T: TransformerConfig },
-    { no: 9, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "config", kind: "message", T: TransformerConfig },
+    { no: 6, name: "created_at", kind: "message", T: Timestamp },
+    { no: 7, name: "updated_at", kind: "message", T: Timestamp },
+    { no: 8, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CustomTransformer {

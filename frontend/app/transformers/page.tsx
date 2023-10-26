@@ -33,8 +33,11 @@ export default function Transformers(): ReactElement {
 function TransformersTable(): ReactElement {
   const { data, isLoading: transformersIsLoading } = useGetSystemTransformers();
   const account = useAccount();
-  const { data: cTransformers, isLoading: customTransformersLoading } =
-    useGetCustomTransformers(account?.id ?? '');
+  const {
+    data: cTransformers,
+    isLoading: customTransformersLoading,
+    mutate: customTransformerMutate,
+  } = useGetCustomTransformers(account?.id ?? '');
 
   const systemTransformers = data?.transformers ?? [];
   const customTransformers = cTransformers?.transformers ?? [];
@@ -44,7 +47,11 @@ function TransformersTable(): ReactElement {
   }
 
   const systemTransformerColumns = getSystemTransformerColumns();
-  const customTransformerColumns = getCustomTransformerColumns();
+  const customTransformerColumns = getCustomTransformerColumns({
+    onTransformerDeleted() {
+      customTransformerMutate();
+    },
+  });
 
   return (
     <div>

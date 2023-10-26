@@ -3,6 +3,7 @@ syntax = "proto3";
 package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
 
 message GetSystemTransformersRequest {}
 
@@ -60,8 +61,11 @@ message CustomTransformer {
   string id = 1 [(buf.validate.field).string.uuid = true];
   string name = 2;
   string description = 3;
-  TransformerConfig config = 8;
-  string account_id = 9;
+  string type = 4;
+  TransformerConfig config = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  string account_id = 8;
 }
 
 message Transformer {

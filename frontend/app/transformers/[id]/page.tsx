@@ -1,16 +1,20 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
+import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
 import { getErrorMessage } from '@/util/util';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import { getTransformerComponentDetails } from './components/transformer-component';
 
 export default function TransformerPage({ params }: PageProps) {
   const id = params?.id ?? '';
-  const { data, isLoading, mutate } = useGetSystemTransformers();
+  const account = useAccount();
+  const { data, isLoading, mutate } = useGetCustomTransformers(
+    account?.id ?? ''
+  );
 
   const { toast } = useToast();
 
@@ -22,14 +26,13 @@ export default function TransformerPage({ params }: PageProps) {
     );
   }
   const tranformerComponent = getTransformerComponentDetails({
-    transformer: data?.transformers.find((item) => item.value == id),
+    transformer: data?.transformers.find((item) => item.id == id),
     onSaved: (resp) => {
       mutate();
       // new GetConnectionResponse({
       //   //udpate this to transformer
       //   connection: resp.connection,
       // })
-      console.log('resp', resp);
       toast({
         title: 'Successfully updated transformer!',
         variant: 'default',

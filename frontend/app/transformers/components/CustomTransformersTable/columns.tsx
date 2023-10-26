@@ -6,20 +6,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 import { Badge } from '@/components/ui/badge';
 import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-import { PlainMessage } from '@bufbuild/protobuf';
-import { handleTransformerMetadata } from '../../EditTransformerOptions';
+import { formatDateTime } from '@/util/util';
+import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
-// interface GetTransformerProps {
-//   onTransformerDeleted(id: string): void;
-// }
+interface Props {
+  onTransformerDeleted(id: string): void;
+}
 
-export function getCustomTransformerColumns(): ColumnDef<
-  PlainMessage<CustomTransformer>
->[] {
-  // props: GetTransformerProps
-  // const { onTransformerDeleted } = props;
+export function getCustomTransformerColumns(
+  props: Props
+): ColumnDef<PlainMessage<CustomTransformer>>[] {
+  const { onTransformerDeleted } = props;
 
   return [
     {
@@ -50,11 +49,11 @@ export function getCustomTransformerColumns(): ColumnDef<
         <DataTableColumnHeader column={column} title="Name" />
       ),
       cell: ({ row }) => {
-        const t = handleTransformerMetadata(row.original.name);
-
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">{t.name}</span>
+            <span className="max-w-[500px] truncate font-medium">
+              {row.original.name}
+            </span>
           </div>
         );
       },
@@ -66,11 +65,9 @@ export function getCustomTransformerColumns(): ColumnDef<
         <DataTableColumnHeader column={column} title="Type" />
       ),
       cell: ({ row }) => {
-        const t = handleTransformerMetadata(row.original.name);
-
         return (
           <div className="flex space-x-2">
-            <Badge variant="outline">{t.type}</Badge>
+            <Badge variant="outline">{row.original.type}</Badge>
           </div>
         );
       },
@@ -81,24 +78,61 @@ export function getCustomTransformerColumns(): ColumnDef<
         <DataTableColumnHeader column={column} title="Description" />
       ),
       cell: ({ row }) => {
-        const t = handleTransformerMetadata(row.original.name);
-
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {t.description}
+              {row.original.description}
             </span>
           </div>
         );
       },
     },
     {
+      accessorKey: 'createdAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Created At" />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              {formatDateTime(row.getValue<Timestamp>('createdAt').toDate())}
+            </span>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
+      accessorKey: 'updatedAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Updated At" />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              {formatDateTime(row.getValue<Timestamp>('updatedAt').toDate())}
+            </span>
+          </div>
+        );
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
       id: 'actions',
+      accessorKey: 'actions',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Actions" />
+      ),
       cell: ({ row }) => (
         <DataTableRowActions
           row={row}
-          onDeleted={() => console.log('delete')}
-          //onTransformerDeleted(row.id)}
+          onDeleted={() => onTransformerDeleted(row.id)}
         />
       ),
     },
