@@ -11,8 +11,8 @@ import { useFormContext } from 'react-hook-form';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import ColumnFilterSelect from './ColumnFilterSelect';
-import { SchemaTreeAutoResize } from './SchemaTree2';
 import TansformerSelect from './TransformerSelect';
+import { VirtualizedTree } from './VirtualizedTree';
 
 interface RowProps {
   index: number;
@@ -313,6 +313,7 @@ export const TableList = memo(function TableList({
     {}
   );
   const form = useFormContext();
+  const treedata = useMemo(() => getSchemaTreeData(data), [data]);
 
   const onFilterSelect = useCallback(
     (columnId: string, colFilters: string[]) => {
@@ -352,36 +353,10 @@ export const TableList = memo(function TableList({
     });
   }, []);
 
-  const schemaMap: Record<string, Record<string, string>> = {};
-  data.forEach((row) => {
-    if (!schemaMap[row.schema]) {
-      schemaMap[row.schema] = { [row.table]: row.table };
-    } else {
-      schemaMap[row.schema][row.table] = row.table;
-    }
-  });
-
-  const treedata = Object.keys(schemaMap).map((schema) => {
-    const children = Object.keys(schemaMap[schema]).map((table) => {
-      return {
-        id: `${schema}.${table}`,
-        name: table,
-        isSelected: false,
-      };
-    });
-
-    return {
-      id: schema,
-      name: schema,
-      isSelected: false,
-      children,
-    };
-  });
-
   return (
     <div className="flex flex-row w-full">
       <div className="basis-1/6  pt-[45px] ">
-        <SchemaTreeAutoResize data={treedata} />
+        <VirtualizedTree data={treedata} />
       </div>
       <div className={`space-y-2 pl-8 basis-5/6`}>
         <div className="flex items-center justify-between">
@@ -453,4 +428,32 @@ function shouldFilterRow(
     }
   }
   return true;
+}
+
+function getSchemaTreeData(data: Row[]) {
+  const schemaMap: Record<string, Record<string, string>> = {};
+  data.forEach((row) => {
+    if (!schemaMap[row.schema]) {
+      schemaMap[row.schema] = { [row.table]: row.table };
+    } else {
+      schemaMap[row.schema][row.table] = row.table;
+    }
+  });
+
+  return Object.keys(schemaMap).map((schema) => {
+    const children = Object.keys(schemaMap[schema]).map((table) => {
+      return {
+        id: `${schema}.${table}`,
+        name: table,
+        isSelected: false,
+      };
+    });
+
+    return {
+      id: schema,
+      name: schema,
+      isSelected: false,
+      children,
+    };
+  });
 }
