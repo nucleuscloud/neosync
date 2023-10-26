@@ -1,7 +1,8 @@
 'use client';
 
 import { handleTransformerMetadata } from '@/app/transformers/EditTransformerOptions';
-import CustomEmailTransformerForm from '@/app/transformers/[id]/components/CustomEmailTransformerForm';
+import CustomEmailTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomEmailTransformerForm';
+import CustomFirstNameTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomFirstnameTransformer';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -231,13 +232,12 @@ function handleNewTransformerForm(
     //   return (
     //     <UuidTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
     //   );
-    // case 'first_name':
-    //   return (
-    //     <FirstNameTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
+    case 'first_name':
+      return (
+        <CustomFirstNameTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
     // case 'last_name':
     //   return (
     //     <LastNameTransformerForm
