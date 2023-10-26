@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import {
-  FirstName,
+  IntPhoneNumber,
   Transformer,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
@@ -18,19 +18,19 @@ interface Props {
   transformer: Transformer;
 }
 
-export default function CustomFirstNameTransformerForm(
+export default function CustomIntPhoneNumberTransformerForm(
   props: Props
 ): ReactElement {
   const { transformer } = props;
 
   const fc = useFormContext();
 
-  const t = transformer.config?.config.value as FirstName;
+  const t = transformer.config?.config.value as IntPhoneNumber;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`transformer.preserveLength`}
+        name={`transformerConfig.preserveLength`}
         defaultValue={t.preserveLength}
         control={fc.control}
         render={({ field }) => (
@@ -38,7 +38,7 @@ export default function CustomFirstNameTransformerForm(
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription>
-                Set the length of the output first name to be the same as the
+                Set the length of the output phone number to be the same as the
                 input
               </FormDescription>
             </div>

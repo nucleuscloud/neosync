@@ -2,7 +2,15 @@
 
 import { handleTransformerMetadata } from '@/app/transformers/EditTransformerOptions';
 import CustomEmailTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomEmailTransformerForm';
-import CustomFirstNameTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomFirstnameTransformer';
+import CustomFirstNameTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomFirstnameTransformerForm';
+import CustomFullNameTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomFullnameTransformerForm';
+import CustomGenderTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomGenderTransformerForm';
+import CustomIntPhoneNumberTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomIntPhoneNumberTransformerForm';
+import CustomLastNameTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomLastnameTransformerForm';
+import CustomPhoneNumberTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomPhoneNumberTransformerForm';
+import CustomRandomFloatTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomRandomFloatTransformerForm';
+import CustomRandomIntTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomRandomIntTransformerForm';
+import CustomRandomStringTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomRandomStringTransformerForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -238,59 +246,54 @@ function handleNewTransformerForm(
           transformer={transformer ?? new Transformer()}
         />
       );
-    // case 'last_name':
-    //   return (
-    //     <LastNameTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
-    // case 'full_name':
-    //   return (
-    //     <FullNameTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
-    // case 'phone_number':
-    //   return (
-    //     <PhoneNumberTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
-    // case 'int_phone_number':
-    //   return (
-    //     <IntPhoneNumberTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
-    // case 'random_string':
-    //   return (
-    //     <RandomStringTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
-    // case 'random_int':
-    //   return (
-    //     <RandomIntTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
-    // case 'random_float':
-    //   return (
-    //     <RandomFloatTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
-    // case 'gender':
-    //   return (
-    //     <GenderTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
-    //   );
+    case 'last_name':
+      return (
+        <CustomLastNameTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
+    case 'full_name':
+      return (
+        <CustomFullNameTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
+    case 'phone_number':
+      return (
+        <CustomPhoneNumberTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
+    case 'int_phone_number':
+      return (
+        <CustomIntPhoneNumberTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
+    case 'random_string':
+      return (
+        <CustomRandomStringTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
+    case 'random_int':
+      return (
+        <CustomRandomIntTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
+    case 'random_float':
+      return (
+        <CustomRandomFloatTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
+    case 'gender':
+      return (
+        <CustomGenderTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
