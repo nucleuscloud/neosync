@@ -58,6 +58,8 @@ message AccessToken {
 message GetAuthorizeUrlRequest {
   string state = 1 [(buf.validate.field).string.min_len = 1];
   string redirect_uri = 2 [(buf.validate.field).string.min_len = 1];
+  string scope = 3 [(buf.validate.field).string.min_len = 1];
+  string audience = 4 [(buf.validate.field).string.min_len = 1];
 }
 message GetAuthorizeUrlResponse {
   string url = 1;

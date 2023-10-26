@@ -14,6 +14,7 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	"github.com/nucleuscloud/neosync/backend/internal/authmw"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -166,7 +167,27 @@ func serve() error {
 		),
 	)
 
-	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{})
+	tokenUrl, err := getAuthTokenUrl()
+	if err != nil {
+		return err
+	}
+	clientIdSecretMap, err := getAuthClientIdSecretMap()
+	if err != nil {
+		return err
+	}
+	authclient := auth_client.New(tokenUrl, clientIdSecretMap)
+
+	cliClientId := viper.GetString("AUTH_CLI_CLIENT_ID")
+	authAuthorizeUrl, err := getAuthAuthorizeUrl()
+	if err != nil {
+		return err
+	}
+
+	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{
+		IsAuthEnabled: isAuthEnabled,
+		AuthorizeUrl:  authAuthorizeUrl,
+		CliClientId:   cliClientId,
+	}, authclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(
 			authService,
@@ -272,9 +293,9 @@ func getTemporalTaskQueue() (string, error) {
 }
 
 func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
-	authBaseUrl := viper.GetString("AUTH_BASEURL")
-	if authBaseUrl == "" {
-		return nil, errors.New("must provide AUTH_BASEURL in environment")
+	authBaseUrl, err := getAuthBaseUrl()
+	if err != nil {
+		return nil, err
 	}
 
 	authAudiences := viper.GetStringSlice("AUTH_AUDIENCE")
@@ -286,4 +307,32 @@ func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
 		BaseUrl:      authBaseUrl,
 		ApiAudiences: authAudiences,
 	}, nil
+}
+
+func getAuthBaseUrl() (string, error) {
+	authBaseUrl := viper.GetString("AUTH_BASEURL")
+	if authBaseUrl == "" {
+		return "", errors.New("must provide AUTH_BASEURL in environment")
+	}
+	return authBaseUrl, nil
+}
+
+func getAuthTokenUrl() (string, error) {
+	baseUrl, err := getAuthTokenUrl()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/oauth/token", baseUrl), nil
+}
+
+func getAuthAuthorizeUrl() (string, error) {
+	baseUrl, err := getAuthTokenUrl()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/authorize", baseUrl), nil
+}
+
+func getAuthClientIdSecretMap() (map[string]string, error) {
+	return viper.GetStringMapString("AUTH_CLIENTID_SECRET"), nil
 }

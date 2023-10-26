@@ -15,8 +15,6 @@ type Config struct {
 	IsAuthEnabled bool
 
 	CliClientId  string
-	Audience     string
-	Scope        string
 	AuthorizeUrl string
 }
 

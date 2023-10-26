@@ -61,12 +61,12 @@ func (s *Service) GetAuthorizeUrl(
 	req *connect.Request[mgmtv1alpha1.GetAuthorizeUrlRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAuthorizeUrlResponse], error) {
 	params := url.Values{}
-	params.Add("audience", s.cfg.Audience)
-	params.Add("scope", s.cfg.Scope)
-	params.Add("response_type", "code")
 	params.Add("client_id", s.cfg.CliClientId)
+	params.Add("audience", req.Msg.Audience)
+	params.Add("scope", req.Msg.Scope)
 	params.Add("redirect_uri", req.Msg.RedirectUri)
 	params.Add("state", req.Msg.State)
+	params.Add("response_type", "code")
 
 	authorizeUrl := fmt.Sprintf("%s?%s", s.cfg.AuthorizeUrl, params.Encode())
 	return connect.NewResponse(&mgmtv1alpha1.GetAuthorizeUrlResponse{
