@@ -57,7 +57,7 @@ func (c *Client) GetTokenResponse(
 	redirecturi string,
 ) (*AuthTokenResponse, error) {
 	if _, ok := c.clientIdSecretMap[clientId]; !ok {
-		return nil, errors.New("unknown client id, requested client was notin safelist")
+		return nil, errors.New("unknown client id, requested client was not in safelist")
 	}
 
 	clientSecret := c.clientIdSecretMap[clientId]

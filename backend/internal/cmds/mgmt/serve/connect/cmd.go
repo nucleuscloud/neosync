@@ -171,10 +171,9 @@ func serve() error {
 	if err != nil {
 		return err
 	}
-	clientIdSecretMap, err := getAuthClientIdSecretMap()
-	if err != nil {
-		return err
-	}
+	clientIdSecretMap := getAuthClientIdSecretMap()
+	fmt.Println(clientIdSecretMap)
+
 	authclient := auth_client.New(tokenUrl, clientIdSecretMap)
 
 	cliClientId := viper.GetString("AUTH_CLI_CLIENT_ID")
@@ -318,7 +317,7 @@ func getAuthBaseUrl() (string, error) {
 }
 
 func getAuthTokenUrl() (string, error) {
-	baseUrl, err := getAuthTokenUrl()
+	baseUrl, err := getAuthBaseUrl()
 	if err != nil {
 		return "", err
 	}
@@ -326,13 +325,13 @@ func getAuthTokenUrl() (string, error) {
 }
 
 func getAuthAuthorizeUrl() (string, error) {
-	baseUrl, err := getAuthTokenUrl()
+	baseUrl, err := getAuthBaseUrl()
 	if err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%s/authorize", baseUrl), nil
 }
 
-func getAuthClientIdSecretMap() (map[string]string, error) {
-	return viper.GetStringMapString("AUTH_CLIENTID_SECRET"), nil
+func getAuthClientIdSecretMap() map[string]string {
+	return viper.GetStringMapString("AUTH_CLIENTID_SECRET")
 }

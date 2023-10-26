@@ -33,7 +33,7 @@ func NewCmd() *cobra.Command {
 }
 
 func login(ctx context.Context) error {
-	authclient := mgmtv1alpha1connect.NewAuthServiceClient(http.DefaultClient, "")
+	authclient := mgmtv1alpha1connect.NewAuthServiceClient(http.DefaultClient, "http://localhost:8082")
 	authEnabledResp, err := authclient.GetAuthStatus(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthStatusRequest{}))
 	if err != nil {
 		return err
@@ -67,6 +67,8 @@ func oAuthLogin(
 	authorizeurlResp, err := authclient.GetAuthorizeUrl(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthorizeUrlRequest{
 		State:       state,
 		RedirectUri: redirectUri,
+		Scope:       "openid profile",
+		Audience:    "https://api.nucleuscloud.com",
 	}))
 	if err != nil {
 		return err
@@ -113,10 +115,12 @@ func oAuthLogin(
 		if err != nil {
 			return err
 		}
+		fmt.Println("login success! writing to file")
 		err = userconfig.SetAccessToken(loginResp.Msg.AccessToken.AccessToken)
 		if err != nil {
 			return err
 		}
+		fmt.Println("write file success!")
 		if loginResp.Msg.AccessToken.RefreshToken != nil {
 			err = userconfig.SetRefreshToken(*loginResp.Msg.AccessToken.RefreshToken)
 			if err != nil {
