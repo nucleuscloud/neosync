@@ -41,6 +41,6 @@ func whoami(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("UserId: ", resp.Msg.UserId)
+	fmt.Println("UserId:", resp.Msg.UserId)
 	return nil
 }

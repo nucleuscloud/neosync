@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"time"
 
 	"connectrpc.com/connect"
@@ -187,12 +188,17 @@ func serve() error {
 		return err
 	}
 
+	issuerUrl, err := url.Parse(authBaseUrl + "/")
+	if err != nil {
+		return err
+	}
+
 	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{
 		IsAuthEnabled: isAuthEnabled,
 		AuthorizeUrl:  authAuthorizeUrl,
 		CliClientId:   cliClientId,
 		CliAudience:   cliAudience,
-		IssuerUrl:     authBaseUrl,
+		IssuerUrl:     issuerUrl.String(),
 	}, authclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(

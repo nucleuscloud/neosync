@@ -115,7 +115,6 @@ func oAuthLogin(
 		if err != nil {
 			return err
 		}
-		fmt.Println("login success! writing to file")
 		err = userconfig.SetAccessToken(loginResp.Msg.AccessToken.AccessToken)
 		if err != nil {
 			return err
