@@ -259,7 +259,7 @@ function VirtualizedSchemaList({
         </div>
         <div className="col-span-5"></div>
       </div>
-
+      // TODO fix height
       <div className={`h-[700px]`}>
         <AutoSizer>
           {({ height: tableHeight, width }) => (
