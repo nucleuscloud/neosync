@@ -50,6 +50,7 @@ func getHttpClient() *http.Client {
 	return client
 }
 
+// Uses Authorization Flow defined here: https://auth0.com/docs/api/authentication#authorization-code-flow47
 func (c *Client) GetTokenResponse(
 	ctx context.Context,
 	clientId string,
