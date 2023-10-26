@@ -38,6 +38,18 @@ stringData:
     AUTH_AUDIENCE: {{ .Values.auth.audience }}
     {{- end }}
 
+    {{- if and .Values.auth .Values.auth.clientMap | toJson | quote  }}
+    AUTH_CLIENTID_SECRET: {{ .Values.auth.clientMap }}
+    {{- end }}
+
+   {{- if and .Values.auth .Values.auth.cliClientId }}
+    AUTH_CLI_CLIENT_ID: {{ .Values.auth.cliClientId }}
+    {{- end }}
+
+   {{- if and .Values.auth .Values.auth.cliAudience }}
+    AUTH_CLI_AUDIENCE: {{ .Values.auth.cliAudience }}
+    {{- end }}
+
     {{- if and .Values.temporal .Values.temporal.url }}
     TEMPORAL_URL: {{ .Values.temporal.url }}
     {{- end }}

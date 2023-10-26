@@ -49,10 +49,13 @@ containerPort: 80
 terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
-# auth:
-#   enabled: false
-#   baseUrl:
-#   audience:
+auth:
+  enabled: false
+  audience:
+  baseUrl:
+  cliClientId:
+  cliAudience:
+  clientMap:
 
 temporal:
   url:
