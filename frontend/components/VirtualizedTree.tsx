@@ -28,26 +28,26 @@ interface TreeProps {
 }
 
 export const VirtualizedTree = ({ data, onNodeSelect }: TreeProps) => {
-  const [openedNodeIds, setOpenedNodeIds] = useState(data.map((d) => d.id));
-  const [nodes, setNodes] = useState(() => flattenOpened(data, openedNodeIds));
+  const [closedNodeIds, setClosedNodeIds] = useState<string[]>([]);
+  const [nodes, setNodes] = useState(() => flattenOpened(data, closedNodeIds));
 
   useEffect(() => {
-    const newFlattenedData = flattenOpened(data, openedNodeIds);
+    const newFlattenedData = flattenOpened(data, closedNodeIds);
     setNodes(newFlattenedData);
-  }, [data, openedNodeIds]);
+  }, [data, closedNodeIds]);
 
-  const onOpen = useCallback(
+  const onClose = useCallback(
     (node: Node) => {
-      setOpenedNodeIds((prevIds) => {
+      setClosedNodeIds((prevIds) => {
         const newIds = node.collapsed
-          ? [...prevIds, node.id]
-          : prevIds.filter((id) => id !== node.id);
+          ? prevIds.filter((id) => id !== node.id)
+          : [...prevIds, node.id];
 
         return newIds;
       });
-      setNodes(flattenOpened(data, openedNodeIds));
+      setNodes(flattenOpened(data, closedNodeIds));
     },
-    [data, openedNodeIds]
+    [data, closedNodeIds]
   );
 
   const onSelect = useCallback((index: number, node: Node) => {
@@ -104,7 +104,7 @@ export const VirtualizedTree = ({ data, onNodeSelect }: TreeProps) => {
     });
   }, []);
 
-  const nodeData = getNodeData(onOpen, onSelect, nodes, onNodeSelect);
+  const nodeData = getNodeData(onClose, onSelect, nodes, onNodeSelect);
 
   return (
     <AutoSizer>
@@ -132,12 +132,12 @@ interface NodeProps {
     nodes: Node[];
     onSelect: (index: number, node: Node) => void;
     onNodeSelect: (id: string, isSelected: boolean) => void;
-    onOpen: (node: Node) => void;
+    onClose: (node: Node) => void;
   };
 }
 
 const Node = memo(({ data, index, style }: NodeProps) => {
-  const { nodes, onOpen, onSelect, onNodeSelect } = data;
+  const { nodes, onClose, onSelect, onNodeSelect } = data;
   const node = nodes[index];
   const left = node.depth != 1 && `pl-${node.depth * 4}`;
   const hover = node.hasChildren && `hover:bg-muted p-2`;
@@ -165,7 +165,7 @@ const Node = memo(({ data, index, style }: NodeProps) => {
         <div
           className="flex flex-row items-center justify-end grow"
           onClick={() => {
-            onOpen(node);
+            onClose(node);
           }}
         >
           <div className="mr-2">
@@ -179,17 +179,17 @@ const Node = memo(({ data, index, style }: NodeProps) => {
 }, areEqual);
 Node.displayName = 'node';
 
-const getNodeData = memoizeOne((onOpen, onSelect, nodes, onNodeSelect) => ({
-  onOpen,
+const getNodeData = memoizeOne((onClose, onSelect, nodes, onNodeSelect) => ({
+  onClose,
   onSelect,
   nodes,
   onNodeSelect,
 }));
 
-const flattenOpened = (data: TreeData[], openNodeIds: string[]) => {
+const flattenOpened = (data: TreeData[], closedNodeIds: string[]) => {
   const result: Node[] = [];
   for (let node of data) {
-    flattenNode(node, 1, result, openNodeIds);
+    flattenNode(node, 1, result, closedNodeIds);
   }
   return result;
 };
@@ -198,11 +198,11 @@ const flattenNode = (
   node: TreeData,
   depth: number,
   result: Node[],
-  openNodeIds: string[]
+  closedNodeIds: string[]
 ) => {
   const { id, name, children, isSelected } = node;
 
-  let collapsed = !openNodeIds.includes(id);
+  let collapsed = closedNodeIds.includes(id);
   result.push({
     id,
     name,
@@ -215,7 +215,7 @@ const flattenNode = (
 
   if (!collapsed && children) {
     for (let child of children) {
-      flattenNode(child, depth + 1, result, openNodeIds);
+      flattenNode(child, depth + 1, result, closedNodeIds);
     }
   }
 };

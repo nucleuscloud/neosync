@@ -309,7 +309,11 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       schemaMap[c.schema] = {
         [c.table]: {
           [c.column]: {
-            transformer: c.transformer ?? new Transformer(),
+            transformer:
+              c.transformer ??
+              new Transformer({
+                value: 'passthrough',
+              }),
           },
         },
       };
@@ -413,7 +417,7 @@ async function getUpdatedValues(
   const mappings = schemaRes.schemas.map((r) => {
     return {
       ...r,
-      transformer: '',
+      transformer: 'passthrough',
     };
   });
 
