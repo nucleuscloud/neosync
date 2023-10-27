@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetAccessTokenRequest, GetAccessTokenResponse, GetNewAccessTokenRequest, GetNewAccessTokenResponse } from "./auth_pb";
+import { GetAuthorizeUrlRequest, GetAuthorizeUrlResponse, GetAuthStatusRequest, GetAuthStatusResponse, GetCliIssuerRequest, GetCliIssuerResponse, LoginCliRequest, LoginCliResponse } from "./auth_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -13,21 +13,39 @@ export const AuthService = {
   typeName: "mgmt.v1alpha1.AuthService",
   methods: {
     /**
-     * @generated from rpc mgmt.v1alpha1.AuthService.GetNewAccessToken
+     * @generated from rpc mgmt.v1alpha1.AuthService.LoginCli
      */
-    getNewAccessToken: {
-      name: "GetNewAccessToken",
-      I: GetNewAccessTokenRequest,
-      O: GetNewAccessTokenResponse,
+    loginCli: {
+      name: "LoginCli",
+      I: LoginCliRequest,
+      O: LoginCliResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc mgmt.v1alpha1.AuthService.GetAccessToken
+     * @generated from rpc mgmt.v1alpha1.AuthService.GetCliIssuer
      */
-    getAccessToken: {
-      name: "GetAccessToken",
-      I: GetAccessTokenRequest,
-      O: GetAccessTokenResponse,
+    getCliIssuer: {
+      name: "GetCliIssuer",
+      I: GetCliIssuerRequest,
+      O: GetCliIssuerResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.AuthService.GetAuthorizeUrl
+     */
+    getAuthorizeUrl: {
+      name: "GetAuthorizeUrl",
+      I: GetAuthorizeUrlRequest,
+      O: GetAuthorizeUrlResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.AuthService.GetAuthStatus
+     */
+    getAuthStatus: {
+      name: "GetAuthStatus",
+      I: GetAuthStatusRequest,
+      O: GetAuthStatusResponse,
       kind: MethodKind.Unary,
     },
   }

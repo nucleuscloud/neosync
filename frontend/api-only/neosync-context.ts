@@ -13,7 +13,7 @@ import {
 import { createConnectTransport } from '@connectrpc/connect-node';
 import { GetTokenParams, getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
-import { IS_AUTH_ENABLED } from './auth-config';
+import { isAuthEnabled } from './auth-config';
 
 interface NeosyncContext {
   connectionClient: PromiseClient<typeof ConnectionService>;
@@ -57,10 +57,7 @@ export function withNeosyncContext<T = unknown>(
 }
 
 async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
-  // const res = new NextResponse();
-
-  const transport = await getTransport({ req: req, raw: true });
-
+  const transport = await getTransport({ req });
   return {
     connectionClient: createPromiseClient(ConnectionService, transport),
     userClient: createPromiseClient(UserAccountService, transport),
@@ -69,19 +66,19 @@ async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
   };
 }
 
-async function getTransport(params: GetTokenParams<true>): Promise<Transport> {
-  if (!IS_AUTH_ENABLED) {
-    return getAuthenticatedConnectTransport(getApiBaseUrlFromEnv());
+async function getTransport(params: GetTokenParams): Promise<Transport> {
+  if (!isAuthEnabled()) {
+    return getConnectTransport(getApiBaseUrlFromEnv());
   }
   const jwt = await getToken(params);
-  if (!jwt) {
+  const accessToken = jwt?.accessToken;
+  if (!accessToken) {
     throw new Error('no session provided');
   }
-
-  return getAuthenticatedConnectTransport(getApiBaseUrlFromEnv(), () => jwt);
+  return getConnectTransport(getApiBaseUrlFromEnv(), () => accessToken);
 }
 
-function getAuthenticatedConnectTransport(
+function getConnectTransport(
   baseUrl: string,
   getAccessToken?: () => Promise<string> | string
 ): Transport {

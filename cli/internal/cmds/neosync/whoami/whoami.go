@@ -1,12 +1,11 @@
-package jobs_cmd
+package whoami_cmd
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"net/http"
 
 	"connectrpc.com/connect"
-	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
@@ -15,46 +14,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newTriggerCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "trigger",
-		Short: "trigger a job",
+func NewCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "whoami",
+		Short: "Find out who you are",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return errors.New("must provide job uuid as argument")
-			}
-
-			jobId := args[0]
-
-			jobUuid, err := uuid.Parse(jobId)
-			if err != nil {
-				return err
-			}
-
 			cmd.SilenceUsage = true
-			return triggerJob(cmd.Context(), jobUuid.String())
+			return whoami(cmd.Context())
 		},
 	}
+
+	return cmd
 }
 
-func triggerJob(
-	ctx context.Context,
-	jobId string,
-) error {
+func whoami(ctx context.Context) error {
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
 		return err
 	}
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
 	)
-	_, err = jobclient.CreateJobRun(ctx, connect.NewRequest[mgmtv1alpha1.CreateJobRunRequest](&mgmtv1alpha1.CreateJobRunRequest{
-		JobId: jobId,
-	}))
+	resp, err := userclient.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {
 		return err
 	}
+	// todo: layer in account data and access/id token information for even more goodness
+	fmt.Println("UserId:", resp.Msg.UserId)
 	return nil
 }

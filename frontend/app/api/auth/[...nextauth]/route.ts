@@ -1,6 +1,6 @@
-import { authOptions } from '@/api-only/auth-config';
+import { getAuthOptions } from '@/api-only/auth-config';
 import NextAuth from 'next-auth';
 
-const handler = NextAuth(authOptions);
+const handler = NextAuth(getAuthOptions());
 
 export { handler as GET, handler as POST };

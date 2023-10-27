@@ -9,9 +9,11 @@ services:
       - 3000:3000
     environment:
       - NUCLEUS_ENV=dev
-      - AUTH_ENABLED=false
       - NEXTAUTH_SECRET=foo
       - NEOSYNC_API_BASE_URL=http://api:8082
+
+      - AUTH_ENABLED=false
+
     networks:
       - neosync-network
     develop:
@@ -73,7 +75,6 @@ services:
       - HOST=0.0.0.0
       - PORT=8082
       - NUCLEUS_ENV=dev
-      - AUTH_ENABLED=false
       - TEMPORAL_NAMESPACE=default
       - TEMPORAL_TASK_QUEUE=sync-job
       - TEMPORAL_URL=temporal:7233
@@ -83,6 +84,9 @@ services:
       - DB_USER=postgres
       - DB_PASS=foofar
       - DB_SSL_DISABLE=true
+
+      - AUTH_ENABLED=false
+
     networks:
       - neosync-network
       - temporal-network
@@ -92,26 +96,26 @@ services:
           action: rebuild
           target: /app
 
-  worker:
-    container_name: neosync-worker
-    image: neosync-worker
-    build:
-      context: ./worker
-      dockerfile: ./dev/build/Dockerfile.dev
-    environment:
-      - NUCLEUS_ENV=dev
-      - TEMPORAL_URL=temporal:7233
-      - TEMPORAL_NAMESPACE=default
-      - TEMPORAL_TASK_QUEUE=sync-job
-      - NEOSYNC_URL=http://api:8082
-    networks:
-      - neosync-network
-      - temporal-network
-    develop:
-      watch:
-        - path: worker/bin
-          action: rebuild
-          target: /app
+  # worker:
+  #   container_name: neosync-worker
+  #   image: neosync-worker
+  #   build:
+  #     context: ./worker
+  #     dockerfile: ./dev/build/Dockerfile.dev
+  #   environment:
+  #     - NUCLEUS_ENV=dev
+  #     - TEMPORAL_URL=temporal:7233
+  #     - TEMPORAL_NAMESPACE=default
+  #     - TEMPORAL_TASK_QUEUE=sync-job
+  #     - NEOSYNC_URL=http://api:8082
+  #   networks:
+  #     - neosync-network
+  #     - temporal-network
+  #   develop:
+  #     watch:
+  #       - path: worker/bin
+  #         action: rebuild
+  #         target: /app
 networks:
   neosync-network:
     driver: bridge
