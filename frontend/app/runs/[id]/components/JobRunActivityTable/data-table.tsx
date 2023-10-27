@@ -44,6 +44,9 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
     []
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  React.useEffect(() => {
+    setColumnVisibility({ error: isError });
+  }, [isError]);
 
   const table = useReactTable({
     data,

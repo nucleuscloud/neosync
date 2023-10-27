@@ -391,7 +391,7 @@ message GetJobRunEventsResponse {
 }
 
 message DeleteJobRunRequest {
-  string job_run_id = 1 [(buf.validate.field).string.uuid = true];
+  string job_run_id = 1;
 }
 message DeleteJobRunResponse {}
 

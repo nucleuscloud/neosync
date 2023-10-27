@@ -16,19 +16,36 @@ import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
 import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
-import { ArrowRightIcon } from '@radix-ui/react-icons';
+import { ArrowRightIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 
 interface Props {
   jobId: string;
 }
 
 export default function JobRecentRuns({ jobId }: Props): ReactElement {
-  const { data, isLoading, error } = useGetJobRecentRuns(jobId);
+  const { data, isLoading, error, mutate, isValidating } =
+    useGetJobRecentRuns(jobId);
 
-  const { data: jobRuns, isLoading: jobRunsLoading } =
-    useGetJobRunsByJob(jobId);
+  const {
+    data: jobRuns,
+    isLoading: jobRunsLoading,
+    mutate: jobsRunsMutate,
+    isValidating: jobRunsValidating,
+  } = useGetJobRunsByJob(jobId);
+
+  function onRefreshClick(): void {
+    mutate();
+    jobsRunsMutate();
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      onRefreshClick();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [jobId]);
 
   const jobRunsIdMap =
     jobRuns?.jobRuns.reduce(
@@ -50,7 +67,20 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
         </Alert>
       ) : (
         <div>
-          <CardTitle className="py-6 px-2">Recent Job Runs</CardTitle>
+          <div className="flex flex-row items-center">
+            <CardTitle className="py-6 px-2">Recent Job Runs</CardTitle>
+            <Button
+              className={
+                isValidating || jobRunsValidating ? 'animate-spin' : ''
+              }
+              disabled={isValidating || jobRunsValidating}
+              variant="ghost"
+              size="icon"
+              onClick={() => onRefreshClick()}
+            >
+              <ReloadIcon className="h-4 w-4" />
+            </Button>
+          </div>
           <Table className="pt-5">
             <TableHeader>
               <TableRow>
@@ -62,7 +92,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.recentRuns?.runs.map((r) => {
+              {data?.recentRuns?.runs.reverse().map((r) => {
                 const jobRun = jobRunsIdMap[r.jobRunId];
                 return (
                   <TableRow key={r.jobRunId}>
