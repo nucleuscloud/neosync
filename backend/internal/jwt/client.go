@@ -18,8 +18,12 @@ type ClientConfig struct {
 	ApiAudiences []string
 }
 
+type JwtValidator interface {
+	ValidateToken(ctx context.Context, tokenString string) (any, error)
+}
+
 type Client struct {
-	jwtValidator *validator.Validator
+	jwtValidator JwtValidator
 }
 
 func New(
