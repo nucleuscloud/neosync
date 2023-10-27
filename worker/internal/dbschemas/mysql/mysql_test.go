@@ -6,6 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_DatabaseSchema_GetTableKey(t *testing.T) {
+	schema := &DatabaseSchema{
+		TableSchema: "public",
+		TableName:   "users",
+	}
+	assert.Equal(t, schema.GetTableKey(), "public.users")
+}
+
 func TestGetMysqlTableDependencies(t *testing.T) {
 	constraints := []*ForeignKeyConstraint{
 		{ConstraintName: "fk_account_user_associations_account_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id"},               //nolint
