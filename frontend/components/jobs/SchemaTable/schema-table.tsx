@@ -3,11 +3,10 @@ import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers'
 import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { ReactElement } from 'react';
-import { getColumns } from './column';
-import { DataTable } from './data-table';
+import { VirtualizedSchemaTable } from './VirtualizedSchemaTable';
 
 interface JobTableProps {
-  data: JobMappingFormValues[];
+  data?: JobMappingFormValues[];
 }
 
 export function SchemaTable(props: JobTableProps): ReactElement {
@@ -15,28 +14,22 @@ export function SchemaTable(props: JobTableProps): ReactElement {
   const { data: transformers, isLoading: transformersIsLoading } =
     useGetSystemTransformers();
 
-  if (transformersIsLoading) {
+  const tableData = data?.map((d) => {
+    return {
+      ...d,
+      isSelected: false,
+    };
+  });
+
+  if (transformersIsLoading || !tableData) {
     return <SkeletonTable />;
   }
 
-  const columns = getColumns({ transformers: transformers?.transformers });
-
-  const schemaMap: Record<string, Record<string, string>> = {};
-  data.forEach((row) => {
-    if (!schemaMap[row.schema]) {
-      schemaMap[row.schema] = { [row.table]: row.table };
-    } else {
-      schemaMap[row.schema][row.table] = row.table;
-    }
-  });
-
   return (
     <div>
-      <DataTable
-        columns={columns}
-        data={data}
+      <VirtualizedSchemaTable
+        data={tableData}
         transformers={transformers?.transformers}
-        schemaMap={schemaMap}
       />
     </div>
   );

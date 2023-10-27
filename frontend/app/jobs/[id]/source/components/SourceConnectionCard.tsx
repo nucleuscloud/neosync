@@ -198,7 +198,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
             maxColNum={2}
           />
 
-          <SchemaTable data={form.getValues().mappings || []} />
+          <SchemaTable data={form.getValues().mappings} />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Save</Button>
           </div>
@@ -309,7 +309,11 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       schemaMap[c.schema] = {
         [c.table]: {
           [c.column]: {
-            transformer: c.transformer ?? new Transformer(),
+            transformer:
+              c.transformer ??
+              new Transformer({
+                value: 'passthrough',
+              }),
           },
         },
       };
@@ -413,7 +417,7 @@ async function getUpdatedValues(
   const mappings = schemaRes.schemas.map((r) => {
     return {
       ...r,
-      transformer: '',
+      transformer: 'passthrough',
     };
   });
 
