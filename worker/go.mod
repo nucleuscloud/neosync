@@ -2,6 +2,8 @@ module github.com/nucleuscloud/neosync/worker
 
 go 1.21.3
 
+replace github.com/nucleuscloud/neosync/backend => ../backend
+
 require (
 	connectrpc.com/connect v1.12.0
 	connectrpc.com/grpchealth v1.3.0
@@ -10,7 +12,7 @@ require (
 	github.com/bxcodec/faker/v4 v4.0.0-beta.3
 	github.com/google/uuid v1.3.1
 	github.com/jackc/pgx/v5 v5.4.3
-	github.com/nucleuscloud/neosync/backend v0.0.0-20231018182133-9112d286ff4b
+	github.com/nucleuscloud/neosync/backend v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
 	github.com/stretchr/testify v1.8.4

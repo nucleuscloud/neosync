@@ -2,6 +2,8 @@ module github.com/nucleuscloud/neosync/backend
 
 go 1.21.3
 
+replace github.com/nucleuscloud/neosync/worker => ../worker
+
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20231017183020-0de7443d03cf.2
 	connectrpc.com/connect v1.12.0
@@ -14,7 +16,7 @@ require (
 	github.com/gogo/status v1.1.1
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/jackc/pgx/v5 v5.4.3
-	github.com/nucleuscloud/neosync/worker v0.0.0-20231024190303-a76ecf39fdcd
+	github.com/nucleuscloud/neosync/worker v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
 	go.temporal.io/api v1.24.0
@@ -229,7 +231,6 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
