@@ -8,7 +8,7 @@ require (
 	connectrpc.com/connect v1.12.0
 	github.com/auth0/go-jwt-middleware/v2 v2.1.0
 	github.com/fatih/color v1.15.0
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/nucleuscloud/neosync/backend v0.0.0-00010101000000-000000000000
 	github.com/rodaine/table v1.1.0
 	github.com/spf13/cobra v1.7.0
