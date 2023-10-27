@@ -6,7 +6,14 @@ import { cn } from '@/libs/utils';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
-import { CSSProperties, memo, useCallback, useMemo, useState } from 'react';
+import {
+  CSSProperties,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useFormContext } from 'react-hook-form';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List, areEqual } from 'react-window';
@@ -43,6 +50,10 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const form = useFormContext();
 
+  useEffect(() => {
+    setRows(data);
+  }, [data]);
+
   const treeData = useMemo(
     () => getSchemaTreeData(data, columnFilters),
     [data, columnFilters]
@@ -57,7 +68,6 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
         }
         const filteredRows = data.filter((r) => shouldFilterRow(r, newFilters));
         setRows(filteredRows);
-        // setTreeData(getSchemaTreeData(data, newFilters));
         return newFilters;
       });
     },
@@ -148,7 +158,6 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
             onClick={() => {
               setColumnFilters({});
               setRows(data);
-              setTreeData(getSchemaTreeData(data, {}));
             }}
           >
             Clear filters
@@ -411,6 +420,18 @@ function shouldFilterRow(
   return true;
 }
 
+function isTableSelected(
+  table: string,
+  schema: string,
+  tableFilters: Set<string>,
+  schemaFilters: Set<string>
+): boolean {
+  return (
+    (schemaFilters.size === 0 || schemaFilters.has(schema)) &&
+    (tableFilters.size === 0 || tableFilters.has(table))
+  );
+}
+
 function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
   const schemaMap: Record<string, Record<string, string>> = {};
   data.forEach((row) => {
@@ -424,25 +445,30 @@ function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
   const schemaFilters = new Set(columnFilters['schema'] || []);
   const tableFilters = new Set(columnFilters['table'] || []);
 
+  var falseOverride = false;
+  if (schemaFilters.size == 0 && tableFilters.size == 0) {
+    falseOverride = true;
+  }
+
   return Object.keys(schemaMap).map((schema) => {
     const isSchemaSelected = schemaFilters.has(schema);
-    var isAnyTableSelected = false;
     const children = Object.keys(schemaMap[schema]).map((table) => {
-      const isTableSelected = tableFilters.has(table);
-      if (isTableSelected) {
-        isAnyTableSelected = true;
-      }
       return {
         id: `${schema}.${table}`,
         name: table,
-        isSelected: isSchemaSelected || isTableSelected,
+        isSelected: falseOverride
+          ? false
+          : isTableSelected(table, schema, tableFilters, schemaFilters),
       };
     });
+    const isSomeTablesSelected = children.some((t) => t.isSelected);
 
     return {
       id: schema,
       name: schema,
-      isSelected: isSchemaSelected || isAnyTableSelected,
+      isSelected: falseOverride
+        ? false
+        : isSchemaSelected || isSomeTablesSelected,
       children,
     };
   });

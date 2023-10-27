@@ -43,11 +43,11 @@ export const VirtualizedTree = ({ data, onNodeSelect }: TreeProps) => {
           ? [...prevIds, node.id]
           : prevIds.filter((id) => id !== node.id);
 
-        setNodes(flattenOpened(data, newIds));
         return newIds;
       });
+      setNodes(flattenOpened(data, openedNodeIds));
     },
-    [data]
+    [data, openedNodeIds]
   );
 
   const onSelect = useCallback((index: number, node: Node) => {
