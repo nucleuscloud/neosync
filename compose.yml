@@ -96,26 +96,26 @@ services:
           action: rebuild
           target: /app
 
-  # worker:
-  #   container_name: neosync-worker
-  #   image: neosync-worker
-  #   build:
-  #     context: ./worker
-  #     dockerfile: ./dev/build/Dockerfile.dev
-  #   environment:
-  #     - NUCLEUS_ENV=dev
-  #     - TEMPORAL_URL=temporal:7233
-  #     - TEMPORAL_NAMESPACE=default
-  #     - TEMPORAL_TASK_QUEUE=sync-job
-  #     - NEOSYNC_URL=http://api:8082
-  #   networks:
-  #     - neosync-network
-  #     - temporal-network
-  #   develop:
-  #     watch:
-  #       - path: worker/bin
-  #         action: rebuild
-  #         target: /app
+  worker:
+    container_name: neosync-worker
+    image: neosync-worker
+    build:
+      context: ./worker
+      dockerfile: ./dev/build/Dockerfile.dev
+    environment:
+      - NUCLEUS_ENV=dev
+      - TEMPORAL_URL=temporal:7233
+      - TEMPORAL_NAMESPACE=default
+      - TEMPORAL_TASK_QUEUE=sync-job
+      - NEOSYNC_URL=http://api:8082
+    networks:
+      - neosync-network
+      - temporal-network
+    develop:
+      watch:
+        - path: worker/bin
+          action: rebuild
+          target: /app
 networks:
   neosync-network:
     driver: bridge

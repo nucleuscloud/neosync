@@ -64,15 +64,20 @@ func serve() error {
 		certificates = append(certificates, cert)
 	}
 
+	var tlsConfig *tls.Config
+	if len(certificates) > 0 {
+		tlsConfig = &tls.Config{
+			Certificates: certificates,
+			MinVersion:   tls.VersionTLS13,
+		}
+	}
+
 	temporalClient, err := client.Dial(client.Options{
 		Logger:    logger,
 		HostPort:  temporalUrl,
 		Namespace: temporalNamespace,
 		ConnectionOptions: client.ConnectionOptions{
-			TLS: &tls.Config{
-				Certificates: certificates,
-				MinVersion:   tls.VersionTLS13,
-			},
+			TLS: tlsConfig,
 		},
 		// Interceptors: ,
 		// HeadersProvider: , // todo: set auth headers
