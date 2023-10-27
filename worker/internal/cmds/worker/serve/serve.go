@@ -2,6 +2,7 @@ package serve_connect
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -51,10 +52,33 @@ func serve() error {
 	logger := slog.New(jsonloghandler)
 	loglogger := slog.NewLogLogger(jsonloghandler, slog.LevelInfo)
 
+	certificates := []tls.Certificate{}
+
+	clientKeyPath := viper.GetString("TEMPORAL_CERT_KEY_PATH")
+	clientCertPath := viper.GetString("TEMPORAL_CERT_PATH")
+	if clientKeyPath != "" && clientCertPath != "" {
+		cert, err := tls.LoadX509KeyPair(clientKeyPath, clientCertPath)
+		if err != nil {
+			return fmt.Errorf("unable to load temporal cert: %w", err)
+		}
+		certificates = append(certificates, cert)
+	}
+
+	var tlsConfig *tls.Config
+	if len(certificates) > 0 {
+		tlsConfig = &tls.Config{
+			Certificates: certificates,
+			MinVersion:   tls.VersionTLS13,
+		}
+	}
+
 	temporalClient, err := client.Dial(client.Options{
 		Logger:    logger,
 		HostPort:  temporalUrl,
 		Namespace: temporalNamespace,
+		ConnectionOptions: client.ConnectionOptions{
+			TLS: tlsConfig,
+		},
 		// Interceptors: ,
 		// HeadersProvider: , // todo: set auth headers
 	})
