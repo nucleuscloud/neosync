@@ -74,5 +74,5 @@ export function UserNav(): ReactElement {
 }
 
 function getAvatarFallback(name?: string | null): string | ReactElement {
-  return !!name ? name[0].toUpperCase() : <GearIcon />; // unknown?
+  return !!name ? name[0].toUpperCase() : <GearIcon />;
 }
