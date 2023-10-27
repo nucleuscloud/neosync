@@ -547,6 +547,8 @@ func (m *CreateCustomTransformerRequest) validate(all bool) error {
 
 	// no validation rules for Type
 
+	// no validation rules for Source
+
 	if all {
 		switch v := interface{}(m.GetTransformerConfig()).(type) {
 		case interface{ ValidateAll() error }:
@@ -1512,6 +1514,8 @@ func (m *CustomTransformer) validate(all bool) error {
 	// no validation rules for Description
 
 	// no validation rules for Type
+
+	// no validation rules for Source
 
 	if all {
 		switch v := interface{}(m.GetConfig()).(type) {

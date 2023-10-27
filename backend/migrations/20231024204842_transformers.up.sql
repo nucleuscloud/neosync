@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS neosync_api.transformers (
   name varchar NOT NULL,
   description varchar NOT NULL,
   type varchar NOT NULL,
+  source varchar NOT NULL,
   account_id uuid NOT NULL,
   transformer_config jsonb NOT NULL,
 

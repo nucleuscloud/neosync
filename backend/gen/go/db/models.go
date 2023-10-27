@@ -67,6 +67,7 @@ type NeosyncApiTransformer struct {
 	Name              string
 	Description       string
 	Type              string
+	Source            string
 	AccountID         pgtype.UUID
 	TransformerConfig *jsonmodels.TransformerConfigs
 	CreatedByID       pgtype.UUID

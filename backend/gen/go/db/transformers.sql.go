@@ -18,7 +18,7 @@ INSERT INTO neosync_api.transformers (
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, created_at, updated_at, name, description, type, account_id, transformer_config, created_by_id, updated_by_id
+RETURNING id, created_at, updated_at, name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id
 `
 
 type CreateCustomTransformerParams struct {
@@ -49,6 +49,7 @@ func (q *Queries) CreateCustomTransformer(ctx context.Context, db DBTX, arg Crea
 		&i.Name,
 		&i.Description,
 		&i.Type,
+		&i.Source,
 		&i.AccountID,
 		&i.TransformerConfig,
 		&i.CreatedByID,
@@ -67,7 +68,7 @@ func (q *Queries) DeleteCustomTransformerById(ctx context.Context, db DBTX, id p
 }
 
 const getCustomTransformersByAccount = `-- name: GetCustomTransformersByAccount :many
-SELECT t.id, t.created_at, t.updated_at, t.name, t.description, t.type, t.account_id, t.transformer_config, t.created_by_id, t.updated_by_id from neosync_api.transformers t
+SELECT t.id, t.created_at, t.updated_at, t.name, t.description, t.type, t.source, t.account_id, t.transformer_config, t.created_by_id, t.updated_by_id from neosync_api.transformers t
 INNER JOIN neosync_api.accounts a ON a.id = t.account_id
 WHERE a.id = $1
 ORDER BY t.created_at DESC
@@ -89,6 +90,7 @@ func (q *Queries) GetCustomTransformersByAccount(ctx context.Context, db DBTX, a
 			&i.Name,
 			&i.Description,
 			&i.Type,
+			&i.Source,
 			&i.AccountID,
 			&i.TransformerConfig,
 			&i.CreatedByID,
@@ -105,7 +107,7 @@ func (q *Queries) GetCustomTransformersByAccount(ctx context.Context, db DBTX, a
 }
 
 const getCustomTransformersById = `-- name: GetCustomTransformersById :one
-SELECT id, created_at, updated_at, name, description, type, account_id, transformer_config, created_by_id, updated_by_id from neosync_api.transformers WHERE id = $1
+SELECT id, created_at, updated_at, name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id from neosync_api.transformers WHERE id = $1
 `
 
 func (q *Queries) GetCustomTransformersById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
@@ -118,6 +120,7 @@ func (q *Queries) GetCustomTransformersById(ctx context.Context, db DBTX, id pgt
 		&i.Name,
 		&i.Description,
 		&i.Type,
+		&i.Source,
 		&i.AccountID,
 		&i.TransformerConfig,
 		&i.CreatedByID,
@@ -152,7 +155,7 @@ SET
   transformer_config = $3,
   updated_by_id = $4
 WHERE id = $5
-RETURNING id, created_at, updated_at, name, description, type, account_id, transformer_config, created_by_id, updated_by_id
+RETURNING id, created_at, updated_at, name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id
 `
 
 type UpdateCustomTransformerParams struct {
@@ -179,6 +182,7 @@ func (q *Queries) UpdateCustomTransformer(ctx context.Context, db DBTX, arg Upda
 		&i.Name,
 		&i.Description,
 		&i.Type,
+		&i.Source,
 		&i.AccountID,
 		&i.TransformerConfig,
 		&i.CreatedByID,

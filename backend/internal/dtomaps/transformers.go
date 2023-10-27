@@ -16,6 +16,7 @@ func ToCustomTransformerDto(
 		Type:        input.Type,
 		Config:      input.TransformerConfig.ToTransformerConfigDto(input.TransformerConfig),
 		Description: input.Description,
+		Source:      input.Source,
 		CreatedAt:   timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:   timestamppb.New(input.UpdatedAt.Time),
 		AccountId:   nucleusdb.UUIDString(input.AccountID),

@@ -27,6 +27,8 @@ export default function CustomPhoneNumberTransformerForm(
 
   const t = transformer.config?.config.value as PhoneNumber;
 
+  console.log('val', fc.getValues('transformerConfig.e164Format'));
+
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
@@ -52,6 +54,7 @@ export default function CustomPhoneNumberTransformerForm(
         name={`transformerConfig.includeHyphens`}
         defaultValue={t.includeHyphens}
         control={fc.control}
+        disabled={fc.getValues('transformerConfig.e164Format')}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">

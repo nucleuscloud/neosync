@@ -11,6 +11,7 @@ import CustomPhoneNumberTransformerForm from '@/app/transformers/[id]/components
 import CustomRandomFloatTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomRandomFloatTransformerForm';
 import CustomRandomIntTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomRandomIntTransformerForm';
 import CustomRandomStringTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomRandomStringTransformerForm';
+import CustomUuidTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomUuidTransformerForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -56,9 +57,8 @@ import { useForm } from 'react-hook-form';
 import { DEFINE_NEW_TRANSFORMER_SCHEMA, DefineNewTransformer } from './schema';
 
 export default function NewTransformer(): ReactElement {
-  const [base, setBase] = useState<string>('Select a source Transformer');
+  const [base, setBase] = useState<Transformer>(new Transformer());
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
-  const [selectedTransformer, setSelectedTransformer] = useState<Transformer>();
 
   const form = useForm<DefineNewTransformer>({
     resolver: yupResolver(DEFINE_NEW_TRANSFORMER_SCHEMA),
@@ -98,6 +98,8 @@ export default function NewTransformer(): ReactElement {
   const { data } = useGetSystemTransformers();
   const transformers = data?.transformers ?? [];
 
+  console.log('source', transformers);
+
   console.log('values', form.getValues());
 
   return (
@@ -118,7 +120,7 @@ export default function NewTransformer(): ReactElement {
                     onOpenChange={setOpenBaseSelect}
                   >
                     <SelectTrigger className="w-[1000px]">
-                      <SelectValue placeholder={base} />
+                      <SelectValue placeholder="Select a transformer" />
                     </SelectTrigger>
                     <SelectContent>
                       <Command className="overflow-auto">
@@ -130,17 +132,16 @@ export default function NewTransformer(): ReactElement {
                               key={`${t.value}-${index}`}
                               onSelect={(value: string) => {
                                 field.onChange;
-                                setBase(value);
+                                setBase(
+                                  transformers.find(
+                                    (item) => item.value == value
+                                  ) ?? new Transformer()
+                                );
                                 form.setValue(
                                   'type',
                                   handleTransformerMetadata(value).type
                                 );
                                 form.setValue('base', value);
-                                setSelectedTransformer(
-                                  transformers.find(
-                                    (item) => item.value == t.value
-                                  )
-                                );
                                 setOpenBaseSelect(false);
                               }}
                               value={t.value}
@@ -149,7 +150,9 @@ export default function NewTransformer(): ReactElement {
                               <CheckIcon
                                 className={cn(
                                   'mr-2 h-4 w-4',
-                                  base == t.value ? 'opacity-100' : 'opacity-0'
+                                  base.value == t.value
+                                    ? 'opacity-100'
+                                    : 'opacity-0'
                                 )}
                               />
                               {t.value}
@@ -167,7 +170,7 @@ export default function NewTransformer(): ReactElement {
               </FormItem>
             )}
           />
-          {base != 'Select a source Transformer' && (
+          {base.value && (
             <div>
               <FormField
                 control={form.control}
@@ -213,9 +216,7 @@ export default function NewTransformer(): ReactElement {
               </div>
             </div>
           )}
-          <div className="w-[1000px]">
-            {handleNewTransformerForm(base, selectedTransformer)}
-          </div>
+          <div className="w-[1000px]">{handleCustomTransformerForm(base)}</div>
           <div className="flex flex-row justify-end">
             <Button type="submit">Next</Button>
           </div>
@@ -225,21 +226,22 @@ export default function NewTransformer(): ReactElement {
   );
 }
 
-function handleNewTransformerForm(
-  name: string,
+export function handleCustomTransformerForm(
   transformer: Transformer | undefined
 ): ReactElement {
-  switch (name) {
+  switch (transformer?.value) {
     case 'email':
       return (
         <CustomEmailTransformerForm
           transformer={transformer ?? new Transformer()}
         />
       );
-    // case 'uuid':
-    //   return (
-    //     <UuidTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
-    //   );
+    case 'uuid':
+      return (
+        <CustomUuidTransformerForm
+          transformer={transformer ?? new Transformer()}
+        />
+      );
     case 'first_name':
       return (
         <CustomFirstNameTransformerForm

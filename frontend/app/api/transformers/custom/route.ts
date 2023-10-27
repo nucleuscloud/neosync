@@ -3,6 +3,7 @@ import {
   CreateCustomTransformerRequest,
   DeleteCustomTransformerRequest,
   GetCustomTransformersRequest,
+  UpdateCustomTransformerRequest,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -29,6 +30,13 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     const body = CreateCustomTransformerRequest.fromJson(await req.json());
+    return ctx.transformerClient.createCustomTransformer(body);
+  })(req);
+}
+
+export async function PUT(req: NextRequest): Promise<NextResponse> {
+  return withNeosyncContext(async (ctx) => {
+    const body = UpdateCustomTransformerRequest.fromJson(await req.json());
     return ctx.transformerClient.createCustomTransformer(body);
   })(req);
 }

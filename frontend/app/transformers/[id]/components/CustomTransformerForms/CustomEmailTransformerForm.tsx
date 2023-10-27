@@ -48,6 +48,7 @@ export default function CustomEmailTransformerForm(props: Props): ReactElement {
       <FormField
         name={`transformerConfig.preserveDomain`}
         defaultValue={t.preserveDomain}
+        disabled={fc.getValues('transformerConfig.preserveLength')}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">

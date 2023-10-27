@@ -1,9 +1,13 @@
 'use client';
 import PageHeader from '@/components/headers/PageHeader';
 import { UpdateConnectionResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  CustomTransformer,
+  Transformer,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
 import { handleTransformerMetadata } from '../../EditTransformerOptions';
+import UpdateTransformerForm from './UpdateTransformerForm';
 
 interface TransformerComponent {
   name: string;
@@ -13,7 +17,8 @@ interface TransformerComponent {
 }
 
 interface GetTransformerComponentDetailsProps {
-  transformer?: CustomTransformer;
+  CustomTransformer?: CustomTransformer;
+  SystemTransformer: Transformer;
   onSaved(updatedConnResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
   extraPageHeading?: ReactElement;
@@ -22,10 +27,10 @@ interface GetTransformerComponentDetailsProps {
 export function getTransformerComponentDetails(
   props: GetTransformerComponentDetailsProps
 ): TransformerComponent {
-  const { transformer } = props;
+  const { CustomTransformer } = props;
 
   return {
-    name: transformer?.name ?? 'Undefined',
+    name: CustomTransformer?.name ?? 'Undefined',
     summary: (
       <div>
         <p>No summary found.</p>
@@ -33,15 +38,16 @@ export function getTransformerComponentDetails(
     ),
     header: (
       <PageHeader
-        header={`${transformer?.name} Transformer`}
+        header={`${CustomTransformer?.name} Transformer`}
         description={
-          handleTransformerMetadata(transformer?.description).description
+          handleTransformerMetadata(CustomTransformer?.description).description
         }
       />
     ),
     body: (
-      //   <div>{handleTransformerForm(transformer?.value ?? 'passthrough')}</div>
-      <div>this is the {transformer?.name} component</div>
+      <div>
+        <UpdateTransformerForm defaultTransformerValues={CustomTransformer} />
+      </div>
     ),
   };
 }

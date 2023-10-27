@@ -173,7 +173,12 @@ export class CreateCustomTransformerRequest extends Message<CreateCustomTransfor
   type = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.TransformerConfig transformer_config = 5;
+   * @generated from field: string source = 5;
+   */
+  source = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.TransformerConfig transformer_config = 6;
    */
   transformerConfig?: TransformerConfig;
 
@@ -189,7 +194,8 @@ export class CreateCustomTransformerRequest extends Message<CreateCustomTransfor
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "transformer_config", kind: "message", T: TransformerConfig },
+    { no: 5, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "transformer_config", kind: "message", T: TransformerConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateCustomTransformerRequest {
@@ -511,22 +517,27 @@ export class CustomTransformer extends Message<CustomTransformer> {
   type = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 5;
+   * @generated from field: string source = 5;
+   */
+  source = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 6;
    */
   config?: TransformerConfig;
 
   /**
-   * @generated from field: google.protobuf.Timestamp created_at = 6;
+   * @generated from field: google.protobuf.Timestamp created_at = 7;
    */
   createdAt?: Timestamp;
 
   /**
-   * @generated from field: google.protobuf.Timestamp updated_at = 7;
+   * @generated from field: google.protobuf.Timestamp updated_at = 8;
    */
   updatedAt?: Timestamp;
 
   /**
-   * @generated from field: string account_id = 8;
+   * @generated from field: string account_id = 9;
    */
   accountId = "";
 
@@ -542,10 +553,11 @@ export class CustomTransformer extends Message<CustomTransformer> {
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "config", kind: "message", T: TransformerConfig },
-    { no: 6, name: "created_at", kind: "message", T: Timestamp },
-    { no: 7, name: "updated_at", kind: "message", T: Timestamp },
-    { no: 8, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "config", kind: "message", T: TransformerConfig },
+    { no: 7, name: "created_at", kind: "message", T: Timestamp },
+    { no: 8, name: "updated_at", kind: "message", T: Timestamp },
+    { no: 9, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CustomTransformer {

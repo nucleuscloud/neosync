@@ -2,6 +2,7 @@ package v1alpha1_transformersservice
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -171,6 +172,8 @@ func (s *Service) GetCustomTransformers(
 		return nil, err
 	}
 
+	fmt.Println("the transfomrers", transformers[0])
+
 	dtoTransformers := []*mgmtv1alpha1.CustomTransformer{}
 	for idx := range transformers {
 		transformer := transformers[idx]
@@ -200,8 +203,9 @@ func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Requ
 		Description:       req.Msg.Description,
 		TransformerConfig: &jsonmodels.TransformerConfigs{},
 		Type:              req.Msg.Type,
-		CreatedByID:       *userUuid,
-		UpdatedByID:       *userUuid,
+		// Source:            req.Msg.Source,
+		CreatedByID: *userUuid,
+		UpdatedByID: *userUuid,
 	}
 
 	err = customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
