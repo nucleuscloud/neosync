@@ -3,6 +3,5 @@ go 1.21.3
 use (
 	./backend
 	./cli
-	./hack/refcheck
 	./worker
 )
