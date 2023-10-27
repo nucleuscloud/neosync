@@ -14,21 +14,21 @@ import { GearIcon } from '@radix-ui/react-icons';
 import { signOut, useSession } from 'next-auth/react';
 import { ReactElement } from 'react';
 
-export function UserNav(): ReactElement {
+export function UserNav(): ReactElement | null {
   const session = useSession();
 
   const avatarImageSrc = session.data?.user?.image ?? '';
   const avatarImageAlt = session.data?.user?.name ?? 'unknown';
   const avatarFallback = getAvatarFallback(session.data?.user?.name);
 
+  if (session.status === 'unauthenticated') {
+    return null;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          disabled={session.status === 'unauthenticated'}
-          variant="ghost"
-          className="relative h-8 w-8 rounded-full"
-        >
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage src={avatarImageSrc} alt={avatarImageAlt} />
             <AvatarFallback>{avatarFallback}</AvatarFallback>
