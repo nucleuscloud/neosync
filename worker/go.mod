@@ -1,6 +1,6 @@
 module github.com/nucleuscloud/neosync/worker
 
-go 1.21.1
+go 1.21.3
 
 require (
 	connectrpc.com/connect v1.12.0
