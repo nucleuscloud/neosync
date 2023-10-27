@@ -26,7 +26,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       toast({
         title: 'Job run triggered successfully!',
       });
-      router.push(`/runs`);
+      router.push(`/jobs/${id}`);
     } catch (err) {
       console.error(err);
       toast({

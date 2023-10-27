@@ -7,8 +7,8 @@ import (
 )
 
 type Transformer struct {
-	Value  string
-	Config *TransformerConfigs
+	Value  string              `json:"value"`
+	Config *TransformerConfigs `json:"config,omitempty"`
 }
 
 type TransformerConfigs struct {
@@ -216,15 +216,14 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 func (t *Transformer) ToTransformerDto() *mgmtv1alpha1.Transformer {
 
 	config := &TransformerConfigs{}
-	config.ToTransformerConfigDto(t.Config)
 
-	t.Config = config
-
-	return nil
+	return &mgmtv1alpha1.Transformer{
+		Value:  t.Value,
+		Config: config.ToTransformerConfigDto(t.Config),
+	}
 }
 
 func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgmtv1alpha1.TransformerConfig {
-
 	switch {
 	case tr.EmailConfig != nil:
 		return &mgmtv1alpha1.TransformerConfig{

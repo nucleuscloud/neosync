@@ -2,6 +2,8 @@
 import { PageProps } from '@/components/types';
 
 import ButtonText from '@/components/ButtonText';
+import ConfirmationDialog from '@/components/ConfirmationDialog';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import Spinner from '@/components/Spinner';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
@@ -10,21 +12,24 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
 import { refreshWhenJobRunning, useGetJobRun } from '@/libs/hooks/useGetJobRun';
 import {
   getRefreshEventsWhenJobRunningFn,
   useGetJobRunEvents,
 } from '@/libs/hooks/useGetJobRunEvents';
-import { formatDateTime } from '@/util/util';
-import { ArrowRightIcon } from '@radix-ui/react-icons';
+import { formatDateTime, getErrorMessage } from '@/util/util';
+import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { data, isLoading } = useGetJobRun(id, {
+  const router = useRouter();
+  const { toast } = useToast();
+  const { data, isLoading, mutate } = useGetJobRun(id, {
     refreshIntervalFn: refreshWhenJobRunning,
   });
 
@@ -32,11 +37,52 @@ export default function Page({ params }: PageProps): ReactElement {
     data: eventData,
     isLoading: eventsIsLoading,
     isValidating,
+    mutate: eventMutate,
   } = useGetJobRunEvents(id, {
     refreshIntervalFn: getRefreshEventsWhenJobRunningFn(data?.jobRun?.status),
   });
 
   const jobRun = data?.jobRun;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      eventMutate();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [data?.jobRun?.status]);
+
+  async function onDelete(): Promise<void> {
+    try {
+      await removeJobRun(id);
+      toast({
+        title: 'Job run removed successfully!',
+      });
+      router.push(`/runs`);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to remove job run',
+        description: getErrorMessage(err),
+      });
+    }
+  }
+
+  async function onCancel(): Promise<void> {
+    try {
+      await cancelJobRun(id);
+      toast({
+        title: 'Job run canceled successfully!',
+      });
+      mutate();
+      eventMutate();
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to cancel job run',
+        description: getErrorMessage(err),
+      });
+    }
+  }
 
   return (
     <OverviewContainer
@@ -44,7 +90,34 @@ export default function Page({ params }: PageProps): ReactElement {
         <PageHeader
           header="Job Run Details"
           description={jobRun?.id || ''}
-          extraHeading={<ButtonLink jobId={jobRun?.jobId} />}
+          extraHeading={
+            <div className="flex flex-row space-x-4">
+              <DeleteConfirmationDialog
+                trigger={
+                  <Button variant="destructive">
+                    <ButtonText leftIcon={<TrashIcon />} text="Delete Run" />
+                  </Button>
+                }
+                headerText="Are you sure you want to delete this job run?"
+                description=""
+                onConfirm={async () => onDelete()}
+              />
+              <ConfirmationDialog
+                trigger={
+                  <Button>
+                    <ButtonText leftIcon={<Cross2Icon />} text="Cancel Run" />
+                  </Button>
+                }
+                headerText="Are you sure you want to cancel this job run?"
+                description=""
+                onConfirm={async () => onCancel()}
+                buttonText="Cancel"
+                buttonVariant="default"
+                buttonIcon={<Cross2Icon />}
+              />
+              <ButtonLink jobId={jobRun?.jobId} />
+            </div>
+          }
         />
       }
       containerClassName="runs-page"
@@ -110,7 +183,7 @@ export default function Page({ params }: PageProps): ReactElement {
             {eventsIsLoading ? (
               <SkeletonTable />
             ) : (
-              <JobRunActivityTable jobRunEvents={eventData?.events || []} />
+              <JobRunActivityTable jobRunEvents={eventData?.events} />
             )}
           </div>
         </div>
@@ -185,4 +258,26 @@ function ButtonLink(props: ButtonProps): ReactElement {
       />
     </Button>
   );
+}
+
+async function removeJobRun(jobRunId: string): Promise<void> {
+  const res = await fetch(`/api/runs/${jobRunId}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  await res.json();
+}
+
+async function cancelJobRun(jobRunId: string): Promise<void> {
+  const res = await fetch(`/api/runs/${jobRunId}/cancel`, {
+    method: 'PUT',
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  await res.json();
 }
