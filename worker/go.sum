@@ -1,4 +1,5 @@
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20231017183020-0de7443d03cf.2 h1:t3Bq7+sq30Ga31zuUZVk02meAYwhiZ9SGMRVQPJJgqs=
+buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20231017183020-0de7443d03cf.2/go.mod h1:xafc+XIsTxTy76GJQ1TKgvJWsSugFBqMaN27WhUblew=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=
@@ -1379,8 +1380,6 @@ github.com/ncw/swift v1.0.52/go.mod h1:23YIA4yWVnGwv2dQlN4bB7egfYX6YLn0Yo/S6zZO/
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 h1:NHrXEjTNQY7P0Zfx1aMrNhpgxHmow66XQtm0aQLY0AE=
 github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249/go.mod h1:mpRZBD8SJ55OIICQ3iWH0Yz3cjzA61JdqMLoWXeB2+8=
-github.com/nucleuscloud/neosync/backend v0.0.0-20231018182133-9112d286ff4b h1:NbdPoupmb400mH5Gv/t++HRChzZYlUpHYW36SjjvxJo=
-github.com/nucleuscloud/neosync/backend v0.0.0-20231018182133-9112d286ff4b/go.mod h1:CU2sUBkPLX7zVEc1+4A+6aeHj8/jBUV5Yl50wlZyvrw=
 github.com/oklog/ulid v1.3.1 h1:EGfNDEx6MqHz8B3uNV6QAib1UR2Lm97sHi3ocA6ESJ4=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=

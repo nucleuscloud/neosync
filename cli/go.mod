@@ -1,13 +1,15 @@
 module github.com/nucleuscloud/neosync/cli
 
-go 1.21.1
+go 1.21.3
+
+replace github.com/nucleuscloud/neosync/backend => ../backend
 
 require (
 	connectrpc.com/connect v1.12.0
 	github.com/auth0/go-jwt-middleware/v2 v2.1.0
 	github.com/fatih/color v1.15.0
 	github.com/google/uuid v1.3.1
-	github.com/nucleuscloud/neosync/backend v0.0.0-20231013222221-e455d40191d0
+	github.com/nucleuscloud/neosync/backend v0.0.0-00010101000000-000000000000
 	github.com/rodaine/table v1.1.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
@@ -26,11 +28,9 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
