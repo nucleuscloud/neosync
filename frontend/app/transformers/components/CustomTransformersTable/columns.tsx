@@ -73,15 +73,15 @@ export function getCustomTransformerColumns(
       },
     },
     {
-      accessorKey: 'description',
+      accessorKey: 'source',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Description" />
+        <DataTableColumnHeader column={column} title="Source" />
       ),
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {row.original.description}
+              {row.original.source}
             </span>
           </div>
         );

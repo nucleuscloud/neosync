@@ -53,8 +53,6 @@ function TransformersTable(): ReactElement {
     },
   });
 
-  console.log('trans', customTransformers);
-
   return (
     <div>
       <Tabs defaultValue="custom" className="">
