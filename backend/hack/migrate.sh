@@ -38,6 +38,9 @@ fi
 if [ "$PG_HOSTNAME" = "neosync-postgresql:5432/nucleus" ]; then
     PG_OPTIONS="${PG_OPTIONS}&sslmode=disable"
 fi
+if [ "$PG_HOSTNAME" = "db:5432/nucleus" ]; then
+    PG_OPTIONS="${PG_OPTIONS}&sslmode=disable"
+fi
 
 SCRIPT_DIR=$(basename "$0")
 
@@ -48,7 +51,7 @@ fi
 cmd="$1"
 
 if ! command -v migrate > /dev/null ; then
-    echo "Must have golang-migrate installed. Run 'make install' if OSX or consult your package manager."
+    echo "Must have golang-migrate installed. Run 'make install-tools' if OSX or consult your package manager."
     exit 1
 fi
 

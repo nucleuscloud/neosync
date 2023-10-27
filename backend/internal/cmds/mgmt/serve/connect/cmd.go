@@ -1,10 +1,10 @@
 package serve_connect
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"time"
 
 	"connectrpc.com/connect"
@@ -14,14 +14,17 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	"github.com/nucleuscloud/neosync/backend/internal/authmw"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
+	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 	temporalclient "go.temporal.io/sdk/client"
 
@@ -52,6 +55,9 @@ func serve() error {
 		host = "127.0.0.1"
 	}
 	environment := viper.GetString("NUCLEUS_ENV")
+	if environment == "" {
+		environment = "unknown"
+	}
 
 	logger := neosynclogger.New(neosynclogger.ShouldFormatAsJson(), nil).
 		With("nucleusEnv", environment)
@@ -66,6 +72,7 @@ func serve() error {
 		mgmtv1alpha1connect.AuthServiceName,
 		mgmtv1alpha1connect.ConnectionServiceName,
 		mgmtv1alpha1connect.JobServiceName,
+		mgmtv1alpha1connect.TransformersServiceName,
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
@@ -85,19 +92,6 @@ func serve() error {
 		return err
 	}
 
-	temporalConfig := getTemporalConfig(logger)
-	temporalClient, err := temporalclient.Dial(*temporalConfig)
-	if err != nil {
-		return err
-	}
-	defer temporalClient.Close()
-
-	temporalTaskQueue, err := getTemporalTaskQueue()
-	if err != nil {
-		return err
-	}
-	temporalNamespace := getTemporalNamespace()
-
 	validateInterceptor, err := validate.NewInterceptor()
 	if err != nil {
 		return err
@@ -111,11 +105,7 @@ func serve() error {
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
-		jwtClientCfg, err := getJwtClientConfig()
-		if err != nil {
-			return err
-		}
-		jwtclient, err := auth_jwt.New(jwtClientCfg)
+		jwtclient, err := auth_jwt.New(getJwtClientConfig())
 		if err != nil {
 			return err
 		}
@@ -146,7 +136,16 @@ func serve() error {
 		),
 	)
 
-	jobServiceConfig := &v1alpha1_jobservice.Config{TemporalTaskQueue: temporalTaskQueue, TemporalNamespace: temporalNamespace}
+	temporalConfig := getTemporalConfig(logger)
+	temporalClient, err := temporalclient.NewLazyClient(*temporalConfig)
+	if err != nil {
+		return err
+	}
+	defer temporalClient.Close()
+	jobServiceConfig := &v1alpha1_jobservice.Config{
+		TemporalTaskQueue: getTemporalTaskQueue(),
+		TemporalNamespace: getTemporalNamespace(),
+	}
 	jobService := v1alpha1_jobservice.New(jobServiceConfig, db, temporalClient, connectionService, useraccountService)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
@@ -155,17 +154,58 @@ func serve() error {
 		),
 	)
 
+	transformerService := v1alpha1_transformerservice.New(&v1alpha1_transformerservice.Config{}, db, useraccountService)
+	api.Handle(
+		mgmtv1alpha1connect.NewTransformersServiceHandler(
+			transformerService,
+			stdInterceptorConnectOpt,
+		),
+	)
+
+	authBaseUrl := getAuthBaseUrl()
+	tokenUrl := getAuthTokenUrl()
+	clientIdSecretMap := getAuthClientIdSecretMap()
+
+	authclient := auth_client.New(tokenUrl, clientIdSecretMap)
+
+	var issuerStr string
+	issuerUrl, err := url.Parse(authBaseUrl + "/")
+	if err != nil {
+		if isAuthEnabled {
+			return err
+		}
+	} else {
+		issuerStr = issuerUrl.String()
+	}
+
+	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{
+		IsAuthEnabled: isAuthEnabled,
+		AuthorizeUrl:  getAuthAuthorizeUrl(),
+		CliClientId:   viper.GetString("AUTH_CLI_CLIENT_ID"),
+		CliAudience:   getAuthCliAudience(),
+		IssuerUrl:     issuerStr,
+	}, authclient)
+	api.Handle(
+		mgmtv1alpha1connect.NewAuthServiceHandler(
+			authService,
+			connect.WithInterceptors(
+				otelconnect.NewInterceptor(),
+				logger_interceptor.NewInterceptor(logger),
+				validateInterceptor,
+			),
+		),
+	)
+
 	mux.Handle("/", api)
 
-	addr := fmt.Sprintf("%s:%d", host, port)
-
-	logger.Info(fmt.Sprintf("listening on %s", addr))
 	httpServer := http.Server{
-		Addr:              addr,
+		Addr:              fmt.Sprintf("%s:%d", host, port),
 		Handler:           h2c.NewHandler(mux, &http2.Server{}),
 		ErrorLog:          loglogger,
 		ReadHeaderTimeout: 10 * time.Second,
 	}
+
+	logger.Info(fmt.Sprintf("listening on %s", httpServer.Addr))
 
 	if err = httpServer.ListenAndServe(); err != nil {
 		logger.Error(err.Error())
@@ -241,27 +281,54 @@ func getTemporalNamespace() string {
 	return temporalNamespace
 }
 
-func getTemporalTaskQueue() (string, error) {
+func getTemporalTaskQueue() string {
 	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
 	if taskQueue == "" {
-		return "", errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
+		return "default"
 	}
-	return taskQueue, nil
+	return taskQueue
 }
 
-func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
-	authBaseUrl := viper.GetString("AUTH_BASEURL")
-	if authBaseUrl == "" {
-		return nil, errors.New("must provide AUTH_BASEURL in environment")
-	}
-
-	authAudiences := viper.GetStringSlice("AUTH_AUDIENCE")
-	if len(authAudiences) == 0 {
-		return nil, errors.New("must provide AUTH_AUDIENCE with at least one audience in environment")
-	}
+func getJwtClientConfig() *auth_jwt.ClientConfig {
+	authBaseUrl := getAuthBaseUrl()
+	authAudiences := getAuthAudiences()
 
 	return &auth_jwt.ClientConfig{
 		BaseUrl:      authBaseUrl,
 		ApiAudiences: authAudiences,
-	}, nil
+	}
+}
+
+func getAuthCliAudience() string {
+	aud := viper.GetString("AUTH_CLI_AUDIENCE")
+	if aud == "" {
+		auds := getAuthAudiences()
+		if len(auds) > 0 {
+			return auds[0]
+		}
+	}
+	return aud
+}
+
+func getAuthAudiences() []string {
+	return viper.GetStringSlice("AUTH_AUDIENCE")
+}
+
+func getAuthBaseUrl() string {
+	authBaseUrl := viper.GetString("AUTH_BASEURL")
+	return authBaseUrl
+}
+
+func getAuthTokenUrl() string {
+	baseUrl := getAuthBaseUrl()
+	return fmt.Sprintf("%s/oauth/token", baseUrl)
+}
+
+func getAuthAuthorizeUrl() string {
+	baseUrl := getAuthBaseUrl()
+	return fmt.Sprintf("%s/authorize", baseUrl)
+}
+
+func getAuthClientIdSecretMap() map[string]string {
+	return viper.GetStringMapString("AUTH_CLIENTID_SECRET")
 }

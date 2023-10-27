@@ -71,7 +71,12 @@ jobs:
 
       - name: Test
         run: |
-          go test -race ./...
+          go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   sqlcdiff:
     name: sqlc-diff

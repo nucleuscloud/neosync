@@ -1,4 +1,4 @@
-import { authOptions } from '@/api-only/auth-config';
+import { getAuthOptions } from '@/api-only/auth-config';
 import '@/app/globals.css';
 import SiteFooter from '@/components/SiteFooter';
 import SiteHeader from '@/components/SiteHeader';
@@ -22,7 +22,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(getAuthOptions());
   return (
     <html lang="en" suppressHydrationWarning>
       <head />

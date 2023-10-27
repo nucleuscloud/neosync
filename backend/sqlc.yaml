@@ -34,3 +34,9 @@ sql:
               package: jsonmodels
               type: JobDestinationOptions
               pointer: true
+          - column: neosync_api.transformers.transformer_config
+            go_type:
+              import: github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models
+              package: jsonmodels
+              type: TransformerConfigs
+              pointer: true

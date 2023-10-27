@@ -231,13 +231,13 @@ func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
 		Schema:      jm.Schema,
 		Table:       jm.Table,
 		Column:      jm.Column,
-		Transformer: jm.Transformer.ToDto(),
+		Transformer: jm.Transformer.ToTransformerDto(),
 	}
 }
 
 func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 	t := &Transformer{}
-	if err := t.FromDto(dto.Transformer); err != nil {
+	if err := t.FromTransformerDto(dto.Transformer); err != nil {
 		return err
 	}
 	jm.Schema = dto.Schema

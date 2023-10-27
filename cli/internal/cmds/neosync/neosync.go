@@ -7,7 +7,9 @@ import (
 	"path/filepath"
 
 	jobs_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/jobs"
+	login_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/login"
 	version_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/version"
+	whoami_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/whoami"
 	"github.com/nucleuscloud/neosync/cli/internal/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -49,6 +51,8 @@ func Execute() {
 	)
 	rootCmd.AddCommand(jobs_cmd.NewCmd())
 	rootCmd.AddCommand(version_cmd.NewCmd())
+	rootCmd.AddCommand(whoami_cmd.NewCmd())
+	rootCmd.AddCommand(login_cmd.NewCmd())
 
 	cobra.CheckErr(rootCmd.Execute())
 }

@@ -27,7 +27,7 @@ stringData:
     SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
 
     {{- if and .Values.auth .Values.auth.enabled }}
-    AUTH_ENABLED: {{ .Values.auth.enabled | default "false" | quote}}
+    AUTH_ENABLED: {{ .Values.auth.enabled | default "false" | quote }}
     {{- end }}
 
     {{- if and .Values.auth .Values.auth.baseUrl }}
@@ -36,6 +36,18 @@ stringData:
 
     {{- if and .Values.auth .Values.auth.audience }}
     AUTH_AUDIENCE: {{ .Values.auth.audience }}
+    {{- end }}
+
+    {{- if and .Values.auth .Values.auth.clientMap }}
+    AUTH_CLIENTID_SECRET: {{ .Values.auth.clientMap | toJson | quote }}
+    {{- end }}
+
+   {{- if and .Values.auth .Values.auth.cliClientId }}
+    AUTH_CLI_CLIENT_ID: {{ .Values.auth.cliClientId }}
+    {{- end }}
+
+   {{- if and .Values.auth .Values.auth.cliAudience }}
+    AUTH_CLI_AUDIENCE: {{ .Values.auth.cliAudience }}
     {{- end }}
 
     {{- if and .Values.temporal .Values.temporal.url }}

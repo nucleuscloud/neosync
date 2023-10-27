@@ -39,10 +39,10 @@ import {
   JobSourceOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
-  Transformer,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { SCHEMA_FORM_SCHEMA, SOURCE_FORM_SCHEMA } from '@/yup-validations/jobs';
 import { toTransformerConfigOptions } from '@/yup-validations/transformers';

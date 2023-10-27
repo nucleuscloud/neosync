@@ -46,7 +46,7 @@ export default function UuidTransformerForm(props: Props): ReactElement {
               <FormDescription>
                 Set to true to include hyphens in the generated UUID. Note: some
                 databases such as Postgres automatically convert UUIDs with no
-                hyphens to have hypthens.
+                hyphens to have hypthens when they store the data.
               </FormDescription>
             </div>
             <FormControl>

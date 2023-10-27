@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 import { Switch } from '@/components/ui/switch';
-import { RandomString_StringCase } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { RandomString_StringCase } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {

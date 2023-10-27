@@ -1,0 +1,124 @@
+services:
+  app:
+    container_name: neosync-app
+    image: neosync-app
+    build:
+      context: ./frontend
+      dockerfile: ./dev/build/Dockerfile.dev
+    ports:
+      - 3000:3000
+    environment:
+      - NUCLEUS_ENV=dev
+      - NEXTAUTH_SECRET=foo
+      - NEOSYNC_API_BASE_URL=http://api:8082
+
+      - AUTH_ENABLED=false
+
+    networks:
+      - neosync-network
+    develop:
+      watch:
+        - path: frontend/package.json
+          action: rebuild
+        - path: frontend/package-lock.json
+          action: rebuild
+        - path: frontend/
+          action: sync
+          target: /app
+          ignore:
+            - frontend/node_modules/
+
+  db:
+    container_name: neosync-db
+    image: postgres:15
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=nucleus
+      - POSTGRES_PASSWORD=foofar
+      - PGUSER=postgres
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - neosync-network
+
+  db-migrations:
+    container_name: neosync-db-migrations
+    image: neosync-api-db-migrations
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile.migrations
+    environment:
+      - PG_USERNAME=postgres
+      - PG_PASSWORD=foofar
+      - PG_HOSTNAME=db:5432/nucleus
+    networks:
+      - neosync-network
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+
+  api:
+    container_name: neosync-api
+    image: neosync-api
+    build:
+      context: ./backend
+      dockerfile: ./dev/build/Dockerfile.dev
+    ports:
+      - 8082:8082
+    command: serve connect
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8082
+      - NUCLEUS_ENV=dev
+      - TEMPORAL_NAMESPACE=default
+      - TEMPORAL_TASK_QUEUE=sync-job
+      - TEMPORAL_URL=temporal:7233
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=nucleus
+      - DB_USER=postgres
+      - DB_PASS=foofar
+      - DB_SSL_DISABLE=true
+
+      - AUTH_ENABLED=false
+
+    networks:
+      - neosync-network
+      - temporal-network
+    develop:
+      watch:
+        - path: backend/bin
+          action: rebuild
+          target: /app
+
+  # worker:
+  #   container_name: neosync-worker
+  #   image: neosync-worker
+  #   build:
+  #     context: ./worker
+  #     dockerfile: ./dev/build/Dockerfile.dev
+  #   environment:
+  #     - NUCLEUS_ENV=dev
+  #     - TEMPORAL_URL=temporal:7233
+  #     - TEMPORAL_NAMESPACE=default
+  #     - TEMPORAL_TASK_QUEUE=sync-job
+  #     - NEOSYNC_URL=http://api:8082
+  #   networks:
+  #     - neosync-network
+  #     - temporal-network
+  #   develop:
+  #     watch:
+  #       - path: worker/bin
+  #         action: rebuild
+  #         target: /app
+networks:
+  neosync-network:
+    driver: bridge
+    name: neosync-network
+  temporal-network:
+    external: true

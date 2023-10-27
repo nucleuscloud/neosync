@@ -1,0 +1,4 @@
+{
+  "name": "neosync",
+  "image": "ghcr.io/nucleuscloud/neosync/devcontainer:latest"
+}

@@ -6,7 +6,6 @@ import { siteConfig } from '@/app/config/site';
 import { cn } from '@/libs/utils';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
-// import { Icons } from './icons';
 
 export function MainNav({
   className,
@@ -51,6 +50,15 @@ export function MainNav({
           )}
         >
           Runs
+        </Link>
+        <Link
+          href="/transformers"
+          className={cn(
+            'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
+            pathname === '/settings' ? 'text-foreground' : 'text-foreground/60'
+          )}
+        >
+          Transformers
         </Link>
         <Link
           href="/connections"

@@ -10,6 +10,9 @@ import (
 	"github.com/fatih/color"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/cli/internal/auth"
+	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
+	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -30,9 +33,14 @@ func newListCmd() *cobra.Command {
 func listJobs(
 	ctx context.Context,
 ) error {
+	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
+	if err != nil {
+		return err
+	}
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
 		http.DefaultClient,
-		"http://localhost:8080",
+		serverconfig.GetApiBaseUrl(),
+		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
 	)
 
 	// todo: this should be settable via cli context in the future to allow users to switch active accounts
@@ -51,7 +59,8 @@ func listJobs(
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		http.DefaultClient,
-		"http://localhost:8080",
+		serverconfig.GetApiBaseUrl(),
+		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
 	)
 	res, err := jobclient.GetJobs(ctx, connect.NewRequest[mgmtv1alpha1.GetJobsRequest](&mgmtv1alpha1.GetJobsRequest{
 		AccountId: account.Id,

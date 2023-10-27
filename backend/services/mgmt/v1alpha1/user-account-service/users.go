@@ -20,7 +20,10 @@ func (s *Service) GetUser(
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, nucleuserrors.New(err)
 		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return nil, nucleuserrors.NewNotFound("unable to find user")
+			user, err = s.db.Q.SetAnonymousUser(ctx)
+			if err != nil {
+				return nil, err
+			}
 		}
 		return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
 			UserId: nucleusdb.UUIDString(user.ID),
