@@ -27,7 +27,7 @@ func (s *Service) CheckConnectionConfig(
 		var connectionString *string
 		switch connectionConfig := config.PgConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-			connStr := conn_utils.GetPostgresUrl(&conn_utils.ConnectConfig{
+			connStr := conn_utils.GetPostgresUrl(&conn_utils.PostgresConnectConfig{
 				Host:     connectionConfig.Connection.Host,
 				Port:     connectionConfig.Connection.Port,
 				Database: connectionConfig.Connection.Name,
@@ -377,7 +377,7 @@ func (s *Service) getConnectionUrl(c *mgmtv1alpha1.ConnectionConfig) (string, er
 		var connectionString *string
 		switch connectionConfig := config.PgConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-			connStr := conn_utils.GetPostgresUrl(&conn_utils.ConnectConfig{
+			connStr := conn_utils.GetPostgresUrl(&conn_utils.PostgresConnectConfig{
 				Host:     connectionConfig.Connection.Host,
 				Port:     connectionConfig.Connection.Port,
 				Database: connectionConfig.Connection.Name,
