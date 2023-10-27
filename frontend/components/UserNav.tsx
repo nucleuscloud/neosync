@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { GearIcon } from '@radix-ui/react-icons';
 import { signOut, useSession } from 'next-auth/react';
 import { ReactElement } from 'react';
 
@@ -23,7 +24,11 @@ export function UserNav(): ReactElement {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+        <Button
+          disabled={session.status === 'unauthenticated'}
+          variant="ghost"
+          className="relative h-8 w-8 rounded-full"
+        >
           <Avatar className="h-8 w-8">
             <AvatarImage src={avatarImageSrc} alt={avatarImageAlt} />
             <AvatarFallback>{avatarFallback}</AvatarFallback>
@@ -31,21 +36,25 @@ export function UserNav(): ReactElement {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            {session.data?.user?.name && (
-              <p className="text-sm font-medium leading-none">
-                {session.data.user.name}
-              </p>
-            )}
-            {session.data?.user?.email && (
-              <p className="text-xs leading-none text-muted-foreground">
-                {session.data.user.email}
-              </p>
-            )}
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        {(session.data?.user?.email || session.data?.user?.name) && (
+          <>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                {session.data?.user?.name && (
+                  <p className="text-sm font-medium leading-none">
+                    {session.data.user.name}
+                  </p>
+                )}
+                {session.data?.user?.email && (
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {session.data.user.email}
+                  </p>
+                )}
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuGroup>
           <DropdownMenuItem disabled>Profile</DropdownMenuItem>
           <DropdownMenuItem disabled>Settings</DropdownMenuItem>
@@ -64,6 +73,6 @@ export function UserNav(): ReactElement {
   );
 }
 
-function getAvatarFallback(name?: string | null): string {
-  return !!name ? name[0].toUpperCase() : 'UN'; // unknown?
+function getAvatarFallback(name?: string | null): string | ReactElement {
+  return !!name ? name[0].toUpperCase() : <GearIcon />; // unknown?
 }
