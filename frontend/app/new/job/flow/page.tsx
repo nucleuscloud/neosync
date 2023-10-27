@@ -316,7 +316,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             type: 'string',
                                             message: `Destination connection type must one of ${getErrorConnectionTypes(
                                               isSource,
-                                              value,
+                                              sourceConn,
                                               connections
                                             )}`,
                                           }
@@ -490,11 +490,11 @@ function getErrorConnectionTypes(
     return '[Mysql, Postgres]';
   }
   if (conn.connectionConfig?.config.case == 'mysqlConfig') {
-    return isSource ? '[Mysql]' : '[Mysql, AWS S3]';
+    return isSource ? '[Postgres]' : '[Mysql, AWS S3]';
   }
 
   if (conn.connectionConfig?.config.case == 'pgConfig') {
-    return isSource ? '[Postgres]' : '[Postgres, AWS S3]';
+    return isSource ? '[Mysql]' : '[Postgres, AWS S3]';
   }
   return '';
 }
