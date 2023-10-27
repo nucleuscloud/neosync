@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { cn } from '@/libs/utils';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {
