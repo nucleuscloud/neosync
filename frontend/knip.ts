@@ -28,6 +28,7 @@ const config: KnipConfig = {
     'autoprefixer',
     'postcss',
     'eslint-config-next',
+    'memoize-one',
     'tailwindcss-animate',
     'use-resize-observer',
   ],
