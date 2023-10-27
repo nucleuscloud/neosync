@@ -52,7 +52,12 @@ export function UserNav(): ReactElement {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         {session.status === 'authenticated' && (
-          <DropdownMenuItem onClick={() => signOut()}>Log out</DropdownMenuItem>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => signOut()}
+          >
+            Log out
+          </DropdownMenuItem>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
