@@ -66,7 +66,11 @@ func (j *Client) validateToken(ctx context.Context, accessToken string) (*valida
 	if err != nil {
 		return nil, nucleuserrors.NewUnauthenticated("token was not valid")
 	}
-	return rawParsedToken.(*validator.ValidatedClaims), nil
+	validatedClaims, ok := rawParsedToken.(*validator.ValidatedClaims)
+	if !ok {
+		return nil, nucleuserrors.NewInternalError("unable to convert token claims what was expected")
+	}
+	return validatedClaims, nil
 }
 
 type tokenContextKey struct{}
@@ -95,20 +99,31 @@ func hasScope(scopes []string, expectedScope string) bool {
 	return false
 }
 
-// Validates the ctx is authenticated. Stuffs the parsed token onto the context
-func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error) {
-	unparsedToken := header.Get("Authorization")
+func getBearerTokenFromHeader(
+	header http.Header,
+	key string,
+) (string, error) {
+	unparsedToken := header.Get(key)
 	if unparsedToken == "" {
-		return nil, nucleuserrors.NewUnauthenticated("must provide valid bearer token")
+		return "", nucleuserrors.NewUnauthenticated("must provide valid bearer token")
 	}
 	pieces := strings.Split(unparsedToken, " ")
 	if len(pieces) != 2 {
-		return nil, nucleuserrors.NewUnauthenticated("token not in proper format")
+		return "", nucleuserrors.NewUnauthenticated("token not in proper format")
 	}
 	if pieces[0] != "Bearer" {
-		return nil, nucleuserrors.NewUnauthenticated("must provided bearer token")
+		return "", nucleuserrors.NewUnauthenticated("must provided bearer token")
 	}
 	token := pieces[1]
+	return token, nil
+}
+
+// Validates the ctx is authenticated. Stuffs the parsed token onto the context
+func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error) {
+	token, err := getBearerTokenFromHeader(header, "Authorization")
+	if err != nil {
+		return nil, err
+	}
 
 	parsedToken, err := j.validateToken(ctx, token)
 	if err != nil {
@@ -145,14 +160,12 @@ func getCombinedScopesAndPermissions(scope string, permissions []string) []strin
 		scopeSet[scope] = struct{}{}
 	}
 	for _, perm := range permissions {
-		scopeSet[perm] = struct{}{}
+		if _, ok := scopeSet[perm]; !ok {
+			scopes = append(scopes, perm)
+			scopeSet[perm] = struct{}{}
+		}
 	}
-
-	scopesAndPerms := []string{}
-	for scope := range scopeSet {
-		scopesAndPerms = append(scopesAndPerms, scope)
-	}
-	return scopesAndPerms
+	return scopes
 }
 
 func GetTokenDataFromCtx(ctx context.Context) (*TokenContextData, error) {
