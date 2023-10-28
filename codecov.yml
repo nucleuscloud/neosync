@@ -1,0 +1,2 @@
+ignore:
+  - "**/mock_*.go"
