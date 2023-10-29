@@ -2,7 +2,26 @@ import { getAccount } from '@/components/providers/account-provider';
 import { IsTransformerNameAvailableResponse } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import * as Yup from 'yup';
 
-export const DEFINE_NEW_TRANSFORMER_SCHEMA = Yup.object({
+const emailConfig = Yup.object().shape({
+  preserve_domain: Yup.boolean().notRequired(),
+  preserve_length: Yup.boolean().notRequired(),
+});
+
+export const transformerConfig = Yup.object().shape({
+  config: Yup.object().shape({
+    value: Yup.lazy((value) => {
+      switch (value?.case) {
+        case 'emailConfig':
+          return emailConfig;
+        default:
+          return Yup.object().shape({});
+      }
+    }),
+    case: Yup.string(),
+  }),
+});
+
+export const CREATE_CUSTOM_TRANSFORMER_SCHEMA = Yup.object({
   name: Yup.string()
     .trim()
     .required('Name is a required field')
@@ -19,16 +38,42 @@ export const DEFINE_NEW_TRANSFORMER_SCHEMA = Yup.object({
       const res = await isTransformerNameAvailable(value, account.id);
       return res.isAvailable;
     }),
-  base: Yup.string(),
+  source: Yup.string(),
   description: Yup.string().required(),
-  type: Yup.string().required(),
-  transformerConfig: Yup.object().shape({}),
+  config: transformerConfig,
 });
 
-export type DefineNewTransformer = Yup.InferType<
-  typeof DEFINE_NEW_TRANSFORMER_SCHEMA
+export type CreateCustomTransformerSchema = Yup.InferType<
+  typeof CREATE_CUSTOM_TRANSFORMER_SCHEMA
 >;
 
+export const UPDATE_CUSTOM_TRANSFORMER = Yup.object({
+  name: Yup.string()
+    .trim()
+    .required('Name is a required field')
+    .min(3)
+    .max(30)
+    .test('checkNameUnique', 'This name is already taken.', async (value) => {
+      if (!value || value.length == 0) {
+        return false;
+      }
+      const account = getAccount();
+      if (!account) {
+        return false;
+      }
+      const res = await isTransformerNameAvailable(value, account.id);
+      return res.isAvailable;
+    }),
+  id: Yup.string(),
+  source: Yup.string(),
+  description: Yup.string().required(),
+  type: Yup.string().required(),
+  config: transformerConfig,
+});
+
+export type UpdateCustomTransformer = Yup.InferType<
+  typeof UPDATE_CUSTOM_TRANSFORMER
+>;
 async function isTransformerNameAvailable(
   name: string,
   accountId: string

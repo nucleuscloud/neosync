@@ -149,6 +149,80 @@ export class GetCustomTransformersResponse extends Message<GetCustomTransformers
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.GetCustomTransformerByIdRequest
+ */
+export class GetCustomTransformerByIdRequest extends Message<GetCustomTransformerByIdRequest> {
+  /**
+   * @generated from field: string transformer_id = 1;
+   */
+  transformerId = "";
+
+  constructor(data?: PartialMessage<GetCustomTransformerByIdRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetCustomTransformerByIdRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transformer_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCustomTransformerByIdRequest {
+    return new GetCustomTransformerByIdRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCustomTransformerByIdRequest {
+    return new GetCustomTransformerByIdRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCustomTransformerByIdRequest {
+    return new GetCustomTransformerByIdRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCustomTransformerByIdRequest | PlainMessage<GetCustomTransformerByIdRequest> | undefined, b: GetCustomTransformerByIdRequest | PlainMessage<GetCustomTransformerByIdRequest> | undefined): boolean {
+    return proto3.util.equals(GetCustomTransformerByIdRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetCustomTransformerByIdResponse
+ */
+export class GetCustomTransformerByIdResponse extends Message<GetCustomTransformerByIdResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.CustomTransformer transformer = 1;
+   */
+  transformer?: CustomTransformer;
+
+  constructor(data?: PartialMessage<GetCustomTransformerByIdResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetCustomTransformerByIdResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transformer", kind: "message", T: CustomTransformer },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCustomTransformerByIdResponse {
+    return new GetCustomTransformerByIdResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCustomTransformerByIdResponse {
+    return new GetCustomTransformerByIdResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCustomTransformerByIdResponse {
+    return new GetCustomTransformerByIdResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCustomTransformerByIdResponse | PlainMessage<GetCustomTransformerByIdResponse> | undefined, b: GetCustomTransformerByIdResponse | PlainMessage<GetCustomTransformerByIdResponse> | undefined): boolean {
+    return proto3.util.equals(GetCustomTransformerByIdResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.CreateCustomTransformerRequest
  */
 export class CreateCustomTransformerRequest extends Message<CreateCustomTransformerRequest> {

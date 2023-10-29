@@ -1,8 +1,8 @@
 'use client';
 import { handleCustomTransformerForm } from '@/app/new/transformer/page';
 import {
-  DEFINE_NEW_TRANSFORMER_SCHEMA,
-  DefineNewTransformer,
+  UPDATE_CUSTOM_TRANSFORMER,
+  UpdateCustomTransformer,
 } from '@/app/new/transformer/schema';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
@@ -18,80 +18,86 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import {
   CustomTransformer,
+  TransformerConfig,
   UpdateCustomTransformerRequest,
+  UpdateCustomTransformerResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
-import { toTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 
 interface Props {
-  defaultTransformerValues: CustomTransformer | undefined;
+  currentTransformer: CustomTransformer | undefined;
 }
 
 export default function UpdateTransformerForm(props: Props): ReactElement {
-  const { defaultTransformerValues } = props;
+  const { currentTransformer } = props;
 
-  const form = useForm<DefineNewTransformer>({
-    resolver: yupResolver(DEFINE_NEW_TRANSFORMER_SCHEMA),
+  const form = useForm<UpdateCustomTransformer>({
+    resolver: yupResolver(UPDATE_CUSTOM_TRANSFORMER),
     defaultValues: {
       name: '',
-      base: '',
+      source: '',
       description: '',
-      type: '',
-      transformerConfig: {},
+      id: '',
+      config: { config: { case: '', value: {} } },
     },
     values: {
-      name: defaultTransformerValues?.name ?? '',
-      base: defaultTransformerValues?.source ?? '',
-      description: defaultTransformerValues?.description ?? '',
-      type: defaultTransformerValues?.type ?? '',
-      transformerConfig: defaultTransformerValues ?? {},
+      name: currentTransformer?.name ?? '',
+      source: currentTransformer?.source ?? '',
+      description: currentTransformer?.description ?? '',
+      type: currentTransformer?.type ?? '',
+      id: currentTransformer?.id ?? '',
+      config: {
+        config: {
+          case: currentTransformer?.config?.config.case,
+          value: currentTransformer?.config?.config.value ?? {},
+        },
+      },
     },
   });
 
   const router = useRouter();
   const account = useAccount();
 
-  async function onSubmit(values: DefineNewTransformer): Promise<void> {
+  async function onSubmit(values: UpdateCustomTransformer): Promise<void> {
     if (!account) {
       return;
     }
     try {
-      const transformer = await updateCustomTransformer(account.id, values);
-      if (transformer.transformerId) {
-        router.push(`/transformers/${transformer.transformerId}`);
+      const transformer = await updateCustomTransformer(
+        currentTransformer?.id ?? '',
+        values
+      );
+      toast({
+        title: 'Successfully updated transformer!',
+        variant: 'default',
+      });
+      if (transformer.transformer?.id) {
+        router.push(`/transformers/${transformer.transformer.id}`);
       } else {
         router.push(`/transformers`);
       }
     } catch (err) {
       console.error(err);
       toast({
-        title: 'Unable to create transformer',
+        title: 'Unable to update transformer',
         description: getErrorMessage(err),
         variant: 'destructive',
       });
     }
   }
 
-  const { data } = useGetSystemTransformers();
-  const transformers = data?.transformers ?? [];
-
-  const val = transformers.find(
-    (item) => item.value == defaultTransformerValues?.source ?? ''
-  );
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="base"
+          name="source"
           render={() => (
             <FormItem>
               <FormLabel>Source Transformer</FormLabel>
@@ -99,9 +105,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
                 <Select disabled={true}>
                   <SelectTrigger className="w-[1000px]">
                     <SelectValue
-                      placeholder={String(
-                        defaultTransformerValues?.source ?? ''
-                      )}
+                      placeholder={String(currentTransformer?.source ?? '')}
                     />
                   </SelectTrigger>
                 </Select>
@@ -155,7 +159,9 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
             />
           </div>
         </div>
-        <div className="w-[1000px]">{handleCustomTransformerForm(val)}</div>
+        <div className="w-[1000px]">
+          {handleCustomTransformerForm(currentTransformer?.source)}
+        </div>
         <div className="flex flex-row justify-end">
           <Button type="submit">Save</Button>
         </div>
@@ -165,18 +171,17 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
 }
 
 async function updateCustomTransformer(
-  accountId: string,
-  formData: DefineNewTransformer
-): Promise<UpdateCustomTransformerRequest> {
+  transformerId: string,
+  formData: UpdateCustomTransformer
+): Promise<UpdateCustomTransformerResponse> {
   const body = new UpdateCustomTransformerRequest({
-    transformerId: accountId,
+    transformerId: transformerId,
     name: formData.name,
     description: formData.description,
-    transformerConfig: toTransformerConfigOptions({
-      value: formData.base ?? 'passthrough',
-      config: formData.transformerConfig,
-    }).config,
+    transformerConfig: formData.config as TransformerConfig,
   });
+
+  console.log('body', body);
 
   const res = await fetch(`/api/transformers/custom`, {
     method: 'PUT',
@@ -189,5 +194,5 @@ async function updateCustomTransformer(
     const body = await res.json();
     throw new Error(body.message);
   }
-  return UpdateCustomTransformerRequest.fromJson(await res.json());
+  return UpdateCustomTransformerResponse.fromJson(await res.json());
 }

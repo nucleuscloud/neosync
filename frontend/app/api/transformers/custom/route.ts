@@ -37,6 +37,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 export async function PUT(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     const body = UpdateCustomTransformerRequest.fromJson(await req.json());
-    return ctx.transformerClient.createCustomTransformer(body);
+    return ctx.transformerClient.updateCustomTransformer(body);
   })(req);
 }

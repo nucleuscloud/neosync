@@ -2,7 +2,6 @@ package v1alpha1_transformersservice
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -172,8 +171,6 @@ func (s *Service) GetCustomTransformers(
 		return nil, err
 	}
 
-	fmt.Println("the transfomrers", transformers[0])
-
 	dtoTransformers := []*mgmtv1alpha1.CustomTransformer{}
 	for idx := range transformers {
 		transformer := transformers[idx]
@@ -182,6 +179,33 @@ func (s *Service) GetCustomTransformers(
 
 	return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformersResponse{
 		Transformers: dtoTransformers,
+	}), nil
+}
+
+func (s *Service) GetCustomTransformerById(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetCustomTransformerByIdRequest],
+) (*connect.Response[mgmtv1alpha1.GetCustomTransformerByIdResponse], error) {
+
+	tId, err := nucleusdb.ToUuid(req.Msg.TransformerId)
+	if err != nil {
+		return nil, err
+	}
+
+	transformer, err := s.db.Q.GetCustomTransformerById(ctx, tId)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformerByIdResponse{}), nil
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(transformer.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformerByIdResponse{
+		Transformer: dtomaps.ToCustomTransformerDto(&transformer),
 	}), nil
 }
 

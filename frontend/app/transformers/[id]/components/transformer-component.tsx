@@ -1,12 +1,8 @@
 'use client';
 import PageHeader from '@/components/headers/PageHeader';
 import { UpdateConnectionResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import {
-  CustomTransformer,
-  Transformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
-import { handleTransformerMetadata } from '../../EditTransformerOptions';
 import UpdateTransformerForm from './UpdateTransformerForm';
 
 interface TransformerComponent {
@@ -18,7 +14,6 @@ interface TransformerComponent {
 
 interface GetTransformerComponentDetailsProps {
   CustomTransformer?: CustomTransformer;
-  SystemTransformer: Transformer;
   onSaved(updatedConnResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
   extraPageHeading?: ReactElement;
@@ -30,23 +25,18 @@ export function getTransformerComponentDetails(
   const { CustomTransformer } = props;
 
   return {
-    name: CustomTransformer?.name ?? 'Undefined',
+    name: CustomTransformer?.name ?? 'Custom Transformer',
     summary: (
       <div>
         <p>No summary found.</p>
       </div>
     ),
     header: (
-      <PageHeader
-        header={`${CustomTransformer?.name} Transformer`}
-        description={
-          handleTransformerMetadata(CustomTransformer?.description).description
-        }
-      />
+      <PageHeader header={CustomTransformer?.name ?? 'Custom Transformer'} />
     ),
     body: (
       <div>
-        <UpdateTransformerForm defaultTransformerValues={CustomTransformer} />
+        <UpdateTransformerForm currentTransformer={CustomTransformer} />
       </div>
     ),
   };

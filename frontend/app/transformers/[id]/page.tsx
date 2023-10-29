@@ -1,27 +1,20 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
-import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
+import { useGetCustomTransformersById } from '@/libs/hooks/useGetCustomTransformerById';
 import { GetCustomTransformersResponse } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import { getTransformerComponentDetails } from './components/transformer-component';
 
-export default function TransformerPage({ params }: PageProps) {
+export default function NewCustomTransformerPage({ params }: PageProps) {
   const id = params?.id ?? '';
-  const account = useAccount();
-  const { data, isLoading, mutate } = useGetCustomTransformers(
-    account?.id ?? ''
-  );
+
+  const { data, isLoading, mutate } = useGetCustomTransformersById(id);
 
   const { toast } = useToast();
-
-  const { data: sTransformers } = useGetSystemTransformers();
-  const sysTransformers = sTransformers?.transformers ?? [];
 
   if (isLoading) {
     return (
@@ -31,20 +24,15 @@ export default function TransformerPage({ params }: PageProps) {
     );
   }
 
-  const customT = data?.transformers.find((item) => item.id == id);
-  const sysT = sysTransformers?.find((item) => item.value == customT?.name)!;
-
-  //get the transformer and it's default values
-
   const tranformerComponent = getTransformerComponentDetails({
-    CustomTransformer: customT,
-    SystemTransformer: sysT,
+    CustomTransformer: data?.transformer,
     onSaved: (resp) => {
       mutate();
       new GetCustomTransformersResponse({
         //udpate this to transformer
-        connection: resp.connection,
+        // transformers: resp.connection,
       });
+      console.log('resp', resp);
       toast({
         title: 'Successfully updated transformer!',
         variant: 'default',

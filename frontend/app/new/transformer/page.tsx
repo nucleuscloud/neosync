@@ -1,17 +1,7 @@
 'use client';
 
+import CustomEmailTransformerForm from '@/app/new/transformer/CustomTransformerForms/CustomEmailTransformerForm';
 import { handleTransformerMetadata } from '@/app/transformers/EditTransformerOptions';
-import CustomEmailTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomEmailTransformerForm';
-import CustomFirstNameTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomFirstnameTransformerForm';
-import CustomFullNameTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomFullnameTransformerForm';
-import CustomGenderTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomGenderTransformerForm';
-import CustomIntPhoneNumberTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomIntPhoneNumberTransformerForm';
-import CustomLastNameTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomLastnameTransformerForm';
-import CustomPhoneNumberTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomPhoneNumberTransformerForm';
-import CustomRandomFloatTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomRandomFloatTransformerForm';
-import CustomRandomIntTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomRandomIntTransformerForm';
-import CustomRandomStringTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomRandomStringTransformerForm';
-import CustomUuidTransformerForm from '@/app/transformers/[id]/components/CustomTransformerForms/CustomUuidTransformerForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -33,12 +23,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectTrigger } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { cn } from '@/libs/utils';
@@ -46,40 +31,48 @@ import {
   CreateCustomTransformerRequest,
   CreateCustomTransformerResponse,
   Transformer,
+  TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
-import { toTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { DEFINE_NEW_TRANSFORMER_SCHEMA, DefineNewTransformer } from './schema';
+import {
+  CREATE_CUSTOM_TRANSFORMER_SCHEMA,
+  CreateCustomTransformerSchema,
+} from './schema';
 
 export default function NewTransformer(): ReactElement {
   const [base, setBase] = useState<Transformer>(new Transformer());
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
 
-  const form = useForm<DefineNewTransformer>({
-    resolver: yupResolver(DEFINE_NEW_TRANSFORMER_SCHEMA),
+  const form = useForm<CreateCustomTransformerSchema>({
+    resolver: yupResolver(CREATE_CUSTOM_TRANSFORMER_SCHEMA),
     defaultValues: {
       name: '',
-      base: '',
+      source: '',
       description: '',
-      type: '',
-      transformerConfig: {},
+      config: { config: { case: '', value: {} } },
     },
   });
 
   const router = useRouter();
   const account = useAccount();
 
-  async function onSubmit(values: DefineNewTransformer): Promise<void> {
+  async function onSubmit(
+    values: CreateCustomTransformerSchema
+  ): Promise<void> {
     if (!account) {
       return;
     }
     try {
       const transformer = await createNewTransformer(account.id, values);
+      toast({
+        title: 'Successfully created transformer!',
+        variant: 'default',
+      });
       if (transformer.transformer?.id) {
         router.push(`/transformers/${transformer.transformer?.id}`);
       } else {
@@ -98,9 +91,7 @@ export default function NewTransformer(): ReactElement {
   const { data } = useGetSystemTransformers();
   const transformers = data?.transformers ?? [];
 
-  console.log('source', transformers);
-
-  console.log('values', form.getValues());
+  //console.log('values', form.getValues());
 
   return (
     <OverviewContainer
@@ -110,7 +101,7 @@ export default function NewTransformer(): ReactElement {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name="base"
+            name="source"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Source Transformer</FormLabel>
@@ -120,7 +111,7 @@ export default function NewTransformer(): ReactElement {
                     onOpenChange={setOpenBaseSelect}
                   >
                     <SelectTrigger className="w-[1000px]">
-                      <SelectValue placeholder="Select a transformer" />
+                      {base.value ? base.value : 'Select a transformer'}
                     </SelectTrigger>
                     <SelectContent>
                       <Command className="overflow-auto">
@@ -138,10 +129,12 @@ export default function NewTransformer(): ReactElement {
                                   ) ?? new Transformer()
                                 );
                                 form.setValue(
-                                  'type',
-                                  handleTransformerMetadata(value).type
+                                  'config.config.case',
+                                  transformers.find(
+                                    (item) => item.value == value
+                                  )?.config?.config.case ?? ''
                                 );
-                                form.setValue('base', value);
+                                form.setValue('source', value);
                                 setOpenBaseSelect(false);
                               }}
                               value={t.value}
@@ -186,7 +179,7 @@ export default function NewTransformer(): ReactElement {
                       />
                     </FormControl>
                     <FormDescription>
-                      The unique name of the Transformer.
+                      The unique name of the transformer.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -201,7 +194,7 @@ export default function NewTransformer(): ReactElement {
                       <FormLabel>Description</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Transformer Name"
+                          placeholder="Transformer description"
                           {...field}
                           className="w-[1000px]"
                         />
@@ -216,7 +209,9 @@ export default function NewTransformer(): ReactElement {
               </div>
             </div>
           )}
-          <div className="w-[1000px]">{handleCustomTransformerForm(base)}</div>
+          <div className="w-[1000px]">
+            {handleCustomTransformerForm(base.value)}
+          </div>
           <div className="flex flex-row justify-end">
             <Button type="submit">Next</Button>
           </div>
@@ -227,75 +222,71 @@ export default function NewTransformer(): ReactElement {
 }
 
 export function handleCustomTransformerForm(
-  transformer: Transformer | undefined
+  transformer: string | undefined
 ): ReactElement {
-  switch (transformer?.value) {
+  switch (transformer) {
     case 'email':
-      return (
-        <CustomEmailTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'uuid':
-      return (
-        <CustomUuidTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'first_name':
-      return (
-        <CustomFirstNameTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'last_name':
-      return (
-        <CustomLastNameTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'full_name':
-      return (
-        <CustomFullNameTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'phone_number':
-      return (
-        <CustomPhoneNumberTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'int_phone_number':
-      return (
-        <CustomIntPhoneNumberTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'random_string':
-      return (
-        <CustomRandomStringTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'random_int':
-      return (
-        <CustomRandomIntTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'random_float':
-      return (
-        <CustomRandomFloatTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
-    case 'gender':
-      return (
-        <CustomGenderTransformerForm
-          transformer={transformer ?? new Transformer()}
-        />
-      );
+      return <CustomEmailTransformerForm />;
+    // case 'uuid':
+    //   return (
+    //     <CustomUuidTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
+    // case 'first_name':
+    //   return (
+    //     <CustomFirstNameTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
+    // case 'last_name':
+    //   return (
+    //     <CustomLastNameTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
+    // case 'full_name':
+    //   return (
+    //     <CustomFullNameTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
+    // case 'phone_number':
+    //   return (
+    //     <CustomPhoneNumberTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
+    // case 'int_phone_number':
+    //   return (
+    //     <CustomIntPhoneNumberTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
+    // case 'random_string':
+    //   return (
+    //     <CustomRandomStringTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
+    // case 'random_int':
+    //   return (
+    //     <CustomRandomIntTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
+    // case 'random_float':
+    //   return (
+    //     <CustomRandomFloatTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
+    // case 'gender':
+    //   return (
+    //     <CustomGenderTransformerForm
+    //       transformer={transformer ?? new Transformer()}
+    //     />
+    //   );
     default:
       <div>No transformer component found</div>;
   }
@@ -304,19 +295,16 @@ export function handleCustomTransformerForm(
 
 async function createNewTransformer(
   accountId: string,
-  formData: DefineNewTransformer
+  formData: CreateCustomTransformerSchema
 ): Promise<CreateCustomTransformerResponse> {
   const body = new CreateCustomTransformerRequest({
     accountId: accountId,
     name: formData.name,
     description: formData.description,
-    type: formData.type,
-    transformerConfig: toTransformerConfigOptions({
-      value: formData.base ?? 'passthrough',
-      config: formData.transformerConfig,
-    }).config,
+    type: handleTransformerMetadata(formData.source).type,
+    source: formData.source,
+    transformerConfig: formData.config as TransformerConfig,
   });
-
   const res = await fetch(`/api/transformers/custom`, {
     method: 'POST',
     headers: {

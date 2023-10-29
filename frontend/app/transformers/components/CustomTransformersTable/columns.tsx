@@ -96,7 +96,8 @@ export function getCustomTransformerColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('createdAt').toDate())}
+              {row.original.createdAt &&
+                formatDateTime(row.getValue<Timestamp>('createdAt').toDate())}
             </span>
           </div>
         );
@@ -114,7 +115,8 @@ export function getCustomTransformerColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {formatDateTime(row.getValue<Timestamp>('updatedAt').toDate())}
+              {row.original.updatedAt &&
+                formatDateTime(row.getValue<Timestamp>('updatedAt').toDate())}
             </span>
           </div>
         );
