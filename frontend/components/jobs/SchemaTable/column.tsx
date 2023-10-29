@@ -27,7 +27,11 @@ import {
 
 import { cn } from '@/libs/utils';
 import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  CustomTransformer,
+  Transformer,
+  TransformerConfig,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
@@ -35,13 +39,14 @@ import { useState } from 'react';
 import { DataTableColumnHeader } from './data-table-column-header';
 
 interface GetColumnsProps {
-  transformers?: Transformer[];
+  systemTransformers: Transformer[];
+  customTransformers: CustomTransformer[];
 }
 
 export function getColumns(
   props: GetColumnsProps
 ): ColumnDef<PlainMessage<DatabaseColumn>>[] {
-  const { transformers } = props;
+  const { systemTransformers, customTransformers } = props;
 
   return [
     {
@@ -141,13 +146,14 @@ export function getColumns(
                 <FormItem>
                   <FormControl>
                     <div className="flex flex-row space-x-2">
-                      <TansformerSelect
-                        transformers={transformers || []}
+                      <TransformerSelect
+                        systemTransformers={systemTransformers}
+                        customTransformers={customTransformers}
                         value={field.value}
                         onSelect={field.onChange}
                       />
                       <EditTransformerOptions
-                        transformer={transformers?.find(
+                        transformer={systemTransformers?.find(
                           (item) => item.value == field.value
                         )}
                         index={row.index}
@@ -171,14 +177,36 @@ export function getColumns(
 }
 
 interface TransformersSelectProps {
-  transformers: Transformer[];
+  systemTransformers: Transformer[];
+  customTransformers: CustomTransformer[];
   value: string;
   onSelect: (value: string) => void;
 }
 
-function TansformerSelect(props: TransformersSelectProps) {
-  const { transformers, value, onSelect } = props;
+function TransformerSelect(props: TransformersSelectProps) {
+  const { systemTransformers, customTransformers, value, onSelect } = props;
   const [open, setOpen] = useState(false);
+
+  let merged: CustomTransformer[] = [...customTransformers];
+
+  systemTransformers.map((st) => {
+    const cf = {
+      config: {
+        case: st.config?.config.case,
+        value: st.config?.config.value,
+      },
+    };
+
+    const newCt = new CustomTransformer({
+      name: handleTransformerMetadata(st.value).name,
+      description: handleTransformerMetadata(st.value).description,
+      type: handleTransformerMetadata(st.value).type,
+      source: st.value,
+      config: cf as TransformerConfig,
+    });
+
+    merged.push(newCt);
+  });
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -187,12 +215,10 @@ function TansformerSelect(props: TransformersSelectProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between  min-w-[141px] max-w-[141px]" //whitespace-nowrap
+          className="justify-between  min-w-[141px] max-w-[141px]"
         >
           <div className="truncate overflow-hidden text-ellipsis whitespace-nowrap">
-            {value
-              ? transformers.find((t) => t.value === value)?.value
-              : 'Transformer'}
+            {value}
           </div>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -202,23 +228,22 @@ function TansformerSelect(props: TransformersSelectProps) {
           <CommandInput placeholder="Search transformers..." />
           <CommandEmpty>No transformers found.</CommandEmpty>
           <CommandGroup className="overflow-auto h-[400px]">
-            {transformers.map((t, index) => (
+            {merged.map((t, index) => (
               <CommandItem
-                key={`${t.value}-${index}`}
-                onSelect={(currentValue) => {
-                  onSelect(currentValue);
+                key={`${t.name}-${index}`}
+                onSelect={() => {
+                  onSelect(t.name);
                   setOpen(false);
                 }}
-                value={t.value}
-                defaultValue={'passthrough'}
+                value={t.name}
               >
                 <CheckIcon
                   className={cn(
                     'mr-2 h-4 w-4',
-                    value == t.value ? 'opacity-100' : 'opacity-0'
+                    value == t.name ? 'opacity-100' : 'opacity-0'
                   )}
                 />
-                {handleTransformerMetadata(t.value).name}
+                {t.name}
               </CommandItem>
             ))}
           </CommandGroup>

@@ -11,7 +11,7 @@ interface JobTableProps {
 
 export function SchemaTable(props: JobTableProps): ReactElement {
   const { data } = props;
-  const { data: transformers, isLoading: transformersIsLoading } =
+  const { data: systemTransformers, isLoading: transformersIsLoading } =
     useGetSystemTransformers();
 
   const tableData = data?.map((d) => {
@@ -29,7 +29,7 @@ export function SchemaTable(props: JobTableProps): ReactElement {
     <div>
       <VirtualizedSchemaTable
         data={tableData}
-        transformers={transformers?.transformers}
+        transformers={systemTransformers?.transformers}
       />
     </div>
   );

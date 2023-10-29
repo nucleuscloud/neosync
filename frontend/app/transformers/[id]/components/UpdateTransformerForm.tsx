@@ -78,8 +78,6 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
         variant: 'default',
       });
       if (transformer.transformer?.id) {
-        router.push(`/transformers/${transformer.transformer.id}`);
-      } else {
         router.push(`/transformers`);
       }
     } catch (err) {
