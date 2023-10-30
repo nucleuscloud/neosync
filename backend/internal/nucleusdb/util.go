@@ -24,7 +24,7 @@ func IsConflict(err error) bool {
 }
 
 func IsNoRows(err error) bool {
-	return err != nil && err == sql.ErrNoRows || err == pgx.ErrNoRows
+	return errors.Is(err, pgx.ErrNoRows) || errors.Is(err, sql.ErrNoRows)
 }
 
 func isTxDone(err error) bool {

@@ -3,6 +3,7 @@ package nucleusdb
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -24,12 +25,16 @@ func Test_IsNoRows(t *testing.T) {
 	assert.False(t, IsNoRows(errors.New("test error")))
 	assert.True(t, IsNoRows(sql.ErrNoRows))
 	assert.True(t, IsNoRows(pgx.ErrNoRows))
+	assert.True(t, IsNoRows(fmt.Errorf("test is no rows: %w", pgx.ErrNoRows)), "should work for wrapped errors")
+	assert.True(t, IsNoRows(fmt.Errorf("test is no rows: %w", sql.ErrNoRows)), "should work for wrapped errors")
 }
 
 func Test_IsTxDone(t *testing.T) {
 	assert.False(t, isTxDone(nil))
 	assert.True(t, isTxDone(pgx.ErrTxClosed))
 	assert.True(t, isTxDone(sql.ErrTxDone))
+	assert.True(t, isTxDone(fmt.Errorf("test tx has completed: %w", sql.ErrTxDone)), "should work for wrapped errors")
+	assert.True(t, isTxDone(fmt.Errorf("test tx has completed: %w", pgx.ErrTxClosed)), "should work for wrapped errors")
 }
 
 func Test_GetDbUrl(t *testing.T) {
