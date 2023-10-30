@@ -5,7 +5,6 @@ import (
 	"unicode"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +13,7 @@ func TestRandomStringPreserveLengthTrue(t *testing.T) {
 	val := "hellothe"
 	expectedLength := 8
 
-	res, err := ProcessRandomString(val, true, 0, mgmtv1alpha1.RandomString_STRING_CASE_UPPER)
+	res, err := ProcessRandomString(val, true, 0)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")
@@ -27,7 +26,7 @@ func TestRandomStringPreserveLengthFalse(t *testing.T) {
 	val := "hello"
 	expectedLength := 10
 
-	res, err := ProcessRandomString(val, false, 0, mgmtv1alpha1.RandomString_STRING_CASE_LOWER)
+	res, err := ProcessRandomString(val, false, 0)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")
@@ -40,7 +39,7 @@ func TestRandomStringPreserveLengthFalseStrLength(t *testing.T) {
 	val := "hello"
 	expectedLength := 14
 
-	res, err := ProcessRandomString(val, false, int64(expectedLength), mgmtv1alpha1.RandomString_STRING_CASE_TITLE)
+	res, err := ProcessRandomString(val, false, int64(expectedLength))
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")

@@ -3,8 +3,39 @@ import { IsTransformerNameAvailableResponse } from '@/neosync-api-client/mgmt/v1
 import * as Yup from 'yup';
 
 const emailConfig = Yup.object().shape({
-  preserve_domain: Yup.boolean().notRequired(),
-  preserve_length: Yup.boolean().notRequired(),
+  preserveDomain: Yup.boolean().notRequired(),
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const uuidConfig = Yup.object().shape({
+  includeHyphens: Yup.boolean().notRequired(),
+});
+
+const firstNameConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const lastNameConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const fullNameConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const phoneNumberConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+  e164Format: Yup.boolean().notRequired(),
+  includeHyphens: Yup.boolean().notRequired(),
+});
+
+const intPhoneNumberConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const randomStringConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+  strLength: Yup.number().notRequired(),
 });
 
 export const transformerConfig = Yup.object().shape({
@@ -13,6 +44,24 @@ export const transformerConfig = Yup.object().shape({
       switch (value?.case) {
         case 'emailConfig':
           return emailConfig;
+        case 'passthroughConfig':
+          return Yup.object().shape({});
+        case 'uuidConfig':
+          return uuidConfig;
+        case 'firstNameConfig':
+          return firstNameConfig;
+        case 'lastNameConfig':
+          return lastNameConfig;
+        case 'fullNameConfig':
+          return fullNameConfig;
+        case 'phoneNumberConfig':
+          return phoneNumberConfig;
+        case 'intPhoneNumberConfig':
+          return intPhoneNumberConfig;
+        case 'nullConfig':
+          return Yup.object().shape({});
+        case 'randomStringConfig':
+          return randomStringConfig;
         default:
           return Yup.object().shape({});
       }

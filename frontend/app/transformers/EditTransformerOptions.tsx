@@ -18,6 +18,7 @@ import FullNameTransformerForm from './Sheetforms/FullnameTransformerForm';
 import IntPhoneNumberTransformerForm from './Sheetforms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './Sheetforms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './Sheetforms/PhoneNumberTransformerForm';
+import RandomStringTransformerForm from './Sheetforms/RandomStringTransformerForm';
 import UuidTransformerForm from './Sheetforms/UuidTransformerForm';
 
 interface Props {
@@ -165,13 +166,14 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    // case 'random_string':
-    //   return (
-    //     <RandomStringTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
+    case 'random_string':
+      return (
+        <RandomStringTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
     // case 'random_int':
     //   return (
     //     <RandomIntTransformerForm

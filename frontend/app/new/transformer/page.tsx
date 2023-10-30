@@ -44,6 +44,7 @@ import CustomFullNameTransformerForm from './CustomTransformerForms/CustomFullna
 import CustomIntPhoneNumberTransformerForm from './CustomTransformerForms/CustomIntPhoneNumberTransformerForm';
 import CustomLastNameTransformerForm from './CustomTransformerForms/CustomLastnameTransformerForm';
 import CustomPhoneNumberTransformerForm from './CustomTransformerForms/CustomPhoneNumberTransformerForm';
+import CustomRandomStringTransformerForm from './CustomTransformerForms/CustomRandomStringTransformerForm';
 import CustomUuidTransformerForm from './CustomTransformerForms/CustomUuidTransformerForm';
 import {
   CREATE_CUSTOM_TRANSFORMER_SCHEMA,
@@ -243,12 +244,8 @@ export function handleCustomTransformerForm(
       return <CustomPhoneNumberTransformerForm />;
     case 'int_phone_number':
       return <CustomIntPhoneNumberTransformerForm />;
-    // case 'random_string':
-    //   return (
-    //     <CustomRandomStringTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
+    case 'random_string':
+      return <CustomRandomStringTransformerForm />;
     // case 'random_int':
     //   return (
     //     <CustomRandomIntTransformerForm

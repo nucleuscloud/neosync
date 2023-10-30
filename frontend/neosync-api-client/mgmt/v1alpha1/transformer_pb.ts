@@ -1199,11 +1199,6 @@ export class RandomString extends Message<RandomString> {
    */
   strLength = protoInt64.zero;
 
-  /**
-   * @generated from field: mgmt.v1alpha1.RandomString.StringCase str_case = 3;
-   */
-  strCase = RandomString_StringCase.UNSPECIFIED;
-
   constructor(data?: PartialMessage<RandomString>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1214,7 +1209,6 @@ export class RandomString extends Message<RandomString> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "str_length", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 3, name: "str_case", kind: "enum", T: proto3.getEnumType(RandomString_StringCase) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RandomString {
@@ -1233,38 +1227,6 @@ export class RandomString extends Message<RandomString> {
     return proto3.util.equals(RandomString, a, b);
   }
 }
-
-/**
- * @generated from enum mgmt.v1alpha1.RandomString.StringCase
- */
-export enum RandomString_StringCase {
-  /**
-   * @generated from enum value: STRING_CASE_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * @generated from enum value: STRING_CASE_UPPER = 1;
-   */
-  UPPER = 1,
-
-  /**
-   * @generated from enum value: STRING_CASE_LOWER = 2;
-   */
-  LOWER = 2,
-
-  /**
-   * @generated from enum value: STRING_CASE_TITLE = 3;
-   */
-  TITLE = 3,
-}
-// Retrieve enum metadata with: proto3.getEnumType(RandomString_StringCase)
-proto3.util.setEnumType(RandomString_StringCase, "mgmt.v1alpha1.RandomString.StringCase", [
-  { no: 0, name: "STRING_CASE_UNSPECIFIED" },
-  { no: 1, name: "STRING_CASE_UPPER" },
-  { no: 2, name: "STRING_CASE_LOWER" },
-  { no: 3, name: "STRING_CASE_TITLE" },
-]);
 
 /**
  * @generated from message mgmt.v1alpha1.Null

@@ -110,7 +110,6 @@ func (s *Service) GetSystemTransformers(
 						RandomStringConfig: &mgmtv1alpha1.RandomString{
 							PreserveLength: false,
 							StrLength:      0,
-							StrCase:        mgmtv1alpha1.RandomString_STRING_CASE_LOWER,
 						},
 					},
 				}},

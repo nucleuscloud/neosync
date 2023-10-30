@@ -144,16 +144,8 @@ message IntPhoneNumber {
   bool preserve_length = 1;
 }
 message RandomString {
-  enum StringCase {
-    STRING_CASE_UNSPECIFIED = 0;
-    STRING_CASE_UPPER = 1;
-    STRING_CASE_LOWER = 2;
-    STRING_CASE_TITLE = 3;
-  }
-
   bool preserve_length = 1;
   int64 str_length = 2;
-  StringCase str_case = 3;
 }
 
 message Null {}

@@ -6,8 +6,6 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 import {
   Select,
@@ -19,34 +17,20 @@ import {
 } from '@/components/ui/select';
 
 import { Switch } from '@/components/ui/switch';
-import {
-  RandomString,
-  RandomString_StringCase,
-  Transformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-interface Props {
-  transformer: Transformer;
-}
-
-export default function CustomRandomStringTransformerForm(
-  props: Props
-): ReactElement {
-  const { transformer } = props;
-
+export default function CustomRandomStringTransformerForm(): ReactElement {
   const fc = useFormContext();
 
-  const t = transformer.config?.config.value as RandomString;
-
   const digitLength = Array.from({ length: 12 }, (_, index) => index + 1);
+
+  console.log('fc.getValues', fc.getValues());
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`transformerConfig.preserveLength`}
-        defaultValue={t.preserveLength}
+        name={`config.config.value.preserveLength`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -57,14 +41,17 @@ export default function CustomRandomStringTransformerForm(
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={fc.watch('config.config.value.strLength')}
+              />
             </FormControl>
           </FormItem>
         )}
       />
       <FormField
-        name={`transformerConfig.strLength`}
-        defaultValue={t.strLength}
+        name={`config.config.value.strLength`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -76,12 +63,11 @@ export default function CustomRandomStringTransformerForm(
               </FormDescription>
             </div>
             <FormControl>
-              <Select
-                disabled={fc.getValues('transformerConfig.preserveLength')}
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <SelectTrigger className="w-[180px]">
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger
+                  className="w-[180px]"
+                  disabled={fc.watch('config.config.value.preserveLength')}
+                >
                   <SelectValue placeholder="4" />
                 </SelectTrigger>
                 <SelectContent>
@@ -94,50 +80,6 @@ export default function CustomRandomStringTransformerForm(
                   </SelectGroup>
                 </SelectContent>
               </Select>
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <FormField
-        name={`transformerConfig.strCase`}
-        defaultValue={t.strCase}
-        control={fc.control}
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>String Case</FormLabel>
-              <FormDescription>
-                Set the case for the output string.
-              </FormDescription>
-            </div>
-            <FormControl>
-              <RadioGroup
-                className="flex flex-row"
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <div className="flex flex-row items-center space-x-2">
-                  <RadioGroupItem
-                    value={String(RandomString_StringCase.LOWER)}
-                    id="lower"
-                  />
-                  <Label htmlFor="lower">lower</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value={String(RandomString_StringCase.LOWER)}
-                    id="upper"
-                  />
-                  <Label htmlFor="upper">UPPER</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value={String(RandomString_StringCase.LOWER)}
-                    id="title"
-                  />
-                  <Label htmlFor="title">Title</Label>
-                </div>
-              </RadioGroup>
             </FormControl>
           </FormItem>
         )}

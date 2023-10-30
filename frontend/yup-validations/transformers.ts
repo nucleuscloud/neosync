@@ -5,8 +5,10 @@ import {
   FullName,
   IntPhoneNumber,
   LastName,
+  Null,
   Passthrough,
   PhoneNumber,
+  RandomString,
   Transformer,
   TransformerConfig,
   Uuid,
@@ -78,16 +80,15 @@ interface IntPhoneNumberTransformerConfigs {
   preserveLength: boolean;
 }
 
-// interface RandomStringTransformer {
-//   value: string;
-//   config: RandomStringTransformerConfigs;
-// }
+interface RandomStringTransformer {
+  case?: string | undefined;
+  value: RandomStringTransformerConfigs;
+}
 
-// interface RandomStringTransformerConfigs {
-//   preserveLength: boolean;
-//   strCase: RandomString_StringCase;
-//   strLength: number;
-// }
+interface RandomStringTransformerConfigs {
+  preserveLength: boolean;
+  strLength: number;
+}
 
 // interface RandomIntTransformer {
 //   value: string;
@@ -247,33 +248,32 @@ export function ToTransformerConfigOptions(
         }),
       });
     }
-    // case 'null': {
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'nullConfig',
-    //         value: new Null({}),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'random_string': {
-    //   const rs = t as RandomStringTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'randomStringConfig',
-    //         value: new RandomString({
-    //           preserveLength: rs.config.preserveLength,
-    //           strCase: rs.config.strCase,
-    //           strLength: BigInt(rs.config.strLength ?? 10),
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
+    case 'null': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'nullConfig',
+            value: new Null({}),
+          },
+        }),
+      });
+    }
+    case 'random_string': {
+      const rs = t.config.config as RandomStringTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'randomStringConfig',
+            value: new RandomString({
+              preserveLength: rs.value.preserveLength,
+              strLength: BigInt(rs.value.strLength ?? 10),
+            }),
+          },
+        }),
+      });
+    }
     // case 'random_bool': {
     //   return new Transformer({
     //     value: t.value,

@@ -1071,8 +1071,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "random_string":
 		pl := col.Transformer.Config.GetRandomStringConfig().PreserveLength
 		sl := col.Transformer.Config.GetRandomStringConfig().StrLength
-		sc := col.Transformer.Config.GetRandomStringConfig().StrCase
-		return fmt.Sprintf(`this.%s.randomstringtransformer(%t, %d, "%q")`, col.Column, pl, sl, sc), nil
+		return fmt.Sprintf(`this.%s.randomstringtransformer(%t, %d)`, col.Column, pl, sl), nil
 	case "random_int":
 		pl := col.Transformer.Config.GetRandomIntConfig().PreserveLength
 		sl := col.Transformer.Config.GetRandomIntConfig().IntLength
