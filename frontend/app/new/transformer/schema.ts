@@ -37,6 +37,13 @@ const randomStringConfig = Yup.object().shape({
   preserveLength: Yup.boolean().notRequired(),
   strLength: Yup.number().notRequired(),
 });
+const randomInt = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+  intLength: Yup.number().notRequired(),
+});
+const genderConfig = Yup.object().shape({
+  abbreviate: Yup.boolean().notRequired(),
+});
 
 export const transformerConfig = Yup.object().shape({
   config: Yup.object().shape({
@@ -62,6 +69,14 @@ export const transformerConfig = Yup.object().shape({
           return Yup.object().shape({});
         case 'randomStringConfig':
           return randomStringConfig;
+        case 'randomBoolConfig':
+          return Yup.object().shape({});
+        case 'nullConfig':
+          return Yup.object().shape({});
+        case 'randomInt':
+          return randomInt;
+        case 'gender':
+          return genderConfig;
         default:
           return Yup.object().shape({});
       }

@@ -9,36 +9,44 @@ import {
 } from '@/components/ui/form';
 
 import { Switch } from '@/components/ui/switch';
+import {
+  CustomTransformer,
+  Gender,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
+  transformer: CustomTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
 export default function GenderTransformerForm(props: Props): ReactElement {
-  const { index, setIsSheetOpen } = props;
+  const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const vals = fc.getValues();
+  const config = transformer?.config?.config.value as Gender;
 
-  //sheet re-renders on every open which resets state, so have to get the values from the mappings so user values persist across sheet openings
   const [ab, setAb] = useState<boolean>(
-    vals.mappings[index ?? 0].transformer.config.abbreviate
+    config?.abbreviate ? config?.abbreviate : false
   );
 
   const handleSubmit = () => {
-    fc.setValue(`mappings.${index}.transformer.config.abbreviate`, ab, {
-      shouldValidate: false,
-    });
+    fc.setValue(
+      `mappings.${index}.transformer.config.config.value.abbreviate`,
+      ab,
+      {
+        shouldValidate: false,
+      }
+    );
     setIsSheetOpen!(false);
   };
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.abbreviate`}
+        name={`mappings.${index}.transformer.config.config.value.abbreviate`}
         defaultValue={ab}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">

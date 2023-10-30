@@ -15,9 +15,11 @@ import { ReactElement, useEffect, useRef, useState } from 'react';
 import EmailTransformerForm from './Sheetforms/EmailTransformerForm';
 import FirstNameTransformerForm from './Sheetforms/FirstnameTransformerForm';
 import FullNameTransformerForm from './Sheetforms/FullnameTransformerForm';
+import GenderTransformerForm from './Sheetforms/GenderTransformerForm';
 import IntPhoneNumberTransformerForm from './Sheetforms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './Sheetforms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './Sheetforms/PhoneNumberTransformerForm';
+import RandomIntTransformerForm from './Sheetforms/RandomIntTransformerForm';
 import RandomStringTransformerForm from './Sheetforms/RandomStringTransformerForm';
 import UuidTransformerForm from './Sheetforms/UuidTransformerForm';
 
@@ -174,13 +176,14 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    // case 'random_int':
-    //   return (
-    //     <RandomIntTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
+    case 'random_int':
+      return (
+        <RandomIntTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
     // case 'random_float':
     //   return (
     //     <RandomFloatTransformerForm
@@ -188,10 +191,14 @@ function handleTransformerForm(
     //       setIsSheetOpen={setIsSheetOpen}
     //     />
     //   );
-    // case 'gender':
-    //   return (
-    //     <GenderTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
-    //   );
+    case 'gender':
+      return (
+        <GenderTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }

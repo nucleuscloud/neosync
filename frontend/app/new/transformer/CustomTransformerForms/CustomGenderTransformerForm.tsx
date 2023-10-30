@@ -8,31 +8,16 @@ import {
 } from '@/components/ui/form';
 
 import { Switch } from '@/components/ui/switch';
-import {
-  Gender,
-  Transformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-interface Props {
-  transformer: Transformer;
-}
-
-export default function CustomGenderTransformerForm(
-  props: Props
-): ReactElement {
-  const { transformer } = props;
-
+export default function CustomGenderTransformerForm(): ReactElement {
   const fc = useFormContext();
-
-  const t = transformer.config?.config.value as Gender;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`transformerConfig.abbreviate`}
-        defaultValue={t.abbreviate}
+        name={`config.config.value.abbreviate`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">

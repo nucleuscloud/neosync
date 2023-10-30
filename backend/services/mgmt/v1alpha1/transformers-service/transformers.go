@@ -92,7 +92,11 @@ func (s *Service) GetSystemTransformers(
 					},
 				},
 			}},
-			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_NullConfig{
+					NullConfig: &mgmtv1alpha1.Null{},
+				},
+			}},
 			{
 				Value: string(Email),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -113,7 +117,11 @@ func (s *Service) GetSystemTransformers(
 						},
 					},
 				}},
-			{Value: string(RandomBool), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(RandomBool), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_RandomBoolConfig{
+					RandomBoolConfig: &mgmtv1alpha1.RandomBool{},
+				},
+			}},
 			{
 				Value: string(RandomInt),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -144,13 +152,41 @@ func (s *Service) GetSystemTransformers(
 						},
 					},
 				}},
-			{Value: string(UTCTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(UnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(StreetAddress), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(City), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(Zipcode), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(State), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(FullAddress), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(UTCTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_UtcTimestampConfig{
+					UtcTimestampConfig: &mgmtv1alpha1.UTCTimestamp{},
+				},
+			}},
+			{Value: string(UnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_UnixTimestampConfig{
+					UnixTimestampConfig: &mgmtv1alpha1.UnixTimestamp{},
+				},
+			}},
+			{Value: string(StreetAddress), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_StreetAddressConfig{
+					StreetAddressConfig: &mgmtv1alpha1.StreetAddress{},
+				},
+			}},
+			{Value: string(City), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_CityConfig{
+					CityConfig: &mgmtv1alpha1.City{},
+				},
+			}},
+			{Value: string(Zipcode), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_ZipcodeConfig{
+					ZipcodeConfig: &mgmtv1alpha1.Zipcode{},
+				},
+			}},
+			{Value: string(State), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_StateConfig{
+					StateConfig: &mgmtv1alpha1.State{},
+				},
+			}},
+			{Value: string(FullAddress), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_FullAddressConfig{
+					FullAddressConfig: &mgmtv1alpha1.FullAddress{},
+				},
+			}},
 		},
 	}), nil
 }

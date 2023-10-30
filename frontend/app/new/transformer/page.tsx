@@ -41,9 +41,11 @@ import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import CustomFirstNameTransformerForm from './CustomTransformerForms/CustomFirstnameTransformerForm';
 import CustomFullNameTransformerForm from './CustomTransformerForms/CustomFullnameTransformerForm';
+import CustomGenderTransformerForm from './CustomTransformerForms/CustomGenderTransformerForm';
 import CustomIntPhoneNumberTransformerForm from './CustomTransformerForms/CustomIntPhoneNumberTransformerForm';
 import CustomLastNameTransformerForm from './CustomTransformerForms/CustomLastnameTransformerForm';
 import CustomPhoneNumberTransformerForm from './CustomTransformerForms/CustomPhoneNumberTransformerForm';
+import CustomRandomIntTransformerForm from './CustomTransformerForms/CustomRandomIntTransformerForm';
 import CustomRandomStringTransformerForm from './CustomTransformerForms/CustomRandomStringTransformerForm';
 import CustomUuidTransformerForm from './CustomTransformerForms/CustomUuidTransformerForm';
 import {
@@ -97,6 +99,8 @@ export default function NewTransformer(): ReactElement {
 
   const { data } = useGetSystemTransformers();
   const transformers = data?.transformers ?? [];
+
+  console.log('tranfomres', transformers);
 
   return (
     <OverviewContainer
@@ -246,24 +250,16 @@ export function handleCustomTransformerForm(
       return <CustomIntPhoneNumberTransformerForm />;
     case 'random_string':
       return <CustomRandomStringTransformerForm />;
-    // case 'random_int':
-    //   return (
-    //     <CustomRandomIntTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
+    case 'random_int':
+      return <CustomRandomIntTransformerForm />;
     // case 'random_float':
     //   return (
     //     <CustomRandomFloatTransformerForm
     //       transformer={transformer ?? new Transformer()}
     //     />
     //   );
-    // case 'gender':
-    //   return (
-    //     <CustomGenderTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
+    case 'gender':
+      return <CustomGenderTransformerForm />;
     default:
       <div>No transformer component found</div>;
   }

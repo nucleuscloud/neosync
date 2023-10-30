@@ -16,33 +16,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import {
-  RandomInt,
-  Transformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-interface Props {
-  transformer: Transformer;
-}
-
-export default function CustomRandomIntTransformerForm(
-  props: Props
-): ReactElement {
-  const { transformer } = props;
-
+export default function CustomRandomIntTransformerForm(): ReactElement {
   const fc = useFormContext();
-
-  const t = transformer.config?.config.value as RandomInt;
 
   const digitLength = Array.from({ length: 18 }, (_, index) => index + 1);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`transformerConfig.preserveLength`}
-        defaultValue={t.preserveLength}
+        name={`config.config.value.preserveLength`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -59,8 +44,7 @@ export default function CustomRandomIntTransformerForm(
         )}
       />
       <FormField
-        name={`transformerConfig.intLength`}
-        defaultValue={t.intLength}
+        name={`config.config.value.intLength`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -73,9 +57,9 @@ export default function CustomRandomIntTransformerForm(
             </div>
             <FormControl>
               <Select
-                disabled={fc.getValues('transformerConfig.preserveLength')}
+                disabled={fc.watch('config.config.value.preserveLength')}
                 onValueChange={field.onChange}
-                defaultValue={field.value}
+                value={field.value}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="4" />

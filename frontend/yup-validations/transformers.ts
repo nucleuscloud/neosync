@@ -3,11 +3,14 @@ import {
   EmailConfig,
   FirstName,
   FullName,
+  Gender,
   IntPhoneNumber,
   LastName,
   Null,
   Passthrough,
   PhoneNumber,
+  RandomBool,
+  RandomInt,
   RandomString,
   Transformer,
   TransformerConfig,
@@ -90,18 +93,19 @@ interface RandomStringTransformerConfigs {
   strLength: number;
 }
 
-// interface RandomIntTransformer {
-//   value: string;
-//   config: RandomIntTransformerConfigs;
-// }
+interface RandomIntTransformer {
+  case?: string | undefined;
+  value: RandomIntTransformerConfigs;
+}
 
-// interface RandomIntTransformerConfigs {
-//   preserveLength: boolean;
-//   intLength: number;
-// }
+interface RandomIntTransformerConfigs {
+  preserveLength: boolean;
+  intLength: number;
+}
+
 // interface RandomFloatTransformer {
-//   value: string;
-//   config: RandomFloatTransformerConfigs;
+//   case?: string | undefined;
+//   value: RandomFloatTransformerConfigs;
 // }
 
 // interface RandomFloatTransformerConfigs {
@@ -110,14 +114,14 @@ interface RandomStringTransformerConfigs {
 //   digitsAftereDecimal: number;
 // }
 
-// interface GenderTransformer {
-//   value: string;
-//   config: GenderTransformerConfigs;
-// }
+interface GenderTransformer {
+  case?: string | undefined;
+  value: GenderTransformerConfigs;
+}
 
-// interface GenderTransformerConfigs {
-//   abbreviate: boolean;
-// }
+interface GenderTransformerConfigs {
+  abbreviate: boolean;
+}
 
 export function ToTransformerConfigOptions(
   t: {
@@ -274,32 +278,32 @@ export function ToTransformerConfigOptions(
         }),
       });
     }
-    // case 'random_bool': {
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'randomBoolConfig',
-    //         value: new RandomBool({}),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'random_int': {
-    //   const ri = t as RandomIntTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'randomIntConfig',
-    //         value: new RandomInt({
-    //           preserveLength: ri.config.preserveLength,
-    //           intLength: BigInt(ri.config.intLength ?? 4),
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
+    case 'random_bool': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'randomBoolConfig',
+            value: new RandomBool({}),
+          },
+        }),
+      });
+    }
+    case 'random_int': {
+      const ri = t.config.config as RandomIntTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'randomIntConfig',
+            value: new RandomInt({
+              preserveLength: ri.value.preserveLength,
+              intLength: BigInt(ri.value.intLength ?? 4),
+            }),
+          },
+        }),
+      });
+    }
     // case 'random_float': {
     //   const rf = t as RandomFloatTransformer;
     //   return new Transformer({
@@ -316,20 +320,20 @@ export function ToTransformerConfigOptions(
     //     }),
     //   });
     // }
-    // case 'gender': {
-    //   const g = t as GenderTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'genderConfig',
-    //         value: new Gender({
-    //           abbreviate: g.config.abbreviate,
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
+    case 'gender': {
+      const g = t.config.config as GenderTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'genderConfig',
+            value: new Gender({
+              abbreviate: g.value.abbreviate,
+            }),
+          },
+        }),
+      });
+    }
     // case 'utc_timestamp': {
     //   return new Transformer({
     //     value: t.value,
