@@ -298,7 +298,6 @@ async function createNewJob(
     cronSchedule: formData.define.cronSchedule,
     initiateJobRun: formData.define.initiateJobRun,
     mappings: formData.schema.mappings.map((m) => {
-      console.log('merged', merged);
       console.log('before t mapping', m.transformer);
       console.log(
         'after t mapping',

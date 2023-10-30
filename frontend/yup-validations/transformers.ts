@@ -1,9 +1,15 @@
 import {
   CustomTransformer,
   EmailConfig,
+  FirstName,
+  FullName,
+  IntPhoneNumber,
+  LastName,
   Passthrough,
+  PhoneNumber,
   Transformer,
   TransformerConfig,
+  Uuid,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 
 interface EmailTransformer {
@@ -16,61 +22,61 @@ interface EmailTransformerConfigs {
   preserveLength: boolean;
 }
 
-// interface UuidTransformer {
-//   value: string;
-//   config: UuidTransformerConfigs;
-// }
+interface UuidTransformer {
+  case?: string | undefined;
+  value: UuidTransformerConfigs;
+}
 
-// interface UuidTransformerConfigs {
-//   includeHyphen: boolean;
-// }
+interface UuidTransformerConfigs {
+  includeHyphen: boolean;
+}
 
-// interface FirstNameTransformer {
-//   value: string;
-//   config: FirstNameTransformerConfigs;
-// }
+interface FirstNameTransformer {
+  case?: string | undefined;
+  value: FirstNameTransformerConfigs;
+}
 
-// interface FirstNameTransformerConfigs {
-//   preserveLength: boolean;
-// }
+interface FirstNameTransformerConfigs {
+  preserveLength: boolean;
+}
 
-// interface LastNameTransformer {
-//   value: string;
-//   config: LastNameTransformerConfigs;
-// }
+interface LastNameTransformer {
+  case?: string | undefined;
+  value: LastNameTransformerConfigs;
+}
 
-// interface LastNameTransformerConfigs {
-//   preserveLength: boolean;
-// }
+interface LastNameTransformerConfigs {
+  preserveLength: boolean;
+}
 
-// interface FullNameTransformer {
-//   value: string;
-//   config: FullNameTransformerConfigs;
-// }
+interface FullNameTransformer {
+  case?: string | undefined;
+  value: FullNameTransformerConfigs;
+}
 
-// interface FullNameTransformerConfigs {
-//   preserveLength: boolean;
-// }
+interface FullNameTransformerConfigs {
+  preserveLength: boolean;
+}
 
-// interface PhoneNumberTransformer {
-//   value: string;
-//   config: PhoneNumberTransformerConfigs;
-// }
+interface PhoneNumberTransformer {
+  case?: string | undefined;
+  value: PhoneNumberTransformerConfigs;
+}
 
-// interface PhoneNumberTransformerConfigs {
-//   preserveLength: boolean;
-//   e164Format: boolean;
-//   includeHyphens: boolean;
-// }
+interface PhoneNumberTransformerConfigs {
+  preserveLength: boolean;
+  e164Format: boolean;
+  includeHyphens: boolean;
+}
 
-// interface IntPhoneNumberTransformer {
-//   value: string;
-//   config: IntPhoneNumberTransformerConfigs;
-// }
+interface IntPhoneNumberTransformer {
+  case?: string | undefined;
+  value: IntPhoneNumberTransformerConfigs;
+}
 
-// interface IntPhoneNumberTransformerConfigs {
-//   preserveLength: boolean;
-// }
+interface IntPhoneNumberTransformerConfigs {
+  preserveLength: boolean;
+}
 
 // interface RandomStringTransformer {
 //   value: string;
@@ -122,9 +128,7 @@ export function ToTransformerConfigOptions(
   const val = merged.find((item) => item.name == t.value);
 
   console.log('t', t);
-  console.log(' val value', val);
-  console.log('t value', t.value);
-  console.log('config', t.config);
+  console.log('val value', val);
 
   if (!t) {
     return new Transformer();
@@ -148,7 +152,7 @@ export function ToTransformerConfigOptions(
     }
     case 'passthrough': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',
@@ -157,92 +161,92 @@ export function ToTransformerConfigOptions(
         }),
       });
     }
-    // case 'uuid': {
-    //   const ut = t as UuidTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'uuidConfig',
-    //         value: new Uuid({
-    //           includeHyphen: ut.config.includeHyphen,
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'first_name': {
-    //   const ft = t as FirstNameTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'firstNameConfig',
-    //         value: new FirstName({
-    //           preserveLength: ft.config.preserveLength,
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'last_name': {
-    //   const ft = t as LastNameTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'lastNameConfig',
-    //         value: new LastName({
-    //           preserveLength: ft.config.preserveLength,
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'full_name': {
-    //   const ft = t as FullNameTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'fullNameConfig',
-    //         value: new FullName({
-    //           preserveLength: ft.config.preserveLength,
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'phone_number': {
-    //   const pt = t as PhoneNumberTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'phoneNumberConfig',
-    //         value: new PhoneNumber({
-    //           preserveLength: pt.config.preserveLength,
-    //           e164Format: pt.config.e164Format,
-    //           includeHyphens: pt.config.includeHyphens,
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'int_phone_number': {
-    //   const pt = t as IntPhoneNumberTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'intPhoneNumberConfig',
-    //         value: new IntPhoneNumber({
-    //           preserveLength: pt.config.preserveLength,
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
+    case 'uuid': {
+      const ut = t.config.config as UuidTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'uuidConfig',
+            value: new Uuid({
+              includeHyphen: ut.value.includeHyphen,
+            }),
+          },
+        }),
+      });
+    }
+    case 'first_name': {
+      const ft = t.config.config as FirstNameTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'firstNameConfig',
+            value: new FirstName({
+              preserveLength: ft.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'last_name': {
+      const ft = t.config.config as LastNameTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'lastNameConfig',
+            value: new LastName({
+              preserveLength: ft.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'full_name': {
+      const ft = t.config.config as FullNameTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'fullNameConfig',
+            value: new FullName({
+              preserveLength: ft.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'phone_number': {
+      const pt = t.config.config as PhoneNumberTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'phoneNumberConfig',
+            value: new PhoneNumber({
+              preserveLength: pt.value.preserveLength,
+              e164Format: pt.value.e164Format,
+              includeHyphens: pt.value.includeHyphens,
+            }),
+          },
+        }),
+      });
+    }
+    case 'int_phone_number': {
+      const pt = t.config.config as IntPhoneNumberTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'intPhoneNumberConfig',
+            value: new IntPhoneNumber({
+              preserveLength: pt.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
     // case 'null': {
     //   return new Transformer({
     //     value: t.value,

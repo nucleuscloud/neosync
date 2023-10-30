@@ -26,6 +26,7 @@ export default function EmailTransformerForm(props: Props): ReactElement {
   const fc = useFormContext();
 
   const config = transformer?.config?.config.value as EmailConfig;
+
   const [pd, setPd] = useState<boolean>(
     config?.preserveDomain ? config?.preserveDomain : false
   );
@@ -47,11 +48,6 @@ export default function EmailTransformerForm(props: Props): ReactElement {
       {
         shouldValidate: false,
       }
-    );
-
-    fc.setValue(
-      `mappings.${index}.transformer.config.config.case`,
-      'emailConfig'
     );
     setIsSheetOpen!(false);
   };

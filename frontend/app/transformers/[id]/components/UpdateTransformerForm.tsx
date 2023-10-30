@@ -75,7 +75,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
       );
       toast({
         title: 'Successfully updated transformer!',
-        variant: 'default',
+        variant: 'success',
       });
       if (transformer.transformer?.id) {
         router.push(`/transformers`);
@@ -178,8 +178,6 @@ async function updateCustomTransformer(
     description: formData.description,
     transformerConfig: formData.config as TransformerConfig,
   });
-
-  console.log('body', body);
 
   const res = await fetch(`/api/transformers/custom`, {
     method: 'PUT',

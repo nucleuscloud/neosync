@@ -39,6 +39,12 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import CustomFirstNameTransformerForm from './CustomTransformerForms/CustomFirstnameTransformerForm';
+import CustomFullNameTransformerForm from './CustomTransformerForms/CustomFullnameTransformerForm';
+import CustomIntPhoneNumberTransformerForm from './CustomTransformerForms/CustomIntPhoneNumberTransformerForm';
+import CustomLastNameTransformerForm from './CustomTransformerForms/CustomLastnameTransformerForm';
+import CustomPhoneNumberTransformerForm from './CustomTransformerForms/CustomPhoneNumberTransformerForm';
+import CustomUuidTransformerForm from './CustomTransformerForms/CustomUuidTransformerForm';
 import {
   CREATE_CUSTOM_TRANSFORMER_SCHEMA,
   CreateCustomTransformerSchema,
@@ -71,7 +77,7 @@ export default function NewTransformer(): ReactElement {
       const transformer = await createNewTransformer(account.id, values);
       toast({
         title: 'Successfully created transformer!',
-        variant: 'default',
+        variant: 'success',
       });
       if (transformer.transformer?.id) {
         router.push(`/transformers/${transformer.transformer?.id}`);
@@ -225,42 +231,18 @@ export function handleCustomTransformerForm(
   switch (transformer) {
     case 'email':
       return <CustomEmailTransformerForm />;
-    // case 'uuid':
-    //   return (
-    //     <CustomUuidTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
-    // case 'first_name':
-    //   return (
-    //     <CustomFirstNameTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
-    // case 'last_name':
-    //   return (
-    //     <CustomLastNameTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
-    // case 'full_name':
-    //   return (
-    //     <CustomFullNameTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
-    // case 'phone_number':
-    //   return (
-    //     <CustomPhoneNumberTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
-    // case 'int_phone_number':
-    //   return (
-    //     <CustomIntPhoneNumberTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
+    case 'uuid':
+      return <CustomUuidTransformerForm />;
+    case 'first_name':
+      return <CustomFirstNameTransformerForm />;
+    case 'last_name':
+      return <CustomLastNameTransformerForm />;
+    case 'full_name':
+      return <CustomFullNameTransformerForm />;
+    case 'phone_number':
+      return <CustomPhoneNumberTransformerForm />;
+    case 'int_phone_number':
+      return <CustomIntPhoneNumberTransformerForm />;
     // case 'random_string':
     //   return (
     //     <CustomRandomStringTransformerForm
@@ -295,6 +277,7 @@ async function createNewTransformer(
   accountId: string,
   formData: CreateCustomTransformerSchema
 ): Promise<CreateCustomTransformerResponse> {
+  console.log('formaD', formData);
   const body = new CreateCustomTransformerRequest({
     accountId: accountId,
     name: formData.name,
@@ -303,6 +286,8 @@ async function createNewTransformer(
     source: formData.source,
     transformerConfig: formData.config as TransformerConfig,
   });
+
+  console.log('body', body);
   const res = await fetch(`/api/transformers/custom`, {
     method: 'POST',
     headers: {

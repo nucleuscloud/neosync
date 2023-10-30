@@ -7,33 +7,16 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  PhoneNumber,
-  Transformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-interface Props {
-  transformer: Transformer;
-}
-
-export default function CustomPhoneNumberTransformerForm(
-  props: Props
-): ReactElement {
-  const { transformer } = props;
-
+export default function CustomPhoneNumberTransformerForm(): ReactElement {
   const fc = useFormContext();
-
-  const t = transformer.config?.config.value as PhoneNumber;
-
-  console.log('val', fc.getValues('transformerConfig.e164Format'));
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`transformerConfig.preserveLength`}
-        defaultValue={t.preserveLength}
+        name={`config.config.value.preserveLength`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -45,16 +28,18 @@ export default function CustomPhoneNumberTransformerForm(
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={fc.watch('config.config.value.includeHyphens')}
+              />
             </FormControl>
           </FormItem>
         )}
       />
       <FormField
-        name={`transformerConfig.includeHyphens`}
-        defaultValue={t.includeHyphens}
+        name={`config.config.value.includeHyphens`}
         control={fc.control}
-        disabled={fc.getValues('transformerConfig.e164Format')}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -65,14 +50,17 @@ export default function CustomPhoneNumberTransformerForm(
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={fc.watch('config.config.value.preserveLength')}
+              />
             </FormControl>
           </FormItem>
         )}
       />
       <FormField
-        name={`transformerConfig.e164Format`}
-        defaultValue={t.e164Format}
+        name={`config.config.value.e164Format`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -84,7 +72,11 @@ export default function CustomPhoneNumberTransformerForm(
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={fc.watch('config.config.value.includeHyphens')}
+              />
             </FormControl>
           </FormItem>
         )}

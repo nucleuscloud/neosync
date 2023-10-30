@@ -15,13 +15,9 @@ import { ReactElement, useEffect, useRef, useState } from 'react';
 import EmailTransformerForm from './Sheetforms/EmailTransformerForm';
 import FirstNameTransformerForm from './Sheetforms/FirstnameTransformerForm';
 import FullNameTransformerForm from './Sheetforms/FullnameTransformerForm';
-import GenderTransformerForm from './Sheetforms/GenderTransformerForm';
 import IntPhoneNumberTransformerForm from './Sheetforms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './Sheetforms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './Sheetforms/PhoneNumberTransformerForm';
-import RandomFloatTransformerForm from './Sheetforms/RandomFloatTransformerForm';
-import RandomIntTransformerForm from './Sheetforms/RandomIntTransformerForm';
-import RandomStringTransformerForm from './Sheetforms/RandomStringTransformerForm';
 import UuidTransformerForm from './Sheetforms/UuidTransformerForm';
 
 interface Props {
@@ -112,7 +108,6 @@ function handleTransformerForm(
   index?: number,
   setIsSheetOpen?: (val: boolean) => void
 ): ReactElement {
-  console.log('custom t', transformer);
   switch (transformer.source) {
     case 'email':
       return (
@@ -124,13 +119,18 @@ function handleTransformerForm(
       );
     case 'uuid':
       return (
-        <UuidTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <UuidTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
       );
     case 'first_name':
       return (
         <FirstNameTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'last_name':
@@ -138,6 +138,7 @@ function handleTransformerForm(
         <LastNameTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'full_name':
@@ -145,6 +146,7 @@ function handleTransformerForm(
         <FullNameTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'phone_number':
@@ -152,6 +154,7 @@ function handleTransformerForm(
         <PhoneNumberTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'int_phone_number':
@@ -159,33 +162,34 @@ function handleTransformerForm(
         <IntPhoneNumberTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
-    case 'random_string':
-      return (
-        <RandomStringTransformerForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-        />
-      );
-    case 'random_int':
-      return (
-        <RandomIntTransformerForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-        />
-      );
-    case 'random_float':
-      return (
-        <RandomFloatTransformerForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-        />
-      );
-    case 'gender':
-      return (
-        <GenderTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
-      );
+    // case 'random_string':
+    //   return (
+    //     <RandomStringTransformerForm
+    //       index={index}
+    //       setIsSheetOpen={setIsSheetOpen}
+    //     />
+    //   );
+    // case 'random_int':
+    //   return (
+    //     <RandomIntTransformerForm
+    //       index={index}
+    //       setIsSheetOpen={setIsSheetOpen}
+    //     />
+    //   );
+    // case 'random_float':
+    //   return (
+    //     <RandomFloatTransformerForm
+    //       index={index}
+    //       setIsSheetOpen={setIsSheetOpen}
+    //     />
+    //   );
+    // case 'gender':
+    //   return (
+    //     <GenderTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
+    //   );
     default:
       <div>No transformer component found</div>;
   }

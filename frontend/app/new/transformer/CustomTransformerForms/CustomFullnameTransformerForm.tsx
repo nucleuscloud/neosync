@@ -7,30 +7,16 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  FullName,
-  Transformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-interface Props {
-  transformer: Transformer;
-}
-export default function CustomFullNameTransformerForm(
-  props: Props
-): ReactElement {
-  const { transformer } = props;
-
+export default function CustomFullNameTransformerForm(): ReactElement {
   const fc = useFormContext();
-
-  const t = transformer.config?.config.value as FullName;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`transformerConfig.preserveLength`}
-        defaultValue={t.preserveLength}
+        name={`config.config.value.preserveLength`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
