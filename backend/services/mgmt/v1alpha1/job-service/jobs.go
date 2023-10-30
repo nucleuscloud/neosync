@@ -2,6 +2,7 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 
+	"go.temporal.io/api/serviceerror"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
@@ -129,6 +131,26 @@ func (s *Service) GetJob(
 	}), nil
 }
 
+func (s *Service) doesAccountHaveTemporalNamespace(
+	ctx context.Context,
+	accountUuid pgtype.UUID,
+) (bool, error) {
+	tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, accountUuid)
+	if err != nil {
+		return false, err
+	}
+	if tc.Namespace == "" {
+		return false, nil
+	}
+	_, err = s.temporalNsClient.Describe(ctx, tc.Namespace)
+	if err != nil && !errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
+		return false, err
+	} else if err != nil && errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (s *Service) GetJobStatus(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobStatusRequest],
@@ -148,7 +170,13 @@ func (s *Service) GetJobStatus(
 	if err != nil {
 		return nil, err
 	}
-	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	if err != nil {
+		return nil, err
+	}
+
+	scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	schedule, err := scheduleHandle.Describe(ctx)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
@@ -175,6 +203,13 @@ func (s *Service) GetJobStatuses(
 		return nil, err
 	}
 
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, req.Msg.AccountId, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	scheduleclient := tclient.ScheduleClient()
+
 	dtos := make([]*mgmtv1alpha1.JobStatusRecord, len(jobs))
 	group := new(errgroup.Group)
 	for i := range jobs {
@@ -182,7 +217,7 @@ func (s *Service) GetJobStatuses(
 		j := jobs[i]
 		group.Go(func() error {
 			jobId := nucleusdb.UUIDString(j.ID)
-			scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, jobId)
+			scheduleHandle := scheduleclient.GetHandle(ctx, jobId)
 			schedule, err := scheduleHandle.Describe(ctx)
 			if err != nil {
 				logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
@@ -222,7 +257,13 @@ func (s *Service) GetJobRecentRuns(
 	if err != nil {
 		return nil, err
 	}
-	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	if err != nil {
+		return nil, err
+	}
+
+	scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	schedule, err := scheduleHandle.Describe(ctx)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
@@ -252,7 +293,13 @@ func (s *Service) GetJobNextRuns(
 	if err != nil {
 		return nil, err
 	}
-	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	if err != nil {
+		return nil, err
+	}
+
+	scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	schedule, err := scheduleHandle.Describe(ctx)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
@@ -454,8 +501,17 @@ func (s *Service) DeleteJob(
 		return nil, err
 	}
 
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	if err != nil {
+		return nil, err
+	}
+	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, job.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
 	logger.Info("deleting schedule's workflow executions")
-	workflows, err := getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, s.cfg.TemporalNamespace, []string{req.Msg.Id})
+	workflows, err := getWorkflowExecutionsByJobIds(ctx, tclient, logger, tconfig.Namespace, []string{req.Msg.Id})
 	if err != nil {
 		return nil, err
 	}
@@ -464,8 +520,8 @@ func (s *Service) DeleteJob(
 	for _, w := range workflows {
 		w := w
 		group.Go(func() error {
-			_, err := s.temporalClient.WorkflowService().DeleteWorkflowExecution(ctx, &workflowservice.DeleteWorkflowExecutionRequest{
-				Namespace:         s.cfg.TemporalNamespace,
+			_, err := tclient.WorkflowService().DeleteWorkflowExecution(ctx, &workflowservice.DeleteWorkflowExecutionRequest{
+				Namespace:         tconfig.Namespace,
 				WorkflowExecution: w.Execution,
 			})
 			if err != nil {
@@ -482,7 +538,7 @@ func (s *Service) DeleteJob(
 	}
 
 	logger.Info("deleting schedule")
-	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	description, err := scheduleHandle.Describe(ctx)
 	if err != nil && !strings.Contains(err.Error(), "schedule not found") && !strings.Contains(err.Error(), "no rows in result set") {
 		return nil, err
@@ -603,6 +659,11 @@ func (s *Service) UpdateJobSchedule(
 		return nil, err
 	}
 
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	if err != nil {
+		return nil, err
+	}
+
 	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
@@ -632,7 +693,7 @@ func (s *Service) UpdateJobSchedule(
 		}
 
 		// update temporal scheduled job
-		scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+		scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 		err = scheduleHandle.Update(ctx, temporalclient.ScheduleUpdateOptions{
 			DoUpdate: func(schedule temporalclient.ScheduleUpdateInput) (*temporalclient.ScheduleUpdate, error) {
 				schedule.Description.Schedule.Spec = spec
@@ -685,7 +746,12 @@ func (s *Service) PauseJob(
 		return nil, err
 	}
 
-	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	if err != nil {
+		return nil, err
+	}
+
+	scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	if req.Msg.Pause {
 		logger.Info("pausing job")
 		err = scheduleHandle.Pause(ctx, temporalclient.SchedulePauseOptions{Note: req.Msg.GetNote()})
