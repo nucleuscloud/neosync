@@ -41,6 +41,7 @@ export function DataTableRowActions<TData>({
       toast({
         title: 'Unable to remove tranformer',
         description: getErrorMessage(err),
+        variant: 'destructive',
       });
     }
   }
