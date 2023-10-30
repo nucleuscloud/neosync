@@ -61,6 +61,15 @@ func (t *TemporalWorkflowManager) loadClientByAccount(accountId string) (tempora
 	return nil, false
 }
 
+// // This method should be seldom called. Please refer to GetClientByAccount as you most likely want that instead.
+// func (t *TemporalWorkflowManager) GetOrCreateClientByAccount(
+// 	ctx context.Context,
+// 	accountId string,
+// 	logger *slog.Logger,
+// ) (temporalclient.Client, error) {
+
+// }
+
 func (t *TemporalWorkflowManager) GetClientByAccount(
 	ctx context.Context,
 	accountId string,

@@ -12,9 +12,11 @@ require (
 	connectrpc.com/otelconnect v0.6.0
 	connectrpc.com/validate v0.1.0
 	github.com/auth0/go-jwt-middleware/v2 v2.1.0
+	github.com/dustinkirkland/golang-petname v0.0.0-20231002161417-6a283f1aaaf2
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gogo/status v1.1.1
 	github.com/golang-migrate/migrate/v4 v4.16.2
+	github.com/google/uuid v1.4.0
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/nucleuscloud/neosync/worker v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.7.0
@@ -139,7 +141,6 @@ require (
 	github.com/google/go-github/v39 v39.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
-	github.com/google/uuid v1.4.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect

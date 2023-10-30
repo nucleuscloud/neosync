@@ -20,6 +20,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
+	namegenerator "github.com/nucleuscloud/neosync/backend/internal/name-generator"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	workflowmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/workflow-manager"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
@@ -152,7 +153,15 @@ func serve() error {
 	}, db.Q)
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{}
-	jobService := v1alpha1_jobservice.New(jobServiceConfig, db, nsclient, tfwfmgr, connectionService, useraccountService)
+	jobService := v1alpha1_jobservice.New(
+		jobServiceConfig,
+		db,
+		nsclient,
+		tfwfmgr,
+		namegenerator.New(),
+		connectionService,
+		useraccountService,
+	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,

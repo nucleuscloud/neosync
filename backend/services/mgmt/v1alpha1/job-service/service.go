@@ -8,12 +8,18 @@ import (
 	temporalclient "go.temporal.io/sdk/client"
 )
 
+type NameGenerator interface {
+	Generate() string
+}
+
 type Service struct {
 	cfg                *Config
 	db                 *nucleusdb.NucleusDb
 	temporalNsClient   temporalclient.NamespaceClient
 	connectionService  *v1alpha1_connectionservice.Service
 	useraccountService *v1alpha1_useraccountservice.Service
+
+	namegenerator NameGenerator
 
 	temporalWfManager *workflowmanager.TemporalWorkflowManager
 }
@@ -25,6 +31,7 @@ func New(
 	db *nucleusdb.NucleusDb,
 	temporalNsClient temporalclient.NamespaceClient,
 	temporalWfManager *workflowmanager.TemporalWorkflowManager,
+	namegenerator NameGenerator,
 	connectionService *v1alpha1_connectionservice.Service,
 	useraccountService *v1alpha1_useraccountservice.Service,
 ) *Service {
@@ -34,6 +41,7 @@ func New(
 		db:                 db,
 		temporalNsClient:   temporalNsClient,
 		temporalWfManager:  temporalWfManager,
+		namegenerator:      namegenerator,
 		connectionService:  connectionService,
 		useraccountService: useraccountService,
 	}

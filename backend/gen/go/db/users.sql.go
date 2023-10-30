@@ -309,3 +309,29 @@ func (q *Queries) SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
 	return i, err
 }
+
+const updateTemporalConfigByAccount = `-- name: UpdateTemporalConfigByAccount :one
+UPDATE neosync_api.accounts
+SET temporal_config = $1
+WHERE id = $2
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config
+`
+
+type UpdateTemporalConfigByAccountParams struct {
+	TemporalConfig *jsonmodels.TemporalConfig
+	ID             pgtype.UUID
+}
+
+func (q *Queries) UpdateTemporalConfigByAccount(ctx context.Context, arg UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error) {
+	row := q.db.QueryRow(ctx, updateTemporalConfigByAccount, arg.TemporalConfig, arg.ID)
+	var i NeosyncApiAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AccountType,
+		&i.AccountSlug,
+		&i.TemporalConfig,
+	)
+	return i, err
+}
