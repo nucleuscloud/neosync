@@ -41,6 +41,7 @@ export function DataTableRowActions<TData>({
       toast({
         title: 'Unable to remove job run',
         description: getErrorMessage(err),
+        variant: 'destructive',
       });
     }
   }
@@ -57,6 +58,7 @@ export function DataTableRowActions<TData>({
       toast({
         title: 'Unable to cancel job run',
         description: getErrorMessage(err),
+        variant: 'destructive',
       });
     }
   }

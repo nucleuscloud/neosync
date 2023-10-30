@@ -32,6 +32,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       toast({
         title: 'Unable to trigger job run',
         description: getErrorMessage(err),
+        variant: 'destructive',
       });
     }
   }
@@ -51,6 +52,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       toast({
         title: 'Unable to remove job',
         description: getErrorMessage(err),
+        variant: 'destructive',
       });
     }
   }

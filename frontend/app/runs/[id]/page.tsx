@@ -63,6 +63,7 @@ export default function Page({ params }: PageProps): ReactElement {
       toast({
         title: 'Unable to remove job run',
         description: getErrorMessage(err),
+        variant: 'destructive',
       });
     }
   }
@@ -80,6 +81,7 @@ export default function Page({ params }: PageProps): ReactElement {
       toast({
         title: 'Unable to cancel job run',
         description: getErrorMessage(err),
+        variant: 'destructive',
       });
     }
   }

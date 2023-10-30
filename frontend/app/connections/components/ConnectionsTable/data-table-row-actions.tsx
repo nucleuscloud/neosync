@@ -42,6 +42,7 @@ export function DataTableRowActions<TData>({
       toast({
         title: 'Unable to remove connection',
         description: getErrorMessage(err),
+        variant: 'destructive',
       });
     }
   }
