@@ -2,8 +2,6 @@ package nucleusdb
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
@@ -103,8 +101,4 @@ func HandleSqlRollback(
 	if err := tx.Rollback(); err != nil && !isTxDone(err) {
 		logger.Error(err.Error())
 	}
-}
-
-func isTxDone(err error) bool {
-	return errors.Is(err, pgx.ErrTxClosed) || errors.Is(err, sql.ErrTxDone)
 }
