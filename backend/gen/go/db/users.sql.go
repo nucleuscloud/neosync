@@ -71,7 +71,7 @@ INSERT INTO neosync_api.accounts (
 ) VALUES (
   0, $1
 )
-RETURNING id, created_at, updated_at, account_type, account_slug
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config
 `
 
 func (q *Queries) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
@@ -83,6 +83,7 @@ func (q *Queries) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlu
 		&i.UpdatedAt,
 		&i.AccountType,
 		&i.AccountSlug,
+		&i.TemporalConfig,
 	)
 	return i, err
 }
@@ -104,7 +105,7 @@ func (q *Queries) CreateUser(ctx context.Context, db DBTX) (NeosyncApiUser, erro
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, created_at, updated_at, account_type, account_slug from neosync_api.accounts
+SELECT id, created_at, updated_at, account_type, account_slug, temporal_config from neosync_api.accounts
 WHERE id = $1
 `
 
@@ -117,6 +118,7 @@ func (q *Queries) GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (Neos
 		&i.UpdatedAt,
 		&i.AccountType,
 		&i.AccountSlug,
+		&i.TemporalConfig,
 	)
 	return i, err
 }
@@ -147,7 +149,7 @@ func (q *Queries) GetAccountUserAssociation(ctx context.Context, db DBTX, arg Ge
 }
 
 const getAccountsByUser = `-- name: GetAccountsByUser :many
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug from neosync_api.accounts a
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config from neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1
@@ -168,6 +170,7 @@ func (q *Queries) GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID
 			&i.UpdatedAt,
 			&i.AccountType,
 			&i.AccountSlug,
+			&i.TemporalConfig,
 		); err != nil {
 			return nil, err
 		}
@@ -192,7 +195,7 @@ func (q *Queries) GetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser
 }
 
 const getPersonalAccountByUserId = `-- name: GetPersonalAccountByUserId :one
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug from neosync_api.accounts a
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config from neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1 AND a.account_type = 0
@@ -207,6 +210,7 @@ func (q *Queries) GetPersonalAccountByUserId(ctx context.Context, db DBTX, useri
 		&i.UpdatedAt,
 		&i.AccountType,
 		&i.AccountSlug,
+		&i.TemporalConfig,
 	)
 	return i, err
 }

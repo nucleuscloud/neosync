@@ -517,3 +517,8 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 	}
 	return nil
 }
+
+type TemporalConfig struct {
+	Namespace        string `json:"namespace"`
+	SyncJobQueueName string `json:"syncJobQueueName"`
+}
