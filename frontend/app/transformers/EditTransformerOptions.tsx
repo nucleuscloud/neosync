@@ -108,14 +108,19 @@ export default function EditTransformerOptions(props: Props): ReactElement {
 }
 
 function handleTransformerForm(
-  t: CustomTransformer,
+  transformer: CustomTransformer,
   index?: number,
   setIsSheetOpen?: (val: boolean) => void
 ): ReactElement {
-  switch (t.source) {
+  console.log('custom t', transformer);
+  switch (transformer.source) {
     case 'email':
       return (
-        <EmailTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <EmailTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
       );
     case 'uuid':
       return (

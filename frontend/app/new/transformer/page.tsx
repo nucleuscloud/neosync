@@ -1,9 +1,9 @@
 'use client';
 
 import CustomEmailTransformerForm from '@/app/new/transformer/CustomTransformerForms/CustomEmailTransformerForm';
-import { handleTransformerMetadata } from '@/app/transformers/EditTransformerOptions';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { handleTransformerMetadata } from '@/components/jobs/SchemaTable/column';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -90,8 +90,6 @@ export default function NewTransformer(): ReactElement {
 
   const { data } = useGetSystemTransformers();
   const transformers = data?.transformers ?? [];
-
-  //console.log('values', form.getValues());
 
   return (
     <OverviewContainer

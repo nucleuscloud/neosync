@@ -374,6 +374,7 @@ func buildBenthosSourceConfigReponses(
 	sourceTableOpts map[string]*sourceTableOptions,
 ) ([]*benthosConfigResponse, error) {
 	responses := []*benthosConfigResponse{}
+
 	for i := range mappings {
 		tableMapping := mappings[i]
 		cols := buildPlainColumns(tableMapping.Mappings)

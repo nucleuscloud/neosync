@@ -216,6 +216,7 @@ function TransformerSelect(props: TransformersSelectProps) {
                   setOpen(false);
                 }}
                 value={t.name}
+                defaultValue="passthrough"
               >
                 <CheckIcon
                   className={cn(
@@ -437,9 +438,9 @@ export function handleTransformerMetadata(
 
   const def = {
     default: {
-      name: 'Undefined',
-      description: 'Undefined Transformer',
-      type: 'undefined',
+      name: 'Passthrough',
+      description: 'Passthrough',
+      type: 'passthrough',
     },
   };
 
