@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 )
 
 const createAccountUserAssociation = `-- name: CreateAccountUserAssociation :one
@@ -213,6 +214,19 @@ func (q *Queries) GetPersonalAccountByUserId(ctx context.Context, db DBTX, useri
 		&i.TemporalConfig,
 	)
 	return i, err
+}
+
+const getTemporalConfigByAccount = `-- name: GetTemporalConfigByAccount :one
+SELECT temporal_config
+FROM neosync_api.accounts
+WHERE id = $1
+`
+
+func (q *Queries) GetTemporalConfigByAccount(ctx context.Context, id pgtype.UUID) (*jsonmodels.TemporalConfig, error) {
+	row := q.db.QueryRow(ctx, getTemporalConfigByAccount, id)
+	var temporal_config *jsonmodels.TemporalConfig
+	err := row.Scan(&temporal_config)
+	return temporal_config, err
 }
 
 const getUser = `-- name: GetUser :one

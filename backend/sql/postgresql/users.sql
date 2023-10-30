@@ -85,3 +85,8 @@ ON CONFLICT (id)
 DO
   UPDATE SET updated_at = current_timestamp
 RETURNING *;
+
+-- name: GetTemporalConfigByAccount :one
+SELECT temporal_config
+FROM neosync_api.accounts
+WHERE id = $1;
