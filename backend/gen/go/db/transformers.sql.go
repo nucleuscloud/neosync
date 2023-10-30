@@ -14,9 +14,9 @@ import (
 
 const createCustomTransformer = `-- name: CreateCustomTransformer :one
 INSERT INTO neosync_api.transformers (
-  name, description, type, account_id, transformer_config, created_by_id, updated_by_id
+  name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7
+  $1, $2, $3, $4, $5, $6, $7, $8
 )
 RETURNING id, created_at, updated_at, name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id
 `
@@ -25,6 +25,7 @@ type CreateCustomTransformerParams struct {
 	Name              string
 	Description       string
 	Type              string
+	Source            string
 	AccountID         pgtype.UUID
 	TransformerConfig *jsonmodels.TransformerConfigs
 	CreatedByID       pgtype.UUID
@@ -36,6 +37,7 @@ func (q *Queries) CreateCustomTransformer(ctx context.Context, db DBTX, arg Crea
 		arg.Name,
 		arg.Description,
 		arg.Type,
+		arg.Source,
 		arg.AccountID,
 		arg.TransformerConfig,
 		arg.CreatedByID,

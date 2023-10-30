@@ -227,9 +227,9 @@ func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Requ
 		Description:       req.Msg.Description,
 		TransformerConfig: &jsonmodels.TransformerConfigs{},
 		Type:              req.Msg.Type,
-		// Source:            req.Msg.Source,
-		CreatedByID: *userUuid,
-		UpdatedByID: *userUuid,
+		Source:            req.Msg.Source,
+		CreatedByID:       *userUuid,
+		UpdatedByID:       *userUuid,
 	}
 
 	err = customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
