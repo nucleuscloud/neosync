@@ -4,6 +4,7 @@ import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useGetCustomTransformersById } from '@/libs/hooks/useGetCustomTransformerById';
+import RemoveTransformerButton from './components/RemoveTransformerButton';
 import UpdateTransformerForm from './components/UpdateTransformerForm';
 
 export default function NewCustomTransformerPage({ params }: PageProps) {
@@ -22,7 +23,14 @@ export default function NewCustomTransformerPage({ params }: PageProps) {
   return (
     <OverviewContainer
       Header={
-        <PageHeader header={data?.transformer?.name ?? 'Custom Transformer'} />
+        <PageHeader
+          header={data?.transformer?.name ?? 'Custom Transformer'}
+          extraHeading={
+            <RemoveTransformerButton
+              transformerID={data?.transformer?.id ?? ''}
+            />
+          }
+        />
       }
     >
       <div className="transformer-details-container">

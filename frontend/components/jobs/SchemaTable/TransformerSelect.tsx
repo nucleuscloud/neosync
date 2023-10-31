@@ -12,12 +12,12 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 
 interface Props {
-  transformers: Transformer[];
+  transformers: CustomTransformer[];
   value: string;
   onSelect: (value: string) => void;
   placeholder: string;
@@ -37,11 +37,7 @@ export default function TransformerSelect(props: Props): ReactElement {
           aria-expanded={open}
           className="w-full justify-between"
         >
-          <div className="truncate overflow-hidden text-ellipsis whitespace-nowrap">
-            {value
-              ? transformers.find((t) => t.value === value)?.value
-              : placeholder}
-          </div>
+          {value}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -52,21 +48,21 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CommandGroup>
             {transformers.map((t, index) => (
               <CommandItem
-                key={`${t.value}-${index}`}
+                key={`${t.name}-${index}`}
                 onSelect={(currentValue) => {
                   onSelect(currentValue);
                   setOpen(false);
                 }}
-                value={t.value}
+                value={t.name}
                 defaultValue={defaultValue}
               >
                 <CheckIcon
                   className={cn(
                     'mr-2 h-4 w-4',
-                    value == t.value ? 'opacity-100' : 'opacity-0'
+                    value == t.name ? 'opacity-100' : 'opacity-0'
                   )}
                 />
-                {t.value}
+                {t.name}
               </CommandItem>
             ))}
           </CommandGroup>

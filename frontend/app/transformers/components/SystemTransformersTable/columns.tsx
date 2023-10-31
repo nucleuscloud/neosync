@@ -1,11 +1,11 @@
 'use client';
 
-import { handleTransformerMetadata } from '@/components/jobs/SchemaTable/column';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { ColumnDef } from '@tanstack/react-table';
+import { handleTransformerMetadata } from '../../EditTransformerOptions';
 import { DataTableColumnHeader } from './data-table-column-header';
 
 export function getSystemTransformerColumns(): ColumnDef<

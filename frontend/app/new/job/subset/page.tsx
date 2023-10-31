@@ -1,8 +1,8 @@
 'use client';
 
+import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { MergeSystemAndCustomTransformers } from '@/components/jobs/SchemaTable/column';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
