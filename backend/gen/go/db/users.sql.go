@@ -222,8 +222,8 @@ FROM neosync_api.accounts
 WHERE id = $1
 `
 
-func (q *Queries) GetTemporalConfigByAccount(ctx context.Context, id pgtype.UUID) (*jsonmodels.TemporalConfig, error) {
-	row := q.db.QueryRow(ctx, getTemporalConfigByAccount, id)
+func (q *Queries) GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*jsonmodels.TemporalConfig, error) {
+	row := db.QueryRow(ctx, getTemporalConfigByAccount, id)
 	var temporal_config *jsonmodels.TemporalConfig
 	err := row.Scan(&temporal_config)
 	return temporal_config, err
@@ -322,8 +322,8 @@ type UpdateTemporalConfigByAccountParams struct {
 	ID             pgtype.UUID
 }
 
-func (q *Queries) UpdateTemporalConfigByAccount(ctx context.Context, arg UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error) {
-	row := q.db.QueryRow(ctx, updateTemporalConfigByAccount, arg.TemporalConfig, arg.ID)
+func (q *Queries) UpdateTemporalConfigByAccount(ctx context.Context, db DBTX, arg UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, updateTemporalConfigByAccount, arg.TemporalConfig, arg.ID)
 	var i NeosyncApiAccount
 	err := row.Scan(
 		&i.ID,

@@ -48,7 +48,7 @@ func (s *Service) GetJobRuns(
 		if err != nil {
 			return nil, err
 		}
-		tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, job.AccountID)
+		tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, job.AccountID)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (s *Service) GetJobRuns(
 			if err != nil {
 				return nil, err
 			}
-			tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, accountUuid)
+			tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
 			if err != nil {
 				return nil, err
 			}

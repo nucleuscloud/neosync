@@ -147,7 +147,7 @@ func serve() error {
 	}
 	tfwfmgr := workflowmanager.New(&workflowmanager.Config{
 		TemporalUrl: getTemporalUrl(),
-	}, db.Q)
+	}, db.Q, db.Db)
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{}
 	jobService := v1alpha1_jobservice.New(

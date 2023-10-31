@@ -21,8 +21,8 @@ func (d *NucleusDb) CreateJob(
 	destinations []*CreateJobConnectionDestination,
 ) (*db_queries.NeosyncApiJob, error) {
 	var createdJob *db_queries.NeosyncApiJob
-	if err := d.WithTx(ctx, nil, func(q *db_queries.Queries) error {
-		job, err := q.CreateJob(ctx, *cjParams)
+	if err := d.WithTx(ctx, nil, func(tx BaseDBTX) error {
+		job, err := d.Q.CreateJob(ctx, tx, *cjParams)
 		if err != nil {
 			return err
 		}
@@ -35,7 +35,7 @@ func (d *NucleusDb) CreateJob(
 					Options:      destinations[i].Options,
 				})
 			}
-			if _, err := q.CreateJobConnectionDestinations(ctx, destParams); err != nil {
+			if _, err := d.Q.CreateJobConnectionDestinations(ctx, tx, destParams); err != nil {
 				return err
 			}
 		}

@@ -9,6 +9,7 @@ import (
 	temporalclient "go.temporal.io/sdk/client"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 )
@@ -16,11 +17,12 @@ import (
 type TemporalWorkflowManager struct {
 	config *Config
 	db     DB
+	dbtx   db_queries.DBTX
 	wfmap  *sync.Map
 }
 
 type DB interface {
-	GetTemporalConfigByAccount(ctx context.Context, accountId pgtype.UUID) (*jsonmodels.TemporalConfig, error)
+	GetTemporalConfigByAccount(ctx context.Context, db db_queries.DBTX, accountId pgtype.UUID) (*jsonmodels.TemporalConfig, error)
 }
 
 type Config struct {
@@ -30,11 +32,13 @@ type Config struct {
 func New(
 	config *Config,
 	db DB,
+	dbtx db_queries.DBTX,
 ) *TemporalWorkflowManager {
 	return &TemporalWorkflowManager{
 		config: config,
 		db:     db,
 		wfmap:  &sync.Map{},
+		dbtx:   dbtx,
 	}
 }
 
@@ -88,7 +92,7 @@ func (t *TemporalWorkflowManager) getNewClientByAccount(
 	if err != nil {
 		return nil, err
 	}
-	tc, err := t.db.GetTemporalConfigByAccount(ctx, accountUuid)
+	tc, err := t.db.GetTemporalConfigByAccount(ctx, t.dbtx, accountUuid)
 	if err != nil {
 		return nil, err
 	}

@@ -136,7 +136,7 @@ func (s *Service) doesAccountHaveTemporalNamespace(
 	ctx context.Context,
 	accountUuid pgtype.UUID,
 ) (bool, error) {
-	tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, accountUuid)
+	tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
 		return false, err
 	}
@@ -156,15 +156,15 @@ func (s *Service) ensureTemporalNamespaceForAccount(
 	ctx context.Context,
 	accountUuid pgtype.UUID,
 ) error {
-	err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
-		tc, err := q.GetTemporalConfigByAccount(ctx, accountUuid)
+	err := s.db.WithTx(ctx, nil, func(tx nucleusdb.BaseDBTX) error {
+		tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, tx, accountUuid)
 		if err != nil {
 			return err
 		}
 		if tc.Namespace == "" {
 			tc.Namespace = s.namegenerator.Generate()
 			tc.SyncJobQueueName = "sync-job" // hm
-			_, err = q.UpdateTemporalConfigByAccount(ctx, db_queries.UpdateTemporalConfigByAccountParams{
+			_, err = s.db.Q.UpdateTemporalConfigByAccount(ctx, tx, db_queries.UpdateTemporalConfigByAccountParams{
 				TemporalConfig: tc,
 				ID:             accountUuid,
 			})
@@ -177,7 +177,7 @@ func (s *Service) ensureTemporalNamespaceForAccount(
 	if err != nil {
 		return err
 	}
-	tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, accountUuid)
+	tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
 		return err
 	}
@@ -470,7 +470,7 @@ func (s *Service) CreateJob(
 
 	err = s.ensureTemporalNamespaceForAccount(ctx, *accountUuid)
 	if err != nil {
-		err2 := s.db.Q.DeleteJob(ctx, cj.ID)
+		err2 := s.db.Q.DeleteJob(ctx, s.db.Db, cj.ID)
 		if err2 != nil {
 			logger.Error(fmt.Sprintf("unable to delete job when temporal namespace for account failed: %s", err2.Error()))
 		}
@@ -521,7 +521,7 @@ func (s *Service) CreateJob(
 	}
 
 	// todo: verify connection ids are all in this account
-	destinationConnections, err := s.db.Q.GetJobConnectionDestinations(ctx, cj.ID)
+	destinationConnections, err := s.db.Q.GetJobConnectionDestinations(ctx, s.db.Db, cj.ID)
 	if err != nil {
 		logger.Error("unable to retrieve job destination connections")
 	}
@@ -558,7 +558,7 @@ func (s *Service) DeleteJob(
 	if err != nil {
 		return nil, err
 	}
-	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, job.AccountID)
+	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, job.AccountID)
 	if err != nil {
 		return nil, err
 	}

@@ -105,8 +105,8 @@ const deleteJob = `-- name: DeleteJob :exec
 DELETE FROM neosync_api.jobs WHERE id = $1
 `
 
-func (q *Queries) DeleteJob(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, deleteJob, id)
+func (q *Queries) DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	_, err := db.Exec(ctx, deleteJob, id)
 	return err
 }
 
