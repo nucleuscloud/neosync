@@ -13,17 +13,12 @@ type Interceptor struct {
 
 type AuthFunc func(ctx context.Context, header http.Header) (context.Context, error)
 
-type ServiceAuthFuncOverride interface {
-	AuthFuncOverride(ctx context.Context, fullMethodName string) (context.Context, error)
-}
-
 func NewInterceptor(authFunc AuthFunc) connect.Interceptor {
 	return &Interceptor{authFunc: authFunc}
 }
 
 func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return func(ctx context.Context, request connect.AnyRequest) (connect.AnyResponse, error) {
-		// if overrideSrv, ok := request.Spec().
 		newCtx, err := i.authFunc(ctx, request.Header())
 		if err != nil {
 			return nil, err

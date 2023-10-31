@@ -2,6 +2,7 @@ package nucleusdb
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -23,10 +24,17 @@ func IsConflict(err error) bool {
 }
 
 func IsNoRows(err error) bool {
-	return err != nil && err == sql.ErrNoRows || err == pgx.ErrNoRows
+	return errors.Is(err, pgx.ErrNoRows) || errors.Is(err, sql.ErrNoRows)
+}
+
+func isTxDone(err error) bool {
+	return errors.Is(err, pgx.ErrTxClosed) || errors.Is(err, sql.ErrTxDone)
 }
 
 func GetDbUrl(cfg *ConnectConfig) string {
+	if cfg == nil {
+		return ""
+	}
 	dburl := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s",
 		cfg.User,

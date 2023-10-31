@@ -42,6 +42,7 @@ export function DataTableRowActions<TData>({
       toast({
         title: 'Unable to remove job',
         description: getErrorMessage(err),
+        variant: 'destructive',
       });
     }
   }
