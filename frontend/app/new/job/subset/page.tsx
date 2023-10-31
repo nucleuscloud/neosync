@@ -298,11 +298,6 @@ async function createNewJob(
     cronSchedule: formData.define.cronSchedule,
     initiateJobRun: formData.define.initiateJobRun,
     mappings: formData.schema.mappings.map((m) => {
-      console.log('before t mapping', m.transformer);
-      console.log(
-        'after t mapping',
-        ToTransformerConfigOptions(m.transformer, merged)
-      );
       return new JobMapping({
         schema: m.schema,
         table: m.table,
@@ -357,8 +352,6 @@ async function createNewJob(
         throw new Error('unsupported connection type');
     }
   }
-
-  console.log('body', body);
 
   const res = await fetch(`/api/jobs`, {
     method: 'POST',

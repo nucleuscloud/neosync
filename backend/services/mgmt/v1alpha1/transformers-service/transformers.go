@@ -138,7 +138,7 @@ func (s *Service) GetSystemTransformers(
 					Config: &mgmtv1alpha1.TransformerConfig_RandomFloatConfig{
 						RandomFloatConfig: &mgmtv1alpha1.RandomFloat{
 							PreserveLength:      false,
-							DigitsBeforeDecimal: 3,
+							DigitsBeforeDecimal: 2,
 							DigitsAfterDecimal:  3,
 						},
 					},

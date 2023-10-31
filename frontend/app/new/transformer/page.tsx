@@ -45,6 +45,7 @@ import CustomGenderTransformerForm from './CustomTransformerForms/CustomGenderTr
 import CustomIntPhoneNumberTransformerForm from './CustomTransformerForms/CustomIntPhoneNumberTransformerForm';
 import CustomLastNameTransformerForm from './CustomTransformerForms/CustomLastnameTransformerForm';
 import CustomPhoneNumberTransformerForm from './CustomTransformerForms/CustomPhoneNumberTransformerForm';
+import CustomRandomFloatTransformerForm from './CustomTransformerForms/CustomRandomFloatTransformerForm';
 import CustomRandomIntTransformerForm from './CustomTransformerForms/CustomRandomIntTransformerForm';
 import CustomRandomStringTransformerForm from './CustomTransformerForms/CustomRandomStringTransformerForm';
 import CustomUuidTransformerForm from './CustomTransformerForms/CustomUuidTransformerForm';
@@ -99,8 +100,6 @@ export default function NewTransformer(): ReactElement {
 
   const { data } = useGetSystemTransformers();
   const transformers = data?.transformers ?? [];
-
-  console.log('tranfomres', transformers);
 
   return (
     <OverviewContainer
@@ -230,10 +229,11 @@ export default function NewTransformer(): ReactElement {
   );
 }
 
+// handles rendering custom tranformer configs
 export function handleCustomTransformerForm(
-  transformer: string | undefined
+  value: string | undefined
 ): ReactElement {
-  switch (transformer) {
+  switch (value) {
     case 'email':
       return <CustomEmailTransformerForm />;
     case 'uuid':
@@ -252,12 +252,8 @@ export function handleCustomTransformerForm(
       return <CustomRandomStringTransformerForm />;
     case 'random_int':
       return <CustomRandomIntTransformerForm />;
-    // case 'random_float':
-    //   return (
-    //     <CustomRandomFloatTransformerForm
-    //       transformer={transformer ?? new Transformer()}
-    //     />
-    //   );
+    case 'random_float':
+      return <CustomRandomFloatTransformerForm />;
     case 'gender':
       return <CustomGenderTransformerForm />;
     default:
@@ -270,7 +266,6 @@ async function createNewTransformer(
   accountId: string,
   formData: CreateCustomTransformerSchema
 ): Promise<CreateCustomTransformerResponse> {
-  console.log('formaD', formData);
   const body = new CreateCustomTransformerRequest({
     accountId: accountId,
     name: formData.name,
@@ -280,7 +275,6 @@ async function createNewTransformer(
     transformerConfig: formData.config as TransformerConfig,
   });
 
-  console.log('body', body);
   const res = await fetch(`/api/transformers/custom`, {
     method: 'POST',
     headers: {

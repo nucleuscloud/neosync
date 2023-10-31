@@ -1,7 +1,9 @@
 import {
+  City,
   CustomTransformer,
   EmailConfig,
   FirstName,
+  FullAddress,
   FullName,
   Gender,
   IntPhoneNumber,
@@ -10,11 +12,17 @@ import {
   Passthrough,
   PhoneNumber,
   RandomBool,
+  RandomFloat,
   RandomInt,
   RandomString,
+  State,
+  StreetAddress,
   Transformer,
   TransformerConfig,
+  UTCTimestamp,
+  UnixTimestamp,
   Uuid,
+  Zipcode,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 
 interface EmailTransformer {
@@ -103,16 +111,16 @@ interface RandomIntTransformerConfigs {
   intLength: number;
 }
 
-// interface RandomFloatTransformer {
-//   case?: string | undefined;
-//   value: RandomFloatTransformerConfigs;
-// }
+interface RandomFloatTransformer {
+  case?: string | undefined;
+  value: RandomFloatTransformerConfigs;
+}
 
-// interface RandomFloatTransformerConfigs {
-//   preserveLength: boolean;
-//   digitsBeforeDecimal: number;
-//   digitsAftereDecimal: number;
-// }
+interface RandomFloatTransformerConfigs {
+  preserveLength: boolean;
+  digitsBeforeDecimal: number;
+  digitsAftereDecimal: number;
+}
 
 interface GenderTransformer {
   case?: string | undefined;
@@ -131,9 +139,6 @@ export function ToTransformerConfigOptions(
   merged: CustomTransformer[]
 ): Transformer {
   const val = merged.find((item) => item.name == t.value);
-
-  console.log('t', t);
-  console.log('val value', val);
 
   if (!t) {
     return new Transformer();
@@ -304,22 +309,22 @@ export function ToTransformerConfigOptions(
         }),
       });
     }
-    // case 'random_float': {
-    //   const rf = t as RandomFloatTransformer;
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'randomFloatConfig',
-    //         value: new RandomFloat({
-    //           preserveLength: rf.config.preserveLength,
-    //           digitsBeforeDecimal: BigInt(rf.config.digitsBeforeDecimal ?? 2),
-    //           digitsAfterDecimal: BigInt(rf.config.digitsAftereDecimal ?? 3),
-    //         }),
-    //       },
-    //     }),
-    //   });
-    // }
+    case 'random_float': {
+      const rf = t.config.config as RandomFloatTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'randomFloatConfig',
+            value: new RandomFloat({
+              preserveLength: rf.value.preserveLength,
+              digitsBeforeDecimal: BigInt(rf.value.digitsBeforeDecimal ?? 2),
+              digitsAfterDecimal: BigInt(rf.value.digitsAftereDecimal ?? 3),
+            }),
+          },
+        }),
+      });
+    }
     case 'gender': {
       const g = t.config.config as GenderTransformer;
       return new Transformer({
@@ -334,86 +339,86 @@ export function ToTransformerConfigOptions(
         }),
       });
     }
-    // case 'utc_timestamp': {
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'utcTimestampConfig',
-    //         value: new UTCTimestamp({}),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'unix_timestamp': {
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'unixTimestampConfig',
-    //         value: new UnixTimestamp({}),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'street_address': {
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'streetAddressConfig',
-    //         value: new StreetAddress({}),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'city': {
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'cityConfig',
-    //         value: new City({}),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'zipcode': {
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'zipcodeConfig',
-    //         value: new Zipcode({}),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'state': {
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'stateConfig',
-    //         value: new State({}),
-    //       },
-    //     }),
-    //   });
-    // }
-    // case 'full_address': {
-    //   return new Transformer({
-    //     value: t.value,
-    //     config: new TransformerConfig({
-    //       config: {
-    //         case: 'fullAddressConfig',
-    //         value: new FullAddress({}),
-    //       },
-    //     }),
-    //   });
-    // }
+    case 'utc_timestamp': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'utcTimestampConfig',
+            value: new UTCTimestamp({}),
+          },
+        }),
+      });
+    }
+    case 'unix_timestamp': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'unixTimestampConfig',
+            value: new UnixTimestamp({}),
+          },
+        }),
+      });
+    }
+    case 'street_address': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'streetAddressConfig',
+            value: new StreetAddress({}),
+          },
+        }),
+      });
+    }
+    case 'city': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'cityConfig',
+            value: new City({}),
+          },
+        }),
+      });
+    }
+    case 'zipcode': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'zipcodeConfig',
+            value: new Zipcode({}),
+          },
+        }),
+      });
+    }
+    case 'state': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'stateConfig',
+            value: new State({}),
+          },
+        }),
+      });
+    }
+    case 'full_address': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'fullAddressConfig',
+            value: new FullAddress({}),
+          },
+        }),
+      });
+    }
     default: {
       return new Transformer({
-        value: t.value,
+        value: 'passthrough',
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',

@@ -975,6 +975,7 @@ root.{destination_col} = transformerfunction(args)
 */
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
+
 	switch col.Transformer.Value {
 	case "latitude":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil

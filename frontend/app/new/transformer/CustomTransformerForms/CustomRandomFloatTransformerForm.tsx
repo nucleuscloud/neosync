@@ -16,33 +16,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import {
-  RandomFloat,
-  Transformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-interface Props {
-  transformer: Transformer;
-}
-
-export default function CustomRandomFloatTransformerForm(
-  props: Props
-): ReactElement {
-  const { transformer } = props;
-
+export default function CustomRandomFloatTransformerForm(): ReactElement {
   const fc = useFormContext();
-
-  const t = transformer.config?.config.value as RandomFloat;
 
   const digitLength = Array.from({ length: 9 }, (_, index) => index + 1);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`transformerConfig.preserveLength`}
-        defaultValue={t.preserveLength}
+        name={`config.config.value.preserveLength`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -53,14 +38,20 @@ export default function CustomRandomFloatTransformerForm(
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={
+                  fc.watch('config.config.value.digitsAfterDecimal') ||
+                  fc.watch('config.config.value.digitsBeforeDecimal')
+                }
+              />
             </FormControl>
           </FormItem>
         )}
       />
       <FormField
-        name={`transformerConfig.bd`}
-        defaultValue={t.digitsBeforeDecimal}
+        name={`config.config.value.digitsBeforeDecimal`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -74,12 +65,12 @@ export default function CustomRandomFloatTransformerForm(
             </div>
             <FormControl>
               <Select
-                disabled={fc.getValues('transformerConfig.preserveLength')}
+                disabled={fc.watch('config.config.value.preserveLength')}
                 onValueChange={field.onChange}
-                defaultValue={field.value}
+                value={field.value}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder={String(t.digitsBeforeDecimal)} />
+                  <SelectValue placeholder="2" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -96,8 +87,7 @@ export default function CustomRandomFloatTransformerForm(
         )}
       />
       <FormField
-        name={`transformerConfig.ad`}
-        defaultValue={t.digitsAfterDecimal}
+        name={`config.config.value.digitsAfterDecimal`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -112,12 +102,12 @@ export default function CustomRandomFloatTransformerForm(
             </div>
             <FormControl>
               <Select
-                disabled={fc.getValues('transformerConfig.preserveLength')}
+                disabled={fc.watch('config.config.value.preserveLength')}
                 onValueChange={field.onChange}
-                defaultValue={field.value}
+                value={field.value}
               >
                 <SelectTrigger className="w-[190px]">
-                  <SelectValue placeholder={String(t.digitsAfterDecimal)} />
+                  <SelectValue placeholder="3" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>

@@ -13,37 +13,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-import { getErrorMessage } from '@/util/util';
 import { useRouter } from 'next/navigation';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
-  onDeleted(): void;
 }
 
 export function DataTableRowActions<TData>({
   row,
-  onDeleted,
 }: DataTableRowActionsProps<TData>) {
   const transformer = row.original as Transformer;
   const router = useRouter();
   const { toast } = useToast();
-
-  async function onDelete(): Promise<void> {
-    try {
-      await removeTransformer(transformer.value); //TODO: this should be transformer.id,
-      toast({
-        title: 'Transformer removed successfully!',
-      });
-      onDeleted();
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: 'Unable to remove tranformer',
-        description: getErrorMessage(err),
-      });
-    }
-  }
 
   return (
     <DropdownMenu>
@@ -64,13 +45,7 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => onDelete()}>
-          Clone
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => onDelete()}>
-          Delete
-        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer">Clone</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

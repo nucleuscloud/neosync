@@ -317,7 +317,7 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 				},
 			},
 		}
-	case t.RandomFloat != nil:
+	case tr.RandomFloat != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_RandomFloatConfig{
 				RandomFloatConfig: &mgmtv1alpha1.RandomFloat{

@@ -96,8 +96,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
-  console.log('values', form.getValues());
-
   return (
     <OverviewContainer
       Header={

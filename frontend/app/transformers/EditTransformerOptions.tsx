@@ -19,6 +19,7 @@ import GenderTransformerForm from './Sheetforms/GenderTransformerForm';
 import IntPhoneNumberTransformerForm from './Sheetforms/IntPhoneNumberTransformerForm';
 import LastNameTransformerForm from './Sheetforms/LastnameTransformerForm';
 import PhoneNumberTransformerForm from './Sheetforms/PhoneNumberTransformerForm';
+import RandomFloatTransformerForm from './Sheetforms/RandomFloatTransformerForm';
 import RandomIntTransformerForm from './Sheetforms/RandomIntTransformerForm';
 import RandomStringTransformerForm from './Sheetforms/RandomStringTransformerForm';
 import UuidTransformerForm from './Sheetforms/UuidTransformerForm';
@@ -184,13 +185,14 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    // case 'random_float':
-    //   return (
-    //     <RandomFloatTransformerForm
-    //       index={index}
-    //       setIsSheetOpen={setIsSheetOpen}
-    //     />
-    //   );
+    case 'random_float':
+      return (
+        <RandomFloatTransformerForm
+          index={index}
+          transformer={transformer}
+          setIsSheetOpen={setIsSheetOpen}
+        />
+      );
     case 'gender':
       return (
         <GenderTransformerForm

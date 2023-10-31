@@ -25,8 +25,6 @@ export default function CustomRandomStringTransformerForm(): ReactElement {
 
   const digitLength = Array.from({ length: 12 }, (_, index) => index + 1);
 
-  console.log('fc.getValues', fc.getValues());
-
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField

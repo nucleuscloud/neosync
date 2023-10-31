@@ -45,6 +45,12 @@ const genderConfig = Yup.object().shape({
   abbreviate: Yup.boolean().notRequired(),
 });
 
+const randomFloatConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+  digitsAfterDecimal: Yup.number().notRequired(),
+  digitsBeforeDecimal: Yup.number().notRequired(),
+});
+
 export const transformerConfig = Yup.object().shape({
   config: Yup.object().shape({
     value: Yup.lazy((value) => {
@@ -77,6 +83,22 @@ export const transformerConfig = Yup.object().shape({
           return randomInt;
         case 'gender':
           return genderConfig;
+        case 'randomFloatConfig':
+          return randomFloatConfig;
+        case 'utcTimestampConfig':
+          return Yup.object().shape({});
+        case 'unix_timestamp':
+          return Yup.object().shape({});
+        case 'cityConfig':
+          return Yup.object().shape({});
+        case 'zipcodeConfig':
+          return Yup.object().shape({});
+        case 'stateConfig':
+          return Yup.object().shape({});
+        case 'fullAddressConfig':
+          return Yup.object().shape({});
+        case 'streetAddressConfig':
+          return Yup.object().shape({});
         default:
           return Yup.object().shape({});
       }
