@@ -16,6 +16,7 @@ func ToJobDto(
 	for _, mapping := range inputJob.Mappings {
 		mappings = append(mappings, mapping.ToDto())
 	}
+
 	destinations := []*mgmtv1alpha1.JobDestination{}
 	for i := range inputDestConnections {
 		dest := inputDestConnections[i]

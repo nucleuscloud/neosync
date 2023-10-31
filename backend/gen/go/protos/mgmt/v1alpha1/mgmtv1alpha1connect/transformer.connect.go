@@ -39,6 +39,9 @@ const (
 	// TransformersServiceGetCustomTransformersProcedure is the fully-qualified name of the
 	// TransformersService's GetCustomTransformers RPC.
 	TransformersServiceGetCustomTransformersProcedure = "/mgmt.v1alpha1.TransformersService/GetCustomTransformers"
+	// TransformersServiceGetCustomTransformerByIdProcedure is the fully-qualified name of the
+	// TransformersService's GetCustomTransformerById RPC.
+	TransformersServiceGetCustomTransformerByIdProcedure = "/mgmt.v1alpha1.TransformersService/GetCustomTransformerById"
 	// TransformersServiceCreateCustomTransformerProcedure is the fully-qualified name of the
 	// TransformersService's CreateCustomTransformer RPC.
 	TransformersServiceCreateCustomTransformerProcedure = "/mgmt.v1alpha1.TransformersService/CreateCustomTransformer"
@@ -57,6 +60,7 @@ const (
 type TransformersServiceClient interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
 	GetCustomTransformers(context.Context, *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error)
+	GetCustomTransformerById(context.Context, *connect.Request[v1alpha1.GetCustomTransformerByIdRequest]) (*connect.Response[v1alpha1.GetCustomTransformerByIdResponse], error)
 	CreateCustomTransformer(context.Context, *connect.Request[v1alpha1.CreateCustomTransformerRequest]) (*connect.Response[v1alpha1.CreateCustomTransformerResponse], error)
 	DeleteCustomTransformer(context.Context, *connect.Request[v1alpha1.DeleteCustomTransformerRequest]) (*connect.Response[v1alpha1.DeleteCustomTransformerResponse], error)
 	UpdateCustomTransformer(context.Context, *connect.Request[v1alpha1.UpdateCustomTransformerRequest]) (*connect.Response[v1alpha1.UpdateCustomTransformerResponse], error)
@@ -81,6 +85,11 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 		getCustomTransformers: connect.NewClient[v1alpha1.GetCustomTransformersRequest, v1alpha1.GetCustomTransformersResponse](
 			httpClient,
 			baseURL+TransformersServiceGetCustomTransformersProcedure,
+			opts...,
+		),
+		getCustomTransformerById: connect.NewClient[v1alpha1.GetCustomTransformerByIdRequest, v1alpha1.GetCustomTransformerByIdResponse](
+			httpClient,
+			baseURL+TransformersServiceGetCustomTransformerByIdProcedure,
 			opts...,
 		),
 		createCustomTransformer: connect.NewClient[v1alpha1.CreateCustomTransformerRequest, v1alpha1.CreateCustomTransformerResponse](
@@ -110,6 +119,7 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 type transformersServiceClient struct {
 	getSystemTransformers      *connect.Client[v1alpha1.GetSystemTransformersRequest, v1alpha1.GetSystemTransformersResponse]
 	getCustomTransformers      *connect.Client[v1alpha1.GetCustomTransformersRequest, v1alpha1.GetCustomTransformersResponse]
+	getCustomTransformerById   *connect.Client[v1alpha1.GetCustomTransformerByIdRequest, v1alpha1.GetCustomTransformerByIdResponse]
 	createCustomTransformer    *connect.Client[v1alpha1.CreateCustomTransformerRequest, v1alpha1.CreateCustomTransformerResponse]
 	deleteCustomTransformer    *connect.Client[v1alpha1.DeleteCustomTransformerRequest, v1alpha1.DeleteCustomTransformerResponse]
 	updateCustomTransformer    *connect.Client[v1alpha1.UpdateCustomTransformerRequest, v1alpha1.UpdateCustomTransformerResponse]
@@ -124,6 +134,11 @@ func (c *transformersServiceClient) GetSystemTransformers(ctx context.Context, r
 // GetCustomTransformers calls mgmt.v1alpha1.TransformersService.GetCustomTransformers.
 func (c *transformersServiceClient) GetCustomTransformers(ctx context.Context, req *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error) {
 	return c.getCustomTransformers.CallUnary(ctx, req)
+}
+
+// GetCustomTransformerById calls mgmt.v1alpha1.TransformersService.GetCustomTransformerById.
+func (c *transformersServiceClient) GetCustomTransformerById(ctx context.Context, req *connect.Request[v1alpha1.GetCustomTransformerByIdRequest]) (*connect.Response[v1alpha1.GetCustomTransformerByIdResponse], error) {
+	return c.getCustomTransformerById.CallUnary(ctx, req)
 }
 
 // CreateCustomTransformer calls mgmt.v1alpha1.TransformersService.CreateCustomTransformer.
@@ -150,6 +165,7 @@ func (c *transformersServiceClient) IsTransformerNameAvailable(ctx context.Conte
 type TransformersServiceHandler interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
 	GetCustomTransformers(context.Context, *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error)
+	GetCustomTransformerById(context.Context, *connect.Request[v1alpha1.GetCustomTransformerByIdRequest]) (*connect.Response[v1alpha1.GetCustomTransformerByIdResponse], error)
 	CreateCustomTransformer(context.Context, *connect.Request[v1alpha1.CreateCustomTransformerRequest]) (*connect.Response[v1alpha1.CreateCustomTransformerResponse], error)
 	DeleteCustomTransformer(context.Context, *connect.Request[v1alpha1.DeleteCustomTransformerRequest]) (*connect.Response[v1alpha1.DeleteCustomTransformerResponse], error)
 	UpdateCustomTransformer(context.Context, *connect.Request[v1alpha1.UpdateCustomTransformerRequest]) (*connect.Response[v1alpha1.UpdateCustomTransformerResponse], error)
@@ -170,6 +186,11 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 	transformersServiceGetCustomTransformersHandler := connect.NewUnaryHandler(
 		TransformersServiceGetCustomTransformersProcedure,
 		svc.GetCustomTransformers,
+		opts...,
+	)
+	transformersServiceGetCustomTransformerByIdHandler := connect.NewUnaryHandler(
+		TransformersServiceGetCustomTransformerByIdProcedure,
+		svc.GetCustomTransformerById,
 		opts...,
 	)
 	transformersServiceCreateCustomTransformerHandler := connect.NewUnaryHandler(
@@ -198,6 +219,8 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 			transformersServiceGetSystemTransformersHandler.ServeHTTP(w, r)
 		case TransformersServiceGetCustomTransformersProcedure:
 			transformersServiceGetCustomTransformersHandler.ServeHTTP(w, r)
+		case TransformersServiceGetCustomTransformerByIdProcedure:
+			transformersServiceGetCustomTransformerByIdHandler.ServeHTTP(w, r)
 		case TransformersServiceCreateCustomTransformerProcedure:
 			transformersServiceCreateCustomTransformerHandler.ServeHTTP(w, r)
 		case TransformersServiceDeleteCustomTransformerProcedure:
@@ -221,6 +244,10 @@ func (UnimplementedTransformersServiceHandler) GetSystemTransformers(context.Con
 
 func (UnimplementedTransformersServiceHandler) GetCustomTransformers(context.Context, *connect.Request[v1alpha1.GetCustomTransformersRequest]) (*connect.Response[v1alpha1.GetCustomTransformersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetCustomTransformers is not implemented"))
+}
+
+func (UnimplementedTransformersServiceHandler) GetCustomTransformerById(context.Context, *connect.Request[v1alpha1.GetCustomTransformerByIdRequest]) (*connect.Response[v1alpha1.GetCustomTransformerByIdResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetCustomTransformerById is not implemented"))
 }
 
 func (UnimplementedTransformersServiceHandler) CreateCustomTransformer(context.Context, *connect.Request[v1alpha1.CreateCustomTransformerRequest]) (*connect.Response[v1alpha1.CreateCustomTransformerResponse], error) {

@@ -55,7 +55,9 @@ export function MainNav({
           href="/transformers"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            pathname === '/settings' ? 'text-foreground' : 'text-foreground/60'
+            pathname === '/transformers'
+              ? 'text-foreground'
+              : 'text-foreground/60'
           )}
         >
           Transformers

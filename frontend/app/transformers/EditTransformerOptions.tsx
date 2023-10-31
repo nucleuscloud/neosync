@@ -9,30 +9,28 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  CustomTransformer,
+  Transformer,
+  TransformerConfig,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useRef, useState } from 'react';
-import EmailTransformerForm from './forms/EmailTransformerForm';
-import FirstNameTransformerForm from './forms/FirstnameTransformerForm';
-import FullNameTransformerForm from './forms/FullnameTransformerForm';
-import GenderTransformerForm from './forms/GenderTransformerForm';
-import IntPhoneNumberTransformerForm from './forms/IntPhoneNumberTransformerForm';
-import LastNameTransformerForm from './forms/LastnameTransformerForm';
-import PhoneNumberTransformerForm from './forms/PhoneNumberTransformerForm';
-import RandomFloatTransformerForm from './forms/RandomFloatTransformerForm';
-import RandomIntTransformerForm from './forms/RandomIntTransformerForm';
-import RandomStringTransformerForm from './forms/RandomStringTransformerForm';
-import UuidTransformerForm from './forms/UuidTransformerForm';
+import EmailTransformerForm from './Sheetforms/EmailTransformerForm';
+import FirstNameTransformerForm from './Sheetforms/FirstnameTransformerForm';
+import FullNameTransformerForm from './Sheetforms/FullnameTransformerForm';
+import GenderTransformerForm from './Sheetforms/GenderTransformerForm';
+import IntPhoneNumberTransformerForm from './Sheetforms/IntPhoneNumberTransformerForm';
+import LastNameTransformerForm from './Sheetforms/LastnameTransformerForm';
+import PhoneNumberTransformerForm from './Sheetforms/PhoneNumberTransformerForm';
+import RandomFloatTransformerForm from './Sheetforms/RandomFloatTransformerForm';
+import RandomIntTransformerForm from './Sheetforms/RandomIntTransformerForm';
+import RandomStringTransformerForm from './Sheetforms/RandomStringTransformerForm';
+import UuidTransformerForm from './Sheetforms/UuidTransformerForm';
 
 interface Props {
-  transformer: Transformer | undefined;
+  transformer: CustomTransformer | undefined;
   index: number;
-}
-
-interface TransformerMetadata {
-  name: string;
-  description: string;
-  type: string;
 }
 
 export default function EditTransformerOptions(props: Props): ReactElement {
@@ -75,12 +73,15 @@ export default function EditTransformerOptions(props: Props): ReactElement {
     };
   }, []);
 
+  console.log('transformer', transformer);
+
   return (
     <Sheet open={isSheetOpen} onOpenChange={() => setIsSheetOpen(true)}>
       <SheetTrigger asChild>
         <Button
           variant="outline"
           size="sm"
+          disabled={!transformer}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >
@@ -92,16 +93,10 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           <div className="flex flex-row justify-between w-full">
             <div className="flex flex-col space-y-2">
               <div className="flex flex-row gap-2">
-                <SheetTitle>
-                  {handleTransformerMetadata(transformer?.value).name}
-                </SheetTitle>
-                <Badge variant="outline">
-                  {handleTransformerMetadata(transformer?.value).type}
-                </Badge>
+                <SheetTitle>{transformer?.name}</SheetTitle>
+                <Badge variant="outline">{transformer?.type}</Badge>
               </div>
-              <SheetDescription>
-                {handleTransformerMetadata(transformer?.value).description}
-              </SheetDescription>
+              <SheetDescription>{transformer?.description}</SheetDescription>
             </div>
             <Button variant="ghost" onClick={() => setIsSheetOpen(false)}>
               <Cross2Icon className="h-4 w-4" />
@@ -111,7 +106,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         </SheetHeader>
         <div className="pt-8">
           {transformer &&
-            handleTransformerForm(transformer.value, index, setIsSheetOpen)}
+            handleTransformerForm(transformer, index, setIsSheetOpen)}
         </div>
       </SheetContent>
     </Sheet>
@@ -119,24 +114,33 @@ export default function EditTransformerOptions(props: Props): ReactElement {
 }
 
 function handleTransformerForm(
-  value: string,
+  transformer: CustomTransformer,
   index?: number,
   setIsSheetOpen?: (val: boolean) => void
 ): ReactElement {
-  switch (value) {
+  switch (transformer.source) {
     case 'email':
       return (
-        <EmailTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <EmailTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
       );
     case 'uuid':
       return (
-        <UuidTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <UuidTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
       );
     case 'first_name':
       return (
         <FirstNameTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'last_name':
@@ -144,6 +148,7 @@ function handleTransformerForm(
         <LastNameTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'full_name':
@@ -151,6 +156,7 @@ function handleTransformerForm(
         <FullNameTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'phone_number':
@@ -158,6 +164,7 @@ function handleTransformerForm(
         <PhoneNumberTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'int_phone_number':
@@ -165,6 +172,7 @@ function handleTransformerForm(
         <IntPhoneNumberTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'random_string':
@@ -172,6 +180,7 @@ function handleTransformerForm(
         <RandomStringTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'random_int':
@@ -179,23 +188,35 @@ function handleTransformerForm(
         <RandomIntTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
     case 'random_float':
       return (
         <RandomFloatTransformerForm
           index={index}
+          transformer={transformer}
           setIsSheetOpen={setIsSheetOpen}
         />
       );
     case 'gender':
       return (
-        <GenderTransformerForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <GenderTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
       );
     default:
       <div>No transformer component found</div>;
   }
   return <div></div>;
+}
+
+interface TransformerMetadata {
+  name: string;
+  description: string;
+  type: string;
 }
 
 export function handleTransformerMetadata(
@@ -366,9 +387,9 @@ export function handleTransformerMetadata(
 
   const def = {
     default: {
-      name: 'Undefined',
-      description: 'Undefined Transformer',
-      type: 'undefined',
+      name: 'Passthrough',
+      description: 'Passthrough',
+      type: 'passthrough',
     },
   };
 
@@ -378,4 +399,34 @@ export function handleTransformerMetadata(
   const res = tEntries.find((item) => item[value]);
 
   return res ? res[value] : def.default;
+}
+
+// merge system into custom and add in additional metadata fields for system transformers
+// to fit into the custom transformers interface
+export function MergeSystemAndCustomTransformers(
+  system: Transformer[],
+  custom: CustomTransformer[]
+): CustomTransformer[] {
+  let merged: CustomTransformer[] = [...custom];
+
+  system.map((st) => {
+    const cf = {
+      config: {
+        case: st.config?.config.case,
+        value: st.config?.config.value,
+      },
+    };
+
+    const newCt = new CustomTransformer({
+      name: handleTransformerMetadata(st.value).name,
+      description: handleTransformerMetadata(st.value).description,
+      type: handleTransformerMetadata(st.value).type,
+      source: st.value,
+      config: cf as TransformerConfig,
+    });
+
+    merged.push(newCt);
+  });
+
+  return merged;
 }

@@ -932,6 +932,60 @@ func (_c *MockQuerier_GetConnectionsByAccount_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// GetCustomTransformerById provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) GetCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
+	ret := _m.Called(ctx, db, id)
+
+	var r0 NeosyncApiTransformer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiTransformer, error)); ok {
+		return rf(ctx, db, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) NeosyncApiTransformer); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiTransformer)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetCustomTransformerById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCustomTransformerById'
+type MockQuerier_GetCustomTransformerById_Call struct {
+	*mock.Call
+}
+
+// GetCustomTransformerById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) GetCustomTransformerById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetCustomTransformerById_Call {
+	return &MockQuerier_GetCustomTransformerById_Call{Call: _e.mock.On("GetCustomTransformerById", ctx, db, id)}
+}
+
+func (_c *MockQuerier_GetCustomTransformerById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetCustomTransformerById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetCustomTransformerById_Call) Return(_a0 NeosyncApiTransformer, _a1 error) *MockQuerier_GetCustomTransformerById_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetCustomTransformerById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiTransformer, error)) *MockQuerier_GetCustomTransformerById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCustomTransformersByAccount provides a mock function with given fields: ctx, db, accountid
 func (_m *MockQuerier) GetCustomTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
 	ret := _m.Called(ctx, db, accountid)
@@ -984,60 +1038,6 @@ func (_c *MockQuerier_GetCustomTransformersByAccount_Call) Return(_a0 []NeosyncA
 }
 
 func (_c *MockQuerier_GetCustomTransformersByAccount_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiTransformer, error)) *MockQuerier_GetCustomTransformersByAccount_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetCustomTransformersById provides a mock function with given fields: ctx, db, id
-func (_m *MockQuerier) GetCustomTransformersById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
-	ret := _m.Called(ctx, db, id)
-
-	var r0 NeosyncApiTransformer
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiTransformer, error)); ok {
-		return rf(ctx, db, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) NeosyncApiTransformer); ok {
-		r0 = rf(ctx, db, id)
-	} else {
-		r0 = ret.Get(0).(NeosyncApiTransformer)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
-		r1 = rf(ctx, db, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_GetCustomTransformersById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCustomTransformersById'
-type MockQuerier_GetCustomTransformersById_Call struct {
-	*mock.Call
-}
-
-// GetCustomTransformersById is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-//   - id pgtype.UUID
-func (_e *MockQuerier_Expecter) GetCustomTransformersById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetCustomTransformersById_Call {
-	return &MockQuerier_GetCustomTransformersById_Call{Call: _e.mock.On("GetCustomTransformersById", ctx, db, id)}
-}
-
-func (_c *MockQuerier_GetCustomTransformersById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetCustomTransformersById_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_GetCustomTransformersById_Call) Return(_a0 NeosyncApiTransformer, _a1 error) *MockQuerier_GetCustomTransformersById_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_GetCustomTransformersById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiTransformer, error)) *MockQuerier_GetCustomTransformersById_Call {
 	_c.Call.Return(run)
 	return _c
 }

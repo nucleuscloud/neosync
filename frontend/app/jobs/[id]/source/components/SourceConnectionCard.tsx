@@ -1,4 +1,5 @@
 'use client';
+import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import {
   SchemaTable,
@@ -27,7 +28,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import {
   Connection,
   DatabaseColumn,
@@ -42,10 +45,13 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  CustomTransformer,
+  Transformer,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { SCHEMA_FORM_SCHEMA, SOURCE_FORM_SCHEMA } from '@/yup-validations/jobs';
-import { toTransformerConfigOptions } from '@/yup-validations/transformers';
+import { ToTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -84,6 +90,16 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
 
   const connections = connectionsData?.connections ?? [];
 
+  const { data: systemTransformer } = useGetSystemTransformers();
+  const { data: customTransformer } = useGetCustomTransformers(
+    account?.id ?? ''
+  );
+
+  const merged = MergeSystemAndCustomTransformers(
+    systemTransformer?.transformers ?? [],
+    customTransformer?.transformers ?? []
+  );
+
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
     defaultValues: {
@@ -118,7 +134,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
       return;
     }
     try {
-      await updateJobConnection(job, values, connection);
+      await updateJobConnection(job, values, connection, merged);
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'default',
@@ -211,7 +227,8 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
 async function updateJobConnection(
   job: Job,
   values: SourceFormValues,
-  connection: Connection
+  connection: Connection,
+  merged: CustomTransformer[]
 ): Promise<UpdateJobSourceConnectionResponse> {
   const res = await fetch(`/api/jobs/${job.id}/source-connection`, {
     method: 'PUT',
@@ -226,7 +243,7 @@ async function updateJobConnection(
             schema: m.schema,
             table: m.table,
             column: m.column,
-            transformer: toTransformerConfigOptions(m.transformer),
+            transformer: ToTransformerConfigOptions(m.transformer, merged),
           });
         }),
         source: new JobSource({
@@ -359,7 +376,10 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
     ...values,
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
-      transformer: { value: mapping.transformer.value, config: {} },
+      transformer: {
+        value: mapping.transformer.value,
+        config: { config: { case: '', value: {} } },
+      },
     })),
   };
 
@@ -433,7 +453,10 @@ async function getUpdatedValues(
     ...values,
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
-      transformer: { value: mapping.transformer, config: {} },
+      transformer: {
+        value: mapping.transformer,
+        config: { config: { case: '', value: {} } },
+      },
     })),
   };
 

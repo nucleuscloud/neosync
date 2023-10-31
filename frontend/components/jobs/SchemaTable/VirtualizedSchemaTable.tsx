@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { cn } from '@/libs/utils';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {
@@ -37,7 +37,7 @@ type ColumnFilters = Record<string, string[]>;
 
 interface VirtualizedSchemaTableProps {
   data: Row[];
-  transformers?: Transformer[];
+  transformers?: CustomTransformer[];
 }
 
 export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
@@ -188,7 +188,7 @@ interface RowProps {
     rows: Row[];
     onSelect: (index: number) => void;
     onSelectAll: (value: boolean) => void;
-    transformers?: Transformer[];
+    transformers?: CustomTransformer[];
   };
 }
 
@@ -234,7 +234,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                     </div>
                     <EditTransformerOptions
                       transformer={transformers?.find(
-                        (item) => item.value == field.value
+                        (item) => item.name == field.value
                       )}
                       index={index}
                     />
@@ -269,7 +269,7 @@ const createRowData = memoize(
     rows: Row[],
     onSelect: (index: number) => void,
     onSelectAll: (value: boolean) => void,
-    transformers?: Transformer[]
+    transformers?: CustomTransformer[]
   ) => ({
     rows,
     onSelect,
@@ -287,7 +287,7 @@ interface VirtualizedSchemaListProps {
   setBulkSelect: (value: boolean) => void;
   columnFilters: ColumnFilters;
   onFilterSelect: (columnId: string, newValues: string[]) => void;
-  transformers?: Transformer[];
+  transformers?: CustomTransformer[];
 }
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.

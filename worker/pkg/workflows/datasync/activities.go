@@ -374,6 +374,7 @@ func buildBenthosSourceConfigReponses(
 	sourceTableOpts map[string]*sourceTableOptions,
 ) ([]*benthosConfigResponse, error) {
 	responses := []*benthosConfigResponse{}
+
 	for i := range mappings {
 		tableMapping := mappings[i]
 		cols := buildPlainColumns(tableMapping.Mappings)
@@ -974,6 +975,7 @@ root.{destination_col} = transformerfunction(args)
 */
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
+
 	switch col.Transformer.Value {
 	case "latitude":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
@@ -1070,8 +1072,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "random_string":
 		pl := col.Transformer.Config.GetRandomStringConfig().PreserveLength
 		sl := col.Transformer.Config.GetRandomStringConfig().StrLength
-		sc := col.Transformer.Config.GetRandomStringConfig().StrCase
-		return fmt.Sprintf(`this.%s.randomstringtransformer(%t, %d, "%q")`, col.Column, pl, sl, sc), nil
+		return fmt.Sprintf(`this.%s.randomstringtransformer(%t, %d)`, col.Column, pl, sl), nil
 	case "random_int":
 		pl := col.Transformer.Config.GetRandomIntConfig().PreserveLength
 		sl := col.Transformer.Config.GetRandomIntConfig().IntLength

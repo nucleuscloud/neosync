@@ -1,5 +1,6 @@
 import {
   City,
+  CustomTransformer,
   EmailConfig,
   FirstName,
   FullAddress,
@@ -14,7 +15,6 @@ import {
   RandomFloat,
   RandomInt,
   RandomString,
-  RandomString_StringCase,
   State,
   StreetAddress,
   Transformer,
@@ -26,8 +26,8 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 
 interface EmailTransformer {
-  value: string;
-  config: EmailTransformerConfigs;
+  case?: string | undefined;
+  value: EmailTransformerConfigs;
 }
 
 interface EmailTransformerConfigs {
@@ -36,8 +36,8 @@ interface EmailTransformerConfigs {
 }
 
 interface UuidTransformer {
-  value: string;
-  config: UuidTransformerConfigs;
+  case?: string | undefined;
+  value: UuidTransformerConfigs;
 }
 
 interface UuidTransformerConfigs {
@@ -45,8 +45,8 @@ interface UuidTransformerConfigs {
 }
 
 interface FirstNameTransformer {
-  value: string;
-  config: FirstNameTransformerConfigs;
+  case?: string | undefined;
+  value: FirstNameTransformerConfigs;
 }
 
 interface FirstNameTransformerConfigs {
@@ -54,8 +54,8 @@ interface FirstNameTransformerConfigs {
 }
 
 interface LastNameTransformer {
-  value: string;
-  config: LastNameTransformerConfigs;
+  case?: string | undefined;
+  value: LastNameTransformerConfigs;
 }
 
 interface LastNameTransformerConfigs {
@@ -63,8 +63,8 @@ interface LastNameTransformerConfigs {
 }
 
 interface FullNameTransformer {
-  value: string;
-  config: FullNameTransformerConfigs;
+  case?: string | undefined;
+  value: FullNameTransformerConfigs;
 }
 
 interface FullNameTransformerConfigs {
@@ -72,8 +72,8 @@ interface FullNameTransformerConfigs {
 }
 
 interface PhoneNumberTransformer {
-  value: string;
-  config: PhoneNumberTransformerConfigs;
+  case?: string | undefined;
+  value: PhoneNumberTransformerConfigs;
 }
 
 interface PhoneNumberTransformerConfigs {
@@ -83,8 +83,8 @@ interface PhoneNumberTransformerConfigs {
 }
 
 interface IntPhoneNumberTransformer {
-  value: string;
-  config: IntPhoneNumberTransformerConfigs;
+  case?: string | undefined;
+  value: IntPhoneNumberTransformerConfigs;
 }
 
 interface IntPhoneNumberTransformerConfigs {
@@ -92,28 +92,28 @@ interface IntPhoneNumberTransformerConfigs {
 }
 
 interface RandomStringTransformer {
-  value: string;
-  config: RandomStringTransformerConfigs;
+  case?: string | undefined;
+  value: RandomStringTransformerConfigs;
 }
 
 interface RandomStringTransformerConfigs {
   preserveLength: boolean;
-  strCase: RandomString_StringCase;
   strLength: number;
 }
 
 interface RandomIntTransformer {
-  value: string;
-  config: RandomIntTransformerConfigs;
+  case?: string | undefined;
+  value: RandomIntTransformerConfigs;
 }
 
 interface RandomIntTransformerConfigs {
   preserveLength: boolean;
   intLength: number;
 }
+
 interface RandomFloatTransformer {
-  value: string;
-  config: RandomFloatTransformerConfigs;
+  case?: string | undefined;
+  value: RandomFloatTransformerConfigs;
 }
 
 interface RandomFloatTransformerConfigs {
@@ -123,33 +123,38 @@ interface RandomFloatTransformerConfigs {
 }
 
 interface GenderTransformer {
-  value: string;
-  config: GenderTransformerConfigs;
+  case?: string | undefined;
+  value: GenderTransformerConfigs;
 }
 
 interface GenderTransformerConfigs {
   abbreviate: boolean;
 }
 
-export function toTransformerConfigOptions(t: {
-  value: string;
-  config: {};
-}): Transformer {
+export function ToTransformerConfigOptions(
+  t: {
+    value: string;
+    config: { config: { case?: string | undefined; value: {} } };
+  },
+  merged: CustomTransformer[]
+): Transformer {
+  const val = merged.find((item) => item.name == t.value);
+
   if (!t) {
     return new Transformer();
   }
 
-  switch (t.value) {
+  switch (val?.source) {
     case 'email': {
-      const et = t as EmailTransformer; //cast to email transformer to access fields in config object
+      const et = t.config.config as EmailTransformer; //cast to email transformer to access fields in config object
       return new Transformer({
-        value: et.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'emailConfig',
             value: new EmailConfig({
-              preserveDomain: et.config.preserveDomain,
-              preserveLength: et.config.preserveLength,
+              preserveDomain: et.value.preserveDomain,
+              preserveLength: et.value.preserveLength,
             }),
           },
         }),
@@ -157,7 +162,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'passthrough': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',
@@ -167,86 +172,86 @@ export function toTransformerConfigOptions(t: {
       });
     }
     case 'uuid': {
-      const ut = t as UuidTransformer;
+      const ut = t.config.config as UuidTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'uuidConfig',
             value: new Uuid({
-              includeHyphen: ut.config.includeHyphen,
+              includeHyphen: ut.value.includeHyphen,
             }),
           },
         }),
       });
     }
     case 'first_name': {
-      const ft = t as FirstNameTransformer;
+      const ft = t.config.config as FirstNameTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'firstNameConfig',
             value: new FirstName({
-              preserveLength: ft.config.preserveLength,
+              preserveLength: ft.value.preserveLength,
             }),
           },
         }),
       });
     }
     case 'last_name': {
-      const ft = t as LastNameTransformer;
+      const ft = t.config.config as LastNameTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'lastNameConfig',
             value: new LastName({
-              preserveLength: ft.config.preserveLength,
+              preserveLength: ft.value.preserveLength,
             }),
           },
         }),
       });
     }
     case 'full_name': {
-      const ft = t as FullNameTransformer;
+      const ft = t.config.config as FullNameTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'fullNameConfig',
             value: new FullName({
-              preserveLength: ft.config.preserveLength,
+              preserveLength: ft.value.preserveLength,
             }),
           },
         }),
       });
     }
     case 'phone_number': {
-      const pt = t as PhoneNumberTransformer;
+      const pt = t.config.config as PhoneNumberTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'phoneNumberConfig',
             value: new PhoneNumber({
-              preserveLength: pt.config.preserveLength,
-              e164Format: pt.config.e164Format,
-              includeHyphens: pt.config.includeHyphens,
+              preserveLength: pt.value.preserveLength,
+              e164Format: pt.value.e164Format,
+              includeHyphens: pt.value.includeHyphens,
             }),
           },
         }),
       });
     }
     case 'int_phone_number': {
-      const pt = t as IntPhoneNumberTransformer;
+      const pt = t.config.config as IntPhoneNumberTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'intPhoneNumberConfig',
             value: new IntPhoneNumber({
-              preserveLength: pt.config.preserveLength,
+              preserveLength: pt.value.preserveLength,
             }),
           },
         }),
@@ -254,7 +259,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'null': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'nullConfig',
@@ -264,16 +269,15 @@ export function toTransformerConfigOptions(t: {
       });
     }
     case 'random_string': {
-      const rs = t as RandomStringTransformer;
+      const rs = t.config.config as RandomStringTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'randomStringConfig',
             value: new RandomString({
-              preserveLength: rs.config.preserveLength,
-              strCase: rs.config.strCase,
-              strLength: BigInt(rs.config.strLength ?? 10),
+              preserveLength: rs.value.preserveLength,
+              strLength: BigInt(rs.value.strLength ?? 10),
             }),
           },
         }),
@@ -281,7 +285,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'random_bool': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'randomBoolConfig',
@@ -291,45 +295,45 @@ export function toTransformerConfigOptions(t: {
       });
     }
     case 'random_int': {
-      const ri = t as RandomIntTransformer;
+      const ri = t.config.config as RandomIntTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'randomIntConfig',
             value: new RandomInt({
-              preserveLength: ri.config.preserveLength,
-              intLength: BigInt(ri.config.intLength ?? 4),
+              preserveLength: ri.value.preserveLength,
+              intLength: BigInt(ri.value.intLength ?? 4),
             }),
           },
         }),
       });
     }
     case 'random_float': {
-      const rf = t as RandomFloatTransformer;
+      const rf = t.config.config as RandomFloatTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'randomFloatConfig',
             value: new RandomFloat({
-              preserveLength: rf.config.preserveLength,
-              digitsBeforeDecimal: BigInt(rf.config.digitsBeforeDecimal ?? 2),
-              digitsAfterDecimal: BigInt(rf.config.digitsAftereDecimal ?? 3),
+              preserveLength: rf.value.preserveLength,
+              digitsBeforeDecimal: BigInt(rf.value.digitsBeforeDecimal ?? 2),
+              digitsAfterDecimal: BigInt(rf.value.digitsAftereDecimal ?? 3),
             }),
           },
         }),
       });
     }
     case 'gender': {
-      const g = t as GenderTransformer;
+      const g = t.config.config as GenderTransformer;
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'genderConfig',
             value: new Gender({
-              abbreviate: g.config.abbreviate,
+              abbreviate: g.value.abbreviate,
             }),
           },
         }),
@@ -337,7 +341,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'utc_timestamp': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'utcTimestampConfig',
@@ -348,7 +352,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'unix_timestamp': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'unixTimestampConfig',
@@ -359,7 +363,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'street_address': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'streetAddressConfig',
@@ -370,7 +374,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'city': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'cityConfig',
@@ -381,7 +385,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'zipcode': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'zipcodeConfig',
@@ -392,7 +396,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'state': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'stateConfig',
@@ -403,7 +407,7 @@ export function toTransformerConfigOptions(t: {
     }
     case 'full_address': {
       return new Transformer({
-        value: t.value,
+        value: val.source,
         config: new TransformerConfig({
           config: {
             case: 'fullAddressConfig',
@@ -414,7 +418,7 @@ export function toTransformerConfigOptions(t: {
     }
     default: {
       return new Transformer({
-        value: t.value,
+        value: 'passthrough',
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',
