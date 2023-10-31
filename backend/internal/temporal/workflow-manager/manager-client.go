@@ -15,10 +15,11 @@ import (
 )
 
 type TemporalWorkflowManager struct {
-	config *Config
-	db     DB
-	dbtx   db_queries.DBTX
-	wfmap  *sync.Map
+	config    *Config
+	db        DB
+	dbtx      db_queries.DBTX
+	wfmap     *sync.Map
+	accountMu *sync.Map
 }
 
 type DB interface {
@@ -35,10 +36,11 @@ func New(
 	dbtx db_queries.DBTX,
 ) *TemporalWorkflowManager {
 	return &TemporalWorkflowManager{
-		config: config,
-		db:     db,
-		wfmap:  &sync.Map{},
-		dbtx:   dbtx,
+		config:    config,
+		db:        db,
+		wfmap:     &sync.Map{},
+		accountMu: &sync.Map{},
+		dbtx:      dbtx,
 	}
 }
 
@@ -75,6 +77,15 @@ func (t *TemporalWorkflowManager) GetClientByAccount(
 		return client, nil
 	}
 
+	mu, _ := t.accountMu.LoadOrStore(accountId, &sync.Mutex{})
+	mutex := mu.(*sync.Mutex)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	client, ok = t.loadClientByAccount(accountId)
+	if ok {
+		return client, nil
+	}
 	client, err := t.getNewClientByAccount(ctx, accountId, logger)
 	if err != nil {
 		return nil, err
