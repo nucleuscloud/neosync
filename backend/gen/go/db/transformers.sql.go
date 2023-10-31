@@ -69,6 +69,29 @@ func (q *Queries) DeleteCustomTransformerById(ctx context.Context, db DBTX, id p
 	return err
 }
 
+const getCustomTransformerById = `-- name: GetCustomTransformerById :one
+SELECT id, created_at, updated_at, name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id from neosync_api.transformers WHERE id = $1
+`
+
+func (q *Queries) GetCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
+	row := db.QueryRow(ctx, getCustomTransformerById, id)
+	var i NeosyncApiTransformer
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Description,
+		&i.Type,
+		&i.Source,
+		&i.AccountID,
+		&i.TransformerConfig,
+		&i.CreatedByID,
+		&i.UpdatedByID,
+	)
+	return i, err
+}
+
 const getCustomTransformersByAccount = `-- name: GetCustomTransformersByAccount :many
 SELECT t.id, t.created_at, t.updated_at, t.name, t.description, t.type, t.source, t.account_id, t.transformer_config, t.created_by_id, t.updated_by_id from neosync_api.transformers t
 INNER JOIN neosync_api.accounts a ON a.id = t.account_id
@@ -106,29 +129,6 @@ func (q *Queries) GetCustomTransformersByAccount(ctx context.Context, db DBTX, a
 		return nil, err
 	}
 	return items, nil
-}
-
-const getCustomTransformersById = `-- name: GetCustomTransformersById :one
-SELECT id, created_at, updated_at, name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id from neosync_api.transformers WHERE id = $1
-`
-
-func (q *Queries) GetCustomTransformersById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
-	row := db.QueryRow(ctx, getCustomTransformersById, id)
-	var i NeosyncApiTransformer
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.Name,
-		&i.Description,
-		&i.Type,
-		&i.Source,
-		&i.AccountID,
-		&i.TransformerConfig,
-		&i.CreatedByID,
-		&i.UpdatedByID,
-	)
-	return i, err
 }
 
 const isTransformerNameAvailable = `-- name: IsTransformerNameAvailable :one
