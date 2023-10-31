@@ -1,6 +1,5 @@
 'use client';
 
-import CustomEmailTransformerForm from '@/app/new/transformer/CustomTransformerForms/CustomEmailTransformerForm';
 import { handleTransformerMetadata } from '@/app/transformers/EditTransformerOptions';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
@@ -39,16 +38,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import CustomFirstNameTransformerForm from './CustomTransformerForms/CustomFirstnameTransformerForm';
-import CustomFullNameTransformerForm from './CustomTransformerForms/CustomFullnameTransformerForm';
-import CustomGenderTransformerForm from './CustomTransformerForms/CustomGenderTransformerForm';
-import CustomIntPhoneNumberTransformerForm from './CustomTransformerForms/CustomIntPhoneNumberTransformerForm';
-import CustomLastNameTransformerForm from './CustomTransformerForms/CustomLastnameTransformerForm';
-import CustomPhoneNumberTransformerForm from './CustomTransformerForms/CustomPhoneNumberTransformerForm';
-import CustomRandomFloatTransformerForm from './CustomTransformerForms/CustomRandomFloatTransformerForm';
-import CustomRandomIntTransformerForm from './CustomTransformerForms/CustomRandomIntTransformerForm';
-import CustomRandomStringTransformerForm from './CustomTransformerForms/CustomRandomStringTransformerForm';
-import CustomUuidTransformerForm from './CustomTransformerForms/CustomUuidTransformerForm';
+import { handleCustomTransformerForm } from './CustomTransformerForms/HandleCustomTransformersForm';
 import {
   CREATE_CUSTOM_TRANSFORMER_SCHEMA,
   CreateCustomTransformerSchema,
@@ -227,39 +217,6 @@ export default function NewTransformer(): ReactElement {
       </Form>
     </OverviewContainer>
   );
-}
-
-// handles rendering custom tranformer configs
-export function handleCustomTransformerForm(
-  value: string | undefined
-): ReactElement {
-  switch (value) {
-    case 'email':
-      return <CustomEmailTransformerForm />;
-    case 'uuid':
-      return <CustomUuidTransformerForm />;
-    case 'first_name':
-      return <CustomFirstNameTransformerForm />;
-    case 'last_name':
-      return <CustomLastNameTransformerForm />;
-    case 'full_name':
-      return <CustomFullNameTransformerForm />;
-    case 'phone_number':
-      return <CustomPhoneNumberTransformerForm />;
-    case 'int_phone_number':
-      return <CustomIntPhoneNumberTransformerForm />;
-    case 'random_string':
-      return <CustomRandomStringTransformerForm />;
-    case 'random_int':
-      return <CustomRandomIntTransformerForm />;
-    case 'random_float':
-      return <CustomRandomFloatTransformerForm />;
-    case 'gender':
-      return <CustomGenderTransformerForm />;
-    default:
-      <div>No transformer component found</div>;
-  }
-  return <div></div>;
 }
 
 async function createNewTransformer(

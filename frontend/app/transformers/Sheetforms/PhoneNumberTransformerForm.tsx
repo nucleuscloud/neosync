@@ -25,8 +25,6 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const vals = fc.getValues();
-
   const config = transformer?.config?.config.value as PhoneNumber;
 
   const [ih, setIh] = useState<boolean>(

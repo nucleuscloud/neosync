@@ -27,8 +27,6 @@ export default function IntPhoneNumberTransformerForm(
 
   const fc = useFormContext();
 
-  const vals = fc.getValues();
-
   const config = transformer?.config?.config.value as IntPhoneNumber;
 
   const [pl, setPl] = useState<boolean>(

@@ -27,8 +27,6 @@ export default function RandomIntTransformerForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const vals = fc.getValues();
-
   const config = transformer?.config?.config.value as RandomInt;
 
   const [pl, setPl] = useState<boolean>(

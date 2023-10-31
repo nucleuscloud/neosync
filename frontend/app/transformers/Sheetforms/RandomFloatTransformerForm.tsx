@@ -27,8 +27,6 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const vals = fc.getValues();
-
   const config = transformer?.config?.config.value as RandomFloat;
 
   const [pl, setPl] = useState<boolean>(
