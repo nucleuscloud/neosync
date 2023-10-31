@@ -101,6 +101,15 @@ type CreateJobConnectionDestinationsParams struct {
 	Options      *jsonmodels.JobDestinationOptions
 }
 
+const deleteJob = `-- name: DeleteJob :exec
+DELETE FROM neosync_api.jobs WHERE id = $1
+`
+
+func (q *Queries) DeleteJob(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteJob, id)
+	return err
+}
+
 const getJobById = `-- name: GetJobById :one
 SELECT id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id from neosync_api.jobs WHERE id = $1
 `

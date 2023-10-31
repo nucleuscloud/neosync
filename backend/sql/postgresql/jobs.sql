@@ -24,6 +24,9 @@ INSERT INTO neosync_api.jobs (
 )
 RETURNING *;
 
+-- name: DeleteJob :exec
+DELETE FROM neosync_api.jobs WHERE id = $1;
+
 -- name: UpdateJobSchedule :one
 UPDATE neosync_api.jobs
 SET cron_schedule = $1,

@@ -470,6 +470,10 @@ func (s *Service) CreateJob(
 
 	err = s.ensureTemporalNamespaceForAccount(ctx, *accountUuid)
 	if err != nil {
+		err2 := s.db.Q.DeleteJob(ctx, cj.ID)
+		if err2 != nil {
+			logger.Error(fmt.Sprintf("unable to delete job when temporal namespace for account failed: %s", err2.Error()))
+		}
 		return nil, err
 	}
 
