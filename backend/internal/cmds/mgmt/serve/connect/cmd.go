@@ -157,7 +157,7 @@ func serve() error {
 		db,
 		nsclient,
 		tfwfmgr,
-		namegenerator.New(),
+		namegenerator.New(2, "-"),
 		connectionService,
 		useraccountService,
 	)
