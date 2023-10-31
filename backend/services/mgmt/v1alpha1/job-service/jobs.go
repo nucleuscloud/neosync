@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -182,12 +183,16 @@ func (s *Service) ensureTemporalNamespaceForAccount(
 	}
 	// todo: this might cause problems if the name we generate already exists but not for this account!
 	_, err = s.temporalNsClient.Describe(ctx, tc.Namespace)
-	if err != nil && !errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
+	notfounderror := serviceerror.NewNamespaceNotFound(tc.Namespace)
+	// can't use errors.Is due to it not being a wrapped error
+	if err != nil && err.Error() != notfounderror.Error() {
 		return err
-	} else if err != nil && errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
+	} else if err != nil && err.Error() == notfounderror.Error() {
 		// create new namespace
+		retentionPeriod := (3 * 24) * time.Hour
 		err = s.temporalNsClient.Register(ctx, &workflowservice.RegisterNamespaceRequest{
-			Namespace: tc.Namespace,
+			Namespace:                        tc.Namespace,
+			WorkflowExecutionRetentionPeriod: &retentionPeriod,
 		})
 		if err != nil {
 			return err
