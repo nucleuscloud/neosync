@@ -20,7 +20,9 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
+	namegenerator "github.com/nucleuscloud/neosync/backend/internal/name-generator"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	workflowmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/workflow-manager"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
@@ -136,17 +138,29 @@ func serve() error {
 		),
 	)
 
-	temporalConfig := getTemporalConfig(logger)
-	temporalClient, err := temporalclient.NewLazyClient(*temporalConfig)
+	nsclient, err := temporalclient.NewNamespaceClient(temporalclient.Options{
+		HostPort: getTemporalUrl(),
+		Logger:   logger.With("temporal-client", "true"),
+	})
 	if err != nil {
 		return err
 	}
-	defer temporalClient.Close()
+	tfwfmgr := workflowmanager.New(&workflowmanager.Config{
+		TemporalUrl: getTemporalUrl(),
+	}, db.Q, db.Db)
+
 	jobServiceConfig := &v1alpha1_jobservice.Config{
-		TemporalTaskQueue: getTemporalTaskQueue(),
-		TemporalNamespace: getTemporalNamespace(),
+		IsAuthEnabled: isAuthEnabled,
 	}
-	jobService := v1alpha1_jobservice.New(jobServiceConfig, db, temporalClient, connectionService, useraccountService)
+	jobService := v1alpha1_jobservice.New(
+		jobServiceConfig,
+		db,
+		nsclient,
+		tfwfmgr,
+		namegenerator.New(),
+		connectionService,
+		useraccountService,
+	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
@@ -254,39 +268,12 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 	}, nil
 }
 
-func getTemporalConfig(
-	logger *slog.Logger,
-) *temporalclient.Options {
+func getTemporalUrl() string {
 	temporalUrl := viper.GetString("TEMPORAL_URL")
 	if temporalUrl == "" {
-		temporalUrl = "localhost:7233"
+		return "localhost:7233"
 	}
-
-	temporalNamespace := getTemporalNamespace()
-
-	return &temporalclient.Options{
-		Logger:    logger.With("temporalClient", "true"),
-		HostPort:  temporalUrl,
-		Namespace: temporalNamespace,
-		// Interceptors: ,
-		// HeadersProvider: ,
-	}
-}
-
-func getTemporalNamespace() string {
-	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
-	if temporalNamespace == "" {
-		temporalNamespace = "default"
-	}
-	return temporalNamespace
-}
-
-func getTemporalTaskQueue() string {
-	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
-	if taskQueue == "" {
-		return "default"
-	}
-	return taskQueue
+	return temporalUrl
 }
 
 func getJwtClientConfig() *auth_jwt.ClientConfig {

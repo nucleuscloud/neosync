@@ -42,3 +42,9 @@ sql:
               package: jsonmodels
               type: TransformerConfigs
               pointer: true
+          - column: neosync_api.accounts.temporal_config
+            go_type:
+              import: github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models
+              package: jsonmodels
+              type: TemporalConfig
+              pointer: true

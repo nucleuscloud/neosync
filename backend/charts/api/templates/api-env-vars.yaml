@@ -53,11 +53,3 @@ stringData:
     {{- if and .Values.temporal .Values.temporal.url }}
     TEMPORAL_URL: {{ .Values.temporal.url }}
     {{- end }}
-
-    {{- if and .Values.temporal .Values.temporal.namespace }}
-    TEMPORAL_NAMESPACE: {{ .Values.temporal.namespace }}
-    {{- end }}
-
-    {{- if and .Values.temporal .Values.temporal.taskQueue }}
-    TEMPORAL_TASK_QUEUE: {{ .Values.temporal.taskQueue }}
-    {{- end }}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
@@ -41,8 +42,9 @@ func (s *Service) CheckConnectionConfig(
 		default:
 			return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
 		}
-
-		conn, err := pgx.Connect(ctx, *connectionString)
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
+		conn, err := pgx.Connect(cctx, *connectionString)
 		if err != nil {
 			msg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
@@ -55,7 +57,7 @@ func (s *Service) CheckConnectionConfig(
 				logger.Error(fmt.Errorf("failed to close postgres connection: %w", err).Error())
 			}
 		}()
-		err = conn.Ping(ctx)
+		err = conn.Ping(cctx)
 		if err != nil {
 			msg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
@@ -94,7 +96,9 @@ func (s *Service) CheckConnectionConfig(
 				logger.Error(fmt.Errorf("failed to close mysql connection: %w", err).Error())
 			}
 		}()
-		err = conn.PingContext(ctx)
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
+		err = conn.PingContext(cctx)
 		if err != nil {
 			msg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{

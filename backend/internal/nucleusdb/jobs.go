@@ -10,6 +10,43 @@ import (
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 )
 
+type CreateJobConnectionDestination struct {
+	ConnectionId pgtype.UUID
+	Options      *jsonmodels.JobDestinationOptions
+}
+
+func (d *NucleusDb) CreateJob(
+	ctx context.Context,
+	cjParams *db_queries.CreateJobParams,
+	destinations []*CreateJobConnectionDestination,
+) (*db_queries.NeosyncApiJob, error) {
+	var createdJob *db_queries.NeosyncApiJob
+	if err := d.WithTx(ctx, nil, func(tx BaseDBTX) error {
+		job, err := d.Q.CreateJob(ctx, tx, *cjParams)
+		if err != nil {
+			return err
+		}
+		if len(destinations) > 0 {
+			destParams := make([]db_queries.CreateJobConnectionDestinationsParams, 0, len(destinations))
+			for i := range destinations {
+				destParams = append(destParams, db_queries.CreateJobConnectionDestinationsParams{
+					JobID:        job.ID,
+					ConnectionID: destinations[i].ConnectionId,
+					Options:      destinations[i].Options,
+				})
+			}
+			if _, err := d.Q.CreateJobConnectionDestinations(ctx, tx, destParams); err != nil {
+				return err
+			}
+		}
+		createdJob = &job
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return createdJob, nil
+}
+
 func (d *NucleusDb) SetSqlSourceSubsets(
 	ctx context.Context,
 	jobId pgtype.UUID,

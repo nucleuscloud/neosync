@@ -2,6 +2,7 @@ package v1alpha1_jobservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
@@ -42,7 +44,15 @@ func (s *Service) GetJobRuns(
 			return nil, err
 		}
 		accountId = nucleusdb.UUIDString(job.AccountID)
-		workflows, err = getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, s.cfg.TemporalNamespace, []string{id.JobId})
+		tclient, err := s.temporalWfManager.GetClientByAccount(ctx, accountId, logger)
+		if err != nil {
+			return nil, err
+		}
+		tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, job.AccountID)
+		if err != nil {
+			return nil, err
+		}
+		workflows, err = getWorkflowExecutionsByJobIds(ctx, tclient, logger, tconfig.Namespace, []string{id.JobId})
 		if err != nil {
 			return nil, err
 		}
@@ -61,9 +71,20 @@ func (s *Service) GetJobRuns(
 			job := jobs[i]
 			jobIds = append(jobIds, nucleusdb.UUIDString(job.ID))
 		}
-		workflows, err = getWorkflowExecutionsByJobIds(ctx, s.temporalClient, logger, s.cfg.TemporalNamespace, jobIds)
-		if err != nil {
-			return nil, err
+		if len(jobIds) > 0 {
+			tclient, err := s.temporalWfManager.GetClientByAccount(ctx, accountId, logger)
+			if err != nil {
+				return nil, err
+			}
+			tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
+			if err != nil {
+				return nil, err
+			}
+
+			workflows, err = getWorkflowExecutionsByJobIds(ctx, tclient, logger, tconfig.Namespace, jobIds)
+			if err != nil {
+				return nil, err
+			}
 		}
 	default:
 		return nil, fmt.Errorf("must provide jobId or accountId")
@@ -73,6 +94,13 @@ func (s *Service) GetJobRuns(
 	if err != nil {
 		return nil, err
 	}
+	var tclient temporalclient.Client
+	if len(workflows) > 0 {
+		tclient, err = s.temporalWfManager.GetClientByAccount(ctx, accountId, logger)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	runs := make([]*mgmtv1alpha1.JobRun, len(workflows))
 	errGrp, errCtx := errgroup.WithContext(ctx)
@@ -80,7 +108,7 @@ func (s *Service) GetJobRuns(
 		index := index
 		workflow := workflow
 		errGrp.Go(func() error {
-			res, err := s.temporalClient.DescribeWorkflowExecution(errCtx, workflow.Execution.WorkflowId, workflow.Execution.RunId)
+			res, err := tclient.DescribeWorkflowExecution(errCtx, workflow.Execution.WorkflowId, workflow.Execution.RunId)
 			if err != nil && !strings.Contains(err.Error(), "Workflow executionsRow not found") {
 				return err
 			} else if err != nil && strings.Contains(err.Error(), "Workflow executionsRow not found") {
@@ -111,11 +139,19 @@ func (s *Service) GetJobRun(
 ) (*connect.Response[mgmtv1alpha1.GetJobRunResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.JobRunId)
-	run, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId)
+	verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId)
 	if err != nil {
 		return nil, err
 	}
-	res, err := s.temporalClient.DescribeWorkflowExecution(ctx, run.Execution.WorkflowId, run.Execution.RunId)
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
+	if err != nil {
+		return nil, err
+	}
+	res, err := tclient.DescribeWorkflowExecution(
+		ctx,
+		verifResp.WorkflowExecution.Execution.WorkflowId,
+		verifResp.WorkflowExecution.Execution.RunId,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -132,17 +168,22 @@ func (s *Service) GetJobRunEvents(
 ) (*connect.Response[mgmtv1alpha1.GetJobRunEventsResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.JobRunId)
-	run, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId)
+	verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId)
+	if err != nil {
+		return nil, err
+	}
+
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
 	if err != nil {
 		return nil, err
 	}
 
 	activityOrder := []int64{}
 	activityMap := map[int64]*mgmtv1alpha1.JobRunEvent{}
-	iter := s.temporalClient.GetWorkflowHistory(
+	iter := tclient.GetWorkflowHistory(
 		ctx,
-		run.Execution.WorkflowId,
-		run.Execution.RunId,
+		verifResp.WorkflowExecution.Execution.WorkflowId,
+		verifResp.WorkflowExecution.Execution.RunId,
 		false,
 		enums.HISTORY_EVENT_FILTER_TYPE_ALL_EVENT,
 	)
@@ -251,7 +292,12 @@ func (s *Service) CreateJobRun(
 		return nil, err
 	}
 
-	scheduleHandle := s.temporalClient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, accountId, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	logger.Info("creating job run")
 	err = scheduleHandle.Trigger(ctx, temporalclient.ScheduleTriggerOptions{})
 	if err != nil {
@@ -268,16 +314,23 @@ func (s *Service) CancelJobRun(
 ) (*connect.Response[mgmtv1alpha1.CancelJobRunResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.JobRunId)
-	run, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId)
+	verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId)
 	if err != nil {
 		return nil, err
 	}
 
 	logger.Info("canceling job run")
-	err = s.temporalClient.CancelWorkflow(ctx, run.Execution.WorkflowId, run.Execution.RunId)
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to cancel job run: %w", err).Error())
 		return nil, err
+	}
+	err = tclient.CancelWorkflow(
+		ctx,
+		verifResp.WorkflowExecution.Execution.WorkflowId,
+		verifResp.WorkflowExecution.Execution.RunId,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to cancel job run: %w", err)
 	}
 	return connect.NewResponse(&mgmtv1alpha1.CancelJobRunResponse{}), nil
 }
@@ -288,16 +341,20 @@ func (s *Service) DeleteJobRun(
 ) (*connect.Response[mgmtv1alpha1.DeleteJobRunResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.JobRunId)
-	run, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId)
+	verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId)
 	if err != nil {
 		return nil, err
 	}
 	logger.Info("deleting job run")
-	_, err = s.temporalClient.WorkflowService().DeleteWorkflowExecution(ctx, &workflowservice.DeleteWorkflowExecutionRequest{
-		Namespace: s.cfg.TemporalNamespace,
+	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
+	if err != nil {
+		return nil, err
+	}
+	_, err = tclient.WorkflowService().DeleteWorkflowExecution(ctx, &workflowservice.DeleteWorkflowExecutionRequest{
+		Namespace: verifResp.TemporalConfig.Namespace,
 		WorkflowExecution: &commonpb.WorkflowExecution{
-			WorkflowId: run.Execution.WorkflowId,
-			RunId:      run.Execution.RunId,
+			WorkflowId: verifResp.WorkflowExecution.Execution.WorkflowId,
+			RunId:      verifResp.WorkflowExecution.Execution.RunId,
 		},
 	})
 	if err != nil {
@@ -329,29 +386,55 @@ func getWorkflowExecutionsByRunId(
 	return resp.Executions[0], nil
 }
 
+type getVerifiedJobRunResponse struct {
+	WorkflowExecution *workflowpb.WorkflowExecutionInfo
+	NeosyncAccountId  string
+	TemporalConfig    *jsonmodels.TemporalConfig
+}
+
 func (s *Service) getVerifiedJobRun(
 	ctx context.Context,
 	logger *slog.Logger,
 	runId string,
-) (*workflowpb.WorkflowExecutionInfo, error) {
-	run, err := getWorkflowExecutionsByRunId(ctx, s.temporalClient, s.cfg.TemporalNamespace, runId)
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job run: %w", err).Error())
-		return nil, err
-	}
-	jobId := dtomaps.GetJobIdFromWorkflow(logger, run.GetSearchAttributes())
-	jobUuid, err := nucleusdb.ToUuid(jobId)
+
+) (*getVerifiedJobRunResponse, error) {
+	userAccountsResp, err := s.useraccountService.GetUserAccounts(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
-	if err != nil {
-		return nil, err
+
+	for _, userAccount := range userAccountsResp.Msg.Accounts {
+		accountUuid, err := nucleusdb.ToUuid(userAccount.Id)
+		if err != nil {
+			return nil, err
+		}
+		hasNs, err := s.doesAccountHaveTemporalNamespace(ctx, accountUuid)
+		if err != nil {
+			return nil, err
+		}
+		if !hasNs {
+			continue
+		}
+		tclient, err := s.temporalWfManager.GetClientByAccount(ctx, userAccount.Id, logger)
+		if err != nil {
+			return nil, err
+		}
+		tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
+		if err != nil {
+			return nil, err
+		}
+		run, err := getWorkflowExecutionsByRunId(ctx, tclient, tconfig.Namespace, runId)
+		if err != nil {
+			if errors.Is(err, nucleuserrors.NewNotFound("job run not found")) {
+				continue
+			}
+			return nil, fmt.Errorf("unable to retrieve job run: %w", err)
+		}
+		return &getVerifiedJobRunResponse{
+			WorkflowExecution: run,
+			NeosyncAccountId:  userAccount.Id,
+			TemporalConfig:    tconfig,
+		}, nil
 	}
-	accountId := nucleusdb.UUIDString(job.AccountID)
-	_, err = s.verifyUserInAccount(ctx, accountId)
-	if err != nil {
-		return nil, err
-	}
-	return run, nil
+	return nil, nucleuserrors.NewNotFound("unable to find job run by run id")
 }
