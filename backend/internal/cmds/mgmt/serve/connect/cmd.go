@@ -138,13 +138,10 @@ func serve() error {
 		),
 	)
 
-	// temporalConfig := getTemporalConfig(logger)
-	// temporalClient, err := temporalclient.NewLazyClient(*temporalConfig)
-	// if err != nil {
-	// 	return err
-	// }
-	// defer temporalClient.Close()
-	nsclient, err := temporalclient.NewNamespaceClient(temporalclient.Options{})
+	nsclient, err := temporalclient.NewNamespaceClient(temporalclient.Options{
+		HostPort: getTemporalUrl(),
+		Logger:   logger.With("temporal-client", "true"),
+	})
 	if err != nil {
 		return err
 	}
@@ -276,25 +273,6 @@ func getTemporalUrl() string {
 	}
 	return temporalUrl
 }
-
-// func getTemporalConfig(
-// 	logger *slog.Logger,
-// ) *temporalclient.Options {
-// 	temporalUrl := viper.GetString("TEMPORAL_URL")
-// 	if temporalUrl == "" {
-// 		temporalUrl = "localhost:7233"
-// 	}
-
-// 	temporalNamespace := getTemporalNamespace()
-
-// 	return &temporalclient.Options{
-// 		Logger:    logger.With("temporalClient", "true"),
-// 		HostPort:  temporalUrl,
-// 		Namespace: temporalNamespace,
-// 		// Interceptors: ,
-// 		// HeadersProvider: ,
-// 	}
-// }
 
 func getJwtClientConfig() *auth_jwt.ClientConfig {
 	authBaseUrl := getAuthBaseUrl()
