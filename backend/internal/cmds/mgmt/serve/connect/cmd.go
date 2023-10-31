@@ -149,7 +149,9 @@ func serve() error {
 		TemporalUrl: getTemporalUrl(),
 	}, db.Q, db.Db)
 
-	jobServiceConfig := &v1alpha1_jobservice.Config{}
+	jobServiceConfig := &v1alpha1_jobservice.Config{
+		IsAuthEnabled: isAuthEnabled,
+	}
 	jobService := v1alpha1_jobservice.New(
 		jobServiceConfig,
 		db,

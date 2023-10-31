@@ -155,6 +155,7 @@ func (s *Service) doesAccountHaveTemporalNamespace(
 func (s *Service) ensureTemporalNamespaceForAccount(
 	ctx context.Context,
 	accountUuid pgtype.UUID,
+	onNewNamespace func() string,
 ) error {
 	err := s.db.WithTx(ctx, nil, func(tx nucleusdb.BaseDBTX) error {
 		tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, tx, accountUuid)
@@ -162,7 +163,7 @@ func (s *Service) ensureTemporalNamespaceForAccount(
 			return err
 		}
 		if tc.Namespace == "" {
-			tc.Namespace = s.namegenerator.Generate()
+			tc.Namespace = onNewNamespace()
 			tc.SyncJobQueueName = "sync-job" // hm
 			_, err = s.db.Q.UpdateTemporalConfigByAccount(ctx, tx, db_queries.UpdateTemporalConfigByAccountParams{
 				TemporalConfig: tc,
@@ -468,7 +469,12 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	err = s.ensureTemporalNamespaceForAccount(ctx, *accountUuid)
+	err = s.ensureTemporalNamespaceForAccount(ctx, *accountUuid, func() string {
+		if s.cfg.IsAuthEnabled {
+			return s.namegenerator.Generate()
+		}
+		return "default"
+	})
 	if err != nil {
 		err2 := s.db.Q.DeleteJob(ctx, s.db.Db, cj.ID)
 		if err2 != nil {

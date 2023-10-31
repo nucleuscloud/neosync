@@ -24,7 +24,9 @@ type Service struct {
 	temporalWfManager *workflowmanager.TemporalWorkflowManager
 }
 
-type Config struct{}
+type Config struct {
+	IsAuthEnabled bool
+}
 
 func New(
 	cfg *Config,
