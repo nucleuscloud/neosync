@@ -321,14 +321,16 @@ func (s *Service) CancelJobRun(
 
 	logger.Info("canceling job run")
 	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
+	if err != nil {
+		return nil, err
+	}
 	err = tclient.CancelWorkflow(
 		ctx,
 		verifResp.WorkflowExecution.Execution.WorkflowId,
 		verifResp.WorkflowExecution.Execution.RunId,
 	)
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to cancel job run: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to cancel job run: %w", err)
 	}
 	return connect.NewResponse(&mgmtv1alpha1.CancelJobRunResponse{}), nil
 }
