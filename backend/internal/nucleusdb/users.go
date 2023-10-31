@@ -7,7 +7,6 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 )
 
-// refactor to use withTx custom function
 func (d *NucleusDb) SetUserByAuth0Id(
 	ctx context.Context,
 	auth0UserId string,
