@@ -227,7 +227,7 @@ func (s *Service) GetCustomTransformerById(
 		return nil, err
 	}
 
-	transformer, err := s.db.Q.GetCustomTransformerById(ctx, tId)
+	transformer, err := s.db.Q.GetCustomTransformerById(ctx, s.db.Db, tId)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -293,7 +293,7 @@ func (s *Service) DeleteCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	transformer, err := s.db.Q.GetCustomTransformersById(ctx, s.db.Db, tId)
+	transformer, err := s.db.Q.GetCustomTransformerById(ctx, s.db.Db, tId)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -322,7 +322,7 @@ func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Requ
 	if err != nil {
 		return nil, err
 	}
-	transformer, err := s.db.Q.GetCustomTransformersById(ctx, s.db.Db, tUuid)
+	transformer, err := s.db.Q.GetCustomTransformerById(ctx, s.db.Db, tUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
