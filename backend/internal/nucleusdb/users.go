@@ -2,110 +2,101 @@ package nucleusdb
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 )
 
+// refactor to use withTx custom function
 func (d *NucleusDb) SetUserByAuth0Id(
 	ctx context.Context,
 	auth0UserId string,
 ) (*db_queries.NeosyncApiUser, error) {
-	tx, err := d.db.Begin(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer HandlePgxRollback(ctx, tx, slog.Default())
-	q := d.Q.WithTx(tx)
-
-	user, err := q.GetUserByAuth0Id(ctx, auth0UserId)
-	if err != nil && !IsNoRows(err) {
-		return nil, err
-	} else if err != nil && IsNoRows(err) {
-		association, err := q.GetUserAssociationByAuth0Id(ctx, auth0UserId)
+	var user *db_queries.NeosyncApiUser
+	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+		user, err := d.Q.GetUserByAuth0Id(ctx, dbtx, auth0UserId)
 		if err != nil && !IsNoRows(err) {
-			return nil, err
+			return err
 		} else if err != nil && IsNoRows(err) {
-			// create user, create association
-			user, err = q.CreateUser(ctx)
-			if err != nil {
-				return nil, err
-			}
-			association, err = q.CreateAuth0IdentityProviderAssociation(ctx, db_queries.CreateAuth0IdentityProviderAssociationParams{
-				UserID:          user.ID,
-				Auth0ProviderID: auth0UserId,
-			})
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			user, err = q.GetUser(ctx, association.UserID)
+			association, err := d.Q.GetUserAssociationByAuth0Id(ctx, dbtx, auth0UserId)
 			if err != nil && !IsNoRows(err) {
-				if err != nil {
-					return nil, err
-				}
+				return err
 			} else if err != nil && IsNoRows(err) {
-				user, err = q.CreateUser(ctx)
+				// create user, create association
+				user, err = d.Q.CreateUser(ctx, dbtx)
 				if err != nil {
-					return nil, err
+					return err
+				}
+				association, err = d.Q.CreateAuth0IdentityProviderAssociation(ctx, dbtx, db_queries.CreateAuth0IdentityProviderAssociationParams{
+					UserID:          user.ID,
+					Auth0ProviderID: auth0UserId,
+				})
+				if err != nil {
+					return err
+				}
+			} else {
+				user, err = d.Q.GetUser(ctx, dbtx, association.UserID)
+				if err != nil && !IsNoRows(err) {
+					if err != nil {
+						return err
+					}
+				} else if err != nil && IsNoRows(err) {
+					user, err = d.Q.CreateUser(ctx, dbtx)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
-	}
-	if err := tx.Commit(ctx); err != nil {
+		return nil
+	}); err != nil {
 		return nil, err
 	}
-	return &user, nil
+	return user, nil
 }
 
 func (d *NucleusDb) SetPersonalAccount(
 	ctx context.Context,
 	userId pgtype.UUID,
 ) (*db_queries.NeosyncApiAccount, error) {
-	tx, err := d.db.Begin(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer HandlePgxRollback(ctx, tx, slog.Default())
 
-	q := d.Q.WithTx(tx)
-	account, err := q.GetPersonalAccountByUserId(ctx, userId)
-	if err != nil && !IsNoRows(err) {
-		return nil, err
-	} else if err != nil && IsNoRows(err) {
-		account, err = q.CreatePersonalAccount(ctx, "personal")
-		if err != nil {
-			return nil, err
-		}
-		_, err = q.CreateAccountUserAssociation(ctx, db_queries.CreateAccountUserAssociationParams{
-			AccountID: account.ID,
-			UserID:    userId,
-		})
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		_, err = q.GetAccountUserAssociation(ctx, db_queries.GetAccountUserAssociationParams{
-			AccountId: account.ID,
-			UserId:    userId,
-		})
+	var account *db_queries.NeosyncApiAccount
+	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+		account, err := d.Q.GetPersonalAccountByUserId(ctx, dbtx, userId)
 		if err != nil && !IsNoRows(err) {
-			return nil, err
+			return err
 		} else if err != nil && IsNoRows(err) {
-			_, err = q.CreateAccountUserAssociation(ctx, db_queries.CreateAccountUserAssociationParams{
+			account, err = d.Q.CreatePersonalAccount(ctx, dbtx, "personal")
+			if err != nil {
+				return err
+			}
+			_, err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
 				AccountID: account.ID,
 				UserID:    userId,
 			})
 			if err != nil {
-				return nil, err
+				return err
+			}
+		} else {
+			_, err = d.Q.GetAccountUserAssociation(ctx, dbtx, db_queries.GetAccountUserAssociationParams{
+				AccountId: account.ID,
+				UserId:    userId,
+			})
+			if err != nil && !IsNoRows(err) {
+				return err
+			} else if err != nil && IsNoRows(err) {
+				_, err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
+					AccountID: account.ID,
+					UserID:    userId,
+				})
+				if err != nil {
+					return err
+				}
 			}
 		}
-	}
-
-	if err := tx.Commit(ctx); err != nil {
+		return nil
+	}); err != nil {
 		return nil, err
 	}
-
-	return &account, nil
+	return account, nil
 }

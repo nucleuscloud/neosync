@@ -16,8 +16,8 @@ func (d *NucleusDb) SetSqlSourceSubsets(
 	schemas *mgmtv1alpha1.JobSourceSqlSubetSchemas,
 	userUuid pgtype.UUID,
 ) error {
-	return d.WithTx(ctx, nil, func(q *db_queries.Queries) error {
-		dbjob, err := q.GetJobById(ctx, jobId)
+	return d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+		dbjob, err := d.Q.GetJobById(ctx, dbtx, jobId)
 		if err != nil {
 			return err
 		}
@@ -37,7 +37,7 @@ func (d *NucleusDb) SetSqlSourceSubsets(
 			return fmt.Errorf("this connection config is not currently supported")
 		}
 
-		_, err = q.UpdateJobSource(ctx, db_queries.UpdateJobSourceParams{
+		_, err = d.Q.UpdateJobSource(ctx, dbtx, db_queries.UpdateJobSourceParams{
 			ID:                 jobId,
 			ConnectionSourceID: dbjob.ConnectionSourceID,
 			ConnectionOptions:  dbjob.ConnectionOptions,

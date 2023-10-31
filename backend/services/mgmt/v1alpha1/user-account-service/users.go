@@ -2,6 +2,8 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -15,12 +17,13 @@ func (s *Service) GetUser(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetUserRequest],
 ) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
+
 	if !s.cfg.IsAuthEnabled {
-		user, err := s.db.Q.GetAnonymousUser(ctx)
+		user, err := s.db.Q.GetAnonymousUser(ctx, s.db.Db)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, nucleuserrors.New(err)
 		} else if err != nil && nucleusdb.IsNoRows(err) {
-			user, err = s.db.Q.SetAnonymousUser(ctx)
+			user, err = s.db.Q.SetAnonymousUser(ctx, s.db.Db)
 			if err != nil {
 				return nil, err
 			}
@@ -35,12 +38,14 @@ func (s *Service) GetUser(
 		return nil, nucleuserrors.New(err)
 	}
 
-	user, err := s.db.Q.GetUserAssociationByAuth0Id(ctx, tokenCtxData.AuthUserId)
+	user, err := s.db.Q.GetUserAssociationByAuth0Id(ctx, s.db.Db, tokenCtxData.AuthUserId)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, nucleuserrors.New(err)
 	} else if err != nil && nucleusdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find user")
 	}
+	jsonF, _ := json.MarshalIndent(user, "", " ")
+	fmt.Printf("\n\n  %s \n\n", string(jsonF))
 
 	return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
 		UserId: nucleusdb.UUIDString(user.UserID),
@@ -52,7 +57,7 @@ func (s *Service) SetUser(
 	req *connect.Request[mgmtv1alpha1.SetUserRequest],
 ) (*connect.Response[mgmtv1alpha1.SetUserResponse], error) {
 	if !s.cfg.IsAuthEnabled {
-		user, err := s.db.Q.SetAnonymousUser(ctx)
+		user, err := s.db.Q.SetAnonymousUser(ctx, s.db.Db)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +93,7 @@ func (s *Service) GetUserAccounts(
 	if err != nil {
 		return nil, err
 	}
-	accounts, err := s.db.Q.GetAccountsByUser(ctx, userId)
+	accounts, err := s.db.Q.GetAccountsByUser(ctx, s.db.Db, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +171,7 @@ func (s *Service) IsUserInAccount(
 	if err != nil {
 		return nil, err
 	}
-	count, err := s.db.Q.IsUserInAccount(ctx, db_queries.IsUserInAccountParams{
+	count, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
 		AccountId: accountId,
 		UserId:    userId,
 	})

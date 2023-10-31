@@ -34,8 +34,8 @@ type CreateJobParams struct {
 	UpdatedByID        pgtype.UUID
 }
 
-func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (NeosyncApiJob, error) {
-	row := q.db.QueryRow(ctx, createJob,
+func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error) {
+	row := db.QueryRow(ctx, createJob,
 		arg.Name,
 		arg.AccountID,
 		arg.Status,
@@ -81,8 +81,8 @@ type CreateJobConnectionDestinationParams struct {
 	Options      *jsonmodels.JobDestinationOptions
 }
 
-func (q *Queries) CreateJobConnectionDestination(ctx context.Context, arg CreateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
-	row := q.db.QueryRow(ctx, createJobConnectionDestination, arg.JobID, arg.ConnectionID, arg.Options)
+func (q *Queries) CreateJobConnectionDestination(ctx context.Context, db DBTX, arg CreateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
+	row := db.QueryRow(ctx, createJobConnectionDestination, arg.JobID, arg.ConnectionID, arg.Options)
 	var i NeosyncApiJobDestinationConnectionAssociation
 	err := row.Scan(
 		&i.ID,
@@ -105,8 +105,8 @@ const getJobById = `-- name: GetJobById :one
 SELECT id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id from neosync_api.jobs WHERE id = $1
 `
 
-func (q *Queries) GetJobById(ctx context.Context, id pgtype.UUID) (NeosyncApiJob, error) {
-	row := q.db.QueryRow(ctx, getJobById, id)
+func (q *Queries) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJob, error) {
+	row := db.QueryRow(ctx, getJobById, id)
 	var i NeosyncApiJob
 	err := row.Scan(
 		&i.ID,
@@ -136,8 +136,8 @@ type GetJobByNameAndAccountParams struct {
 	JobName   string
 }
 
-func (q *Queries) GetJobByNameAndAccount(ctx context.Context, arg GetJobByNameAndAccountParams) (NeosyncApiJob, error) {
-	row := q.db.QueryRow(ctx, getJobByNameAndAccount, arg.AccountId, arg.JobName)
+func (q *Queries) GetJobByNameAndAccount(ctx context.Context, db DBTX, arg GetJobByNameAndAccountParams) (NeosyncApiJob, error) {
+	row := db.QueryRow(ctx, getJobByNameAndAccount, arg.AccountId, arg.JobName)
 	var i NeosyncApiJob
 	err := row.Scan(
 		&i.ID,
@@ -161,8 +161,8 @@ SELECT jdca.id, jdca.created_at, jdca.updated_at, jdca.job_id, jdca.connection_i
 WHERE jdca.id = $1
 `
 
-func (q *Queries) GetJobConnectionDestination(ctx context.Context, id pgtype.UUID) (NeosyncApiJobDestinationConnectionAssociation, error) {
-	row := q.db.QueryRow(ctx, getJobConnectionDestination, id)
+func (q *Queries) GetJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJobDestinationConnectionAssociation, error) {
+	row := db.QueryRow(ctx, getJobConnectionDestination, id)
 	var i NeosyncApiJobDestinationConnectionAssociation
 	err := row.Scan(
 		&i.ID,
@@ -181,8 +181,8 @@ INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
 WHERE j.id = $1
 `
 
-func (q *Queries) GetJobConnectionDestinations(ctx context.Context, id pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error) {
-	rows, err := q.db.Query(ctx, getJobConnectionDestinations, id)
+func (q *Queries) GetJobConnectionDestinations(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error) {
+	rows, err := db.Query(ctx, getJobConnectionDestinations, id)
 	if err != nil {
 		return nil, err
 	}
@@ -214,8 +214,8 @@ INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
 WHERE j.id = ANY($1::uuid[])
 `
 
-func (q *Queries) GetJobConnectionDestinationsByJobIds(ctx context.Context, jobids []pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error) {
-	rows, err := q.db.Query(ctx, getJobConnectionDestinationsByJobIds, jobids)
+func (q *Queries) GetJobConnectionDestinationsByJobIds(ctx context.Context, db DBTX, jobids []pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error) {
+	rows, err := db.Query(ctx, getJobConnectionDestinationsByJobIds, jobids)
 	if err != nil {
 		return nil, err
 	}
@@ -248,8 +248,8 @@ WHERE a.id = $1
 ORDER BY j.created_at DESC
 `
 
-func (q *Queries) GetJobsByAccount(ctx context.Context, accountid pgtype.UUID) ([]NeosyncApiJob, error) {
-	rows, err := q.db.Query(ctx, getJobsByAccount, accountid)
+func (q *Queries) GetJobsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiJob, error) {
+	rows, err := db.Query(ctx, getJobsByAccount, accountid)
 	if err != nil {
 		return nil, err
 	}
@@ -292,8 +292,8 @@ type IsJobNameAvailableParams struct {
 	JobName   string
 }
 
-func (q *Queries) IsJobNameAvailable(ctx context.Context, arg IsJobNameAvailableParams) (int64, error) {
-	row := q.db.QueryRow(ctx, isJobNameAvailable, arg.AccountId, arg.JobName)
+func (q *Queries) IsJobNameAvailable(ctx context.Context, db DBTX, arg IsJobNameAvailableParams) (int64, error) {
+	row := db.QueryRow(ctx, isJobNameAvailable, arg.AccountId, arg.JobName)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -303,8 +303,8 @@ const removeJobById = `-- name: RemoveJobById :exec
 DELETE FROM neosync_api.jobs WHERE id = $1
 `
 
-func (q *Queries) RemoveJobById(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, removeJobById, id)
+func (q *Queries) RemoveJobById(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	_, err := db.Exec(ctx, removeJobById, id)
 	return err
 }
 
@@ -312,8 +312,8 @@ const removeJobConnectionDestination = `-- name: RemoveJobConnectionDestination 
 DELETE FROM neosync_api.job_destination_connection_associations WHERE id = $1
 `
 
-func (q *Queries) RemoveJobConnectionDestination(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, removeJobConnectionDestination, id)
+func (q *Queries) RemoveJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	_, err := db.Exec(ctx, removeJobConnectionDestination, id)
 	return err
 }
 
@@ -322,8 +322,8 @@ DELETE FROM neosync_api.job_destination_connection_associations
 WHERE id = ANY($1::uuid[])
 `
 
-func (q *Queries) RemoveJobConnectionDestinations(ctx context.Context, jobids []pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, removeJobConnectionDestinations, jobids)
+func (q *Queries) RemoveJobConnectionDestinations(ctx context.Context, db DBTX, jobids []pgtype.UUID) error {
+	_, err := db.Exec(ctx, removeJobConnectionDestinations, jobids)
 	return err
 }
 
@@ -341,8 +341,8 @@ type UpdateJobConnectionDestinationParams struct {
 	ID           pgtype.UUID
 }
 
-func (q *Queries) UpdateJobConnectionDestination(ctx context.Context, arg UpdateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
-	row := q.db.QueryRow(ctx, updateJobConnectionDestination, arg.Options, arg.ConnectionID, arg.ID)
+func (q *Queries) UpdateJobConnectionDestination(ctx context.Context, db DBTX, arg UpdateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
+	row := db.QueryRow(ctx, updateJobConnectionDestination, arg.Options, arg.ConnectionID, arg.ID)
 	var i NeosyncApiJobDestinationConnectionAssociation
 	err := row.Scan(
 		&i.ID,
@@ -369,8 +369,8 @@ type UpdateJobMappingsParams struct {
 	ID          pgtype.UUID
 }
 
-func (q *Queries) UpdateJobMappings(ctx context.Context, arg UpdateJobMappingsParams) (NeosyncApiJob, error) {
-	row := q.db.QueryRow(ctx, updateJobMappings, arg.Mappings, arg.UpdatedByID, arg.ID)
+func (q *Queries) UpdateJobMappings(ctx context.Context, db DBTX, arg UpdateJobMappingsParams) (NeosyncApiJob, error) {
+	row := db.QueryRow(ctx, updateJobMappings, arg.Mappings, arg.UpdatedByID, arg.ID)
 	var i NeosyncApiJob
 	err := row.Scan(
 		&i.ID,
@@ -403,8 +403,8 @@ type UpdateJobScheduleParams struct {
 	ID           pgtype.UUID
 }
 
-func (q *Queries) UpdateJobSchedule(ctx context.Context, arg UpdateJobScheduleParams) (NeosyncApiJob, error) {
-	row := q.db.QueryRow(ctx, updateJobSchedule, arg.CronSchedule, arg.UpdatedByID, arg.ID)
+func (q *Queries) UpdateJobSchedule(ctx context.Context, db DBTX, arg UpdateJobScheduleParams) (NeosyncApiJob, error) {
+	row := db.QueryRow(ctx, updateJobSchedule, arg.CronSchedule, arg.UpdatedByID, arg.ID)
 	var i NeosyncApiJob
 	err := row.Scan(
 		&i.ID,
@@ -439,8 +439,8 @@ type UpdateJobSourceParams struct {
 	ID                 pgtype.UUID
 }
 
-func (q *Queries) UpdateJobSource(ctx context.Context, arg UpdateJobSourceParams) (NeosyncApiJob, error) {
-	row := q.db.QueryRow(ctx, updateJobSource,
+func (q *Queries) UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSourceParams) (NeosyncApiJob, error) {
+	row := db.QueryRow(ctx, updateJobSource,
 		arg.ConnectionSourceID,
 		arg.ConnectionOptions,
 		arg.UpdatedByID,

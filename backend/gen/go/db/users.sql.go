@@ -25,8 +25,8 @@ type CreateAccountUserAssociationParams struct {
 	UserID    pgtype.UUID
 }
 
-func (q *Queries) CreateAccountUserAssociation(ctx context.Context, arg CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
-	row := q.db.QueryRow(ctx, createAccountUserAssociation, arg.AccountID, arg.UserID)
+func (q *Queries) CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
+	row := db.QueryRow(ctx, createAccountUserAssociation, arg.AccountID, arg.UserID)
 	var i NeosyncApiAccountUserAssociation
 	err := row.Scan(
 		&i.ID,
@@ -52,8 +52,8 @@ type CreateAuth0IdentityProviderAssociationParams struct {
 	Auth0ProviderID string
 }
 
-func (q *Queries) CreateAuth0IdentityProviderAssociation(ctx context.Context, arg CreateAuth0IdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error) {
-	row := q.db.QueryRow(ctx, createAuth0IdentityProviderAssociation, arg.UserID, arg.Auth0ProviderID)
+func (q *Queries) CreateAuth0IdentityProviderAssociation(ctx context.Context, db DBTX, arg CreateAuth0IdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error) {
+	row := db.QueryRow(ctx, createAuth0IdentityProviderAssociation, arg.UserID, arg.Auth0ProviderID)
 	var i NeosyncApiUserIdentityProviderAssociation
 	err := row.Scan(
 		&i.ID,
@@ -74,8 +74,8 @@ INSERT INTO neosync_api.accounts (
 RETURNING id, created_at, updated_at, account_type, account_slug
 `
 
-func (q *Queries) CreatePersonalAccount(ctx context.Context, accountSlug string) (NeosyncApiAccount, error) {
-	row := q.db.QueryRow(ctx, createPersonalAccount, accountSlug)
+func (q *Queries) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, createPersonalAccount, accountSlug)
 	var i NeosyncApiAccount
 	err := row.Scan(
 		&i.ID,
@@ -96,8 +96,8 @@ INSERT INTO neosync_api.users (
 RETURNING id, created_at, updated_at
 `
 
-func (q *Queries) CreateUser(ctx context.Context) (NeosyncApiUser, error) {
-	row := q.db.QueryRow(ctx, createUser)
+func (q *Queries) CreateUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
+	row := db.QueryRow(ctx, createUser)
 	var i NeosyncApiUser
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
 	return i, err
@@ -108,8 +108,8 @@ SELECT id, created_at, updated_at, account_type, account_slug from neosync_api.a
 WHERE id = $1
 `
 
-func (q *Queries) GetAccount(ctx context.Context, id pgtype.UUID) (NeosyncApiAccount, error) {
-	row := q.db.QueryRow(ctx, getAccount, id)
+func (q *Queries) GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, getAccount, id)
 	var i NeosyncApiAccount
 	err := row.Scan(
 		&i.ID,
@@ -133,8 +133,8 @@ type GetAccountUserAssociationParams struct {
 	UserId    pgtype.UUID
 }
 
-func (q *Queries) GetAccountUserAssociation(ctx context.Context, arg GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
-	row := q.db.QueryRow(ctx, getAccountUserAssociation, arg.AccountId, arg.UserId)
+func (q *Queries) GetAccountUserAssociation(ctx context.Context, db DBTX, arg GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
+	row := db.QueryRow(ctx, getAccountUserAssociation, arg.AccountId, arg.UserId)
 	var i NeosyncApiAccountUserAssociation
 	err := row.Scan(
 		&i.ID,
@@ -153,8 +153,8 @@ INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1
 `
 
-func (q *Queries) GetAccountsByUser(ctx context.Context, id pgtype.UUID) ([]NeosyncApiAccount, error) {
-	rows, err := q.db.Query(ctx, getAccountsByUser, id)
+func (q *Queries) GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiAccount, error) {
+	rows, err := db.Query(ctx, getAccountsByUser, id)
 	if err != nil {
 		return nil, err
 	}
@@ -184,8 +184,8 @@ SELECT id, created_at, updated_at from neosync_api.users
 WHERE id = '00000000-0000-0000-0000-000000000000'
 `
 
-func (q *Queries) GetAnonymousUser(ctx context.Context) (NeosyncApiUser, error) {
-	row := q.db.QueryRow(ctx, getAnonymousUser)
+func (q *Queries) GetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
+	row := db.QueryRow(ctx, getAnonymousUser)
 	var i NeosyncApiUser
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
 	return i, err
@@ -198,8 +198,8 @@ INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1 AND a.account_type = 0
 `
 
-func (q *Queries) GetPersonalAccountByUserId(ctx context.Context, userid pgtype.UUID) (NeosyncApiAccount, error) {
-	row := q.db.QueryRow(ctx, getPersonalAccountByUserId, userid)
+func (q *Queries) GetPersonalAccountByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, getPersonalAccountByUserId, userid)
 	var i NeosyncApiAccount
 	err := row.Scan(
 		&i.ID,
@@ -216,8 +216,8 @@ SELECT id, created_at, updated_at FROM neosync_api.users
 WHERE id = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (NeosyncApiUser, error) {
-	row := q.db.QueryRow(ctx, getUser, id)
+func (q *Queries) GetUser(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiUser, error) {
+	row := db.QueryRow(ctx, getUser, id)
 	var i NeosyncApiUser
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
 	return i, err
@@ -228,8 +228,8 @@ SELECT id, user_id, auth0_provider_id, created_at, updated_at from neosync_api.u
 WHERE auth0_provider_id = $1
 `
 
-func (q *Queries) GetUserAssociationByAuth0Id(ctx context.Context, auth0ProviderID string) (NeosyncApiUserIdentityProviderAssociation, error) {
-	row := q.db.QueryRow(ctx, getUserAssociationByAuth0Id, auth0ProviderID)
+func (q *Queries) GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUserIdentityProviderAssociation, error) {
+	row := db.QueryRow(ctx, getUserAssociationByAuth0Id, auth0ProviderID)
 	var i NeosyncApiUserIdentityProviderAssociation
 	err := row.Scan(
 		&i.ID,
@@ -247,8 +247,8 @@ INNER JOIN neosync_api.user_identity_provider_associations uipa ON uipa.user_id 
 WHERE uipa.auth0_provider_id = $1
 `
 
-func (q *Queries) GetUserByAuth0Id(ctx context.Context, auth0ProviderID string) (NeosyncApiUser, error) {
-	row := q.db.QueryRow(ctx, getUserByAuth0Id, auth0ProviderID)
+func (q *Queries) GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error) {
+	row := db.QueryRow(ctx, getUserByAuth0Id, auth0ProviderID)
 	var i NeosyncApiUser
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
 	return i, err
@@ -266,8 +266,8 @@ type IsUserInAccountParams struct {
 	UserId    pgtype.UUID
 }
 
-func (q *Queries) IsUserInAccount(ctx context.Context, arg IsUserInAccountParams) (int64, error) {
-	row := q.db.QueryRow(ctx, isUserInAccount, arg.AccountId, arg.UserId)
+func (q *Queries) IsUserInAccount(ctx context.Context, db DBTX, arg IsUserInAccountParams) (int64, error) {
+	row := db.QueryRow(ctx, isUserInAccount, arg.AccountId, arg.UserId)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -285,8 +285,8 @@ DO
 RETURNING id, created_at, updated_at
 `
 
-func (q *Queries) SetAnonymousUser(ctx context.Context) (NeosyncApiUser, error) {
-	row := q.db.QueryRow(ctx, setAnonymousUser)
+func (q *Queries) SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
+	row := db.QueryRow(ctx, setAnonymousUser)
 	var i NeosyncApiUser
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
 	return i, err

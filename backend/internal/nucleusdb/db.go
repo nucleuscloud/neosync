@@ -13,21 +13,23 @@ import (
 )
 
 type DBTX interface {
+	Begin(ctx context.Context) (pgx.Tx, error)
+	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
+	Ping(ctx context.Context) error
+	BaseDBTX
+}
+
+type BaseDBTX interface {
 	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
 	Query(context.Context, string, ...any) (pgx.Rows, error)
 	QueryRow(context.Context, string, ...any) pgx.Row
-
-	Begin(ctx context.Context) (pgx.Tx, error)
-	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
-
-	Ping(ctx context.Context) error
 
 	CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
 }
 
 type NucleusDb struct {
-	db DBTX
-	Q  *db_queries.Queries
+	Db DBTX
+	Q  db_queries.Querier
 }
 
 type ConnectConfig struct {
@@ -39,10 +41,16 @@ type ConnectConfig struct {
 	SslMode  *string
 }
 
-func New(db DBTX) *NucleusDb {
+func New(db DBTX, q db_queries.Querier) *NucleusDb {
+	if q != nil {
+		return &NucleusDb{
+			Db: db,
+			Q:  q,
+		}
+	}
 	return &NucleusDb{
-		db: db,
-		Q:  db_queries.New(db),
+		Db: db,
+		Q:  db_queries.New(),
 	}
 }
 
@@ -51,13 +59,13 @@ func NewFromConfig(config *ConnectConfig) (*NucleusDb, error) {
 	if err != nil {
 		return nil, err
 	}
-	return New(pool), nil
+	return New(pool, nil), nil
 }
 
 func (d *NucleusDb) WithTx(
 	ctx context.Context,
 	opts *pgx.TxOptions,
-	fn func(q *db_queries.Queries) error,
+	fn func(db BaseDBTX) error,
 ) error {
 	tx, err := d.getTx(ctx, opts)
 	if err != nil {
@@ -65,7 +73,7 @@ func (d *NucleusDb) WithTx(
 	}
 	defer HandlePgxRollback(ctx, tx, slog.Default())
 
-	if err := fn(d.Q.WithTx(tx)); err != nil {
+	if err := fn(tx); err != nil {
 		return err
 	}
 	return tx.Commit(ctx)
@@ -76,9 +84,9 @@ func (d *NucleusDb) getTx(
 	opts *pgx.TxOptions,
 ) (pgx.Tx, error) {
 	if opts == nil {
-		return d.db.Begin(ctx)
+		return d.Db.Begin(ctx)
 	}
-	return d.db.BeginTx(ctx, *opts)
+	return d.Db.BeginTx(ctx, *opts)
 }
 
 type PgxRollbackInterface interface {
