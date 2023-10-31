@@ -4,6 +4,7 @@ import { handleTransformerMetadata } from '@/app/transformers/EditTransformerOpt
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
+import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -44,7 +45,11 @@ import {
   CreateCustomTransformerSchema,
 } from './schema';
 
-export default function NewTransformer(): ReactElement {
+export default function NewTransformer({ params }: PageProps): ReactElement {
+  const id = params?.id ?? '';
+
+  console.log('id', id);
+
   const [base, setBase] = useState<Transformer>(new Transformer());
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
 
