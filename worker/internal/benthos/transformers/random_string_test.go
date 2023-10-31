@@ -12,7 +12,7 @@ func TestRandomStringPreserveLengthTrue(t *testing.T) {
 	val := "hellothe"
 	expectedLength := 8
 
-	res, err := ProcessRandomString(val, true, 0)
+	res, err := ProcessRandomString(val, true, -1)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")
@@ -23,10 +23,10 @@ func TestRandomStringPreserveLengthFalse(t *testing.T) {
 	val := "hello"
 	expectedLength := 10
 
-	res, err := ProcessRandomString(val, false, 0)
+	res, err := ProcessRandomString(val, false, -1)
 
 	assert.NoError(t, err)
-	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")
+	assert.Equal(t, len(res), expectedLength, "The output string should be a default 10 characters long")
 
 }
 
@@ -43,7 +43,7 @@ func TestRandomStringPreserveLengthFalseStrLength(t *testing.T) {
 }
 
 func TestRandomStringTransformer(t *testing.T) {
-	mapping := `root = this.randomstringtransformer(true, 6)`
+	mapping := `root = this.randomstringtransformer(true, -1)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random string transformer")
 
