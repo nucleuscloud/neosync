@@ -19,7 +19,7 @@ func NewInterceptor(logger *slog.Logger) connect.Interceptor {
 
 func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return func(ctx context.Context, request connect.AnyRequest) (connect.AnyResponse, error) {
-		newCtx := context.WithValue(ctx, loggerContextKey{}, &loggerContextData{logger: i.logger.With()})
+		newCtx := setLoggerContext(ctx, clonelogger(i.logger))
 		return next(newCtx, request)
 	}
 }
@@ -32,7 +32,12 @@ func (i *Interceptor) WrapStreamingClient(next connect.StreamingClientFunc) conn
 
 func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
 	return func(ctx context.Context, conn connect.StreamingHandlerConn) error {
-		newCtx := context.WithValue(ctx, loggerContextKey{}, &loggerContextData{logger: i.logger.With()})
+		newCtx := setLoggerContext(ctx, clonelogger(i.logger))
 		return next(newCtx, conn)
 	}
+}
+
+func clonelogger(logger *slog.Logger) *slog.Logger {
+	c := *logger
+	return &c
 }
