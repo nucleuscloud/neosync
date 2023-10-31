@@ -249,12 +249,14 @@ func (s *Service) GetJobStatuses(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, req.Msg.AccountId, logger)
-	if err != nil {
-		return nil, err
+	var scheduleclient temporalclient.ScheduleClient
+	if len(jobs) > 0 {
+		tclient, err := s.temporalWfManager.GetClientByAccount(ctx, req.Msg.AccountId, logger)
+		if err != nil {
+			return nil, err
+		}
+		scheduleclient = tclient.ScheduleClient()
 	}
-
-	scheduleclient := tclient.ScheduleClient()
 
 	dtos := make([]*mgmtv1alpha1.JobStatusRecord, len(jobs))
 	group := new(errgroup.Group)
