@@ -37,7 +37,7 @@ func (s *Service) GetJobRuns(
 		if err != nil {
 			return nil, err
 		}
-		job, err := s.db.Q.GetJobById(ctx, jobUuid)
+		job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +52,7 @@ func (s *Service) GetJobRuns(
 		if err != nil {
 			return nil, err
 		}
-		jobs, err := s.db.Q.GetJobsByAccount(ctx, accountUuid)
+		jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, accountUuid)
 		if err != nil {
 			return nil, err
 		}
@@ -241,7 +241,7 @@ func (s *Service) CreateJobRun(
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +344,7 @@ func (s *Service) getVerifiedJobRun(
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil {
 		return nil, err
 	}

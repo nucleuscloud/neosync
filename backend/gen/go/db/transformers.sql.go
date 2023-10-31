@@ -31,8 +31,8 @@ type CreateCustomTransformerParams struct {
 	UpdatedByID       pgtype.UUID
 }
 
-func (q *Queries) CreateCustomTransformer(ctx context.Context, arg CreateCustomTransformerParams) (NeosyncApiTransformer, error) {
-	row := q.db.QueryRow(ctx, createCustomTransformer,
+func (q *Queries) CreateCustomTransformer(ctx context.Context, db DBTX, arg CreateCustomTransformerParams) (NeosyncApiTransformer, error) {
+	row := db.QueryRow(ctx, createCustomTransformer,
 		arg.Name,
 		arg.Description,
 		arg.Type,
@@ -61,8 +61,8 @@ const deleteCustomTransformerById = `-- name: DeleteCustomTransformerById :exec
 DELETE FROM neosync_api.transformers WHERE id = $1
 `
 
-func (q *Queries) DeleteCustomTransformerById(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, deleteCustomTransformerById, id)
+func (q *Queries) DeleteCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	_, err := db.Exec(ctx, deleteCustomTransformerById, id)
 	return err
 }
 
@@ -73,8 +73,8 @@ WHERE a.id = $1
 ORDER BY t.created_at DESC
 `
 
-func (q *Queries) GetCustomTransformersByAccount(ctx context.Context, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
-	rows, err := q.db.Query(ctx, getCustomTransformersByAccount, accountid)
+func (q *Queries) GetCustomTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
+	rows, err := db.Query(ctx, getCustomTransformersByAccount, accountid)
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +108,8 @@ const getCustomTransformersById = `-- name: GetCustomTransformersById :one
 SELECT id, created_at, updated_at, name, description, type, account_id, transformer_config, created_by_id, updated_by_id from neosync_api.transformers WHERE id = $1
 `
 
-func (q *Queries) GetCustomTransformersById(ctx context.Context, id pgtype.UUID) (NeosyncApiTransformer, error) {
-	row := q.db.QueryRow(ctx, getCustomTransformersById, id)
+func (q *Queries) GetCustomTransformersById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
+	row := db.QueryRow(ctx, getCustomTransformersById, id)
 	var i NeosyncApiTransformer
 	err := row.Scan(
 		&i.ID,
@@ -137,8 +137,8 @@ type IsTransformerNameAvailableParams struct {
 	TransformerName string
 }
 
-func (q *Queries) IsTransformerNameAvailable(ctx context.Context, arg IsTransformerNameAvailableParams) (int64, error) {
-	row := q.db.QueryRow(ctx, isTransformerNameAvailable, arg.AccountId, arg.TransformerName)
+func (q *Queries) IsTransformerNameAvailable(ctx context.Context, db DBTX, arg IsTransformerNameAvailableParams) (int64, error) {
+	row := db.QueryRow(ctx, isTransformerNameAvailable, arg.AccountId, arg.TransformerName)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -163,8 +163,8 @@ type UpdateCustomTransformerParams struct {
 	ID                pgtype.UUID
 }
 
-func (q *Queries) UpdateCustomTransformer(ctx context.Context, arg UpdateCustomTransformerParams) (NeosyncApiTransformer, error) {
-	row := q.db.QueryRow(ctx, updateCustomTransformer,
+func (q *Queries) UpdateCustomTransformer(ctx context.Context, db DBTX, arg UpdateCustomTransformerParams) (NeosyncApiTransformer, error) {
+	row := db.QueryRow(ctx, updateCustomTransformer,
 		arg.Name,
 		arg.Description,
 		arg.TransformerConfig,

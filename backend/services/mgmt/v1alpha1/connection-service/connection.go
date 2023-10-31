@@ -120,7 +120,7 @@ func (s *Service) IsConnectionNameAvailable(
 		return nil, err
 	}
 
-	count, err := s.db.Q.IsConnectionNameAvailable(ctx, db_queries.IsConnectionNameAvailableParams{
+	count, err := s.db.Q.IsConnectionNameAvailable(ctx, s.db.Db, db_queries.IsConnectionNameAvailableParams{
 		AccountId:      *accountUuid,
 		ConnectionName: req.Msg.ConnectionName,
 	})
@@ -142,7 +142,7 @@ func (s *Service) GetConnections(
 		return nil, err
 	}
 
-	connections, err := s.db.Q.GetConnectionsByAccount(ctx, *accountUuid)
+	connections, err := s.db.Q.GetConnectionsByAccount(ctx, s.db.Db, *accountUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (s *Service) GetConnection(
 		return nil, err
 	}
 
-	connection, err := s.db.Q.GetConnectionById(ctx, idUuid)
+	connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, idUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -203,7 +203,7 @@ func (s *Service) CreateConnection(
 		return nil, err
 	}
 
-	connection, err := s.db.Q.CreateConnection(ctx, db_queries.CreateConnectionParams{
+	connection, err := s.db.Q.CreateConnection(ctx, s.db.Db, db_queries.CreateConnectionParams{
 		AccountID:        *accountUuid,
 		Name:             req.Msg.Name,
 		ConnectionConfig: cc,
@@ -227,7 +227,7 @@ func (s *Service) UpdateConnection(
 	if err != nil {
 		return nil, err
 	}
-	connection, err := s.db.Q.GetConnectionById(ctx, connectionUuid)
+	connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, connectionUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -249,7 +249,7 @@ func (s *Service) UpdateConnection(
 		return nil, err
 	}
 
-	connection, err = s.db.Q.UpdateConnection(ctx, db_queries.UpdateConnectionParams{
+	connection, err = s.db.Q.UpdateConnection(ctx, s.db.Db, db_queries.UpdateConnectionParams{
 		ID:               connection.ID,
 		ConnectionConfig: cc,
 		UpdatedByID:      *userUuid,
@@ -272,7 +272,7 @@ func (s *Service) DeleteConnection(
 		return nil, err
 	}
 
-	connection, err := s.db.Q.GetConnectionById(ctx, idUuid)
+	connection, err := s.db.Q.GetConnectionById(ctx, s.db.Db, idUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -284,7 +284,7 @@ func (s *Service) DeleteConnection(
 		return nil, err
 	}
 
-	err = s.db.Q.RemoveConnectionById(ctx, connection.ID)
+	err = s.db.Q.RemoveConnectionById(ctx, s.db.Db, connection.ID)
 	if err != nil {
 		return nil, err
 	}

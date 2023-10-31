@@ -166,7 +166,7 @@ func (s *Service) GetCustomTransformers(
 		return nil, err
 	}
 
-	transformers, err := s.db.Q.GetCustomTransformersByAccount(ctx, *accountUuid)
+	transformers, err := s.db.Q.GetCustomTransformersByAccount(ctx, s.db.Db, *accountUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +209,7 @@ func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	ct, err := s.db.Q.CreateCustomTransformer(ctx, *customTransformer)
+	ct, err := s.db.Q.CreateCustomTransformer(ctx, s.db.Db, *customTransformer)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (s *Service) DeleteCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	transformer, err := s.db.Q.GetCustomTransformersById(ctx, tId)
+	transformer, err := s.db.Q.GetCustomTransformersById(ctx, s.db.Db, tId)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -242,7 +242,7 @@ func (s *Service) DeleteCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	err = s.db.Q.DeleteCustomTransformerById(ctx, transformer.ID)
+	err = s.db.Q.DeleteCustomTransformerById(ctx, s.db.Db, transformer.ID)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -259,7 +259,7 @@ func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Requ
 	if err != nil {
 		return nil, err
 	}
-	transformer, err := s.db.Q.GetCustomTransformersById(ctx, tUuid)
+	transformer, err := s.db.Q.GetCustomTransformersById(ctx, s.db.Db, tUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -289,7 +289,7 @@ func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	t, err := s.db.Q.UpdateCustomTransformer(ctx, *customTransformer)
+	t, err := s.db.Q.UpdateCustomTransformer(ctx, s.db.Db, *customTransformer)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +306,7 @@ func (s *Service) IsTransformerNameAvailable(ctx context.Context, req *connect.R
 		return nil, err
 	}
 
-	count, err := s.db.Q.IsTransformerNameAvailable(ctx, db_queries.IsTransformerNameAvailableParams{
+	count, err := s.db.Q.IsTransformerNameAvailable(ctx, s.db.Db, db_queries.IsTransformerNameAvailableParams{
 		AccountId:       *accountUuid,
 		TransformerName: req.Msg.TransformerName,
 	})

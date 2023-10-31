@@ -34,7 +34,7 @@ func (s *Service) GetJobs(
 	if err != nil {
 		return nil, err
 	}
-	jobs, err := s.db.Q.GetJobsByAccount(ctx, *accountUuid)
+	jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, *accountUuid)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -48,7 +48,7 @@ func (s *Service) GetJobs(
 
 	var destinationAssociations []db_queries.NeosyncApiJobDestinationConnectionAssociation
 	if len(jobIds) > 0 {
-		destinationAssociations, err = s.db.Q.GetJobConnectionDestinationsByJobIds(ctx, jobIds)
+		destinationAssociations, err = s.db.Q.GetJobConnectionDestinationsByJobIds(ctx, s.db.Db, jobIds)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, err
@@ -96,7 +96,7 @@ func (s *Service) GetJob(
 
 	var job db_queries.NeosyncApiJob
 	errgrp.Go(func() error {
-		j, err := s.db.Q.GetJobById(errctx, jobUuid)
+		j, err := s.db.Q.GetJobById(errctx, s.db.Db, jobUuid)
 		if err != nil {
 			return err
 		}
@@ -105,7 +105,7 @@ func (s *Service) GetJob(
 	})
 	var destConnections []db_queries.NeosyncApiJobDestinationConnectionAssociation
 	errgrp.Go(func() error {
-		dcs, err := s.db.Q.GetJobConnectionDestinations(ctx, jobUuid)
+		dcs, err := s.db.Q.GetJobConnectionDestinations(ctx, s.db.Db, jobUuid)
 		if err != nil {
 			return err
 		}
@@ -139,7 +139,7 @@ func (s *Service) GetJobStatus(
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +169,7 @@ func (s *Service) GetJobStatuses(
 	if err != nil {
 		return nil, err
 	}
-	jobs, err := s.db.Q.GetJobsByAccount(ctx, *accountUuid)
+	jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, *accountUuid)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, err
@@ -213,7 +213,7 @@ func (s *Service) GetJobRecentRuns(
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func (s *Service) GetJobNextRuns(
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil {
 		return nil, err
 	}
@@ -349,8 +349,8 @@ func (s *Service) CreateJob(
 	// todo: verify connection ids are all in this account
 
 	var createdJob *db_queries.NeosyncApiJob
-	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
-		job, err := q.CreateJob(ctx, db_queries.CreateJobParams{
+	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
+		job, err := s.db.Q.CreateJob(ctx, dbtx, db_queries.CreateJobParams{
 			Name:               req.Msg.JobName,
 			AccountID:          *accountUuid,
 			Status:             int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
@@ -374,7 +374,7 @@ func (s *Service) CreateJob(
 			})
 		}
 		if len(connDestParams) > 0 {
-			_, err = q.CreateJobConnectionDestinations(ctx, connDestParams)
+			_, err = s.db.Q.CreateJobConnectionDestinations(ctx, dbtx, connDestParams)
 			if err != nil {
 				return err
 			}
@@ -421,7 +421,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	destinationConnections, err := s.db.Q.GetJobConnectionDestinations(ctx, createdJob.ID)
+	destinationConnections, err := s.db.Q.GetJobConnectionDestinations(ctx, s.db.Db, createdJob.ID)
 	if err != nil {
 		logger.Error("unable to retrieve job destination connections")
 	}
@@ -442,7 +442,7 @@ func (s *Service) DeleteJob(
 		return nil, err
 	}
 
-	job, err := s.db.Q.GetJobById(ctx, idUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, idUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -497,7 +497,7 @@ func (s *Service) DeleteJob(
 	}
 
 	logger.Info("deleting job")
-	err = s.db.Q.RemoveJobById(ctx, job.ID)
+	err = s.db.Q.RemoveJobById(ctx, s.db.Db, job.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -562,7 +562,7 @@ func (s *Service) CreateJobDestinationConnections(
 		})
 	}
 	if len(connDestParams) > 0 {
-		_, err = s.db.Q.CreateJobConnectionDestinations(ctx, connDestParams)
+		_, err = s.db.Q.CreateJobConnectionDestinations(ctx, s.db.Db, connDestParams)
 		if err != nil {
 			return nil, err
 		}
@@ -591,7 +591,7 @@ func (s *Service) UpdateJobSchedule(
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -616,8 +616,8 @@ func (s *Service) UpdateJobSchedule(
 		}
 	}
 
-	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
-		_, err = q.UpdateJobSchedule(ctx, db_queries.UpdateJobScheduleParams{
+	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
+		_, err = s.db.Q.UpdateJobSchedule(ctx, dbtx, db_queries.UpdateJobScheduleParams{
 			ID:           job.ID,
 			CronSchedule: cron,
 			UpdatedByID:  *userUuid,
@@ -673,7 +673,7 @@ func (s *Service) PauseJob(
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -724,7 +724,7 @@ func (s *Service) UpdateJobSourceConnection(
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -765,8 +765,8 @@ func (s *Service) UpdateJobSourceConnection(
 		mappings = append(mappings, jm)
 	}
 
-	if err := s.db.WithTx(ctx, nil, func(q *db_queries.Queries) error {
-		_, err = q.UpdateJobSource(ctx, db_queries.UpdateJobSourceParams{
+	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
+		_, err = s.db.Q.UpdateJobSource(ctx, dbtx, db_queries.UpdateJobSourceParams{
 			ID:                 job.ID,
 			ConnectionSourceID: connectionUuid,
 			ConnectionOptions:  connectionOptions,
@@ -778,7 +778,7 @@ func (s *Service) UpdateJobSourceConnection(
 			return err
 		}
 
-		_, err = q.UpdateJobMappings(ctx, db_queries.UpdateJobMappingsParams{
+		_, err = s.db.Q.UpdateJobMappings(ctx, dbtx, db_queries.UpdateJobMappingsParams{
 			ID:          job.ID,
 			Mappings:    mappings,
 			UpdatedByID: *userUuid,
@@ -817,7 +817,7 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 	if err != nil {
 		return nil, err
 	}
-	job, err := s.db.Q.GetJobById(ctx, jobUuid)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -914,7 +914,7 @@ func (s *Service) UpdateJobDestinationConnection(
 	}
 
 	logger.Info("updating job destination connection")
-	_, err = s.db.Q.UpdateJobConnectionDestination(ctx, db_queries.UpdateJobConnectionDestinationParams{
+	_, err = s.db.Q.UpdateJobConnectionDestination(ctx, s.db.Db, db_queries.UpdateJobConnectionDestinationParams{
 		ID:           destinationUuid,
 		ConnectionID: connectionUuid,
 		Options:      options,
@@ -923,7 +923,7 @@ func (s *Service) UpdateJobDestinationConnection(
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
 		logger.Info("destination not found. creating job destination connection")
-		_, err = s.db.Q.CreateJobConnectionDestination(ctx, db_queries.CreateJobConnectionDestinationParams{
+		_, err = s.db.Q.CreateJobConnectionDestination(ctx, s.db.Db, db_queries.CreateJobConnectionDestinationParams{
 			JobID:        jobUuid,
 			ConnectionID: connectionUuid,
 			Options:      options,
@@ -957,14 +957,14 @@ func (s *Service) DeleteJobDestinationConnection(
 		return nil, err
 	}
 
-	destination, err := s.db.Q.GetJobConnectionDestination(ctx, destinationUuid)
+	destination, err := s.db.Q.GetJobConnectionDestination(ctx, s.db.Db, destinationUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
 		return nil, nucleuserrors.NewNotFound("unable to find job destination by id")
 	}
 
-	job, err := s.db.Q.GetJobById(ctx, destination.JobID)
+	job, err := s.db.Q.GetJobById(ctx, s.db.Db, destination.JobID)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -989,7 +989,7 @@ func (s *Service) DeleteJobDestinationConnection(
 	}
 
 	logger.Info("deleting job destination connection")
-	err = s.db.Q.RemoveJobConnectionDestination(ctx, destinationUuid)
+	err = s.db.Q.RemoveJobConnectionDestination(ctx, s.db.Db, destinationUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -1008,7 +1008,7 @@ func (s *Service) IsJobNameAvailable(
 		return nil, err
 	}
 
-	count, err := s.db.Q.IsJobNameAvailable(ctx, db_queries.IsJobNameAvailableParams{
+	count, err := s.db.Q.IsJobNameAvailable(ctx, s.db.Db, db_queries.IsJobNameAvailableParams{
 		AccountId: *accountUuid,
 		JobName:   req.Msg.Name,
 	})
@@ -1035,7 +1035,7 @@ func (s *Service) verifyConnectionInAccount(
 		return err
 	}
 
-	count, err := s.db.Q.IsConnectionInAccount(ctx, db_queries.IsConnectionInAccountParams{
+	count, err := s.db.Q.IsConnectionInAccount(ctx, s.db.Db, db_queries.IsConnectionInAccountParams{
 		AccountId:    accountUuid,
 		ConnectionId: connectionUuid,
 	})
@@ -1101,7 +1101,7 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 	dests := make([]db_queries.NeosyncApiConnection, len(destinations))
 	group := new(errgroup.Group)
 	group.Go(func() error {
-		source, err := db.Q.GetConnectionById(ctx, sourceConnId)
+		source, err := db.Q.GetConnectionById(ctx, db.Db, sourceConnId)
 		if err != nil {
 			return err
 		}
@@ -1112,7 +1112,7 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 		i := i
 		d := destinations[i]
 		group.Go(func() error {
-			connection, err := db.Q.GetConnectionById(ctx, d.ConnectionId)
+			connection, err := db.Q.GetConnectionById(ctx, db.Db, d.ConnectionId)
 			if err != nil {
 				return err
 			}

@@ -53,7 +53,7 @@ func Test_GetTokenDataFromCtx_Unauthenticated(t *testing.T) {
 
 func Test_GetTokenDataFromCtx_Authenticated(t *testing.T) {
 	data := &TokenContextData{}
-	ctx := context.WithValue(context.Background(), tokenContextKey{}, data)
+	ctx := context.WithValue(context.Background(), TokenContextKey{}, data)
 
 	ctxdata, err := GetTokenDataFromCtx(ctx)
 	assert.Nil(t, err)

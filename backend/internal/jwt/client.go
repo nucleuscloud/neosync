@@ -73,7 +73,7 @@ func (j *Client) validateToken(ctx context.Context, accessToken string) (*valida
 	return validatedClaims, nil
 }
 
-type tokenContextKey struct{}
+type TokenContextKey struct{}
 
 type TokenContextData struct {
 	ParsedToken *validator.ValidatedClaims
@@ -138,7 +138,7 @@ func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header) (contex
 	scopes := getCombinedScopesAndPermissions(claims.Scope, claims.Permissions)
 	userId := parsedToken.RegisteredClaims.Subject
 
-	newCtx := context.WithValue(ctx, tokenContextKey{}, &TokenContextData{
+	newCtx := context.WithValue(ctx, TokenContextKey{}, &TokenContextData{
 		ParsedToken: parsedToken,
 		RawToken:    token,
 
@@ -169,7 +169,7 @@ func getCombinedScopesAndPermissions(scope string, permissions []string) []strin
 }
 
 func GetTokenDataFromCtx(ctx context.Context) (*TokenContextData, error) {
-	data, ok := ctx.Value(tokenContextKey{}).(*TokenContextData)
+	data, ok := ctx.Value(TokenContextKey{}).(*TokenContextData)
 	if !ok {
 		return nil, nucleuserrors.NewUnauthenticated("ctx does not contain TokenContextData or unable to cast struct")
 	}

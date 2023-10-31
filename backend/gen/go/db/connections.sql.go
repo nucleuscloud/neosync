@@ -29,8 +29,8 @@ type CreateConnectionParams struct {
 	UpdatedByID      pgtype.UUID
 }
 
-func (q *Queries) CreateConnection(ctx context.Context, arg CreateConnectionParams) (NeosyncApiConnection, error) {
-	row := q.db.QueryRow(ctx, createConnection,
+func (q *Queries) CreateConnection(ctx context.Context, db DBTX, arg CreateConnectionParams) (NeosyncApiConnection, error) {
+	row := db.QueryRow(ctx, createConnection,
 		arg.Name,
 		arg.AccountID,
 		arg.ConnectionConfig,
@@ -55,8 +55,8 @@ const getConnectionById = `-- name: GetConnectionById :one
 SELECT id, created_at, updated_at, name, account_id, connection_config, created_by_id, updated_by_id from neosync_api.connections WHERE id = $1
 `
 
-func (q *Queries) GetConnectionById(ctx context.Context, id pgtype.UUID) (NeosyncApiConnection, error) {
-	row := q.db.QueryRow(ctx, getConnectionById, id)
+func (q *Queries) GetConnectionById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiConnection, error) {
+	row := db.QueryRow(ctx, getConnectionById, id)
 	var i NeosyncApiConnection
 	err := row.Scan(
 		&i.ID,
@@ -82,8 +82,8 @@ type GetConnectionByNameAndAccountParams struct {
 	ConnectionName string
 }
 
-func (q *Queries) GetConnectionByNameAndAccount(ctx context.Context, arg GetConnectionByNameAndAccountParams) (NeosyncApiConnection, error) {
-	row := q.db.QueryRow(ctx, getConnectionByNameAndAccount, arg.AccountId, arg.ConnectionName)
+func (q *Queries) GetConnectionByNameAndAccount(ctx context.Context, db DBTX, arg GetConnectionByNameAndAccountParams) (NeosyncApiConnection, error) {
+	row := db.QueryRow(ctx, getConnectionByNameAndAccount, arg.AccountId, arg.ConnectionName)
 	var i NeosyncApiConnection
 	err := row.Scan(
 		&i.ID,
@@ -105,8 +105,8 @@ WHERE a.id = $1
 ORDER BY c.created_at DESC
 `
 
-func (q *Queries) GetConnectionsByAccount(ctx context.Context, accountid pgtype.UUID) ([]NeosyncApiConnection, error) {
-	rows, err := q.db.Query(ctx, getConnectionsByAccount, accountid)
+func (q *Queries) GetConnectionsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiConnection, error) {
+	rows, err := db.Query(ctx, getConnectionsByAccount, accountid)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +145,8 @@ type IsConnectionInAccountParams struct {
 	ConnectionId pgtype.UUID
 }
 
-func (q *Queries) IsConnectionInAccount(ctx context.Context, arg IsConnectionInAccountParams) (int64, error) {
-	row := q.db.QueryRow(ctx, isConnectionInAccount, arg.AccountId, arg.ConnectionId)
+func (q *Queries) IsConnectionInAccount(ctx context.Context, db DBTX, arg IsConnectionInAccountParams) (int64, error) {
+	row := db.QueryRow(ctx, isConnectionInAccount, arg.AccountId, arg.ConnectionId)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -163,8 +163,8 @@ type IsConnectionNameAvailableParams struct {
 	ConnectionName string
 }
 
-func (q *Queries) IsConnectionNameAvailable(ctx context.Context, arg IsConnectionNameAvailableParams) (int64, error) {
-	row := q.db.QueryRow(ctx, isConnectionNameAvailable, arg.AccountId, arg.ConnectionName)
+func (q *Queries) IsConnectionNameAvailable(ctx context.Context, db DBTX, arg IsConnectionNameAvailableParams) (int64, error) {
+	row := db.QueryRow(ctx, isConnectionNameAvailable, arg.AccountId, arg.ConnectionName)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -174,8 +174,8 @@ const removeConnectionById = `-- name: RemoveConnectionById :exec
 DELETE FROM neosync_api.connections WHERE id = $1
 `
 
-func (q *Queries) RemoveConnectionById(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, removeConnectionById, id)
+func (q *Queries) RemoveConnectionById(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	_, err := db.Exec(ctx, removeConnectionById, id)
 	return err
 }
 
@@ -188,8 +188,8 @@ type RemoveConnectionByNameAndAccountParams struct {
 	AccountID pgtype.UUID
 }
 
-func (q *Queries) RemoveConnectionByNameAndAccount(ctx context.Context, arg RemoveConnectionByNameAndAccountParams) error {
-	_, err := q.db.Exec(ctx, removeConnectionByNameAndAccount, arg.Name, arg.AccountID)
+func (q *Queries) RemoveConnectionByNameAndAccount(ctx context.Context, db DBTX, arg RemoveConnectionByNameAndAccountParams) error {
+	_, err := db.Exec(ctx, removeConnectionByNameAndAccount, arg.Name, arg.AccountID)
 	return err
 }
 
@@ -207,8 +207,8 @@ type UpdateConnectionParams struct {
 	ID               pgtype.UUID
 }
 
-func (q *Queries) UpdateConnection(ctx context.Context, arg UpdateConnectionParams) (NeosyncApiConnection, error) {
-	row := q.db.QueryRow(ctx, updateConnection, arg.ConnectionConfig, arg.UpdatedByID, arg.ID)
+func (q *Queries) UpdateConnection(ctx context.Context, db DBTX, arg UpdateConnectionParams) (NeosyncApiConnection, error) {
+	row := db.QueryRow(ctx, updateConnection, arg.ConnectionConfig, arg.UpdatedByID, arg.ID)
 	var i NeosyncApiConnection
 	err := row.Scan(
 		&i.ID,
