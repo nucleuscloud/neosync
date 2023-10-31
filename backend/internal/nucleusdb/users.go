@@ -11,7 +11,7 @@ func (d *NucleusDb) SetUserByAuth0Id(
 	ctx context.Context,
 	auth0UserId string,
 ) (*db_queries.NeosyncApiUser, error) {
-	var user *db_queries.NeosyncApiUser
+	var userResp *db_queries.NeosyncApiUser
 	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
 		user, err := d.Q.GetUserByAuth0Id(ctx, dbtx, auth0UserId)
 		if err != nil && !IsNoRows(err) {
@@ -26,6 +26,7 @@ func (d *NucleusDb) SetUserByAuth0Id(
 				if err != nil {
 					return err
 				}
+				userResp = &user
 				association, err = d.Q.CreateAuth0IdentityProviderAssociation(ctx, dbtx, db_queries.CreateAuth0IdentityProviderAssociationParams{
 					UserID:          user.ID,
 					Auth0ProviderID: auth0UserId,
@@ -45,21 +46,22 @@ func (d *NucleusDb) SetUserByAuth0Id(
 						return err
 					}
 				}
+				userResp = &user
 			}
+			userResp = &user
 		}
 		return nil
 	}); err != nil {
 		return nil, err
 	}
-	return user, nil
+	return userResp, nil
 }
 
 func (d *NucleusDb) SetPersonalAccount(
 	ctx context.Context,
 	userId pgtype.UUID,
 ) (*db_queries.NeosyncApiAccount, error) {
-
-	var account *db_queries.NeosyncApiAccount
+	var personalAccount *db_queries.NeosyncApiAccount
 	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
 		account, err := d.Q.GetPersonalAccountByUserId(ctx, dbtx, userId)
 		if err != nil && !IsNoRows(err) {
@@ -69,6 +71,7 @@ func (d *NucleusDb) SetPersonalAccount(
 			if err != nil {
 				return err
 			}
+			personalAccount = &account
 			_, err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
 				AccountID: account.ID,
 				UserID:    userId,
@@ -93,9 +96,10 @@ func (d *NucleusDb) SetPersonalAccount(
 				}
 			}
 		}
+		personalAccount = &account
 		return nil
 	}); err != nil {
 		return nil, err
 	}
-	return account, nil
+	return personalAccount, nil
 }
