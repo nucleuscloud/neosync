@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -103,24 +104,13 @@ func (s *Service) GetUserAccounts(
 		dtoAccounts = append(dtoAccounts, &mgmtv1alpha1.UserAccount{
 			Id:   nucleusdb.UUIDString(account.ID),
 			Name: account.AccountSlug,
-			Type: toAccountTypeDto(account.AccountType),
+			Type: dtomaps.ToAccountTypeDto(account.AccountType),
 		})
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetUserAccountsResponse{
 		Accounts: dtoAccounts,
 	}), nil
-}
-
-func toAccountTypeDto(aType int16) mgmtv1alpha1.UserAccountType {
-	switch aType {
-	case 0:
-		return mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_PERSONAL
-	case 1:
-		return mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_TEAM
-	default:
-		return mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_UNSPECIFIED
-	}
 }
 
 func (s *Service) ConvertPersonalToTeamAccount(
