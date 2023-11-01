@@ -179,3 +179,14 @@ async function isTransformerNameAvailable(
   }
   return IsTransformerNameAvailableResponse.fromJson(await res.json());
 }
+
+export const SYSTEM_TRANSFORMER_SCHEMA = Yup.object({
+  name: Yup.string(),
+  type: Yup.string(),
+  description: Yup.string().required(),
+  config: transformerConfig,
+});
+
+export type SystemTransformersSchema = Yup.InferType<
+  typeof SYSTEM_TRANSFORMER_SCHEMA
+>;

@@ -7,6 +7,7 @@ import { PlainMessage } from '@bufbuild/protobuf';
 import { ColumnDef } from '@tanstack/react-table';
 import { handleTransformerMetadata } from '../../EditTransformerOptions';
 import { DataTableColumnHeader } from './data-table-column-header';
+import { DataTableRowActions } from './data-table-row-actions';
 
 export function getSystemTransformerColumns(): ColumnDef<
   PlainMessage<Transformer>
@@ -82,13 +83,9 @@ export function getSystemTransformerColumns(): ColumnDef<
         );
       },
     },
-    // {
-    //   id: 'actions',
-    //   cell: ({ row }) => (
-    //     <DataTableRowActions
-    //       row={row}
-    //     />
-    //   ),
-    // },
+    {
+      id: 'actions',
+      cell: ({ row }) => <DataTableRowActions row={row} />,
+    },
   ];
 }

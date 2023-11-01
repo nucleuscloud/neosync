@@ -13,31 +13,32 @@ import CustomUuidTransformerForm from './CustomUuidTransformerForm';
 
 // handles rendering custom tranformer configs
 export function handleCustomTransformerForm(
-  value: string | undefined
+  value: string | undefined,
+  disabled?: boolean
 ): ReactElement {
   switch (value) {
     case 'email':
-      return <CustomEmailTransformerForm />;
+      return <CustomEmailTransformerForm isDisabled={disabled} />;
     case 'uuid':
-      return <CustomUuidTransformerForm />;
+      return <CustomUuidTransformerForm isDisabled={disabled} />;
     case 'first_name':
-      return <CustomFirstNameTransformerForm />;
+      return <CustomFirstNameTransformerForm isDisabled={disabled} />;
     case 'last_name':
-      return <CustomLastNameTransformerForm />;
+      return <CustomLastNameTransformerForm isDisabled={disabled} />;
     case 'full_name':
-      return <CustomFullNameTransformerForm />;
+      return <CustomFullNameTransformerForm isDisabled={disabled} />;
     case 'phone_number':
-      return <CustomPhoneNumberTransformerForm />;
+      return <CustomPhoneNumberTransformerForm isDisabled={disabled} />;
     case 'int_phone_number':
-      return <CustomIntPhoneNumberTransformerForm />;
+      return <CustomIntPhoneNumberTransformerForm isDisabled={disabled} />;
     case 'random_string':
-      return <CustomRandomStringTransformerForm />;
+      return <CustomRandomStringTransformerForm isDisabled={disabled} />;
     case 'random_int':
-      return <CustomRandomIntTransformerForm />;
+      return <CustomRandomIntTransformerForm isDisabled={disabled} />;
     case 'random_float':
-      return <CustomRandomFloatTransformerForm />;
+      return <CustomRandomFloatTransformerForm isDisabled={disabled} />;
     case 'gender':
-      return <CustomGenderTransformerForm />;
+      return <CustomGenderTransformerForm isDisabled={disabled} />;
     default:
       <div>No transformer component found</div>;
   }
