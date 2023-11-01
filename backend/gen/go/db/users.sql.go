@@ -339,11 +339,11 @@ RETURNING id, created_at, updated_at, account_type, account_slug, temporal_confi
 
 type UpdateTemporalConfigByAccountParams struct {
 	TemporalConfig *jsonmodels.TemporalConfig
-	ID             pgtype.UUID
+	AccountId      pgtype.UUID
 }
 
 func (q *Queries) UpdateTemporalConfigByAccount(ctx context.Context, db DBTX, arg UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error) {
-	row := db.QueryRow(ctx, updateTemporalConfigByAccount, arg.TemporalConfig, arg.ID)
+	row := db.QueryRow(ctx, updateTemporalConfigByAccount, arg.TemporalConfig, arg.AccountId)
 	var i NeosyncApiAccount
 	err := row.Scan(
 		&i.ID,

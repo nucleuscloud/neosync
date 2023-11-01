@@ -3,13 +3,19 @@ import { JsonValue } from '@bufbuild/protobuf';
 import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
-export function useGetAccountTemporalConfig(): HookReply<GetAccountTemporalConfigResponse> {
+export function useGetAccountTemporalConfig(
+  accountId: string
+): HookReply<GetAccountTemporalConfigResponse> {
   return useNucleusAuthenticatedFetch<
     GetAccountTemporalConfigResponse,
     JsonValue | GetAccountTemporalConfigResponse
-  >(`/api/users/accounts/temporal-config`, undefined, undefined, (data) =>
-    data instanceof GetAccountTemporalConfigResponse
-      ? data
-      : GetAccountTemporalConfigResponse.fromJson(data)
+  >(
+    `/api/users/accounts/${accountId}/temporal-config`,
+    !!accountId,
+    undefined,
+    (data) =>
+      data instanceof GetAccountTemporalConfigResponse
+        ? data
+        : GetAccountTemporalConfigResponse.fromJson(data)
   );
 }

@@ -94,7 +94,7 @@ WHERE id = $1;
 -- name: UpdateTemporalConfigByAccount :one
 UPDATE neosync_api.accounts
 SET temporal_config = $1
-WHERE id = $2
+WHERE id = sqlc.arg('accountId')
 RETURNING *;
 
 -- name: GetTemporalConfigByUserAccount :one

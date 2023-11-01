@@ -526,7 +526,7 @@ type TemporalConfig struct {
 
 func (t *TemporalConfig) ToDto() *mgmtv1alpha1.AccountTemporalConfig {
 	return &mgmtv1alpha1.AccountTemporalConfig{
-		Url:              "",
+		Url:              t.Url,
 		Namespace:        t.Namespace,
 		SyncJobQueueName: t.SyncJobQueueName,
 	}

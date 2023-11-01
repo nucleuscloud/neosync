@@ -78,6 +78,7 @@ func (s *Service) SetAccountTemporalConfig(
 
 	account, err := s.db.Q.UpdateTemporalConfigByAccount(ctx, s.db.Db, db_queries.UpdateTemporalConfigByAccountParams{
 		TemporalConfig: tc,
+		AccountId:      accountUuid,
 	})
 	if err != nil {
 		return nil, err

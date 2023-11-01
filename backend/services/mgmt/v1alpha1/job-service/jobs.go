@@ -167,7 +167,7 @@ func (s *Service) ensureTemporalNamespaceForAccount(
 			tc.SyncJobQueueName = "sync-job" // hm
 			_, err = s.db.Q.UpdateTemporalConfigByAccount(ctx, tx, db_queries.UpdateTemporalConfigByAccountParams{
 				TemporalConfig: tc,
-				ID:             accountUuid,
+				AccountId:      accountUuid,
 			})
 			if err != nil {
 				return err

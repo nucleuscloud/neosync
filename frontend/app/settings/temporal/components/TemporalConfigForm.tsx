@@ -34,7 +34,9 @@ type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function TemporalConfigForm(): ReactElement {
   const account = useAccount();
-  const { data: tcData, mutate: mutateTcData } = useGetAccountTemporalConfig();
+  const { data: tcData, mutate: mutateTcData } = useGetAccountTemporalConfig(
+    account?.id ?? ''
+  );
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
     defaultValues: {
@@ -54,7 +56,7 @@ export default function TemporalConfigForm(): ReactElement {
       return;
     }
     try {
-      const updateResp = await setTemporalConfig(values);
+      const updateResp = await setTemporalConfig(account.id, values);
       mutateTcData(
         new GetAccountTemporalConfigResponse({
           config: updateResp.config,
@@ -76,53 +78,58 @@ export default function TemporalConfigForm(): ReactElement {
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-          <FormField
-            control={form.control}
-            name="temporalUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input placeholder="Temporal URL" {...field} />
-                </FormControl>
-                <FormDescription>
-                  The temporal url that will be used to connect to the temporal
-                  instance.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="namespace"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input placeholder="Temporal Namespace" {...field} />
-                </FormControl>
-                <FormDescription>
-                  The name of the temporal namespace.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="syncJobName"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input placeholder="Worker Sync Job Queue Name" {...field} />
-                </FormControl>
-                <FormDescription>
-                  The name of the temporal job queue for the sync-job worker.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="space-y-3">
+            <FormField
+              control={form.control}
+              name="temporalUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="Temporal URL" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    The temporal url that will be used to connect to the
+                    temporal instance.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="namespace"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="Temporal Namespace" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    The name of the temporal namespace.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="syncJobName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      placeholder="Worker Sync Job Queue Name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    The name of the temporal job queue for the sync-job worker.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           <Button type="submit">Submit</Button>
         </form>
       </Form>
@@ -131,15 +138,17 @@ export default function TemporalConfigForm(): ReactElement {
 }
 
 async function setTemporalConfig(
+  accountId: string,
   values: FormValues
 ): Promise<SetAccountTemporalConfigResponse> {
-  const res = await fetch(`/api/users/accounts/temporal-config`, {
+  const res = await fetch(`/api/users/accounts/${accountId}/temporal-config`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',
     },
     body: JSON.stringify(
       new SetAccountTemporalConfigRequest({
+        accountId,
         config: new AccountTemporalConfig({
           namespace: values.namespace,
           syncJobQueueName: values.syncJobName,

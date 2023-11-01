@@ -493,6 +493,11 @@ export class IsUserInAccountResponse extends Message<IsUserInAccountResponse> {
  * @generated from message mgmt.v1alpha1.GetAccountTemporalConfigRequest
  */
 export class GetAccountTemporalConfigRequest extends Message<GetAccountTemporalConfigRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
   constructor(data?: PartialMessage<GetAccountTemporalConfigRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -501,6 +506,7 @@ export class GetAccountTemporalConfigRequest extends Message<GetAccountTemporalC
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetAccountTemporalConfigRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountTemporalConfigRequest {
@@ -562,7 +568,12 @@ export class GetAccountTemporalConfigResponse extends Message<GetAccountTemporal
  */
 export class SetAccountTemporalConfigRequest extends Message<SetAccountTemporalConfigRequest> {
   /**
-   * @generated from field: mgmt.v1alpha1.AccountTemporalConfig config = 1;
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.AccountTemporalConfig config = 2;
    */
   config?: AccountTemporalConfig;
 
@@ -574,7 +585,8 @@ export class SetAccountTemporalConfigRequest extends Message<SetAccountTemporalC
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.SetAccountTemporalConfigRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "config", kind: "message", T: AccountTemporalConfig },
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "config", kind: "message", T: AccountTemporalConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetAccountTemporalConfigRequest {
