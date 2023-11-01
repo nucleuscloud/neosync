@@ -29,7 +29,7 @@ import { handleTransformerMetadata } from '../../EditTransformerOptions';
 export default function ViewSystemTransformers({
   params,
 }: PageProps): ReactElement {
-  const { data: systemTransformers, isLoading } = useGetSystemTransformers();
+  const { data: systemTransformers } = useGetSystemTransformers();
 
   const tName = params?.name ?? '';
 
@@ -66,11 +66,7 @@ export default function ViewSystemTransformers({
       Header={
         <PageHeader
           header={currentTransformer?.value ?? 'System Transformer'}
-          extraHeading={
-            <NewTransformerButton
-              transformer={currentTransformer?.value ?? ''}
-            />
-          }
+          extraHeading={<NewTransformerButton />}
         />
       }
     >
@@ -155,13 +151,7 @@ export default function ViewSystemTransformers({
   );
 }
 
-interface NewTransformerButtonProps {
-  transformer: string;
-}
-
-function NewTransformerButton(props: NewTransformerButtonProps): ReactElement {
-  const { transformer } = props;
-
+function NewTransformerButton(): ReactElement {
   return (
     <NextLink href={'/new/transformer'}>
       <Button> Clone Transformer</Button>
