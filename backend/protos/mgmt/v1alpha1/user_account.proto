@@ -46,6 +46,24 @@ message IsUserInAccountResponse {
   bool ok = 1;
 }
 
+message GetAccountTemporalConfigRequest {}
+message GetAccountTemporalConfigResponse {
+  AccountTemporalConfig config = 1;
+}
+
+message SetAccountTemporalConfigRequest {
+  AccountTemporalConfig config = 1;
+}
+message SetAccountTemporalConfigResponse {
+  AccountTemporalConfig config = 1;
+}
+
+message AccountTemporalConfig {
+  string url = 1;
+  string namespace = 2;
+  string sync_job_queue_name = 3;
+}
+
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
@@ -57,4 +75,7 @@ service UserAccountService {
   rpc ConvertPersonalToTeamAccount(ConvertPersonalToTeamAccountRequest) returns (ConvertPersonalToTeamAccountResponse) {}
 
   rpc IsUserInAccount(IsUserInAccountRequest) returns (IsUserInAccountResponse) {}
+
+  rpc GetAccountTemporalConfig(GetAccountTemporalConfigRequest) returns (GetAccountTemporalConfigResponse) {}
+  rpc SetAccountTemporalConfig(SetAccountTemporalConfigRequest) returns (SetAccountTemporalConfigResponse) {}
 }
