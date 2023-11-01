@@ -20,8 +20,16 @@ import { Switch } from '@/components/ui/switch';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-export default function CustomRandomStringTransformerForm(): ReactElement {
+interface Props {
+  isDisabled?: boolean;
+}
+
+export default function CustomRandomStringTransformerForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
+
+  const { isDisabled } = props;
 
   const digitLength = Array.from({ length: 12 }, (_, index) => index + 1);
 
@@ -42,7 +50,9 @@ export default function CustomRandomStringTransformerForm(): ReactElement {
               <Switch
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                disabled={fc.watch('config.config.value.strLength')}
+                disabled={
+                  fc.watch('config.config.value.strLength') || isDisabled
+                }
               />
             </FormControl>
           </FormItem>
@@ -64,7 +74,9 @@ export default function CustomRandomStringTransformerForm(): ReactElement {
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger
                   className="w-[180px]"
-                  disabled={fc.watch('config.config.value.preserveLength')}
+                  disabled={
+                    fc.watch('config.config.value.preserveLength') || isDisabled
+                  }
                 >
                   <SelectValue placeholder="4" />
                 </SelectTrigger>

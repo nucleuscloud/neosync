@@ -19,10 +19,18 @@ import { Switch } from '@/components/ui/switch';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-export default function CustomRandomFloatTransformerForm(): ReactElement {
+interface Props {
+  isDisabled?: boolean;
+}
+
+export default function CustomRandomFloatTransformerForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
 
   const digitLength = Array.from({ length: 9 }, (_, index) => index + 1);
+
+  const { isDisabled } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -43,7 +51,8 @@ export default function CustomRandomFloatTransformerForm(): ReactElement {
                 onCheckedChange={field.onChange}
                 disabled={
                   fc.watch('config.config.value.digitsAfterDecimal') ||
-                  fc.watch('config.config.value.digitsBeforeDecimal')
+                  fc.watch('config.config.value.digitsBeforeDecimal') ||
+                  isDisabled
                 }
               />
             </FormControl>
@@ -65,7 +74,9 @@ export default function CustomRandomFloatTransformerForm(): ReactElement {
             </div>
             <FormControl>
               <Select
-                disabled={fc.watch('config.config.value.preserveLength')}
+                disabled={
+                  fc.watch('config.config.value.preserveLength') || isDisabled
+                }
                 onValueChange={field.onChange}
                 value={field.value}
               >
@@ -102,7 +113,9 @@ export default function CustomRandomFloatTransformerForm(): ReactElement {
             </div>
             <FormControl>
               <Select
-                disabled={fc.watch('config.config.value.preserveLength')}
+                disabled={
+                  fc.watch('config.config.value.preserveLength') || isDisabled
+                }
                 onValueChange={field.onChange}
                 value={field.value}
               >

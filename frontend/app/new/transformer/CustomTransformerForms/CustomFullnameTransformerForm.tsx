@@ -9,10 +9,15 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
+interface Props {
+  isDisabled?: boolean;
+}
 
-export default function CustomFullNameTransformerForm(): ReactElement {
+export default function CustomFullNameTransformerForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
-
+  const { isDisabled } = props;
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
@@ -28,7 +33,11 @@ export default function CustomFullNameTransformerForm(): ReactElement {
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={isDisabled}
+              />
             </FormControl>
           </FormItem>
         )}

@@ -19,10 +19,18 @@ import { Switch } from '@/components/ui/switch';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-export default function CustomRandomIntTransformerForm(): ReactElement {
+interface Props {
+  isDisabled?: boolean;
+}
+
+export default function CustomRandomIntTransformerForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
 
   const digitLength = Array.from({ length: 18 }, (_, index) => index + 1);
+
+  const { isDisabled } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -38,7 +46,11 @@ export default function CustomRandomIntTransformerForm(): ReactElement {
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={isDisabled}
+              />
             </FormControl>
           </FormItem>
         )}
@@ -57,7 +69,9 @@ export default function CustomRandomIntTransformerForm(): ReactElement {
             </div>
             <FormControl>
               <Select
-                disabled={fc.watch('config.config.value.preserveLength')}
+                disabled={
+                  fc.watch('config.config.value.preserveLength') || isDisabled
+                }
                 onValueChange={field.onChange}
                 value={field.value}
               >

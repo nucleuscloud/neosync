@@ -10,8 +10,16 @@ import { Switch } from '@/components/ui/switch';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-export default function CustomIntPhoneNumberTransformerForm(): ReactElement {
+interface Props {
+  isDisabled?: boolean;
+}
+
+export default function CustomIntPhoneNumberTransformerForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
+
+  const { isDisabled } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -28,7 +36,11 @@ export default function CustomIntPhoneNumberTransformerForm(): ReactElement {
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={field.value} onCheckedChange={field.onChange} />
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={isDisabled}
+              />
             </FormControl>
           </FormItem>
         )}

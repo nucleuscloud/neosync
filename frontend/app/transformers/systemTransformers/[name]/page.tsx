@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import NextLink from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { handleTransformerMetadata } from '../../EditTransformerOptions';
@@ -35,6 +36,8 @@ export default function ViewSystemTransformers({
   const currentTransformer = systemTransformers?.transformers.find(
     (item) => item.value == tName
   );
+
+  const router = useRouter();
 
   const form = useForm<SystemTransformersSchema>({
     resolver: yupResolver(SYSTEM_TRANSFORMER_SCHEMA),
@@ -77,6 +80,7 @@ export default function ViewSystemTransformers({
             <FormField
               control={form.control}
               name="name"
+              disabled={true}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
@@ -85,7 +89,6 @@ export default function ViewSystemTransformers({
                       placeholder="Transformer Name"
                       {...field}
                       className="w-[1000px]"
-                      disabled={true}
                     />
                   </FormControl>
                   <FormDescription>The Transformer name</FormDescription>
@@ -97,6 +100,7 @@ export default function ViewSystemTransformers({
               <FormField
                 control={form.control}
                 name="description"
+                disabled={true}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
@@ -105,7 +109,6 @@ export default function ViewSystemTransformers({
                         placeholder="Transformer Name"
                         {...field}
                         className="w-[1000px]"
-                        disabled={true}
                       />
                     </FormControl>
                     <FormDescription>
@@ -119,6 +122,7 @@ export default function ViewSystemTransformers({
             <div className="pt-10">
               <FormField
                 control={form.control}
+                disabled={true}
                 name="type"
                 render={({ field }) => (
                   <FormItem>
@@ -128,7 +132,6 @@ export default function ViewSystemTransformers({
                         placeholder="Transformer type"
                         {...field}
                         className="w-[1000px]"
-                        disabled={true}
                       />
                     </FormControl>
                     <FormDescription>The Transformer type.</FormDescription>
@@ -139,10 +142,12 @@ export default function ViewSystemTransformers({
             </div>
           </div>
           <div className="w-[1000px]">
-            {handleCustomTransformerForm(currentTransformer?.value)}
+            {handleCustomTransformerForm(currentTransformer?.value, true)}
           </div>
-          <div className="flex flex-row justify-end">
-            <Button type="submit">Save</Button>
+          <div className="flex flex-row justify-start">
+            <Button type="button" onClick={() => router.push('/transformers')}>
+              Back
+            </Button>
           </div>
         </form>
       </Form>
