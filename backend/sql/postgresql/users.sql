@@ -96,3 +96,10 @@ UPDATE neosync_api.accounts
 SET temporal_config = $1
 WHERE id = $2
 RETURNING *;
+
+-- name: GetTemporalConfigByUserAccount :one
+SELECT a.temporal_config
+FROM neosync_api.accounts a
+INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
+INNER JOIN neosync_api.users u ON u.id = aua.user_id
+WHERE a.id = sqlc.arg('accountId') AND u.id = sqlc.arg('userId');

@@ -1428,6 +1428,8 @@ func (m *GetAccountTemporalConfigRequest) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for AccountId
+
 	if len(errors) > 0 {
 		return GetAccountTemporalConfigRequestMultiError(errors)
 	}
@@ -1664,6 +1666,8 @@ func (m *SetAccountTemporalConfigRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	// no validation rules for AccountId
 
 	if all {
 		switch v := interface{}(m.GetConfig()).(type) {

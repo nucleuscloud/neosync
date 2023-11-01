@@ -46,22 +46,25 @@ message IsUserInAccountResponse {
   bool ok = 1;
 }
 
-message GetAccountTemporalConfigRequest {}
+message GetAccountTemporalConfigRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
 message GetAccountTemporalConfigResponse {
   AccountTemporalConfig config = 1;
 }
 
 message SetAccountTemporalConfigRequest {
-  AccountTemporalConfig config = 1;
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  AccountTemporalConfig config = 2;
 }
 message SetAccountTemporalConfigResponse {
   AccountTemporalConfig config = 1;
 }
 
 message AccountTemporalConfig {
-  string url = 1;
-  string namespace = 2;
-  string sync_job_queue_name = 3;
+  string url = 1 [(buf.validate.field).string.min_len = 1];
+  string namespace = 2 [(buf.validate.field).string.min_len = 1];
+  string sync_job_queue_name = 3 [(buf.validate.field).string.min_len = 1];
 }
 
 service UserAccountService {

@@ -229,6 +229,26 @@ func (q *Queries) GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pg
 	return temporal_config, err
 }
 
+const getTemporalConfigByUserAccount = `-- name: GetTemporalConfigByUserAccount :one
+SELECT a.temporal_config
+FROM neosync_api.accounts a
+INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
+INNER JOIN neosync_api.users u ON u.id = aua.user_id
+WHERE a.id = $1 AND u.id = $2
+`
+
+type GetTemporalConfigByUserAccountParams struct {
+	AccountId pgtype.UUID
+	UserId    pgtype.UUID
+}
+
+func (q *Queries) GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams) (*jsonmodels.TemporalConfig, error) {
+	row := db.QueryRow(ctx, getTemporalConfigByUserAccount, arg.AccountId, arg.UserId)
+	var temporal_config *jsonmodels.TemporalConfig
+	err := row.Scan(&temporal_config)
+	return temporal_config, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, created_at, updated_at FROM neosync_api.users
 WHERE id = $1
