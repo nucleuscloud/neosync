@@ -25,7 +25,7 @@ export default function Page({ params }: PageProps): ReactElement {
     <div className="job-details-container">
       <SubPageHeader
         header="Destination Connections"
-        description={`Manage job's destination connections`}
+        description={`Manage a job's destination connections`}
         extraHeading={<NewDestinationButton jobId={id} />}
       />
 
