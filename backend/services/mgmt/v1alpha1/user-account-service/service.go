@@ -11,6 +11,13 @@ type Service struct {
 
 type Config struct {
 	IsAuthEnabled bool
+	Temporal      *TemporalConfig
+}
+
+type TemporalConfig struct {
+	DefaultTemporalNamespace        string
+	DefaultTemporalSyncJobQueueName string
+	DefaultTemporalUrl              string
 }
 
 func New(

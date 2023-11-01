@@ -9,7 +9,6 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
-	"github.com/spf13/viper"
 )
 
 func (s *Service) GetAccountTemporalConfig(
@@ -37,7 +36,7 @@ func (s *Service) GetAccountTemporalConfig(
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
-		tc = getDefaultTemporalConfig()
+		tc = s.getDefaultTemporalConfig()
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetAccountTemporalConfigResponse{
@@ -89,13 +88,10 @@ func (s *Service) SetAccountTemporalConfig(
 	}), nil
 }
 
-func getDefaultTemporalConfig() *jsonmodels.TemporalConfig {
-	ns := viper.GetString("TEMPORAL_NAMESPACE")
-	if ns == "" {
-		ns = "default"
-	}
+func (s *Service) getDefaultTemporalConfig() *jsonmodels.TemporalConfig {
 	return &jsonmodels.TemporalConfig{
-		Namespace:        ns,
-		SyncJobQueueName: "sync-job",
+		Namespace:        s.cfg.Temporal.DefaultTemporalNamespace,
+		SyncJobQueueName: s.cfg.Temporal.DefaultTemporalSyncJobQueueName,
+		Url:              s.cfg.Temporal.DefaultTemporalUrl,
 	}
 }

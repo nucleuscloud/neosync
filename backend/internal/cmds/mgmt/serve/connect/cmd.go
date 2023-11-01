@@ -122,6 +122,7 @@ func serve() error {
 
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled: isAuthEnabled,
+		Temporal:      getDefaultTemporalConfig(),
 	}, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
@@ -139,14 +140,14 @@ func serve() error {
 	)
 
 	nsclient, err := temporalclient.NewNamespaceClient(temporalclient.Options{
-		HostPort: getTemporalUrl(),
+		HostPort: getDefaultTemporalUrl(),
 		Logger:   logger.With("temporal-client", "true"),
 	})
 	if err != nil {
 		return err
 	}
 	tfwfmgr := workflowmanager.New(&workflowmanager.Config{
-		TemporalUrl: getTemporalUrl(),
+		TemporalUrl: getDefaultTemporalUrl(),
 	}, db.Q, db.Db)
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
@@ -268,12 +269,35 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 	}, nil
 }
 
-func getTemporalUrl() string {
+func getDefaultTemporalConfig() *v1alpha1_useraccountservice.TemporalConfig {
+	return &v1alpha1_useraccountservice.TemporalConfig{
+		DefaultTemporalNamespace:        getDefaultTemporalNamespace(),
+		DefaultTemporalSyncJobQueueName: getDefaultTemporalSyncJobQueue(),
+		DefaultTemporalUrl:              getDefaultTemporalUrl(),
+	}
+}
+
+func getDefaultTemporalUrl() string {
 	temporalUrl := viper.GetString("TEMPORAL_URL")
 	if temporalUrl == "" {
 		return "localhost:7233"
 	}
 	return temporalUrl
+}
+func getDefaultTemporalNamespace() string {
+	ns := viper.GetString("TEMPORAL_DEFAULT_NAMESPACE")
+	if ns == "" {
+		return "default"
+	}
+	return ns
+}
+
+func getDefaultTemporalSyncJobQueue() string {
+	name := viper.GetString("TEMPORAL_DEFAULT_SYNCJOB_QUEUE")
+	if name == "" {
+		return "sync-job"
+	}
+	return name
 }
 
 func getJwtClientConfig() *auth_jwt.ClientConfig {

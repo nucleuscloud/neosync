@@ -521,6 +521,7 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 type TemporalConfig struct {
 	Namespace        string `json:"namespace"`
 	SyncJobQueueName string `json:"syncJobQueueName"`
+	Url              string `json:"url"`
 }
 
 func (t *TemporalConfig) ToDto() *mgmtv1alpha1.AccountTemporalConfig {
@@ -534,5 +535,5 @@ func (t *TemporalConfig) ToDto() *mgmtv1alpha1.AccountTemporalConfig {
 func (t *TemporalConfig) FromDto(dto *mgmtv1alpha1.AccountTemporalConfig) {
 	t.Namespace = dto.Namespace
 	t.SyncJobQueueName = dto.SyncJobQueueName
-	// t.Url = dto.Url
+	t.Url = dto.Url
 }
