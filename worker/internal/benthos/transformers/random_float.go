@@ -9,9 +9,6 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 )
 
-const defaultLenBeforeDecimals = 2
-const defaultLenAfterDecimals = 3
-
 func init() {
 
 	spec := bloblang.NewPluginSpec().
@@ -38,8 +35,6 @@ func init() {
 		}
 
 		return bloblang.Float64Method(func(i float64) (any, error) {
-			// res, err := ProcessRandomFloat(i, preserveLength, digitsBeforeDecimal, digitsAfterDecimal)
-
 			if preserveLength {
 				res, err := GenerateRandomFloatPreserveLength(i, preserveLength)
 				return res, err
