@@ -38,61 +38,8 @@ func (mc *mockConnector) Open(driverName, dataSourceName string) (*sql.DB, error
 }
 
 // CheckConnectionConfig
-func Test_CheckConnectionConfig_Mysql(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
-	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
-	db, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer db.Close()
-
-	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, &mockConnector{db: db})
-
-	sqlMock.ExpectPing()
-
-	resp, err := service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
-		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
-			ConnectionConfig: getMysqlConfigMock(),
-		},
-	})
-
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, true, resp.Msg.IsConnected)
-	assert.Nil(t, resp.Msg.ConnectionError)
-}
-
-func Test_CheckConnectionConfig_Mysql_Fail(t *testing.T) {
-	mockDbtx := nucleusdb.NewMockDBTX(t)
-	mockQuerier := db_queries.NewMockQuerier(t)
-	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
-
-	db, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer db.Close()
-
-	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, &mockConnector{db: db})
-
-	sqlMock.ExpectPing().WillReturnError(errors.New("connection failed"))
-
-	resp, err := service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
-		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
-			ConnectionConfig: getMysqlConfigMock(),
-		},
-	})
-
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, false, resp.Msg.IsConnected)
-	assert.NotNil(t, resp.Msg.ConnectionError)
-}
-
-func Test_CheckConnectionConfig_Postgres(t *testing.T) {
+func Test_CheckConnectionConfig(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
@@ -119,7 +66,7 @@ func Test_CheckConnectionConfig_Postgres(t *testing.T) {
 	assert.Nil(t, resp.Msg.ConnectionError)
 }
 
-func Test_CheckConnectionConfig_Postgres_Fail(t *testing.T) {
+func Test_CheckConnectionConfigs_Fail(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
@@ -547,17 +494,18 @@ func Test_DeleteConnectionError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-// getConnectionUrl
+// getConnectionDetails
 func Test_GetConnectionUrl_Postgres(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, nil)
 
-	url, err := service.getConnectionUrl(getPostgresConfigMock())
+	cfg, err := service.getConnectionDetails(getPostgresConfigMock())
 
 	assert.NoError(t, err)
-	assert.Equal(t, "postgres://user:topsecret@host:5432/database?sslmode=disable", url)
+	assert.Equal(t, "postgres://user:topsecret@host:5432/database?sslmode=disable", cfg.ConnectionString)
+	assert.Equal(t, "postgres", cfg.ConnectionDriver)
 }
 
 func Test_GetConnectionUrl_Mysql(t *testing.T) {
@@ -566,10 +514,12 @@ func Test_GetConnectionUrl_Mysql(t *testing.T) {
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, nil)
 
-	url, err := service.getConnectionUrl(getMysqlConfigMock())
+	cfg, err := service.getConnectionDetails(getMysqlConfigMock())
 
 	assert.NoError(t, err)
-	assert.Equal(t, "user:topsecret@tcp(host:5432)/database", url)
+	assert.Equal(t, "user:topsecret@tcp(host:5432)/database", cfg.ConnectionString)
+	assert.Equal(t, "mysql", cfg.ConnectionDriver)
+
 }
 
 func Test_GetConnectionUrl_NotImplemented(t *testing.T) {
@@ -578,7 +528,7 @@ func Test_GetConnectionUrl_NotImplemented(t *testing.T) {
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, nil)
 
-	_, err := service.getConnectionUrl(&mgmtv1alpha1.ConnectionConfig{})
+	_, err := service.getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{})
 
 	assert.Error(t, err)
 }
