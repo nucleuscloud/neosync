@@ -95,7 +95,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   }
 
   return (
-    <div className="p-5">
+    <div className="py-5">
       <div className="flex flex-col gap-1">
         <h2 className="text-2xl font-bold tracking-tight">Job Overview</h2>
         <PageHeader
