@@ -38,8 +38,15 @@ func init() {
 		}
 
 		return bloblang.Float64Method(func(i float64) (any, error) {
-			res, err := ProcessRandomFloat(i, preserveLength, digitsBeforeDecimal, digitsAfterDecimal)
-			return res, err
+			// res, err := ProcessRandomFloat(i, preserveLength, digitsBeforeDecimal, digitsAfterDecimal)
+
+			if preserveLength {
+				res, err := GenerateRandomFloatPreserveLength(i, preserveLength)
+				return res, err
+			} else {
+				res, err := GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecimal)
+				return res, err
+			}
 		}), nil
 	})
 
@@ -49,89 +56,86 @@ func init() {
 
 }
 
-// main transformer logic goes here
-func ProcessRandomFloat(i float64, preserveLength bool, digitsBeforeDecimal, digitsAfterDecimal int64) (float64, error) {
+func GenerateRandomFloatPreserveLength(i float64, preserveLength bool) (float64, error) {
 
 	var returnValue float64
 
 	fLen := GetFloatLength(i)
 
-	if digitsBeforeDecimal < 0 || digitsAfterDecimal < 0 {
-		return 0.0, fmt.Errorf("digitsBefore and digitsAfter must be non-negative")
+	bd, err := GenerateRandomInt(int64(fLen.DigitsBeforeDecimalLength))
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate a random before digits integer")
 	}
 
-	if preserveLength {
+	ad, err := GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
 
-		bd, err := GenerateRandomInt(int64(fLen.DigitsBeforeDecimalLength))
-		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random before digits integer")
+	for {
+		if !isLastDigitAZero(ad) {
+			break // Exit the loop when i is greater than or equal to 5
 		}
-
-		ad, err := GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
-
-		for {
-			if !isLastDigitAZero(ad) {
-				break // Exit the loop when i is greater than or equal to 5
-			}
-			ad, err = GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
-
-			if err != nil {
-				return 0, fmt.Errorf("unable to generate a random int64 to convert to a float")
-			}
-		}
+		ad, err = GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
 
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random after digits integer")
+			return 0, fmt.Errorf("unable to generate a random int64 to convert to a float")
 		}
-
-		combinedStr := fmt.Sprintf("%d.%d", bd, ad)
-
-		result, err := strconv.ParseFloat(combinedStr, 64)
-		if err != nil {
-			return 0, fmt.Errorf("unable to convert string to float")
-		}
-
-		returnValue = result
-	} else {
-
-		bd, err := GenerateRandomInt(int64(defaultLenBeforeDecimals))
-		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random before digits integer")
-		}
-
-		ad, err := GenerateRandomInt(int64(defaultLenAfterDecimals))
-
-		// generate a new number if it ends in a zero so that the trailing zero doesn't get stripped and return
-		// a value that is shorter than what the user asks for. This happens in the when we convert the string to a float64
-		for {
-			if !isLastDigitAZero(ad) {
-				break // Exit the loop when i is greater than or equal to 5
-			}
-			ad, err = GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
-
-			if err != nil {
-				return 0, fmt.Errorf("unable to generate a random int64 to convert to a float")
-			}
-		}
-
-		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random after digits integer")
-		}
-
-		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random string with length")
-		}
-
-		combinedStr := fmt.Sprintf("%d.%d", bd, ad)
-
-		result, err := strconv.ParseFloat(combinedStr, 64)
-		if err != nil {
-			return 0, fmt.Errorf("unable to convert string to float")
-		}
-
-		returnValue = result
-
 	}
+
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate a random after digits integer")
+	}
+
+	combinedStr := fmt.Sprintf("%d.%d", bd, ad)
+
+	result, err := strconv.ParseFloat(combinedStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("unable to convert string to float")
+	}
+
+	returnValue = result
+
+	return returnValue, nil
+}
+
+func GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecimal int64) (float64, error) {
+
+	var returnValue float64
+
+	bd, err := GenerateRandomInt(digitsBeforeDecimal)
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate a random before digits integer")
+	}
+
+	ad, err := GenerateRandomInt(digitsAfterDecimal)
+
+	// generate a new number if it ends in a zero so that the trailing zero doesn't get stripped and return
+	// a value that is shorter than what the user asks for. This happens in when we convert the string to a float64
+	for {
+		if !isLastDigitAZero(ad) {
+			break // Exit the loop when i is greater than or equal to 5
+		}
+		ad, err = GenerateRandomInt(digitsAfterDecimal)
+
+		if err != nil {
+			return 0, fmt.Errorf("unable to generate a random int64 to convert to a float")
+		}
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate a random after digits integer")
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate a random string with length")
+	}
+
+	combinedStr := fmt.Sprintf("%d.%d", bd, ad)
+
+	result, err := strconv.ParseFloat(combinedStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("unable to convert string to float")
+	}
+
+	returnValue = result
 
 	return returnValue, nil
 }

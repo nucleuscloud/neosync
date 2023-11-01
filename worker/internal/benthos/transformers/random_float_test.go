@@ -12,7 +12,7 @@ func TestProcessRandomFloatPreserveLength(t *testing.T) {
 	val := float64(6754.3543)
 	expectedLength := 8
 
-	res, err := ProcessRandomFloat(val, true, int64(3), int64(3))
+	res, err := GenerateRandomFloatPreserveLength(val, true)
 
 	actual := GetFloatLength(res).DigitsBeforeDecimalLength + GetFloatLength(res).DigitsAfterDecimalLength
 
@@ -23,10 +23,9 @@ func TestProcessRandomFloatPreserveLength(t *testing.T) {
 
 func TestProcessRandomFloatPreserveLengthFalse(t *testing.T) {
 
-	val := float64(6754.3543)
-	expectedLength := 5
+	expectedLength := 6
 
-	res, err := ProcessRandomFloat(val, false, int64(3), int64(3))
+	res, err := GenerateRandomFloatWithDefinedLength(int64(3), int64(3))
 
 	actual := GetFloatLength(res).DigitsAfterDecimalLength + GetFloatLength(res).DigitsBeforeDecimalLength
 	assert.NoError(t, err)
