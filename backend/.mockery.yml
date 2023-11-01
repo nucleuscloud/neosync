@@ -19,3 +19,7 @@ packages:
     # config:
     interfaces:
       Querier:
+  github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect:
+    # config:
+    interfaces:
+      UserAccountServiceClient:
