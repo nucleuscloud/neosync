@@ -70,7 +70,7 @@ func ProcessRandomFloat(i float64, preserveLength bool, digitsBeforeDecimal, dig
 		ad, err := GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
 
 		for {
-			if !LastDigitAZero(ad) {
+			if !isLastDigitAZero(ad) {
 				break // Exit the loop when i is greater than or equal to 5
 			}
 			ad, err = GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
@@ -104,7 +104,7 @@ func ProcessRandomFloat(i float64, preserveLength bool, digitsBeforeDecimal, dig
 		// generate a new number if it ends in a zero so that the trailing zero doesn't get stripped and return
 		// a value that is shorter than what the user asks for. This happens in the when we convert the string to a float64
 		for {
-			if !LastDigitAZero(ad) {
+			if !isLastDigitAZero(ad) {
 				break // Exit the loop when i is greater than or equal to 5
 			}
 			ad, err = GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
@@ -153,7 +153,7 @@ func GetFloatLength(i float64) *FloatLength {
 	}
 }
 
-func LastDigitAZero(n int64) bool {
+func isLastDigitAZero(n int64) bool {
 	// Convert the int64 to a string
 	str := strconv.FormatInt(n, 10)
 
