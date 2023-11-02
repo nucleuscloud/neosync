@@ -11,6 +11,7 @@ require (
 	connectrpc.com/grpcreflect v1.2.0
 	connectrpc.com/otelconnect v0.6.0
 	connectrpc.com/validate v0.1.0
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/auth0/go-jwt-middleware/v2 v2.1.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gogo/status v1.1.1
