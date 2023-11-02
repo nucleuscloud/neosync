@@ -133,7 +133,7 @@ func TestIsLastDigitZeroTrue(t *testing.T) {
 
 	value := int64(954670)
 
-	res := FirstDigitIsNine(value)
+	res := IsLastDigitZero(value)
 	assert.Equal(t, res, true, "The last digit is zero.")
 }
 
@@ -141,6 +141,6 @@ func TestIsLastDigitZeroFalse(t *testing.T) {
 
 	value := int64(23546789)
 
-	res := FirstDigitIsNine(value)
+	res := IsLastDigitZero(value)
 	assert.Equal(t, res, false, "The last digit is not zero.")
 }
