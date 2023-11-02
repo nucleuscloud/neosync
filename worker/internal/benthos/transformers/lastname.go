@@ -85,6 +85,16 @@ func GenerateLastNameWithRandomLength() (string, error) {
 		}
 	}
 
+	// handles the case where the name provided is longer than the longest names in the first_names slice
+	if returnValue == "" {
+		res, err := transformer_utils.GetRandomValueFromSlice[string](names[3].Names)
+		if err != nil {
+			return "", err
+		}
+
+		returnValue = res
+	}
+
 	return returnValue, nil
 }
 

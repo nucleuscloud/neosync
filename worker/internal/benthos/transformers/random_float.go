@@ -7,6 +7,7 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func init() {
@@ -57,18 +58,18 @@ func GenerateRandomFloatPreserveLength(i float64, preserveLength bool) (float64,
 
 	fLen := GetFloatLength(i)
 
-	bd, err := GenerateRandomInt(int64(fLen.DigitsBeforeDecimalLength))
+	bd, err := transformer_utils.GenerateRandomInt(int64(fLen.DigitsBeforeDecimalLength))
 	if err != nil {
 		return 0, fmt.Errorf("unable to generate a random before digits integer")
 	}
 
-	ad, err := GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
+	ad, err := transformer_utils.GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
 
 	for {
 		if !isLastDigitAZero(ad) {
 			break // Exit the loop when i is greater than or equal to 5
 		}
-		ad, err = GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
+		ad, err = transformer_utils.GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random int64 to convert to a float")
@@ -95,12 +96,12 @@ func GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecima
 
 	var returnValue float64
 
-	bd, err := GenerateRandomInt(digitsBeforeDecimal)
+	bd, err := transformer_utils.GenerateRandomInt(digitsBeforeDecimal)
 	if err != nil {
 		return 0, fmt.Errorf("unable to generate a random before digits integer")
 	}
 
-	ad, err := GenerateRandomInt(digitsAfterDecimal)
+	ad, err := transformer_utils.GenerateRandomInt(digitsAfterDecimal)
 
 	// generate a new number if it ends in a zero so that the trailing zero doesn't get stripped and return
 	// a value that is shorter than what the user asks for. This happens in when we convert the string to a float64
@@ -108,7 +109,7 @@ func GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecima
 		if !isLastDigitAZero(ad) {
 			break // Exit the loop when i is greater than or equal to 5
 		}
-		ad, err = GenerateRandomInt(digitsAfterDecimal)
+		ad, err = transformer_utils.GenerateRandomInt(digitsAfterDecimal)
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random int64 to convert to a float")

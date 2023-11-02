@@ -33,34 +33,6 @@ func TestGenerateIntPhoneNumberPreserveLengthFalse(t *testing.T) {
 
 }
 
-func TestGenerateRandomInt(t *testing.T) {
-
-	expectedLength := 9
-
-	res, err := GenerateRandomInt(int64(expectedLength))
-
-	assert.NoError(t, err)
-	numStr := strconv.FormatInt(res, 10)
-	assert.Equal(t, len(numStr), expectedLength, "The length of the generated random int should be the same as the expectedLength")
-
-}
-
-func TestFirstDigitIsNineTrue(t *testing.T) {
-
-	value := int64(9546789)
-
-	res := FirstDigitIsNine(value)
-	assert.Equal(t, res, true, "The first digit is nine.")
-}
-
-func TestFirstDigitIsNineFalse(t *testing.T) {
-
-	value := int64(23546789)
-
-	res := FirstDigitIsNine(value)
-	assert.Equal(t, res, false, "The first digit is not nine.")
-}
-
 func TestIntPhoneNumberTransformer(t *testing.T) {
 	mapping := `root = this.intphonetransformer(true)`
 	ex, err := bloblang.Parse(mapping)

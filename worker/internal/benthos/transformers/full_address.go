@@ -33,6 +33,7 @@ func init() {
 	}
 }
 
+// generates a random full address from the US including street address, city, state and zipcode
 func GenerateRandomFullAddress() (string, error) {
 
 	data := struct {
