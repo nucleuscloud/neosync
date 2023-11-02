@@ -9,9 +9,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateEmailPreserveDomain(t *testing.T) {
+const email = "evis@gmail.com"
 
-	email := "evis@gmail.com"
+func TestGenerateEmail(t *testing.T) {
+
+	res, err := GenerateEmailPreserveDomain(email, true)
+
+	assert.NoError(t, err)
+	/* There is a very small chance that the randomly generated email address actually matches
+	the input email address which is why can't do an assert.NoEqual() but instead just have to check
+	that the email has the correct structrue */
+	assert.Equal(t, true, isValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
+}
+
+func TestGenerateEmailPreserveDomain(t *testing.T) {
 
 	res, err := GenerateEmailPreserveDomain(email, true)
 
@@ -23,7 +34,6 @@ func TestGenerateEmailPreserveDomain(t *testing.T) {
 }
 
 func TestGenerateEmailPreserveLength(t *testing.T) {
-	email := "evis@gmail.com"
 
 	res, err := GenerateEmailPreserveLength(email, true)
 
