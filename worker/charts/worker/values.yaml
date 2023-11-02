@@ -36,6 +36,16 @@ temporal:
   namespace:
   taskQueue:
 
+  certificate:
+    keyFilePath:
+    certFilePath:
+
+    keyContents:
+    certContents:
+
 host: 0.0.0.0
 servicePort: 80
 containerPort: 80
+
+volumes: []
+volumeMounts: []

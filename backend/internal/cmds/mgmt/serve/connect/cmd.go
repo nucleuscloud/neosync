@@ -1,6 +1,7 @@
 package serve_connect
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -136,8 +137,13 @@ func serve() error {
 			stdInterceptorConnectOpt,
 		),
 	)
-
-	tfwfmgr := clientmanager.New(&clientmanager.Config{}, db.Q, db.Db)
+	authcerts, err := getTemporalAuthCertificate()
+	if err != nil {
+		return err
+	}
+	tfwfmgr := clientmanager.New(&clientmanager.Config{
+		AuthCertificates: authcerts,
+	}, db.Q, db.Db)
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
 		IsAuthEnabled: isAuthEnabled,
@@ -254,6 +260,30 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		Pass:     dbPass,
 		SslMode:  &sslMode,
 	}, nil
+}
+
+func getTemporalAuthCertificate() ([]tls.Certificate, error) {
+	keyPath := viper.GetString("TEMPORAL_CERT_KEY_PATH")
+	certPath := viper.GetString("TEMPORAL_CERT_PATH")
+
+	if keyPath != "" && certPath != "" {
+		cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+		if err != nil {
+			return nil, err
+		}
+		return []tls.Certificate{cert}, nil
+	}
+
+	key := viper.GetString("TEMPORAL_CERT_KEY")
+	cert := viper.GetString("TEMPORAL_CERT")
+	if key != "" && cert != "" {
+		cert, err := tls.X509KeyPair([]byte(key), []byte(cert))
+		if err != nil {
+			return nil, err
+		}
+		return []tls.Certificate{cert}, nil
+	}
+	return []tls.Certificate{}, nil
 }
 
 func getDefaultTemporalConfig() *v1alpha1_useraccountservice.TemporalConfig {

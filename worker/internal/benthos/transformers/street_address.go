@@ -55,7 +55,7 @@ func GenerateRandomStreetAddress() (string, error) {
 		Addresses []Address `json:"addresses"`
 	}{}
 	if err := json.Unmarshal(addressesBytes, &data); err != nil {
-		panic(err)
+		return "", err
 	}
 	addresses := data.Addresses
 

@@ -4,6 +4,7 @@ metadata:
   name: {{ template "neosync-worker.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
+      {{- include "neosync-worker.labels" . | nindent 4 }}
     {{- if eq .Values.datadog.enabled true }}
     tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
     tags.datadoghq.com/service: {{ template "neosync-worker.fullname" . }}
@@ -25,8 +26,8 @@ spec:
         {{- end }}
         rollme: {{ randAlphaNum 5 | quote }} # causes deployment to always roll on helm upgrade
       labels:
+        {{- include "neosync-worker.labels" . | nindent 8 }}
         app: {{ template "neosync-worker.fullname" . }}
-        version: v1
         {{- if eq .Values.istio.enabled true }}
         sidecar.istio.io/inject: "true"
         {{- end }}
@@ -45,6 +46,11 @@ spec:
       serviceAccountName: {{ include "neosync-worker.serviceAccountName" . }}
       {{- end }}
       terminationGracePeriod: {{ .Values.terminationGracePeriod }}
+
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
 
       containers:
         - name: user-container
@@ -67,6 +73,12 @@ spec:
             failureThreshold: 2
             successThreshold: 1
             initialDelaySeconds: 1
+
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
           env:
             - name: HOST_IP
               valueFrom:

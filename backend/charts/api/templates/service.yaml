@@ -4,6 +4,7 @@ metadata:
   name: {{ template "neosync-api.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
+    {{- include "neosync-api.labels" . | nindent 4 }}
     app: {{ template "neosync-api.fullname" . }}
 spec:
   ports:

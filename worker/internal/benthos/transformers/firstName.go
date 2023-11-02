@@ -89,8 +89,6 @@ func GenerateFirstNameWithRandomLength() (string, error) {
 			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
 			if err != nil {
 				return "", err
-			} else {
-
 			}
 			returnValue = res
 		}

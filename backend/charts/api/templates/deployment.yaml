@@ -4,6 +4,7 @@ metadata:
   name: {{ template "neosync-api.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
+    {{- include "neosync-api.labels" . | nindent 4 }}
     {{- if eq .Values.datadog.enabled true }}
     tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
     tags.datadoghq.com/service: {{ template "neosync-api.fullname" . }}
@@ -25,8 +26,8 @@ spec:
         {{- end }}
         rollme: {{ randAlphaNum 5 | quote }} # causes deployment to always roll on helm upgrade
       labels:
+        {{- include "neosync-api.labels" . | nindent 8 }}
         app: {{ template "neosync-api.fullname" . }}
-        version: v1
         {{- if eq .Values.istio.enabled true }}
         sidecar.istio.io/inject: "true"
         {{- end }}
@@ -55,6 +56,11 @@ spec:
             - secretRef:
                 name: {{ template "neosync-api.fullname" . }}-migration-evs
 
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       containers:
         - name: user-container
           image: '{{ .Values.image.repository | default "ghcr.io/nucleuscloud/neosync/backend" }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
@@ -79,6 +85,12 @@ spec:
             failureThreshold: 2
             successThreshold: 1
             initialDelaySeconds: 1
+
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
           env:
             - name: HOST_IP
               valueFrom:
