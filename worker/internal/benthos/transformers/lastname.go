@@ -58,7 +58,7 @@ func GenerateLastNameWithRandomLength() (string, error) {
 		Names []NameGroup `json:"names"`
 	}{}
 	if err := json.Unmarshal(lastNameBytes, &data); err != nil {
-		panic(err)
+		return "", err
 	}
 
 	names := data.Names
@@ -80,8 +80,6 @@ func GenerateLastNameWithRandomLength() (string, error) {
 			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
 			if err != nil {
 				return "", err
-			} else {
-
 			}
 			returnValue = res
 		}
@@ -99,7 +97,7 @@ func GenerateLastNameWithLength(fn string) (string, error) {
 		Names []NameGroup `json:"names"`
 	}{}
 	if err := json.Unmarshal(lastNameBytes, &data); err != nil {
-		panic(err)
+		return "", err
 	}
 
 	names := data.Names
