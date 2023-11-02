@@ -2463,43 +2463,6 @@ export class JobRecentRun extends Message<JobRecentRun> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.JobRecentRuns
- */
-export class JobRecentRuns extends Message<JobRecentRuns> {
-  /**
-   * @generated from field: repeated mgmt.v1alpha1.JobRecentRun runs = 1;
-   */
-  runs: JobRecentRun[] = [];
-
-  constructor(data?: PartialMessage<JobRecentRuns>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.JobRecentRuns";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "runs", kind: "message", T: JobRecentRun, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobRecentRuns {
-    return new JobRecentRuns().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobRecentRuns {
-    return new JobRecentRuns().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobRecentRuns {
-    return new JobRecentRuns().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: JobRecentRuns | PlainMessage<JobRecentRuns> | undefined, b: JobRecentRuns | PlainMessage<JobRecentRuns> | undefined): boolean {
-    return proto3.util.equals(JobRecentRuns, a, b);
-  }
-}
-
-/**
  * @generated from message mgmt.v1alpha1.GetJobRecentRunsRequest
  */
 export class GetJobRecentRunsRequest extends Message<GetJobRecentRunsRequest> {
@@ -2541,9 +2504,9 @@ export class GetJobRecentRunsRequest extends Message<GetJobRecentRunsRequest> {
  */
 export class GetJobRecentRunsResponse extends Message<GetJobRecentRunsResponse> {
   /**
-   * @generated from field: mgmt.v1alpha1.JobRecentRuns recent_runs = 1;
+   * @generated from field: repeated mgmt.v1alpha1.JobRecentRun recent_runs = 1;
    */
-  recentRuns?: JobRecentRuns;
+  recentRuns: JobRecentRun[] = [];
 
   constructor(data?: PartialMessage<GetJobRecentRunsResponse>) {
     super();
@@ -2553,7 +2516,7 @@ export class GetJobRecentRunsResponse extends Message<GetJobRecentRunsResponse> 
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetJobRecentRunsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "recent_runs", kind: "message", T: JobRecentRuns },
+    { no: 1, name: "recent_runs", kind: "message", T: JobRecentRun, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRecentRunsResponse {
@@ -3331,6 +3294,11 @@ export class GetJobRunEventsResponse extends Message<GetJobRunEventsResponse> {
    */
   events: JobRunEvent[] = [];
 
+  /**
+   * @generated from field: bool is_run_complete = 2;
+   */
+  isRunComplete = false;
+
   constructor(data?: PartialMessage<GetJobRunEventsResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3340,6 +3308,7 @@ export class GetJobRunEventsResponse extends Message<GetJobRunEventsResponse> {
   static readonly typeName = "mgmt.v1alpha1.GetJobRunEventsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "events", kind: "message", T: JobRunEvent, repeated: true },
+    { no: 2, name: "is_run_complete", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunEventsResponse {

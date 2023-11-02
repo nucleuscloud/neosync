@@ -184,6 +184,7 @@ func (s *Service) GetJobStatus(
 	schedule, err := scheduleHandle.Describe(ctx)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobStatusResponse{
@@ -227,8 +228,9 @@ func (s *Service) GetJobStatuses(
 			schedule, err := scheduleHandle.Describe(ctx)
 			if err != nil {
 				logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+			} else {
+				dtos[i] = &mgmtv1alpha1.JobStatusRecord{JobId: jobId, Status: dtomaps.ToJobStatus(schedule)}
 			}
-			dtos[i] = &mgmtv1alpha1.JobStatusRecord{JobId: jobId, Status: dtomaps.ToJobStatus(schedule)}
 			return nil
 		})
 	}
@@ -273,6 +275,7 @@ func (s *Service) GetJobRecentRuns(
 	schedule, err := scheduleHandle.Describe(ctx)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRecentRunsResponse{
@@ -309,6 +312,7 @@ func (s *Service) GetJobNextRuns(
 	schedule, err := scheduleHandle.Describe(ctx)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobNextRunsResponse{
@@ -408,6 +412,7 @@ func (s *Service) CreateJob(
 
 	hasNs, err := s.doesAccountHaveTemporalNamespace(ctx, *accountUuid, logger)
 	if err != nil {
+		fmt.Println("account doesn't have namespace")
 		return nil, err
 	}
 	if !hasNs {

@@ -40,7 +40,7 @@ export function refreshWhenJobRunning(data: JsonValue): number {
   return shouldRefreshJobRun(jobRun.status) ? TEN_SECONDS : 0;
 }
 
-export function shouldRefreshJobRun(status?: JobRunStatus): boolean {
+function shouldRefreshJobRun(status?: JobRunStatus): boolean {
   return (
     status === JobRunStatus.RUNNING ||
     status === JobRunStatus.PENDING ||
