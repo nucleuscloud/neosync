@@ -10,7 +10,7 @@ export default function Page({ params }: PageProps): ReactElement {
     <div className="job-details-container">
       <SubPageHeader
         header="Source Connection"
-        description="Manage job's source connection"
+        description="Manage a job's source connection"
       />
 
       <div className="space-y-10">

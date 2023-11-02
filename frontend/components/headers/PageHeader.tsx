@@ -1,3 +1,4 @@
+import { cn } from '@/libs/utils';
 import { ReactNode } from 'react';
 import { Separator } from '../ui/separator';
 
@@ -7,12 +8,25 @@ interface Props {
 
   extraHeading?: ReactNode;
   leftIcon?: ReactNode;
+
+  pageHeaderContainerClassName?: string;
 }
 
 export default function PageHeader(props: Props) {
-  const { header, description, extraHeading, leftIcon } = props;
+  const {
+    header,
+    description,
+    extraHeading,
+    leftIcon,
+    pageHeaderContainerClassName,
+  } = props;
   return (
-    <div className="flex flex-col gap-2 py-10">
+    <div
+      className={cn(
+        'page-header-container flex flex-col gap-8',
+        pageHeaderContainerClassName
+      )}
+    >
       <div className="flex flex-row justify-between">
         <div className="flex flex-row items-center gap-1">
           {leftIcon ? leftIcon : null}
@@ -23,7 +37,7 @@ export default function PageHeader(props: Props) {
       {description ? (
         <h3 className="text-muted-foreground">{description}</h3>
       ) : null}
-      <div className="my-4">
+      <div>
         <Separator />
       </div>
     </div>

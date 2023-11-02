@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, IsUserInAccountRequest, IsUserInAccountResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb";
+import { ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, IsUserInAccountRequest, IsUserInAccountResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -64,6 +64,24 @@ export const UserAccountService = {
       name: "IsUserInAccount",
       I: IsUserInAccountRequest,
       O: IsUserInAccountResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.UserAccountService.GetAccountTemporalConfig
+     */
+    getAccountTemporalConfig: {
+      name: "GetAccountTemporalConfig",
+      I: GetAccountTemporalConfigRequest,
+      O: GetAccountTemporalConfigResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig
+     */
+    setAccountTemporalConfig: {
+      name: "SetAccountTemporalConfig",
+      I: SetAccountTemporalConfigRequest,
+      O: SetAccountTemporalConfigResponse,
       kind: MethodKind.Unary,
     },
   }

@@ -1528,6 +1528,62 @@ func (_c *MockQuerier_GetTemporalConfigByAccount_Call) RunAndReturn(run func(con
 	return _c
 }
 
+// GetTemporalConfigByUserAccount provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams) (*jsonmodels.TemporalConfig, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	var r0 *jsonmodels.TemporalConfig
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) (*jsonmodels.TemporalConfig, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) *jsonmodels.TemporalConfig); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*jsonmodels.TemporalConfig)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetTemporalConfigByUserAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTemporalConfigByUserAccount'
+type MockQuerier_GetTemporalConfigByUserAccount_Call struct {
+	*mock.Call
+}
+
+// GetTemporalConfigByUserAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg GetTemporalConfigByUserAccountParams
+func (_e *MockQuerier_Expecter) GetTemporalConfigByUserAccount(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_GetTemporalConfigByUserAccount_Call {
+	return &MockQuerier_GetTemporalConfigByUserAccount_Call{Call: _e.mock.On("GetTemporalConfigByUserAccount", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_GetTemporalConfigByUserAccount_Call) Run(run func(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams)) *MockQuerier_GetTemporalConfigByUserAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(GetTemporalConfigByUserAccountParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetTemporalConfigByUserAccount_Call) Return(_a0 *jsonmodels.TemporalConfig, _a1 error) *MockQuerier_GetTemporalConfigByUserAccount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetTemporalConfigByUserAccount_Call) RunAndReturn(run func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) (*jsonmodels.TemporalConfig, error)) *MockQuerier_GetTemporalConfigByUserAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUser provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetUser(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiUser, error) {
 	ret := _m.Called(ctx, db, id)

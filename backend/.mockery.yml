@@ -19,6 +19,6 @@ packages:
     # config:
     interfaces:
       Querier:
-  github.com/nucleuscloud/neosync/backend/internal/temporal/workflow-manager:
+  github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
     interfaces:
       DB:

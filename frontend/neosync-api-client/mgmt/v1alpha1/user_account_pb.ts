@@ -489,3 +489,206 @@ export class IsUserInAccountResponse extends Message<IsUserInAccountResponse> {
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountTemporalConfigRequest
+ */
+export class GetAccountTemporalConfigRequest extends Message<GetAccountTemporalConfigRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetAccountTemporalConfigRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountTemporalConfigRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountTemporalConfigRequest {
+    return new GetAccountTemporalConfigRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountTemporalConfigRequest {
+    return new GetAccountTemporalConfigRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountTemporalConfigRequest {
+    return new GetAccountTemporalConfigRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountTemporalConfigRequest | PlainMessage<GetAccountTemporalConfigRequest> | undefined, b: GetAccountTemporalConfigRequest | PlainMessage<GetAccountTemporalConfigRequest> | undefined): boolean {
+    return proto3.util.equals(GetAccountTemporalConfigRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountTemporalConfigResponse
+ */
+export class GetAccountTemporalConfigResponse extends Message<GetAccountTemporalConfigResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.AccountTemporalConfig config = 1;
+   */
+  config?: AccountTemporalConfig;
+
+  constructor(data?: PartialMessage<GetAccountTemporalConfigResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountTemporalConfigResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "config", kind: "message", T: AccountTemporalConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountTemporalConfigResponse {
+    return new GetAccountTemporalConfigResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountTemporalConfigResponse {
+    return new GetAccountTemporalConfigResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountTemporalConfigResponse {
+    return new GetAccountTemporalConfigResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountTemporalConfigResponse | PlainMessage<GetAccountTemporalConfigResponse> | undefined, b: GetAccountTemporalConfigResponse | PlainMessage<GetAccountTemporalConfigResponse> | undefined): boolean {
+    return proto3.util.equals(GetAccountTemporalConfigResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetAccountTemporalConfigRequest
+ */
+export class SetAccountTemporalConfigRequest extends Message<SetAccountTemporalConfigRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.AccountTemporalConfig config = 2;
+   */
+  config?: AccountTemporalConfig;
+
+  constructor(data?: PartialMessage<SetAccountTemporalConfigRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetAccountTemporalConfigRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "config", kind: "message", T: AccountTemporalConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetAccountTemporalConfigRequest {
+    return new SetAccountTemporalConfigRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetAccountTemporalConfigRequest {
+    return new SetAccountTemporalConfigRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetAccountTemporalConfigRequest {
+    return new SetAccountTemporalConfigRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetAccountTemporalConfigRequest | PlainMessage<SetAccountTemporalConfigRequest> | undefined, b: SetAccountTemporalConfigRequest | PlainMessage<SetAccountTemporalConfigRequest> | undefined): boolean {
+    return proto3.util.equals(SetAccountTemporalConfigRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetAccountTemporalConfigResponse
+ */
+export class SetAccountTemporalConfigResponse extends Message<SetAccountTemporalConfigResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.AccountTemporalConfig config = 1;
+   */
+  config?: AccountTemporalConfig;
+
+  constructor(data?: PartialMessage<SetAccountTemporalConfigResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetAccountTemporalConfigResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "config", kind: "message", T: AccountTemporalConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetAccountTemporalConfigResponse {
+    return new SetAccountTemporalConfigResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetAccountTemporalConfigResponse {
+    return new SetAccountTemporalConfigResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetAccountTemporalConfigResponse {
+    return new SetAccountTemporalConfigResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetAccountTemporalConfigResponse | PlainMessage<SetAccountTemporalConfigResponse> | undefined, b: SetAccountTemporalConfigResponse | PlainMessage<SetAccountTemporalConfigResponse> | undefined): boolean {
+    return proto3.util.equals(SetAccountTemporalConfigResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AccountTemporalConfig
+ */
+export class AccountTemporalConfig extends Message<AccountTemporalConfig> {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url = "";
+
+  /**
+   * @generated from field: string namespace = 2;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string sync_job_queue_name = 3;
+   */
+  syncJobQueueName = "";
+
+  constructor(data?: PartialMessage<AccountTemporalConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AccountTemporalConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "sync_job_queue_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountTemporalConfig {
+    return new AccountTemporalConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AccountTemporalConfig {
+    return new AccountTemporalConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AccountTemporalConfig {
+    return new AccountTemporalConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AccountTemporalConfig | PlainMessage<AccountTemporalConfig> | undefined, b: AccountTemporalConfig | PlainMessage<AccountTemporalConfig> | undefined): boolean {
+    return proto3.util.equals(AccountTemporalConfig, a, b);
+  }
+}
+
