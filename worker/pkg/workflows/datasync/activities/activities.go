@@ -707,12 +707,10 @@ func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
 }
 
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
-	columns := []string{}
-
-	for _, col := range mappings {
-		columns = append(columns, col.Column)
+	columns := make([]string, len(mappings))
+	for idx := range mappings {
+		columns[idx] = mappings[idx].Column
 	}
-
 	return columns
 }
 
@@ -960,8 +958,8 @@ func buildPlainInsertArgs(cols []string) string {
 		return ""
 	}
 	pieces := make([]string, len(cols))
-	for idx, col := range cols {
-		pieces[idx] = fmt.Sprintf("this.%s", col)
+	for idx := range cols {
+		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
 	}
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }

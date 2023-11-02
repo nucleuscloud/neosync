@@ -191,3 +191,33 @@ output:
 	err = val.Get(res)
 	require.NoError(t, err)
 }
+
+func Test_buildPlainInsertArgs(t *testing.T) {
+	assert.Empty(t, buildPlainInsertArgs(nil))
+	assert.Empty(t, buildPlainInsertArgs([]string{}))
+	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), "root = [this.foo, this.bar, this.baz]")
+}
+
+func Test_buildPlainColumns(t *testing.T) {
+	assert.Empty(t, buildPlainColumns(nil))
+	assert.Empty(t, buildPlainColumns([]*mgmtv1alpha1.JobMapping{}))
+	assert.Equal(
+		t,
+		buildPlainColumns([]*mgmtv1alpha1.JobMapping{
+			{Column: "foo"},
+			{Column: "bar"},
+			{Column: "baz"},
+		}),
+		[]string{"foo", "bar", "baz"},
+	)
+}
+
+func Test_splitTableKey(t *testing.T) {
+	schema, table := splitTableKey("foo")
+	assert.Equal(t, schema, "public")
+	assert.Equal(t, table, "foo")
+
+	schema, table = splitTableKey("neosync.foo")
+	assert.Equal(t, schema, "neosync")
+	assert.Equal(t, table, "foo")
+}
