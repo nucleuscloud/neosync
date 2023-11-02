@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
-	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	"github.com/bxcodec/faker/v4"
 )
 
 func init() {
@@ -26,7 +24,7 @@ func init() {
 		}
 
 		return bloblang.Int64Method(func(s int64) (any, error) {
-			res, err := ProcessIntPhoneNumber(s, preserveLength)
+			res, err := GenerateIntPhoneNumber(s, preserveLength)
 			return res, err
 		}), nil
 	})
@@ -37,53 +35,66 @@ func init() {
 
 }
 
-// main transformer logic goes here
-func ProcessIntPhoneNumber(pn int64, preserveLength bool) (int64, error) {
-
-	var returnValue int64
+// generates a random phone number and returns it as an int64
+func GenerateIntPhoneNumber(number int64, preserveLength bool) (int64, error) {
 
 	if preserveLength {
 
-		numStr := strconv.FormatInt(pn, 10)
-
-		val, err := GenerateRandomInt(int64(len(numStr))) // generates len(pn) random numbers from 0 -> 9
-
+		res, err := GenerateIntPhoneNumberPreserveLength(number)
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate phone number")
+			return 0, fmt.Errorf("unable to convert phone number string to int64")
 		}
-
-		returnValue = val
+		return res, err
 
 	} else {
 
-		str := strings.ReplaceAll(faker.Phonenumber(), "-", "")
-
-		returnValue, err := strconv.ParseInt(str, 10, 64)
-
+		res, err := GenerateIntPhoneNumberRandomLength()
 		if err != nil {
 			return 0, fmt.Errorf("unable to convert phone number string to int64")
 		}
 
-		return returnValue, nil
+		return res, err
 
 	}
 
-	return returnValue, nil
 }
 
-func GenerateRandomInt(count int64) (int64, error) {
-	if count <= 0 {
+func GenerateIntPhoneNumberPreserveLength(number int64) (int64, error) {
+	numStr := strconv.FormatInt(number, 10)
+
+	val, err := GenerateRandomInt(int64(len(numStr))) // generates len(pn) random numbers from 0 -> 9
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate phone number")
+	}
+
+	return val, err
+
+}
+
+func GenerateIntPhoneNumberRandomLength() (int64, error) {
+
+	res, err := GenerateRandomInt(int64(10))
+
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate random phone number")
+	}
+
+	return res, nil
+}
+
+func GenerateRandomInt(digits int64) (int64, error) {
+	if digits <= 0 {
 		return 0, fmt.Errorf("count is zero or not a positive integer")
 	}
 
 	// int64 only supports 18 digits, so if the count => 19, this will error out
-	if count >= 19 {
+	if digits >= 19 {
 		return 0, fmt.Errorf("count has to be less than 18 digits since int64 only supports up to 18 digits")
 	}
 
 	// Calculate the min and max values for count
-	minValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(count-1), nil)
-	maxValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(count), nil)
+	minValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(digits-1), nil)
+	maxValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(digits), nil)
 
 	// Generate a random integer within the specified range
 	randInt, err := rand.Int(rand.Reader, maxValue)
@@ -92,11 +103,11 @@ func GenerateRandomInt(count int64) (int64, error) {
 	}
 
 	/*
-		rand.Int generates a random number within the range [0, max-1], so if count == 8 [0 -> 9999999]. If the generated random integer is already the maximum possible value, then adding the minimum value to it will overflow it to count + 1. This is because the big.Int.Add() function adds two big integers together and returns a new big integer. If the first digit is a 9 and it's already count long then adding the min will overflow. So we only add if the digit count is not count AND the first digit is not 9.
+		rand.Int generates a random number within the range [0, max-1], so if count == 8 [0 -> 9999999]. If the generated random integer is already the maximum possible value, then adding the minimum value to it will overflow it to count + 1. This is because the big.Int.Add() function adds two big integers together and returns a new big integer. If the first digit is a 9 and it's already count long then adding the min will overflow. So we only add if the digit count is not digits AND the first digit is not 9.
 
 	*/
 
-	if FirstDigitIsNine(randInt.Int64()) && GetIntLength(randInt.Int64()) == count {
+	if FirstDigitIsNine(randInt.Int64()) && GetIntLength(randInt.Int64()) == digits {
 		return randInt.Int64(), nil
 	} else {
 		randInt.Add(randInt, minValue)

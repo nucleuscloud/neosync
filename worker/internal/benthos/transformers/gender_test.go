@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessGenderAbbreviateTrue(t *testing.T) {
+func TestGenerateGenderAbbreviateTrue(t *testing.T) {
 	res, err := GenerateRandomGender(true)
 
 	valid := []string{"f", "m", "u", "n"}
@@ -18,7 +18,7 @@ func TestProcessGenderAbbreviateTrue(t *testing.T) {
 
 }
 
-func TestProcessGenderAbbreviateFalse(t *testing.T) {
+func TestGenerateGenderAbbreviateFalse(t *testing.T) {
 
 	res, err := GenerateRandomGender(false)
 
