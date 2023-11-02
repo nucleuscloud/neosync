@@ -72,8 +72,6 @@ func serve() error {
 		ConnectionOptions: client.ConnectionOptions{
 			TLS: tlsConfig,
 		},
-		// Interceptors: ,
-		// HeadersProvider: , // todo: set auth headers
 	})
 	if err != nil {
 		return err
