@@ -79,7 +79,7 @@ func IntSliceToStringSlice(ints []int64) []string {
 	return str
 }
 
-// genrates a random integer of length l that is passed in as a int64 param
+// generates a random integer of length l that is passed in as a int64 param
 func GenerateRandomInt(digits int64) (int64, error) {
 	if digits <= 0 {
 		return 0, fmt.Errorf("count is zero or not a positive integer")
