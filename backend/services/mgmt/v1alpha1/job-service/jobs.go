@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -135,6 +134,7 @@ func (s *Service) GetJob(
 func (s *Service) doesAccountHaveTemporalNamespace(
 	ctx context.Context,
 	accountUuid pgtype.UUID,
+	logger *slog.Logger,
 ) (bool, error) {
 	tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
 	if err != nil {
@@ -143,64 +143,17 @@ func (s *Service) doesAccountHaveTemporalNamespace(
 	if tc.Namespace == "" {
 		return false, nil
 	}
-	_, err = s.temporalNsClient.Describe(ctx, tc.Namespace)
+	nsclient, err := s.temporalWfManager.GetNamespaceClientByAccount(ctx, nucleusdb.UUIDString(accountUuid), logger)
+	if err != nil {
+		return false, err
+	}
+	_, err = nsclient.Describe(ctx, tc.Namespace)
 	if err != nil && !errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
 		return false, err
 	} else if err != nil && errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
 		return false, nil
 	}
 	return true, nil
-}
-
-func (s *Service) ensureTemporalNamespaceForAccount(
-	ctx context.Context,
-	accountUuid pgtype.UUID,
-	onNewNamespace func() string,
-) error {
-	err := s.db.WithTx(ctx, nil, func(tx nucleusdb.BaseDBTX) error {
-		tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, tx, accountUuid)
-		if err != nil {
-			return err
-		}
-		if tc.Namespace == "" {
-			tc.Namespace = onNewNamespace()
-			tc.SyncJobQueueName = "sync-job" // hm
-			_, err = s.db.Q.UpdateTemporalConfigByAccount(ctx, tx, db_queries.UpdateTemporalConfigByAccountParams{
-				TemporalConfig: tc,
-				AccountId:      accountUuid,
-			})
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
-	if err != nil {
-		return err
-	}
-	// todo: this might cause problems if the name we generate already exists but not for this account!
-	_, err = s.temporalNsClient.Describe(ctx, tc.Namespace)
-	notfounderror := serviceerror.NewNamespaceNotFound(tc.Namespace)
-	// can't use errors.Is due to it not being a wrapped error
-	if err != nil && err.Error() != notfounderror.Error() {
-		return err
-	} else if err != nil && err.Error() == notfounderror.Error() {
-		// create new namespace
-		retentionPeriod := (3 * 24) * time.Hour
-		err = s.temporalNsClient.Register(ctx, &workflowservice.RegisterNamespaceRequest{
-			Namespace:                        tc.Namespace,
-			WorkflowExecutionRetentionPeriod: &retentionPeriod,
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (s *Service) GetJobStatus(
@@ -223,7 +176,7 @@ func (s *Service) GetJobStatus(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +210,7 @@ func (s *Service) GetJobStatuses(
 
 	var scheduleclient temporalclient.ScheduleClient
 	if len(jobs) > 0 {
-		tclient, err := s.temporalWfManager.GetClientByAccount(ctx, req.Msg.AccountId, logger)
+		tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, req.Msg.AccountId, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -312,7 +265,7 @@ func (s *Service) GetJobRecentRuns(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -348,7 +301,7 @@ func (s *Service) GetJobNextRuns(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -454,6 +407,14 @@ func (s *Service) CreateJob(
 		})
 	}
 
+	hasNs, err := s.doesAccountHaveTemporalNamespace(ctx, *accountUuid, logger)
+	if err != nil {
+		return nil, err
+	}
+	if !hasNs {
+		return nil, nucleuserrors.NewBadRequest("must first configure temporal namespace in account settings")
+	}
+
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
 		Name:               req.Msg.JobName,
 		AccountID:          *accountUuid,
@@ -469,21 +430,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	err = s.ensureTemporalNamespaceForAccount(ctx, *accountUuid, func() string {
-		if s.cfg.IsAuthEnabled {
-			return s.namegenerator.Generate()
-		}
-		return "default"
-	})
-	if err != nil {
-		err2 := s.db.Q.DeleteJob(ctx, s.db.Db, cj.ID)
-		if err2 != nil {
-			logger.Error(fmt.Sprintf("unable to delete job when temporal namespace for account failed: %s", err2.Error()))
-		}
-		return nil, err
-	}
-
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, req.Msg.AccountId, logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, req.Msg.AccountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -560,7 +507,7 @@ func (s *Service) DeleteJob(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -718,7 +665,7 @@ func (s *Service) UpdateJobSchedule(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -805,7 +752,7 @@ func (s *Service) PauseJob(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
 	if err != nil {
 		return nil, err
 	}

@@ -20,15 +20,13 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
-	namegenerator "github.com/nucleuscloud/neosync/backend/internal/name-generator"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	workflowmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/workflow-manager"
+	workflowmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
-	temporalclient "go.temporal.io/sdk/client"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -139,16 +137,7 @@ func serve() error {
 		),
 	)
 
-	nsclient, err := temporalclient.NewNamespaceClient(temporalclient.Options{
-		HostPort: getDefaultTemporalUrl(),
-		Logger:   logger.With("temporal-client", "true"),
-	})
-	if err != nil {
-		return err
-	}
-	tfwfmgr := workflowmanager.New(&workflowmanager.Config{
-		TemporalUrl: getDefaultTemporalUrl(),
-	}, db.Q, db.Db)
+	tfwfmgr := workflowmanager.New(&workflowmanager.Config{}, db.Q, db.Db)
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
 		IsAuthEnabled: isAuthEnabled,
@@ -156,9 +145,7 @@ func serve() error {
 	jobService := v1alpha1_jobservice.New(
 		jobServiceConfig,
 		db,
-		nsclient,
 		tfwfmgr,
-		namegenerator.New(2, "-"),
 		connectionService,
 		useraccountService,
 	)

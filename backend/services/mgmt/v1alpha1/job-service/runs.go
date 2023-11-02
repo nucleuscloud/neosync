@@ -44,7 +44,7 @@ func (s *Service) GetJobRuns(
 			return nil, err
 		}
 		accountId = nucleusdb.UUIDString(job.AccountID)
-		tclient, err := s.temporalWfManager.GetClientByAccount(ctx, accountId, logger)
+		tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, accountId, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +72,7 @@ func (s *Service) GetJobRuns(
 			jobIds = append(jobIds, nucleusdb.UUIDString(job.ID))
 		}
 		if len(jobIds) > 0 {
-			tclient, err := s.temporalWfManager.GetClientByAccount(ctx, accountId, logger)
+			tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, accountId, logger)
 			if err != nil {
 				return nil, err
 			}
@@ -96,7 +96,7 @@ func (s *Service) GetJobRuns(
 	}
 	var tclient temporalclient.Client
 	if len(workflows) > 0 {
-		tclient, err = s.temporalWfManager.GetClientByAccount(ctx, accountId, logger)
+		tclient, err = s.temporalWfManager.GetWorkflowClientByAccount(ctx, accountId, logger)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +143,7 @@ func (s *Service) GetJobRun(
 	if err != nil {
 		return nil, err
 	}
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (s *Service) GetJobRunEvents(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -292,7 +292,7 @@ func (s *Service) CreateJobRun(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, accountId, logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, accountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -320,7 +320,7 @@ func (s *Service) CancelJobRun(
 	}
 
 	logger.Info("canceling job run")
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +346,7 @@ func (s *Service) DeleteJobRun(
 		return nil, err
 	}
 	logger.Info("deleting job run")
-	tclient, err := s.temporalWfManager.GetClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -408,14 +408,14 @@ func (s *Service) getVerifiedJobRun(
 		if err != nil {
 			return nil, err
 		}
-		hasNs, err := s.doesAccountHaveTemporalNamespace(ctx, accountUuid)
+		hasNs, err := s.doesAccountHaveTemporalNamespace(ctx, accountUuid, logger)
 		if err != nil {
 			return nil, err
 		}
 		if !hasNs {
 			continue
 		}
-		tclient, err := s.temporalWfManager.GetClientByAccount(ctx, userAccount.Id, logger)
+		tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, userAccount.Id, logger)
 		if err != nil {
 			return nil, err
 		}
