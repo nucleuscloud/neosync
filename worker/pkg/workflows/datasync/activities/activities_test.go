@@ -1,4 +1,4 @@
-package datasync
+package datasync_activities
 
 import (
 	"math"

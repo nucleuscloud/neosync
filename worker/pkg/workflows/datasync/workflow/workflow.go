@@ -1,10 +1,11 @@
-package datasync
+package datasync_workflow
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
+	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
@@ -38,9 +39,9 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	logger := workflow.GetLogger(ctx)
 	_ = logger
 
-	var wfActivites *Activities
-	var bcResp *GenerateBenthosConfigsResponse
-	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &GenerateBenthosConfigsRequest{
+	var wfActivites *datasync_activities.Activities
+	var bcResp *datasync_activities.GenerateBenthosConfigsResponse
+	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &datasync_activities.GenerateBenthosConfigsRequest{
 		JobId:      req.JobId,
 		BackendUrl: neosyncUrl,
 		WorkflowId: wfinfo.WorkflowExecution.ID,
@@ -63,7 +64,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		future := invokeSync(bc, childctx, started, completed, logger)
 		workselector.AddFuture(future, func(f workflow.Future) {
 			logger.Info("config sync completed", "name", bc.Name)
-			var result SyncResponse
+			var result datasync_activities.SyncResponse
 			err := f.Get(childctx, &result)
 			if err != nil {
 				logger.Error("activity did not complete", "err", err)
@@ -93,7 +94,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			future := invokeSync(bc, childctx, started, completed, logger)
 			workselector.AddFuture(future, func(f workflow.Future) {
 				logger.Info("config sync completed", "name", bc.Name)
-				var result SyncResponse
+				var result datasync_activities.SyncResponse
 				err := f.Get(childctx, &result)
 				if err != nil {
 					logger.Error("activity did not complete", "err", err)
@@ -109,14 +110,14 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	return &WorkflowResponse{}, nil
 }
 
-func getSyncMetadata(config *benthosConfigResponse) *SyncMetadata {
+func getSyncMetadata(config *datasync_activities.BenthosConfigResponse) *datasync_activities.SyncMetadata {
 	names := strings.Split(config.Name, ".")
 	schema, table := names[0], names[1]
-	return &SyncMetadata{Schema: schema, Table: table}
+	return &datasync_activities.SyncMetadata{Schema: schema, Table: table}
 }
 
 func invokeSync(
-	config *benthosConfigResponse,
+	config *datasync_activities.BenthosConfigResponse,
 	ctx workflow.Context,
 	started map[string]struct{},
 	completed map[string]struct{},
@@ -126,7 +127,7 @@ func invokeSync(
 	future, settable := workflow.NewFuture(ctx)
 	logger.Info("triggering config sync", "name", config.Name, "metadata", metadata)
 	started[config.Name] = struct{}{}
-	var wfActivites *Activities
+	var wfActivites *datasync_activities.Activities
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
 		configbits, err := yaml.Marshal(config.Config)
 		if err != nil {
@@ -134,18 +135,18 @@ func invokeSync(
 			settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
 			return
 		}
-		var result SyncResponse
+		var result datasync_activities.SyncResponse
 		err = workflow.ExecuteActivity(
 			ctx,
 			wfActivites.Sync,
-			&SyncRequest{BenthosConfig: string(configbits)}, metadata).Get(ctx, &result)
+			&datasync_activities.SyncRequest{BenthosConfig: string(configbits)}, metadata).Get(ctx, &result)
 		completed[config.Name] = struct{}{}
 		settable.Set(result, err)
 	})
 	return future
 }
 
-func isConfigReady(config *benthosConfigResponse, completed map[string]struct{}) bool {
+func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed map[string]struct{}) bool {
 	if config == nil {
 		return false
 	}
@@ -162,14 +163,14 @@ func isConfigReady(config *benthosConfigResponse, completed map[string]struct{})
 }
 
 type SplitConfigs struct {
-	Root       []*benthosConfigResponse
-	Dependents []*benthosConfigResponse
+	Root       []*datasync_activities.BenthosConfigResponse
+	Dependents []*datasync_activities.BenthosConfigResponse
 }
 
-func splitBenthosConfigs(configs []*benthosConfigResponse) *SplitConfigs {
+func splitBenthosConfigs(configs []*datasync_activities.BenthosConfigResponse) *SplitConfigs {
 	out := &SplitConfigs{
-		Root:       []*benthosConfigResponse{},
-		Dependents: []*benthosConfigResponse{},
+		Root:       []*datasync_activities.BenthosConfigResponse{},
+		Dependents: []*datasync_activities.BenthosConfigResponse{},
 	}
 	for _, cfg := range configs {
 		if len(cfg.DependsOn) == 0 {

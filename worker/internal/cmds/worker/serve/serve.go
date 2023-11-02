@@ -13,7 +13,8 @@ import (
 
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync"
+	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/client"
@@ -81,8 +82,8 @@ func serve() error {
 	w := worker.New(temporalClient, taskQueue, worker.Options{})
 	_ = w
 
-	w.RegisterWorkflow(datasync.Workflow)
-	w.RegisterActivity(&datasync.Activities{})
+	w.RegisterWorkflow(datasync_workflow.Workflow)
+	w.RegisterActivity(&datasync_activities.Activities{})
 
 	if err := w.Start(); err != nil {
 		return err
