@@ -53,3 +53,19 @@ stringData:
     {{- if and .Values.temporal .Values.temporal.url }}
     TEMPORAL_URL: {{ .Values.temporal.url }}
     {{- end }}
+
+    {{- if and .Values.temporal .Values.temporal.certificate .Values.temporal.certificate.keyFilePath }}
+    TEMPORAL_CERT_KEY_PATH: {{ .Values.temporal.certificate.keyFilePath }}
+    {{- end }}
+
+    {{- if and .Values.temporal .Values.temporal.certificate .Values.temporal.certificate.certFilePath }}
+    TEMPORAL_CERT_PATH: {{ .Values.temporal.certificate.certFilePath }}
+    {{- end }}
+
+    {{- if and .Values.temporal .Values.temporal.certificate .Values.temporal.certificate.keyContents }}
+    TEMPORAL_CERT_KEY: {{ .Values.temporal.certificate.keyContents }}
+    {{- end }}
+
+    {{- if and .Values.temporal .Values.temporal.certificate .Values.temporal.certificate.certContents }}
+    TEMPORAL_CERT: {{ .Values.temporal.certificate.certContents }}
+    {{- end }}

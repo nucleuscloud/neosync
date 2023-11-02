@@ -59,3 +59,12 @@ auth:
 
 temporal:
   url:
+  certificate:
+    keyFilePath:
+    certFilePath:
+
+    keyContents:
+    certContents:
+
+volumes: []
+volumeMounts: []
