@@ -1,4 +1,4 @@
-package workflowmanager
+package clientmanager
 
 import (
 	"context"

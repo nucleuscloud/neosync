@@ -21,7 +21,7 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	workflowmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
@@ -137,7 +137,7 @@ func serve() error {
 		),
 	)
 
-	tfwfmgr := workflowmanager.New(&workflowmanager.Config{}, db.Q, db.Db)
+	tfwfmgr := clientmanager.New(&clientmanager.Config{}, db.Q, db.Db)
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
 		IsAuthEnabled: isAuthEnabled,
