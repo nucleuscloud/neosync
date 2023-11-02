@@ -75,8 +75,6 @@ services:
       - HOST=0.0.0.0
       - PORT=8082
       - NUCLEUS_ENV=dev
-      - TEMPORAL_NAMESPACE=default
-      - TEMPORAL_TASK_QUEUE=sync-job
       - TEMPORAL_URL=temporal:7233
       - DB_HOST=db
       - DB_PORT=5432

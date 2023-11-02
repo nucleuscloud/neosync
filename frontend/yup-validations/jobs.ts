@@ -1,4 +1,5 @@
 import { SubsetFormValues } from '@/app/new/job/schema';
+import { transformerConfig } from '@/app/new/transformer/schema';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   JobDestinationOptions,
@@ -13,16 +14,7 @@ import * as Yup from 'yup';
 
 const TRANSFORMER_SCHEMA = Yup.object().shape({
   value: Yup.string().required(),
-  config: Yup.object()
-    .shape({})
-    .when('value', {
-      is: 'email',
-      then: () =>
-        Yup.object().shape({
-          preserve_domain: Yup.boolean().notRequired(),
-          preserve_length: Yup.boolean().notRequired(),
-        }),
-    }),
+  config: transformerConfig,
 });
 
 export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;

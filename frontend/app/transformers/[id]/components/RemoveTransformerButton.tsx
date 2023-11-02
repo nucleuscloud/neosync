@@ -42,10 +42,13 @@ export default function RemoveTransformerButton(props: Props): ReactElement {
   );
 }
 
-async function removeTransformer(transformerID: string): Promise<void> {
-  const res = await fetch(`/api/transformer/${transformerID}`, {
-    method: 'DELETE',
-  });
+async function removeTransformer(transformerId: string): Promise<void> {
+  const res = await fetch(
+    `/api/transformers/custom?transformerId=${transformerId}`,
+    {
+      method: 'DELETE',
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

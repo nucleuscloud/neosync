@@ -1405,3 +1405,618 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = IsUserInAccountResponseValidationError{}
+
+// Validate checks the field values on GetAccountTemporalConfigRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetAccountTemporalConfigRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetAccountTemporalConfigRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetAccountTemporalConfigRequestMultiError, or nil if none found.
+func (m *GetAccountTemporalConfigRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAccountTemporalConfigRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	if len(errors) > 0 {
+		return GetAccountTemporalConfigRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAccountTemporalConfigRequestMultiError is an error wrapping multiple
+// validation errors returned by GetAccountTemporalConfigRequest.ValidateAll()
+// if the designated constraints aren't met.
+type GetAccountTemporalConfigRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAccountTemporalConfigRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAccountTemporalConfigRequestMultiError) AllErrors() []error { return m }
+
+// GetAccountTemporalConfigRequestValidationError is the validation error
+// returned by GetAccountTemporalConfigRequest.Validate if the designated
+// constraints aren't met.
+type GetAccountTemporalConfigRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAccountTemporalConfigRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAccountTemporalConfigRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAccountTemporalConfigRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAccountTemporalConfigRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAccountTemporalConfigRequestValidationError) ErrorName() string {
+	return "GetAccountTemporalConfigRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAccountTemporalConfigRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAccountTemporalConfigRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAccountTemporalConfigRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAccountTemporalConfigRequestValidationError{}
+
+// Validate checks the field values on GetAccountTemporalConfigResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetAccountTemporalConfigResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetAccountTemporalConfigResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetAccountTemporalConfigResponseMultiError, or nil if none found.
+func (m *GetAccountTemporalConfigResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAccountTemporalConfigResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetAccountTemporalConfigResponseValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetAccountTemporalConfigResponseValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetAccountTemporalConfigResponseValidationError{
+				field:  "Config",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetAccountTemporalConfigResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAccountTemporalConfigResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// GetAccountTemporalConfigResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetAccountTemporalConfigResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAccountTemporalConfigResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAccountTemporalConfigResponseMultiError) AllErrors() []error { return m }
+
+// GetAccountTemporalConfigResponseValidationError is the validation error
+// returned by GetAccountTemporalConfigResponse.Validate if the designated
+// constraints aren't met.
+type GetAccountTemporalConfigResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAccountTemporalConfigResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAccountTemporalConfigResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAccountTemporalConfigResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAccountTemporalConfigResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAccountTemporalConfigResponseValidationError) ErrorName() string {
+	return "GetAccountTemporalConfigResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAccountTemporalConfigResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAccountTemporalConfigResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAccountTemporalConfigResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAccountTemporalConfigResponseValidationError{}
+
+// Validate checks the field values on SetAccountTemporalConfigRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetAccountTemporalConfigRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetAccountTemporalConfigRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SetAccountTemporalConfigRequestMultiError, or nil if none found.
+func (m *SetAccountTemporalConfigRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetAccountTemporalConfigRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	if all {
+		switch v := interface{}(m.GetConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetAccountTemporalConfigRequestValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetAccountTemporalConfigRequestValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetAccountTemporalConfigRequestValidationError{
+				field:  "Config",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetAccountTemporalConfigRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetAccountTemporalConfigRequestMultiError is an error wrapping multiple
+// validation errors returned by SetAccountTemporalConfigRequest.ValidateAll()
+// if the designated constraints aren't met.
+type SetAccountTemporalConfigRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetAccountTemporalConfigRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetAccountTemporalConfigRequestMultiError) AllErrors() []error { return m }
+
+// SetAccountTemporalConfigRequestValidationError is the validation error
+// returned by SetAccountTemporalConfigRequest.Validate if the designated
+// constraints aren't met.
+type SetAccountTemporalConfigRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetAccountTemporalConfigRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetAccountTemporalConfigRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetAccountTemporalConfigRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetAccountTemporalConfigRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetAccountTemporalConfigRequestValidationError) ErrorName() string {
+	return "SetAccountTemporalConfigRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetAccountTemporalConfigRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetAccountTemporalConfigRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetAccountTemporalConfigRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetAccountTemporalConfigRequestValidationError{}
+
+// Validate checks the field values on SetAccountTemporalConfigResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *SetAccountTemporalConfigResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetAccountTemporalConfigResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SetAccountTemporalConfigResponseMultiError, or nil if none found.
+func (m *SetAccountTemporalConfigResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetAccountTemporalConfigResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetAccountTemporalConfigResponseValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetAccountTemporalConfigResponseValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetAccountTemporalConfigResponseValidationError{
+				field:  "Config",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetAccountTemporalConfigResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetAccountTemporalConfigResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// SetAccountTemporalConfigResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SetAccountTemporalConfigResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetAccountTemporalConfigResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetAccountTemporalConfigResponseMultiError) AllErrors() []error { return m }
+
+// SetAccountTemporalConfigResponseValidationError is the validation error
+// returned by SetAccountTemporalConfigResponse.Validate if the designated
+// constraints aren't met.
+type SetAccountTemporalConfigResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetAccountTemporalConfigResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetAccountTemporalConfigResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetAccountTemporalConfigResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetAccountTemporalConfigResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetAccountTemporalConfigResponseValidationError) ErrorName() string {
+	return "SetAccountTemporalConfigResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetAccountTemporalConfigResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetAccountTemporalConfigResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetAccountTemporalConfigResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetAccountTemporalConfigResponseValidationError{}
+
+// Validate checks the field values on AccountTemporalConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AccountTemporalConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AccountTemporalConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AccountTemporalConfigMultiError, or nil if none found.
+func (m *AccountTemporalConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AccountTemporalConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Url
+
+	// no validation rules for Namespace
+
+	// no validation rules for SyncJobQueueName
+
+	if len(errors) > 0 {
+		return AccountTemporalConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// AccountTemporalConfigMultiError is an error wrapping multiple validation
+// errors returned by AccountTemporalConfig.ValidateAll() if the designated
+// constraints aren't met.
+type AccountTemporalConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AccountTemporalConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AccountTemporalConfigMultiError) AllErrors() []error { return m }
+
+// AccountTemporalConfigValidationError is the validation error returned by
+// AccountTemporalConfig.Validate if the designated constraints aren't met.
+type AccountTemporalConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AccountTemporalConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AccountTemporalConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AccountTemporalConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AccountTemporalConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AccountTemporalConfigValidationError) ErrorName() string {
+	return "AccountTemporalConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AccountTemporalConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAccountTemporalConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AccountTemporalConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AccountTemporalConfigValidationError{}

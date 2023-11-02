@@ -1,8 +1,6 @@
 package jsonmodels
 
 import (
-	"fmt"
-
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
@@ -69,9 +67,8 @@ type PassthroughConfig struct {
 type NullConfig struct{}
 
 type RandomStringConfig struct {
-	PreserveLength bool   `json:"preserveLength"`
-	StrLength      int64  `json:"strLength"`
-	StrCase        string `json:"strCase"`
+	PreserveLength bool  `json:"preserveLength"`
+	StrLength      int64 `json:"strLength"`
 }
 
 type RandomBoolConfig struct{}
@@ -165,7 +162,6 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.RandomString = &RandomStringConfig{
 			PreserveLength: tr.GetRandomStringConfig().PreserveLength,
 			StrLength:      tr.GetRandomStringConfig().GetStrLength(),
-			StrCase:        tr.GetRandomStringConfig().StrCase.String(),
 		}
 	case *mgmtv1alpha1.TransformerConfig_RandomBoolConfig:
 		t.RandomBool = &RandomBoolConfig{}
@@ -298,18 +294,11 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 			},
 		}
 	case tr.RandomString != nil:
-
-		strCase, err := StrCaseFromString(tr.RandomString.StrCase)
-		if err != nil {
-			return &mgmtv1alpha1.TransformerConfig{}
-		}
-
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_RandomStringConfig{
 				RandomStringConfig: &mgmtv1alpha1.RandomString{
-					PreserveLength: t.RandomString.PreserveLength,
-					StrLength:      t.RandomString.StrLength,
-					StrCase:        strCase,
+					PreserveLength: tr.RandomString.PreserveLength,
+					StrLength:      tr.RandomString.StrLength,
 				},
 			},
 		}
@@ -323,18 +312,18 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_RandomIntConfig{
 				RandomIntConfig: &mgmtv1alpha1.RandomInt{
-					PreserveLength: t.RandomInt.PreserveLength,
-					IntLength:      t.RandomInt.IntLength,
+					PreserveLength: tr.RandomInt.PreserveLength,
+					IntLength:      tr.RandomInt.IntLength,
 				},
 			},
 		}
-	case t.RandomFloat != nil:
+	case tr.RandomFloat != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_RandomFloatConfig{
 				RandomFloatConfig: &mgmtv1alpha1.RandomFloat{
-					PreserveLength:      t.RandomFloat.PreserveLength,
-					DigitsBeforeDecimal: t.RandomFloat.DigitsBeforeDecimal,
-					DigitsAfterDecimal:  t.RandomFloat.DigitsAfterDecimal,
+					PreserveLength:      tr.RandomFloat.PreserveLength,
+					DigitsBeforeDecimal: tr.RandomFloat.DigitsBeforeDecimal,
+					DigitsAfterDecimal:  tr.RandomFloat.DigitsAfterDecimal,
 				},
 			},
 		}
@@ -342,7 +331,7 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenderConfig{
 				GenderConfig: &mgmtv1alpha1.Gender{
-					Abbreviate: t.Gender.Abbreviate,
+					Abbreviate: tr.Gender.Abbreviate,
 				},
 			},
 		}
@@ -390,18 +379,5 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 		}
 	default:
 		return &mgmtv1alpha1.TransformerConfig{}
-	}
-}
-
-func StrCaseFromString(strCase string) (mgmtv1alpha1.RandomString_StringCase, error) {
-	switch strCase {
-	case "UPPER":
-		return mgmtv1alpha1.RandomString_STRING_CASE_UPPER, nil
-	case "LOWER":
-		return mgmtv1alpha1.RandomString_STRING_CASE_LOWER, nil
-	case "TITLE":
-		return mgmtv1alpha1.RandomString_STRING_CASE_TITLE, nil
-	default:
-		return mgmtv1alpha1.RandomString_STRING_CASE_LOWER, fmt.Errorf("invalid string case: %s", strCase)
 	}
 }

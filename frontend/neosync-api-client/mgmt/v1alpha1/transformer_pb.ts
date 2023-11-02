@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from message mgmt.v1alpha1.GetSystemTransformersRequest
@@ -149,6 +149,80 @@ export class GetCustomTransformersResponse extends Message<GetCustomTransformers
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.GetCustomTransformerByIdRequest
+ */
+export class GetCustomTransformerByIdRequest extends Message<GetCustomTransformerByIdRequest> {
+  /**
+   * @generated from field: string transformer_id = 1;
+   */
+  transformerId = "";
+
+  constructor(data?: PartialMessage<GetCustomTransformerByIdRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetCustomTransformerByIdRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transformer_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCustomTransformerByIdRequest {
+    return new GetCustomTransformerByIdRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCustomTransformerByIdRequest {
+    return new GetCustomTransformerByIdRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCustomTransformerByIdRequest {
+    return new GetCustomTransformerByIdRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCustomTransformerByIdRequest | PlainMessage<GetCustomTransformerByIdRequest> | undefined, b: GetCustomTransformerByIdRequest | PlainMessage<GetCustomTransformerByIdRequest> | undefined): boolean {
+    return proto3.util.equals(GetCustomTransformerByIdRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetCustomTransformerByIdResponse
+ */
+export class GetCustomTransformerByIdResponse extends Message<GetCustomTransformerByIdResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.CustomTransformer transformer = 1;
+   */
+  transformer?: CustomTransformer;
+
+  constructor(data?: PartialMessage<GetCustomTransformerByIdResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetCustomTransformerByIdResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transformer", kind: "message", T: CustomTransformer },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetCustomTransformerByIdResponse {
+    return new GetCustomTransformerByIdResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetCustomTransformerByIdResponse {
+    return new GetCustomTransformerByIdResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetCustomTransformerByIdResponse {
+    return new GetCustomTransformerByIdResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetCustomTransformerByIdResponse | PlainMessage<GetCustomTransformerByIdResponse> | undefined, b: GetCustomTransformerByIdResponse | PlainMessage<GetCustomTransformerByIdResponse> | undefined): boolean {
+    return proto3.util.equals(GetCustomTransformerByIdResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.CreateCustomTransformerRequest
  */
 export class CreateCustomTransformerRequest extends Message<CreateCustomTransformerRequest> {
@@ -173,7 +247,12 @@ export class CreateCustomTransformerRequest extends Message<CreateCustomTransfor
   type = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.TransformerConfig transformer_config = 5;
+   * @generated from field: string source = 5;
+   */
+  source = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.TransformerConfig transformer_config = 6;
    */
   transformerConfig?: TransformerConfig;
 
@@ -189,7 +268,8 @@ export class CreateCustomTransformerRequest extends Message<CreateCustomTransfor
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "transformer_config", kind: "message", T: TransformerConfig },
+    { no: 5, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "transformer_config", kind: "message", T: TransformerConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateCustomTransformerRequest {
@@ -506,9 +586,29 @@ export class CustomTransformer extends Message<CustomTransformer> {
   description = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 8;
+   * @generated from field: string type = 4;
+   */
+  type = "";
+
+  /**
+   * @generated from field: string source = 5;
+   */
+  source = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 6;
    */
   config?: TransformerConfig;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 7;
+   */
+  createdAt?: Timestamp;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp updated_at = 8;
+   */
+  updatedAt?: Timestamp;
 
   /**
    * @generated from field: string account_id = 9;
@@ -526,7 +626,11 @@ export class CustomTransformer extends Message<CustomTransformer> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 8, name: "config", kind: "message", T: TransformerConfig },
+    { no: 4, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "config", kind: "message", T: TransformerConfig },
+    { no: 7, name: "created_at", kind: "message", T: Timestamp },
+    { no: 8, name: "updated_at", kind: "message", T: Timestamp },
     { no: 9, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
@@ -1095,11 +1199,6 @@ export class RandomString extends Message<RandomString> {
    */
   strLength = protoInt64.zero;
 
-  /**
-   * @generated from field: mgmt.v1alpha1.RandomString.StringCase str_case = 3;
-   */
-  strCase = RandomString_StringCase.UNSPECIFIED;
-
   constructor(data?: PartialMessage<RandomString>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1110,7 +1209,6 @@ export class RandomString extends Message<RandomString> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "str_length", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 3, name: "str_case", kind: "enum", T: proto3.getEnumType(RandomString_StringCase) },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RandomString {
@@ -1129,38 +1227,6 @@ export class RandomString extends Message<RandomString> {
     return proto3.util.equals(RandomString, a, b);
   }
 }
-
-/**
- * @generated from enum mgmt.v1alpha1.RandomString.StringCase
- */
-export enum RandomString_StringCase {
-  /**
-   * @generated from enum value: STRING_CASE_UNSPECIFIED = 0;
-   */
-  UNSPECIFIED = 0,
-
-  /**
-   * @generated from enum value: STRING_CASE_UPPER = 1;
-   */
-  UPPER = 1,
-
-  /**
-   * @generated from enum value: STRING_CASE_LOWER = 2;
-   */
-  LOWER = 2,
-
-  /**
-   * @generated from enum value: STRING_CASE_TITLE = 3;
-   */
-  TITLE = 3,
-}
-// Retrieve enum metadata with: proto3.getEnumType(RandomString_StringCase)
-proto3.util.setEnumType(RandomString_StringCase, "mgmt.v1alpha1.RandomString.StringCase", [
-  { no: 0, name: "STRING_CASE_UNSPECIFIED" },
-  { no: 1, name: "STRING_CASE_UPPER" },
-  { no: 2, name: "STRING_CASE_LOWER" },
-  { no: 3, name: "STRING_CASE_TITLE" },
-]);
 
 /**
  * @generated from message mgmt.v1alpha1.Null

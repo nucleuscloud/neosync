@@ -21,3 +21,7 @@ func GetLoggerFromContextOrDefault(ctx context.Context) *slog.Logger {
 	}
 	return data.GetLogger()
 }
+
+func setLoggerContext(ctx context.Context, logger *slog.Logger) context.Context {
+	return context.WithValue(ctx, loggerContextKey{}, &loggerContextData{logger: logger})
+}

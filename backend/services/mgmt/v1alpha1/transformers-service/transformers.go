@@ -92,7 +92,11 @@ func (s *Service) GetSystemTransformers(
 					},
 				},
 			}},
-			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_NullConfig{
+					NullConfig: &mgmtv1alpha1.Null{},
+				},
+			}},
 			{
 				Value: string(Email),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -110,11 +114,14 @@ func (s *Service) GetSystemTransformers(
 						RandomStringConfig: &mgmtv1alpha1.RandomString{
 							PreserveLength: false,
 							StrLength:      0,
-							StrCase:        mgmtv1alpha1.RandomString_STRING_CASE_LOWER,
 						},
 					},
 				}},
-			{Value: string(RandomBool), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(RandomBool), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_RandomBoolConfig{
+					RandomBoolConfig: &mgmtv1alpha1.RandomBool{},
+				},
+			}},
 			{
 				Value: string(RandomInt),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -131,7 +138,7 @@ func (s *Service) GetSystemTransformers(
 					Config: &mgmtv1alpha1.TransformerConfig_RandomFloatConfig{
 						RandomFloatConfig: &mgmtv1alpha1.RandomFloat{
 							PreserveLength:      false,
-							DigitsBeforeDecimal: 3,
+							DigitsBeforeDecimal: 2,
 							DigitsAfterDecimal:  3,
 						},
 					},
@@ -145,13 +152,41 @@ func (s *Service) GetSystemTransformers(
 						},
 					},
 				}},
-			{Value: string(UTCTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(UnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(StreetAddress), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(City), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(Zipcode), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(State), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(FullAddress), Config: &mgmtv1alpha1.TransformerConfig{}},
+			{Value: string(UTCTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_UtcTimestampConfig{
+					UtcTimestampConfig: &mgmtv1alpha1.UTCTimestamp{},
+				},
+			}},
+			{Value: string(UnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_UnixTimestampConfig{
+					UnixTimestampConfig: &mgmtv1alpha1.UnixTimestamp{},
+				},
+			}},
+			{Value: string(StreetAddress), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_StreetAddressConfig{
+					StreetAddressConfig: &mgmtv1alpha1.StreetAddress{},
+				},
+			}},
+			{Value: string(City), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_CityConfig{
+					CityConfig: &mgmtv1alpha1.City{},
+				},
+			}},
+			{Value: string(Zipcode), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_ZipcodeConfig{
+					ZipcodeConfig: &mgmtv1alpha1.Zipcode{},
+				},
+			}},
+			{Value: string(State), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_StateConfig{
+					StateConfig: &mgmtv1alpha1.State{},
+				},
+			}},
+			{Value: string(FullAddress), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_FullAddressConfig{
+					FullAddressConfig: &mgmtv1alpha1.FullAddress{},
+				},
+			}},
 		},
 	}), nil
 }
@@ -182,6 +217,33 @@ func (s *Service) GetCustomTransformers(
 	}), nil
 }
 
+func (s *Service) GetCustomTransformerById(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetCustomTransformerByIdRequest],
+) (*connect.Response[mgmtv1alpha1.GetCustomTransformerByIdResponse], error) {
+
+	tId, err := nucleusdb.ToUuid(req.Msg.TransformerId)
+	if err != nil {
+		return nil, err
+	}
+
+	transformer, err := s.db.Q.GetCustomTransformerById(ctx, s.db.Db, tId)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformerByIdResponse{}), nil
+	}
+
+	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(transformer.AccountID))
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformerByIdResponse{
+		Transformer: dtomaps.ToCustomTransformerDto(&transformer),
+	}), nil
+}
+
 func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.CreateCustomTransformerRequest]) (*connect.Response[mgmtv1alpha1.CreateCustomTransformerResponse], error) {
 
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
@@ -200,6 +262,7 @@ func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Requ
 		Description:       req.Msg.Description,
 		TransformerConfig: &jsonmodels.TransformerConfigs{},
 		Type:              req.Msg.Type,
+		Source:            req.Msg.Source,
 		CreatedByID:       *userUuid,
 		UpdatedByID:       *userUuid,
 	}
@@ -230,7 +293,7 @@ func (s *Service) DeleteCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	transformer, err := s.db.Q.GetCustomTransformersById(ctx, s.db.Db, tId)
+	transformer, err := s.db.Q.GetCustomTransformerById(ctx, s.db.Db, tId)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -259,7 +322,7 @@ func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Requ
 	if err != nil {
 		return nil, err
 	}
-	transformer, err := s.db.Q.GetCustomTransformersById(ctx, s.db.Db, tUuid)
+	transformer, err := s.db.Q.GetCustomTransformerById(ctx, s.db.Db, tUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {

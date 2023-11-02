@@ -52,16 +52,9 @@ func serve() error {
 	logger := slog.New(jsonloghandler)
 	loglogger := slog.NewLogLogger(jsonloghandler, slog.LevelInfo)
 
-	certificates := []tls.Certificate{}
-
-	clientKeyPath := viper.GetString("TEMPORAL_CERT_KEY_PATH")
-	clientCertPath := viper.GetString("TEMPORAL_CERT_PATH")
-	if clientKeyPath != "" && clientCertPath != "" {
-		cert, err := tls.LoadX509KeyPair(clientKeyPath, clientCertPath)
-		if err != nil {
-			return fmt.Errorf("unable to load temporal cert: %w", err)
-		}
-		certificates = append(certificates, cert)
+	certificates, err := getTemporalAuthCertificate()
+	if err != nil {
+		return err
 	}
 
 	var tlsConfig *tls.Config
@@ -79,8 +72,6 @@ func serve() error {
 		ConnectionOptions: client.ConnectionOptions{
 			TLS: tlsConfig,
 		},
-		// Interceptors: ,
-		// HeadersProvider: , // todo: set auth headers
 	})
 	if err != nil {
 		return err
@@ -145,4 +136,28 @@ func getHttpServer(logger *log.Logger) *http.Server {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	return &httpServer
+}
+
+func getTemporalAuthCertificate() ([]tls.Certificate, error) {
+	keyPath := viper.GetString("TEMPORAL_CERT_KEY_PATH")
+	certPath := viper.GetString("TEMPORAL_CERT_PATH")
+
+	if keyPath != "" && certPath != "" {
+		cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+		if err != nil {
+			return nil, err
+		}
+		return []tls.Certificate{cert}, nil
+	}
+
+	key := viper.GetString("TEMPORAL_CERT_KEY")
+	cert := viper.GetString("TEMPORAL_CERT")
+	if key != "" && cert != "" {
+		cert, err := tls.X509KeyPair([]byte(key), []byte(cert))
+		if err != nil {
+			return nil, err
+		}
+		return []tls.Certificate{cert}, nil
+	}
+	return []tls.Certificate{}, nil
 }

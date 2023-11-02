@@ -1,6 +1,7 @@
 package serve_connect
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -21,12 +22,12 @@ import (
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
-	temporalclient "go.temporal.io/sdk/client"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -120,6 +121,7 @@ func serve() error {
 
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled: isAuthEnabled,
+		Temporal:      getDefaultTemporalConfig(),
 	}, db)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
@@ -135,18 +137,24 @@ func serve() error {
 			stdInterceptorConnectOpt,
 		),
 	)
-
-	temporalConfig := getTemporalConfig(logger)
-	temporalClient, err := temporalclient.NewLazyClient(*temporalConfig)
+	authcerts, err := getTemporalAuthCertificate()
 	if err != nil {
 		return err
 	}
-	defer temporalClient.Close()
+	tfwfmgr := clientmanager.New(&clientmanager.Config{
+		AuthCertificates: authcerts,
+	}, db.Q, db.Db)
+
 	jobServiceConfig := &v1alpha1_jobservice.Config{
-		TemporalTaskQueue: getTemporalTaskQueue(),
-		TemporalNamespace: getTemporalNamespace(),
+		IsAuthEnabled: isAuthEnabled,
 	}
-	jobService := v1alpha1_jobservice.New(jobServiceConfig, db, temporalClient, connectionService, useraccountService)
+	jobService := v1alpha1_jobservice.New(
+		jobServiceConfig,
+		db,
+		tfwfmgr,
+		connectionService,
+		useraccountService,
+	)
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
@@ -254,39 +262,59 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 	}, nil
 }
 
-func getTemporalConfig(
-	logger *slog.Logger,
-) *temporalclient.Options {
+func getTemporalAuthCertificate() ([]tls.Certificate, error) {
+	keyPath := viper.GetString("TEMPORAL_CERT_KEY_PATH")
+	certPath := viper.GetString("TEMPORAL_CERT_PATH")
+
+	if keyPath != "" && certPath != "" {
+		cert, err := tls.LoadX509KeyPair(certPath, keyPath)
+		if err != nil {
+			return nil, err
+		}
+		return []tls.Certificate{cert}, nil
+	}
+
+	key := viper.GetString("TEMPORAL_CERT_KEY")
+	cert := viper.GetString("TEMPORAL_CERT")
+	if key != "" && cert != "" {
+		cert, err := tls.X509KeyPair([]byte(key), []byte(cert))
+		if err != nil {
+			return nil, err
+		}
+		return []tls.Certificate{cert}, nil
+	}
+	return []tls.Certificate{}, nil
+}
+
+func getDefaultTemporalConfig() *v1alpha1_useraccountservice.TemporalConfig {
+	return &v1alpha1_useraccountservice.TemporalConfig{
+		DefaultTemporalNamespace:        getDefaultTemporalNamespace(),
+		DefaultTemporalSyncJobQueueName: getDefaultTemporalSyncJobQueue(),
+		DefaultTemporalUrl:              getDefaultTemporalUrl(),
+	}
+}
+
+func getDefaultTemporalUrl() string {
 	temporalUrl := viper.GetString("TEMPORAL_URL")
 	if temporalUrl == "" {
-		temporalUrl = "localhost:7233"
+		return "localhost:7233"
 	}
-
-	temporalNamespace := getTemporalNamespace()
-
-	return &temporalclient.Options{
-		Logger:    logger.With("temporalClient", "true"),
-		HostPort:  temporalUrl,
-		Namespace: temporalNamespace,
-		// Interceptors: ,
-		// HeadersProvider: ,
-	}
+	return temporalUrl
 }
-
-func getTemporalNamespace() string {
-	temporalNamespace := viper.GetString("TEMPORAL_NAMESPACE")
-	if temporalNamespace == "" {
-		temporalNamespace = "default"
-	}
-	return temporalNamespace
-}
-
-func getTemporalTaskQueue() string {
-	taskQueue := viper.GetString("TEMPORAL_TASK_QUEUE")
-	if taskQueue == "" {
+func getDefaultTemporalNamespace() string {
+	ns := viper.GetString("TEMPORAL_DEFAULT_NAMESPACE")
+	if ns == "" {
 		return "default"
 	}
-	return taskQueue
+	return ns
+}
+
+func getDefaultTemporalSyncJobQueue() string {
+	name := viper.GetString("TEMPORAL_DEFAULT_SYNCJOB_QUEUE")
+	if name == "" {
+		return "sync-job"
+	}
+	return name
 }
 
 func getJwtClientConfig() *auth_jwt.ClientConfig {

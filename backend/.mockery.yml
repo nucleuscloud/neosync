@@ -23,3 +23,6 @@ packages:
     # config:
     interfaces:
       UserAccountServiceClient:
+  github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
+    interfaces:
+      DB:

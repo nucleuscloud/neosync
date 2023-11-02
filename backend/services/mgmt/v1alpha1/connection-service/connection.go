@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -39,7 +40,9 @@ func (s *Service) CheckConnectionConfig(
 			logger.Error(fmt.Errorf("failed to close mysql connection: %w", err).Error())
 		}
 	}()
-	err = conn.PingContext(ctx)
+	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+	defer cancel()
+	err = conn.PingContext(cctx)
 	if err != nil {
 		msg := err.Error()
 		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{

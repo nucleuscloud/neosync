@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateCustomTransformerRequest, CreateCustomTransformerResponse, DeleteCustomTransformerRequest, DeleteCustomTransformerResponse, GetCustomTransformersRequest, GetCustomTransformersResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateCustomTransformerRequest, UpdateCustomTransformerResponse } from "./transformer_pb";
+import { CreateCustomTransformerRequest, CreateCustomTransformerResponse, DeleteCustomTransformerRequest, DeleteCustomTransformerResponse, GetCustomTransformerByIdRequest, GetCustomTransformerByIdResponse, GetCustomTransformersRequest, GetCustomTransformersResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateCustomTransformerRequest, UpdateCustomTransformerResponse } from "./transformer_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -28,6 +28,15 @@ export const TransformersService = {
       name: "GetCustomTransformers",
       I: GetCustomTransformersRequest,
       O: GetCustomTransformersResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.TransformersService.GetCustomTransformerById
+     */
+    getCustomTransformerById: {
+      name: "GetCustomTransformerById",
+      I: GetCustomTransformerByIdRequest,
+      O: GetCustomTransformerByIdResponse,
       kind: MethodKind.Unary,
     },
     /**

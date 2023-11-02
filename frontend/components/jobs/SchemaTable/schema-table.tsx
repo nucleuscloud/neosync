@@ -1,4 +1,7 @@
+import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
+import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
@@ -11,8 +14,18 @@ interface JobTableProps {
 
 export function SchemaTable(props: JobTableProps): ReactElement {
   const { data } = props;
-  const { data: transformers, isLoading: transformersIsLoading } =
+
+  const account = useAccount();
+  const { data: systemTransformers, isLoading: systemTransformersIsLoading } =
     useGetSystemTransformers();
+
+  const { data: customTransformers, isLoading: customTransformersIsLoading } =
+    useGetCustomTransformers(account?.id ?? '');
+
+  const mergedTransformers = MergeSystemAndCustomTransformers(
+    systemTransformers?.transformers ?? [],
+    customTransformers?.transformers ?? []
+  );
 
   const tableData = data?.map((d) => {
     return {
@@ -21,7 +34,11 @@ export function SchemaTable(props: JobTableProps): ReactElement {
     };
   });
 
-  if (transformersIsLoading || !tableData) {
+  if (
+    systemTransformersIsLoading ||
+    customTransformersIsLoading ||
+    !tableData
+  ) {
     return <SkeletonTable />;
   }
 
@@ -29,7 +46,8 @@ export function SchemaTable(props: JobTableProps): ReactElement {
     <div>
       <VirtualizedSchemaTable
         data={tableData}
-        transformers={transformers?.transformers}
+        // transformers={systemTransformers?.transformers}
+        transformers={mergedTransformers}
       />
     </div>
   );

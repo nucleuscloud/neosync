@@ -13,7 +13,7 @@ func TestProcessFullNamePreserveLengthTrue(t *testing.T) {
 	name := "john doe"
 	expectedLength := 8
 
-	res, err := ProcessFullName(name, true)
+	res, err := GenerateFullName(name, true)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedLength, len(res), "The full name output should be the same length as the input")
@@ -22,9 +22,7 @@ func TestProcessFullNamePreserveLengthTrue(t *testing.T) {
 
 func TestProcessFullNamePreserveLengthFalse(t *testing.T) {
 
-	name := "evis drenova"
-
-	res, err := ProcessFullName(name, false)
+	res, err := GenerateFullNameWithRandomLength()
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(strings.Split(res, " ")), 2, "The full name should be more than 0 characters")

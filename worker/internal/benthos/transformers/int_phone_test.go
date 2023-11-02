@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessIntPhoneNumberPreserveLengthTrue(t *testing.T) {
+func TestGenerateIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 
 	pn := int64(618384928322)
 	expectedLength := 12
 
-	res, err := ProcessIntPhoneNumber(pn, true)
+	res, err := GenerateIntPhoneNumberPreserveLength(pn)
 
 	assert.NoError(t, err)
 	numStr := strconv.FormatInt(res, 10)
@@ -22,17 +22,43 @@ func TestProcessIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 
 }
 
-func TestProcessIntPhoneNumberPreserveLengthFalse(t *testing.T) {
+func TestGenerateIntPhoneNumberPreserveLengthFalse(t *testing.T) {
 
-	pn := int64(618384928322)
-
-	res, err := ProcessIntPhoneNumber(pn, true)
+	res, err := GenerateIntPhoneNumberRandomLength()
 
 	numStr := strconv.FormatInt(res, 10)
 
 	assert.NoError(t, err)
 	assert.False(t, strings.Contains(numStr, "-"), "The output int phone number should not contain hyphens and may not be the same length as the input")
 
+}
+
+func TestGenerateRandomInt(t *testing.T) {
+
+	expectedLength := 9
+
+	res, err := GenerateRandomInt(int64(expectedLength))
+
+	assert.NoError(t, err)
+	numStr := strconv.FormatInt(res, 10)
+	assert.Equal(t, len(numStr), expectedLength, "The length of the generated random int should be the same as the expectedLength")
+
+}
+
+func TestFirstDigitIsNineTrue(t *testing.T) {
+
+	value := int64(9546789)
+
+	res := FirstDigitIsNine(value)
+	assert.Equal(t, res, true, "The first digit is nine.")
+}
+
+func TestFirstDigitIsNineFalse(t *testing.T) {
+
+	value := int64(23546789)
+
+	res := FirstDigitIsNine(value)
+	assert.Equal(t, res, false, "The first digit is not nine.")
 }
 
 func TestIntPhoneNumberTransformer(t *testing.T) {

@@ -7,23 +7,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessFirstNamePreserveLengthTrue(t *testing.T) {
+func TestGenerateFirstName(t *testing.T) {
 
 	name := "evis"
 	expectedLength := 4
 
-	res, err := ProcessFirstName(name, true)
+	res, err := GenerateFirstName(name, true)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedLength, len(res), "The first name output should be the same length as the input")
 	assert.IsType(t, "", res, "The first name should be a string") // Check if the result is a string
 }
 
-func TestProcessFirstNamePreserveLengthFalse(t *testing.T) {
+func TestGenerateFirstNamePreserveLengthTrue(t *testing.T) {
 
-	name := "john"
+	name := "evis"
+	expectedLength := 4
 
-	res, err := ProcessFirstName(name, false)
+	res, err := GenerateFirstNameWithLength(name)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedLength, len(res), "The first name output should be the same length as the input")
+	assert.IsType(t, "", res, "The first name should be a string") // Check if the result is a string
+}
+
+func TestGenerateFirstNamePreserveLengthFalse(t *testing.T) {
+	res, err := GenerateFirstNameWithRandomLength()
 
 	assert.NoError(t, err)
 	assert.Greater(t, len(res), 0, "The first name should be more than 0 characters")

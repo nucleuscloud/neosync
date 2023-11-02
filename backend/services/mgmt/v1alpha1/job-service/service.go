@@ -2,28 +2,28 @@ package v1alpha1_jobservice
 
 import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
-	temporalclient "go.temporal.io/sdk/client"
 )
 
 type Service struct {
 	cfg                *Config
 	db                 *nucleusdb.NucleusDb
-	temporalClient     temporalclient.Client
 	connectionService  *v1alpha1_connectionservice.Service
 	useraccountService *v1alpha1_useraccountservice.Service
+
+	temporalWfManager *clientmanager.TemporalClientManager
 }
 
 type Config struct {
-	TemporalTaskQueue string
-	TemporalNamespace string
+	IsAuthEnabled bool
 }
 
 func New(
 	cfg *Config,
 	db *nucleusdb.NucleusDb,
-	temporalClient temporalclient.Client,
+	temporalWfManager *clientmanager.TemporalClientManager,
 	connectionService *v1alpha1_connectionservice.Service,
 	useraccountService *v1alpha1_useraccountservice.Service,
 ) *Service {
@@ -31,7 +31,7 @@ func New(
 	return &Service{
 		cfg:                cfg,
 		db:                 db,
-		temporalClient:     temporalClient,
+		temporalWfManager:  temporalWfManager,
 		connectionService:  connectionService,
 		useraccountService: useraccountService,
 	}

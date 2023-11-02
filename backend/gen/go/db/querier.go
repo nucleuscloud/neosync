@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 )
 
 type Querier interface {
@@ -21,6 +22,7 @@ type Querier interface {
 	CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error)
 	CreateUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	DeleteCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error
+	DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error
 	GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error)
 	GetAccountUserAssociation(ctx context.Context, db DBTX, arg GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)
 	GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiAccount, error)
@@ -28,8 +30,8 @@ type Querier interface {
 	GetConnectionById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiConnection, error)
 	GetConnectionByNameAndAccount(ctx context.Context, db DBTX, arg GetConnectionByNameAndAccountParams) (NeosyncApiConnection, error)
 	GetConnectionsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiConnection, error)
+	GetCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error)
 	GetCustomTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error)
-	GetCustomTransformersById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error)
 	GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJob, error)
 	GetJobByNameAndAccount(ctx context.Context, db DBTX, arg GetJobByNameAndAccountParams) (NeosyncApiJob, error)
 	GetJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJobDestinationConnectionAssociation, error)
@@ -37,6 +39,8 @@ type Querier interface {
 	GetJobConnectionDestinationsByJobIds(ctx context.Context, db DBTX, jobids []pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error)
 	GetJobsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiJob, error)
 	GetPersonalAccountByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) (NeosyncApiAccount, error)
+	GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*jsonmodels.TemporalConfig, error)
+	GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams) (*jsonmodels.TemporalConfig, error)
 	GetUser(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiUser, error)
 	GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUserIdentityProviderAssociation, error)
 	GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error)
@@ -57,6 +61,7 @@ type Querier interface {
 	UpdateJobMappings(ctx context.Context, db DBTX, arg UpdateJobMappingsParams) (NeosyncApiJob, error)
 	UpdateJobSchedule(ctx context.Context, db DBTX, arg UpdateJobScheduleParams) (NeosyncApiJob, error)
 	UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSourceParams) (NeosyncApiJob, error)
+	UpdateTemporalConfigByAccount(ctx context.Context, db DBTX, arg UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error)
 }
 
 var _ Querier = (*Queries)(nil)
