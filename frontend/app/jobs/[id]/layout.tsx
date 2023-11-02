@@ -129,37 +129,6 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       </div>
     </OverviewContainer>
   );
-
-  // return (
-  //   <div className="py-5">
-  //     <div className="flex flex-col gap-1">
-  //       <h2 className="text-2xl font-bold tracking-tight">Job Overview</h2>
-  //       <PageHeader
-  //         header={data?.job?.name || ''}
-  //         description={data?.job?.id || ''}
-  //         extraHeading={
-  //           <div className="flex flex-row space-x-4">
-  //             <DeleteConfirmationDialog
-  //               trigger={
-  //                 <Button variant="destructive">
-  //                   <ButtonText leftIcon={<TrashIcon />} text="Delete Job" />
-  //                 </Button>
-  //               }
-  //               headerText="Are you sure you want to delete this job?"
-  //               description="Deleting this job will also delete all job runs."
-  //               onConfirm={async () => onDelete()}
-  //             />
-  //             <Button onClick={() => onTriggerJobRun()}>Trigger Run</Button>
-  //           </div>
-  //         }
-  //       />
-  //     </div>
-  //     <div className="flex flex-col gap-6">
-  //       <SubNav items={sidebarNavItems} />
-  //       <div>{children}</div>
-  //     </div>
-  //   </div>
-  // );
 }
 
 async function removeJob(jobId: string): Promise<void> {
