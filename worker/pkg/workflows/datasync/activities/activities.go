@@ -1,4 +1,4 @@
-package datasync
+package datasync_activities
 
 import (
 	"context"
@@ -40,10 +40,10 @@ type GenerateBenthosConfigsRequest struct {
 	WorkflowId string
 }
 type GenerateBenthosConfigsResponse struct {
-	BenthosConfigs []*benthosConfigResponse
+	BenthosConfigs []*BenthosConfigResponse
 }
 
-type benthosConfigResponse struct {
+type BenthosConfigResponse struct {
 	Name      string
 	DependsOn []string
 	Config    *neosync_benthos.BenthosConfig
@@ -75,7 +75,7 @@ func (a *Activities) GenerateBenthosConfigs(
 	if err != nil {
 		return nil, err
 	}
-	responses := []*benthosConfigResponse{}
+	responses := []*BenthosConfigResponse{}
 
 	sourceConnection, err := a.getConnectionById(ctx, req.BackendUrl, job.Source.ConnectionId)
 	if err != nil {
@@ -372,8 +372,8 @@ func buildBenthosSourceConfigReponses(
 	dsn string,
 	driver string,
 	sourceTableOpts map[string]*sourceTableOptions,
-) ([]*benthosConfigResponse, error) {
-	responses := []*benthosConfigResponse{}
+) ([]*BenthosConfigResponse, error) {
+	responses := []*BenthosConfigResponse{}
 
 	for i := range mappings {
 		tableMapping := mappings[i]
@@ -426,7 +426,7 @@ func buildBenthosSourceConfigReponses(
 				Mutation: mutation,
 			})
 		}
-		responses = append(responses, &benthosConfigResponse{
+		responses = append(responses, &BenthosConfigResponse{
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
 			DependsOn: []string{},
@@ -707,12 +707,10 @@ func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
 }
 
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
-	columns := []string{}
-
-	for _, col := range mappings {
-		columns = append(columns, col.Column)
+	columns := make([]string, len(mappings))
+	for idx := range mappings {
+		columns[idx] = mappings[idx].Column
 	}
-
 	return columns
 }
 
@@ -960,8 +958,8 @@ func buildPlainInsertArgs(cols []string) string {
 		return ""
 	}
 	pieces := make([]string, len(cols))
-	for idx, col := range cols {
-		pieces[idx] = fmt.Sprintf("this.%s", col)
+	for idx := range cols {
+		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
 	}
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }

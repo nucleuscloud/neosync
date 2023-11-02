@@ -1,4 +1,4 @@
-package datasync
+package datasync_activities
 
 import (
 	"math"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/testsuite"
@@ -190,4 +191,108 @@ output:
 	res := &SyncResponse{}
 	err = val.Get(res)
 	require.NoError(t, err)
+}
+
+func Test_buildPlainInsertArgs(t *testing.T) {
+	assert.Empty(t, buildPlainInsertArgs(nil))
+	assert.Empty(t, buildPlainInsertArgs([]string{}))
+	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), "root = [this.foo, this.bar, this.baz]")
+}
+
+func Test_buildPlainColumns(t *testing.T) {
+	assert.Empty(t, buildPlainColumns(nil))
+	assert.Empty(t, buildPlainColumns([]*mgmtv1alpha1.JobMapping{}))
+	assert.Equal(
+		t,
+		buildPlainColumns([]*mgmtv1alpha1.JobMapping{
+			{Column: "foo"},
+			{Column: "bar"},
+			{Column: "baz"},
+		}),
+		[]string{"foo", "bar", "baz"},
+	)
+}
+
+func Test_splitTableKey(t *testing.T) {
+	schema, table := splitTableKey("foo")
+	assert.Equal(t, schema, "public")
+	assert.Equal(t, table, "foo")
+
+	schema, table = splitTableKey("neosync.foo")
+	assert.Equal(t, schema, "neosync")
+	assert.Equal(t, table, "foo")
+}
+
+func Test_buildBenthosS3Credentials(t *testing.T) {
+	assert.Nil(t, buildBenthosS3Credentials(nil))
+
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{}),
+		&neosync_benthos.AwsCredentials{},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{Profile: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Profile: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{AccessKeyId: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Id: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SecretAccessKey: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Secret: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SessionToken: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Token: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{FromEc2Role: boolPtr(true)}),
+		&neosync_benthos.AwsCredentials{FromEc2Role: true},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleArn: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Role: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleExternalId: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{RoleExternalId: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{
+			Profile:         strPtr("profile"),
+			AccessKeyId:     strPtr("access-key"),
+			SecretAccessKey: strPtr("secret"),
+			SessionToken:    strPtr("session"),
+			FromEc2Role:     boolPtr(false),
+			RoleArn:         strPtr("role"),
+			RoleExternalId:  strPtr("foo"),
+		}),
+		&neosync_benthos.AwsCredentials{
+			Profile:        "profile",
+			Id:             "access-key",
+			Secret:         "secret",
+			Token:          "session",
+			FromEc2Role:    false,
+			Role:           "role",
+			RoleExternalId: "foo",
+		},
+	)
+}
+
+func strPtr(val string) *string {
+	return &val
+}
+
+func boolPtr(val bool) *bool {
+	return &val
 }

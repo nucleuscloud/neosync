@@ -16,14 +16,13 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
 	"go.temporal.io/api/serviceerror"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
-
-	wf_datasync "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync"
 )
 
 func (s *Service) GetJobs(
@@ -453,9 +452,9 @@ func (s *Service) CreateJob(
 		Spec:   spec,
 		Paused: paused,
 		Action: &temporalclient.ScheduleWorkflowAction{
-			Workflow:  wf_datasync.Workflow,
+			Workflow:  datasync_workflow.Workflow,
 			TaskQueue: tconfig.SyncJobQueueName,
-			Args:      []any{&wf_datasync.WorkflowRequest{JobId: jobUuid}},
+			Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
 		},
 	})
 	if err != nil {
