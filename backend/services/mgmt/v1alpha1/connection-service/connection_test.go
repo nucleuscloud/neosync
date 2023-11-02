@@ -34,11 +34,10 @@ type mockConnector struct {
 }
 
 func (mc *mockConnector) Open(driverName, dataSourceName string) (*sql.DB, error) {
-	return mc.db, nil // always return the mock db
+	return mc.db, nil
 }
 
 // CheckConnectionConfig
-
 func Test_CheckConnectionConfig(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
@@ -494,6 +493,114 @@ func Test_DeleteConnectionError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
+// CheckSqlQuery
+func Test_CheckSqlQuery_Valid(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	db, sqlMock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, &mockConnector{db: db})
+
+	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	mockUserAccountService.On("IsUserInAccount", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
+		Ok: true,
+	}), nil)
+	mockQuerier.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid), nil)
+
+	mockQuery := "some query"
+	sqlMock.ExpectBegin()
+	sqlMock.ExpectPrepare(mockQuery)
+
+	resp, err := service.CheckSqlQuery(context.Background(), &connect.Request[mgmtv1alpha1.CheckSqlQueryRequest]{
+		Msg: &mgmtv1alpha1.CheckSqlQueryRequest{
+			Id:    mockConnectionId,
+			Query: mockQuery,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, true, resp.Msg.IsValid)
+	assert.Nil(t, resp.Msg.ErorrMessage)
+}
+
+func Test_CheckSqlQuery_Invalid(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	db, sqlMock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, &mockConnector{db: db})
+
+	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	mockUserAccountService.On("IsUserInAccount", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
+		Ok: true,
+	}), nil)
+	mockQuerier.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid), nil)
+
+	mockQuery := "some query"
+	sqlMock.ExpectBegin()
+	sqlMock.ExpectPrepare(mockQuery).WillReturnError(errors.New("error"))
+	sqlMock.ExpectRollback()
+
+	resp, err := service.CheckSqlQuery(context.Background(), &connect.Request[mgmtv1alpha1.CheckSqlQueryRequest]{
+		Msg: &mgmtv1alpha1.CheckSqlQueryRequest{
+			Id:    mockConnectionId,
+			Query: mockQuery,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, false, resp.Msg.IsValid)
+	assert.NotNil(t, resp.Msg.ErorrMessage)
+}
+
+func Test_CheckSqlQuery_Error(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	db, sqlMock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, &mockConnector{db: db})
+
+	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	mockUserAccountService.On("IsUserInAccount", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
+		Ok: true,
+	}), nil)
+	mockQuerier.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid), nil)
+
+	mockQuery := "some query"
+	sqlMock.ExpectBegin().WillReturnError(errors.New("error"))
+	sqlMock.ExpectRollback()
+
+	resp, err := service.CheckSqlQuery(context.Background(), &connect.Request[mgmtv1alpha1.CheckSqlQueryRequest]{
+		Msg: &mgmtv1alpha1.CheckSqlQueryRequest{
+			Id:    mockConnectionId,
+			Query: mockQuery,
+		},
+	})
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
 // getConnectionDetails
 func Test_GetConnectionUrl_Postgres(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
@@ -539,15 +646,28 @@ func getConnectionMock(accountId, name string, id pgtype.UUID) db_queries.Neosyn
 	timestamp := pgtype.Timestamp{
 		Time: time.Now(),
 	}
+	sslMode := "disable"
+
 	return db_queries.NeosyncApiConnection{
-		AccountID:        accountUuid,
-		Name:             name,
-		ID:               id,
-		CreatedByID:      userUuid,
-		UpdatedByID:      userUuid,
-		CreatedAt:        timestamp,
-		UpdatedAt:        timestamp,
-		ConnectionConfig: &jsonmodels.ConnectionConfig{},
+		AccountID:   accountUuid,
+		Name:        name,
+		ID:          id,
+		CreatedByID: userUuid,
+		UpdatedByID: userUuid,
+		CreatedAt:   timestamp,
+		UpdatedAt:   timestamp,
+		ConnectionConfig: &jsonmodels.ConnectionConfig{
+			PgConfig: &jsonmodels.PostgresConnectionConfig{
+				Connection: &jsonmodels.PostgresConnection{
+					Host:    "host",
+					Port:    5432,
+					Name:    "database",
+					User:    "user",
+					Pass:    "topsecret",
+					SslMode: &sslMode,
+				},
+			},
+		},
 	}
 }
 
