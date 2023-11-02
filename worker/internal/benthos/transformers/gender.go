@@ -38,6 +38,7 @@ func init() {
 	}
 }
 
+// generates a randomly selected gender
 func GenerateRandomGender(ab bool) (string, error) {
 
 	randomInt, err := rand.Int(rand.Reader, big.NewInt(4))

@@ -33,6 +33,7 @@ func init() {
 	}
 }
 
+// randomly selects a city in the US
 func GenerateRandomCity() (string, error) {
 
 	data := struct {

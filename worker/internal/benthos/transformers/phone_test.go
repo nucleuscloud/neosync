@@ -1,6 +1,7 @@
 package neosync_transformers
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -8,83 +9,95 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessPhoneNumberPreserveLengthTrue(t *testing.T) {
+func TestGeneratePhoneNumberPreserveLengthTrue(t *testing.T) {
 
 	pn := "1838492832"
 	expectedLength := 10
 
-	res, err := ProcessPhoneNumber(pn, true, false, false)
+	res, err := GeneratePhoneNumberPreserveLengthNoHyphensNotE164(pn)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), expectedLength, "The length of the output phone number should be the same as the input phone number")
 
 }
 
-func TestProcessPhoneNumberPreserveLengthTrueHyphens(t *testing.T) {
+func TestGeneratePhoneNumberPreserveLengthTrueHyphens(t *testing.T) {
 
-	// we strip the hyphens when we process the phone number and the include hyphens param is set to false so the return val will not include hyphens
+	// we strip the hyphens when we Generate the phone number and the include hyphens param is set to false so the return val will not include hyphens
 	pn := "183-849-2838"
 	expectedLength := 10
 
-	res, err := ProcessPhoneNumber(pn, true, false, false)
+	res, err := GeneratePhoneNumber(pn, true, false, false)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), expectedLength, "The length of the output phone number should be the same as the input phone number")
 
 }
 
-func TestProcessPhoneNumberPreserveLengthFalseHyphens(t *testing.T) {
+func TestGeneratePhoneNumberPreserveLengthFalseHyphens(t *testing.T) {
 
 	pn := "183-849-2831"
 
-	res, err := ProcessPhoneNumber(pn, false, true, true)
+	res, err := GeneratePhoneNumber(pn, false, true, true)
 
 	assert.NoError(t, err)
 	assert.False(t, strings.Contains(res, "-"), "The output int phone number should not contain hyphens and may not be the same length as the input")
 
 }
 
-func TestProcessPhoneNumberPreserveLengthFalseNoHyphens(t *testing.T) {
+func TestGeneratePhoneNumberPreserveLengthFalseNoHyphens(t *testing.T) {
 
-	pn := "1838492832"
-
-	res, err := ProcessPhoneNumber(pn, false, true, true)
+	res, err := GenerateRandomPhoneNumberWithNoHyphens()
 
 	assert.NoError(t, err)
 	assert.False(t, strings.Contains(res, "-"), "The output int phone number should not contain hyphens and may not be the same length as the input")
-
+	assert.Equal(t, len(res), 10)
 }
 
-func TestProcessPhoneNumberPreserveLengthFalseIncludeHyphensTrue(t *testing.T) {
+func TestGeneratePhoneNumberPreserveLengthFalseIncludeHyphensTrue(t *testing.T) {
 
-	pn := "183-849-2837"
 	expectedLength := 12
 
-	res, err := ProcessPhoneNumber(pn, false, false, true)
+	res, err := GenerateRandomPhoneNumberWithHyphens()
+
+	fmt.Println("res", res)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), expectedLength, "The length of the output phone number should be the same as the input phone number")
 
 }
 
-func TestProcessPhoneNumberPreserveLengthTrueIncludeHyphensTrueError(t *testing.T) {
+func TestGeneratePhoneNumberPreserveLengthTrueIncludeHyphensTrueError(t *testing.T) {
 
 	pn := "183-849-2839"
-	_, err := ProcessPhoneNumber(pn, true, false, true)
+	_, err := GeneratePhoneNumber(pn, true, false, true)
 
 	assert.Error(t, err, "The include hyphens param can only be used by itself, all other params must be false")
 
 }
 
-func TestProcessPhoneNumberE164Format(t *testing.T) {
+func TestGeneratePhoneNumberE164Format(t *testing.T) {
 
-	pn := "+1892393573894"
-	expectedLength := 14
+	pn := "+2393573894"
+	expectedLength := 11
 
-	res, err := ProcessPhoneNumber(pn, false, true, false)
+	res, err := GenerateE164FormatPhoneNumber()
 
 	assert.NoError(t, err)
-	assert.Equal(t, ValidateE164(res), ValidateE164("+1892393573894"))
+	assert.Equal(t, ValidateE164(res), ValidateE164("+2393573894"))
+	assert.Equal(t, len(pn), expectedLength, "The length of the output phone number should be the same as the input phone number")
+
+}
+
+func TestGeneratePhoneNumberE164FormatPreserveLength(t *testing.T) {
+
+	pn := "+2393573894"
+	expectedLength := 11
+
+	res, err := GenerateE164FormatPhoneNumberPreserveLength(pn)
+
+	assert.NoError(t, err)
+	assert.Equal(t, ValidateE164(res), ValidateE164("+2393573894"))
 	assert.Equal(t, len(pn), expectedLength, "The length of the output phone number should be the same as the input phone number")
 
 }
@@ -102,10 +115,38 @@ func TestPhoneNumberTransformer(t *testing.T) {
 	assert.Len(t, res.(string), len(testVal), "Generated phone number must be the same length as the input phone number")
 }
 
-func ValidateE164(p string) bool {
+func TestValidateE164True(t *testing.T) {
 
-	if len(p) >= 10 && len(p) <= 15 && strings.Contains(p, "+") {
-		return true
-	}
-	return false
+	val := "+6272636472"
+
+	res := ValidateE164(val)
+
+	assert.Equal(t, res, true, "The e164 number should have a plus sign at the 0th index and be 10 < x < 15 characters long.")
+}
+
+func TestValidateE164FalseTooLong(t *testing.T) {
+
+	val := "627263647278439"
+
+	res := ValidateE164(val)
+
+	assert.Equal(t, res, false, "The e164 number should  be x < 15 characters long.")
+}
+
+func TestValidateE164FalseNoPlusSign(t *testing.T) {
+
+	val := "6272636472784"
+
+	res := ValidateE164(val)
+
+	assert.Equal(t, res, false, "The e164 number should have a plus sign at the beginning.")
+}
+
+func TestValidateE164FalseTooshort(t *testing.T) {
+
+	val := "627263"
+
+	res := ValidateE164(val)
+
+	assert.Equal(t, res, false, "The e164 number should  be 10 < x")
 }

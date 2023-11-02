@@ -44,7 +44,7 @@ func init() {
 
 }
 
-// main transformer logic goes here
+// generates a random email address
 func GenerateEmail(e string, preserveLength, preserveDomain bool) (string, error) {
 
 	var returnValue string
@@ -185,7 +185,7 @@ func GenerateDomain() (string, error) {
 
 func GenerateRandomUsername() (string, error) {
 
-	randLength, err := transformer_utils.GenerateRandomNumberWithBounds(3, 8)
+	randLength, err := transformer_utils.GenerateRandomIntWithBounds(3, 8)
 	if err != nil {
 		return "", err
 	}

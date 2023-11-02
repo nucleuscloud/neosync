@@ -31,7 +31,7 @@ func init() {
 
 }
 
-// main transformer logic goes here
+// generates a random full name
 func GenerateFullName(fn string, pl bool) (string, error) {
 
 	if !pl {
