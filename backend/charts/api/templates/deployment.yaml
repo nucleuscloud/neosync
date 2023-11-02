@@ -4,6 +4,7 @@ metadata:
   name: {{ template "neosync-api.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
+    {{- include "neosync-api.labels" . | nindent 4 }}
     {{- if eq .Values.datadog.enabled true }}
     tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
     tags.datadoghq.com/service: {{ template "neosync-api.fullname" . }}
@@ -25,8 +26,8 @@ spec:
         {{- end }}
         rollme: {{ randAlphaNum 5 | quote }} # causes deployment to always roll on helm upgrade
       labels:
+        {{- include "neosync-api.labels" . | nindent 8 }}
         app: {{ template "neosync-api.fullname" . }}
-        version: v1
         {{- if eq .Values.istio.enabled true }}
         sidecar.istio.io/inject: "true"
         {{- end }}
