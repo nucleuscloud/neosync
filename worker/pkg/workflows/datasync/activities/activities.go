@@ -71,13 +71,23 @@ func (a *Activities) GenerateBenthosConfigs(
 	pgpoolmap := map[string]*pgxpool.Pool{}
 	mysqlPoolMap := map[string]*sql.DB{}
 
-	job, err := a.getJobById(ctx, req.BackendUrl, req.JobId)
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
+		http.DefaultClient,
+		req.BackendUrl,
+	)
+
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
+		http.DefaultClient,
+		req.BackendUrl,
+	)
+
+	job, err := a.getJobById(ctx, jobclient, req.JobId)
 	if err != nil {
 		return nil, err
 	}
 	responses := []*BenthosConfigResponse{}
 
-	sourceConnection, err := a.getConnectionById(ctx, req.BackendUrl, job.Source.ConnectionId)
+	sourceConnection, err := a.getConnectionById(ctx, connclient, job.Source.ConnectionId)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +213,7 @@ func (a *Activities) GenerateBenthosConfigs(
 	}
 
 	for _, destination := range job.Destinations {
-		destinationConnection, err := a.getConnectionById(ctx, req.BackendUrl, destination.ConnectionId)
+		destinationConnection, err := a.getConnectionById(ctx, connclient, destination.ConnectionId)
 		if err != nil {
 			return nil, err
 		}
@@ -861,12 +871,11 @@ func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string 
 	return output
 }
 
-func (a *Activities) getJobById(ctx context.Context, backendurl, jobId string) (*mgmtv1alpha1.Job, error) {
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		http.DefaultClient,
-		backendurl,
-	)
-
+func (a *Activities) getJobById(
+	ctx context.Context,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+	jobId string,
+) (*mgmtv1alpha1.Job, error) {
 	getjobResp, err := jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
 		Id: jobId,
 	}))
@@ -877,12 +886,11 @@ func (a *Activities) getJobById(ctx context.Context, backendurl, jobId string) (
 	return getjobResp.Msg.Job, nil
 }
 
-func (a *Activities) getConnectionById(ctx context.Context, backendurl, connectionId string) (*mgmtv1alpha1.Connection, error) {
-	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		http.DefaultClient,
-		backendurl,
-	)
-
+func (a *Activities) getConnectionById(
+	ctx context.Context,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	connectionId string,
+) (*mgmtv1alpha1.Connection, error) {
 	getConnResp, err := connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: connectionId,
 	}))
