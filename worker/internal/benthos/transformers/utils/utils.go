@@ -7,14 +7,16 @@ import (
 )
 
 // returns a random index from a one-dimensional slice
-func GetRandomValueFromSlice(arr []string) (string, error) {
+func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 	if len(arr) == 0 {
-		return "", errors.New("slice is empty")
+		var zeroValue T
+		return zeroValue, errors.New("slice is empty")
 	}
 
 	randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(arr))))
 	if err != nil {
-		return "", err
+		var zeroValue T
+		return zeroValue, err
 	}
 
 	return arr[randomIndex.Int64()], nil

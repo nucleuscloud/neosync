@@ -40,7 +40,7 @@ func ProcessFullName(fn string, preserveLength bool) (string, error) {
 
 	if preserveLength {
 
-		fn, err := ProcessFirstName(parsedName[0], preserveLength)
+		fn, err := GenerateFirstName(parsedName[0], preserveLength)
 		if err != nil {
 			return "", err
 		}
@@ -58,7 +58,7 @@ func ProcessFullName(fn string, preserveLength bool) (string, error) {
 
 		// generate random full name
 
-		fn, err := ProcessFirstName(parsedName[0], false)
+		fn, err := GenerateFirstName(parsedName[0], false)
 		if err != nil {
 			return "", err
 		}
