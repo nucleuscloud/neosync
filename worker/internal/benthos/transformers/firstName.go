@@ -20,7 +20,7 @@ type NameGroup struct {
 
 var (
 	//go:embed data-sets/first_names.json
-	nameBytes []byte
+	firstNameBytes []byte
 )
 
 func init() {
@@ -47,26 +47,26 @@ func init() {
 
 }
 
-// main transformer logic goes here
-func GenerateFirstName(fn string, pl bool) (string, error) {
+// Generates a random first name
+func GenerateFirstName(name string, preserveLength bool) (string, error) {
 
-	if !pl {
-		res, err := GenerateFirstNameWithRandomLength(fn)
+	if !preserveLength {
+		res, err := GenerateFirstNameWithRandomLength()
 		return res, err
 	} else {
-		res, err := GenerateFirstNameWithLength(fn, len(fn))
+		res, err := GenerateFirstNameWithLength(name)
 		return res, err
 	}
 }
 
-func GenerateFirstNameWithRandomLength(fn string) (string, error) {
+func GenerateFirstNameWithRandomLength() (string, error) {
 
 	var returnValue string
 
 	data := struct {
 		Names []NameGroup `json:"names"`
 	}{}
-	if err := json.Unmarshal(nameBytes, &data); err != nil {
+	if err := json.Unmarshal(firstNameBytes, &data); err != nil {
 		panic(err)
 	}
 
@@ -89,6 +89,8 @@ func GenerateFirstNameWithRandomLength(fn string) (string, error) {
 			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
 			if err != nil {
 				return "", err
+			} else {
+
 			}
 			returnValue = res
 		}
@@ -98,22 +100,28 @@ func GenerateFirstNameWithRandomLength(fn string) (string, error) {
 }
 
 // main transformer logic goes here
-func GenerateFirstNameWithLength(fn string, l int) (string, error) {
+func GenerateFirstNameWithLength(fn string) (string, error) {
 
 	var returnValue string
 
 	data := struct {
 		Names []NameGroup `json:"names"`
 	}{}
-	if err := json.Unmarshal(nameBytes, &data); err != nil {
+	if err := json.Unmarshal(firstNameBytes, &data); err != nil {
 		panic(err)
 	}
 
 	names := data.Names
 
 	for _, v := range names {
-		if v.NameLength == l {
+		if v.NameLength == len(fn) {
 			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
+			if err != nil {
+				return "", err
+			}
+			returnValue = res
+		} else {
+			res, err := GenerateRandomStringWithLength(int64(len(fn)))
 			if err != nil {
 				return "", err
 			}

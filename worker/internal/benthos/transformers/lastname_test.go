@@ -12,7 +12,7 @@ func TestProcessLastNamePreserveLengthTrue(t *testing.T) {
 	name := "jill"
 	expectedLength := 4
 
-	res, err := ProcessLastName(name, true)
+	res, err := GenerateLastNameWithLength(name)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedLength, len(res), "The first name output should be the same length as the input")
@@ -21,9 +21,7 @@ func TestProcessLastNamePreserveLengthTrue(t *testing.T) {
 
 func TestProcessLastNamePreserveLengthFalse(t *testing.T) {
 
-	name := "john"
-
-	res, err := ProcessLastName(name, false)
+	res, err := GenerateLastNameWithRandomLength()
 
 	assert.NoError(t, err)
 	assert.Greater(t, len(res), 0, "The first name should be more than 0 characters")
