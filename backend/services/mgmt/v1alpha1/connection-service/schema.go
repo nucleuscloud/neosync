@@ -7,10 +7,10 @@ import (
 
 	"connectrpc.com/connect"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jackc/pgx/v5"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 )
 
 const (
@@ -71,14 +71,14 @@ func (s *Service) GetConnectionSchema(
 		return nil, err
 	}
 
-	conn, err := sql.Open(connDetails.ConnectionDriver, connDetails.ConnectionString)
+	conn, err := s.sqlConnector.Open(connDetails.ConnectionDriver, connDetails.ConnectionString)
 	if err != nil {
 		logger.Error("unable to connect", err)
 		return nil, err
 	}
 	defer func() {
 		if err := conn.Close(); err != nil {
-			logger.Error(fmt.Errorf("failed to close mysql connection: %w", err).Error())
+			logger.Error(fmt.Errorf("failed to close sql connection: %w", err).Error())
 		}
 	}()
 
@@ -110,10 +110,10 @@ func (s *Service) GetConnectionSchema(
 
 func getDatabaseSchema(ctx context.Context, conn *sql.DB, query string) ([]DatabaseSchema, error) {
 	rows, err := conn.QueryContext(ctx, query)
-	if err != nil && !isNoRows(err) {
+	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	}
-	if err != nil && isNoRows(err) {
+	if err != nil && nucleusdb.IsNoRows(err) {
 		return []DatabaseSchema{}, nil
 	}
 
@@ -132,10 +132,6 @@ func getDatabaseSchema(ctx context.Context, conn *sql.DB, query string) ([]Datab
 		output = append(output, o)
 	}
 	return output, nil
-}
-
-func isNoRows(err error) bool {
-	return err != nil && err == sql.ErrNoRows || err == pgx.ErrNoRows
 }
 
 func ToDatabaseColumn(
