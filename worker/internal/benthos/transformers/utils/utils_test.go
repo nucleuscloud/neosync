@@ -144,3 +144,13 @@ func TestIsLastDigitZeroFalse(t *testing.T) {
 	res := IsLastDigitZero(value)
 	assert.Equal(t, res, false, "The last digit is not zero.")
 }
+
+func TestRandomStringGeneration(t *testing.T) {
+
+	expectedLength := 5
+	res, err := GenerateRandomStringWithLength(int64(expectedLength))
+
+	assert.NoError(t, err)
+	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")
+
+}

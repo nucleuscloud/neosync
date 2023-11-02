@@ -129,7 +129,7 @@ func GenerateFirstNameWithLength(fn string) (string, error) {
 			}
 			returnValue = res
 		} else {
-			res, err := GenerateRandomStringWithLength(int64(len(fn)))
+			res, err := transformer_utils.GenerateRandomStringWithLength(int64(len(fn)))
 			if err != nil {
 				return "", err
 			}
