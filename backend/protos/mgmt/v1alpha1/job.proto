@@ -268,15 +268,12 @@ message JobRecentRun {
 
   string job_run_id = 2;
 }
-message JobRecentRuns {
-  repeated JobRecentRun runs = 1;
-}
 
 message GetJobRecentRunsRequest {
   string job_id = 1;
 }
 message GetJobRecentRunsResponse {
-  JobRecentRuns recent_runs = 1;
+  repeated JobRecentRun recent_runs = 1;
 }
 
 message JobNextRuns {
@@ -388,6 +385,7 @@ message GetJobRunEventsRequest {
 
 message GetJobRunEventsResponse {
   repeated JobRunEvent events = 1;
+  bool is_run_complete = 2;
 }
 
 message DeleteJobRunRequest {

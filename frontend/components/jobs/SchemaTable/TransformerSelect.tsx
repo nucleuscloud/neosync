@@ -28,8 +28,6 @@ export default function TransformerSelect(props: Props): ReactElement {
   const { transformers, value, onSelect, placeholder, defaultValue } = props;
   const [open, setOpen] = useState(false);
 
-  console.log('transformer', transformers);
-
   let custom: CustomTransformer[] = [];
   let system: CustomTransformer[] = [];
 

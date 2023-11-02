@@ -56,7 +56,7 @@ func ToJobStatus(inputSchedule *temporalclient.ScheduleDescription) mgmtv1alpha1
 	return mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED
 }
 
-func ToJobRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobRecentRuns {
+func ToJobRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) []*mgmtv1alpha1.JobRecentRun {
 	recentRuns := []*mgmtv1alpha1.JobRecentRun{}
 	if inputSchedule == nil {
 		return nil
@@ -68,9 +68,7 @@ func ToJobRecentRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmt
 			JobRunId:  run.StartWorkflowResult.WorkflowID,
 		})
 	}
-	return &mgmtv1alpha1.JobRecentRuns{
-		Runs: recentRuns,
-	}
+	return recentRuns
 }
 
 func ToJobNextRunsDto(inputSchedule *temporalclient.ScheduleDescription) *mgmtv1alpha1.JobNextRuns {

@@ -178,6 +178,7 @@ func (s *Service) GetJobRunEvents(
 		return nil, err
 	}
 
+	isRunComplete := false
 	activityOrder := []int64{}
 	activityMap := map[int64]*mgmtv1alpha1.JobRunEvent{}
 	iter := tclient.GetWorkflowHistory(
@@ -255,7 +256,12 @@ func (s *Service) GetJobRunEvents(
 			activity := activityMap[attributes.ScheduledEventId]
 			errorDto := dtomaps.ToJobRunEventTaskErrorDto(attributes.Failure, attributes.RetryState)
 			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, errorDto))
-
+		case enums.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED:
+			isRunComplete = true
+		case enums.EVENT_TYPE_WORKFLOW_EXECUTION_FAILED:
+			isRunComplete = true
+		case enums.EVENT_TYPE_WORKFLOW_EXECUTION_TIMED_OUT:
+			isRunComplete = true
 		default:
 
 		}
@@ -268,7 +274,8 @@ func (s *Service) GetJobRunEvents(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRunEventsResponse{
-		Events: events,
+		Events:        events,
+		IsRunComplete: isRunComplete,
 	}), nil
 }
 

@@ -15,13 +15,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { refreshWhenJobRunning, useGetJobRun } from '@/libs/hooks/useGetJobRun';
 import {
-  getRefreshEventsWhenJobRunningFn,
+  refreshEventsWhenEventsIncomplete,
   useGetJobRunEvents,
 } from '@/libs/hooks/useGetJobRunEvents';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement } from 'react';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
 
@@ -39,17 +39,10 @@ export default function Page({ params }: PageProps): ReactElement {
     isValidating,
     mutate: eventMutate,
   } = useGetJobRunEvents(id, {
-    refreshIntervalFn: getRefreshEventsWhenJobRunningFn(data?.jobRun?.status),
+    refreshIntervalFn: refreshEventsWhenEventsIncomplete,
   });
 
   const jobRun = data?.jobRun;
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      eventMutate();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [data?.jobRun?.status]);
 
   async function onDelete(): Promise<void> {
     try {

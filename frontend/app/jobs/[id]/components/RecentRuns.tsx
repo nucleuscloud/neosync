@@ -92,7 +92,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.recentRuns?.runs.reverse().map((r) => {
+              {data?.recentRuns?.reverse().map((r) => {
                 const jobRun = jobRunsIdMap[r.jobRunId];
                 return (
                   <TableRow key={r.jobRunId}>
