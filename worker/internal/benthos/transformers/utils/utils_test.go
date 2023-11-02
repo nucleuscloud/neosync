@@ -128,3 +128,19 @@ func TestGetIntLegth(t *testing.T) {
 
 	assert.Equal(t, int64(expected), val, "The calculated length should match the expected length.")
 }
+
+func TestIsLastDigitZeroTrue(t *testing.T) {
+
+	value := int64(954670)
+
+	res := IsLastDigitZero(value)
+	assert.Equal(t, res, true, "The last digit is zero.")
+}
+
+func TestIsLastDigitZeroFalse(t *testing.T) {
+
+	value := int64(23546789)
+
+	res := IsLastDigitZero(value)
+	assert.Equal(t, res, false, "The last digit is not zero.")
+}

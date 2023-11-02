@@ -135,3 +135,15 @@ func GetIntLength(i int64) int64 {
 
 	return length
 }
+
+func IsLastDigitZero(n int64) bool {
+	// Convert the int64 to a string
+	str := strconv.FormatInt(n, 10)
+
+	// Check if the string is empty or if the last character is '0'
+	if len(str) > 0 && str[len(str)-1] == '0' {
+		return true
+	}
+
+	return false
+}
