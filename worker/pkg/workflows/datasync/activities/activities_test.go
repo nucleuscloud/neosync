@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/testsuite"
@@ -220,4 +221,78 @@ func Test_splitTableKey(t *testing.T) {
 	schema, table = splitTableKey("neosync.foo")
 	assert.Equal(t, schema, "neosync")
 	assert.Equal(t, table, "foo")
+}
+
+func Test_buildBenthosS3Credentials(t *testing.T) {
+	assert.Nil(t, buildBenthosS3Credentials(nil))
+
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{}),
+		&neosync_benthos.AwsCredentials{},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{Profile: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Profile: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{AccessKeyId: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Id: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SecretAccessKey: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Secret: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SessionToken: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Token: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{FromEc2Role: boolPtr(true)}),
+		&neosync_benthos.AwsCredentials{FromEc2Role: true},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleArn: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{Role: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleExternalId: strPtr("foo")}),
+		&neosync_benthos.AwsCredentials{RoleExternalId: "foo"},
+	)
+	assert.Equal(
+		t,
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{
+			Profile:         strPtr("profile"),
+			AccessKeyId:     strPtr("access-key"),
+			SecretAccessKey: strPtr("secret"),
+			SessionToken:    strPtr("session"),
+			FromEc2Role:     boolPtr(false),
+			RoleArn:         strPtr("role"),
+			RoleExternalId:  strPtr("foo"),
+		}),
+		&neosync_benthos.AwsCredentials{
+			Profile:        "profile",
+			Id:             "access-key",
+			Secret:         "secret",
+			Token:          "session",
+			FromEc2Role:    false,
+			Role:           "role",
+			RoleExternalId: "foo",
+		},
+	)
+}
+
+func strPtr(val string) *string {
+	return &val
+}
+
+func boolPtr(val bool) *bool {
+	return &val
 }
