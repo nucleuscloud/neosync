@@ -240,3 +240,47 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 
 	env.AssertExpectations(t)
 }
+
+func Test_isConfigReady(t *testing.T) {
+	assert.False(t, isConfigReady(nil, nil), "config is nil")
+	assert.True(
+		t,
+		isConfigReady(
+			&datasync_activities.BenthosConfigResponse{
+				Name:      "foo",
+				DependsOn: []string{},
+			},
+			nil,
+		),
+		"has no dependencies",
+	)
+
+	assert.False(
+		t,
+		isConfigReady(
+			&datasync_activities.BenthosConfigResponse{
+				Name:      "foo",
+				DependsOn: []string{"bar", "baz"},
+			},
+			map[string]struct{}{
+				"bar": {},
+			},
+		),
+		"not all dependencies are finished",
+	)
+
+	assert.True(
+		t,
+		isConfigReady(
+			&datasync_activities.BenthosConfigResponse{
+				Name:      "foo",
+				DependsOn: []string{"bar", "baz"},
+			},
+			map[string]struct{}{
+				"bar": {},
+				"baz": {},
+			},
+		),
+		"all dependencies are finished",
+	)
+}
