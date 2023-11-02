@@ -41,11 +41,13 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
   }
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    // Set a timeout to refresh once after 3 second
+    // used to show new runs after trigger
+    const timeoutId = setTimeout(() => {
       onRefreshClick();
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [jobId]);
+    }, 3000);
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const jobRunsIdMap =
     jobRuns?.jobRuns.reduce(
