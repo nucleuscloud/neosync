@@ -46,6 +46,11 @@ spec:
       {{- end }}
       terminationGracePeriod: {{ .Values.terminationGracePeriod }}
 
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       containers:
         - name: user-container
           image: '{{ .Values.image.repository | default "ghcr.io/nucleuscloud/neosync/worker" }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
@@ -67,6 +72,12 @@ spec:
             failureThreshold: 2
             successThreshold: 1
             initialDelaySeconds: 1
+
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
           env:
             - name: HOST_IP
               valueFrom:
