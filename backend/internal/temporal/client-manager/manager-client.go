@@ -26,6 +26,13 @@ type TemporalClientManager struct {
 	accountNsMu *sync.Map
 }
 
+type TemporalClientManagerClient interface {
+	ClearNamespaceClientByAccount(ctx context.Context, accountId string)
+	ClearWorkflowClientByAccount(ctx context.Context, accountId string)
+	GetNamespaceClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (temporalclient.NamespaceClient, error)
+	GetWorkflowClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (temporalclient.Client, error)
+}
+
 type DB interface {
 	GetTemporalConfigByAccount(ctx context.Context, db db_queries.DBTX, accountId pgtype.UUID) (*jsonmodels.TemporalConfig, error)
 }
