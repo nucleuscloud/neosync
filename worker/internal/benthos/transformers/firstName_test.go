@@ -24,7 +24,7 @@ func TestGenerateFirstNamePreserveLengthTrue(t *testing.T) {
 	name := "evis"
 	expectedLength := 4
 
-	res, err := GenerateFirstNameWithLength(name, len(name))
+	res, err := GenerateFirstNameWithLength(name)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedLength, len(res), "The first name output should be the same length as the input")
@@ -32,10 +32,7 @@ func TestGenerateFirstNamePreserveLengthTrue(t *testing.T) {
 }
 
 func TestGenerateFirstNamePreserveLengthFalse(t *testing.T) {
-
-	name := "john"
-
-	res, err := GenerateFirstNameWithRandomLength(name)
+	res, err := GenerateFirstNameWithRandomLength()
 
 	assert.NoError(t, err)
 	assert.Greater(t, len(res), 0, "The first name should be more than 0 characters")

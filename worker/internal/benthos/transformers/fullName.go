@@ -20,7 +20,7 @@ func init() {
 			return nil, err
 		}
 		return bloblang.StringMethod(func(s string) (any, error) {
-			res, err := ProcessFullName(s, preserveLength)
+			res, err := GenerateFullName(s, preserveLength)
 			return res, err
 		}), nil
 	})
@@ -32,45 +32,52 @@ func init() {
 }
 
 // main transformer logic goes here
-func ProcessFullName(fn string, preserveLength bool) (string, error) {
+func GenerateFullName(fn string, pl bool) (string, error) {
 
-	var returnValue string
+	if !pl {
+		res, err := GenerateFullNameWithRandomLength()
+		return res, err
+	} else {
+		res, err := GenerateFullNameWithLength(fn)
+		return res, err
+	}
+}
+
+// main transformer logic goes here
+func GenerateFullNameWithRandomLength() (string, error) {
+
+	fn, err := GenerateFirstNameWithRandomLength()
+	if err != nil {
+		return "", err
+	}
+
+	ln, err := GenerateLastNameWithRandomLength()
+	if err != nil {
+		return "", err
+	}
+
+	returnValue := fn + " " + ln
+
+	return returnValue, err
+
+}
+
+func GenerateFullNameWithLength(fn string) (string, error) {
 
 	parsedName := strings.Split(fn, " ")
 
-	if preserveLength {
-
-		fn, err := GenerateFirstName(parsedName[0], preserveLength)
-		if err != nil {
-			return "", err
-		}
-
-		ln, err := ProcessLastName(parsedName[1], preserveLength)
-		if err != nil {
-			return "", err
-		}
-
-		returnValue = fn + " " + ln
-
-		return returnValue, err
-
-	} else {
-
-		// generate random full name
-
-		fn, err := GenerateFirstName(parsedName[0], false)
-		if err != nil {
-			return "", err
-		}
-
-		ln, err := ProcessLastName(parsedName[1], false)
-		if err != nil {
-			return "", err
-		}
-
-		returnValue = fn + " " + ln
-
-		return returnValue, err
+	fn, err := GenerateFirstName(parsedName[0], true)
+	if err != nil {
+		return "", err
 	}
+
+	ln, err := GenerateLastName(parsedName[1], true)
+	if err != nil {
+		return "", err
+	}
+
+	returnValue := fn + " " + ln
+
+	return returnValue, err
 
 }
