@@ -79,6 +79,61 @@ func (_c *MockUserAccountServiceClient_ConvertPersonalToTeamAccount_Call) RunAnd
 	return _c
 }
 
+// GetAccountTemporalConfig provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) GetAccountTemporalConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]) *connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_GetAccountTemporalConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountTemporalConfig'
+type MockUserAccountServiceClient_GetAccountTemporalConfig_Call struct {
+	*mock.Call
+}
+
+// GetAccountTemporalConfig is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]
+func (_e *MockUserAccountServiceClient_Expecter) GetAccountTemporalConfig(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_GetAccountTemporalConfig_Call {
+	return &MockUserAccountServiceClient_GetAccountTemporalConfig_Call{Call: _e.mock.On("GetAccountTemporalConfig", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_GetAccountTemporalConfig_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest])) *MockUserAccountServiceClient_GetAccountTemporalConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetAccountTemporalConfig_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse], _a1 error) *MockUserAccountServiceClient_GetAccountTemporalConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetAccountTemporalConfig_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse], error)) *MockUserAccountServiceClient_GetAccountTemporalConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUser provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) GetUser(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetUserRequest]) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
 	ret := _m.Called(_a0, _a1)
@@ -240,6 +295,61 @@ func (_c *MockUserAccountServiceClient_IsUserInAccount_Call) Return(_a0 *connect
 }
 
 func (_c *MockUserAccountServiceClient_IsUserInAccount_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.IsUserInAccountRequest]) (*connect.Response[mgmtv1alpha1.IsUserInAccountResponse], error)) *MockUserAccountServiceClient_IsUserInAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetAccountTemporalConfig provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) SetAccountTemporalConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest]) *connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_SetAccountTemporalConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAccountTemporalConfig'
+type MockUserAccountServiceClient_SetAccountTemporalConfig_Call struct {
+	*mock.Call
+}
+
+// SetAccountTemporalConfig is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest]
+func (_e *MockUserAccountServiceClient_Expecter) SetAccountTemporalConfig(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_SetAccountTemporalConfig_Call {
+	return &MockUserAccountServiceClient_SetAccountTemporalConfig_Call{Call: _e.mock.On("SetAccountTemporalConfig", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_SetAccountTemporalConfig_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest])) *MockUserAccountServiceClient_SetAccountTemporalConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_SetAccountTemporalConfig_Call) Return(_a0 *connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse], _a1 error) *MockUserAccountServiceClient_SetAccountTemporalConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_SetAccountTemporalConfig_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse], error)) *MockUserAccountServiceClient_SetAccountTemporalConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }
