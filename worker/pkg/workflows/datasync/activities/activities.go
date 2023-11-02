@@ -895,8 +895,14 @@ func (a *Activities) getConnectionById(ctx context.Context, backendurl, connecti
 func getPgDsn(
 	config *mgmtv1alpha1.PostgresConnectionConfig,
 ) (string, error) {
+	if config == nil {
+		return "", errors.New("must provide non-nil config")
+	}
 	switch cfg := config.ConnectionConfig.(type) {
 	case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
+		if cfg.Connection == nil {
+			return "", errors.New("must provide non-nil connection config")
+		}
 		dburl := fmt.Sprintf(
 			"postgres://%s:%s@%s:%d/%s",
 			cfg.Connection.User,
@@ -919,8 +925,14 @@ func getPgDsn(
 func getMysqlDsn(
 	config *mgmtv1alpha1.MysqlConnectionConfig,
 ) (string, error) {
+	if config == nil {
+		return "", errors.New("must provide non-nil config")
+	}
 	switch cfg := config.ConnectionConfig.(type) {
 	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
+		if cfg.Connection == nil {
+			return "", errors.New("must provide non-nil connection config")
+		}
 		dburl := fmt.Sprintf(
 			"%s:%s@%s(%s:%d)/%s",
 			cfg.Connection.User,
