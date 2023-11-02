@@ -20,7 +20,7 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length"))
 
 	// register the plugin
-	err := bloblang.RegisterMethodV2("firstnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterMethodV2("lastnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
 
 		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
