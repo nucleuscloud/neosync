@@ -2,6 +2,7 @@ package clientmanager
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"log/slog"
 	"sync"
@@ -29,7 +30,9 @@ type DB interface {
 	GetTemporalConfigByAccount(ctx context.Context, db db_queries.DBTX, accountId pgtype.UUID) (*jsonmodels.TemporalConfig, error)
 }
 
-type Config struct{}
+type Config struct {
+	AuthCertificates []tls.Certificate
+}
 
 func New(
 	config *Config,
@@ -160,14 +163,7 @@ func (t *TemporalClientManager) getNewNSClientByAccount(
 		return nil, errors.New("neosync account does not have a configured temporal namespace")
 	}
 
-	return temporalclient.NewNamespaceClient(temporalclient.Options{
-		Logger: logger.With(
-			"temporal-client", "true",
-			"neosync-account-id", accountId,
-		),
-		HostPort:  tc.Url,
-		Namespace: tc.Namespace,
-	})
+	return temporalclient.NewNamespaceClient(*t.getClientOptions(accountId, tc, logger))
 }
 
 func (t *TemporalClientManager) getNewWFClientByAccount(
@@ -182,15 +178,7 @@ func (t *TemporalClientManager) getNewWFClientByAccount(
 	if tc.Namespace == "" {
 		return nil, errors.New("neosync account does not have a configured temporal namespace")
 	}
-
-	return temporalclient.NewLazyClient(temporalclient.Options{
-		Logger: logger.With(
-			"temporal-client", "true",
-			"neosync-account-id", accountId,
-		),
-		HostPort:  tc.Url,
-		Namespace: tc.Namespace,
-	})
+	return temporalclient.NewLazyClient(*t.getClientOptions(accountId, tc, logger))
 }
 
 func (t *TemporalClientManager) getTemporalConfigByAccount(
@@ -202,4 +190,36 @@ func (t *TemporalClientManager) getTemporalConfigByAccount(
 		return nil, err
 	}
 	return t.db.GetTemporalConfigByAccount(ctx, t.dbtx, accountUuid)
+}
+
+func (t *TemporalClientManager) getClientOptions(
+	accountId string,
+	tc *jsonmodels.TemporalConfig,
+	logger *slog.Logger,
+) *temporalclient.Options {
+	opts := temporalclient.Options{
+		Logger: logger.With(
+			"temporal-client", "true",
+			"neosync-account-id", accountId,
+		),
+		HostPort:  tc.Url,
+		Namespace: tc.Namespace,
+	}
+	connectOpts := t.getClientConnectionOptions()
+	if connectOpts != nil {
+		opts.ConnectionOptions = *connectOpts
+	}
+	return &opts
+}
+
+func (t *TemporalClientManager) getClientConnectionOptions() *temporalclient.ConnectionOptions {
+	if len(t.config.AuthCertificates) == 0 {
+		return nil
+	}
+	return &temporalclient.ConnectionOptions{
+		TLS: &tls.Config{
+			Certificates: t.config.AuthCertificates,
+			MinVersion:   tls.VersionTLS13,
+		},
+	}
 }
