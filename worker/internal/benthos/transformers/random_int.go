@@ -30,7 +30,7 @@ func init() {
 		}
 
 		return bloblang.Int64Method(func(i int64) (any, error) {
-			res, err := ProcessRandomInt(i, preserveLength, intLength)
+			res, err := GenerateRandomInt(i, preserveLength, intLength)
 			return res, err
 		}), nil
 	})
@@ -42,8 +42,12 @@ func init() {
 }
 
 // main transformer logic goes here
-func ProcessRandomInt(i int64, preserveLength bool, intLength int64) (int64, error) {
+func GenerateRandomInt(i int64, preserveLength bool, intLength int64) (int64, error) {
 	var returnValue int64
+
+	if preserveLength && intLength > 0 {
+		return 0, fmt.Errorf("preserve length and int length params cannot both be true")
+	}
 
 	if preserveLength {
 
@@ -58,16 +62,6 @@ func ProcessRandomInt(i int64, preserveLength bool, intLength int64) (int64, err
 	} else if intLength > 0 {
 
 		val, err := transformer_utils.GenerateRandomInt(intLength)
-
-		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random string with length")
-		}
-
-		returnValue = val
-
-	} else if preserveLength && intLength > 0 {
-
-		val, err := transformer_utils.GenerateRandomInt(transformer_utils.GetIntLength(i))
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random string with length")
