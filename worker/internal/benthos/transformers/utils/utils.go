@@ -135,3 +135,47 @@ func GetIntLength(i int64) int64 {
 
 	return length
 }
+
+func IsLastDigitZero(n int64) bool {
+	// Convert the int64 to a string
+	str := strconv.FormatInt(n, 10)
+
+	// Check if the string is empty or if the last character is '0'
+	if len(str) > 0 && str[len(str)-1] == '0' {
+		return true
+	}
+
+	return false
+}
+
+// generate a random string of length l
+func GenerateRandomStringWithLength(l int64) (string, error) {
+
+	const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+
+	if l <= 0 {
+		return "", fmt.Errorf("the length cannot be zero or negative")
+	}
+
+	// Create a random source using crypto/rand
+	source := rand.Reader
+
+	// Calculate the max index in the alphabet string
+	maxIndex := big.NewInt(int64(len(alphanumeric)))
+
+	result := make([]byte, l)
+
+	for i := int64(0); i < l; i++ {
+		// Generate a random index in the range [0, len(alphabet))
+		index, err := rand.Int(source, maxIndex)
+		if err != nil {
+			return "", fmt.Errorf("unable to generate a random index for random string generation")
+		}
+
+		// Get the character at the generated index and append it to the result
+		result[i] = alphanumeric[index.Int64()]
+	}
+
+	return string(result), nil
+
+}

@@ -9,12 +9,10 @@ import (
 
 func TestProcessRandomBool(t *testing.T) {
 
-	testVal := false // check bool gen
-
 	res, err := GenerateRandomBool()
 
 	assert.NoError(t, err)
-	assert.IsType(t, res, testVal)
+	assert.IsType(t, res, false)
 
 }
 

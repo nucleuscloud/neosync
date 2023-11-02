@@ -131,7 +131,7 @@ func GenerateEmailPreserveLength(e string, pl bool) (string, error) {
 
 	tld := transformer_utils.SliceString(splitGeneratedDomain[1], len(splitDomain[1]))
 
-	un, err := GenerateRandomStringWithLength(int64(len(parsedEmail[0])))
+	un, err := transformer_utils.GenerateRandomStringWithLength(int64(len(parsedEmail[0])))
 	if err != nil {
 		return "", nil
 	}
@@ -152,7 +152,7 @@ func GenerateEmailPreserveDomainAndLength(e string, pd, pl bool) (string, error)
 
 	unLength := len(parsedEmail[0])
 
-	un, err := GenerateRandomStringWithLength(int64(len(parsedEmail[0])))
+	un, err := transformer_utils.GenerateRandomStringWithLength(int64(len(parsedEmail[0])))
 	if err != nil {
 		return "", err
 	}
@@ -166,7 +166,7 @@ func GenerateDomain() (string, error) {
 
 	var result string
 
-	domain, err := GenerateRandomStringWithLength(6)
+	domain, err := transformer_utils.GenerateRandomStringWithLength(6)
 
 	if err != nil {
 		return "", fmt.Errorf("unable to generate random domain name")
@@ -190,7 +190,7 @@ func GenerateRandomUsername() (string, error) {
 		return "", err
 	}
 
-	username, err := GenerateRandomStringWithLength(int64(randLength))
+	username, err := transformer_utils.GenerateRandomStringWithLength(int64(randLength))
 	if err != nil {
 		return "", err
 	}

@@ -1,12 +1,11 @@
 package neosync_transformers
 
 import (
-	"crypto/rand"
 	"fmt"
-	"math/big"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 const defaultStrLength = 10
@@ -35,7 +34,7 @@ func init() {
 		}
 
 		return bloblang.StringMethod(func(s string) (any, error) {
-			res, err := ProcessRandomString(s, preserveLength, strLength)
+			res, err := GenerateRandomString(s, preserveLength, strLength)
 			return res, err
 		}), nil
 	})
@@ -47,12 +46,16 @@ func init() {
 }
 
 // main transformer logic goes here
-func ProcessRandomString(s string, preserveLength bool, strLength int64) (string, error) {
+func GenerateRandomString(s string, preserveLength bool, strLength int64) (string, error) {
 	var returnValue string
+
+	if preserveLength && strLength > 0 {
+		return "", fmt.Errorf("preserve length and int length params cannot both be true")
+	}
 
 	if preserveLength {
 
-		val, err := GenerateRandomStringWithLength(int64(len(s)))
+		val, err := transformer_utils.GenerateRandomStringWithLength(int64(len(s)))
 
 		if err != nil {
 			return "", fmt.Errorf("unable to generate a random string with length")
@@ -62,17 +65,7 @@ func ProcessRandomString(s string, preserveLength bool, strLength int64) (string
 
 	} else if strLength > 0 {
 
-		val, err := GenerateRandomStringWithLength(strLength)
-
-		if err != nil {
-			return "", fmt.Errorf("unable to generate a random string with length")
-		}
-
-		returnValue = val
-
-	} else if preserveLength && strLength > 0 {
-
-		val, err := GenerateRandomStringWithLength(strLength)
+		val, err := transformer_utils.GenerateRandomStringWithLength(strLength)
 
 		if err != nil {
 			return "", fmt.Errorf("unable to generate a random string with length")
@@ -82,7 +75,7 @@ func ProcessRandomString(s string, preserveLength bool, strLength int64) (string
 
 	} else {
 
-		val, err := GenerateRandomStringWithLength(defaultStrLength)
+		val, err := transformer_utils.GenerateRandomStringWithLength(defaultStrLength)
 
 		if err != nil {
 			return "", fmt.Errorf("unable to generate a random string with length")
@@ -93,35 +86,4 @@ func ProcessRandomString(s string, preserveLength bool, strLength int64) (string
 	}
 
 	return returnValue, nil
-}
-
-func GenerateRandomStringWithLength(l int64) (string, error) {
-
-	const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
-
-	if l <= 0 {
-		return "", fmt.Errorf("the length cannot be zero or negative")
-	}
-
-	// Create a random source using crypto/rand
-	source := rand.Reader
-
-	// Calculate the max index in the alphabet string
-	maxIndex := big.NewInt(int64(len(alphanumeric)))
-
-	result := make([]byte, l)
-
-	for i := int64(0); i < l; i++ {
-		// Generate a random index in the range [0, len(alphabet))
-		index, err := rand.Int(source, maxIndex)
-		if err != nil {
-			return "", fmt.Errorf("unable to generate a random index for random string generation")
-		}
-
-		// Get the character at the generated index and append it to the result
-		result[i] = alphanumeric[index.Int64()]
-	}
-
-	return string(result), nil
-
 }

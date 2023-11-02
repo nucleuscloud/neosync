@@ -66,7 +66,7 @@ func GenerateRandomFloatPreserveLength(i float64, preserveLength bool) (float64,
 	ad, err := transformer_utils.GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
 
 	for {
-		if !isLastDigitAZero(ad) {
+		if !transformer_utils.IsLastDigitZero(ad) {
 			break // Exit the loop when i is greater than or equal to 5
 		}
 		ad, err = transformer_utils.GenerateRandomInt(int64(fLen.DigitsAfterDecimalLength))
@@ -106,7 +106,7 @@ func GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecima
 	// generate a new number if it ends in a zero so that the trailing zero doesn't get stripped and return
 	// a value that is shorter than what the user asks for. This happens in when we convert the string to a float64
 	for {
-		if !isLastDigitAZero(ad) {
+		if !transformer_utils.IsLastDigitZero(ad) {
 			break // Exit the loop when i is greater than or equal to 5
 		}
 		ad, err = transformer_utils.GenerateRandomInt(digitsAfterDecimal)
@@ -151,16 +151,4 @@ func GetFloatLength(i float64) *FloatLength {
 		DigitsBeforeDecimalLength: len(parsed[0]),
 		DigitsAfterDecimalLength:  len(parsed[1]),
 	}
-}
-
-func isLastDigitAZero(n int64) bool {
-	// Convert the int64 to a string
-	str := strconv.FormatInt(n, 10)
-
-	// Check if the string is empty or if the last character is '0'
-	if len(str) > 0 && str[len(str)-1] == '0' {
-		return true
-	}
-
-	return false
 }
