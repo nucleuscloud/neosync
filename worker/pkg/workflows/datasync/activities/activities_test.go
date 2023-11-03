@@ -1,14 +1,20 @@
 package datasync_activities
 
 import (
+	"context"
+	"log/slog"
 	"math"
 	"strings"
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
+	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -431,6 +437,25 @@ func Test_getMysqlDsn(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, dsn, "my-user:my-pass@tcp(localhost:5432)/neosync")
+}
+
+func Test_generateBenthosConfigs(t *testing.T) {
+	act := &Activities{}
+
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+
+	resp, err := act.generateBenthosConfigs(
+		context.Background(),
+		&GenerateBenthosConfigsRequest{JobId: "123", BackendUrl: "123", WorkflowId: "123"},
+		map[string]dbschemas_postgres.DBTX{},
+		map[string]dbschemas_mysql.DBTX{},
+		mockJobClient,
+		mockConnectionClient,
+		log.NewStructuredLogger(slog.Default()),
+	)
+	assert.Nil(t, err)
+	assert.Empty(t, resp.BenthosConfigs)
 }
 
 func strPtr(val string) *string {

@@ -21,7 +21,6 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -30,6 +29,7 @@ import (
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
+	"go.temporal.io/sdk/log"
 )
 
 const nullString = "null"
@@ -68,8 +68,8 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 	}()
 
-	pgpoolmap := map[string]*pgxpool.Pool{}
-	mysqlPoolMap := map[string]*sql.DB{}
+	pgpoolmap := map[string]dbschemas_postgres.DBTX{}
+	mysqlPoolMap := map[string]dbschemas_mysql.DBTX{}
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		http.DefaultClient,
@@ -80,6 +80,18 @@ func (a *Activities) GenerateBenthosConfigs(
 		http.DefaultClient,
 		req.BackendUrl,
 	)
+	return a.generateBenthosConfigs(ctx, req, pgpoolmap, mysqlPoolMap, jobclient, connclient, logger)
+}
+
+func (a *Activities) generateBenthosConfigs(
+	ctx context.Context,
+	req *GenerateBenthosConfigsRequest,
+	pgpoolmap map[string]dbschemas_postgres.DBTX,
+	mysqlPoolMap map[string]dbschemas_mysql.DBTX,
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	logger log.Logger,
+) (*GenerateBenthosConfigsResponse, error) {
 
 	job, err := a.getJobById(ctx, jobclient, req.JobId)
 	if err != nil {
@@ -580,7 +592,7 @@ func shouldHaltOnSchemaAddition(
 
 func (a *Activities) getAllPostgresFkConstraintsFromMappings(
 	ctx context.Context,
-	conn DBTX,
+	conn dbschemas_postgres.DBTX,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) ([]*dbschemas_postgres.ForeignKeyConstraint, error) {
 	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
@@ -612,7 +624,7 @@ func (a *Activities) getAllPostgresFkConstraintsFromMappings(
 
 func (a *Activities) getAllMysqlFkConstraintsFromMappings(
 	ctx context.Context,
-	conn *sql.DB,
+	conn dbschemas_mysql.DBTX,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) ([]*dbschemas_mysql.ForeignKeyConstraint, error) {
 	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
@@ -648,14 +660,9 @@ type initStatementOpts struct {
 	InitSchema           bool
 }
 
-type DBTX interface {
-	Query(context.Context, string, ...any) (pgx.Rows, error)
-	QueryRow(context.Context, string, ...any) pgx.Row
-}
-
 func (a *Activities) getInitStatementFromPostgres(
 	ctx context.Context,
-	conn DBTX,
+	conn dbschemas_postgres.DBTX,
 	schema string,
 	table string,
 	opts *initStatementOpts,
@@ -684,7 +691,7 @@ func (a *Activities) getInitStatementFromPostgres(
 
 func (a *Activities) getInitStatementFromMysql(
 	ctx context.Context,
-	conn *sql.DB,
+	conn dbschemas_mysql.DBTX,
 	schema string,
 	table string,
 	opts *initStatementOpts,

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 )
 
@@ -61,9 +60,14 @@ WHERE
 	`
 )
 
+type DBTX interface {
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
 func GetDatabaseSchemas(
 	ctx context.Context,
-	conn *sql.DB,
+	conn DBTX,
 ) ([]*DatabaseSchema, error) {
 	rows, err := conn.QueryContext(ctx, getDatabaseSchemaSql)
 	if err != nil && !isNoRows(err) {
@@ -135,7 +139,7 @@ WHERE
 
 func GetTableConstraints(
 	ctx context.Context,
-	conn *sql.DB,
+	conn DBTX,
 	schema string,
 	table string,
 ) ([]*DatabaseTableConstraint, error) {
@@ -175,7 +179,7 @@ type DatabaseTableShowCreate struct {
 
 func getShowTableCreate(
 	ctx context.Context,
-	conn *sql.DB,
+	conn DBTX,
 	schema string,
 	table string,
 ) (*DatabaseTableShowCreate, error) {
@@ -194,7 +198,7 @@ func getShowTableCreate(
 }
 
 func isNoRows(err error) bool {
-	return err != nil && err == pgx.ErrNoRows
+	return err != nil && err == sql.ErrNoRows
 }
 
 type GetTableCreateStatementRequest struct {
@@ -204,7 +208,7 @@ type GetTableCreateStatementRequest struct {
 
 func GetTableCreateStatement(
 	ctx context.Context,
-	conn *sql.DB,
+	conn DBTX,
 	req *GetTableCreateStatementRequest,
 ) (string, error) {
 	result, err := getShowTableCreate(ctx, conn, req.Schema, req.Table)
@@ -236,7 +240,7 @@ JOIN information_schema.key_column_usage kcu
 	ON
 	kcu.constraint_name = rc.constraint_name
 WHERE
-	kcu.table_schema = ? 
+	kcu.table_schema = ?
 ORDER BY
 	rc.constraint_name,
 	kcu.ordinal_position;
@@ -255,7 +259,7 @@ type ForeignKeyConstraint struct {
 
 func GetForeignKeyConstraints(
 	ctx context.Context,
-	conn *sql.DB,
+	conn DBTX,
 	tableSchema string,
 ) ([]*ForeignKeyConstraint, error) {
 
