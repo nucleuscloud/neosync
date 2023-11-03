@@ -4,7 +4,7 @@ SELECT
 	c.table_name,
 	c.column_name,
 	c.ordinal_position,
-	c.column_default,
+	COALESCE(c.column_default, 'NULL') as column_default, -- must coalesce because sqlc doesn't appear to work for system structs to output a *string
 	c.is_nullable,
 	c.data_type
 FROM
@@ -21,7 +21,7 @@ SELECT
 	c.table_name,
 	c.column_name,
 	c.ordinal_position,
-	c.column_default,
+	COALESCE(c.column_default, 'NULL') as column_default, -- must coalesce because sqlc doesn't appear to work for system structs to output a *string
 	c.is_nullable,
 	c.data_type
 FROM

@@ -78,7 +78,7 @@ func generateCreateTableStatement(
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	pieces := []string{record.ColumnName, record.DataType, buildNullableText(record)}
-	if record.ColumnDefault != "" {
+	if record.ColumnDefault != "NULL" {
 		pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 	}
 	return strings.Join(pieces, " ")
