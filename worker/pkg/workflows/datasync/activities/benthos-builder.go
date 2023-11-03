@@ -40,6 +40,7 @@ func newBenthosBuilder(
 ) *benthosBuilder {
 	return &benthosBuilder{
 		pgpool:     pgpool,
+		pgquerier:  pgquerier,
 		mysqlpool:  mysqlpool,
 		jobclient:  jobclient,
 		connclient: connclient,
