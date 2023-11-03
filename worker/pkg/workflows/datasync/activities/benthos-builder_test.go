@@ -9,8 +9,8 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	mysql_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/log"
@@ -26,7 +26,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 		"fake-stage-url": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]dbschemas_mysql.DBTX{}
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -122,24 +123,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 		}, nil)
 	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetForeignKeyConstraintsRow{}, nil)
-	// pgquerier.On("GetDatabaseTableSchema", mock.Anything, mock.Anything, mock.Anything).
-	// 	Return([]*pg_queries.GetDatabaseTableSchemaRow{
-	// 		{
-	// 			TableSchema: "public",
-	// 			TableName:   "users",
-	// 			ColumnName:  "id",
-	// 		},
-	// 		{
-	// 			TableSchema: "public",
-	// 			TableName:   "users",
-	// 			ColumnName:  "name",
-	// 		},
-	// 	}, nil)
-	// pgquerier.On("GetTableConstraints", mock.Anything, mock.Anything, mock.Anything).
-	// 	Return([]*pg_queries.GetTableConstraintsRow{}, nil).
-	// 	Return([]*pg_queries.GetTableConstraintsRow{}, nil)
-
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mockJobClient, mockConnectionClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),

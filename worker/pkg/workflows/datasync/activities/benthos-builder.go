@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	mysql_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
@@ -24,7 +25,8 @@ type benthosBuilder struct {
 	pgpool    map[string]pg_queries.DBTX
 	pgquerier pg_queries.Querier
 
-	mysqlpool map[string]dbschemas_mysql.DBTX
+	mysqlpool    map[string]mysql_queries.DBTX
+	mysqlquerier mysql_queries.Querier
 
 	jobclient  mgmtv1alpha1connect.JobServiceClient
 	connclient mgmtv1alpha1connect.ConnectionServiceClient
@@ -34,17 +36,19 @@ func newBenthosBuilder(
 	pgpool map[string]pg_queries.DBTX,
 	pgquerier pg_queries.Querier,
 
-	mysqlpool map[string]dbschemas_mysql.DBTX,
+	mysqlpool map[string]mysql_queries.DBTX,
+	mysqlquerier mysql_queries.Querier,
 
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 ) *benthosBuilder {
 	return &benthosBuilder{
-		pgpool:     pgpool,
-		pgquerier:  pgquerier,
-		mysqlpool:  mysqlpool,
-		jobclient:  jobclient,
-		connclient: connclient,
+		pgpool:       pgpool,
+		pgquerier:    pgquerier,
+		mysqlpool:    mysqlpool,
+		mysqlquerier: mysqlquerier,
+		jobclient:    jobclient,
+		connclient:   connclient,
 	}
 }
 
@@ -152,7 +156,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		pool := b.mysqlpool[dsn]
 
 		// validate job mappings align with sql connections
-		dbschemas, err := dbschemas_mysql.GetDatabaseSchemas(ctx, pool)
+		dbschemas, err := b.mysqlquerier.GetDatabaseSchema(ctx, pool)
 		if err != nil {
 			return nil, err
 		}
@@ -406,17 +410,17 @@ func (b *benthosBuilder) getAllPostgresFkConstraintsFromMappings(
 
 func (b *benthosBuilder) getAllMysqlFkConstraintsFromMappings(
 	ctx context.Context,
-	conn dbschemas_mysql.DBTX,
+	conn mysql_queries.DBTX,
 	mappings []*mgmtv1alpha1.JobMapping,
-) ([]*dbschemas_mysql.ForeignKeyConstraint, error) {
+) ([]*mysql_queries.GetForeignKeyConstraintsRow, error) {
 	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
-	holder := make([][]*dbschemas_mysql.ForeignKeyConstraint, len(uniqueSchemas))
+	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
 	errgrp, errctx := errgroup.WithContext(ctx)
 	for idx := range uniqueSchemas {
 		idx := idx
 		schema := uniqueSchemas[idx]
 		errgrp.Go(func() error {
-			constraints, err := dbschemas_mysql.GetForeignKeyConstraints(errctx, conn, schema)
+			constraints, err := b.mysqlquerier.GetForeignKeyConstraints(errctx, conn, schema)
 			if err != nil {
 				return err
 			}
@@ -429,7 +433,7 @@ func (b *benthosBuilder) getAllMysqlFkConstraintsFromMappings(
 		return nil, err
 	}
 
-	output := []*dbschemas_mysql.ForeignKeyConstraint{}
+	output := []*mysql_queries.GetForeignKeyConstraintsRow{}
 	for _, schemas := range holder {
 		output = append(output, schemas...)
 	}
@@ -470,12 +474,11 @@ func (b *benthosBuilder) getInitStatementFromPostgres(
 
 func (b *benthosBuilder) getInitStatementFromMysql(
 	ctx context.Context,
-	conn dbschemas_mysql.DBTX,
+	conn mysql_queries.DBTX,
 	schema string,
 	table string,
 	opts *initStatementOpts,
 ) (string, error) {
-
 	statements := []string{}
 	if opts != nil && opts.InitSchema {
 		stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{

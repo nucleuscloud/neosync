@@ -21,10 +21,10 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	mysql_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
 )
 
 const nullString = "null"
@@ -65,7 +65,8 @@ func (a *Activities) GenerateBenthosConfigs(
 
 	pgpoolmap := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.New()
-	mysqlPoolMap := map[string]dbschemas_mysql.DBTX{}
+	mysqlpoolmap := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.New()
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		http.DefaultClient,
@@ -79,7 +80,8 @@ func (a *Activities) GenerateBenthosConfigs(
 	bbuilder := newBenthosBuilder(
 		pgpoolmap,
 		pgquerier,
-		mysqlPoolMap,
+		mysqlpoolmap,
+		mysqlquerier,
 		jobclient,
 		connclient,
 	)

@@ -33,3 +33,8 @@ packages:
     interfaces:
       Querier:
       DBTX:
+  github.com/nucleuscloud/neosync/worker/gen/go/db/mysql:
+    # config:
+    interfaces:
+      Querier:
+      DBTX:
