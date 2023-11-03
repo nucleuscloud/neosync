@@ -22,6 +22,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
@@ -64,7 +65,8 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 	}()
 
-	pgpoolmap := map[string]dbschemas_postgres.DBTX{}
+	pgpoolmap := map[string]pg_queries.DBTX{}
+	pgquerier := pg_queries.New()
 	mysqlPoolMap := map[string]dbschemas_mysql.DBTX{}
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
@@ -78,6 +80,7 @@ func (a *Activities) GenerateBenthosConfigs(
 	)
 	bbuilder := newBenthosBuilder(
 		pgpoolmap,
+		pgquerier,
 		mysqlPoolMap,
 		jobclient,
 		connclient,
@@ -292,17 +295,17 @@ func shouldHaltOnSchemaAddition(
 
 func (b *benthosBuilder) getAllPostgresFkConstraintsFromMappings(
 	ctx context.Context,
-	conn dbschemas_postgres.DBTX,
+	conn pg_queries.DBTX,
 	mappings []*mgmtv1alpha1.JobMapping,
-) ([]*dbschemas_postgres.ForeignKeyConstraint, error) {
+) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
 	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
-	holder := make([][]*dbschemas_postgres.ForeignKeyConstraint, len(uniqueSchemas))
+	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
 	errgrp, errctx := errgroup.WithContext(ctx)
 	for idx := range uniqueSchemas {
 		idx := idx
 		schema := uniqueSchemas[idx]
 		errgrp.Go(func() error {
-			constraints, err := dbschemas_postgres.GetForeignKeyConstraints(errctx, conn, schema)
+			constraints, err := b.pgquerier.GetForeignKeyConstraints(errctx, conn, schema)
 			if err != nil {
 				return err
 			}
@@ -315,7 +318,7 @@ func (b *benthosBuilder) getAllPostgresFkConstraintsFromMappings(
 		return nil, err
 	}
 
-	output := []*dbschemas_postgres.ForeignKeyConstraint{}
+	output := []*pg_queries.GetForeignKeyConstraintsRow{}
 	for _, schemas := range holder {
 		output = append(output, schemas...)
 	}
@@ -362,7 +365,7 @@ type initStatementOpts struct {
 
 func (b *benthosBuilder) getInitStatementFromPostgres(
 	ctx context.Context,
-	conn dbschemas_postgres.DBTX,
+	conn pg_queries.DBTX,
 	schema string,
 	table string,
 	opts *initStatementOpts,
@@ -370,10 +373,7 @@ func (b *benthosBuilder) getInitStatementFromPostgres(
 
 	statements := []string{}
 	if opts != nil && opts.InitSchema {
-		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
-			Schema: schema,
-			Table:  table,
-		})
+		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, b.pgquerier, schema, table)
 		if err != nil {
 			return "", err
 		}

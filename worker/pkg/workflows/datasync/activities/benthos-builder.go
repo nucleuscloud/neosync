@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
@@ -19,7 +20,9 @@ import (
 )
 
 type benthosBuilder struct {
-	pgpool    map[string]dbschemas_postgres.DBTX
+	pgpool    map[string]pg_queries.DBTX
+	pgquerier pg_queries.Querier
+
 	mysqlpool map[string]dbschemas_mysql.DBTX
 
 	jobclient  mgmtv1alpha1connect.JobServiceClient
@@ -27,7 +30,9 @@ type benthosBuilder struct {
 }
 
 func newBenthosBuilder(
-	pgpool map[string]dbschemas_postgres.DBTX,
+	pgpool map[string]pg_queries.DBTX,
+	pgquerier pg_queries.Querier,
+
 	mysqlpool map[string]dbschemas_mysql.DBTX,
 
 	jobclient mgmtv1alpha1connect.JobServiceClient,
@@ -89,7 +94,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		pool := b.pgpool[dsn]
 
 		// validate job mappings align with sql connections
-		dbschemas, err := dbschemas_postgres.GetDatabaseSchemas(ctx, pool)
+		dbschemas, err := b.pgquerier.GetDatabaseSchema(ctx, pool)
 		if err != nil {
 			return nil, err
 		}
