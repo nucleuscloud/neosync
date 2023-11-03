@@ -1,0 +1,8 @@
+.prettierrc.json
+.vercel
+.vscode
+neosync-api-client
+README.md
+tsconfig.json
+charts
+dev

@@ -1,24 +1,24 @@
-import Link from "@docusaurus/Link";
-import { translate } from "@docusaurus/Translate";
+import Link from '@docusaurus/Link';
+import { translate } from '@docusaurus/Translate';
 import {
   Collapsible,
   ThemeClassNames,
   useCollapsible,
   usePrevious,
   useThemeConfig,
-} from "@docusaurus/theme-common";
+} from '@docusaurus/theme-common';
 import {
   findFirstCategoryLink,
   isActiveSidebarItem,
   isSamePath,
   useDocSidebarItemsExpandedState,
-} from "@docusaurus/theme-common/internal";
-import useIsBrowser from "@docusaurus/useIsBrowser";
-import { CaretDownIcon, CaretRightIcon } from "@radix-ui/react-icons";
-import DocSidebarItems from "@theme/DocSidebarItems";
-import clsx from "clsx";
-import React, { useEffect, useMemo } from "react";
-import { RenderIcon } from "../Link";
+} from '@docusaurus/theme-common/internal';
+import useIsBrowser from '@docusaurus/useIsBrowser';
+import { CaretDownIcon, CaretRightIcon } from '@radix-ui/react-icons';
+import DocSidebarItems from '@theme/DocSidebarItems';
+import clsx from 'clsx';
+import React, { useEffect, useMemo } from 'react';
+import { RenderIcon } from '../Link';
 // If we navigate to a category and it becomes active, it should automatically
 // expand itself
 function useAutoExpandActiveCategory({ isActive, collapsed, updateCollapsed }) {
@@ -57,10 +57,10 @@ function CollapseButton({ categoryLabel, onClick }) {
     <button
       aria-label={translate(
         {
-          id: "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel",
+          id: 'theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel',
           message: "Toggle the collapsible sidebar category '{label}'",
           description:
-            "The ARIA label to toggle the collapsible sidebar category",
+            'The ARIA label to toggle the collapsible sidebar category',
         },
         { label: categoryLabel }
       )}
@@ -128,22 +128,22 @@ export default function DocSidebarItemCategory({
       className={clsx(
         ThemeClassNames.docs.docSidebarItemCategory,
         ThemeClassNames.docs.docSidebarItemCategoryLevel(level),
-        "menu__list-item",
+        'menu__list-item',
         {
-          "menu__list-item--collapsed": collapsed,
+          'menu__list-item--collapsed': collapsed,
         },
         className
       )}
     >
       <div
-        className={clsx("menu__list-item-collapsible", {
-          "menu__list-item-collapsible--active": isCurrentPage,
+        className={clsx('menu__list-item-collapsible', {
+          'menu__list-item-collapsible--active': isCurrentPage,
         })}
       >
         <Link
-          className={clsx("menu__link", {
-            "menu__link--sublist": collapsible,
-            "menu__link--active": isActive,
+          className={clsx('menu__link', {
+            'menu__link--sublist': collapsible,
+            'menu__link--active': isActive,
           })}
           onClick={
             collapsible
@@ -160,9 +160,9 @@ export default function DocSidebarItemCategory({
                   onItemClick?.(item);
                 }
           }
-          aria-current={isCurrentPage ? "page" : undefined}
+          aria-current={isCurrentPage ? 'page' : undefined}
           aria-expanded={collapsible ? !collapsed : undefined}
-          href={collapsible ? hrefWithSSRFallback ?? "#" : hrefWithSSRFallback}
+          href={collapsible ? hrefWithSSRFallback ?? '#' : hrefWithSSRFallback}
           {...props}
         >
           <div className="gap-4 flex flex-row items-center font-normal text-gray-800">

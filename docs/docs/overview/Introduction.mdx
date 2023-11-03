@@ -5,26 +5,26 @@ hide_title: true
 slug: /
 ---
 
-import { DocPageHeader } from "@site/src/components/HomepageFeatures/DocPageHeader.tsx";
-import { HeroImage } from "@site/src/components/HomepageFeatures/HeroImage.tsx";
-import { CustomCardList } from "@site/src/components/HomepageFeatures/CustomCardList.tsx";
-import { CustomCard } from "@site/src/components/HomepageFeatures/CustomCard.tsx";
+import { DocPageHeader } from '@site/src/components/HomepageFeatures/DocPageHeader.tsx';
+import { HeroImage } from '@site/src/components/HomepageFeatures/HeroImage.tsx';
+import { CustomCardList } from '@site/src/components/HomepageFeatures/CustomCardList.tsx';
+import { CustomCard } from '@site/src/components/HomepageFeatures/CustomCard.tsx';
 import {
   PiArrowsSplitLight,
   PiFlaskLight,
   PiPlugsLight,
   PiRocketLaunchLight,
-} from "react-icons/pi";
-import { BsFunnel } from "react-icons/bs";
-import { FaSync } from "react-icons/fa";
-import { GrConnect } from "react-icons/gr";
+} from 'react-icons/pi';
+import { BsFunnel } from 'react-icons/bs';
+import { FaSync } from 'react-icons/fa';
+import { GrConnect } from 'react-icons/gr';
 import {
   LightningBoltIcon,
   LayersIcon,
   LinkBreak1Icon,
   StackIcon,
-} from "@radix-ui/react-icons";
-import { LuNetwork } from "react-icons/lu";
+} from '@radix-ui/react-icons';
+import { LuNetwork } from 'react-icons/lu';
 
 <DocPageHeader title="Welcome to the Neosync Docs" />
 
@@ -39,31 +39,31 @@ The best way to learn Neosync is to check out our core concepts and familiarize 
 <CustomCardList
   cards={[
     {
-      title: "Jobs",
+      title: 'Jobs',
       description:
-        "Jobs are async workflows that tranform data and sync it between connections.",
-      link: "platform#jobs",
+        'Jobs are async workflows that tranform data and sync it between connections.',
+      link: 'platform#jobs',
       icon: <StackIcon />,
     },
     {
-      title: "Runs",
+      title: 'Runs',
       description:
-        "Runs are instances of a job that can be started, paused and played back.",
-      link: "platform#runs",
+        'Runs are instances of a job that can be started, paused and played back.',
+      link: 'platform#runs',
       icon: <LayersIcon />,
     },
     {
-      title: "Connections",
+      title: 'Connections',
       description:
-        "Connections are sources of data or destinations that you sync using Jobs such as databases.",
-      link: "platform#connections",
+        'Connections are sources of data or destinations that you sync using Jobs such as databases.',
+      link: 'platform#connections',
       icon: <PiPlugsLight />,
     },
     {
-      title: "Transformers",
+      title: 'Transformers',
       description:
-        "Transformers are data-type specific modules that anonymize or generate data.",
-      link: "platform#transformers",
+        'Transformers are data-type specific modules that anonymize or generate data.',
+      link: 'platform#transformers',
       icon: <LightningBoltIcon />,
     },
   ]}
@@ -87,28 +87,28 @@ Neosync can be used in many different ways to support different use-cases. Check
 <CustomCardList
   cards={[
     {
-      title: "Anonymize Data",
-      description: "Anonymize sensitive data for safe testing and development",
-      link: "overview/use-cases/anonymization",
+      title: 'Anonymize Data',
+      description: 'Anonymize sensitive data for safe testing and development',
+      link: 'overview/use-cases/anonymization',
       icon: <LinkBreak1Icon />,
     },
     {
-      title: "Synthetic Data",
+      title: 'Synthetic Data',
       description:
-        "Generate high-quality synthetic data from existing data or from scratch.",
-      link: "overview/use-cases/synthetic-data",
+        'Generate high-quality synthetic data from existing data or from scratch.',
+      link: 'overview/use-cases/synthetic-data',
       icon: <PiFlaskLight />,
     },
     {
-      title: "Subset Data",
-      description: "Subset your data to fit local and stage environments.",
-      link: "overview/use-cases/subsetting",
+      title: 'Subset Data',
+      description: 'Subset your data to fit local and stage environments.',
+      link: 'overview/use-cases/subsetting',
       icon: <BsFunnel />,
     },
     {
-      title: "Replicate data",
-      description: "Easily replicate source data to multiple environments.",
-      link: "overview/use-cases/replication",
+      title: 'Replicate data',
+      description: 'Easily replicate source data to multiple environments.',
+      link: 'overview/use-cases/replication',
       icon: <PiArrowsSplitLight />,
     },
   ]}

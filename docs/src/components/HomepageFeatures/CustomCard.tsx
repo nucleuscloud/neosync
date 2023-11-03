@@ -1,7 +1,7 @@
-import Link from "@docusaurus/Link";
-import { ArrowRightIcon } from "@radix-ui/react-icons";
-import React, { ReactElement } from "react";
-import { Card } from "./CustomCardList";
+import Link from '@docusaurus/Link';
+import { ArrowRightIcon } from '@radix-ui/react-icons';
+import React, { ReactElement } from 'react';
+import { Card } from './CustomCardList';
 
 export function CustomCard(props: Card): ReactElement {
   const { title, description, icon, link } = props;

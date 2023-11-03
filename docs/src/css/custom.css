@@ -3,9 +3,9 @@
  * bundles Infima by default. Infima is a CSS framework designed to
  * work well for content-centric websites.
  */
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 /* You can override the default Infima variables here. */
 :root {
@@ -17,12 +17,12 @@
   --ifm-color-primary-lighter: #101010;
   --ifm-color-primary-lightest: #101010;
   --ifm-code-font-size: 90%;
-  --ifm-font-family: "Inter";
+  --ifm-font-family: 'Inter';
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
-html[data-theme="dark"] {
+html[data-theme='dark'] {
   --ifm-background-color: #101010;
   --ifm-background-surface-color: #101010;
   --ifm-color-primary: #acc7f9;
@@ -56,7 +56,7 @@ this is the class for the sidebar categories that section headers
     @apply py-[16px] mx-[40px] shadow-none border-b border-gray-200;
   }
 
-  [data-theme="dark"] .navbar {
+  [data-theme='dark'] .navbar {
     @apply border-gray-800;
   }
   /* .menu__link--sublist-caret::after {
@@ -67,17 +67,17 @@ this is the class for the sidebar categories that section headers
     @apply bg-red-300;
   }
 
-  [data-theme="light"] .home-icon {
+  [data-theme='light'] .home-icon {
     @apply text-gray-900;
   }
-  [data-theme="dark"] .home-icon {
+  [data-theme='dark'] .home-icon {
     @apply text-gray-100;
   }
 
-  [data-theme="dark"] .breadcrumb-label {
+  [data-theme='dark'] .breadcrumb-label {
     @apply text-gray-100 cursor-pointer text-sm rounded-full;
   }
-  [data-theme="light"] .breadcrumb-label {
+  [data-theme='light'] .breadcrumb-label {
     @apply text-gray-900 cursor-pointer text-sm  rounded-full;
   }
   .doc-page-header {
