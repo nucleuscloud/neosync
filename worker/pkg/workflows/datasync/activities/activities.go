@@ -1064,7 +1064,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		ih := col.Transformer.Config.GetUuidConfig().IncludeHyphen
 		return fmt.Sprintf("uuidtransformer(%t)", ih), nil
 	case "null":
-		return "transformernull()", nil
+		return "null", nil
 	case "random_bool":
 		return "randombooltransformer()", nil
 	case "random_string":
