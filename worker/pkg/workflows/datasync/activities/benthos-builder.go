@@ -15,6 +15,7 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
+	"golang.org/x/sync/errgroup"
 
 	"go.temporal.io/sdk/log"
 )
@@ -369,4 +370,125 @@ func (b *benthosBuilder) getConnectionById(
 		return nil, err
 	}
 	return getConnResp.Msg.Connection, nil
+}
+
+func (b *benthosBuilder) getAllPostgresFkConstraintsFromMappings(
+	ctx context.Context,
+	conn pg_queries.DBTX,
+	mappings []*mgmtv1alpha1.JobMapping,
+) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
+	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
+	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range uniqueSchemas {
+		idx := idx
+		schema := uniqueSchemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := b.pgquerier.GetForeignKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*pg_queries.GetForeignKeyConstraintsRow{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
+}
+
+func (b *benthosBuilder) getAllMysqlFkConstraintsFromMappings(
+	ctx context.Context,
+	conn dbschemas_mysql.DBTX,
+	mappings []*mgmtv1alpha1.JobMapping,
+) ([]*dbschemas_mysql.ForeignKeyConstraint, error) {
+	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
+	holder := make([][]*dbschemas_mysql.ForeignKeyConstraint, len(uniqueSchemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range uniqueSchemas {
+		idx := idx
+		schema := uniqueSchemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := dbschemas_mysql.GetForeignKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*dbschemas_mysql.ForeignKeyConstraint{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
+}
+
+type initStatementOpts struct {
+	TruncateBeforeInsert bool
+	TruncateCascade      bool // only applied if truncatebeforeinsert is true
+	InitSchema           bool
+}
+
+func (b *benthosBuilder) getInitStatementFromPostgres(
+	ctx context.Context,
+	conn pg_queries.DBTX,
+	schema string,
+	table string,
+	opts *initStatementOpts,
+) (string, error) {
+
+	statements := []string{}
+	if opts != nil && opts.InitSchema {
+		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, b.pgquerier, schema, table)
+		if err != nil {
+			return "", err
+		}
+		statements = append(statements, stmt)
+	}
+	if opts != nil && opts.TruncateBeforeInsert {
+		if opts.TruncateCascade {
+			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
+		} else {
+			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
+		}
+	}
+	return strings.Join(statements, "\n"), nil
+}
+
+func (b *benthosBuilder) getInitStatementFromMysql(
+	ctx context.Context,
+	conn dbschemas_mysql.DBTX,
+	schema string,
+	table string,
+	opts *initStatementOpts,
+) (string, error) {
+
+	statements := []string{}
+	if opts != nil && opts.InitSchema {
+		stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{
+			Schema: schema,
+			Table:  table,
+		})
+		if err != nil {
+			return "", err
+		}
+		statements = append(statements, stmt)
+	}
+	if opts != nil && opts.TruncateBeforeInsert {
+		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
+	}
+	return strings.Join(statements, "\n"), nil
 }
