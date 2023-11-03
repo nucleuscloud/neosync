@@ -1,44 +1,44 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require("prism-react-renderer/themes/github");
-const darkCodeTheme = require("prism-react-renderer/themes/dracula");
+const lightCodeTheme = require('prism-react-renderer/themes/github');
+const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: "Neosync",
-  tagline: "Open source Test Data Management",
-  favicon: "img/neosync_favicon.png",
+  title: 'Neosync',
+  tagline: 'Open source Test Data Management',
+  favicon: 'img/neosync_favicon.png',
 
   // Set the production url of your site here
-  url: "https://docs.neosync.dev",
+  url: 'https://docs.neosync.dev',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "/",
+  baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "nucleuscloud", // Usually your GitHub org/user name.
-  projectName: "neosync", // Usually your repo name.
+  organizationName: 'nucleuscloud', // Usually your GitHub org/user name.
+  projectName: 'neosync', // Usually your repo name.
 
-  onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn", //should probably be throw or warn but was causing a known issue in the markdown parsing of readme files from node_modules. https://github.com/facebook/docusaurus/issues/6370
-  scripts: ["/sync-dark-mode.js"],
+  onBrokenLinks: 'throw',
+  onBrokenMarkdownLinks: 'warn', //should probably be throw or warn but was causing a known issue in the markdown parsing of readme files from node_modules. https://github.com/facebook/docusaurus/issues/6370
+  scripts: ['/sync-dark-mode.js'],
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
   // to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: "en",
-    locales: ["en"],
+    defaultLocale: 'en',
+    locales: ['en'],
   },
   plugins: [
     async function myPlugin(context, options) {
       return {
-        name: "docusaurus-tailwindcss",
+        name: 'docusaurus-tailwindcss',
         configurePostCss(postcssOptions) {
           // Appends TailwindCSS and AutoPrefixer.
-          postcssOptions.plugins.push(require("tailwindcss"));
-          postcssOptions.plugins.push(require("autoprefixer"));
+          postcssOptions.plugins.push(require('tailwindcss'));
+          postcssOptions.plugins.push(require('autoprefixer'));
           return postcssOptions;
         },
       };
@@ -47,20 +47,19 @@ const config = {
 
   presets: [
     [
-      "classic",
+      'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          routeBasePath: "/",
-          sidebarPath: require.resolve("./sidebars.js"),
+          routeBasePath: '/',
+          sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+          editUrl: 'https://github.com/nucleuscloud/neosync/docs',
         },
         blog: false,
         theme: {
-          customCss: require.resolve("./src/css/custom.css"),
+          customCss: require.resolve('./src/css/custom.css'),
         },
       }),
     ],
@@ -69,28 +68,28 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: "img/docusaurus-social-card.jpg",
+      image: 'img/docusaurus-social-card.jpg',
       colorMode: {
-        defaultMode: "light",
+        defaultMode: 'light',
         disableSwitch: true,
         respectPrefersColorScheme: false,
       },
       navbar: {
-        title: "Neosync",
+        title: 'Neosync',
         logo: {
-          alt: "My Site Logo",
-          srcDark: "img/white-logo.png",
-          src: "img/neosync_just_logo.png",
+          alt: 'My Site Logo',
+          srcDark: 'img/white-logo.png',
+          src: 'img/neosync_just_logo.png',
         },
         items: [
           {
-            type: "custom-Gitlink",
-            position: "right",
+            type: 'custom-Gitlink',
+            position: 'right',
           },
         ],
       },
       footer: {
-        style: "dark",
+        style: 'dark',
         copyright: `Copyright © Nucleus Cloud Corp ${new Date().getFullYear()}`,
       },
       prism: {

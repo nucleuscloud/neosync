@@ -1,10 +1,10 @@
-import Link from "@docusaurus/Link";
+import Link from '@docusaurus/Link';
 import {
   useHomePageRoute,
   useSidebarBreadcrumbs,
-} from "@docusaurus/theme-common/internal";
-import { ChevronRightIcon, HomeIcon } from "@radix-ui/react-icons";
-import React from "react";
+} from '@docusaurus/theme-common/internal';
+import { ChevronRightIcon, HomeIcon } from '@radix-ui/react-icons';
+import React from 'react';
 
 export default function DocBreadcrumbs() {
   const breadcrumbs = useSidebarBreadcrumbs();

@@ -12,7 +12,11 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "knip": "knip",
+    "knip:production": "knip --production --strict",
+    "prettier:check": "prettier --check .",
+    "prettier:write": "prettier --write ."
   },
   "dependencies": {
     "@docusaurus/core": "2.4.3",
@@ -30,6 +34,8 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.4.3",
     "@tsconfig/docusaurus": "^2.0.2",
+    "knip": "^2.39.0",
+    "prettier": "^3.0.3",
     "typescript": "^5.2.2"
   },
   "browserslist": {

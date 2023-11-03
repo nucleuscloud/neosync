@@ -1,5 +1,5 @@
-import React, { ReactElement } from "react";
-import { CustomCard } from "./CustomCard";
+import React, { ReactElement } from 'react';
+import { CustomCard } from './CustomCard';
 
 interface Props {
   cards: Card[];

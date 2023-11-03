@@ -1,5 +1,5 @@
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import React, { ReactElement } from "react";
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import React, { ReactElement } from 'react';
 
 export default function Gitlink(): ReactElement {
   return (

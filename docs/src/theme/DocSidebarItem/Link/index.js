@@ -1,28 +1,28 @@
-import Link from "@docusaurus/Link";
-import isInternalUrl from "@docusaurus/isInternalUrl";
-import { ThemeClassNames } from "@docusaurus/theme-common";
-import { isActiveSidebarItem } from "@docusaurus/theme-common/internal";
+import Link from '@docusaurus/Link';
+import isInternalUrl from '@docusaurus/isInternalUrl';
+import { ThemeClassNames } from '@docusaurus/theme-common';
+import { isActiveSidebarItem } from '@docusaurus/theme-common/internal';
 import {
   HomeIcon,
   LayersIcon,
   LinkBreak1Icon,
   Share1Icon,
   TokensIcon,
-} from "@radix-ui/react-icons";
-import IconExternalLink from "@theme/Icon/ExternalLink";
-import clsx from "clsx";
-import React from "react";
-import { AiOutlineMail, AiOutlinePhone } from "react-icons/ai";
-import { BiLogoPostgresql } from "react-icons/bi";
-import { BsFunnel, BsShieldCheck } from "react-icons/bs";
-import { FaAws, FaDocker, FaRegAddressCard } from "react-icons/fa";
-import { GoCode } from "react-icons/go";
-import { GrMysql } from "react-icons/gr";
-import { IoBuildOutline } from "react-icons/io5";
-import { MdPassword } from "react-icons/md";
-import { PiArrowsSplitLight, PiFlaskLight } from "react-icons/pi";
-import { SiKubernetes } from "react-icons/si";
-import styles from "./styles.module.css";
+} from '@radix-ui/react-icons';
+import IconExternalLink from '@theme/Icon/ExternalLink';
+import clsx from 'clsx';
+import React from 'react';
+import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
+import { BiLogoPostgresql } from 'react-icons/bi';
+import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
+import { FaAws, FaDocker, FaRegAddressCard } from 'react-icons/fa';
+import { GoCode } from 'react-icons/go';
+import { GrMysql } from 'react-icons/gr';
+import { IoBuildOutline } from 'react-icons/io5';
+import { MdPassword } from 'react-icons/md';
+import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
+import { SiKubernetes } from 'react-icons/si';
+import styles from './styles.module.css';
 
 export default function DocSidebarItemLink({
   item,
@@ -41,21 +41,21 @@ export default function DocSidebarItemLink({
       className={clsx(
         ThemeClassNames.docs.docSidebarItemLink,
         ThemeClassNames.docs.docSidebarItemLinkLevel(level),
-        "menu__list-item",
+        'menu__list-item',
         className
       )}
       key={label}
     >
       <Link
         className={clsx(
-          "menu__link",
+          'menu__link',
           !isInternalLink && styles.menuExternalLink,
           {
-            "menu__link--active": isActive,
+            'menu__link--active': isActive,
           }
         )}
         autoAddBaseUrl={autoAddBaseUrl}
-        aria-current={isActive ? "page" : undefined}
+        aria-current={isActive ? 'page' : undefined}
         to={href}
         {...(isInternalLink && {
           onClick: onItemClick ? () => onItemClick(item) : undefined,
@@ -76,43 +76,43 @@ export default function DocSidebarItemLink({
 
 export const RenderIcon = (name) => {
   switch (name) {
-    case "Platform":
+    case 'Platform':
       return <TokensIcon />;
-    case "Introduction":
+    case 'Introduction':
       return <HomeIcon />;
-    case "Architecture":
+    case 'Architecture':
       return <Share1Icon />;
-    case "Kubernetes":
+    case 'Kubernetes':
       return <SiKubernetes />;
-    case "Docker Compose":
+    case 'Docker Compose':
       return <FaDocker />;
-    case "Postgres":
+    case 'Postgres':
       return <BiLogoPostgresql />;
-    case "Mysql":
+    case 'Mysql':
       return <GrMysql />;
-    case "S3":
+    case 'S3':
       return <FaAws />;
-    case "Email":
+    case 'Email':
       return <AiOutlineMail />;
-    case "Phone":
+    case 'Phone':
       return <AiOutlinePhone />;
-    case "SSN":
+    case 'SSN':
       return <MdPassword />;
-    case "Physical Address":
+    case 'Physical Address':
       return <FaRegAddressCard />;
-    case "Custom":
+    case 'Custom':
       return <GoCode />;
-    case "Pre-built":
+    case 'Pre-built':
       return <IoBuildOutline />;
-    case "Use cases":
+    case 'Use cases':
       return <BsShieldCheck />;
-    case "Anonymize Data":
+    case 'Anonymize Data':
       return <LinkBreak1Icon />;
-    case "Replicate Data":
+    case 'Replicate Data':
       return <PiArrowsSplitLight />;
-    case "Synthetic Data":
+    case 'Synthetic Data':
       return <PiFlaskLight />;
-    case "Subset Data":
+    case 'Subset Data':
       return <BsFunnel />;
     default:
       return <LayersIcon />;
