@@ -3,19 +3,12 @@ package dbschemas_postgres
 import (
 	"testing"
 
+	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_DatabaseSchema_GetTableKey(t *testing.T) {
-	schema := &DatabaseSchema{
-		TableSchema: "public",
-		TableName:   "users",
-	}
-	assert.Equal(t, schema.GetTableKey(), "public.users")
-}
-
 func TestGetPostgresTableDependencies(t *testing.T) {
-	constraints := []*ForeignKeyConstraint{
+	constraints := []*pg_queries.GetForeignKeyConstraintsRow{
 		{ConstraintName: "fk_account_user_associations_account_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id"},               //nolint
 		{ConstraintName: "fk_account_user_associations_user_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id"},                        //nolint
 		{ConstraintName: "fk_connections_accounts_id", SchemaName: "neosync_api", TableName: "connections", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id"},                                          //nolint
@@ -41,7 +34,7 @@ func TestGetPostgresTableDependencies(t *testing.T) {
 }
 
 func TestGetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
-	constraints := []*ForeignKeyConstraint{
+	constraints := []*pg_queries.GetForeignKeyConstraintsRow{
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "account_id"}, //nolint
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "c", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "user_id"},    //nolint
 		{ConstraintName: "t2_b_fkey", SchemaName: "neosync_api", TableName: "t2", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t2", ForeignColumnName: "a"},                                   //nolint
@@ -61,27 +54,27 @@ func TestGetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
 func TestGenerateCreateTableStatement(t *testing.T) {
 	result := generateCreateTableStatement(
 		"public", "users",
-		[]*DatabaseSchema{
+		[]*pg_queries.GetDatabaseTableSchemaRow{
 			{
 				ColumnName:      "id",
 				DataType:        "uuid",
 				OrdinalPosition: 1,
 				IsNullable:      "NO",
-				ColumnDefault:   strPtr("gen_random_uuid()"),
+				ColumnDefault:   "gen_random_uuid()",
 			},
 			{
 				ColumnName:      "created_at",
 				DataType:        "timestamp without time zone",
 				OrdinalPosition: 2,
 				IsNullable:      "NO",
-				ColumnDefault:   strPtr("now()"),
+				ColumnDefault:   "now()",
 			},
 			{
 				ColumnName:      "updated_at",
 				DataType:        "timestamp",
 				OrdinalPosition: 3,
 				IsNullable:      "NO",
-				ColumnDefault:   strPtr("CURRENT_TIMESTAMP"),
+				ColumnDefault:   "CURRENT_TIMESTAMP",
 			},
 			{
 				ColumnName:      "extra",
@@ -90,7 +83,7 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 				IsNullable:      "YES",
 			},
 		},
-		[]*DatabaseTableConstraint{
+		[]*pg_queries.GetTableConstraintsRow{
 			{
 				ConstraintName:       "users_pkey",
 				ConstraintDefinition: "PRIMARY KEY (id)",
@@ -107,7 +100,7 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 
 func TestGetUniqueSchemaColMappings(t *testing.T) {
 	mappings := GetUniqueSchemaColMappings(
-		[]*DatabaseSchema{
+		[]*pg_queries.GetDatabaseSchemaRow{
 			{TableSchema: "public", TableName: "users", ColumnName: "id"},
 			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},
 			{TableSchema: "public", TableName: "users", ColumnName: "updated_by"},
@@ -122,8 +115,4 @@ func TestGetUniqueSchemaColMappings(t *testing.T) {
 	assert.Contains(t, mappings["public.users"], "updated_by", "")
 	assert.Contains(t, mappings["neosync_api.accounts"], "id", "")
 
-}
-
-func strPtr(val string) *string {
-	return &val
 }

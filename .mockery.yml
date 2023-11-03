@@ -1,10 +1,10 @@
 quiet: False
 disable-version-string: True
 with-expecter: True
-filename: 'mock_{{.InterfaceName}}.go'
-dir: '{{.InterfaceDir}}'
-mockname: 'Mock{{.InterfaceName}}'
-outpkg: '{{.PackageName}}'
+filename: "mock_{{.InterfaceName}}.go"
+dir: "{{.InterfaceDir}}"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "{{.PackageName}}"
 inpackage: True
 packages:
   github.com/nucleuscloud/neosync/backend/internal/jwt:
@@ -23,6 +23,18 @@ packages:
     # config:
     interfaces:
       UserAccountServiceClient:
+      JobServiceClient:
+      ConnectionServiceClient:
   github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
     interfaces:
       DB:
+  github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql:
+    # config:
+    interfaces:
+      Querier:
+      DBTX:
+  github.com/nucleuscloud/neosync/worker/gen/go/db/mysql:
+    # config:
+    interfaces:
+      Querier:
+      DBTX:
