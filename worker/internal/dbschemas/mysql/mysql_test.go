@@ -3,19 +3,12 @@ package dbschemas_mysql
 import (
 	"testing"
 
+	mysql_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/mysql"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_DatabaseSchema_GetTableKey(t *testing.T) {
-	schema := &DatabaseSchema{
-		TableSchema: "public",
-		TableName:   "users",
-	}
-	assert.Equal(t, schema.GetTableKey(), "public.users")
-}
-
 func TestGetMysqlTableDependencies(t *testing.T) {
-	constraints := []*ForeignKeyConstraint{
+	constraints := []*mysql_queries.GetForeignKeyConstraintsRow{
 		{ConstraintName: "fk_account_user_associations_account_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id"},               //nolint
 		{ConstraintName: "fk_account_user_associations_user_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id"},                        //nolint
 		{ConstraintName: "fk_connections_accounts_id", SchemaName: "neosync_api", TableName: "connections", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id"},                                          //nolint
@@ -41,7 +34,7 @@ func TestGetMysqlTableDependencies(t *testing.T) {
 }
 
 func TestGetMysqlTableDependenciesExtraEdgeCases(t *testing.T) {
-	constraints := []*ForeignKeyConstraint{
+	constraints := []*mysql_queries.GetForeignKeyConstraintsRow{
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "account_id"}, //nolint
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "c", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "user_id"},    //nolint
 		{ConstraintName: "t2_b_fkey", SchemaName: "neosync_api", TableName: "t2", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t2", ForeignColumnName: "a"},                                   //nolint
@@ -60,7 +53,7 @@ func TestGetMysqlTableDependenciesExtraEdgeCases(t *testing.T) {
 
 func TestGetUniqueSchemaColMappings(t *testing.T) {
 	mappings := GetUniqueSchemaColMappings(
-		[]*DatabaseSchema{
+		[]*mysql_queries.GetDatabaseSchemaRow{
 			{TableSchema: "public", TableName: "users", ColumnName: "id"},
 			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},
 			{TableSchema: "public", TableName: "users", ColumnName: "updated_by"},

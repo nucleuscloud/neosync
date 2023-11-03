@@ -1,9 +1,13 @@
 package neosync_transformers
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/google/uuid"
+
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	"github.com/bxcodec/faker/v4"
 )
 
 func init() {
@@ -12,38 +16,35 @@ func init() {
 		Param(bloblang.NewBoolParam("include_hyphen"))
 
 	// register the plugin
-	err := bloblang.RegisterMethodV2("uuidtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterFunctionV2("uuidtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		include_hyphen, err := args.GetBool("include_hyphen")
 		if err != nil {
 			return nil, err
 		}
 
-		/*we set this to a string method because even though we want to
-		ignore the input uuid string (because we're changing it)
-		benthos still makes us handle it or it throws an error that is expecting a string input
-		so we just ignore it and don't pass it into our ProcessUuid function*/
-		return bloblang.StringMethod(func(b string) (any, error) {
-			res, err := ProcessUuid(include_hyphen)
-			return res, err
-		}), nil
-	})
+		return func() (any, error) {
 
+			val, err := GenerateUuid(include_hyphen)
+
+			if err != nil {
+				return false, fmt.Errorf("unable to generate random utc timestamp")
+			}
+			return val, nil
+		}, nil
+	})
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // main transformer logic goes here
-func ProcessUuid(include_hyphen bool) (string, error) {
-
-	var returnValue string
+func GenerateUuid(include_hyphen bool) (string, error) {
 
 	if include_hyphen {
 
 		// generate uuid with hyphens
-		returnValue = faker.UUIDHyphenated()
+		return uuid.NewString(), nil
 
 	} else {
 
@@ -52,8 +53,10 @@ func ProcessUuid(include_hyphen bool) (string, error) {
 		convert the UUID with no hyphens to having hyphens
 		so this is more useful for string columns or other dbs that won't do the automatic
 		conversion if you want don't want your UUIDs to have hyphens on purpose */
-		returnValue = faker.UUIDDigit()
-	}
 
-	return returnValue, nil
+		newUUID := uuid.New()
+		uuidWithHyphens := newUUID.String()
+		return strings.ReplaceAll(uuidWithHyphens, "-", ""), nil
+
+	}
 }

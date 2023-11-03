@@ -11,7 +11,7 @@ import (
 
 func TestProcessUuidPreserveHyphhensTrue(t *testing.T) {
 
-	res, err := ProcessUuid(true)
+	res, err := GenerateUuid(true)
 
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(res, "-"))
@@ -21,7 +21,7 @@ func TestProcessUuidPreserveHyphhensTrue(t *testing.T) {
 
 func TestProcessUuidPreserveHyphhensFalse(t *testing.T) {
 
-	res, err := ProcessUuid(false)
+	res, err := GenerateUuid(false)
 
 	assert.NoError(t, err)
 	assert.True(t, isValidUuid(res), "The UUID should have the right format and be valid")
@@ -36,7 +36,7 @@ func isValidUuid(uuidString string) bool {
 }
 
 func TestUUIDTransformer(t *testing.T) {
-	mapping := `root = this.uuidtransformer(true)`
+	mapping := `root = uuidtransformer(true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the uuid transformer")
 

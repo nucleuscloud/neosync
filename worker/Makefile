@@ -17,6 +17,10 @@ run:
 	./bin/sync serve
 .PHONY: run
 
+gen: ## Generate code
+	./hack/gen.sh
+.PHONY: gen
+
 # build-debug:
 # 	CGO_ENABLED=0 $(GO) build -gcflags="all=-N -l" -o bin/mgmt cmd/mgmt/*.go
 # .PHONY: build-debug

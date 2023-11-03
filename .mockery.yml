@@ -23,8 +23,19 @@ packages:
     # config:
     interfaces:
       UserAccountServiceClient:
+      JobServiceClient:
       ConnectionServiceClient:
   github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
     interfaces:
       DB:
       TemporalClientManagerClient:
+  github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql:
+    # config:
+    interfaces:
+      Querier:
+      DBTX:
+  github.com/nucleuscloud/neosync/worker/gen/go/db/mysql:
+    # config:
+    interfaces:
+      Querier:
+      DBTX:

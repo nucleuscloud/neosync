@@ -193,6 +193,47 @@ output:
 	require.NoError(t, err)
 }
 
+func Test_buildProcessorMutation(t *testing.T) {
+	output, err := buildProcessorMutation(nil)
+	assert.Nil(t, err)
+	assert.Empty(t, output)
+
+	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{})
+	assert.Nil(t, err)
+	assert.Empty(t, output)
+
+	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: "id"},
+	})
+	assert.Nil(t, err)
+	assert.Empty(t, output)
+
+	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{}},
+	})
+	assert.Nil(t, err)
+	assert.Empty(t, output)
+
+	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Value: "passthrough"}},
+	})
+	assert.Nil(t, err)
+	assert.Empty(t, output)
+
+	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Value: "null"}},
+		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.Transformer{Value: "null"}},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, output, "root.id = null\nroot.name = null")
+
+	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Value: "i_do_not_exist"}},
+	})
+	assert.Error(t, err)
+	assert.Empty(t, output)
+}
+
 func Test_buildPlainInsertArgs(t *testing.T) {
 	assert.Empty(t, buildPlainInsertArgs(nil))
 	assert.Empty(t, buildPlainInsertArgs([]string{}))
@@ -289,10 +330,124 @@ func Test_buildBenthosS3Credentials(t *testing.T) {
 	)
 }
 
+func Test_getPgDsn(t *testing.T) {
+	dsn, err := getPgDsn(nil)
+	assert.Error(t, err)
+	assert.Empty(t, dsn)
+
+	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{})
+	assert.Error(t, err)
+	assert.Empty(t, dsn)
+
+	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{},
+	})
+	assert.Nil(t, err)
+	assert.Empty(t, dsn)
+
+	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{Url: "foo"},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, dsn, "foo")
+
+	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{},
+	})
+	assert.Error(t, err)
+	assert.Empty(t, dsn)
+
+	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
+			Connection: &mgmtv1alpha1.PostgresConnection{},
+		},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, dsn, "postgres://:@:0/")
+
+	sslMode := "disable"
+	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
+			Connection: &mgmtv1alpha1.PostgresConnection{
+				User:    "my-user",
+				Pass:    "my-pass",
+				SslMode: &sslMode,
+				Host:    "localhost",
+				Port:    5432,
+				Name:    "neosync",
+			},
+		},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, dsn, "postgres://my-user:my-pass@localhost:5432/neosync?sslmode=disable")
+}
+
+func Test_getMysqlDsn(t *testing.T) {
+	dsn, err := getMysqlDsn(nil)
+	assert.Error(t, err)
+	assert.Empty(t, dsn)
+
+	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{})
+	assert.Error(t, err)
+	assert.Empty(t, dsn)
+
+	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{},
+	})
+	assert.Nil(t, err)
+	assert.Empty(t, dsn)
+
+	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{Url: "foo"},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, dsn, "foo")
+
+	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{},
+	})
+	assert.Error(t, err)
+	assert.Empty(t, dsn)
+
+	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+			Connection: &mgmtv1alpha1.MysqlConnection{},
+		},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, dsn, ":@(:0)/")
+
+	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
+		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+			Connection: &mgmtv1alpha1.MysqlConnection{
+				User:     "my-user",
+				Pass:     "my-pass",
+				Protocol: "tcp",
+				Host:     "localhost",
+				Port:     5432,
+				Name:     "neosync",
+			},
+		},
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, dsn, "my-user:my-pass@tcp(localhost:5432)/neosync")
+}
+
 func strPtr(val string) *string {
 	return &val
 }
 
 func boolPtr(val bool) *bool {
 	return &val
+}
+
+func Test_computeMutationFunction_null(t *testing.T) {
+	val, err := computeMutationFunction(
+		&mgmtv1alpha1.JobMapping{
+			Transformer: &mgmtv1alpha1.Transformer{
+				Value: "null",
+			},
+		})
+	assert.NoError(t, err)
+	assert.Equal(t, val, "null")
 }

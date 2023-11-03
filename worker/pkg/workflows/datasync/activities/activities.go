@@ -2,7 +2,6 @@ package datasync_activities
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -11,9 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"connectrpc.com/connect"
 	"go.temporal.io/sdk/activity"
-	"golang.org/x/sync/errgroup"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
@@ -21,15 +18,13 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	mysql_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
-	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 )
 
 const nullString = "null"
@@ -68,299 +63,29 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 	}()
 
-	pgpoolmap := map[string]*pgxpool.Pool{}
-	mysqlPoolMap := map[string]*sql.DB{}
+	pgpoolmap := map[string]pg_queries.DBTX{}
+	pgquerier := pg_queries.New()
+	mysqlpoolmap := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.New()
 
-	job, err := a.getJobById(ctx, req.BackendUrl, req.JobId)
-	if err != nil {
-		return nil, err
-	}
-	responses := []*BenthosConfigResponse{}
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
+		http.DefaultClient,
+		req.BackendUrl,
+	)
 
-	sourceConnection, err := a.getConnectionById(ctx, req.BackendUrl, job.Source.ConnectionId)
-	if err != nil {
-		return nil, err
-	}
-
-	groupedMappings := groupMappingsByTable(job.Mappings)
-
-	switch connection := sourceConnection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		dsn, err := getPgDsn(connection.PgConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		sqlOpts := job.Source.Options.GetPostgresOptions()
-		var sourceTableOpts map[string]*sourceTableOptions
-		if sqlOpts != nil {
-			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
-		}
-
-		sourceResponses, err := buildBenthosSourceConfigReponses(groupedMappings, dsn, "postgres", sourceTableOpts)
-		if err != nil {
-			return nil, err
-		}
-		responses = append(responses, sourceResponses...)
-
-		if _, ok := pgpoolmap[dsn]; !ok {
-			pool, err := pgxpool.New(ctx, dsn)
-			if err != nil {
-				return nil, err
-			}
-			defer pool.Close()
-			pgpoolmap[dsn] = pool
-		}
-		pool := pgpoolmap[dsn]
-
-		// validate job mappings align with sql connections
-		dbschemas, err := dbschemas_postgres.GetDatabaseSchemas(ctx, pool)
-		if err != nil {
-			return nil, err
-		}
-		groupedSchemas := dbschemas_postgres.GetUniqueSchemaColMappings(dbschemas)
-		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
-			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
-		}
-		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
-			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
-			msg := "job mappings does not contain a column mapping for all " +
-				"columns found in the source connection for the selected schemas and tables"
-			return nil, errors.New(msg)
-		}
-
-		allConstraints, err := a.getAllPostgresFkConstraintsFromMappings(ctx, pool, job.Mappings)
-		if err != nil {
-			return nil, err
-		}
-		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-
-		for _, resp := range responses {
-			dependsOn, ok := td[resp.Name]
-			if ok {
-				resp.DependsOn = dependsOn
-			}
-		}
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		dsn, err := getMysqlDsn(connection.MysqlConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		sqlOpts := job.Source.Options.GetMysqlOptions()
-		var sourceTableOpts map[string]*sourceTableOptions
-		if sqlOpts != nil {
-			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
-		}
-
-		sourceResponses, err := buildBenthosSourceConfigReponses(groupedMappings, dsn, "mysql", sourceTableOpts)
-		if err != nil {
-			return nil, err
-		}
-		responses = append(responses, sourceResponses...)
-
-		if _, ok := mysqlPoolMap[dsn]; !ok {
-			pool, err := sql.Open("mysql", dsn)
-			if err != nil {
-				return nil, err
-			}
-			defer pool.Close()
-			mysqlPoolMap[dsn] = pool
-		}
-		pool := mysqlPoolMap[dsn]
-
-		// validate job mappings align with sql connections
-		dbschemas, err := dbschemas_mysql.GetDatabaseSchemas(ctx, pool)
-		if err != nil {
-			return nil, err
-		}
-		groupedSchemas := dbschemas_mysql.GetUniqueSchemaColMappings(dbschemas)
-		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
-			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
-		}
-		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
-			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
-			msg := "job mappings does not contain a column mapping for all " +
-				"columns found in the source connection for the selected schemas and tables"
-			return nil, errors.New(msg)
-		}
-
-		allConstraints, err := a.getAllMysqlFkConstraintsFromMappings(ctx, pool, job.Mappings)
-		if err != nil {
-			return nil, err
-		}
-		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
-
-		for _, resp := range responses {
-			dependsOn, ok := td[resp.Name]
-			if ok {
-				resp.DependsOn = dependsOn
-			}
-		}
-
-	default:
-		return nil, fmt.Errorf("unsupported source connection")
-	}
-
-	for _, destination := range job.Destinations {
-		destinationConnection, err := a.getConnectionById(ctx, req.BackendUrl, destination.ConnectionId)
-		if err != nil {
-			return nil, err
-		}
-		for _, resp := range responses {
-			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
-			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-				dsn, err := getPgDsn(connection.PgConfig)
-				if err != nil {
-					return nil, err
-				}
-
-				truncateBeforeInsert := false
-				truncateCascade := false
-				initSchema := false
-				sqlOpts := destination.Options.GetPostgresOptions()
-				if sqlOpts != nil {
-					initSchema = sqlOpts.InitTableSchema
-					if sqlOpts.TruncateTable != nil {
-						truncateBeforeInsert = sqlOpts.TruncateTable.TruncateBeforeInsert
-						truncateCascade = sqlOpts.TruncateTable.Cascade
-					}
-				}
-
-				pool := pgpoolmap[resp.Config.Input.SqlSelect.Dsn]
-				// todo: make this more efficient to reduce amount of times we have to connect to the source database
-				schema, table := splitTableKey(resp.Config.Input.SqlSelect.Table)
-				initStmt, err := a.getInitStatementFromPostgres(
-					ctx,
-					pool,
-					schema,
-					table,
-					&initStatementOpts{
-						TruncateBeforeInsert: truncateBeforeInsert,
-						TruncateCascade:      truncateCascade,
-						InitSchema:           initSchema,
-					},
-				)
-				if err != nil {
-					return nil, err
-				}
-				logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
-				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver: "postgres",
-						Dsn:    dsn,
-
-						Table:         resp.Config.Input.SqlSelect.Table,
-						Columns:       resp.Config.Input.SqlSelect.Columns,
-						ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
-						InitStatement: initStmt,
-
-						ConnMaxIdle: 2,
-						ConnMaxOpen: 2,
-
-						Batching: &neosync_benthos.Batching{
-							Period: "1s",
-							// max allowed by postgres in a single batch
-							Count: computeMaxPgBatchCount(len(resp.Config.Input.SqlSelect.Columns)),
-						},
-					},
-				})
-			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-				dsn, err := getMysqlDsn(connection.MysqlConfig)
-				if err != nil {
-					return nil, err
-				}
-
-				truncateBeforeInsert := false
-				initSchema := false
-				sqlOpts := destination.Options.GetMysqlOptions()
-				if sqlOpts != nil {
-					initSchema = sqlOpts.InitTableSchema
-					if sqlOpts.TruncateTable != nil {
-						truncateBeforeInsert = sqlOpts.TruncateTable.TruncateBeforeInsert
-					}
-				}
-
-				pool := mysqlPoolMap[resp.Config.Input.SqlSelect.Dsn]
-				// todo: make this more efficient to reduce amount of times we have to connect to the source database
-				schema, table := splitTableKey(resp.Config.Input.SqlSelect.Table)
-				initStmt, err := a.getInitStatementFromMysql(
-					ctx,
-					pool,
-					schema,
-					table,
-					&initStatementOpts{
-						TruncateBeforeInsert: truncateBeforeInsert,
-						InitSchema:           initSchema,
-					},
-				)
-				if err != nil {
-					return nil, err
-				}
-				logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
-				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver: "mysql",
-						Dsn:    dsn,
-
-						Table:         resp.Config.Input.SqlSelect.Table,
-						Columns:       resp.Config.Input.SqlSelect.Columns,
-						ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
-						InitStatement: initStmt,
-
-						ConnMaxIdle: 2,
-						ConnMaxOpen: 2,
-
-						Batching: &neosync_benthos.Batching{
-							Period: "1s",
-							// max allowed by postgres in a single batch
-							Count: computeMaxPgBatchCount(len(resp.Config.Input.SqlSelect.Columns)),
-						},
-					},
-				})
-
-			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-				s3pathpieces := []string{}
-				if connection.AwsS3Config.PathPrefix != nil && *connection.AwsS3Config.PathPrefix != "" {
-					s3pathpieces = append(s3pathpieces, strings.Trim(*connection.AwsS3Config.PathPrefix, "/"))
-				}
-				s3pathpieces = append(
-					s3pathpieces,
-					"workflows",
-					req.WorkflowId,
-					"activities",
-					resp.Name, // may need to do more here
-					"data",
-					`${!count("files")}.json.gz}`,
-				)
-
-				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					AwsS3: &neosync_benthos.AwsS3Insert{
-						Bucket:      connection.AwsS3Config.BucketArn,
-						MaxInFlight: 64,
-						Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
-						Batching: &neosync_benthos.Batching{
-							Count:  100,
-							Period: "1s",
-							Processors: []*neosync_benthos.BatchProcessor{
-								{Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"}},
-								{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
-							},
-						},
-						Credentials: buildBenthosS3Credentials(connection.AwsS3Config.Credentials),
-						Region:      connection.AwsS3Config.GetRegion(),
-						Endpoint:    connection.AwsS3Config.GetEndpoint(),
-					},
-				})
-			default:
-				return nil, fmt.Errorf("unsupported destination connection config")
-			}
-		}
-	}
-
-	return &GenerateBenthosConfigsResponse{
-		BenthosConfigs: responses,
-	}, nil
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
+		http.DefaultClient,
+		req.BackendUrl,
+	)
+	bbuilder := newBenthosBuilder(
+		pgpoolmap,
+		pgquerier,
+		mysqlpoolmap,
+		mysqlquerier,
+		jobclient,
+		connclient,
+	)
+	return bbuilder.GenerateBenthosConfigs(ctx, req, logger)
 }
 
 type sourceTableOptions struct {
@@ -568,135 +293,6 @@ func shouldHaltOnSchemaAddition(
 	return false
 }
 
-func (a *Activities) getAllPostgresFkConstraintsFromMappings(
-	ctx context.Context,
-	conn DBTX,
-	mappings []*mgmtv1alpha1.JobMapping,
-) ([]*dbschemas_postgres.ForeignKeyConstraint, error) {
-	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
-	holder := make([][]*dbschemas_postgres.ForeignKeyConstraint, len(uniqueSchemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range uniqueSchemas {
-		idx := idx
-		schema := uniqueSchemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := dbschemas_postgres.GetForeignKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
-
-	output := []*dbschemas_postgres.ForeignKeyConstraint{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
-	}
-	return output, nil
-}
-
-func (a *Activities) getAllMysqlFkConstraintsFromMappings(
-	ctx context.Context,
-	conn *sql.DB,
-	mappings []*mgmtv1alpha1.JobMapping,
-) ([]*dbschemas_mysql.ForeignKeyConstraint, error) {
-	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
-	holder := make([][]*dbschemas_mysql.ForeignKeyConstraint, len(uniqueSchemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range uniqueSchemas {
-		idx := idx
-		schema := uniqueSchemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := dbschemas_mysql.GetForeignKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
-
-	output := []*dbschemas_mysql.ForeignKeyConstraint{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
-	}
-	return output, nil
-}
-
-type initStatementOpts struct {
-	TruncateBeforeInsert bool
-	TruncateCascade      bool // only applied if truncatebeforeinsert is true
-	InitSchema           bool
-}
-
-type DBTX interface {
-	Query(context.Context, string, ...any) (pgx.Rows, error)
-	QueryRow(context.Context, string, ...any) pgx.Row
-}
-
-func (a *Activities) getInitStatementFromPostgres(
-	ctx context.Context,
-	conn DBTX,
-	schema string,
-	table string,
-	opts *initStatementOpts,
-) (string, error) {
-
-	statements := []string{}
-	if opts != nil && opts.InitSchema {
-		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, &dbschemas_postgres.GetTableCreateStatementRequest{
-			Schema: schema,
-			Table:  table,
-		})
-		if err != nil {
-			return "", err
-		}
-		statements = append(statements, stmt)
-	}
-	if opts != nil && opts.TruncateBeforeInsert {
-		if opts.TruncateCascade {
-			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
-		} else {
-			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
-		}
-	}
-	return strings.Join(statements, "\n"), nil
-}
-
-func (a *Activities) getInitStatementFromMysql(
-	ctx context.Context,
-	conn *sql.DB,
-	schema string,
-	table string,
-	opts *initStatementOpts,
-) (string, error) {
-
-	statements := []string{}
-	if opts != nil && opts.InitSchema {
-		stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{
-			Schema: schema,
-			Table:  table,
-		})
-		if err != nil {
-			return "", err
-		}
-		statements = append(statements, stmt)
-	}
-	if opts != nil && opts.TruncateBeforeInsert {
-		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
-	}
-	return strings.Join(statements, "\n"), nil
-}
-
 func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
 	for _, col := range mappings {
 		if col.Transformer.Value != nullString {
@@ -861,42 +457,17 @@ func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string 
 	return output
 }
 
-func (a *Activities) getJobById(ctx context.Context, backendurl, jobId string) (*mgmtv1alpha1.Job, error) {
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		http.DefaultClient,
-		backendurl,
-	)
-
-	getjobResp, err := jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-		Id: jobId,
-	}))
-	if err != nil {
-		return nil, err
-	}
-
-	return getjobResp.Msg.Job, nil
-}
-
-func (a *Activities) getConnectionById(ctx context.Context, backendurl, connectionId string) (*mgmtv1alpha1.Connection, error) {
-	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		http.DefaultClient,
-		backendurl,
-	)
-
-	getConnResp, err := connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: connectionId,
-	}))
-	if err != nil {
-		return nil, err
-	}
-	return getConnResp.Msg.Connection, nil
-}
-
 func getPgDsn(
 	config *mgmtv1alpha1.PostgresConnectionConfig,
 ) (string, error) {
+	if config == nil {
+		return "", errors.New("must provide non-nil config")
+	}
 	switch cfg := config.ConnectionConfig.(type) {
 	case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
+		if cfg.Connection == nil {
+			return "", errors.New("must provide non-nil connection config")
+		}
 		dburl := fmt.Sprintf(
 			"postgres://%s:%s@%s:%d/%s",
 			cfg.Connection.User,
@@ -919,8 +490,14 @@ func getPgDsn(
 func getMysqlDsn(
 	config *mgmtv1alpha1.MysqlConnectionConfig,
 ) (string, error) {
+	if config == nil {
+		return "", errors.New("must provide non-nil config")
+	}
 	switch cfg := config.ConnectionConfig.(type) {
 	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
+		if cfg.Connection == nil {
+			return "", errors.New("must provide non-nil connection config")
+		}
 		dburl := fmt.Sprintf(
 			"%s:%s@%s(%s:%d)/%s",
 			cfg.Connection.User,
@@ -942,7 +519,7 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
 
 	for _, col := range cols {
-		if col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
+		if col.Transformer != nil && col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
 			mutation, err := computeMutationFunction(col)
 			if err != nil {
 				return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
@@ -1062,9 +639,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("this.%s.intphonetransformer(%t)", col.Column, pl), nil
 	case "uuid":
 		ih := col.Transformer.Config.GetUuidConfig().IncludeHyphen
-		return fmt.Sprintf("this.%s.uuidtransformer(%t)", col.Column, ih), nil
+		return fmt.Sprintf("uuidtransformer(%t)", ih), nil
 	case "null":
-		return "transformernull()", nil
+		return "null", nil
 	case "random_bool":
 		return "randombooltransformer()", nil
 	case "random_string":
