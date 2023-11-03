@@ -296,3 +296,13 @@ func strPtr(val string) *string {
 func boolPtr(val bool) *bool {
 	return &val
 }
+
+func TestNullTransformer(t *testing.T) {
+
+	val, err := computeMutationFunction(&mgmtv1alpha1.JobMapping{Transformer: &mgmtv1alpha1.Transformer{
+		Value: "null"}})
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, val, "null")
+}
