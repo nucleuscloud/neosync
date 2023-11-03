@@ -28,3 +28,9 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
     interfaces:
       DB:
+  github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres:
+    interfaces:
+      DBTX:
+  github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql:
+    interfaces:
+      DBTX:

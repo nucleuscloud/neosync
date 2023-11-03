@@ -92,7 +92,6 @@ func (a *Activities) generateBenthosConfigs(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	logger log.Logger,
 ) (*GenerateBenthosConfigsResponse, error) {
-
 	job, err := a.getJobById(ctx, jobclient, req.JobId)
 	if err != nil {
 		return nil, err
