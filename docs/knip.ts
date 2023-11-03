@@ -1,6 +1,4 @@
-import type { KnipConfig } from 'knip';
-
-const config: KnipConfig = {
+const config = {
   ignore: [
     'babel.config.js',
     'docusaurus.config.js',
