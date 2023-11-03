@@ -41,3 +41,16 @@ sql:
             go_type: string
           - column: information_schema.key_column_usage.column_name
             go_type: string
+
+  - engine: "mysql"
+    queries: "sql/mysql/queries"
+    schema: "sql/mysql/schema"
+    gen:
+      go:
+        package: mysql_queries
+        out: "gen/go/db/mysql"
+        emit_interface: true
+        emit_methods_with_db_argument: true
+        emit_result_struct_pointers: true
+        emit_params_struct_pointers: true
+        emit_pointers_for_null_types: true

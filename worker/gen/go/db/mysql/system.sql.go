@@ -3,10 +3,11 @@
 //   sqlc v1.23.0
 // source: system.sql
 
-package pg_queries
+package mysql_queries
 
 import (
 	"context"
+	"database/sql"
 )
 
 const getDatabaseSchema = `-- name: GetDatabaseSchema :many
@@ -23,7 +24,7 @@ FROM
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
 		AND c.table_name = t.table_name
 WHERE
-	c.table_schema NOT IN('pg_catalog', 'information_schema')
+	c.table_schema NOT IN('sys', 'performance_schema', 'mysql')
 	AND t.table_type = 'BASE TABLE'
 `
 
@@ -31,14 +32,14 @@ type GetDatabaseSchemaRow struct {
 	TableSchema     string
 	TableName       string
 	ColumnName      string
-	OrdinalPosition int
+	OrdinalPosition int32
 	ColumnDefault   string
 	IsNullable      string
 	DataType        string
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
-	rows, err := db.Query(ctx, getDatabaseSchema)
+	rows, err := db.QueryContext(ctx, getDatabaseSchema)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +59,9 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -79,7 +83,7 @@ FROM
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
 		AND c.table_name = t.table_name
 WHERE
-	c.table_schema = $1 AND t.table_name = $2
+	c.table_schema = ? AND t.table_name = ?
 	AND t.table_type = 'BASE TABLE'
 	ORDER BY c.ordinal_position ASC
 `
@@ -93,14 +97,14 @@ type GetDatabaseTableSchemaRow struct {
 	TableSchema     string
 	TableName       string
 	ColumnName      string
-	OrdinalPosition int
+	OrdinalPosition int32
 	ColumnDefault   string
 	IsNullable      string
 	DataType        string
 }
 
 func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemaParams) ([]*GetDatabaseTableSchemaRow, error) {
-	rows, err := db.Query(ctx, getDatabaseTableSchema, arg.TableSchema, arg.TableName)
+	rows, err := db.QueryContext(ctx, getDatabaseTableSchema, arg.TableSchema, arg.TableName)
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +125,9 @@ func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetD
 		}
 		items = append(items, &i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -128,34 +135,30 @@ func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetD
 }
 
 const getForeignKeyConstraints = `-- name: GetForeignKeyConstraints :many
-	SELECT
-    rc.constraint_name
-    ,
-    kcu.table_schema AS schema_name
-    ,
-    kcu.table_name
-    ,
-    kcu.column_name
-    ,
-    kcu2.table_schema AS foreign_schema_name
-    ,
-    kcu2.table_name AS foreign_table_name
-    ,
-    kcu2.column_name AS foreign_column_name
+SELECT
+rc.constraint_name
+,
+kcu.table_schema AS schema_name
+,
+kcu.table_name as table_name
+,
+kcu.column_name as column_name
+,
+kcu.referenced_table_schema AS foreign_schema_name
+,
+kcu.referenced_table_name AS foreign_table_name
+,
+kcu.referenced_column_name AS foreign_column_name
 FROM
-    information_schema.referential_constraints rc
+	information_schema.referential_constraints rc
 JOIN information_schema.key_column_usage kcu
-    ON
-    kcu.constraint_name = rc.constraint_name
-JOIN information_schema.key_column_usage kcu2
-    ON
-    kcu2.ordinal_position = kcu.position_in_unique_constraint
-    AND kcu2.constraint_name = rc.unique_constraint_name
+	ON
+	kcu.constraint_name = rc.constraint_name
 WHERE
-    kcu.table_schema = $1
+	kcu.table_schema = ?
 ORDER BY
-    rc.constraint_name,
-    kcu.ordinal_position
+	rc.constraint_name,
+	kcu.ordinal_position
 `
 
 type GetForeignKeyConstraintsRow struct {
@@ -168,8 +171,8 @@ type GetForeignKeyConstraintsRow struct {
 	ForeignColumnName string
 }
 
-func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableschema string) ([]*GetForeignKeyConstraintsRow, error) {
-	rows, err := db.Query(ctx, getForeignKeyConstraints, tableschema)
+func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetForeignKeyConstraintsRow, error) {
+	rows, err := db.QueryContext(ctx, getForeignKeyConstraints, tableSchema)
 	if err != nil {
 		return nil, err
 	}
@@ -190,6 +193,9 @@ func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tablesc
 		}
 		items = append(items, &i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -198,36 +204,50 @@ func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tablesc
 
 const getTableConstraints = `-- name: GetTableConstraints :many
 SELECT
-    nsp.nspname AS db_schema,
-    rel.relname AS table_name,
-    con.conname AS constraint_name,
-    pg_get_constraintdef(con.oid) AS constraint_definition
-FROM
-    pg_catalog.pg_constraint con
-INNER JOIN pg_catalog.pg_class rel
-                       ON
-    rel.oid = con.conrelid
-INNER JOIN pg_catalog.pg_namespace nsp
-                       ON
-    nsp.oid = connamespace
+kcu.constraint_name
+,
+kcu.table_schema AS db_schema
+,
+kcu.table_name as table_name
+,
+kcu.column_name as column_name
+,
+kcu.referenced_table_schema AS foreign_schema_name
+,
+kcu.referenced_table_name AS foreign_table_name
+,
+kcu.referenced_column_name AS foreign_column_name
+,
+rc.update_rule
+,
+rc.delete_rule
+FROM information_schema.key_column_usage kcu
+LEFT JOIN information_schema.referential_constraints rc
+	ON
+	kcu.constraint_name = rc.constraint_name
 WHERE
-    nsp.nspname = $1 AND rel.relname = $2
+	kcu.table_schema = ? AND kcu.table_name = ?
 `
 
 type GetTableConstraintsParams struct {
-	Schema string
-	Table  string
+	TableSchema string
+	TableName   string
 }
 
 type GetTableConstraintsRow struct {
-	DbSchema             string
-	TableName            string
-	ConstraintName       string
-	ConstraintDefinition string
+	ConstraintName    string
+	DbSchema          string
+	TableName         string
+	ColumnName        string
+	ForeignSchemaName string
+	ForeignTableName  string
+	ForeignColumnName string
+	UpdateRule        sql.NullString
+	DeleteRule        sql.NullString
 }
 
 func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTableConstraintsParams) ([]*GetTableConstraintsRow, error) {
-	rows, err := db.Query(ctx, getTableConstraints, arg.Schema, arg.Table)
+	rows, err := db.QueryContext(ctx, getTableConstraints, arg.TableSchema, arg.TableName)
 	if err != nil {
 		return nil, err
 	}
@@ -236,14 +256,22 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTabl
 	for rows.Next() {
 		var i GetTableConstraintsRow
 		if err := rows.Scan(
+			&i.ConstraintName,
 			&i.DbSchema,
 			&i.TableName,
-			&i.ConstraintName,
-			&i.ConstraintDefinition,
+			&i.ColumnName,
+			&i.ForeignSchemaName,
+			&i.ForeignTableName,
+			&i.ForeignColumnName,
+			&i.UpdateRule,
+			&i.DeleteRule,
 		); err != nil {
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
