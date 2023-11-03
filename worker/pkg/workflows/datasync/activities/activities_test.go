@@ -231,7 +231,7 @@ func Test_buildProcessorMutation(t *testing.T) {
 		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.Transformer{Value: "null"}},
 	})
 	assert.Nil(t, err)
-	assert.Equal(t, output, "root.id = transformernull()\nroot.name = transformernull()")
+	assert.Equal(t, output, "root.id = null\nroot.name = null")
 
 	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Value: "i_do_not_exist"}},
