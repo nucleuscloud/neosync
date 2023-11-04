@@ -31,6 +31,7 @@ type TransformerConfigs struct {
 	Zipcode        *ZipcodeConfig        `json:"zipcode,omitempty"`
 	State          *StateConfig          `json:"state,omitempty"`
 	FullAddress    *FullAddressConfig    `json:"fullAddress,omitempty"`
+	CreditCard     *CreditCardConfig     `json:"creditcard,omitempty"`
 }
 
 type EmailConfigs struct {
@@ -101,6 +102,10 @@ type ZipcodeConfig struct{}
 type StateConfig struct{}
 
 type FullAddressConfig struct{}
+
+type CreditCardConfig struct {
+	ValidLuhn bool `json:"validLuhn"`
+}
 
 // from API -> DB
 func (t *Transformer) FromTransformerDto(tr *mgmtv1alpha1.Transformer) error {
@@ -200,6 +205,10 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_FullAddressConfig:
 		t.FullAddress = &FullAddressConfig{}
+	case *mgmtv1alpha1.TransformerConfig_CreditCardConfig:
+		t.CreditCard = &CreditCardConfig{
+			ValidLuhn: tr.GetCreditCardConfig().ValidLuhn,
+		}
 	default:
 		t = &TransformerConfigs{}
 	}
@@ -375,6 +384,14 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_FullAddressConfig{
 				FullAddressConfig: &mgmtv1alpha1.FullAddress{},
+			},
+		}
+	case tr.CreditCard != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_CreditCardConfig{
+				CreditCardConfig: &mgmtv1alpha1.CreditCard{
+					ValidLuhn: tr.CreditCard.ValidLuhn,
+				},
 			},
 		}
 	default:

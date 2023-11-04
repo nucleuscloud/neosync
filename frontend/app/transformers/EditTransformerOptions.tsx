@@ -16,6 +16,7 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useRef, useState } from 'react';
+import CreditCardTransformerForm from './Sheetforms/CreditCardTransformerForm';
 import EmailTransformerForm from './Sheetforms/EmailTransformerForm';
 import FirstNameTransformerForm from './Sheetforms/FirstnameTransformerForm';
 import FullNameTransformerForm from './Sheetforms/FullnameTransformerForm';
@@ -205,6 +206,14 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
+    case 'credit_card':
+      return (
+        <CreditCardTransformerForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
     default:
       <div>No transformer component found</div>;
   }
@@ -379,6 +388,14 @@ export function handleTransformerMetadata(
         description:
           'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169. ',
         type: 'string',
+      },
+    },
+    {
+      credit_card: {
+        name: 'Credit Card',
+        description:
+          'Randomly generates a 16 digit credit card number with an option to generate a luhn valid credit card number.',
+        type: 'int64',
       },
     },
   ];

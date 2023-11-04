@@ -51,6 +51,10 @@ const randomFloatConfig = Yup.object().shape({
   digitsBeforeDecimal: Yup.number().notRequired(),
 });
 
+const creditcardConfig = Yup.object().shape({
+  validLuhn: Yup.boolean().notRequired(),
+});
+
 export const transformerConfig = Yup.object().shape({
   config: Yup.object().shape({
     value: Yup.lazy((value) => {
@@ -99,6 +103,8 @@ export const transformerConfig = Yup.object().shape({
           return Yup.object().shape({});
         case 'streetAddressConfig':
           return Yup.object().shape({});
+        case 'creditcardConfig':
+          return creditcardConfig;
         default:
           return Yup.object().shape({});
       }

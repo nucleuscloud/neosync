@@ -600,14 +600,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "paragraph":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "cc_type":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "cc_number":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "currency":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "amount_with_currency":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "title_male":
 		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "title_female":
@@ -674,6 +666,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "statetransformer()", nil
 	case "full_address":
 		return "fulladdresstransformer()", nil
+	case "credit_card":
+		luhn := col.Transformer.Config.GetCreditCardConfig().ValidLuhn
+		return fmt.Sprintf(`creditcardtransformer(%t)`, luhn), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

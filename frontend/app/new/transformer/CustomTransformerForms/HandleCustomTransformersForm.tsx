@@ -1,4 +1,5 @@
 import { ReactElement } from 'react';
+import CustomCreditCardTransformerForm from './CustomCreditCardTransformerForm';
 import CustomEmailTransformerForm from './CustomEmailTransformerForm';
 import CustomFirstNameTransformerForm from './CustomFirstnameTransformerForm';
 import CustomFullNameTransformerForm from './CustomFullnameTransformerForm';
@@ -39,6 +40,8 @@ export function handleCustomTransformerForm(
       return <CustomRandomFloatTransformerForm isDisabled={disabled} />;
     case 'gender':
       return <CustomGenderTransformerForm isDisabled={disabled} />;
+    case 'credit_card':
+      return <CustomCreditCardTransformerForm isDisabled={disabled} />;
     default:
       <div>No transformer component found</div>;
   }
