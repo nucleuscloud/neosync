@@ -827,6 +827,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: FullAddress;
     case: "fullAddressConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.CreditCard credit_card_config = 22;
+     */
+    value: CreditCard;
+    case: "creditCardConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -858,6 +864,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 19, name: "zipcode_config", kind: "message", T: Zipcode, oneof: "config" },
     { no: 20, name: "state_config", kind: "message", T: State, oneof: "config" },
     { no: 21, name: "full_address_config", kind: "message", T: FullAddress, oneof: "config" },
+    { no: 22, name: "credit_card_config", kind: "message", T: CreditCard, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -1633,6 +1640,43 @@ export class FullAddress extends Message<FullAddress> {
 
   static equals(a: FullAddress | PlainMessage<FullAddress> | undefined, b: FullAddress | PlainMessage<FullAddress> | undefined): boolean {
     return proto3.util.equals(FullAddress, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.CreditCard
+ */
+export class CreditCard extends Message<CreditCard> {
+  /**
+   * @generated from field: bool valid_luhn = 1;
+   */
+  validLuhn = false;
+
+  constructor(data?: PartialMessage<CreditCard>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.CreditCard";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "valid_luhn", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreditCard {
+    return new CreditCard().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreditCard {
+    return new CreditCard().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreditCard {
+    return new CreditCard().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreditCard | PlainMessage<CreditCard> | undefined, b: CreditCard | PlainMessage<CreditCard> | undefined): boolean {
+    return proto3.util.equals(CreditCard, a, b);
   }
 }
 

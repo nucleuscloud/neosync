@@ -667,7 +667,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "full_address":
 		return "fulladdresstransformer()", nil
 	case "credit_card":
-		luhn := true
+		luhn := col.Transformer.Config.GetCreditCardConfig().ValidLuhn
 		return fmt.Sprintf(`creditcardtransformer(%t)`, luhn), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
