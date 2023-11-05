@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/benthosdev/benthos/v4/public/bloblang"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/stretchr/testify/assert"
@@ -450,4 +451,17 @@ func Test_computeMutationFunction_null(t *testing.T) {
 		})
 	assert.NoError(t, err)
 	assert.Equal(t, val, "null")
+}
+
+func Test_sha256Hash_transformer(t *testing.T) {
+
+	mapping := `root = this.bytes().hash("sha256").encode("hex")`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the sha256 transformer")
+
+	val := "hello"
+	res, err := ex.Query(val)
+
+	assert.NoError(t, err)
+	assert.Equal(t, res, "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
 }
