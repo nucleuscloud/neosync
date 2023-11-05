@@ -1,7 +1,11 @@
 package datasync_activities
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"math"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -453,7 +457,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 	assert.Equal(t, val, "null")
 }
 
-func Test_sha256Hash_transformer(t *testing.T) {
+func Test_sha256Hash_transformer_string(t *testing.T) {
 
 	mapping := `root = this.bytes().hash("sha256").encode("hex")`
 	ex, err := bloblang.Parse(mapping)
@@ -461,7 +465,75 @@ func Test_sha256Hash_transformer(t *testing.T) {
 
 	val := "hello"
 	res, err := ex.Query(val)
+	assert.NoError(t, err)
+
+	// hash the value
+	bites := []byte(val)
+	hasher := sha256.New()
+	_, err = hasher.Write(bites)
+	assert.NoError(t, err)
+
+	// compute sha256 checksum and encode it into a hex string
+	hashed := hasher.Sum(nil)
+	var buf bytes.Buffer
+	e := hex.NewEncoder(&buf)
+	_, err = e.Write(hashed)
+	assert.NoError(t, err)
 
 	assert.NoError(t, err)
-	assert.Equal(t, res, "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
+	assert.Equal(t, res, buf.String())
+}
+
+func Test_sha256Hash_transformer_int64(t *testing.T) {
+
+	mapping := `root = this.bytes().hash("sha256").encode("hex")`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the sha256 transformer")
+
+	val := 20
+	res, err := ex.Query(val)
+	assert.NoError(t, err)
+
+	// hash the value
+	bites := strconv.AppendInt(nil, int64(val), 10)
+	hasher := sha256.New()
+	_, err = hasher.Write(bites)
+	assert.NoError(t, err)
+
+	// compute sha256 checksum and encode it into a hex string
+	hashed := hasher.Sum(nil)
+	var buf bytes.Buffer
+	e := hex.NewEncoder(&buf)
+	_, err = e.Write(hashed)
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+	assert.Equal(t, res, buf.String())
+}
+
+func Test_sha256Hash_transformer_float(t *testing.T) {
+
+	mapping := `root = this.bytes().hash("sha256").encode("hex")`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the sha256 transformer")
+
+	val := 20.39
+	res, err := ex.Query(val)
+	assert.NoError(t, err)
+
+	// hash the value
+	bites := strconv.AppendFloat(nil, val, 'g', -1, 64)
+	hasher := sha256.New()
+	_, err = hasher.Write(bites)
+	assert.NoError(t, err)
+
+	// compute sha256 checksum and encode it into a hex string
+	hashed := hasher.Sum(nil)
+	var buf bytes.Buffer
+	e := hex.NewEncoder(&buf)
+	_, err = e.Write(hashed)
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+	assert.Equal(t, res, buf.String())
 }
