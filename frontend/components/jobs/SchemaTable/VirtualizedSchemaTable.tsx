@@ -216,7 +216,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
         <Cell value={row.table} />
         <Cell value={row.column} />
         <Cell value={row.dataType} />
-        <div className=" ">
+        <div>
           <FormField
             name={`mappings.${index}.transformer.value`}
             render={({ field }) => (

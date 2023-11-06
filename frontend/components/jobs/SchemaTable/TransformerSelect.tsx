@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
 import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { ToTitleCase } from '@/util/util';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 
@@ -48,7 +49,7 @@ export default function TransformerSelect(props: Props): ReactElement {
           aria-expanded={open}
           className="justify-between w-[160px]"
         >
-          <div className="whitespace-nowrap truncate">{value}</div>
+          <div className="whitespace-nowrap truncate">{ToTitleCase(value)}</div>
 
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -89,7 +90,7 @@ export default function TransformerSelect(props: Props): ReactElement {
             <CommandGroup heading="System">
               {system.map((t, index) => (
                 <CommandItem
-                  key={`${t?.name}-${index}`}
+                  key={`${t?.name}s-${index}`}
                   onSelect={(currentValue) => {
                     onSelect(currentValue);
                     setOpen(false);
