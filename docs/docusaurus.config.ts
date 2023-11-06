@@ -54,7 +54,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/nucleuscloud/neosync/docs',
+          editUrl: 'https://github.com/nucleuscloud/neosync/blob/main/docs',
         },
         blog: false,
         theme: {
