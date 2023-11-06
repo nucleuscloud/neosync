@@ -49,7 +49,7 @@ type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const account = useAccount();
+  const { account } = useAccount();
   const { toast } = useToast();
   const router = useRouter();
   const { data, isLoading } = useGetJob(id);

@@ -62,7 +62,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
   });
 
   const router = useRouter();
-  const account = useAccount();
+  const { account } = useAccount();
 
   async function onSubmit(values: UpdateCustomTransformer): Promise<void> {
     if (!account) {

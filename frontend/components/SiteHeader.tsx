@@ -1,7 +1,9 @@
+import { isAuthEnabled } from '@/api-only/auth-config';
 import { siteConfig } from '@/app/config/site';
 import { cn } from '@/libs/utils';
 import { GitHubLogoIcon, TwitterLogoIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
+import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
 import { ModeToggle } from './ModeToggle';
@@ -22,6 +24,7 @@ export default function SiteHeader() {
         <MobileNav />
         <div className="flex flex-1 md:justify-end">
           <nav className="flex items-center space-x-2">
+            {isAuthEnabled() && <AccountSwitcher />}
             <Link
               href={siteConfig.links.github}
               target="_blank"

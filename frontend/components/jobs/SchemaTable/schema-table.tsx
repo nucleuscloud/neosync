@@ -15,7 +15,7 @@ interface JobTableProps {
 export function SchemaTable(props: JobTableProps): ReactElement {
   const { data } = props;
 
-  const account = useAccount();
+  const { account } = useAccount();
   const { data: systemTransformers, isLoading: systemTransformersIsLoading } =
     useGetSystemTransformers();
 

@@ -51,7 +51,7 @@ const FORM_SCHEMA = Yup.object({
 type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function PostgresForm() {
-  const account = useAccount();
+  const { account } = useAccount();
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
     defaultValues: {
