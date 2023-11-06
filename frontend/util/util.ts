@@ -1,15 +1,15 @@
 import { format } from 'date-fns';
 
-interface Instance {
-  createdDate?: string;
-}
+// interface Instance {
+//   createdDate?: string;
+// }
 
-function formatDate(dateStr?: string): string | undefined {
-  if (!dateStr) {
-    return undefined;
-  }
-  return format(new Date(dateStr), 'MM/dd/yyyy');
-}
+// function formatDate(dateStr?: string): string | undefined {
+//   if (!dateStr) {
+//     return undefined;
+//   }
+//   return format(new Date(dateStr), 'MM/dd/yyyy');
+// }
 
 export function formatDateTime(
   dateStr?: string | Date | number,
@@ -50,3 +50,10 @@ function isErrorWithMessage(error: unknown): error is { message: string } {
     typeof error.message === 'string'
   );
 }
+
+export const ToTitleCase = (str: string) => {
+  return str.replace(
+    /\w\S*/g,
+    (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+  );
+};

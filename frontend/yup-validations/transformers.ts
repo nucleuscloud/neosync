@@ -149,7 +149,7 @@ export function ToTransformerConfigOptions(
   },
   merged: CustomTransformer[]
 ): Transformer {
-  const val = merged.find((item) => item.name == t.value);
+  const val = merged.find((item) => item.name.toLowerCase() == t.value);
 
   if (!t) {
     return new Transformer();
