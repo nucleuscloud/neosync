@@ -39,6 +39,8 @@ export default function TransformerSelect(props: Props): ReactElement {
     }
   });
 
+  console.log('value', value);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>

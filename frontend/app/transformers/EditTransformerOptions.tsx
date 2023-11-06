@@ -74,6 +74,8 @@ export default function EditTransformerOptions(props: Props): ReactElement {
     };
   }, []);
 
+  console.log('tr', transformer);
+
   return (
     <Sheet open={isSheetOpen} onOpenChange={() => setIsSheetOpen(true)}>
       <SheetTrigger asChild>
