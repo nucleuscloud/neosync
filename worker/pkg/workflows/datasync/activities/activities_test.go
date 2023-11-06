@@ -1,10 +1,15 @@
 package datasync_activities
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"math"
+	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/benthosdev/benthos/v4/public/bloblang"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/stretchr/testify/assert"
@@ -450,4 +455,88 @@ func Test_computeMutationFunction_null(t *testing.T) {
 		})
 	assert.NoError(t, err)
 	assert.Equal(t, val, "null")
+}
+
+// nolint
+func Test_sha256Hash_transformer_string(t *testing.T) {
+
+	mapping := `root = this.bytes().hash("sha256").encode("hex")`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the sha256 transformer")
+
+	val := "hello"
+	res, err := ex.Query(val)
+	assert.NoError(t, err)
+
+	// hash the value
+	bites := []byte(val)
+	hasher := sha256.New()
+	_, err = hasher.Write(bites)
+	assert.NoError(t, err)
+
+	// compute sha256 checksum and encode it into a hex string
+	hashed := hasher.Sum(nil)
+	var buf bytes.Buffer
+	e := hex.NewEncoder(&buf)
+	_, err = e.Write(hashed)
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+	assert.Equal(t, res, buf.String())
+}
+
+// nolint
+func Test_sha256Hash_transformer_int64(t *testing.T) {
+
+	mapping := `root = this.bytes().hash("sha256").encode("hex")`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the sha256 transformer")
+
+	val := 20
+	res, err := ex.Query(val)
+	assert.NoError(t, err)
+
+	// hash the value
+	bites := strconv.AppendInt(nil, int64(val), 10)
+	hasher := sha256.New()
+	_, err = hasher.Write(bites)
+	assert.NoError(t, err)
+
+	// compute sha256 checksum and encode it into a hex string
+	hashed := hasher.Sum(nil)
+	var buf bytes.Buffer
+	e := hex.NewEncoder(&buf)
+	_, err = e.Write(hashed)
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+	assert.Equal(t, res, buf.String())
+}
+
+// nolint
+func Test_sha256Hash_transformer_float(t *testing.T) {
+
+	mapping := `root = this.bytes().hash("sha256").encode("hex")`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the sha256 transformer")
+
+	val := 20.39
+	res, err := ex.Query(val)
+	assert.NoError(t, err)
+
+	// hash the value
+	bites := strconv.AppendFloat(nil, val, 'g', -1, 64)
+	hasher := sha256.New()
+	_, err = hasher.Write(bites)
+	assert.NoError(t, err)
+
+	// compute sha256 checksum and encode it into a hex string
+	hashed := hasher.Sum(nil)
+	var buf bytes.Buffer
+	e := hex.NewEncoder(&buf)
+	_, err = e.Write(hashed)
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+	assert.Equal(t, res, buf.String())
 }
