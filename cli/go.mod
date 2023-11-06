@@ -11,7 +11,7 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/nucleuscloud/neosync/backend v0.0.0-00010101000000-000000000000
 	github.com/rodaine/table v1.1.0
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.17.0
 	github.com/toqueteos/webbrowser v1.2.0
 	golang.org/x/net v0.17.0
