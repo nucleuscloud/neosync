@@ -15,7 +15,7 @@
     "latest-tag": "git tag --sort=creatordate | tail -1"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^1.4.1",
+    "@bufbuild/protobuf": "^1.4.2",
     "@connectrpc/connect": "^1.0.0",
     "@connectrpc/connect-node": "^1.1.3",
     "@hookform/resolvers": "^3.3.2",
