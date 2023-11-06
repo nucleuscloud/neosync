@@ -18,6 +18,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.temporal.io/api/workflowservice/v1"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -30,25 +31,73 @@ const (
 	mockConnectionId   = "884765c6-1708-488d-b03a-70a02b12c81e"
 )
 
-// Define your mock objects
-type MockScheduleClient struct {
+// MockScheduleHandle is a mock of ScheduleHandle interface.
+type MockScheduleHandle struct {
 	mock.Mock
 }
 
-type MockHandle struct {
-	mock.Mock
+func (m *MockScheduleHandle) GetID() string {
+	args := m.Called()
+	return args.String(0)
 }
 
-// Define the behavior of the MockHandle's Describe method
-func (m *MockHandle) Describe(ctx context.Context) (*temporal.Schedule, error) {
+func (m *MockScheduleHandle) Delete(ctx context.Context) error {
 	args := m.Called(ctx)
-	return args.Get(0).(*temporal.Schedule), args.Error(1)
+	return args.Error(0)
 }
 
-// Define the behavior of the MockScheduleClient's GetHandle method
-func (m *MockScheduleClient) GetHandle(ctx context.Context, jobID string) *MockHandle {
-	args := m.Called(ctx, jobID)
-	return args.Get(0).(*MockHandle)
+func (m *MockScheduleHandle) Backfill(ctx context.Context, options temporal.ScheduleBackfillOptions) error {
+	args := m.Called(ctx, options)
+	return args.Error(0)
+}
+
+func (m *MockScheduleHandle) Update(ctx context.Context, options temporal.ScheduleUpdateOptions) error {
+	args := m.Called(ctx, options)
+	return args.Error(0)
+}
+
+func (m *MockScheduleHandle) Describe(ctx context.Context) (*temporal.ScheduleDescription, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(*temporal.ScheduleDescription), args.Error(1)
+}
+
+func (m *MockScheduleHandle) Trigger(ctx context.Context, options temporal.ScheduleTriggerOptions) error {
+	args := m.Called(ctx, options)
+	return args.Error(0)
+}
+
+func (m *MockScheduleHandle) Pause(ctx context.Context, options temporal.SchedulePauseOptions) error {
+	args := m.Called(ctx, options)
+	return args.Error(0)
+}
+
+func (m *MockScheduleHandle) Unpause(ctx context.Context, options temporal.ScheduleUnpauseOptions) error {
+	args := m.Called(ctx, options)
+	return args.Error(0)
+}
+
+// MockNamespaceClient is a mock of Namespace Client interface.
+type MockNamespaceClient struct {
+	mock.Mock
+}
+
+func (_m *MockNamespaceClient) Register(ctx context.Context, request *workflowservice.RegisterNamespaceRequest) error {
+	ret := _m.Called(ctx, request)
+	return ret.Error(0)
+}
+
+func (_m *MockNamespaceClient) Describe(ctx context.Context, name string) (*workflowservice.DescribeNamespaceResponse, error) {
+	ret := _m.Called(ctx, name)
+	return ret.Get(0).(*workflowservice.DescribeNamespaceResponse), ret.Error(1)
+}
+
+func (_m *MockNamespaceClient) Update(ctx context.Context, request *workflowservice.UpdateNamespaceRequest) error {
+	ret := _m.Called(ctx, request)
+	return ret.Error(0)
+}
+
+func (_m *MockNamespaceClient) Close() {
+	_m.Called()
 }
 
 // GetJobs
@@ -202,7 +251,7 @@ func Test_GetJob_NotFound(t *testing.T) {
 }
 
 // GetJobStatus
-func Test_GetJobStatus(t *testing.T) {
+func Test_GetJobStatus_Paused(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
@@ -211,12 +260,8 @@ func Test_GetJobStatus(t *testing.T) {
 
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, mock.Anything).Return(job, nil)
 
-	// Mock the Temporal client and its methods
-	mockScheduleClient := new(MockScheduleClient)
-	mockHandle := new(MockHandle)
+	mockHandle := new(MockScheduleHandle)
 
-	// Setup expectations for the ScheduleClient and its methods
-	mockScheduleClient.On("GetHandle", mock.Anything, jobId).Return(mockHandle)
 	mockHandle.On("Describe", mock.Anything).Return(&temporal.ScheduleDescription{
 		Schedule: temporal.Schedule{
 			State: &temporal.ScheduleState{
@@ -225,7 +270,7 @@ func Test_GetJobStatus(t *testing.T) {
 		},
 	}, nil)
 
-	m.TemporalWfManagerMock.On("GetWorkflowClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(mockScheduleClient, nil)
+	m.TemporalWfManagerMock.On("GetScheduleHandleClientByAccount", mock.Anything, mockAccountId, jobId, mock.Anything).Return(mockHandle, nil)
 
 	resp, err := m.Service.GetJobStatus(context.Background(), &connect.Request[mgmtv1alpha1.GetJobStatusRequest]{
 		Msg: &mgmtv1alpha1.GetJobStatusRequest{
@@ -235,6 +280,39 @@ func Test_GetJobStatus(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
+	assert.Equal(t, mgmtv1alpha1.JobStatus(3), resp.Msg.Status)
+}
+
+func Test_GetJobStatus_Enabled(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	jobId := nucleusdb.UUIDString(job.ID)
+
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+
+	mockHandle := new(MockScheduleHandle)
+
+	mockHandle.On("Describe", mock.Anything).Return(&temporal.ScheduleDescription{
+		Schedule: temporal.Schedule{
+			State: &temporal.ScheduleState{
+				Paused: false,
+			},
+		},
+	}, nil)
+
+	m.TemporalWfManagerMock.On("GetScheduleHandleClientByAccount", mock.Anything, mockAccountId, jobId, mock.Anything).Return(mockHandle, nil)
+
+	resp, err := m.Service.GetJobStatus(context.Background(), &connect.Request[mgmtv1alpha1.GetJobStatusRequest]{
+		Msg: &mgmtv1alpha1.GetJobStatusRequest{
+			JobId: jobId,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mgmtv1alpha1.JobStatus(1), resp.Msg.Status)
 }
 
 type serviceMocks struct {

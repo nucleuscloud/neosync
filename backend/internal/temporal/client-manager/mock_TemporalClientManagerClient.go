@@ -149,6 +149,119 @@ func (_c *MockTemporalClientManagerClient_GetNamespaceClientByAccount_Call) RunA
 	return _c
 }
 
+// GetScheduleClientByAccount provides a mock function with given fields: ctx, accountId, logger
+func (_m *MockTemporalClientManagerClient) GetScheduleClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (client.ScheduleClient, error) {
+	ret := _m.Called(ctx, accountId, logger)
+
+	var r0 client.ScheduleClient
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *slog.Logger) (client.ScheduleClient, error)); ok {
+		return rf(ctx, accountId, logger)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, *slog.Logger) client.ScheduleClient); ok {
+		r0 = rf(ctx, accountId, logger)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(client.ScheduleClient)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, *slog.Logger) error); ok {
+		r1 = rf(ctx, accountId, logger)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockTemporalClientManagerClient_GetScheduleClientByAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetScheduleClientByAccount'
+type MockTemporalClientManagerClient_GetScheduleClientByAccount_Call struct {
+	*mock.Call
+}
+
+// GetScheduleClientByAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountId string
+//   - logger *slog.Logger
+func (_e *MockTemporalClientManagerClient_Expecter) GetScheduleClientByAccount(ctx interface{}, accountId interface{}, logger interface{}) *MockTemporalClientManagerClient_GetScheduleClientByAccount_Call {
+	return &MockTemporalClientManagerClient_GetScheduleClientByAccount_Call{Call: _e.mock.On("GetScheduleClientByAccount", ctx, accountId, logger)}
+}
+
+func (_c *MockTemporalClientManagerClient_GetScheduleClientByAccount_Call) Run(run func(ctx context.Context, accountId string, logger *slog.Logger)) *MockTemporalClientManagerClient_GetScheduleClientByAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(*slog.Logger))
+	})
+	return _c
+}
+
+func (_c *MockTemporalClientManagerClient_GetScheduleClientByAccount_Call) Return(_a0 client.ScheduleClient, _a1 error) *MockTemporalClientManagerClient_GetScheduleClientByAccount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockTemporalClientManagerClient_GetScheduleClientByAccount_Call) RunAndReturn(run func(context.Context, string, *slog.Logger) (client.ScheduleClient, error)) *MockTemporalClientManagerClient_GetScheduleClientByAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetScheduleHandleClientByAccount provides a mock function with given fields: ctx, accountId, scheduleId, logger
+func (_m *MockTemporalClientManagerClient) GetScheduleHandleClientByAccount(ctx context.Context, accountId string, scheduleId string, logger *slog.Logger) (client.ScheduleHandle, error) {
+	ret := _m.Called(ctx, accountId, scheduleId, logger)
+
+	var r0 client.ScheduleHandle
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) (client.ScheduleHandle, error)); ok {
+		return rf(ctx, accountId, scheduleId, logger)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) client.ScheduleHandle); ok {
+		r0 = rf(ctx, accountId, scheduleId, logger)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(client.ScheduleHandle)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, *slog.Logger) error); ok {
+		r1 = rf(ctx, accountId, scheduleId, logger)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetScheduleHandleClientByAccount'
+type MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call struct {
+	*mock.Call
+}
+
+// GetScheduleHandleClientByAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountId string
+//   - scheduleId string
+//   - logger *slog.Logger
+func (_e *MockTemporalClientManagerClient_Expecter) GetScheduleHandleClientByAccount(ctx interface{}, accountId interface{}, scheduleId interface{}, logger interface{}) *MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call {
+	return &MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call{Call: _e.mock.On("GetScheduleHandleClientByAccount", ctx, accountId, scheduleId, logger)}
+}
+
+func (_c *MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call) Run(run func(ctx context.Context, accountId string, scheduleId string, logger *slog.Logger)) *MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*slog.Logger))
+	})
+	return _c
+}
+
+func (_c *MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call) Return(_a0 client.ScheduleHandle, _a1 error) *MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call) RunAndReturn(run func(context.Context, string, string, *slog.Logger) (client.ScheduleHandle, error)) *MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetWorkflowClientByAccount provides a mock function with given fields: ctx, accountId, logger
 func (_m *MockTemporalClientManagerClient) GetWorkflowClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (client.Client, error) {
 	ret := _m.Called(ctx, accountId, logger)

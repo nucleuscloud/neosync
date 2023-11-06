@@ -175,12 +175,11 @@ func (s *Service) GetJobStatus(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), nucleusdb.UUIDString(job.ID), logger)
 	if err != nil {
 		return nil, err
 	}
 
-	scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	schedule, err := scheduleHandle.Describe(ctx)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
@@ -210,11 +209,11 @@ func (s *Service) GetJobStatuses(
 
 	var scheduleclient temporalclient.ScheduleClient
 	if len(jobs) > 0 {
-		tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, req.Msg.AccountId, logger)
+		tclient, err := s.temporalWfManager.GetScheduleClientByAccount(ctx, req.Msg.AccountId, logger)
 		if err != nil {
 			return nil, err
 		}
-		scheduleclient = tclient.ScheduleClient()
+		scheduleclient = tclient
 	}
 
 	dtos := make([]*mgmtv1alpha1.JobStatusRecord, len(jobs))
@@ -266,12 +265,11 @@ func (s *Service) GetJobRecentRuns(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), nucleusdb.UUIDString(job.ID), logger)
 	if err != nil {
 		return nil, err
 	}
 
-	scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	schedule, err := scheduleHandle.Describe(ctx)
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to retrieve schedule: %w", err).Error())
