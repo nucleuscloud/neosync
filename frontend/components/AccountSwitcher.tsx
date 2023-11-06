@@ -25,7 +25,7 @@ interface Props {}
 
 export default function AccountSwitcher(_: Props): ReactElement {
   const { account, setAccount } = useAccount();
-  const { data, isLoading } = useGetUserAccounts();
+  const { data } = useGetUserAccounts();
   const [open, setOpen] = React.useState(false);
 
   const personalAccounts =
