@@ -200,8 +200,6 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
   const { rows, onSelect, transformers } = data;
   const row = rows[index];
 
-  // console.log('virtual table trans', transformers);
-
   return (
     <div style={style} className="border-t">
       <div className="grid grid-cols-5 gap-4 items-center p-2">
