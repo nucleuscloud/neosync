@@ -48,12 +48,8 @@ jobs:
 
       - uses: depot/build-push-action@v1
         with:
-          # if no depot.json file is at the root of your repo, you must specify the project id
-          project: zs74trdz0x
-          # Pass project token or user access token if you're not using OIDC token authentication
-          # token: ${{ secrets.DEPOT_TOKEN }}
-          push: ${{ github.event_name != 'pull_request' }}
-
+          # push: ${{ github.event_name != 'pull_request' }}
+          push: true
           platforms: linux/amd64,linux/arm64
           # tags: ${{ steps.meta.output.tags }}
           tags: ghcr.io/nucleuscloud/neosync/api:test
