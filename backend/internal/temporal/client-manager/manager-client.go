@@ -26,6 +26,15 @@ type TemporalClientManager struct {
 	accountNsMu *sync.Map
 }
 
+type TemporalClientManagerClient interface {
+	ClearNamespaceClientByAccount(ctx context.Context, accountId string)
+	ClearWorkflowClientByAccount(ctx context.Context, accountId string)
+	GetNamespaceClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (temporalclient.NamespaceClient, error)
+	GetWorkflowClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (temporalclient.Client, error)
+	GetScheduleClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (temporalclient.ScheduleClient, error)
+	GetScheduleHandleClientByAccount(ctx context.Context, accountId string, scheduleId string, logger *slog.Logger) (temporalclient.ScheduleHandle, error)
+}
+
 type DB interface {
 	GetTemporalConfigByAccount(ctx context.Context, db db_queries.DBTX, accountId pgtype.UUID) (*jsonmodels.TemporalConfig, error)
 }
@@ -121,6 +130,31 @@ func (t *TemporalClientManager) GetNamespaceClientByAccount(
 	}
 	t.nsmap.Store(accountId, client)
 	return client, nil
+}
+
+func (t *TemporalClientManager) GetScheduleClientByAccount(
+	ctx context.Context,
+	accountId string,
+	logger *slog.Logger,
+) (temporalclient.ScheduleClient, error) {
+	client, err := t.GetWorkflowClientByAccount(ctx, accountId, logger)
+	if err != nil {
+		return nil, err
+	}
+	return client.ScheduleClient(), nil
+}
+
+func (t *TemporalClientManager) GetScheduleHandleClientByAccount(
+	ctx context.Context,
+	accountId string,
+	scheduleId string,
+	logger *slog.Logger,
+) (temporalclient.ScheduleHandle, error) {
+	client, err := t.GetScheduleClientByAccount(ctx, accountId, logger)
+	if err != nil {
+		return nil, err
+	}
+	return client.GetHandle(ctx, scheduleId), nil
 }
 
 func (t *TemporalClientManager) GetWorkflowClientByAccount(

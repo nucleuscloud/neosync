@@ -1,19 +1,18 @@
 package v1alpha1_jobservice
 
 import (
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
-	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
-	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 )
 
 type Service struct {
 	cfg                *Config
 	db                 *nucleusdb.NucleusDb
-	connectionService  *v1alpha1_connectionservice.Service
-	useraccountService *v1alpha1_useraccountservice.Service
+	connectionService  mgmtv1alpha1connect.ConnectionServiceClient
+	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
 
-	temporalWfManager *clientmanager.TemporalClientManager
+	temporalWfManager clientmanager.TemporalClientManagerClient
 }
 
 type Config struct {
@@ -23,9 +22,9 @@ type Config struct {
 func New(
 	cfg *Config,
 	db *nucleusdb.NucleusDb,
-	temporalWfManager *clientmanager.TemporalClientManager,
-	connectionService *v1alpha1_connectionservice.Service,
-	useraccountService *v1alpha1_useraccountservice.Service,
+	temporalWfManager clientmanager.TemporalClientManagerClient,
+	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
+	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 ) *Service {
 
 	return &Service{
