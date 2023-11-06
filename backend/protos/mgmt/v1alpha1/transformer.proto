@@ -109,6 +109,7 @@ message TransformerConfig {
     State state_config = 20;
     FullAddress full_address_config = 21;
     CreditCard credit_card_config = 22;
+    SHA256Hash sha256hash_config = 23;
   }
 }
 
@@ -184,6 +185,8 @@ message FullAddress {}
 message CreditCard {
   bool valid_luhn = 1;
 }
+
+message SHA256Hash {}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}

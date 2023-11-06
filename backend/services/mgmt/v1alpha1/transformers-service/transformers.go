@@ -39,6 +39,7 @@ const (
 	State          Transformation = "state"
 	FullAddress    Transformation = "full_address"
 	CreditCard     Transformation = "credit_card"
+	SHA256         Transformation = "sha256_hash"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -193,6 +194,11 @@ func (s *Service) GetSystemTransformers(
 					CreditCardConfig: &mgmtv1alpha1.CreditCard{
 						ValidLuhn: true,
 					},
+				},
+			}},
+			{Value: string(SHA256), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_Sha256HashConfig{
+					Sha256HashConfig: &mgmtv1alpha1.SHA256Hash{},
 				},
 			}},
 		},

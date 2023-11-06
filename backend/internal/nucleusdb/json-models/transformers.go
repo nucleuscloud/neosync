@@ -32,6 +32,7 @@ type TransformerConfigs struct {
 	State          *StateConfig          `json:"state,omitempty"`
 	FullAddress    *FullAddressConfig    `json:"fullAddress,omitempty"`
 	CreditCard     *CreditCardConfig     `json:"creditcard,omitempty"`
+	SHA256Hash     *SHA256HashConfig     `json:"sha256Hash,omitempty"`
 }
 
 type EmailConfigs struct {
@@ -106,6 +107,8 @@ type FullAddressConfig struct{}
 type CreditCardConfig struct {
 	ValidLuhn bool `json:"validLuhn"`
 }
+
+type SHA256HashConfig struct{}
 
 // from API -> DB
 func (t *Transformer) FromTransformerDto(tr *mgmtv1alpha1.Transformer) error {
@@ -209,6 +212,8 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.CreditCard = &CreditCardConfig{
 			ValidLuhn: tr.GetCreditCardConfig().ValidLuhn,
 		}
+	case *mgmtv1alpha1.TransformerConfig_Sha256HashConfig:
+		t.SHA256Hash = &SHA256HashConfig{}
 	default:
 		t = &TransformerConfigs{}
 	}
@@ -392,6 +397,12 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 				CreditCardConfig: &mgmtv1alpha1.CreditCard{
 					ValidLuhn: tr.CreditCard.ValidLuhn,
 				},
+			},
+		}
+	case tr.SHA256Hash != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_Sha256HashConfig{
+				Sha256HashConfig: &mgmtv1alpha1.SHA256Hash{},
 			},
 		}
 	default:
