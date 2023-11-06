@@ -15,7 +15,7 @@ require (
 	github.com/spf13/viper v1.17.0
 	github.com/toqueteos/webbrowser v1.2.0
 	golang.org/x/net v0.17.0
-	golang.org/x/sync v0.4.0
+	golang.org/x/sync v0.5.0
 	google.golang.org/grpc v1.59.0
 	gopkg.in/yaml.v3 v3.0.1
 )
