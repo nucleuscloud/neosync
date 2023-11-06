@@ -18,7 +18,6 @@ const AccountContext = createContext<AccountContextType>({
   account: undefined,
   setAccount: () => {},
 });
-// const AccountContext = createContext<UserAccount | undefined>(undefined);
 
 const USER_ACCOUNT_KEY = 'user-account';
 
