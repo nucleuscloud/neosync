@@ -349,6 +349,7 @@ func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAcc
 	}), nil)
 }
 
+//nolint:all
 func mockUserAccountCalls(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) {
 	mockIsUserInAccount(userAccountServiceMock, isInAccount)
 	userAccountServiceMock.On("GetUser", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
@@ -356,6 +357,7 @@ func mockUserAccountCalls(userAccountServiceMock *mgmtv1alpha1connect.MockUserAc
 	}), nil)
 }
 
+//nolint:all
 func mockJob(accountId, userId, srcConnId string) db_queries.NeosyncApiJob {
 	id, _ := nucleusdb.ToUuid(uuid.NewString())
 	accountUuid, _ := nucleusdb.ToUuid(accountId)
@@ -381,12 +383,12 @@ func mockJob(accountId, userId, srcConnId string) db_queries.NeosyncApiJob {
 }
 
 func mockJobDestConnAssociation(jobUuid, connectionUuid pgtype.UUID) db_queries.NeosyncApiJobDestinationConnectionAssociation {
-	uuid, _ := nucleusdb.ToUuid(uuid.NewString())
+	idUuid, _ := nucleusdb.ToUuid(uuid.NewString())
 	timestamp := pgtype.Timestamp{
 		Time: time.Now(),
 	}
 	return db_queries.NeosyncApiJobDestinationConnectionAssociation{
-		ID:           uuid,
+		ID:           idUuid,
 		JobID:        jobUuid,
 		CreatedAt:    timestamp,
 		UpdatedAt:    timestamp,
