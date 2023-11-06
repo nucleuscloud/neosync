@@ -70,7 +70,7 @@
     "autoprefixer": "^10.4.16",
     "eslint": "8.52.0",
     "eslint-config-next": "14.0.1",
-    "knip": "^2.39.0",
+    "knip": "^2.40.0",
     "postcss": "^8.4.31",
     "prettier": "^3.0.3",
     "tailwindcss": "^3.3.5",
