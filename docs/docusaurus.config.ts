@@ -1,10 +1,11 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const { themes } = require('prism-react-renderer');
+import type * as Preset from '@docusaurus/preset-classic';
+import { Config } from '@docusaurus/types';
+import { themes } from 'prism-react-renderer';
 
-/** @type {import('@docusaurus/types').Config} */
-const config = {
+const config: Config = {
   title: 'Neosync',
   tagline: 'Open source Test Data Management',
   favicon: 'img/logo_light_mode.png',
@@ -31,7 +32,7 @@ const config = {
     locales: ['en'],
   },
   plugins: [
-    async function myPlugin(context, options) {
+    async function tailwindcssPlugin(context, options) {
       return {
         name: 'docusaurus-tailwindcss',
         configurePostCss(postcssOptions) {
@@ -47,11 +48,10 @@ const config = {
   presets: [
     [
       'classic',
-      /** @type {import('@docusaurus/preset-classic').Options} */
-      ({
+      {
         docs: {
           routeBasePath: '/',
-          sidebarPath: require.resolve('./sidebars.js'),
+          sidebarPath: './sidebars.js',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/nucleuscloud/neosync',
@@ -60,41 +60,40 @@ const config = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
-      }),
+      } satisfies Preset.Options,
     ],
   ],
 
-  themeConfig:
-    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
-    ({
-      image: 'img/docusaurus-social-card.jpg',
-      colorMode: {
-        defaultMode: 'light',
-        disableSwitch: true,
-        respectPrefersColorScheme: false,
+  themeConfig: {
+    image: 'img/docusaurus-social-card.jpg',
+    colorMode: {
+      defaultMode: 'light',
+      disableSwitch: true,
+      respectPrefersColorScheme: false,
+    },
+    navbar: {
+      title: 'Neosync',
+      logo: {
+        alt: 'My Site Logo',
+        srcDark: 'img/white-logo.png',
+        src: 'img/neosync_just_logo.png',
       },
-      navbar: {
-        logo: {
-          alt: 'Neosync',
-          srcDark: 'img/logo_and_text_dark_mode.png',
-          src: 'img/logo_and_text_light_mode.png',
+      items: [
+        {
+          type: 'custom-Gitlink',
+          position: 'right',
         },
-        items: [
-          {
-            type: 'custom-Gitlink',
-            position: 'right',
-          },
-        ],
-      },
-      footer: {
-        style: 'dark',
-        copyright: `Copyright © Nucleus Cloud Corp ${new Date().getFullYear()}`,
-      },
-      prism: {
-        theme: themes.github,
-        darkTheme: themes.dracula,
-      },
-    }),
+      ],
+    },
+    footer: {
+      style: 'dark',
+      copyright: `Copyright © Nucleus Cloud Corp ${new Date().getFullYear()}`,
+    },
+    prism: {
+      theme: themes.github,
+      darkTheme: themes.dracula,
+    },
+  } satisfies Preset.ThemeConfig,
 };
 
-module.exports = config;
+export default config;
