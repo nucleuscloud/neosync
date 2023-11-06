@@ -80,7 +80,7 @@ interface SchemaMap {
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
-  const account = useAccount();
+  const { account } = useAccount();
   const { data, mutate } = useGetJob(jobId);
   const { data: schema } = useGetConnectionSchema(
     data?.job?.source?.connectionId

@@ -32,7 +32,7 @@ export default function Transformers(): ReactElement {
 
 function TransformersTable(): ReactElement {
   const { data, isLoading: transformersIsLoading } = useGetSystemTransformers();
-  const account = useAccount();
+  const { account } = useAccount();
   const {
     data: cTransformers,
     isLoading: customTransformersLoading,

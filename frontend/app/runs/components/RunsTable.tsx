@@ -22,7 +22,7 @@ interface RunsTableProps {}
 
 export default function RunsTable(props: RunsTableProps): ReactElement {
   const {} = props;
-  const account = useAccount();
+  const { account } = useAccount();
   const [refreshInterval, setAutoRefreshInterval] =
     useState<JobRunsAutoRefreshInterval>('1m');
   const { isLoading, data, mutate, isValidating } = useGetJobRuns(

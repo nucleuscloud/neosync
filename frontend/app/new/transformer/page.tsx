@@ -59,7 +59,7 @@ export default function NewTransformer(): ReactElement {
   });
 
   const router = useRouter();
-  const account = useAccount();
+  const { account } = useAccount();
 
   async function onSubmit(
     values: CreateCustomTransformerSchema

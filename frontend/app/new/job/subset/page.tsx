@@ -52,7 +52,7 @@ import {
 } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
-  const account = useAccount();
+  const { account } = useAccount();
   const router = useRouter();
   useEffect(() => {
     if (!searchParams?.sessionId) {

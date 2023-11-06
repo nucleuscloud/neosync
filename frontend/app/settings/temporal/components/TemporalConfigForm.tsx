@@ -33,7 +33,7 @@ const FORM_SCHEMA = Yup.object({
 type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function TemporalConfigForm(): ReactElement {
-  const account = useAccount();
+  const { account } = useAccount();
   const { data: tcData, mutate: mutateTcData } = useGetAccountTemporalConfig(
     account?.id ?? ''
   );

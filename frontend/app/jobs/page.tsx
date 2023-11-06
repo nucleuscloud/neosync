@@ -31,7 +31,7 @@ interface JobTableProps {}
 
 function JobTable(props: JobTableProps): ReactElement {
   const {} = props;
-  const account = useAccount();
+  const { account } = useAccount();
   const { isLoading, data, mutate } = useGetJobs(account?.id ?? '');
   const { data: statusData } = useGetJobStatuses(account?.id ?? '');
 

@@ -22,7 +22,7 @@ import { useSessionStorage } from 'usehooks-ts';
 import { FlowFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
-  const account = useAccount();
+  const { account } = useAccount();
   const router = useRouter();
   const { toast } = useToast();
 

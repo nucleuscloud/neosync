@@ -39,7 +39,7 @@ import { FLOW_FORM_SCHEMA, FlowFormValues } from '../schema';
 const NEW_CONNECTION_VALUE = 'new-connection';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
-  const account = useAccount();
+  const { account } = useAccount();
   const router = useRouter();
   useEffect(() => {
     if (!searchParams?.sessionId) {
