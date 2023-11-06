@@ -12,10 +12,10 @@ import {
   useHomePageRoute,
   useSidebarBreadcrumbs,
 } from '@docusaurus/theme-common/internal';
-import HomeBreadcrumbItem from '@theme/DocBreadcrumbs/Items/Home';
 import clsx from 'clsx';
 import React, { type ReactNode } from 'react';
 
+import { ChevronRightIcon, HomeIcon } from '@radix-ui/react-icons';
 import styles from './styles.module.css';
 
 // TODO move to design system folder
@@ -69,9 +69,13 @@ function BreadcrumbsItem({
         itemProp: 'itemListElement',
         itemType: 'https://schema.org/ListItem',
       })}
-      className={clsx('breadcrumbs__item', {
-        'breadcrumbs__item--active': active,
-      })}
+      className={clsx(
+        'breadcrumbs__item',
+        {
+          'breadcrumbs__item--active': active,
+        },
+        ''
+      )}
     >
       {children}
       <meta itemProp="position" content={String(index + 1)} />
@@ -104,27 +108,46 @@ export default function DocBreadcrumbs(): JSX.Element | null {
         itemScope
         itemType="https://schema.org/BreadcrumbList"
       >
-        {homePageRoute && <HomeBreadcrumbItem />}
-        {breadcrumbs.map((item, idx) => {
-          const isLast = idx === breadcrumbs.length - 1;
-          const href =
-            item.type === 'category' && item.linkUnlisted
-              ? undefined
-              : item.href;
-          return (
-            <BreadcrumbsItem
-              key={idx}
-              active={isLast}
-              index={idx}
-              addMicrodata={!!href}
-            >
-              <BreadcrumbsItemLink href={href} isLast={isLast}>
-                {item.label}
-              </BreadcrumbsItemLink>
-            </BreadcrumbsItem>
-          );
-        })}
+        <div className="flex flex-row gap-2">
+          {homePageRoute && (
+            <LocalHomeBreadcrumbItem homePageRoute={homePageRoute} />
+          )}
+          {breadcrumbs.map((item, idx) => {
+            const isLast = idx === breadcrumbs.length - 1;
+            const href =
+              item.type === 'category' && item.linkUnlisted
+                ? undefined
+                : item.href;
+            return (
+              <BreadcrumbsItem
+                key={idx}
+                active={isLast}
+                index={idx}
+                addMicrodata={!!href}
+              >
+                <BreadcrumbsItemLink href={href} isLast={isLast}>
+                  {item.label}
+                </BreadcrumbsItemLink>
+              </BreadcrumbsItem>
+            );
+          })}
+        </div>
       </ul>
     </nav>
+  );
+}
+
+interface LocalHomeBreadcrumbItemsProps {
+  homePageRoute: any;
+}
+function LocalHomeBreadcrumbItem(props: LocalHomeBreadcrumbItemsProps) {
+  const { homePageRoute } = props;
+  return (
+    <div className="flex flex-row items-center space-x-2">
+      <Link href={homePageRoute.path}>
+        <HomeIcon className="home-icon" />
+      </Link>
+      <ChevronRightIcon className="dark:text-gray-100 text-gray-800" />
+    </div>
   );
 }
