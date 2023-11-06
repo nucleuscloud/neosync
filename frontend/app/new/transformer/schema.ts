@@ -105,6 +105,8 @@ export const transformerConfig = Yup.object().shape({
           return Yup.object().shape({});
         case 'creditcardConfig':
           return creditcardConfig;
+        case 'sha256hashConfig':
+          return Yup.object().shape({});
         default:
           return Yup.object().shape({});
       }

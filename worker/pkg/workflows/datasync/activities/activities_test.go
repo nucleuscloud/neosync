@@ -457,6 +457,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 	assert.Equal(t, val, "null")
 }
 
+// nolint
 func Test_sha256Hash_transformer_string(t *testing.T) {
 
 	mapping := `root = this.bytes().hash("sha256").encode("hex")`
@@ -484,6 +485,7 @@ func Test_sha256Hash_transformer_string(t *testing.T) {
 	assert.Equal(t, res, buf.String())
 }
 
+// nolint
 func Test_sha256Hash_transformer_int64(t *testing.T) {
 
 	mapping := `root = this.bytes().hash("sha256").encode("hex")`
@@ -511,6 +513,7 @@ func Test_sha256Hash_transformer_int64(t *testing.T) {
 	assert.Equal(t, res, buf.String())
 }
 
+// nolint
 func Test_sha256Hash_transformer_float(t *testing.T) {
 
 	mapping := `root = this.bytes().hash("sha256").encode("hex")`

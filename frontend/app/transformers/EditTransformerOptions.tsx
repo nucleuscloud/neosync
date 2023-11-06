@@ -398,6 +398,14 @@ export function handleTransformerMetadata(
         type: 'int64',
       },
     },
+    {
+      sha256_hash: {
+        name: 'SHA256 Hash',
+        description:
+          'SHA256 hashes the input value and returns back a string representation of the hash.',
+        type: 'string',
+      },
+    },
   ];
 
   const def = {

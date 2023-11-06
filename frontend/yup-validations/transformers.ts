@@ -16,6 +16,7 @@ import {
   RandomFloat,
   RandomInt,
   RandomString,
+  SHA256Hash,
   State,
   StreetAddress,
   Transformer,
@@ -436,6 +437,17 @@ export function ToTransformerConfigOptions(
             value: new CreditCard({
               validLuhn: g.value.validLuhn,
             }),
+          },
+        }),
+      });
+    }
+    case 'sha256_hash': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'sha256hashConfig',
+            value: new SHA256Hash({}),
           },
         }),
       });
