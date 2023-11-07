@@ -62,7 +62,6 @@ debug "PG_LOGIN:    ${PG_LOGIN}"
 debug "PG_OPTIONS:  ${PG_OPTIONS}"
 debug "PG_HOSTNAME: ${PG_HOSTNAME}"
 
-
 # only need schema creation for local dev, so allow skipping by setting this env var
 if [ -z "${SKIP_SCHEMA_CREATION}" ] || [ "${SKIP_SCHEMA_CREATION}" = "false" ] && [ "${cmd}" = "up" ]; then
     if ! command -v psql > /dev/null ; then
@@ -85,4 +84,4 @@ debug "PG_CONNECT_STR: ${PG_CONNECT_STR}"
 
 # make stderr go through stdout so it doesn't end up an err in datadog
 # shellcheck disable=2086
-migrate -path "${SCRIPT_DIR}/../migrations" -database "${PG_CONNECT_STR}" "$@" 2>&1
+migrate -path "${SCRIPT_DIR}/../sql/postgresql/schema" -database "${PG_CONNECT_STR}" "$@" 2>&1

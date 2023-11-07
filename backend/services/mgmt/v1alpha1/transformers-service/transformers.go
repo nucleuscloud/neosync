@@ -10,7 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 type Transformation string
@@ -274,7 +274,7 @@ func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Requ
 		AccountID:         *accountUuid,
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
-		TransformerConfig: &jsonmodels.TransformerConfigs{},
+		TransformerConfig: &pg_models.TransformerConfigs{},
 		Type:              req.Msg.Type,
 		Source:            req.Msg.Source,
 		CreatedByID:       *userUuid,
@@ -356,7 +356,7 @@ func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Requ
 	customTransformer := &db_queries.UpdateCustomTransformerParams{
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
-		TransformerConfig: &jsonmodels.TransformerConfigs{},
+		TransformerConfig: &pg_models.TransformerConfigs{},
 		UpdatedByID:       *userUuid,
 		ID:                tUuid,
 	}

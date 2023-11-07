@@ -15,7 +15,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
 	"go.temporal.io/api/serviceerror"
@@ -320,7 +320,7 @@ func (s *Service) GetJobNextRuns(
 
 type Destination struct {
 	ConnectionId pgtype.UUID
-	Options      *jsonmodels.JobDestinationOptions
+	Options      *pg_models.JobDestinationOptions
 }
 
 func (s *Service) CreateJob(
@@ -346,7 +346,7 @@ func (s *Service) CreateJob(
 		if err != nil {
 			return nil, err
 		}
-		options := &jsonmodels.JobDestinationOptions{}
+		options := &pg_models.JobDestinationOptions{}
 		err = options.FromDto(dest.Options)
 		if err != nil {
 			return nil, err
@@ -384,9 +384,9 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	mappings := []*jsonmodels.JobMapping{}
+	mappings := []*pg_models.JobMapping{}
 	for _, mapping := range req.Msg.Mappings {
-		jm := &jsonmodels.JobMapping{}
+		jm := &pg_models.JobMapping{}
 		err = jm.FromDto(mapping)
 		if err != nil {
 			return nil, err
@@ -394,7 +394,7 @@ func (s *Service) CreateJob(
 		mappings = append(mappings, jm)
 	}
 
-	connectionOptions := &jsonmodels.JobSourceOptions{}
+	connectionOptions := &pg_models.JobSourceOptions{}
 	err = connectionOptions.FromDto(req.Msg.Source.Options)
 	if err != nil {
 		return nil, err
@@ -602,7 +602,7 @@ func (s *Service) CreateJobDestinationConnections(
 		if err != nil {
 			return nil, err
 		}
-		options := &jsonmodels.JobDestinationOptions{}
+		options := &pg_models.JobDestinationOptions{}
 		err = options.FromDto(dest.Options)
 		if err != nil {
 			return nil, err
@@ -822,15 +822,15 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, err
 	}
 
-	connectionOptions := &jsonmodels.JobSourceOptions{}
+	connectionOptions := &pg_models.JobSourceOptions{}
 	err = connectionOptions.FromDto(req.Msg.Source.Options)
 	if err != nil {
 		return nil, err
 	}
 
-	mappings := []*jsonmodels.JobMapping{}
+	mappings := []*pg_models.JobMapping{}
 	for _, mapping := range req.Msg.Mappings {
-		jm := &jsonmodels.JobMapping{}
+		jm := &pg_models.JobMapping{}
 		err = jm.FromDto(mapping)
 		if err != nil {
 			return nil, err
@@ -980,7 +980,7 @@ func (s *Service) UpdateJobDestinationConnection(
 	if err := s.verifyConnectionInAccount(ctx, req.Msg.ConnectionId, job.Msg.Job.AccountId); err != nil {
 		return nil, err
 	}
-	options := &jsonmodels.JobDestinationOptions{}
+	options := &pg_models.JobDestinationOptions{}
 	err = options.FromDto(req.Msg.Options)
 	if err != nil {
 		return nil, err

@@ -13,8 +13,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
@@ -396,7 +396,7 @@ func getWorkflowExecutionsByRunId(
 type getVerifiedJobRunResponse struct {
 	WorkflowExecution *workflowpb.WorkflowExecutionInfo
 	NeosyncAccountId  string
-	TemporalConfig    *jsonmodels.TemporalConfig
+	TemporalConfig    *pg_models.TemporalConfig
 }
 
 func (s *Service) getVerifiedJobRun(

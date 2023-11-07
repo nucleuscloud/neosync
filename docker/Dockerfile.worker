@@ -3,15 +3,24 @@ FROM golang:1.21 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY backend/go.mod backend/go.mod
+COPY backend/go.sum backend/go.sum
+COPY worker/go.mod worker/go.mod
+COPY worker/go.sum worker/go.sum
 
+WORKDIR /workspace/worker
 RUN go mod download
 
+WORKDIR /workspace
+COPY backend/ backend/
+
+WORKDIR /workspace/worker
+
 # Copy the go source
-COPY cmd/ cmd/
-COPY internal/ internal/
-COPY pkg/ pkg/
+COPY worker/cmd/ cmd/
+COPY worker/internal/ internal/
+COPY worker/gen/ gen/
+COPY worker/pkg/ pkg/
 
 # Build
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
@@ -20,7 +29,7 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
-COPY --from=builder /workspace/bin/worker .
+COPY --from=builder /workspace/worker/bin/worker .
 USER 65532:65532
 
 ENTRYPOINT ["/worker"]

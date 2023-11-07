@@ -9,7 +9,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 const createConnection = `-- name: CreateConnection :one
@@ -24,7 +24,7 @@ RETURNING id, created_at, updated_at, name, account_id, connection_config, creat
 type CreateConnectionParams struct {
 	Name             string
 	AccountID        pgtype.UUID
-	ConnectionConfig *jsonmodels.ConnectionConfig
+	ConnectionConfig *pg_models.ConnectionConfig
 	CreatedByID      pgtype.UUID
 	UpdatedByID      pgtype.UUID
 }
@@ -202,7 +202,7 @@ RETURNING id, created_at, updated_at, name, account_id, connection_config, creat
 `
 
 type UpdateConnectionParams struct {
-	ConnectionConfig *jsonmodels.ConnectionConfig
+	ConnectionConfig *pg_models.ConnectionConfig
 	UpdatedByID      pgtype.UUID
 	ID               pgtype.UUID
 }

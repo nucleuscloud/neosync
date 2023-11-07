@@ -6,7 +6,7 @@ package db_queries
 
 import (
 	"github.com/jackc/pgx/v5/pgtype"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 type NeosyncApiAccount struct {
@@ -15,7 +15,7 @@ type NeosyncApiAccount struct {
 	UpdatedAt      pgtype.Timestamp
 	AccountType    int16
 	AccountSlug    string
-	TemporalConfig *jsonmodels.TemporalConfig
+	TemporalConfig *pg_models.TemporalConfig
 }
 
 type NeosyncApiAccountUserAssociation struct {
@@ -32,7 +32,7 @@ type NeosyncApiConnection struct {
 	UpdatedAt        pgtype.Timestamp
 	Name             string
 	AccountID        pgtype.UUID
-	ConnectionConfig *jsonmodels.ConnectionConfig
+	ConnectionConfig *pg_models.ConnectionConfig
 	CreatedByID      pgtype.UUID
 	UpdatedByID      pgtype.UUID
 }
@@ -45,8 +45,8 @@ type NeosyncApiJob struct {
 	AccountID          pgtype.UUID
 	Status             int16
 	ConnectionSourceID pgtype.UUID
-	ConnectionOptions  *jsonmodels.JobSourceOptions
-	Mappings           []*jsonmodels.JobMapping
+	ConnectionOptions  *pg_models.JobSourceOptions
+	Mappings           []*pg_models.JobMapping
 	CronSchedule       pgtype.Text
 	CreatedByID        pgtype.UUID
 	UpdatedByID        pgtype.UUID
@@ -58,7 +58,7 @@ type NeosyncApiJobDestinationConnectionAssociation struct {
 	UpdatedAt    pgtype.Timestamp
 	JobID        pgtype.UUID
 	ConnectionID pgtype.UUID
-	Options      *jsonmodels.JobDestinationOptions
+	Options      *pg_models.JobDestinationOptions
 }
 
 type NeosyncApiTransformer struct {
@@ -70,7 +70,7 @@ type NeosyncApiTransformer struct {
 	Type              string
 	Source            string
 	AccountID         pgtype.UUID
-	TransformerConfig *jsonmodels.TransformerConfigs
+	TransformerConfig *pg_models.TransformerConfigs
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
 }

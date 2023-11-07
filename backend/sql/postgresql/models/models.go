@@ -1,4 +1,4 @@
-package jsonmodels
+package pg_models
 
 import (
 	"fmt"

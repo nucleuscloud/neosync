@@ -9,7 +9,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 const createAccountUserAssociation = `-- name: CreateAccountUserAssociation :one
@@ -279,9 +279,9 @@ FROM neosync_api.accounts
 WHERE id = $1
 `
 
-func (q *Queries) GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*jsonmodels.TemporalConfig, error) {
+func (q *Queries) GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.TemporalConfig, error) {
 	row := db.QueryRow(ctx, getTemporalConfigByAccount, id)
-	var temporal_config *jsonmodels.TemporalConfig
+	var temporal_config *pg_models.TemporalConfig
 	err := row.Scan(&temporal_config)
 	return temporal_config, err
 }
@@ -299,9 +299,9 @@ type GetTemporalConfigByUserAccountParams struct {
 	UserId    pgtype.UUID
 }
 
-func (q *Queries) GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams) (*jsonmodels.TemporalConfig, error) {
+func (q *Queries) GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams) (*pg_models.TemporalConfig, error) {
 	row := db.QueryRow(ctx, getTemporalConfigByUserAccount, arg.AccountId, arg.UserId)
-	var temporal_config *jsonmodels.TemporalConfig
+	var temporal_config *pg_models.TemporalConfig
 	err := row.Scan(&temporal_config)
 	return temporal_config, err
 }
@@ -395,7 +395,7 @@ RETURNING id, created_at, updated_at, account_type, account_slug, temporal_confi
 `
 
 type UpdateTemporalConfigByAccountParams struct {
-	TemporalConfig *jsonmodels.TemporalConfig
+	TemporalConfig *pg_models.TemporalConfig
 	AccountId      pgtype.UUID
 }
 
