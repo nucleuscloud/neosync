@@ -55,7 +55,7 @@ local_resource(
 docker_build(
   ref='db-migration',
   context='.',
-  dockerfile='./Dockerfile.migrations',
+  dockerfile='../docker/Dockerfile.migrations',
   only=['hack/', 'migrations/'],
 )
 k8s_yaml(kustomize('./dev/yaml'))
