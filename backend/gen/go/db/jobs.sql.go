@@ -9,7 +9,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 const createJob = `-- name: CreateJob :one
@@ -27,8 +27,8 @@ type CreateJobParams struct {
 	AccountID          pgtype.UUID
 	Status             int16
 	ConnectionSourceID pgtype.UUID
-	ConnectionOptions  *jsonmodels.JobSourceOptions
-	Mappings           []*jsonmodels.JobMapping
+	ConnectionOptions  *pg_models.JobSourceOptions
+	Mappings           []*pg_models.JobMapping
 	CronSchedule       pgtype.Text
 	CreatedByID        pgtype.UUID
 	UpdatedByID        pgtype.UUID
@@ -78,7 +78,7 @@ RETURNING id, created_at, updated_at, job_id, connection_id, options
 type CreateJobConnectionDestinationParams struct {
 	JobID        pgtype.UUID
 	ConnectionID pgtype.UUID
-	Options      *jsonmodels.JobDestinationOptions
+	Options      *pg_models.JobDestinationOptions
 }
 
 func (q *Queries) CreateJobConnectionDestination(ctx context.Context, db DBTX, arg CreateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
@@ -98,7 +98,7 @@ func (q *Queries) CreateJobConnectionDestination(ctx context.Context, db DBTX, a
 type CreateJobConnectionDestinationsParams struct {
 	JobID        pgtype.UUID
 	ConnectionID pgtype.UUID
-	Options      *jsonmodels.JobDestinationOptions
+	Options      *pg_models.JobDestinationOptions
 }
 
 const deleteJob = `-- name: DeleteJob :exec
@@ -345,7 +345,7 @@ RETURNING id, created_at, updated_at, job_id, connection_id, options
 `
 
 type UpdateJobConnectionDestinationParams struct {
-	Options      *jsonmodels.JobDestinationOptions
+	Options      *pg_models.JobDestinationOptions
 	ConnectionID pgtype.UUID
 	ID           pgtype.UUID
 }
@@ -373,7 +373,7 @@ RETURNING id, created_at, updated_at, name, account_id, status, connection_sourc
 `
 
 type UpdateJobMappingsParams struct {
-	Mappings    []*jsonmodels.JobMapping
+	Mappings    []*pg_models.JobMapping
 	UpdatedByID pgtype.UUID
 	ID          pgtype.UUID
 }
@@ -443,7 +443,7 @@ RETURNING id, created_at, updated_at, name, account_id, status, connection_sourc
 
 type UpdateJobSourceParams struct {
 	ConnectionSourceID pgtype.UUID
-	ConnectionOptions  *jsonmodels.JobSourceOptions
+	ConnectionOptions  *pg_models.JobSourceOptions
 	UpdatedByID        pgtype.UUID
 	ID                 pgtype.UUID
 }

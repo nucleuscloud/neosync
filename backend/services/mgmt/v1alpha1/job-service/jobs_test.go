@@ -12,8 +12,8 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/stretchr/testify/assert"
@@ -376,8 +376,8 @@ func mockJob(accountId, userId, srcConnId string) db_queries.NeosyncApiJob {
 		Status:             0,
 		Name:               "some-name",
 		ConnectionSourceID: srcConnUuid,
-		ConnectionOptions:  &jsonmodels.JobSourceOptions{},
-		Mappings:           []*jsonmodels.JobMapping{},
+		ConnectionOptions:  &pg_models.JobSourceOptions{},
+		Mappings:           []*pg_models.JobMapping{},
 	}
 
 }
@@ -393,7 +393,7 @@ func mockJobDestConnAssociation(jobUuid, connectionUuid pgtype.UUID) db_queries.
 		CreatedAt:    timestamp,
 		UpdatedAt:    timestamp,
 		ConnectionID: connectionUuid,
-		Options:      &jsonmodels.JobDestinationOptions{},
+		Options:      &pg_models.JobDestinationOptions{},
 	}
 }
 
@@ -419,9 +419,9 @@ func getConnectionMock(accountId, name string, id *pgtype.UUID) db_queries.Neosy
 		UpdatedByID: userUuid,
 		CreatedAt:   timestamp,
 		UpdatedAt:   timestamp,
-		ConnectionConfig: &jsonmodels.ConnectionConfig{
-			PgConfig: &jsonmodels.PostgresConnectionConfig{
-				Connection: &jsonmodels.PostgresConnection{
+		ConnectionConfig: &pg_models.ConnectionConfig{
+			PgConfig: &pg_models.PostgresConnectionConfig{
+				Connection: &pg_models.PostgresConnection{
 					Host:    "host",
 					Port:    5432,
 					Name:    "database",

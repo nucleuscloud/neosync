@@ -13,8 +13,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 	conn_utils "github.com/nucleuscloud/neosync/backend/internal/utils/connections"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 const (
@@ -133,7 +133,7 @@ func (s *Service) CreateConnection(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateConnectionRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
-	cc := &jsonmodels.ConnectionConfig{}
+	cc := &pg_models.ConnectionConfig{}
 	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (s *Service) UpdateConnection(
 		return nil, err
 	}
 
-	cc := &jsonmodels.ConnectionConfig{}
+	cc := &pg_models.ConnectionConfig{}
 	if err := cc.FromDto(req.Msg.ConnectionConfig); err != nil {
 		return nil, err
 	}
