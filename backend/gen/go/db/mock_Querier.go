@@ -5,7 +5,7 @@ package db_queries
 import (
 	context "context"
 
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	mock "github.com/stretchr/testify/mock"
 
 	pgtype "github.com/jackc/pgx/v5/pgtype"

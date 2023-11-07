@@ -10,7 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 type Transformation string

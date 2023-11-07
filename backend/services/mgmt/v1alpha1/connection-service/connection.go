@@ -13,8 +13,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
 	conn_utils "github.com/nucleuscloud/neosync/backend/internal/utils/connections"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 const (

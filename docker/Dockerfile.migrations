@@ -8,7 +8,7 @@ RUN mkdir migrations && \
 
 ENV PATH="${PATH}:/workspace/bin"
 
-COPY migrations/* migrations/
+COPY sql/postgresql/schema/* sql/postgresql/schema/
 COPY hack/migrate.sh hack/
 COPY hack/migrate-download.sh hack/
 

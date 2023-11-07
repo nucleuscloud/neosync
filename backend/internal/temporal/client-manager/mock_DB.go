@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/internal/nucleusdb/json-models"
+	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 
 	mock "github.com/stretchr/testify/mock"
 
