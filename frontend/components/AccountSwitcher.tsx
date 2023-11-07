@@ -210,7 +210,7 @@ export default function AccountSwitcher(_: Props): ReactElement {
   );
 }
 
-export async function createTeamAccount(
+async function createTeamAccount(
   teamName: string
 ): Promise<CreateTeamAccountResponse | undefined> {
   const res = await fetch(`/api/teams`, {
