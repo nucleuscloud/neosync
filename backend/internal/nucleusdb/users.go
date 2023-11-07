@@ -114,7 +114,7 @@ func (d *NucleusDb) CreateTeamAccount(
 ) (*db_queries.NeosyncApiAccount, error) {
 	var teamAccount *db_queries.NeosyncApiAccount
 	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
-		accounts, err := d.Q.GetTeamAccountsByUserId(ctx, dbtx, userId)
+		accounts, err := d.Q.GetAccountsByUser(ctx, dbtx, userId)
 		if err != nil && !IsNoRows(err) {
 			return err
 		} else if err != nil && IsNoRows(err) {
