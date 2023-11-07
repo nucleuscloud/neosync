@@ -51,8 +51,9 @@ func (d *NucleusDb) SetUserByAuth0Id(
 				}
 				userResp = &user
 			}
-			userResp = &user
+			return nil
 		}
+		userResp = &user
 		return nil
 	}); err != nil {
 		return nil, err
@@ -83,6 +84,7 @@ func (d *NucleusDb) SetPersonalAccount(
 				return err
 			}
 		} else {
+			personalAccount = &account
 			_, err = d.Q.GetAccountUserAssociation(ctx, dbtx, db_queries.GetAccountUserAssociationParams{
 				AccountId: account.ID,
 				UserId:    userId,
@@ -99,7 +101,6 @@ func (d *NucleusDb) SetPersonalAccount(
 				}
 			}
 		}
-		personalAccount = &account
 		return nil
 	}); err != nil {
 		return nil, err
