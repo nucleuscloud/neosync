@@ -48,7 +48,7 @@
     "next-themes": "^0.2.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-hook-form": "^7.47.0",
+    "react-hook-form": "^7.48.2",
     "react-hook-form-persist": "^3.0.0",
     "react-icons": "^4.11.0",
     "react-virtualized-auto-sizer": "^1.0.20",
