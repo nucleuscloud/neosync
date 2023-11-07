@@ -2,7 +2,6 @@ package nucleusdb
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/jackc/pgx/v5"
@@ -107,7 +106,6 @@ func HandleSqlRollback(
 	tx SqlRollbackInterface,
 	logger *slog.Logger,
 ) {
-	fmt.Println("HERE")
 	if err := tx.Rollback(); err != nil && !isTxDone(err) {
 		logger.Error(err.Error())
 	}

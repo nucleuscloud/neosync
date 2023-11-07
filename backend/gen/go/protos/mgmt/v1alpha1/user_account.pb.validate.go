@@ -2020,3 +2020,211 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AccountTemporalConfigValidationError{}
+
+// Validate checks the field values on CreateTeamAccountRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateTeamAccountRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateTeamAccountRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateTeamAccountRequestMultiError, or nil if none found.
+func (m *CreateTeamAccountRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateTeamAccountRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	if len(errors) > 0 {
+		return CreateTeamAccountRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateTeamAccountRequestMultiError is an error wrapping multiple validation
+// errors returned by CreateTeamAccountRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateTeamAccountRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateTeamAccountRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateTeamAccountRequestMultiError) AllErrors() []error { return m }
+
+// CreateTeamAccountRequestValidationError is the validation error returned by
+// CreateTeamAccountRequest.Validate if the designated constraints aren't met.
+type CreateTeamAccountRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateTeamAccountRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateTeamAccountRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateTeamAccountRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateTeamAccountRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateTeamAccountRequestValidationError) ErrorName() string {
+	return "CreateTeamAccountRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateTeamAccountRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateTeamAccountRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateTeamAccountRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateTeamAccountRequestValidationError{}
+
+// Validate checks the field values on CreateTeamAccountResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateTeamAccountResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateTeamAccountResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateTeamAccountResponseMultiError, or nil if none found.
+func (m *CreateTeamAccountResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateTeamAccountResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	if len(errors) > 0 {
+		return CreateTeamAccountResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateTeamAccountResponseMultiError is an error wrapping multiple validation
+// errors returned by CreateTeamAccountResponse.ValidateAll() if the
+// designated constraints aren't met.
+type CreateTeamAccountResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateTeamAccountResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateTeamAccountResponseMultiError) AllErrors() []error { return m }
+
+// CreateTeamAccountResponseValidationError is the validation error returned by
+// CreateTeamAccountResponse.Validate if the designated constraints aren't met.
+type CreateTeamAccountResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateTeamAccountResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateTeamAccountResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateTeamAccountResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateTeamAccountResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateTeamAccountResponseValidationError) ErrorName() string {
+	return "CreateTeamAccountResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateTeamAccountResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateTeamAccountResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateTeamAccountResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateTeamAccountResponseValidationError{}

@@ -48,6 +48,9 @@ const (
 	// UserAccountServiceConvertPersonalToTeamAccountProcedure is the fully-qualified name of the
 	// UserAccountService's ConvertPersonalToTeamAccount RPC.
 	UserAccountServiceConvertPersonalToTeamAccountProcedure = "/mgmt.v1alpha1.UserAccountService/ConvertPersonalToTeamAccount"
+	// UserAccountServiceCreateTeamAccountProcedure is the fully-qualified name of the
+	// UserAccountService's CreateTeamAccount RPC.
+	UserAccountServiceCreateTeamAccountProcedure = "/mgmt.v1alpha1.UserAccountService/CreateTeamAccount"
 	// UserAccountServiceIsUserInAccountProcedure is the fully-qualified name of the
 	// UserAccountService's IsUserInAccount RPC.
 	UserAccountServiceIsUserInAccountProcedure = "/mgmt.v1alpha1.UserAccountService/IsUserInAccount"
@@ -66,6 +69,7 @@ type UserAccountServiceClient interface {
 	GetUserAccounts(context.Context, *connect.Request[v1alpha1.GetUserAccountsRequest]) (*connect.Response[v1alpha1.GetUserAccountsResponse], error)
 	SetPersonalAccount(context.Context, *connect.Request[v1alpha1.SetPersonalAccountRequest]) (*connect.Response[v1alpha1.SetPersonalAccountResponse], error)
 	ConvertPersonalToTeamAccount(context.Context, *connect.Request[v1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[v1alpha1.ConvertPersonalToTeamAccountResponse], error)
+	CreateTeamAccount(context.Context, *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error)
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
 	SetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.SetAccountTemporalConfigResponse], error)
@@ -106,6 +110,11 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			baseURL+UserAccountServiceConvertPersonalToTeamAccountProcedure,
 			opts...,
 		),
+		createTeamAccount: connect.NewClient[v1alpha1.CreateTeamAccountRequest, v1alpha1.CreateTeamAccountResponse](
+			httpClient,
+			baseURL+UserAccountServiceCreateTeamAccountProcedure,
+			opts...,
+		),
 		isUserInAccount: connect.NewClient[v1alpha1.IsUserInAccountRequest, v1alpha1.IsUserInAccountResponse](
 			httpClient,
 			baseURL+UserAccountServiceIsUserInAccountProcedure,
@@ -131,6 +140,7 @@ type userAccountServiceClient struct {
 	getUserAccounts              *connect.Client[v1alpha1.GetUserAccountsRequest, v1alpha1.GetUserAccountsResponse]
 	setPersonalAccount           *connect.Client[v1alpha1.SetPersonalAccountRequest, v1alpha1.SetPersonalAccountResponse]
 	convertPersonalToTeamAccount *connect.Client[v1alpha1.ConvertPersonalToTeamAccountRequest, v1alpha1.ConvertPersonalToTeamAccountResponse]
+	createTeamAccount            *connect.Client[v1alpha1.CreateTeamAccountRequest, v1alpha1.CreateTeamAccountResponse]
 	isUserInAccount              *connect.Client[v1alpha1.IsUserInAccountRequest, v1alpha1.IsUserInAccountResponse]
 	getAccountTemporalConfig     *connect.Client[v1alpha1.GetAccountTemporalConfigRequest, v1alpha1.GetAccountTemporalConfigResponse]
 	setAccountTemporalConfig     *connect.Client[v1alpha1.SetAccountTemporalConfigRequest, v1alpha1.SetAccountTemporalConfigResponse]
@@ -161,6 +171,11 @@ func (c *userAccountServiceClient) ConvertPersonalToTeamAccount(ctx context.Cont
 	return c.convertPersonalToTeamAccount.CallUnary(ctx, req)
 }
 
+// CreateTeamAccount calls mgmt.v1alpha1.UserAccountService.CreateTeamAccount.
+func (c *userAccountServiceClient) CreateTeamAccount(ctx context.Context, req *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error) {
+	return c.createTeamAccount.CallUnary(ctx, req)
+}
+
 // IsUserInAccount calls mgmt.v1alpha1.UserAccountService.IsUserInAccount.
 func (c *userAccountServiceClient) IsUserInAccount(ctx context.Context, req *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error) {
 	return c.isUserInAccount.CallUnary(ctx, req)
@@ -183,6 +198,7 @@ type UserAccountServiceHandler interface {
 	GetUserAccounts(context.Context, *connect.Request[v1alpha1.GetUserAccountsRequest]) (*connect.Response[v1alpha1.GetUserAccountsResponse], error)
 	SetPersonalAccount(context.Context, *connect.Request[v1alpha1.SetPersonalAccountRequest]) (*connect.Response[v1alpha1.SetPersonalAccountResponse], error)
 	ConvertPersonalToTeamAccount(context.Context, *connect.Request[v1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[v1alpha1.ConvertPersonalToTeamAccountResponse], error)
+	CreateTeamAccount(context.Context, *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error)
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
 	SetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.SetAccountTemporalConfigResponse], error)
@@ -219,6 +235,11 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		svc.ConvertPersonalToTeamAccount,
 		opts...,
 	)
+	userAccountServiceCreateTeamAccountHandler := connect.NewUnaryHandler(
+		UserAccountServiceCreateTeamAccountProcedure,
+		svc.CreateTeamAccount,
+		opts...,
+	)
 	userAccountServiceIsUserInAccountHandler := connect.NewUnaryHandler(
 		UserAccountServiceIsUserInAccountProcedure,
 		svc.IsUserInAccount,
@@ -246,6 +267,8 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 			userAccountServiceSetPersonalAccountHandler.ServeHTTP(w, r)
 		case UserAccountServiceConvertPersonalToTeamAccountProcedure:
 			userAccountServiceConvertPersonalToTeamAccountHandler.ServeHTTP(w, r)
+		case UserAccountServiceCreateTeamAccountProcedure:
+			userAccountServiceCreateTeamAccountHandler.ServeHTTP(w, r)
 		case UserAccountServiceIsUserInAccountProcedure:
 			userAccountServiceIsUserInAccountHandler.ServeHTTP(w, r)
 		case UserAccountServiceGetAccountTemporalConfigProcedure:
@@ -279,6 +302,10 @@ func (UnimplementedUserAccountServiceHandler) SetPersonalAccount(context.Context
 
 func (UnimplementedUserAccountServiceHandler) ConvertPersonalToTeamAccount(context.Context, *connect.Request[v1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[v1alpha1.ConvertPersonalToTeamAccountResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.ConvertPersonalToTeamAccount is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) CreateTeamAccount(context.Context, *connect.Request[v1alpha1.CreateTeamAccountRequest]) (*connect.Response[v1alpha1.CreateTeamAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.CreateTeamAccount is not implemented"))
 }
 
 func (UnimplementedUserAccountServiceHandler) IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error) {

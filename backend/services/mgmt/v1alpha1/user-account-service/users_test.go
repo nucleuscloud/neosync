@@ -241,6 +241,34 @@ func Test_IsUserInAccount_False(t *testing.T) {
 	assert.Equal(t, false, resp.Msg.Ok)
 }
 
+func Test_CreateTeamAccount(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockTx := new(nucleusdb.MockTx)
+
+	mockTeamName := "team-name"
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	m.QuerierMock.On("GetAccountsByUser", ctx, mockTx, userUuid).Return([]db_queries.NeosyncApiAccount{{AccountSlug: "other"}}, nil)
+	m.QuerierMock.On("CreateTeamAccount", ctx, mockTx, mockTeamName).Return(db_queries.NeosyncApiAccount{ID: accountUuid, AccountSlug: mockTeamName}, nil)
+	m.QuerierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
+		AccountID: accountUuid,
+		UserID:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{}, nil)
+	mockTx.On("Commit", ctx).Return(nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := m.Service.CreateTeamAccount(ctx, &connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]{Msg: &mgmtv1alpha1.CreateTeamAccountRequest{Name: mockTeamName}})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mockAccountId, resp.Msg.AccountId)
+
+}
+
 type serviceMocks struct {
 	Service     *Service
 	DbtxMock    *nucleusdb.MockDBTX

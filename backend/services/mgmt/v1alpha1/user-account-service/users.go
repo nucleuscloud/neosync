@@ -168,3 +168,26 @@ func (s *Service) IsUserInAccount(
 		Ok: count > 0,
 	}), nil
 }
+
+func (s *Service) CreateTeamAccount(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest],
+) (*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], error) {
+	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := s.db.CreateTeamAccount(ctx, userId, req.Msg.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.CreateTeamAccountResponse{
+		AccountId: nucleusdb.UUIDString(account.ID),
+	}), nil
+}

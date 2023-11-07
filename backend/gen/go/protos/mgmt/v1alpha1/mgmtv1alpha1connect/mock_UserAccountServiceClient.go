@@ -79,6 +79,61 @@ func (_c *MockUserAccountServiceClient_ConvertPersonalToTeamAccount_Call) RunAnd
 	return _c
 }
 
+// CreateTeamAccount provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) CreateTeamAccount(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.Response[mgmtv1alpha1.CreateTeamAccountResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]) *connect.Response[mgmtv1alpha1.CreateTeamAccountResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_CreateTeamAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateTeamAccount'
+type MockUserAccountServiceClient_CreateTeamAccount_Call struct {
+	*mock.Call
+}
+
+// CreateTeamAccount is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]
+func (_e *MockUserAccountServiceClient_Expecter) CreateTeamAccount(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_CreateTeamAccount_Call {
+	return &MockUserAccountServiceClient_CreateTeamAccount_Call{Call: _e.mock.On("CreateTeamAccount", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_CreateTeamAccount_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest])) *MockUserAccountServiceClient_CreateTeamAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_CreateTeamAccount_Call) Return(_a0 *connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], _a1 error) *MockUserAccountServiceClient_CreateTeamAccount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_CreateTeamAccount_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], error)) *MockUserAccountServiceClient_CreateTeamAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAccountTemporalConfig provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) GetAccountTemporalConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse], error) {
 	ret := _m.Called(_a0, _a1)

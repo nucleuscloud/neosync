@@ -37,11 +37,25 @@ INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = sqlc.arg('userId') AND a.account_type = 0;
 
+-- name: GetTeamAccountsByUserId :many
+SELECT a.* from neosync_api.accounts a
+INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
+INNER JOIN neosync_api.users u ON u.id = aua.user_id
+WHERE u.id = sqlc.arg('userId') AND a.account_type = 1;
+
 -- name: CreatePersonalAccount :one
 INSERT INTO neosync_api.accounts (
   account_type, account_slug
 ) VALUES (
   0, $1
+)
+RETURNING *;
+
+-- name: CreateTeamAccount :one
+INSERT INTO neosync_api.accounts (
+  account_type, account_slug
+) VALUES (
+  1, $1
 )
 RETURNING *;
 

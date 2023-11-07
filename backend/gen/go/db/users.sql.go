@@ -89,6 +89,29 @@ func (q *Queries) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlu
 	return i, err
 }
 
+const createTeamAccount = `-- name: CreateTeamAccount :one
+INSERT INTO neosync_api.accounts (
+  account_type, account_slug
+) VALUES (
+  1, $1
+)
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config
+`
+
+func (q *Queries) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, createTeamAccount, accountSlug)
+	var i NeosyncApiAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AccountType,
+		&i.AccountSlug,
+		&i.TemporalConfig,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO neosync_api.users (
   id, created_at, updated_at
@@ -214,6 +237,40 @@ func (q *Queries) GetPersonalAccountByUserId(ctx context.Context, db DBTX, useri
 		&i.TemporalConfig,
 	)
 	return i, err
+}
+
+const getTeamAccountsByUserId = `-- name: GetTeamAccountsByUserId :many
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config from neosync_api.accounts a
+INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
+INNER JOIN neosync_api.users u ON u.id = aua.user_id
+WHERE u.id = $1 AND a.account_type = 1
+`
+
+func (q *Queries) GetTeamAccountsByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) ([]NeosyncApiAccount, error) {
+	rows, err := db.Query(ctx, getTeamAccountsByUserId, userid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NeosyncApiAccount
+	for rows.Next() {
+		var i NeosyncApiAccount
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.AccountType,
+			&i.AccountSlug,
+			&i.TemporalConfig,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getTemporalConfigByAccount = `-- name: GetTemporalConfigByAccount :one
