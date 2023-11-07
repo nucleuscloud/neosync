@@ -16,7 +16,263 @@ const (
 	mockUserId      = "d5e29f1f-b920-458c-8b86-f3a180e06d98"
 	mockAccountId   = "5629813e-1a35-4874-922c-9827d85f0378"
 	mockTeamName    = "team-name"
+	mockAuth0Id     = "643a8663-6b2e-4d29-a0f0-4a0700ff21ea"
 )
+
+// SetUserByAuth0Id
+func Test_SetUserByAuth0Id(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	ctx := context.Background()
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetUserByAuth0Id", ctx, mockTx, mockAuth0Id).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
+	mockTx.On("Commit", ctx).Return(nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := service.SetUserByAuth0Id(context.Background(), mockAuth0Id)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, userUuid, resp.ID)
+}
+
+func Test_SetUserByAuth0Id_Association_User(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	ctx := context.Background()
+	var nilUser db_queries.NeosyncApiUser
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetUserByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilUser, sql.ErrNoRows)
+	querierMock.On("GetUserAssociationByAuth0Id", ctx, mockTx, mockAuth0Id).Return(db_queries.NeosyncApiUserIdentityProviderAssociation{UserID: userUuid}, nil)
+	querierMock.On("GetUser", ctx, mockTx, userUuid).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
+
+	mockTx.On("Commit", ctx).Return(nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := service.SetUserByAuth0Id(context.Background(), mockAuth0Id)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, userUuid, resp.ID)
+}
+
+func Test_SetUserByAuth0Id_NoAssociation(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	ctx := context.Background()
+	var nilUser db_queries.NeosyncApiUser
+	var nilAssociation db_queries.NeosyncApiUserIdentityProviderAssociation
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetUserByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilUser, sql.ErrNoRows)
+	querierMock.On("GetUserAssociationByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilAssociation, sql.ErrNoRows)
+	querierMock.On("CreateUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
+	querierMock.On("CreateAuth0IdentityProviderAssociation", ctx, mockTx, db_queries.CreateAuth0IdentityProviderAssociationParams{
+		UserID:          userUuid,
+		Auth0ProviderID: mockAuth0Id,
+	}).Return(db_queries.NeosyncApiUserIdentityProviderAssociation{UserID: userUuid,
+		Auth0ProviderID: mockAuth0Id}, nil)
+
+	mockTx.On("Commit", ctx).Return(nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := service.SetUserByAuth0Id(context.Background(), mockAuth0Id)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, userUuid, resp.ID)
+}
+
+func Test_SetUserByAuth0Id_Association_NoUser(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	ctx := context.Background()
+	var nilUser db_queries.NeosyncApiUser
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetUserByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilUser, sql.ErrNoRows)
+	querierMock.On("GetUserAssociationByAuth0Id", ctx, mockTx, mockAuth0Id).Return(db_queries.NeosyncApiUserIdentityProviderAssociation{UserID: userUuid}, nil)
+	querierMock.On("GetUser", ctx, mockTx, userUuid).Return(nilUser, sql.ErrNoRows)
+	querierMock.On("CreateUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
+
+	mockTx.On("Commit", ctx).Return(nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := service.SetUserByAuth0Id(context.Background(), mockAuth0Id)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, userUuid, resp.ID)
+}
+
+func Test_SetUserByAuth0Id_CreateAuth0IdentityProviderAssociation_Error(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	ctx := context.Background()
+	var nilUser db_queries.NeosyncApiUser
+	var nilAssociation db_queries.NeosyncApiUserIdentityProviderAssociation
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetUserByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilUser, sql.ErrNoRows)
+	querierMock.On("GetUserAssociationByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilAssociation, sql.ErrNoRows)
+	querierMock.On("CreateUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
+	querierMock.On("CreateAuth0IdentityProviderAssociation", ctx, mockTx, db_queries.CreateAuth0IdentityProviderAssociationParams{
+		UserID:          userUuid,
+		Auth0ProviderID: mockAuth0Id,
+	}).Return(nilAssociation, errors.New("bad news"))
+
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := service.SetUserByAuth0Id(context.Background(), mockAuth0Id)
+
+	mockTx.AssertNotCalled(t, "Commit", mock.Anything)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+// SetPersonalAccount
+func Test_SetPersonalAccount(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	accountUuid, _ := ToUuid(mockAccountId)
+	ctx := context.Background()
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
+	querierMock.On("GetAccountUserAssociation", ctx, mockTx, db_queries.GetAccountUserAssociationParams{
+		AccountId: accountUuid,
+		UserId:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{}, nil)
+	mockTx.On("Commit", ctx).Return(nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := service.SetPersonalAccount(ctx, userUuid)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, accountUuid, resp.ID)
+}
+
+func Test_SetPersonalAccount_CreateUserAssociation(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	accountUuid, _ := ToUuid(mockAccountId)
+	ctx := context.Background()
+	var nilAssociation db_queries.NeosyncApiAccountUserAssociation
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
+	querierMock.On("GetAccountUserAssociation", ctx, mockTx, db_queries.GetAccountUserAssociationParams{
+		AccountId: accountUuid,
+		UserId:    userUuid,
+	}).Return(nilAssociation, sql.ErrNoRows)
+	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
+		AccountID: accountUuid,
+		UserID:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{}, nil)
+	mockTx.On("Commit", ctx).Return(nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := service.SetPersonalAccount(ctx, userUuid)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, accountUuid, resp.ID)
+}
+
+func Test_SetPersonalAccount_CreateAccount(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	accountUuid, _ := ToUuid(mockAccountId)
+	ctx := context.Background()
+	var nilAccount db_queries.NeosyncApiAccount
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(nilAccount, sql.ErrNoRows)
+	querierMock.On("CreatePersonalAccount", ctx, mockTx, "personal").Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
+	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
+		AccountID: accountUuid,
+		UserID:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{AccountID: accountUuid, UserID: userUuid}, nil)
+	mockTx.On("Commit", ctx).Return(nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := service.SetPersonalAccount(ctx, userUuid)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, accountUuid, resp.ID)
+}
+
+func Test_SetPersonalAccount_Rollback(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	accountUuid, _ := ToUuid(mockAccountId)
+	ctx := context.Background()
+	var nilAccount db_queries.NeosyncApiAccount
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(nilAccount, sql.ErrNoRows)
+	querierMock.On("CreatePersonalAccount", ctx, mockTx, "personal").Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
+	querierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
+		AccountID: accountUuid,
+		UserID:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{AccountID: accountUuid, UserID: userUuid}, errors.New("boo"))
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := service.SetPersonalAccount(ctx, userUuid)
+
+	mockTx.AssertNotCalled(t, "Commit", ctx)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
 
 // CreateTeamAccount
 func Test_CreateTeamAccount(t *testing.T) {
