@@ -9,9 +9,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,9 +30,6 @@ jobs:
             type=semver,pattern={{raw}}
             type=sha
 
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v3
-
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -54,4 +48,4 @@ jobs:
           # tags: ${{ steps.meta.output.tags }}
           tags: ghcr.io/nucleuscloud/neosync/api:test
           # labels: ${{ steps.meta.outputs.labels }}
-          context: backend
+          context: .
