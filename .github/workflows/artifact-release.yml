@@ -8,6 +8,10 @@ on:
 jobs:
   docker-backend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,6 +55,10 @@ jobs:
 
   docker-backend-migrations:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -94,6 +102,10 @@ jobs:
 
   docker-frontend:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -136,6 +148,10 @@ jobs:
 
   docker-worker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
