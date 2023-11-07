@@ -49,3 +49,4 @@ jobs:
           tags: ghcr.io/nucleuscloud/neosync/api:test
           # labels: ${{ steps.meta.outputs.labels }}
           context: .
+          file: docker/Dockerfile.backend
