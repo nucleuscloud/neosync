@@ -5,7 +5,7 @@ package db_queries
 import (
 	context "context"
 
-	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	mock "github.com/stretchr/testify/mock"
 
 	pgtype "github.com/jackc/pgx/v5/pgtype"
@@ -1473,19 +1473,19 @@ func (_c *MockQuerier_GetPersonalAccountByUserId_Call) RunAndReturn(run func(con
 }
 
 // GetTemporalConfigByAccount provides a mock function with given fields: ctx, db, id
-func (_m *MockQuerier) GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*jsonmodels.TemporalConfig, error) {
+func (_m *MockQuerier) GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.TemporalConfig, error) {
 	ret := _m.Called(ctx, db, id)
 
-	var r0 *jsonmodels.TemporalConfig
+	var r0 *pg_models.TemporalConfig
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (*jsonmodels.TemporalConfig, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (*pg_models.TemporalConfig, error)); ok {
 		return rf(ctx, db, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) *jsonmodels.TemporalConfig); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) *pg_models.TemporalConfig); ok {
 		r0 = rf(ctx, db, id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*jsonmodels.TemporalConfig)
+			r0 = ret.Get(0).(*pg_models.TemporalConfig)
 		}
 	}
 
@@ -1518,30 +1518,30 @@ func (_c *MockQuerier_GetTemporalConfigByAccount_Call) Run(run func(ctx context.
 	return _c
 }
 
-func (_c *MockQuerier_GetTemporalConfigByAccount_Call) Return(_a0 *jsonmodels.TemporalConfig, _a1 error) *MockQuerier_GetTemporalConfigByAccount_Call {
+func (_c *MockQuerier_GetTemporalConfigByAccount_Call) Return(_a0 *pg_models.TemporalConfig, _a1 error) *MockQuerier_GetTemporalConfigByAccount_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetTemporalConfigByAccount_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (*jsonmodels.TemporalConfig, error)) *MockQuerier_GetTemporalConfigByAccount_Call {
+func (_c *MockQuerier_GetTemporalConfigByAccount_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (*pg_models.TemporalConfig, error)) *MockQuerier_GetTemporalConfigByAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetTemporalConfigByUserAccount provides a mock function with given fields: ctx, db, arg
-func (_m *MockQuerier) GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams) (*jsonmodels.TemporalConfig, error) {
+func (_m *MockQuerier) GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams) (*pg_models.TemporalConfig, error) {
 	ret := _m.Called(ctx, db, arg)
 
-	var r0 *jsonmodels.TemporalConfig
+	var r0 *pg_models.TemporalConfig
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) (*jsonmodels.TemporalConfig, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) (*pg_models.TemporalConfig, error)); ok {
 		return rf(ctx, db, arg)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) *jsonmodels.TemporalConfig); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) *pg_models.TemporalConfig); ok {
 		r0 = rf(ctx, db, arg)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*jsonmodels.TemporalConfig)
+			r0 = ret.Get(0).(*pg_models.TemporalConfig)
 		}
 	}
 
@@ -1574,12 +1574,12 @@ func (_c *MockQuerier_GetTemporalConfigByUserAccount_Call) Run(run func(ctx cont
 	return _c
 }
 
-func (_c *MockQuerier_GetTemporalConfigByUserAccount_Call) Return(_a0 *jsonmodels.TemporalConfig, _a1 error) *MockQuerier_GetTemporalConfigByUserAccount_Call {
+func (_c *MockQuerier_GetTemporalConfigByUserAccount_Call) Return(_a0 *pg_models.TemporalConfig, _a1 error) *MockQuerier_GetTemporalConfigByUserAccount_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetTemporalConfigByUserAccount_Call) RunAndReturn(run func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) (*jsonmodels.TemporalConfig, error)) *MockQuerier_GetTemporalConfigByUserAccount_Call {
+func (_c *MockQuerier_GetTemporalConfigByUserAccount_Call) RunAndReturn(run func(context.Context, DBTX, GetTemporalConfigByUserAccountParams) (*pg_models.TemporalConfig, error)) *MockQuerier_GetTemporalConfigByUserAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }

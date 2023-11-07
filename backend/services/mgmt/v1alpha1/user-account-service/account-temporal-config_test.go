@@ -9,7 +9,7 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -24,7 +24,7 @@ func Test_Service_GetAccountTemporalConfig(t *testing.T) {
 
 	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
 	mockQuerier.On("GetTemporalConfigByUserAccount", mock.Anything, mock.Anything, mock.Anything).
-		Return(&jsonmodels.TemporalConfig{Namespace: "foo", SyncJobQueueName: "foo-queue", Url: "localhost:1234"}, nil)
+		Return(&pg_models.TemporalConfig{Namespace: "foo", SyncJobQueueName: "foo-queue", Url: "localhost:1234"}, nil)
 
 	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier))
 
@@ -77,7 +77,7 @@ func Test_Service_SetAccountTemporalConfig(t *testing.T) {
 	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
 	mockQuerier.On("IsUserInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(1), nil)
 	mockQuerier.On("UpdateTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(db_queries.NeosyncApiAccount{
-		TemporalConfig: &jsonmodels.TemporalConfig{
+		TemporalConfig: &pg_models.TemporalConfig{
 			Namespace:        mgmtTc.Namespace,
 			SyncJobQueueName: mgmtTc.SyncJobQueueName,
 			Url:              mgmtTc.Url,

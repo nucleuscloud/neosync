@@ -15,7 +15,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -239,7 +239,7 @@ func Test_CreateConnection(t *testing.T) {
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockMgmtConnConfig := getPostgresConfigMock()
-	mockConnectionConfig := &jsonmodels.ConnectionConfig{}
+	mockConnectionConfig := &pg_models.ConnectionConfig{}
 	_ = mockConnectionConfig.FromDto(mockMgmtConnConfig)
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("CreateConnection", context.Background(), mock.Anything, db_queries.CreateConnectionParams{
@@ -271,7 +271,7 @@ func Test_CreateConnection_Error(t *testing.T) {
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	mockMgmtConnConfig := getPostgresConfigMock()
-	mockConnectionConfig := &jsonmodels.ConnectionConfig{}
+	mockConnectionConfig := &pg_models.ConnectionConfig{}
 	_ = mockConnectionConfig.FromDto(mockMgmtConnConfig)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 
@@ -308,7 +308,7 @@ func Test_UpdateConnection(t *testing.T) {
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockMgmtConnConfig := getPostgresConfigMock()
-	mockConnectionConfig := &jsonmodels.ConnectionConfig{}
+	mockConnectionConfig := &pg_models.ConnectionConfig{}
 	_ = mockConnectionConfig.FromDto(mockMgmtConnConfig)
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(connection, nil)
@@ -338,7 +338,7 @@ func Test_UpdateConnection_UpdateError(t *testing.T) {
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockMgmtConnConfig := getPostgresConfigMock()
-	mockConnectionConfig := &jsonmodels.ConnectionConfig{}
+	mockConnectionConfig := &pg_models.ConnectionConfig{}
 	_ = mockConnectionConfig.FromDto(mockMgmtConnConfig)
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	var nilConnection db_queries.NeosyncApiConnection
@@ -389,7 +389,7 @@ func Test_UpdateConnection_UnverifiedUser(t *testing.T) {
 	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
 	mockMgmtConnConfig := getPostgresConfigMock()
-	mockConnectionConfig := &jsonmodels.ConnectionConfig{}
+	mockConnectionConfig := &pg_models.ConnectionConfig{}
 	_ = mockConnectionConfig.FromDto(mockMgmtConnConfig)
 	mockIsUserInAccount(m.UserAccountServiceMock, false)
 
@@ -708,9 +708,9 @@ func getConnectionMock(accountId, name string, id pgtype.UUID, connType ConnType
 			UpdatedByID: userUuid,
 			CreatedAt:   timestamp,
 			UpdatedAt:   timestamp,
-			ConnectionConfig: &jsonmodels.ConnectionConfig{
-				MysqlConfig: &jsonmodels.MysqlConnectionConfig{
-					Connection: &jsonmodels.MysqlConnection{
+			ConnectionConfig: &pg_models.ConnectionConfig{
+				MysqlConfig: &pg_models.MysqlConnectionConfig{
+					Connection: &pg_models.MysqlConnection{
 						Host:     "host",
 						Port:     5432,
 						Name:     "database",
@@ -731,9 +731,9 @@ func getConnectionMock(accountId, name string, id pgtype.UUID, connType ConnType
 		UpdatedByID: userUuid,
 		CreatedAt:   timestamp,
 		UpdatedAt:   timestamp,
-		ConnectionConfig: &jsonmodels.ConnectionConfig{
-			PgConfig: &jsonmodels.PostgresConnectionConfig{
-				Connection: &jsonmodels.PostgresConnection{
+		ConnectionConfig: &pg_models.ConnectionConfig{
+			PgConfig: &pg_models.PostgresConnectionConfig{
+				Connection: &pg_models.PostgresConnection{
 					Host:    "host",
 					Port:    5432,
 					Name:    "database",

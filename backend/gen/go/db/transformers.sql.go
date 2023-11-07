@@ -9,7 +9,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 const createCustomTransformer = `-- name: CreateCustomTransformer :one
@@ -27,7 +27,7 @@ type CreateCustomTransformerParams struct {
 	Type              string
 	Source            string
 	AccountID         pgtype.UUID
-	TransformerConfig *jsonmodels.TransformerConfigs
+	TransformerConfig *pg_models.TransformerConfigs
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
 }
@@ -163,7 +163,7 @@ RETURNING id, created_at, updated_at, name, description, type, source, account_i
 type UpdateCustomTransformerParams struct {
 	Name              string
 	Description       string
-	TransformerConfig *jsonmodels.TransformerConfigs
+	TransformerConfig *pg_models.TransformerConfigs
 	UpdatedByID       pgtype.UUID
 	ID                pgtype.UUID
 }

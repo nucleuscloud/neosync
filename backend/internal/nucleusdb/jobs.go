@@ -7,12 +7,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 type CreateJobConnectionDestination struct {
 	ConnectionId pgtype.UUID
-	Options      *jsonmodels.JobDestinationOptions
+	Options      *pg_models.JobDestinationOptions
 }
 
 func (d *NucleusDb) CreateJob(
@@ -61,15 +61,15 @@ func (d *NucleusDb) SetSqlSourceSubsets(
 		switch s := schemas.Schemas.(type) {
 		case *mgmtv1alpha1.JobSourceSqlSubetSchemas_PostgresSubset:
 			if dbjob.ConnectionOptions.PostgresOptions == nil {
-				dbjob.ConnectionOptions.PostgresOptions = &jsonmodels.PostgresSourceOptions{}
+				dbjob.ConnectionOptions.PostgresOptions = &pg_models.PostgresSourceOptions{}
 			}
-			dbjob.ConnectionOptions.PostgresOptions.Schemas = jsonmodels.FromDtoPostgresSourceSchemaOptions(s.PostgresSubset.PostgresSchemas)
+			dbjob.ConnectionOptions.PostgresOptions.Schemas = pg_models.FromDtoPostgresSourceSchemaOptions(s.PostgresSubset.PostgresSchemas)
 
 		case *mgmtv1alpha1.JobSourceSqlSubetSchemas_MysqlSubset:
 			if dbjob.ConnectionOptions.MysqlOptions == nil {
-				dbjob.ConnectionOptions.MysqlOptions = &jsonmodels.MysqlSourceOptions{}
+				dbjob.ConnectionOptions.MysqlOptions = &pg_models.MysqlSourceOptions{}
 			}
-			dbjob.ConnectionOptions.MysqlOptions.Schemas = jsonmodels.FromDtoMysqlSourceSchemaOptions(s.MysqlSubset.MysqlSchemas)
+			dbjob.ConnectionOptions.MysqlOptions.Schemas = pg_models.FromDtoMysqlSourceSchemaOptions(s.MysqlSubset.MysqlSchemas)
 		default:
 			return fmt.Errorf("this connection config is not currently supported")
 		}

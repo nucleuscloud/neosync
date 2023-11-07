@@ -14,37 +14,37 @@ sql:
           - column: neosync_api.connections.connection_config
             go_type:
               import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
-              package: jsonmodels
+              package: pg_models
               type: ConnectionConfig
               pointer: true
           - column: neosync_api.jobs.mappings
             go_type:
               import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
-              package: jsonmodels
+              package: pg_models
               type: JobMapping
               pointer: true
               slice: true
           - column: neosync_api.jobs.connection_options
             go_type:
               import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
-              package: jsonmodels
+              package: pg_models
               type: JobSourceOptions
               pointer: true
           - column: neosync_api.job_destination_connection_associations.options
             go_type:
               import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
-              package: jsonmodels
+              package: pg_models
               type: JobDestinationOptions
               pointer: true
           - column: neosync_api.transformers.transformer_config
             go_type:
               import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
-              package: jsonmodels
+              package: pg_models
               type: TransformerConfigs
               pointer: true
           - column: neosync_api.accounts.temporal_config
             go_type:
               import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
-              package: jsonmodels
+              package: pg_models
               type: TemporalConfig
               pointer: true

@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/sync/errgroup"
@@ -29,7 +29,7 @@ func Test_ClearWorkflowClientByAccount_SucceedsIfEvicting(t *testing.T) {
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "foo",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",
@@ -48,7 +48,7 @@ func Test_ManagerClient_GetWorkflowClientByAccount(t *testing.T) {
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "foo",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",
@@ -65,7 +65,7 @@ func Test_ManagerClient_GetWorkflowClientByAccount_NoNamespace(t *testing.T) {
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",
@@ -81,7 +81,7 @@ func Test_ManagerClient_GetWorkflowClientByAccount_CacheClient(t *testing.T) {
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "foo",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",
@@ -103,7 +103,7 @@ func Test_ManagerClient_GetWorkflowClientByAccount_ConcurrentRequests(t *testing
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "foo",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",
@@ -137,7 +137,7 @@ func Test_ClearNamespaceClientByAccount_SucceedsIfEvicting(t *testing.T) {
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "foo",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",
@@ -156,7 +156,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount(t *testing.T) {
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "foo",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",
@@ -173,7 +173,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount_NoNamespace(t *testing.T) {
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",
@@ -189,7 +189,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount_CacheClient(t *testing.T) {
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "foo",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",
@@ -211,7 +211,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount_ConcurrentRequests(t *testin
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
 
-	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&jsonmodels.TemporalConfig{
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
 		Namespace:        "foo",
 		SyncJobQueueName: "foo-queue",
 		Url:              "localhost:7233",

@@ -8,7 +8,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 func (s *Service) GetAccountTemporalConfig(
@@ -73,7 +73,7 @@ func (s *Service) SetAccountTemporalConfig(
 		return nil, nucleuserrors.NewForbidden("user is not in account")
 	}
 
-	tc := &jsonmodels.TemporalConfig{}
+	tc := &pg_models.TemporalConfig{}
 	tc.FromDto(req.Msg.Config)
 
 	account, err := s.db.Q.UpdateTemporalConfigByAccount(ctx, s.db.Db, db_queries.UpdateTemporalConfigByAccountParams{
@@ -89,8 +89,8 @@ func (s *Service) SetAccountTemporalConfig(
 	}), nil
 }
 
-func (s *Service) getDefaultTemporalConfig() *jsonmodels.TemporalConfig {
-	return &jsonmodels.TemporalConfig{
+func (s *Service) getDefaultTemporalConfig() *pg_models.TemporalConfig {
+	return &pg_models.TemporalConfig{
 		Namespace:        s.cfg.Temporal.DefaultTemporalNamespace,
 		SyncJobQueueName: s.cfg.Temporal.DefaultTemporalSyncJobQueueName,
 		Url:              s.cfg.Temporal.DefaultTemporalUrl,

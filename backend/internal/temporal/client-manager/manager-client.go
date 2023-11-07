@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	jsonmodels "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
 type TemporalClientManager struct {
@@ -36,7 +36,7 @@ type TemporalClientManagerClient interface {
 }
 
 type DB interface {
-	GetTemporalConfigByAccount(ctx context.Context, db db_queries.DBTX, accountId pgtype.UUID) (*jsonmodels.TemporalConfig, error)
+	GetTemporalConfigByAccount(ctx context.Context, db db_queries.DBTX, accountId pgtype.UUID) (*pg_models.TemporalConfig, error)
 }
 
 type Config struct {
@@ -218,7 +218,7 @@ func (t *TemporalClientManager) getNewWFClientByAccount(
 func (t *TemporalClientManager) getTemporalConfigByAccount(
 	ctx context.Context,
 	accountId string,
-) (*jsonmodels.TemporalConfig, error) {
+) (*pg_models.TemporalConfig, error) {
 	accountUuid, err := nucleusdb.ToUuid(accountId)
 	if err != nil {
 		return nil, err
@@ -228,7 +228,7 @@ func (t *TemporalClientManager) getTemporalConfigByAccount(
 
 func (t *TemporalClientManager) getClientOptions(
 	accountId string,
-	tc *jsonmodels.TemporalConfig,
+	tc *pg_models.TemporalConfig,
 	logger *slog.Logger,
 ) *temporalclient.Options {
 	opts := temporalclient.Options{
