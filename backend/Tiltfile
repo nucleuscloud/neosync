@@ -55,8 +55,8 @@ local_resource(
 docker_build(
   ref='db-migration',
   context='.',
-  dockerfile='./Dockerfile.migrations',
-  only=['hack/', 'migrations/'],
+  dockerfile='../docker/Dockerfile.migrations',
+  only=['hack/', 'migrations/', 'sql'],
 )
 k8s_yaml(kustomize('./dev/yaml'))
 k8s_yaml(helmfile('./dev/helm/db', helmfileDir=base_dir+'/dev/helm/db'))
