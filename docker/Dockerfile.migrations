@@ -14,7 +14,7 @@ COPY hack/migrate-download.sh hack/
 
 RUN apk add --no-cache \
   curl \
-  postgresql14 \
+  postgresql15 \
   ca-certificates
 
 RUN hack/migrate-download.sh

@@ -8,9 +8,6 @@ on:
 jobs:
   docker-backend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,7 +45,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: backend
+          context: .
           # platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -58,9 +55,6 @@ jobs:
 
   docker-backend-migrations:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -111,9 +105,6 @@ jobs:
 
   docker-frontend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -161,9 +152,6 @@ jobs:
 
   docker-worker:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: worker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -201,7 +189,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: frontend
+          context: .
           # platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
