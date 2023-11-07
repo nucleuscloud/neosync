@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, IsUserInAccountRequest, IsUserInAccountResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb";
+import { ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, IsUserInAccountRequest, IsUserInAccountResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -55,6 +55,15 @@ export const UserAccountService = {
       name: "ConvertPersonalToTeamAccount",
       I: ConvertPersonalToTeamAccountRequest,
       O: ConvertPersonalToTeamAccountResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.UserAccountService.CreateTeamAccount
+     */
+    createTeamAccount: {
+      name: "CreateTeamAccount",
+      I: CreateTeamAccountRequest,
+      O: CreateTeamAccountResponse,
       kind: MethodKind.Unary,
     },
     /**

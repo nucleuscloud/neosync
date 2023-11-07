@@ -2,9 +2,12 @@ package nucleusdb
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
 func (d *NucleusDb) SetUserByAuth0Id(
@@ -102,4 +105,41 @@ func (d *NucleusDb) SetPersonalAccount(
 		return nil, err
 	}
 	return personalAccount, nil
+}
+
+func (d *NucleusDb) CreateTeamAccount(
+	ctx context.Context,
+	userId pgtype.UUID,
+	teamName string,
+) (*db_queries.NeosyncApiAccount, error) {
+	var teamAccount *db_queries.NeosyncApiAccount
+	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+		accounts, err := d.Q.GetTeamAccountsByUserId(ctx, dbtx, userId)
+		if err != nil && !IsNoRows(err) {
+			return err
+		} else if err != nil && IsNoRows(err) {
+			accounts = []db_queries.NeosyncApiAccount{}
+		}
+		for _, account := range accounts {
+			if strings.EqualFold(account.AccountSlug, teamName) {
+				return nucleuserrors.NewAlreadyExists(fmt.Sprintf("team account with the name %s already exists", teamName))
+			}
+		}
+		account, err := d.Q.CreateTeamAccount(ctx, dbtx, teamName)
+		if err != nil {
+			return err
+		}
+		teamAccount = &account
+		_, err = d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
+			AccountID: account.ID,
+			UserID:    userId,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return teamAccount, nil
 }

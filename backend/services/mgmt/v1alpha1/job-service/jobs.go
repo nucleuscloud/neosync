@@ -410,7 +410,6 @@ func (s *Service) CreateJob(
 
 	hasNs, err := s.doesAccountHaveTemporalNamespace(ctx, *accountUuid, logger)
 	if err != nil {
-		fmt.Println("account doesn't have namespace")
 		return nil, err
 	}
 	if !hasNs {
