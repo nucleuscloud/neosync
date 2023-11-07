@@ -93,7 +93,7 @@ jobs:
       - name: Build and push
         uses: depot/build-push-action@v1
         with:
-          file: backend/Dockerfile.migrations
+          file: docker/Dockerfile.migrations
           context: backend
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
@@ -140,6 +140,7 @@ jobs:
       - name: Build and push
         uses: depot/build-push-action@v1
         with:
+          file: docker/Dockerfile.frontend
           context: frontend
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
