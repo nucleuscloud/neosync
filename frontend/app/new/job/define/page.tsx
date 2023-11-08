@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { yupResolver } from '@hookform/resolvers/yup';
+import Neocron from 'neocron';
+import 'neocron/dist/src/globals.css';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -44,10 +46,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     resolver: yupResolver<DefineFormValues>(DEFINE_FORM_SCHEMA),
     defaultValues,
   });
+
+  const isBrowser = () => typeof window !== 'undefined';
+
   useFormPersist(`${sessionPrefix}-new-job-define`, {
     watch: form.watch,
     setValue: form.setValue,
-    storage: window.sessionStorage,
+    storage: isBrowser() ? window.sessionStorage : undefined,
   });
 
   async function onSubmit(_values: DefineFormValues) {
@@ -83,11 +88,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <FormField
             control={form.control}
             name="cronSchedule"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Schedule</FormLabel>
                 <FormControl>
-                  <Input placeholder="Cron Schedule" {...field} />
+                  {/* <Input placeholder="Cron Schedule" {...field} /> */}
+                  <Neocron />
                 </FormControl>
                 <FormDescription>
                   The schedule to run the job against if not a oneoff.
