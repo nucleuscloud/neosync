@@ -14,4 +14,4 @@ SCRIPT_DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
 
 # use epoch time so unlikely to clash
 set -v
-migrate create -ext sql -dir "${SCRIPT_DIR}/../migrations" "$1"
+migrate create -ext sql -dir "${SCRIPT_DIR}/../sql/postgresql/schema" "$1"
