@@ -60,6 +60,9 @@ const (
 	// UserAccountServiceSetAccountTemporalConfigProcedure is the fully-qualified name of the
 	// UserAccountService's SetAccountTemporalConfig RPC.
 	UserAccountServiceSetAccountTemporalConfigProcedure = "/mgmt.v1alpha1.UserAccountService/SetAccountTemporalConfig"
+	// UserAccountServiceGetTeamAccountMembersProcedure is the fully-qualified name of the
+	// UserAccountService's GetTeamAccountMembers RPC.
+	UserAccountServiceGetTeamAccountMembersProcedure = "/mgmt.v1alpha1.UserAccountService/GetTeamAccountMembers"
 )
 
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
@@ -73,6 +76,7 @@ type UserAccountServiceClient interface {
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
 	SetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.SetAccountTemporalConfigResponse], error)
+	GetTeamAccountMembers(context.Context, *connect.Request[v1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[v1alpha1.GetTeamAccountMembersResponse], error)
 }
 
 // NewUserAccountServiceClient constructs a client for the mgmt.v1alpha1.UserAccountService service.
@@ -130,6 +134,11 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			baseURL+UserAccountServiceSetAccountTemporalConfigProcedure,
 			opts...,
 		),
+		getTeamAccountMembers: connect.NewClient[v1alpha1.GetTeamAccountMembersRequest, v1alpha1.GetTeamAccountMembersResponse](
+			httpClient,
+			baseURL+UserAccountServiceGetTeamAccountMembersProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -144,6 +153,7 @@ type userAccountServiceClient struct {
 	isUserInAccount              *connect.Client[v1alpha1.IsUserInAccountRequest, v1alpha1.IsUserInAccountResponse]
 	getAccountTemporalConfig     *connect.Client[v1alpha1.GetAccountTemporalConfigRequest, v1alpha1.GetAccountTemporalConfigResponse]
 	setAccountTemporalConfig     *connect.Client[v1alpha1.SetAccountTemporalConfigRequest, v1alpha1.SetAccountTemporalConfigResponse]
+	getTeamAccountMembers        *connect.Client[v1alpha1.GetTeamAccountMembersRequest, v1alpha1.GetTeamAccountMembersResponse]
 }
 
 // GetUser calls mgmt.v1alpha1.UserAccountService.GetUser.
@@ -191,6 +201,11 @@ func (c *userAccountServiceClient) SetAccountTemporalConfig(ctx context.Context,
 	return c.setAccountTemporalConfig.CallUnary(ctx, req)
 }
 
+// GetTeamAccountMembers calls mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers.
+func (c *userAccountServiceClient) GetTeamAccountMembers(ctx context.Context, req *connect.Request[v1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[v1alpha1.GetTeamAccountMembersResponse], error) {
+	return c.getTeamAccountMembers.CallUnary(ctx, req)
+}
+
 // UserAccountServiceHandler is an implementation of the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceHandler interface {
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
@@ -202,6 +217,7 @@ type UserAccountServiceHandler interface {
 	IsUserInAccount(context.Context, *connect.Request[v1alpha1.IsUserInAccountRequest]) (*connect.Response[v1alpha1.IsUserInAccountResponse], error)
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
 	SetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.SetAccountTemporalConfigResponse], error)
+	GetTeamAccountMembers(context.Context, *connect.Request[v1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[v1alpha1.GetTeamAccountMembersResponse], error)
 }
 
 // NewUserAccountServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -255,6 +271,11 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		svc.SetAccountTemporalConfig,
 		opts...,
 	)
+	userAccountServiceGetTeamAccountMembersHandler := connect.NewUnaryHandler(
+		UserAccountServiceGetTeamAccountMembersProcedure,
+		svc.GetTeamAccountMembers,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserAccountServiceGetUserProcedure:
@@ -275,6 +296,8 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 			userAccountServiceGetAccountTemporalConfigHandler.ServeHTTP(w, r)
 		case UserAccountServiceSetAccountTemporalConfigProcedure:
 			userAccountServiceSetAccountTemporalConfigHandler.ServeHTTP(w, r)
+		case UserAccountServiceGetTeamAccountMembersProcedure:
+			userAccountServiceGetTeamAccountMembersHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -318,4 +341,8 @@ func (UnimplementedUserAccountServiceHandler) GetAccountTemporalConfig(context.C
 
 func (UnimplementedUserAccountServiceHandler) SetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.SetAccountTemporalConfigResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.SetAccountTemporalConfig is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) GetTeamAccountMembers(context.Context, *connect.Request[v1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[v1alpha1.GetTeamAccountMembersResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers is not implemented"))
 }

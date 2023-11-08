@@ -191,3 +191,45 @@ func (s *Service) CreateTeamAccount(
 		AccountId: nucleusdb.UUIDString(account.ID),
 	}), nil
 }
+
+func (s *Service) GetTeamAccountMembers(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest],
+) (*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], error) {
+	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
+	if err != nil {
+		return nil, err
+	}
+	accountId, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+	count, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
+		AccountId: accountId,
+		UserId:    userId,
+	})
+	if count == 0 {
+		return nil, nucleuserrors.NewForbidden("user in not in requested account")
+	}
+	users, err := s.db.Q.GetUsersByTeamAccount(ctx, s.db.Db, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	dtoAccounts := []*mgmtv1alpha1.{}
+	for _, account := range accounts {
+		dtoAccounts = append(dtoAccounts, &mgmtv1alpha1.UserAccount{
+			Id:   nucleusdb.UUIDString(account.ID),
+			Name: account.AccountSlug,
+			Type: dtomaps.ToAccountTypeDto(account.AccountType),
+		})
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetTeamAccountMembersResponse{
+		Accounts: dtoAccounts,
+	}), nil
+}

@@ -19,6 +19,12 @@ INSERT INTO neosync_api.users (
 )
 RETURNING *;
 
+-- name: GetUsersByTeamAccount :many
+SELECT u.* from neosync_api.users u
+INNER JOIN neosync_api.account_user_associations uipa ON aua.user_id = u.id
+INNER JOIN neosync_api.accounts a ON a.account_id = aua.account_id
+WHERE a.account_id = sqlc.arg('accountId') AND a.account_type =1;
+
 -- name: CreateAuth0IdentityProviderAssociation :one
 INSERT INTO neosync_api.user_identity_provider_associations (
   user_id, auth0_provider_id

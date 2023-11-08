@@ -766,3 +766,77 @@ export class CreateTeamAccountResponse extends Message<CreateTeamAccountResponse
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetTeamAccountMembersRequest
+ */
+export class GetTeamAccountMembersRequest extends Message<GetTeamAccountMembersRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetTeamAccountMembersRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetTeamAccountMembersRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTeamAccountMembersRequest {
+    return new GetTeamAccountMembersRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTeamAccountMembersRequest {
+    return new GetTeamAccountMembersRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTeamAccountMembersRequest {
+    return new GetTeamAccountMembersRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetTeamAccountMembersRequest | PlainMessage<GetTeamAccountMembersRequest> | undefined, b: GetTeamAccountMembersRequest | PlainMessage<GetTeamAccountMembersRequest> | undefined): boolean {
+    return proto3.util.equals(GetTeamAccountMembersRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetTeamAccountMembersResponse
+ */
+export class GetTeamAccountMembersResponse extends Message<GetTeamAccountMembersResponse> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.UserAccount accounts = 1;
+   */
+  accounts: UserAccount[] = [];
+
+  constructor(data?: PartialMessage<GetTeamAccountMembersResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetTeamAccountMembersResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "accounts", kind: "message", T: UserAccount, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTeamAccountMembersResponse {
+    return new GetTeamAccountMembersResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTeamAccountMembersResponse {
+    return new GetTeamAccountMembersResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTeamAccountMembersResponse {
+    return new GetTeamAccountMembersResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetTeamAccountMembersResponse | PlainMessage<GetTeamAccountMembersResponse> | undefined, b: GetTeamAccountMembersResponse | PlainMessage<GetTeamAccountMembersResponse> | undefined): boolean {
+    return proto3.util.equals(GetTeamAccountMembersResponse, a, b);
+  }
+}
+
