@@ -61,7 +61,7 @@
     "yup": "^1.3.2"
   },
   "devDependencies": {
-    "@types/node": "20.8.10",
+    "@types/node": "20.9.0",
     "@types/react": "18.2.36",
     "@types/react-dom": "18.2.14",
     "@types/react-window": "^1.8.8",
