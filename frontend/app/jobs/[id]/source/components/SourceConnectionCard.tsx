@@ -179,7 +179,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Source" />
                     </SelectTrigger>
                     <SelectContent>
                       {connections
@@ -448,7 +448,6 @@ async function getUpdatedValues(
     mappings: mappings || [],
   };
 
-  //update to map the tranformer values from proto defintion to the yup validation definition
   const yupValidationValues = {
     ...values,
     mappings: values.mappings.map((mapping) => ({

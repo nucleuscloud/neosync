@@ -191,7 +191,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           value={field.value}
                         >
                           <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder="Select a source ..." />
                           </SelectTrigger>
                           <SelectContent>
                             {postgresConns.length > 0 && (
@@ -345,7 +345,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                     value={field.value}
                                   >
                                     <SelectTrigger>
-                                      <SelectValue />
+                                      <SelectValue placeholder="Select a destination ..." />
                                     </SelectTrigger>
                                     <SelectContent>
                                       {postgresConns.length > 0 && (
