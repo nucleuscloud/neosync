@@ -32,8 +32,8 @@ linters-settings:
     min-complexity: 15
   gofmt:
     rewrite-rules:
-      - pattern: "interface{}"
-        replacement: "any"
+      - pattern: 'interface{}'
+        replacement: 'any'
   goimports:
     local-prefixes: github.com/golangci/golangci-lint
   gomnd:
@@ -44,12 +44,12 @@ linters-settings:
       - condition
       - return
     ignored-numbers:
-      - "0"
-      - "1"
-      - "2"
-      - "3"
-      - "4"
-      - "5"
+      - '0'
+      - '1'
+      - '2'
+      - '3'
+      - '4'
+      - '5'
     ignored-functions:
       - strings.SplitN
 
@@ -85,6 +85,7 @@ linters:
     # - dupl
     - errcheck
     - exportloopref
+    - forbidigo
     # - funlen
     # - gochecknoinits
     - goconst
