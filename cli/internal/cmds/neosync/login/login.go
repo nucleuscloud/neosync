@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -40,7 +41,7 @@ func login(ctx context.Context) error {
 		return err
 	}
 	if !authEnabledResp.Msg.IsEnabled {
-		fmt.Println("auth is not enabled server-side, exiting")
+		slog.Info("auth is not enabled server-side, exiting")
 		return nil
 	}
 	return oAuthLogin(ctx, authclient)
@@ -93,7 +94,7 @@ func oAuthLogin(
 	}()
 
 	if err := webbrowser.Open(authorizeurlResp.Msg.Url); err != nil {
-		fmt.Println("There was an issue opening the web browser, proceed to the following url to finish logging in to Neosync:\n", authorizeurlResp.Msg.Url)
+		fmt.Println("There was an issue opening the web browser, proceed to the following url to finish logging in to Neosync:\n", authorizeurlResp.Msg.Url) //nolint
 	}
 
 	select {
@@ -119,7 +120,6 @@ func oAuthLogin(
 		if err != nil {
 			return err
 		}
-		fmt.Println("write file success!")
 		if loginResp.Msg.AccessToken.RefreshToken != nil {
 			err = userconfig.SetRefreshToken(*loginResp.Msg.AccessToken.RefreshToken)
 			if err != nil {
