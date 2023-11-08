@@ -76,7 +76,7 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
     <div className="space-y-4">
       <div className="rounded-md border">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-gray-100">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -128,7 +128,7 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No runs.
+                  No runs in the last 24 hours.
                 </TableCell>
               </TableRow>
             )}
@@ -146,7 +146,7 @@ function renderSubComponent(row: Row<JobRunEvent>): React.ReactElement {
     <div className="p-5">
       <div className="rounded-md border">
         <Table>
-          <TableHeader className="border-b">
+          <TableHeader className="border-b bg-gray-100">
             <TableRow>
               <TableHead>Id</TableHead>
               <TableHead>Type</TableHead>

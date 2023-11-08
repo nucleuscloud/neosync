@@ -35,8 +35,8 @@ export function getSystemTransformerColumns(): ColumnDef<
       enableHiding: false,
     },
     {
-      id: 'name',
-      accessorKey: 'name',
+      id: 'value',
+      accessorKey: 'value',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Name" />
       ),
@@ -67,6 +67,7 @@ export function getSystemTransformerColumns(): ColumnDef<
       },
     },
     {
+      id: 'description',
       accessorKey: 'description',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Description" />

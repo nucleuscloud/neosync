@@ -36,9 +36,7 @@ export default function ConnectionCard(props: Props) {
         <CardTitle>
           <div className="flex flex-row items-center space-x-2">
             <Avatar>
-              {/* <AvatarImage /> */}
               <ConnectionIcon name={connection.name} />
-              {/* <AvatarFallback>{connection.name}</AvatarFallback> */}
             </Avatar>
             <p>{connection.name}</p>
           </div>

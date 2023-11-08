@@ -36,7 +36,7 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
       ) : (
         <div>
           <Table className="pt-5">
-            <TableHeader>
+            <TableHeader className="bg-gray-100">
               <TableRow>
                 <TableHead>Upcoming Runs</TableHead>
               </TableRow>

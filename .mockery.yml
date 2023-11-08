@@ -28,7 +28,8 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
     interfaces:
       DB:
-      TemporalClientManagerClient:
+      # this is broken. it uses the wrong package. after running mockery change internal to client in mock
+      # TemporalClientManagerClient:
   github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql:
     # config:
     interfaces:
