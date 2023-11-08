@@ -1,5 +1,3 @@
-FROM migrate/migrate:4 as migrate-builder
-
 # Build the manager binary
 FROM golang:1.21 as builder
 
@@ -38,19 +36,14 @@ COPY backend/sql sql/
 # Build
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
 
-FROM alpine:3.18
-
-RUN apk add --update --no-cache \
-    ca-certificates \
-    tzdata \
-    bash \
-    curl
+# Use distroless as minimal base image to package the manager binary
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM gcr.io/distroless/static:nonroot
 
 WORKDIR /
 COPY --from=builder /workspace/backend/bin/mgmt .
-COPY --from=migrate-builder /usr/local/bin/migrate /usr/local/bin/migrate
 COPY /backend/sql/postgresql/schema/ /migrations/
-COPY /backend/hack/migrate.sh /migrate.sh
+USER 65532:65532
 
 ENTRYPOINT ["/mgmt"]
 
