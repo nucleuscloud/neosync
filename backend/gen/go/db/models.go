@@ -18,6 +18,18 @@ type NeosyncApiAccount struct {
 	TemporalConfig *pg_models.TemporalConfig
 }
 
+type NeosyncApiAccountInvite struct {
+	ID           pgtype.UUID
+	AccountID    pgtype.UUID
+	SenderUserID pgtype.UUID
+	Email        string
+	Token        string
+	Accepted     pgtype.Bool
+	CreatedAt    pgtype.Timestamp
+	UpdatedAt    pgtype.Timestamp
+	ExpiresAt    pgtype.Timestamp
+}
+
 type NeosyncApiAccountUserAssociation struct {
 	ID        pgtype.UUID
 	AccountID pgtype.UUID
