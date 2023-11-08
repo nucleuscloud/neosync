@@ -1,7 +1,9 @@
 package serve_connect
 
 import (
+	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -17,6 +19,7 @@ import (
 
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	"github.com/nucleuscloud/neosync/backend/internal/authmw"
+	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
@@ -41,12 +44,12 @@ func NewCmd() *cobra.Command {
 		Short: "serves up connect",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SilenceUsage = true
-			return serve()
+			return serve(cmd.Context())
 		},
 	}
 }
 
-func serve() error {
+func serve(ctx context.Context) error {
 	port := viper.GetInt32("PORT")
 	if port == 0 {
 		port = 8080
@@ -91,6 +94,21 @@ func serve() error {
 	db, err := nucleusdb.NewFromConfig(dbconfig)
 	if err != nil {
 		return err
+	}
+
+	if viper.GetBool("AUTO_DB_MIGRATE") {
+		schemaDir := viper.GetString("DB_SCHEMA_DIR")
+		if schemaDir == "" {
+			return errors.New("must provide DB_SCHEMA_DIR env var to run auto db migrations")
+		}
+		if err := up_cmd.Up(
+			ctx,
+			nucleusdb.GetDbUrl(dbconfig),
+			schemaDir,
+			logger,
+		); err != nil {
+			return err
+		}
 	}
 
 	validateInterceptor, err := validate.NewInterceptor()

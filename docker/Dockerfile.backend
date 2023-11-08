@@ -33,18 +33,24 @@ COPY backend/gen/ gen/
 COPY backend/cmd/ cmd/
 COPY backend/internal/ internal/
 COPY backend/services/ services/
+COPY backend/sql sql/
 
 # Build
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+FROM alpine:3.18
+
+RUN apk add --update --no-cache \
+    ca-certificates \
+    tzdata \
+    bash \
+    curl
+
 WORKDIR /
 COPY --from=builder /workspace/backend/bin/mgmt .
 COPY --from=migrate-builder /usr/local/bin/migrate /usr/local/bin/migrate
-COPY /backend/migrations/ /migrations/
-USER 65532:65532
+COPY /backend/sql/postgresql/schema/ /migrations/
+COPY /backend/hack/migrate.sh /migrate.sh
 
 ENTRYPOINT ["/mgmt"]
 
