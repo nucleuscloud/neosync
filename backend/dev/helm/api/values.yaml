@@ -13,13 +13,14 @@ db:
   disableSsl: true
 
 migrations:
-  skipSchemaCreation: false
-  image:
-    repository: db-migration
   db:
-    host: neosync-postgresql:5432/nucleus
+    host: neosync-postgresql
+    name: nucleus
+    port: 5432
     username: postgres
     password: foofar
+    disableSsl: true
+    schemaDir: /app/migrations
 
 terminationGracePeriodSeconds: 300
 shutdownTimeoutSeconds: 5

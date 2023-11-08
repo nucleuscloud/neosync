@@ -5,8 +5,15 @@ metadata:
     namespace: {{ .Release.Namespace }}
 type: Opaque
 stringData:
-    SKIP_SCHEMA_CREATION: {{ .Values.migrations.skipSchemaCreation | quote }}
+    # SKIP_SCHEMA_CREATION: {{ .Values.migrations.skipSchemaCreation | quote }}
 
-    PG_USERNAME: {{ .Values.migrations.db.username }}
-    PG_PASSWORD: {{ .Values.migrations.db.password }}
-    PG_HOSTNAME: {{ .Values.migrations.db.host }}
+    DB_HOST: {{ .Values.migrations.db.host }}
+    DB_PORT: {{ .Values.migrations.db.port | quote }}
+    DB_NAME: {{ .Values.migrations.db.name }}
+    DB_USER: {{ .Values.migrations.db.username }}
+    DB_PASS: {{ .Values.migrations.db.password }}
+    DB_SSL_DISABLE: {{ .Values.migrations.db.disableSsl | quote}}
+
+    DB_SCHEMA_DIR: {{ .Values.migrations.db.schemaDir }}
+
+

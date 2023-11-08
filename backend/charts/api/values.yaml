@@ -25,15 +25,17 @@ db:
   port: 5432
   username:
   password:
+  disableSsl: false
 
 migrations:
-  skipSchemaCreation:
-  image:
-    repository:
   db:
     host:
+    name:
+    port: 5432
     username:
     password:
+    disableSsl: false
+    schemaDir: /app/migrations
 
 istio:
   enabled: false

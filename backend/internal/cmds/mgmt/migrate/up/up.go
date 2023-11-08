@@ -135,24 +135,6 @@ func Up(
 	return nil
 }
 
-// var errEmptyURL = errors.New("URL cannot be empty")
-// var errNoScheme = errors.New("no scheme")
-
-// func SchemeFromURL(url string) (string, error) {
-// 	if url == "" {
-// 		return "", errEmptyURL
-// 	}
-
-// 	i := strings.Index(url, ":")
-
-// 	// No : or : is the first character.
-// 	if i < 1 {
-// 		return "", errNoScheme
-// 	}
-
-// 	return url[0:i], nil
-// }
-
 func getDbUrl() (string, error) {
 	dburl := viper.GetString("DB_URL")
 	if dburl != "" {

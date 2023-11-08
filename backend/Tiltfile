@@ -16,13 +16,15 @@ secret_settings(disable_scrub=True)
 namespace_create('neosync', allow_duplicates=True)
 
 local_resource(
-  'neosync-api-protos',
+  'neosync-api-gen',
   'hack/gen.sh',
   deps=[
     'protos',
     'buf.gen.yaml',
     'buf.work.yaml',
     'buf-es.gen.yaml',
+    'sql/postgresql/models',
+    'sql/postgresql/queries',
   ],
   labels=['build']
 )
@@ -43,21 +45,14 @@ local_resource(
     'charts',
     'Makefile',
     'Dockerfile',
-    'Dockerfile.migrations',
     'buf.gen.yaml',
     'buf.work.yaml',
     'buf-es.gen.yaml',
-    'migrations',
+    'sql/postgresql/schema',
   ],
   labels=['build']
 )
 
-docker_build(
-  ref='db-migration',
-  context='.',
-  dockerfile='../docker/Dockerfile.migrations',
-  only=['hack/', 'migrations/', 'sql'],
-)
 k8s_yaml(kustomize('./dev/yaml'))
 k8s_yaml(helmfile('./dev/helm/db', helmfileDir=base_dir+'/dev/helm/db'))
 k8s_resource('neosync-postgresql', labels=['db'], port_forwards=5432)
@@ -87,11 +82,12 @@ k8s_resource(
 docker_build_with_restart(
   ref='neosync-api',
   context='.',
-  entrypoint=['/app/mgmt', 'serve', 'connect'],
+  entrypoint=['/app/mgmt'],
   dockerfile='./dev/build/Dockerfile.dev',
-  only=['.env.dev', 'bin'],
+  only=['.env.dev', 'bin', 'sql'],
   live_update=[
     sync('bin', '/app'),
+    sync('sql/postgresql/schema', '/app/migrations'),
     sync('.env.dev', '/app'),
   ],
 )

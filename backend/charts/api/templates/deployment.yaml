@@ -49,8 +49,11 @@ spec:
 
       initContainers:
         - name: db-migration
-          image: '{{ .Values.migrations.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
+          image: '{{ .Values.image.repository | default "ghcr.io/nucleuscloud/neosync/backend" }}:{{ .Values.image.tag | default .Chart.AppVersion  }}'
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - migrate
+            - up
 
           envFrom:
             - secretRef:
