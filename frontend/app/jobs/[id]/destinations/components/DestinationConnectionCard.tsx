@@ -127,7 +127,7 @@ export default function DestinationConnectionCard({
                         value={field.value}
                       >
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Select a destination ..." />
                         </SelectTrigger>
                         <SelectContent>
                           {availableConnections.map((connection) => (

@@ -179,7 +179,7 @@ export default function PostgresForm(props: Props) {
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Source" />
                   </SelectTrigger>
                   <SelectContent>
                     {SSL_MODES.map((mode) => (
