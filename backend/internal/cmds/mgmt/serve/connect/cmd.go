@@ -96,7 +96,7 @@ func serve(ctx context.Context) error {
 		return err
 	}
 
-	if viper.GetBool("AUTO_DB_MIGRATE") {
+	if viper.GetBool("DB_AUTO_MIGRATE") {
 		schemaDir := viper.GetString("DB_SCHEMA_DIR")
 		if schemaDir == "" {
 			return errors.New("must provide DB_SCHEMA_DIR env var to run auto db migrations")

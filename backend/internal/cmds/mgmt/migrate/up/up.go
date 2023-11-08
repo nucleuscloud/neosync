@@ -10,6 +10,9 @@ import (
 	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -50,9 +53,50 @@ func NewCmd() *cobra.Command {
 			)
 		},
 	}
-	cmd.Flags().StringP("database", "db", "", "optionally set the database url, otherwise it will pull from the environment")
-	cmd.Flags().StringP("source", "source", "", "optionally set the migrations dir, otherwise pull from DB_SCHEMA_DIR env")
+	cmd.Flags().StringP("database", "d", "", "optionally set the database url, otherwise it will pull from the environment")
+	cmd.Flags().StringP("source", "s", "", "optionally set the migrations dir, otherwise pull from DB_SCHEMA_DIR env")
 	return cmd
+}
+
+func UpWithDb(
+	ctx context.Context,
+	db any,
+	schemaDir string,
+	logger *slog.Logger,
+) error {
+
+	return nil
+}
+
+func getSourceUrl(schemaDir string) (string, error) {
+	var absSchemaDir string
+	if filepath.IsAbs(schemaDir) {
+		absSchemaDir = schemaDir
+	} else {
+		a, err := filepath.Abs(schemaDir)
+		if err != nil {
+			return "", err
+		}
+		absSchemaDir = a
+	}
+
+	return fmt.Sprintf("file://%s", strings.TrimPrefix(absSchemaDir, "file://")), nil
+}
+
+type migrateLogger struct {
+	logger  *slog.Logger
+	verbose bool
+}
+
+func newMigrateLogger(logger *slog.Logger, verbose bool) *migrateLogger {
+	return &migrateLogger{logger: logger, verbose: verbose}
+}
+
+func (m *migrateLogger) Verbose() bool {
+	return m.verbose
+}
+func (m *migrateLogger) Printf(format string, v ...any) {
+	m.logger.Info(fmt.Sprintf("migrate: %s", fmt.Sprintf(format, v...)))
 }
 
 func Up(
@@ -61,33 +105,53 @@ func Up(
 	schemaDir string,
 	logger *slog.Logger,
 ) error {
-
-	var absSchemaDir string
-	if filepath.IsAbs(schemaDir) {
-		absSchemaDir = schemaDir
-	} else {
-		a, err := filepath.Abs(schemaDir)
-		if err != nil {
-			return err
-		}
-		absSchemaDir = a
+	sourceUrl, err := getSourceUrl(schemaDir)
+	if err != nil {
+		return err
 	}
 
 	m, err := migrate.New(
-		fmt.Sprintf("file://%s", strings.TrimPrefix(absSchemaDir, "file://")),
+		sourceUrl,
 		connStr,
 	)
 	if err != nil {
 		return err
 	}
+	m.Log = newMigrateLogger(logger, false)
 
 	err = m.Up()
-	if err != nil {
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return err
+	}
+
+	serr, derr := m.Close()
+	if serr != nil {
+		return serr
+	}
+	if derr != nil {
+		return derr
 	}
 
 	return nil
 }
+
+// var errEmptyURL = errors.New("URL cannot be empty")
+// var errNoScheme = errors.New("no scheme")
+
+// func SchemeFromURL(url string) (string, error) {
+// 	if url == "" {
+// 		return "", errEmptyURL
+// 	}
+
+// 	i := strings.Index(url, ":")
+
+// 	// No : or : is the first character.
+// 	if i < 1 {
+// 		return "", errNoScheme
+// 	}
+
+// 	return url[0:i], nil
+// }
 
 func getDbUrl() (string, error) {
 	dburl := viper.GetString("DB_URL")

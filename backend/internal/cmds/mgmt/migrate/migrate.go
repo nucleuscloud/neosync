@@ -7,8 +7,8 @@ import (
 
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "serve",
-		Short: "Parent command for serving",
+		Use:   "migrate",
+		Short: "Parent command for migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},
