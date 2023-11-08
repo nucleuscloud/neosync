@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -65,6 +66,12 @@ func ToUuid(value string) (pgtype.UUID, error) {
 	uuid := pgtype.UUID{}
 	err := uuid.Scan(value)
 	return uuid, err
+}
+
+func ToTimestamp(value time.Time) (pgtype.Timestamp, error) {
+	timestamp := pgtype.Timestamp{}
+	err := timestamp.Scan(value)
+	return timestamp, err
 }
 
 func ToNullableString(text pgtype.Text) *string {

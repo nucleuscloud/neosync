@@ -21,9 +21,9 @@ RETURNING *;
 
 -- name: GetUsersByTeamAccount :many
 SELECT u.* from neosync_api.users u
-INNER JOIN neosync_api.account_user_associations uipa ON aua.user_id = u.id
-INNER JOIN neosync_api.accounts a ON a.account_id = aua.account_id
-WHERE a.account_id = sqlc.arg('accountId') AND a.account_type =1;
+INNER JOIN neosync_api.account_user_associations aua ON aua.user_id = u.id
+INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
+WHERE a.id = sqlc.arg('accountId') AND a.account_type = 1;
 
 -- name: CreateAuth0IdentityProviderAssociation :one
 INSERT INTO neosync_api.user_identity_provider_associations (
@@ -123,3 +123,15 @@ FROM neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE a.id = sqlc.arg('accountId') AND u.id = sqlc.arg('userId');
+
+-- name: RemoveTeamAccountUser :exec
+DELETE FROM neosync_api.account_user_associations 
+WHERE account_id = sqlc.arg('accountId') AND user_id = sqlc.arg('userId');
+
+-- name: CreateTeamAccountInvite :one
+INSERT INTO neosync_api.account_invites (
+  account_id, sender_user_id, email, expires_at
+) VALUES (
+  $1, $2, $3, $4
+)
+RETURNING *;

@@ -2,6 +2,8 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -215,21 +217,103 @@ func (s *Service) GetTeamAccountMembers(
 	if count == 0 {
 		return nil, nucleuserrors.NewForbidden("user in not in requested account")
 	}
-	users, err := s.db.Q.GetUsersByTeamAccount(ctx, s.db.Db, userId)
+	users, err := s.db.Q.GetUsersByTeamAccount(ctx, s.db.Db, accountId)
 	if err != nil {
 		return nil, err
 	}
 
-	dtoAccounts := []*mgmtv1alpha1.{}
-	for _, account := range accounts {
-		dtoAccounts = append(dtoAccounts, &mgmtv1alpha1.UserAccount{
-			Id:   nucleusdb.UUIDString(account.ID),
-			Name: account.AccountSlug,
-			Type: dtomaps.ToAccountTypeDto(account.AccountType),
+	dtoUsers := []*mgmtv1alpha1.AccountUser{}
+	for _, user := range users {
+		dtoUsers = append(dtoUsers, &mgmtv1alpha1.AccountUser{
+			Id: nucleusdb.UUIDString(user.ID),
 		})
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetTeamAccountMembersResponse{
-		Accounts: dtoAccounts,
+		Users: dtoUsers,
+	}), nil
+}
+
+func (s *Service) RemoveTeamAccountMember(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest],
+) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse], error) {
+	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
+	if err != nil {
+		return nil, err
+	}
+	accountId, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+	count, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
+		AccountId: accountId,
+		UserId:    userId,
+	})
+	if count == 0 {
+		return nil, nucleuserrors.NewForbidden("user in not in requested account")
+	}
+	memberUserId, err := nucleusdb.ToUuid(req.Msg.UserId)
+	if err != nil {
+		return nil, err
+	}
+	err = s.db.Q.RemoveTeamAccountUser(ctx, s.db.Db, db_queries.RemoveTeamAccountUserParams{
+		AccountId: accountId,
+		UserId:    memberUserId,
+	})
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountMemberResponse{}), nil
+}
+
+func (s *Service) InviteUserToTeamAccount(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest],
+) (*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], error) {
+	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
+	if err != nil {
+		return nil, err
+	}
+	accountId, err := nucleusdb.ToUuid(req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+	count, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
+		AccountId: accountId,
+		UserId:    userId,
+	})
+	if count == 0 {
+		return nil, nucleuserrors.NewForbidden("user in not in requested account")
+	}
+	now := time.Now()
+	tomorrow := now.Add(24 * time.Hour)
+	expiresAt, err := nucleusdb.ToTimestamp(tomorrow)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(user.Msg.UserId)
+	invite, err := s.db.Q.CreateTeamAccountInvite(ctx, s.db.Db, db_queries.CreateTeamAccountInviteParams{
+		AccountID:    accountId,
+		SenderUserID: userId,
+		Email:        req.Msg.Email,
+		ExpiresAt:    expiresAt,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.InviteUserToTeamAccountResponse{
+		Invite: dtomaps.ToAccountInviteDto(&invite),
 	}), nil
 }

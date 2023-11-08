@@ -112,6 +112,44 @@ func (q *Queries) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug st
 	return i, err
 }
 
+const createTeamAccountInvite = `-- name: CreateTeamAccountInvite :one
+INSERT INTO neosync_api.account_invites (
+  account_id, sender_user_id, email, expires_at
+) VALUES (
+  $1, $2, $3, $4
+)
+RETURNING id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at
+`
+
+type CreateTeamAccountInviteParams struct {
+	AccountID    pgtype.UUID
+	SenderUserID pgtype.UUID
+	Email        string
+	ExpiresAt    pgtype.Timestamp
+}
+
+func (q *Queries) CreateTeamAccountInvite(ctx context.Context, db DBTX, arg CreateTeamAccountInviteParams) (NeosyncApiAccountInvite, error) {
+	row := db.QueryRow(ctx, createTeamAccountInvite,
+		arg.AccountID,
+		arg.SenderUserID,
+		arg.Email,
+		arg.ExpiresAt,
+	)
+	var i NeosyncApiAccountInvite
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.SenderUserID,
+		&i.Email,
+		&i.Token,
+		&i.Accepted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO neosync_api.users (
   id, created_at, updated_at
@@ -349,6 +387,33 @@ func (q *Queries) GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID
 	return i, err
 }
 
+const getUsersByTeamAccount = `-- name: GetUsersByTeamAccount :many
+SELECT u.id, u.created_at, u.updated_at from neosync_api.users u
+INNER JOIN neosync_api.account_user_associations aua ON aua.user_id = u.id
+INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
+WHERE a.id = $1 AND a.account_type = 1
+`
+
+func (q *Queries) GetUsersByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUser, error) {
+	rows, err := db.Query(ctx, getUsersByTeamAccount, accountid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NeosyncApiUser
+	for rows.Next() {
+		var i NeosyncApiUser
+		if err := rows.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const isUserInAccount = `-- name: IsUserInAccount :one
 SELECT count(aua.id) from neosync_api.account_user_associations aua
 INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
@@ -366,6 +431,21 @@ func (q *Queries) IsUserInAccount(ctx context.Context, db DBTX, arg IsUserInAcco
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const removeTeamAccountUser = `-- name: RemoveTeamAccountUser :exec
+DELETE FROM neosync_api.account_user_associations 
+WHERE account_id = $1 AND user_id = $2
+`
+
+type RemoveTeamAccountUserParams struct {
+	AccountId pgtype.UUID
+	UserId    pgtype.UUID
+}
+
+func (q *Queries) RemoveTeamAccountUser(ctx context.Context, db DBTX, arg RemoveTeamAccountUserParams) error {
+	_, err := db.Exec(ctx, removeTeamAccountUser, arg.AccountId, arg.UserId)
+	return err
 }
 
 const setAnonymousUser = `-- name: SetAnonymousUser :one

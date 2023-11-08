@@ -63,6 +63,12 @@ const (
 	// UserAccountServiceGetTeamAccountMembersProcedure is the fully-qualified name of the
 	// UserAccountService's GetTeamAccountMembers RPC.
 	UserAccountServiceGetTeamAccountMembersProcedure = "/mgmt.v1alpha1.UserAccountService/GetTeamAccountMembers"
+	// UserAccountServiceRemoveTeamAccountMemberProcedure is the fully-qualified name of the
+	// UserAccountService's RemoveTeamAccountMember RPC.
+	UserAccountServiceRemoveTeamAccountMemberProcedure = "/mgmt.v1alpha1.UserAccountService/RemoveTeamAccountMember"
+	// UserAccountServiceInviteUserToTeamAccountProcedure is the fully-qualified name of the
+	// UserAccountService's InviteUserToTeamAccount RPC.
+	UserAccountServiceInviteUserToTeamAccountProcedure = "/mgmt.v1alpha1.UserAccountService/InviteUserToTeamAccount"
 )
 
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
@@ -77,6 +83,8 @@ type UserAccountServiceClient interface {
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
 	SetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.SetAccountTemporalConfigResponse], error)
 	GetTeamAccountMembers(context.Context, *connect.Request[v1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[v1alpha1.GetTeamAccountMembersResponse], error)
+	RemoveTeamAccountMember(context.Context, *connect.Request[v1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountMemberResponse], error)
+	InviteUserToTeamAccount(context.Context, *connect.Request[v1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[v1alpha1.InviteUserToTeamAccountResponse], error)
 }
 
 // NewUserAccountServiceClient constructs a client for the mgmt.v1alpha1.UserAccountService service.
@@ -139,6 +147,16 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			baseURL+UserAccountServiceGetTeamAccountMembersProcedure,
 			opts...,
 		),
+		removeTeamAccountMember: connect.NewClient[v1alpha1.RemoveTeamAccountMemberRequest, v1alpha1.RemoveTeamAccountMemberResponse](
+			httpClient,
+			baseURL+UserAccountServiceRemoveTeamAccountMemberProcedure,
+			opts...,
+		),
+		inviteUserToTeamAccount: connect.NewClient[v1alpha1.InviteUserToTeamAccountRequest, v1alpha1.InviteUserToTeamAccountResponse](
+			httpClient,
+			baseURL+UserAccountServiceInviteUserToTeamAccountProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -154,6 +172,8 @@ type userAccountServiceClient struct {
 	getAccountTemporalConfig     *connect.Client[v1alpha1.GetAccountTemporalConfigRequest, v1alpha1.GetAccountTemporalConfigResponse]
 	setAccountTemporalConfig     *connect.Client[v1alpha1.SetAccountTemporalConfigRequest, v1alpha1.SetAccountTemporalConfigResponse]
 	getTeamAccountMembers        *connect.Client[v1alpha1.GetTeamAccountMembersRequest, v1alpha1.GetTeamAccountMembersResponse]
+	removeTeamAccountMember      *connect.Client[v1alpha1.RemoveTeamAccountMemberRequest, v1alpha1.RemoveTeamAccountMemberResponse]
+	inviteUserToTeamAccount      *connect.Client[v1alpha1.InviteUserToTeamAccountRequest, v1alpha1.InviteUserToTeamAccountResponse]
 }
 
 // GetUser calls mgmt.v1alpha1.UserAccountService.GetUser.
@@ -206,6 +226,16 @@ func (c *userAccountServiceClient) GetTeamAccountMembers(ctx context.Context, re
 	return c.getTeamAccountMembers.CallUnary(ctx, req)
 }
 
+// RemoveTeamAccountMember calls mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember.
+func (c *userAccountServiceClient) RemoveTeamAccountMember(ctx context.Context, req *connect.Request[v1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountMemberResponse], error) {
+	return c.removeTeamAccountMember.CallUnary(ctx, req)
+}
+
+// InviteUserToTeamAccount calls mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount.
+func (c *userAccountServiceClient) InviteUserToTeamAccount(ctx context.Context, req *connect.Request[v1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[v1alpha1.InviteUserToTeamAccountResponse], error) {
+	return c.inviteUserToTeamAccount.CallUnary(ctx, req)
+}
+
 // UserAccountServiceHandler is an implementation of the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceHandler interface {
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
@@ -218,6 +248,8 @@ type UserAccountServiceHandler interface {
 	GetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.GetAccountTemporalConfigResponse], error)
 	SetAccountTemporalConfig(context.Context, *connect.Request[v1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[v1alpha1.SetAccountTemporalConfigResponse], error)
 	GetTeamAccountMembers(context.Context, *connect.Request[v1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[v1alpha1.GetTeamAccountMembersResponse], error)
+	RemoveTeamAccountMember(context.Context, *connect.Request[v1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountMemberResponse], error)
+	InviteUserToTeamAccount(context.Context, *connect.Request[v1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[v1alpha1.InviteUserToTeamAccountResponse], error)
 }
 
 // NewUserAccountServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -276,6 +308,16 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		svc.GetTeamAccountMembers,
 		opts...,
 	)
+	userAccountServiceRemoveTeamAccountMemberHandler := connect.NewUnaryHandler(
+		UserAccountServiceRemoveTeamAccountMemberProcedure,
+		svc.RemoveTeamAccountMember,
+		opts...,
+	)
+	userAccountServiceInviteUserToTeamAccountHandler := connect.NewUnaryHandler(
+		UserAccountServiceInviteUserToTeamAccountProcedure,
+		svc.InviteUserToTeamAccount,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserAccountServiceGetUserProcedure:
@@ -298,6 +340,10 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 			userAccountServiceSetAccountTemporalConfigHandler.ServeHTTP(w, r)
 		case UserAccountServiceGetTeamAccountMembersProcedure:
 			userAccountServiceGetTeamAccountMembersHandler.ServeHTTP(w, r)
+		case UserAccountServiceRemoveTeamAccountMemberProcedure:
+			userAccountServiceRemoveTeamAccountMemberHandler.ServeHTTP(w, r)
+		case UserAccountServiceInviteUserToTeamAccountProcedure:
+			userAccountServiceInviteUserToTeamAccountHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -345,4 +391,12 @@ func (UnimplementedUserAccountServiceHandler) SetAccountTemporalConfig(context.C
 
 func (UnimplementedUserAccountServiceHandler) GetTeamAccountMembers(context.Context, *connect.Request[v1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[v1alpha1.GetTeamAccountMembersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetTeamAccountMembers is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) RemoveTeamAccountMember(context.Context, *connect.Request[v1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountMemberResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.RemoveTeamAccountMember is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) InviteUserToTeamAccount(context.Context, *connect.Request[v1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[v1alpha1.InviteUserToTeamAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.InviteUserToTeamAccount is not implemented"))
 }

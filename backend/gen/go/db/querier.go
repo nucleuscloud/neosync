@@ -21,6 +21,7 @@ type Querier interface {
 	CreateJobConnectionDestinations(ctx context.Context, db DBTX, arg []CreateJobConnectionDestinationsParams) (int64, error)
 	CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error)
 	CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error)
+	CreateTeamAccountInvite(ctx context.Context, db DBTX, arg CreateTeamAccountInviteParams) (NeosyncApiAccountInvite, error)
 	CreateUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	DeleteCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error
@@ -46,6 +47,7 @@ type Querier interface {
 	GetUser(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiUser, error)
 	GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUserIdentityProviderAssociation, error)
 	GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error)
+	GetUsersByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUser, error)
 	IsConnectionInAccount(ctx context.Context, db DBTX, arg IsConnectionInAccountParams) (int64, error)
 	IsConnectionNameAvailable(ctx context.Context, db DBTX, arg IsConnectionNameAvailableParams) (int64, error)
 	IsJobNameAvailable(ctx context.Context, db DBTX, arg IsJobNameAvailableParams) (int64, error)
@@ -56,6 +58,7 @@ type Querier interface {
 	RemoveJobById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestinations(ctx context.Context, db DBTX, jobids []pgtype.UUID) error
+	RemoveTeamAccountUser(ctx context.Context, db DBTX, arg RemoveTeamAccountUserParams) error
 	SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	UpdateConnection(ctx context.Context, db DBTX, arg UpdateConnectionParams) (NeosyncApiConnection, error)
 	UpdateCustomTransformer(ctx context.Context, db DBTX, arg UpdateCustomTransformerParams) (NeosyncApiTransformer, error)
