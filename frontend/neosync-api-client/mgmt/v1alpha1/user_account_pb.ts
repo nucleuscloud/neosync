@@ -1116,3 +1116,145 @@ export class InviteUserToTeamAccountResponse extends Message<InviteUserToTeamAcc
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetTeamAccountInvitesRequest
+ */
+export class GetTeamAccountInvitesRequest extends Message<GetTeamAccountInvitesRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetTeamAccountInvitesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetTeamAccountInvitesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTeamAccountInvitesRequest {
+    return new GetTeamAccountInvitesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTeamAccountInvitesRequest {
+    return new GetTeamAccountInvitesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTeamAccountInvitesRequest {
+    return new GetTeamAccountInvitesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetTeamAccountInvitesRequest | PlainMessage<GetTeamAccountInvitesRequest> | undefined, b: GetTeamAccountInvitesRequest | PlainMessage<GetTeamAccountInvitesRequest> | undefined): boolean {
+    return proto3.util.equals(GetTeamAccountInvitesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetTeamAccountInvitesResponse
+ */
+export class GetTeamAccountInvitesResponse extends Message<GetTeamAccountInvitesResponse> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.AccountInvite invites = 1;
+   */
+  invites: AccountInvite[] = [];
+
+  constructor(data?: PartialMessage<GetTeamAccountInvitesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetTeamAccountInvitesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "invites", kind: "message", T: AccountInvite, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetTeamAccountInvitesResponse {
+    return new GetTeamAccountInvitesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetTeamAccountInvitesResponse {
+    return new GetTeamAccountInvitesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetTeamAccountInvitesResponse {
+    return new GetTeamAccountInvitesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetTeamAccountInvitesResponse | PlainMessage<GetTeamAccountInvitesResponse> | undefined, b: GetTeamAccountInvitesResponse | PlainMessage<GetTeamAccountInvitesResponse> | undefined): boolean {
+    return proto3.util.equals(GetTeamAccountInvitesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RemoveTeamAccountInviteRequest
+ */
+export class RemoveTeamAccountInviteRequest extends Message<RemoveTeamAccountInviteRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  constructor(data?: PartialMessage<RemoveTeamAccountInviteRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RemoveTeamAccountInviteRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RemoveTeamAccountInviteRequest {
+    return new RemoveTeamAccountInviteRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RemoveTeamAccountInviteRequest {
+    return new RemoveTeamAccountInviteRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RemoveTeamAccountInviteRequest {
+    return new RemoveTeamAccountInviteRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RemoveTeamAccountInviteRequest | PlainMessage<RemoveTeamAccountInviteRequest> | undefined, b: RemoveTeamAccountInviteRequest | PlainMessage<RemoveTeamAccountInviteRequest> | undefined): boolean {
+    return proto3.util.equals(RemoveTeamAccountInviteRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RemoveTeamAccountInviteResponse
+ */
+export class RemoveTeamAccountInviteResponse extends Message<RemoveTeamAccountInviteResponse> {
+  constructor(data?: PartialMessage<RemoveTeamAccountInviteResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RemoveTeamAccountInviteResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RemoveTeamAccountInviteResponse {
+    return new RemoveTeamAccountInviteResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RemoveTeamAccountInviteResponse {
+    return new RemoveTeamAccountInviteResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RemoveTeamAccountInviteResponse {
+    return new RemoveTeamAccountInviteResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RemoveTeamAccountInviteResponse | PlainMessage<RemoveTeamAccountInviteResponse> | undefined, b: RemoveTeamAccountInviteResponse | PlainMessage<RemoveTeamAccountInviteResponse> | undefined): boolean {
+    return proto3.util.equals(RemoveTeamAccountInviteResponse, a, b);
+  }
+}
+

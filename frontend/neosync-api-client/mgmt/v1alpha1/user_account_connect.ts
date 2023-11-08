@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb";
+import { ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -118,6 +118,24 @@ export const UserAccountService = {
       name: "InviteUserToTeamAccount",
       I: InviteUserToTeamAccountRequest,
       O: InviteUserToTeamAccountResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.UserAccountService.GetTeamAccountInvites
+     */
+    getTeamAccountInvites: {
+      name: "GetTeamAccountInvites",
+      I: GetTeamAccountInvitesRequest,
+      O: GetTeamAccountInvitesResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.UserAccountService.RemoveTeamAccountInvite
+     */
+    removeTeamAccountInvite: {
+      name: "RemoveTeamAccountInvite",
+      I: RemoveTeamAccountInviteRequest,
+      O: RemoveTeamAccountInviteResponse,
       kind: MethodKind.Unary,
     },
   }

@@ -113,6 +113,18 @@ message InviteUserToTeamAccountResponse {
   AccountInvite invite = 1;
 }
 
+message GetTeamAccountInvitesRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetTeamAccountInvitesResponse {
+  repeated AccountInvite invites = 1;
+}
+
+message RemoveTeamAccountInviteRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+message RemoveTeamAccountInviteResponse {}
+
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
@@ -132,6 +144,6 @@ service UserAccountService {
   rpc GetTeamAccountMembers(GetTeamAccountMembersRequest) returns (GetTeamAccountMembersResponse) {}
   rpc RemoveTeamAccountMember(RemoveTeamAccountMemberRequest) returns (RemoveTeamAccountMemberResponse) {}
   rpc InviteUserToTeamAccount(InviteUserToTeamAccountRequest) returns (InviteUserToTeamAccountResponse) {}
-  // rpc GetTeamAccountInvites(GetTeamAccountInvitesRequest) returns (GetTeamAccountInvitesResponse) {}
-  // rpc RemoveTeamAccountInvite(RemoveTeamAccountInviteRequest) returns (RemoveTeamAccountInviteResponse) {}
+  rpc GetTeamAccountInvites(GetTeamAccountInvitesRequest) returns (GetTeamAccountInvitesResponse) {}
+  rpc RemoveTeamAccountInvite(RemoveTeamAccountInviteRequest) returns (RemoveTeamAccountInviteResponse) {}
 }

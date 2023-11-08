@@ -124,14 +124,32 @@ INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE a.id = sqlc.arg('accountId') AND u.id = sqlc.arg('userId');
 
--- name: RemoveTeamAccountUser :exec
+-- name: RemoveAccountUser :exec
 DELETE FROM neosync_api.account_user_associations 
 WHERE account_id = sqlc.arg('accountId') AND user_id = sqlc.arg('userId');
 
--- name: CreateTeamAccountInvite :one
+-- name: CreateAccountInvite :one
 INSERT INTO neosync_api.account_invites (
   account_id, sender_user_id, email, expires_at
 ) VALUES (
   $1, $2, $3, $4
 )
 RETURNING *;
+
+-- name: GetActiveAccountInvites :many
+SELECT * FROM neosync_api.account_invites
+WHERE account_id = sqlc.arg('accountId') AND expires_at > CURRENT_TIMESTAMP; 
+
+-- name: UpdateActiveAccountInvitesToExpired :one
+UPDATE neosync_api.account_invites
+SET expires_at = CURRENT_TIMESTAMP
+WHERE account_id = sqlc.arg('accountId') AND email = sqlc.arg('email') AND expires_at > CURRENT_TIMESTAMP
+RETURNING *;
+
+-- name: GetAccountInvite :one
+SELECT * FROM neosync_api.account_invites
+WHERE id = $1;
+
+-- name: RemoveAccountInvite :exec
+DELETE FROM neosync_api.account_invites 
+WHERE id = $1;
