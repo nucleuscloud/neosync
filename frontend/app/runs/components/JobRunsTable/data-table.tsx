@@ -88,7 +88,7 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
       />
       <div className="rounded-md border">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-gray-100">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -129,7 +129,7 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No runs.
+                  No runs in the last 24 hours.
                 </TableCell>
               </TableRow>
             )}
