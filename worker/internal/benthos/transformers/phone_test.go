@@ -1,7 +1,6 @@
 package neosync_transformers
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -59,8 +58,6 @@ func TestGeneratePhoneNumberPreserveLengthFalseIncludeHyphensTrue(t *testing.T) 
 	expectedLength := 12
 
 	res, err := GenerateRandomPhoneNumberWithHyphens()
-
-	fmt.Println("res", res)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), expectedLength, "The length of the output phone number should be the same as the input phone number")

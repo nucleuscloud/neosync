@@ -29,20 +29,20 @@ func NewCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				fmt.Println(string(marshaled))
+				fmt.Println(string(marshaled)) //nolint
 			} else if output == "yaml" {
 				marshaled, err := yaml.Marshal(&versionInfo)
 				if err != nil {
 					return err
 				}
-				fmt.Println(string(marshaled))
+				fmt.Println(string(marshaled)) //nolint
 			} else {
-				fmt.Println("Git Version:", versionInfo.GitVersion)
-				fmt.Println("Git Commit:", versionInfo.GitCommit)
-				fmt.Println("Build Date:", versionInfo.BuildDate)
-				fmt.Println("Go Version:", versionInfo.GoVersion)
-				fmt.Println("Compiler:", versionInfo.Compiler)
-				fmt.Println("Platform:", versionInfo.Platform)
+				fmt.Println("Git Version:", versionInfo.GitVersion) //nolint
+				fmt.Println("Git Commit:", versionInfo.GitCommit)   //nolint
+				fmt.Println("Build Date:", versionInfo.BuildDate)   //nolint
+				fmt.Println("Go Version:", versionInfo.GoVersion)   //nolint
+				fmt.Println("Compiler:", versionInfo.Compiler)      //nolint
+				fmt.Println("Platform:", versionInfo.Platform)      //nolint
 			}
 			return nil
 		},

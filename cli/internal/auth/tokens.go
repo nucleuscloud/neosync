@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -51,7 +52,7 @@ func getToken(ctx context.Context) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		fmt.Println("access token is no longer valid. attempting to refresh...")
+		slog.Info("access token is no longer valid. attempting to refresh...")
 		refreshtoken, err := userconfig.GetRefreshToken()
 		if err != nil {
 			return "", err

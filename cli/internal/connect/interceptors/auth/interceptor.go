@@ -3,7 +3,7 @@ package auth_interceptor
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log/slog"
 
 	"connectrpc.com/connect"
 )
@@ -44,7 +44,7 @@ func (i *Interceptor) WrapStreamingClient(next connect.StreamingClientFunc) conn
 			if err != nil {
 				err2 := conn.CloseRequest()
 				if err2 != nil {
-					fmt.Println(err2) // todo
+					slog.Info(err2.Error()) // todo
 				}
 				return conn
 			}
