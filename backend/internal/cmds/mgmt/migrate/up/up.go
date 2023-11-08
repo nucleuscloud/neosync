@@ -2,6 +2,7 @@ package up_cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -17,21 +18,40 @@ import (
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "up",
-		Short: "Run database migrations",
+		Short: "Run all database migrations",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.SilenceUsage = true
-			connStr, err := getDbUrl()
+			schemaDir, err := cmd.Flags().GetString("source")
 			if err != nil {
 				return err
 			}
+			if schemaDir == "" {
+				schemaDir = viper.GetString("DB_SCHEMA_DIR")
+				if schemaDir == "" {
+					return errors.New("must provide schema dir as flag or env var")
+				}
+			}
+			dbUrl, err := cmd.Flags().GetString("database")
+			if err != nil {
+				return err
+			}
+			if dbUrl == "" {
+				dbUrl, err = getDbUrl()
+				if err != nil {
+					return err
+				}
+			}
+
+			cmd.SilenceUsage = true
 			return Up(
 				cmd.Context(),
-				connStr,
-				"",
+				dbUrl,
+				schemaDir,
 				slog.New(slog.NewJSONHandler(os.Stdout, nil)),
 			)
 		},
 	}
+	cmd.Flags().StringP("database", "db", "", "optionally set the database url, otherwise it will pull from the environment")
+	cmd.Flags().StringP("source", "source", "", "optionally set the migrations dir, otherwise pull from DB_SCHEMA_DIR env")
 	return cmd
 }
 
