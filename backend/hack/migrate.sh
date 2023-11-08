@@ -42,7 +42,10 @@ if [ "$PG_HOSTNAME" = "db:5432/nucleus" ]; then
     PG_OPTIONS="${PG_OPTIONS}&sslmode=disable"
 fi
 
-SCRIPT_DIR=$(basename "$0")
+SCRIPT_DIR=$(dirname "$0")
+
+DEFAULT_SCHEMA_PATH="${SCRIPT_DIR}/../sql/postgresql/schema"
+SCHEMA_PATH="${MIGRATIONS_DIR:-$DEFAULT_SCHEMA_PATH}"
 
 if [ -z "$1" ]; then
     echo "Must specify up or down; you can optionally pass in number of steps as well, i.e., 'migrate up 1'"
@@ -84,4 +87,4 @@ debug "PG_CONNECT_STR: ${PG_CONNECT_STR}"
 
 # make stderr go through stdout so it doesn't end up an err in datadog
 # shellcheck disable=2086
-migrate -path "${SCRIPT_DIR}/../sql/postgresql/schema" -database "${PG_CONNECT_STR}" "$@" 2>&1
+migrate -path "$SCHEMA_PATH" -database "${PG_CONNECT_STR}" "$@" 2>&1

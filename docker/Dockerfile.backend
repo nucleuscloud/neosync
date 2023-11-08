@@ -31,6 +31,7 @@ COPY backend/gen/ gen/
 COPY backend/cmd/ cmd/
 COPY backend/internal/ internal/
 COPY backend/services/ services/
+COPY backend/sql sql/
 
 # Build
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
@@ -38,8 +39,10 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 FROM gcr.io/distroless/static:nonroot
+
 WORKDIR /
 COPY --from=builder /workspace/backend/bin/mgmt .
+COPY /backend/sql/postgresql/schema/ /migrations/
 USER 65532:65532
 
 ENTRYPOINT ["/mgmt"]

@@ -45,23 +45,6 @@ services:
     networks:
       - neosync-network
 
-  db-migrations:
-    container_name: neosync-db-migrations
-    image: neosync-api-db-migrations
-    build:
-      context: ./backend
-      dockerfile: ./Dockerfile.migrations
-    environment:
-      - PG_USERNAME=postgres
-      - PG_PASSWORD=foofar
-      - PG_HOSTNAME=db:5432/nucleus
-    networks:
-      - neosync-network
-    depends_on:
-      db:
-        condition: service_healthy
-        restart: true
-
   api:
     container_name: neosync-api
     image: neosync-api
@@ -76,6 +59,8 @@ services:
       - PORT=8082
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
+      - DB_AUTO_MIGRATE=true
+      - DB_SCHEMA_DIR=/app/migrations
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=nucleus
@@ -88,6 +73,11 @@ services:
     networks:
       - neosync-network
       - temporal-network
+
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
     develop:
       watch:
         - path: backend/bin
