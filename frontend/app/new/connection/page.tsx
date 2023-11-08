@@ -29,7 +29,7 @@ export default function NewConnection(): ReactElement {
       Header={
         <PageHeader
           header="Create a new Connection"
-          description="Connection a new datasource to use in jobs or other synchronizations."
+          description="Connect a new datasource to use in jobs or other synchronizations."
         />
       }
     >
