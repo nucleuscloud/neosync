@@ -63,7 +63,7 @@
   "devDependencies": {
     "@types/node": "20.9.0",
     "@types/react": "18.2.36",
-    "@types/react-dom": "18.2.14",
+    "@types/react-dom": "18.2.15",
     "@types/react-window": "^1.8.8",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
