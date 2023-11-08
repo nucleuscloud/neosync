@@ -2,7 +2,6 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
@@ -302,7 +301,6 @@ func (s *Service) InviteUserToTeamAccount(
 		return nil, err
 	}
 
-	fmt.Println(user.Msg.UserId)
 	invite, err := s.db.Q.CreateTeamAccountInvite(ctx, s.db.Db, db_queries.CreateTeamAccountInviteParams{
 		AccountID:    accountId,
 		SenderUserID: userId,

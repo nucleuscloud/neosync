@@ -25,7 +25,7 @@ func ToAccountInviteDto(input *db_queries.NeosyncApiAccountInvite) *mgmtv1alpha1
 		SenderUserId: nucleusdb.UUIDString(input.SenderUserID),
 		Email:        input.Email,
 		Token:        input.Token,
-		Accepted:     input.Accepted.Valid,
+		Accepted:     input.Accepted.Bool,
 		CreatedAt:    timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:    timestamppb.New(input.UpdatedAt.Time),
 		ExpiresAt:    timestamppb.New(input.ExpiresAt.Time),

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS neosync_api.account_invites (
   expires_at timestamp NOT NULL,
 	CONSTRAINT invites_pkey PRIMARY KEY (id),
   CONSTRAINT fk_invites_accounts_id FOREIGN KEY (account_id) REFERENCES neosync_api.accounts(id) ON DELETE CASCADE,
-  CONSTRAINT fk_invites_users_id FOREIGN KEY (id) REFERENCES neosync_api.users(id) ON DELETE SET NULL
+  CONSTRAINT fk_invites_users_id FOREIGN KEY (sender_user_id) REFERENCES neosync_api.users(id) ON DELETE SET NULL
 );
 ALTER TABLE neosync_api.account_invites OWNER TO neosync_api_owner;
 GRANT ALL ON TABLE neosync_api.account_invites TO neosync_api_owner;
