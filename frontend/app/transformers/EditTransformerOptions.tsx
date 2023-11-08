@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -14,7 +15,11 @@ import {
   Transformer,
   TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-import { Cross2Icon, Pencil1Icon } from '@radix-ui/react-icons';
+import {
+  Cross2Icon,
+  MixerHorizontalIcon,
+  Pencil1Icon,
+} from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import CreditCardTransformerForm from './Sheetforms/CreditCardTransformerForm';
 import EmailTransformerForm from './Sheetforms/EmailTransformerForm';
@@ -217,7 +222,19 @@ function handleTransformerForm(
     default:
       <div>No transformer component found</div>;
   }
-  return <div></div>;
+  return (
+    <div>
+      {' '}
+      <Alert className="border-gray-200 shadow-sm">
+        <div className="flex flex-row items-center gap-4">
+          <MixerHorizontalIcon className="h-4 w-4" />
+          <AlertDescription className="text-gray-500">
+            There are no additional configurations for this Transformer
+          </AlertDescription>
+        </div>
+      </Alert>
+    </div>
+  );
 }
 
 interface TransformerMetadata {
