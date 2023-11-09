@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -330,7 +331,43 @@ func Test_RemoveTeamAccountMember_NoRows(t *testing.T) {
 }
 
 // InviteUserToTeamAccount
-func Test_InviteUserToTeamAccount(t *testing.T) {
+func Test_InviteUserToTeamAccount_Unauthorized(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, false)
+
+	resp, err := m.Service.InviteUserToTeamAccount(ctx, &connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]{Msg: &mgmtv1alpha1.InviteUserToTeamAccountRequest{AccountId: mockAccountId, Email: "test-email"}})
+
+	m.QuerierMock.AssertNotCalled(t, "UpdateActiveAccountInvitesToExpired", mock.Anything, mock.Anything, mock.Anything)
+	m.QuerierMock.AssertNotCalled(t, "CreateAccountInvite", mock.Anything, mock.Anything, mock.Anything)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_InviteUserToTeamAccount_NotTeamAccount(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
+	mockVerifyTeamAccount(ctx, m.QuerierMock, accountUuid, false)
+
+	resp, err := m.Service.InviteUserToTeamAccount(ctx, &connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]{Msg: &mgmtv1alpha1.InviteUserToTeamAccountRequest{AccountId: mockAccountId, Email: "test-email"}})
+
+	m.QuerierMock.AssertNotCalled(t, "UpdateActiveAccountInvitesToExpired", mock.Anything, mock.Anything, mock.Anything)
+	m.QuerierMock.AssertNotCalled(t, "CreateAccountInvite", mock.Anything, mock.Anything, mock.Anything)
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+// GetTeamAccountInvites
+func Test_GetTeamAccountInvites(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	ctx := getAuthenticatedCtxMock(mockAuthProvider)
 
@@ -338,13 +375,71 @@ func Test_InviteUserToTeamAccount(t *testing.T) {
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
 	mockVerifyTeamAccount(ctx, m.QuerierMock, accountUuid, true)
-	m.QuerierMock.On("CreateTeamAccountInvite", ctx, mock.Anything, db_queries.RemoveAccountUserParams{
-		AccountId: accountUuid,
-		UserId:    userUuid,
-	}).Return(nil)
+	m.QuerierMock.On("GetActiveAccountInvites", ctx, mock.Anything, accountUuid).Return([]db_queries.NeosyncApiAccountInvite{
+		{AccountID: accountUuid, SenderUserID: userUuid},
+	}, nil)
 
-	resp, err := m.Service.RemoveTeamAccountMember(ctx, &connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]{Msg: &mgmtv1alpha1.RemoveTeamAccountMemberRequest{AccountId: mockAccountId, UserId: mockUserId}})
+	resp, err := m.Service.GetTeamAccountInvites(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]{Msg: &mgmtv1alpha1.GetTeamAccountInvitesRequest{AccountId: mockAccountId}})
 
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 1, len(resp.Msg.Invites))
+}
+
+func Test_GetTeamAccountInvites_NoRows(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	var nilInvites []db_queries.NeosyncApiAccountInvite
+
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
+	mockVerifyTeamAccount(ctx, m.QuerierMock, accountUuid, true)
+	m.QuerierMock.On("GetActiveAccountInvites", ctx, mock.Anything, accountUuid).Return(nilInvites, sql.ErrNoRows)
+
+	resp, err := m.Service.GetTeamAccountInvites(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]{Msg: &mgmtv1alpha1.GetTeamAccountInvitesRequest{AccountId: mockAccountId}})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 0, len(resp.Msg.Invites))
+}
+
+// RemoveTeamAccountInvite
+func Test_RemoveTeamAccountInvite(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+
+	inviteId := uuid.NewString()
+	inviteUuid, _ := nucleusdb.ToUuid(inviteId)
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+
+	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
+	mockVerifyTeamAccount(ctx, m.QuerierMock, accountUuid, true)
+	m.QuerierMock.On("GetAccountInvite", ctx, mock.Anything, inviteUuid).Return(db_queries.NeosyncApiAccountInvite{
+		AccountID: accountUuid, SenderUserID: userUuid, ID: inviteUuid,
+	}, nil)
+	m.QuerierMock.On("RemoveAccountInvite", ctx, mock.Anything, inviteUuid).Return(nil)
+
+	resp, err := m.Service.RemoveTeamAccountInvite(ctx, &connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]{Msg: &mgmtv1alpha1.RemoveTeamAccountInviteRequest{Id: inviteId}})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func Test_RemoveTeamAccountInvite_NotFound(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+
+	var nilInvite db_queries.NeosyncApiAccountInvite
+	inviteId := uuid.NewString()
+	inviteUuid, _ := nucleusdb.ToUuid(inviteId)
+
+	m.QuerierMock.On("GetAccountInvite", ctx, mock.Anything, inviteUuid).Return(nilInvite, sql.ErrNoRows)
+
+	resp, err := m.Service.RemoveTeamAccountInvite(ctx, &connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]{Msg: &mgmtv1alpha1.RemoveTeamAccountInviteRequest{Id: inviteId}})
+
+	m.QuerierMock.AssertNotCalled(t, "RemoveAccountInvite", mock.Anything, mock.Anything, mock.Anything)
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 }
