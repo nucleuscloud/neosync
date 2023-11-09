@@ -57,8 +57,13 @@
 				"bufbuild.vscode-buf",
 				"golang.Go",
 				"esbenp.prettier-vscode",
-				"bradlc.vscode-tailwindcss"
-			]
+				"bradlc.vscode-tailwindcss",
+				"tilt-dev.tiltfile"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "zsh",
+				"terminal.integrated.scrollback": 10000
+			}
 		}
 	}
 	// Use 'postCreateCommand' to run commands after the container is created.
