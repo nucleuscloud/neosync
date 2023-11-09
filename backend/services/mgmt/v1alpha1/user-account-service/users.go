@@ -354,7 +354,7 @@ func (s *Service) verifyTeamAccount(ctx context.Context, accountId pgtype.UUID) 
 		return err
 	}
 	if account.AccountType != 1 {
-		return nucleuserrors.NewForbidden("unable to create team account invite: account type is not team")
+		return nucleuserrors.NewForbidden("account is not a team account")
 	}
 	return nil
 }
