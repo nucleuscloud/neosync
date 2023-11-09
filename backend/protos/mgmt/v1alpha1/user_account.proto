@@ -3,6 +3,7 @@ syntax = "proto3";
 package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
 
 message GetUserRequest {}
 message GetUserResponse {
@@ -74,6 +75,56 @@ message CreateTeamAccountResponse {
   string account_id = 1;
 }
 
+message AccountUser {
+  string id = 1;
+}
+
+message GetTeamAccountMembersRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetTeamAccountMembersResponse {
+  repeated AccountUser users = 1;
+}
+
+message RemoveTeamAccountMemberRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string account_id = 2 [(buf.validate.field).string.uuid = true];
+}
+message RemoveTeamAccountMemberResponse {}
+
+message InviteUserToTeamAccountRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  string email = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+message AccountInvite {
+  string id = 1;
+  string account_id = 2;
+  string sender_user_id = 3;
+  string email = 4;
+  string token = 5;
+  bool accepted = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  google.protobuf.Timestamp expires_at = 9;
+}
+
+message InviteUserToTeamAccountResponse {
+  AccountInvite invite = 1;
+}
+
+message GetTeamAccountInvitesRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetTeamAccountInvitesResponse {
+  repeated AccountInvite invites = 1;
+}
+
+message RemoveTeamAccountInviteRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+message RemoveTeamAccountInviteResponse {}
+
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
@@ -89,4 +140,10 @@ service UserAccountService {
 
   rpc GetAccountTemporalConfig(GetAccountTemporalConfigRequest) returns (GetAccountTemporalConfigResponse) {}
   rpc SetAccountTemporalConfig(SetAccountTemporalConfigRequest) returns (SetAccountTemporalConfigResponse) {}
+
+  rpc GetTeamAccountMembers(GetTeamAccountMembersRequest) returns (GetTeamAccountMembersResponse) {}
+  rpc RemoveTeamAccountMember(RemoveTeamAccountMemberRequest) returns (RemoveTeamAccountMemberResponse) {}
+  rpc InviteUserToTeamAccount(InviteUserToTeamAccountRequest) returns (InviteUserToTeamAccountResponse) {}
+  rpc GetTeamAccountInvites(GetTeamAccountInvitesRequest) returns (GetTeamAccountInvitesResponse) {}
+  rpc RemoveTeamAccountInvite(RemoveTeamAccountInviteRequest) returns (RemoveTeamAccountInviteResponse) {}
 }

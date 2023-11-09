@@ -189,6 +189,116 @@ func (_c *MockUserAccountServiceClient_GetAccountTemporalConfig_Call) RunAndRetu
 	return _c
 }
 
+// GetTeamAccountInvites provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) GetTeamAccountInvites(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]) *connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_GetTeamAccountInvites_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTeamAccountInvites'
+type MockUserAccountServiceClient_GetTeamAccountInvites_Call struct {
+	*mock.Call
+}
+
+// GetTeamAccountInvites is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]
+func (_e *MockUserAccountServiceClient_Expecter) GetTeamAccountInvites(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_GetTeamAccountInvites_Call {
+	return &MockUserAccountServiceClient_GetTeamAccountInvites_Call{Call: _e.mock.On("GetTeamAccountInvites", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_GetTeamAccountInvites_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest])) *MockUserAccountServiceClient_GetTeamAccountInvites_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetTeamAccountInvites_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse], _a1 error) *MockUserAccountServiceClient_GetTeamAccountInvites_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetTeamAccountInvites_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse], error)) *MockUserAccountServiceClient_GetTeamAccountInvites_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetTeamAccountMembers provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) GetTeamAccountMembers(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]) *connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_GetTeamAccountMembers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTeamAccountMembers'
+type MockUserAccountServiceClient_GetTeamAccountMembers_Call struct {
+	*mock.Call
+}
+
+// GetTeamAccountMembers is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]
+func (_e *MockUserAccountServiceClient_Expecter) GetTeamAccountMembers(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_GetTeamAccountMembers_Call {
+	return &MockUserAccountServiceClient_GetTeamAccountMembers_Call{Call: _e.mock.On("GetTeamAccountMembers", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_GetTeamAccountMembers_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest])) *MockUserAccountServiceClient_GetTeamAccountMembers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetTeamAccountMembers_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], _a1 error) *MockUserAccountServiceClient_GetTeamAccountMembers_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetTeamAccountMembers_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], error)) *MockUserAccountServiceClient_GetTeamAccountMembers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUser provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) GetUser(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetUserRequest]) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
 	ret := _m.Called(_a0, _a1)
@@ -299,6 +409,61 @@ func (_c *MockUserAccountServiceClient_GetUserAccounts_Call) RunAndReturn(run fu
 	return _c
 }
 
+// InviteUserToTeamAccount provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) InviteUserToTeamAccount(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]) *connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_InviteUserToTeamAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InviteUserToTeamAccount'
+type MockUserAccountServiceClient_InviteUserToTeamAccount_Call struct {
+	*mock.Call
+}
+
+// InviteUserToTeamAccount is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]
+func (_e *MockUserAccountServiceClient_Expecter) InviteUserToTeamAccount(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_InviteUserToTeamAccount_Call {
+	return &MockUserAccountServiceClient_InviteUserToTeamAccount_Call{Call: _e.mock.On("InviteUserToTeamAccount", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_InviteUserToTeamAccount_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest])) *MockUserAccountServiceClient_InviteUserToTeamAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_InviteUserToTeamAccount_Call) Return(_a0 *connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], _a1 error) *MockUserAccountServiceClient_InviteUserToTeamAccount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_InviteUserToTeamAccount_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], error)) *MockUserAccountServiceClient_InviteUserToTeamAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // IsUserInAccount provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) IsUserInAccount(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.IsUserInAccountRequest]) (*connect.Response[mgmtv1alpha1.IsUserInAccountResponse], error) {
 	ret := _m.Called(_a0, _a1)
@@ -350,6 +515,116 @@ func (_c *MockUserAccountServiceClient_IsUserInAccount_Call) Return(_a0 *connect
 }
 
 func (_c *MockUserAccountServiceClient_IsUserInAccount_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.IsUserInAccountRequest]) (*connect.Response[mgmtv1alpha1.IsUserInAccountResponse], error)) *MockUserAccountServiceClient_IsUserInAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RemoveTeamAccountInvite provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) RemoveTeamAccountInvite(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]) *connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_RemoveTeamAccountInvite_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveTeamAccountInvite'
+type MockUserAccountServiceClient_RemoveTeamAccountInvite_Call struct {
+	*mock.Call
+}
+
+// RemoveTeamAccountInvite is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]
+func (_e *MockUserAccountServiceClient_Expecter) RemoveTeamAccountInvite(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_RemoveTeamAccountInvite_Call {
+	return &MockUserAccountServiceClient_RemoveTeamAccountInvite_Call{Call: _e.mock.On("RemoveTeamAccountInvite", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_RemoveTeamAccountInvite_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest])) *MockUserAccountServiceClient_RemoveTeamAccountInvite_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_RemoveTeamAccountInvite_Call) Return(_a0 *connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse], _a1 error) *MockUserAccountServiceClient_RemoveTeamAccountInvite_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_RemoveTeamAccountInvite_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse], error)) *MockUserAccountServiceClient_RemoveTeamAccountInvite_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RemoveTeamAccountMember provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) RemoveTeamAccountMember(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]) *connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_RemoveTeamAccountMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveTeamAccountMember'
+type MockUserAccountServiceClient_RemoveTeamAccountMember_Call struct {
+	*mock.Call
+}
+
+// RemoveTeamAccountMember is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]
+func (_e *MockUserAccountServiceClient_Expecter) RemoveTeamAccountMember(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_RemoveTeamAccountMember_Call {
+	return &MockUserAccountServiceClient_RemoveTeamAccountMember_Call{Call: _e.mock.On("RemoveTeamAccountMember", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_RemoveTeamAccountMember_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest])) *MockUserAccountServiceClient_RemoveTeamAccountMember_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_RemoveTeamAccountMember_Call) Return(_a0 *connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse], _a1 error) *MockUserAccountServiceClient_RemoveTeamAccountMember_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_RemoveTeamAccountMember_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse], error)) *MockUserAccountServiceClient_RemoveTeamAccountMember_Call {
 	_c.Call.Return(run)
 	return _c
 }

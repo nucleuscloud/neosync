@@ -6,9 +6,9 @@ import (
 	context "context"
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
-	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
-
 	mock "github.com/stretchr/testify/mock"
+
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 
 	pgtype "github.com/jackc/pgx/v5/pgtype"
 )

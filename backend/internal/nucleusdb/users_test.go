@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"testing"
+	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/stretchr/testify/mock"
 	"github.com/zeebo/assert"
@@ -383,6 +385,76 @@ func Test_CreateTeamAccount_Rollback(t *testing.T) {
 
 	mockTx.AssertCalled(t, "Rollback", ctx)
 	mockTx.AssertNotCalled(t, "Commit", mock.Anything)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+// CreateTeamAccountInvite
+func Test_CreateTeamAccountInvite(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	accountUuid, _ := ToUuid(mockAccountId)
+	email := "fakeemail@fakefake.com"
+	expiresAt := pgtype.Timestamp{
+		Time: time.Now(),
+	}
+	ctx := context.Background()
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetAccount", ctx, mockTx, accountUuid).Return(db_queries.NeosyncApiAccount{AccountType: int16(1)}, nil)
+	querierMock.On("UpdateActiveAccountInvitesToExpired", ctx, mockTx, db_queries.UpdateActiveAccountInvitesToExpiredParams{
+		AccountId: accountUuid,
+		Email:     email,
+	}).Return(db_queries.NeosyncApiAccountInvite{}, nil)
+	querierMock.On("CreateAccountInvite", ctx, mockTx, db_queries.CreateAccountInviteParams{
+		AccountID:    accountUuid,
+		SenderUserID: userUuid,
+		Email:        email,
+		ExpiresAt:    expiresAt,
+	}).Return(db_queries.NeosyncApiAccountInvite{
+		AccountID:    accountUuid,
+		SenderUserID: userUuid,
+		Email:        email,
+		ExpiresAt:    expiresAt,
+	}, nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+	mockTx.On("Commit", ctx).Return(nil)
+
+	resp, err := service.CreateTeamAccountInvite(context.Background(), accountUuid, userUuid, email, expiresAt)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func Test_CreateTeamAccountInvite_NotTeamAccount(t *testing.T) {
+	dbtxMock := NewMockDBTX(t)
+	querierMock := db_queries.NewMockQuerier(t)
+	mockTx := new(MockTx)
+
+	userUuid, _ := ToUuid(mockUserId)
+	accountUuid, _ := ToUuid(mockAccountId)
+	email := "fakeemail@fakefake.com"
+	expiresAt := pgtype.Timestamp{
+		Time: time.Now(),
+	}
+	ctx := context.Background()
+
+	service := New(dbtxMock, querierMock)
+
+	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	querierMock.On("GetAccount", ctx, mockTx, accountUuid).Return(db_queries.NeosyncApiAccount{AccountType: int16(0)}, nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+	mockTx.On("Commit", ctx).Return(nil)
+
+	resp, err := service.CreateTeamAccountInvite(context.Background(), accountUuid, userUuid, email, expiresAt)
+
+	querierMock.AssertNotCalled(t, "UpdateActiveAccountInvitesToExpired", mock.Anything, mock.Anything, mock.Anything)
+	querierMock.AssertNotCalled(t, "CreateAccountInvite", mock.Anything, mock.Anything, mock.Anything)
 	assert.Error(t, err)
 	assert.Nil(t, resp)
 }

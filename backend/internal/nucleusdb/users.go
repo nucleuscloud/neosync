@@ -144,3 +144,48 @@ func (d *NucleusDb) CreateTeamAccount(
 	}
 	return teamAccount, nil
 }
+
+func (d *NucleusDb) CreateTeamAccountInvite(
+	ctx context.Context,
+	accountId pgtype.UUID,
+	userId pgtype.UUID,
+	email string,
+	expiresAt pgtype.Timestamp,
+) (*db_queries.NeosyncApiAccountInvite, error) {
+	var accountInvite *db_queries.NeosyncApiAccountInvite
+	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+		account, err := d.Q.GetAccount(ctx, dbtx, accountId)
+		if err != nil {
+			return err
+		}
+		if account.AccountType != 1 {
+			return nucleuserrors.NewForbidden("unable to create team account invite: account type is not team")
+		}
+
+		// update any active invites for user to expired before creating new invite
+		_, err = d.Q.UpdateActiveAccountInvitesToExpired(ctx, dbtx, db_queries.UpdateActiveAccountInvitesToExpiredParams{
+			AccountId: accountId,
+			Email:     email,
+		})
+		if err != nil {
+			return err
+		}
+
+		invite, err := d.Q.CreateAccountInvite(ctx, dbtx, db_queries.CreateAccountInviteParams{
+			AccountID:    accountId,
+			SenderUserID: userId,
+			Email:        email,
+			ExpiresAt:    expiresAt,
+		})
+		if err != nil {
+			return err
+		}
+		accountInvite = &invite
+		return nil
+	}); err != nil {
+
+		return nil, err
+	}
+	return accountInvite, nil
+
+}
