@@ -1,5 +1,6 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import MemberManagementSettings from './components/MemberManagementSettings';
 import SubNav, { ITEMS } from './temporal/components/SubNav';
 
 export default function Settings() {
@@ -12,7 +13,7 @@ export default function Settings() {
         <div>
           <SubNav items={ITEMS} />
         </div>
-        <p>There is nothing here yet...</p>
+        <MemberManagementSettings />
       </div>
     </OverviewContainer>
   );

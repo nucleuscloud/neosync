@@ -268,7 +268,7 @@ func (q *Queries) GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID
 
 const getActiveAccountInvites = `-- name: GetActiveAccountInvites :many
 SELECT id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at FROM neosync_api.account_invites
-WHERE account_id = $1 AND expires_at > CURRENT_TIMESTAMP
+WHERE account_id = $1 AND expires_at > CURRENT_TIMESTAMP AND accepted = false
 `
 
 func (q *Queries) GetActiveAccountInvites(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiAccountInvite, error) {

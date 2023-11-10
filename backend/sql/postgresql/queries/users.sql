@@ -138,7 +138,7 @@ RETURNING *;
 
 -- name: GetActiveAccountInvites :many
 SELECT * FROM neosync_api.account_invites
-WHERE account_id = sqlc.arg('accountId') AND expires_at > CURRENT_TIMESTAMP; 
+WHERE account_id = sqlc.arg('accountId') AND expires_at > CURRENT_TIMESTAMP AND accepted = false; 
 
 -- name: UpdateActiveAccountInvitesToExpired :one
 UPDATE neosync_api.account_invites
