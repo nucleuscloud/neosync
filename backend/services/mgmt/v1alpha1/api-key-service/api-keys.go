@@ -83,7 +83,7 @@ func (s *Service) CreateAccountApiKey(
 		return nil, err
 	}
 
-	clearKeyValue := fmt.Sprintf("neo-aat-v1-%s", uuid.New().String())
+	clearKeyValue := getNewKeyValue()
 	hashedKeyValue := utils.ToSha256(
 		clearKeyValue,
 	)
@@ -102,6 +102,10 @@ func (s *Service) CreateAccountApiKey(
 	return connect.NewResponse(&mgmtv1alpha1.CreateAccountApiKeyResponse{
 		ApiKey: dtomaps.ToAccountApiKeyDto(&newApiKey, &clearKeyValue),
 	}), nil
+}
+
+func getNewKeyValue() string {
+	return fmt.Sprintf("neo_at_v1_%s", uuid.New().String())
 }
 
 func (s *Service) RegenerateAccountApiKey(
@@ -128,7 +132,7 @@ func (s *Service) RegenerateAccountApiKey(
 	if err != nil {
 		return nil, err
 	}
-	clearKeyValue := fmt.Sprintf("neo-aat-v1-%s", uuid.New().String())
+	clearKeyValue := getNewKeyValue()
 	hashedKeyValue := utils.ToSha256(
 		clearKeyValue,
 	)
