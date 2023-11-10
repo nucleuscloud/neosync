@@ -164,6 +164,112 @@ func Test_Service_GetAccountApiKey_Found_ForbiddenAccount(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
+func Test_Service_DeleteAccountApiKey_Existing(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+
+	rawData := db_queries.NeosyncApiAccountApiKey{
+		ID:          newPgUuid(t),
+		AccountID:   newPgUuid(t),
+		KeyValue:    "foo",
+		CreatedByID: newPgUuid(t),
+		UpdatedByID: newPgUuid(t),
+		CreatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		UpdatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		ExpiresAt:   pgtype.Timestamp{Time: time.Now().Add(24 * time.Hour), Valid: true},
+		KeyName:     "foo",
+	}
+	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
+		Return(rawData, nil)
+	mockIsUserInAccount(mockUserAccountService, true)
+	mockQuerier.On("RemoveAccountApiKey", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+	resp, err := svc.DeleteAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.DeleteAccountApiKeyRequest{
+		Id: uuid.NewString(),
+	}))
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func Test_Service_DeleteAccountApiKey_Existing_ForbiddenAccount(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+
+	rawData := db_queries.NeosyncApiAccountApiKey{
+		ID:          newPgUuid(t),
+		AccountID:   newPgUuid(t),
+		KeyValue:    "foo",
+		CreatedByID: newPgUuid(t),
+		UpdatedByID: newPgUuid(t),
+		CreatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		UpdatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		ExpiresAt:   pgtype.Timestamp{Time: time.Now().Add(24 * time.Hour), Valid: true},
+		KeyName:     "foo",
+	}
+	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
+		Return(rawData, nil)
+	mockIsUserInAccount(mockUserAccountService, false)
+
+	resp, err := svc.DeleteAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.DeleteAccountApiKeyRequest{
+		Id: uuid.NewString(),
+	}))
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_Service_DeleteAccountApiKey_NotFound(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+
+	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
+		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
+
+	resp, err := svc.DeleteAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.DeleteAccountApiKeyRequest{
+		Id: uuid.NewString(),
+	}))
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func Test_Service_DeleteAccountApiKey_Existing_DeleteRace(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+
+	rawData := db_queries.NeosyncApiAccountApiKey{
+		ID:          newPgUuid(t),
+		AccountID:   newPgUuid(t),
+		KeyValue:    "foo",
+		CreatedByID: newPgUuid(t),
+		UpdatedByID: newPgUuid(t),
+		CreatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		UpdatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		ExpiresAt:   pgtype.Timestamp{Time: time.Now().Add(24 * time.Hour), Valid: true},
+		KeyName:     "foo",
+	}
+	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
+		Return(rawData, nil)
+	mockIsUserInAccount(mockUserAccountService, true)
+	mockQuerier.On("RemoveAccountApiKey", mock.Anything, mock.Anything, mock.Anything).Return(pgx.ErrNoRows)
+
+	resp, err := svc.DeleteAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.DeleteAccountApiKeyRequest{
+		Id: uuid.NewString(),
+	}))
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
 func newPgUuid(t *testing.T) pgtype.UUID {
 	t.Helper()
 	newuuid := uuid.NewString()
