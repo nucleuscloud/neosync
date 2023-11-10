@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -19,10 +18,6 @@ func (s *Service) GetAccountApiKeys(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetAccountApiKeysRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAccountApiKeysResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("accountId", req.Msg.AccountId)
-	_ = logger
-
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
@@ -52,10 +47,6 @@ func (s *Service) GetAccountApiKey(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetAccountApiKeyRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAccountApiKeyResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
-	_ = logger
-
 	apiKeyUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
@@ -167,10 +158,6 @@ func (s *Service) DeleteAccountApiKey(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.DeleteAccountApiKeyRequest],
 ) (*connect.Response[mgmtv1alpha1.DeleteAccountApiKeyResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("id", req.Msg.Id)
-	_ = logger
-
 	apiKeyUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
