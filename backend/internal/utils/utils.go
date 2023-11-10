@@ -27,5 +27,5 @@ func ToSha256(input string) string {
 	h := sha256.New()
 	h.Write([]byte(input))
 	bs := h.Sum(nil)
-	return fmt.Sprintf("%s", bs)
+	return fmt.Sprintf("%x", bs)
 }
