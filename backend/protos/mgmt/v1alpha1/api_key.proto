@@ -46,6 +46,11 @@ message GetAccountApiKeyResponse {
 
 message RegenerateAccountApiKeyRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
+  // Validate between now and one year: now < x < 1year
+  google.protobuf.Timestamp expires_at = 2 [
+    (buf.validate.field).timestamp.gt_now = true,
+    (buf.validate.field).timestamp.within = {seconds: 31536000}
+  ];
 }
 message RegenerateAccountApiKeyResponse {
   AccountApiKey api_key = 1;

@@ -2969,6 +2969,60 @@ func (_c *MockQuerier_SetAnonymousUser_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// UpdateAccountApiKeyValue provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) UpdateAccountApiKeyValue(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	var r0 NeosyncApiAccountApiKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateAccountApiKeyValueParams) NeosyncApiAccountApiKey); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountApiKey)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateAccountApiKeyValueParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateAccountApiKeyValue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccountApiKeyValue'
+type MockQuerier_UpdateAccountApiKeyValue_Call struct {
+	*mock.Call
+}
+
+// UpdateAccountApiKeyValue is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg UpdateAccountApiKeyValueParams
+func (_e *MockQuerier_Expecter) UpdateAccountApiKeyValue(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateAccountApiKeyValue_Call {
+	return &MockQuerier_UpdateAccountApiKeyValue_Call{Call: _e.mock.On("UpdateAccountApiKeyValue", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_UpdateAccountApiKeyValue_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams)) *MockQuerier_UpdateAccountApiKeyValue_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateAccountApiKeyValueParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountApiKeyValue_Call) Return(_a0 NeosyncApiAccountApiKey, _a1 error) *MockQuerier_UpdateAccountApiKeyValue_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountApiKeyValue_Call) RunAndReturn(run func(context.Context, DBTX, UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error)) *MockQuerier_UpdateAccountApiKeyValue_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateActiveAccountInvitesToExpired provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateActiveAccountInvitesToExpired(ctx context.Context, db DBTX, arg UpdateActiveAccountInvitesToExpiredParams) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, arg)

@@ -139,3 +139,41 @@ func (q *Queries) RemoveAccountApiKey(ctx context.Context, db DBTX, id pgtype.UU
 	_, err := db.Exec(ctx, removeAccountApiKey, id)
 	return err
 }
+
+const updateAccountApiKeyValue = `-- name: UpdateAccountApiKeyValue :one
+UPDATE neosync_api.account_api_keys
+SET key_value = $1,
+    expires_at = $2,
+    updated_by_id = $3
+WHERE id = $4
+RETURNING id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name
+`
+
+type UpdateAccountApiKeyValueParams struct {
+	KeyValue    string
+	ExpiresAt   pgtype.Timestamp
+	UpdatedByID pgtype.UUID
+	ID          pgtype.UUID
+}
+
+func (q *Queries) UpdateAccountApiKeyValue(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error) {
+	row := db.QueryRow(ctx, updateAccountApiKeyValue,
+		arg.KeyValue,
+		arg.ExpiresAt,
+		arg.UpdatedByID,
+		arg.ID,
+	)
+	var i NeosyncApiAccountApiKey
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.KeyValue,
+		&i.CreatedByID,
+		&i.UpdatedByID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ExpiresAt,
+		&i.KeyName,
+	)
+	return i, err
+}

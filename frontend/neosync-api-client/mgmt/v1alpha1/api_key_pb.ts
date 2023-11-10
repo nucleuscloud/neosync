@@ -332,6 +332,13 @@ export class RegenerateAccountApiKeyRequest extends Message<RegenerateAccountApi
    */
   id = "";
 
+  /**
+   * Validate between now and one year: now < x < 1year
+   *
+   * @generated from field: google.protobuf.Timestamp expires_at = 2;
+   */
+  expiresAt?: Timestamp;
+
   constructor(data?: PartialMessage<RegenerateAccountApiKeyRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -341,6 +348,7 @@ export class RegenerateAccountApiKeyRequest extends Message<RegenerateAccountApi
   static readonly typeName = "mgmt.v1alpha1.RegenerateAccountApiKeyRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "expires_at", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RegenerateAccountApiKeyRequest {

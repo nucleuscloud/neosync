@@ -19,3 +19,11 @@ INSERT INTO neosync_api.account_api_keys (
   $1, $2, $3, $4, $5, $6
 )
 RETURNING *;
+
+-- name: UpdateAccountApiKeyValue :one
+UPDATE neosync_api.account_api_keys
+SET key_value = $1,
+    expires_at = $2,
+    updated_by_id = $3
+WHERE id = $4
+RETURNING *;

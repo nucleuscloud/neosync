@@ -68,6 +68,7 @@ type Querier interface {
 	RemoveJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestinations(ctx context.Context, db DBTX, jobids []pgtype.UUID) error
 	SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
+	UpdateAccountApiKeyValue(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error)
 	UpdateActiveAccountInvitesToExpired(ctx context.Context, db DBTX, arg UpdateActiveAccountInvitesToExpiredParams) (NeosyncApiAccountInvite, error)
 	UpdateConnection(ctx context.Context, db DBTX, arg UpdateConnectionParams) (NeosyncApiConnection, error)
 	UpdateCustomTransformer(ctx context.Context, db DBTX, arg UpdateCustomTransformerParams) (NeosyncApiTransformer, error)
