@@ -15,6 +15,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func Test_Service_GetAccountApiKeys(t *testing.T) {
@@ -159,6 +160,141 @@ func Test_Service_GetAccountApiKey_Found_ForbiddenAccount(t *testing.T) {
 
 	resp, err := svc.GetAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountApiKeyRequest{
 		Id: uuid.NewString(),
+	}))
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_Service_CreateAccountApiKey(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+
+	mockIsUserInAccount(mockUserAccountService, true)
+	mockUserAccountCalls(mockUserAccountService, true, uuid.NewString())
+	rawData := db_queries.NeosyncApiAccountApiKey{
+		ID:          newPgUuid(t),
+		AccountID:   newPgUuid(t),
+		KeyValue:    "foo",
+		CreatedByID: newPgUuid(t),
+		UpdatedByID: newPgUuid(t),
+		CreatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		UpdatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		ExpiresAt:   pgtype.Timestamp{Time: time.Now().Add(24 * time.Hour), Valid: true},
+		KeyName:     "foo",
+	}
+	mockQuerier.On("CreateAccountApiKey", mock.Anything, mock.Anything, mock.Anything).
+		Return(rawData, nil)
+
+	resp, err := svc.CreateAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.CreateAccountApiKeyRequest{
+		AccountId: uuid.NewString(),
+		Name:      "foo",
+		ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+	}))
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Msg.ApiKey.KeyValue)
+	assert.NotEqual(t, resp.Msg.ApiKey.KeyValue, rawData.KeyValue, "KeyValue return should be the clear text, not the hash")
+}
+
+func Test_Service_RegenerateAccountApiKey(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+
+	mockIsUserInAccount(mockUserAccountService, true)
+	mockUserAccountCalls(mockUserAccountService, true, uuid.NewString())
+	rawData := db_queries.NeosyncApiAccountApiKey{
+		ID:          newPgUuid(t),
+		AccountID:   newPgUuid(t),
+		KeyValue:    "foo",
+		CreatedByID: newPgUuid(t),
+		UpdatedByID: newPgUuid(t),
+		CreatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		UpdatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		ExpiresAt:   pgtype.Timestamp{Time: time.Now().Add(24 * time.Hour), Valid: true},
+		KeyName:     "foo",
+	}
+	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
+		Return(rawData, nil)
+	mockQuerier.On("UpdateAccountApiKeyValue", mock.Anything, mock.Anything, mock.Anything).
+		Return(rawData, nil)
+
+	resp, err := svc.RegenerateAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.RegenerateAccountApiKeyRequest{
+		Id:        uuid.NewString(),
+		ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+	}))
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.NotNil(t, resp.Msg.ApiKey.KeyValue)
+	assert.NotEqual(t, resp.Msg.ApiKey.KeyValue, rawData.KeyValue, "KeyValue return should be the clear text, not the hash")
+}
+
+func Test_Service_RegenerateAccountApiKey_ForbiddenAccount(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+
+	mockIsUserInAccount(mockUserAccountService, false)
+	rawData := db_queries.NeosyncApiAccountApiKey{
+		ID:          newPgUuid(t),
+		AccountID:   newPgUuid(t),
+		KeyValue:    "foo",
+		CreatedByID: newPgUuid(t),
+		UpdatedByID: newPgUuid(t),
+		CreatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		UpdatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
+		ExpiresAt:   pgtype.Timestamp{Time: time.Now().Add(24 * time.Hour), Valid: true},
+		KeyName:     "foo",
+	}
+	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
+		Return(rawData, nil)
+
+	resp, err := svc.RegenerateAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.RegenerateAccountApiKeyRequest{
+		Id:        uuid.NewString(),
+		ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+	}))
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_Service_RegenerateAccountApiKey_NotFound(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+
+	mockQuerier.On("GetAccountApiKeyById", mock.Anything, mock.Anything, mock.Anything).
+		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
+
+	resp, err := svc.RegenerateAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.RegenerateAccountApiKeyRequest{
+		Id:        uuid.NewString(),
+		ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
+	}))
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_Service_CreateAccountApiKey_ForbiddenAccount(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+
+	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
+
+	mockIsUserInAccount(mockUserAccountService, false)
+
+	resp, err := svc.CreateAccountApiKey(context.Background(), connect.NewRequest(&mgmtv1alpha1.CreateAccountApiKeyRequest{
+		AccountId: uuid.NewString(),
+		Name:      "foo",
+		ExpiresAt: timestamppb.New(time.Now().Add(24 * time.Hour)),
 	}))
 	assert.Error(t, err)
 	assert.Nil(t, resp)
