@@ -27,6 +27,7 @@ type NeosyncApiAccountApiKey struct {
 	CreatedAt   pgtype.Timestamp
 	UpdatedAt   pgtype.Timestamp
 	ExpiresAt   pgtype.Timestamp
+	KeyName     string
 }
 
 type NeosyncApiAccountInvite struct {
