@@ -21,6 +21,8 @@ export class CreateAccountApiKeyRequest extends Message<CreateAccountApiKeyReque
   name = "";
 
   /**
+   * Validate between now and one year: now < x < 1year
+   *
    * @generated from field: google.protobuf.Timestamp expires_at = 3;
    */
   expiresAt?: Timestamp;
