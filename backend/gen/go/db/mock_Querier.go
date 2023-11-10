@@ -24,6 +24,60 @@ func (_m *MockQuerier) EXPECT() *MockQuerier_Expecter {
 	return &MockQuerier_Expecter{mock: &_m.Mock}
 }
 
+// CreateAccountApiKey provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) CreateAccountApiKey(ctx context.Context, db DBTX, arg CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	var r0 NeosyncApiAccountApiKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAccountApiKeyParams) NeosyncApiAccountApiKey); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountApiKey)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateAccountApiKeyParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_CreateAccountApiKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAccountApiKey'
+type MockQuerier_CreateAccountApiKey_Call struct {
+	*mock.Call
+}
+
+// CreateAccountApiKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg CreateAccountApiKeyParams
+func (_e *MockQuerier_Expecter) CreateAccountApiKey(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreateAccountApiKey_Call {
+	return &MockQuerier_CreateAccountApiKey_Call{Call: _e.mock.On("CreateAccountApiKey", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_CreateAccountApiKey_Call) Run(run func(ctx context.Context, db DBTX, arg CreateAccountApiKeyParams)) *MockQuerier_CreateAccountApiKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreateAccountApiKeyParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_CreateAccountApiKey_Call) Return(_a0 NeosyncApiAccountApiKey, _a1 error) *MockQuerier_CreateAccountApiKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_CreateAccountApiKey_Call) RunAndReturn(run func(context.Context, DBTX, CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error)) *MockQuerier_CreateAccountApiKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAccountInvite provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateAccountInvite(ctx context.Context, db DBTX, arg CreateAccountInviteParams) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -755,6 +809,170 @@ func (_c *MockQuerier_GetAccount_Call) Return(_a0 NeosyncApiAccount, _a1 error) 
 }
 
 func (_c *MockQuerier_GetAccount_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccount, error)) *MockQuerier_GetAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAccountApiKeyById provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) GetAccountApiKeyById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountApiKey, error) {
+	ret := _m.Called(ctx, db, id)
+
+	var r0 NeosyncApiAccountApiKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountApiKey, error)); ok {
+		return rf(ctx, db, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) NeosyncApiAccountApiKey); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountApiKey)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountApiKeyById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountApiKeyById'
+type MockQuerier_GetAccountApiKeyById_Call struct {
+	*mock.Call
+}
+
+// GetAccountApiKeyById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) GetAccountApiKeyById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetAccountApiKeyById_Call {
+	return &MockQuerier_GetAccountApiKeyById_Call{Call: _e.mock.On("GetAccountApiKeyById", ctx, db, id)}
+}
+
+func (_c *MockQuerier_GetAccountApiKeyById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetAccountApiKeyById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountApiKeyById_Call) Return(_a0 NeosyncApiAccountApiKey, _a1 error) *MockQuerier_GetAccountApiKeyById_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountApiKeyById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountApiKey, error)) *MockQuerier_GetAccountApiKeyById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAccountApiKeyByKeyValue provides a mock function with given fields: ctx, db, keyValue
+func (_m *MockQuerier) GetAccountApiKeyByKeyValue(ctx context.Context, db DBTX, keyValue string) (NeosyncApiAccountApiKey, error) {
+	ret := _m.Called(ctx, db, keyValue)
+
+	var r0 NeosyncApiAccountApiKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) (NeosyncApiAccountApiKey, error)); ok {
+		return rf(ctx, db, keyValue)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) NeosyncApiAccountApiKey); ok {
+		r0 = rf(ctx, db, keyValue)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountApiKey)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
+		r1 = rf(ctx, db, keyValue)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountApiKeyByKeyValue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountApiKeyByKeyValue'
+type MockQuerier_GetAccountApiKeyByKeyValue_Call struct {
+	*mock.Call
+}
+
+// GetAccountApiKeyByKeyValue is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - keyValue string
+func (_e *MockQuerier_Expecter) GetAccountApiKeyByKeyValue(ctx interface{}, db interface{}, keyValue interface{}) *MockQuerier_GetAccountApiKeyByKeyValue_Call {
+	return &MockQuerier_GetAccountApiKeyByKeyValue_Call{Call: _e.mock.On("GetAccountApiKeyByKeyValue", ctx, db, keyValue)}
+}
+
+func (_c *MockQuerier_GetAccountApiKeyByKeyValue_Call) Run(run func(ctx context.Context, db DBTX, keyValue string)) *MockQuerier_GetAccountApiKeyByKeyValue_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountApiKeyByKeyValue_Call) Return(_a0 NeosyncApiAccountApiKey, _a1 error) *MockQuerier_GetAccountApiKeyByKeyValue_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountApiKeyByKeyValue_Call) RunAndReturn(run func(context.Context, DBTX, string) (NeosyncApiAccountApiKey, error)) *MockQuerier_GetAccountApiKeyByKeyValue_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAccountApiKeys provides a mock function with given fields: ctx, db, accountid
+func (_m *MockQuerier) GetAccountApiKeys(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiAccountApiKey, error) {
+	ret := _m.Called(ctx, db, accountid)
+
+	var r0 []NeosyncApiAccountApiKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccountApiKey, error)); ok {
+		return rf(ctx, db, accountid)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiAccountApiKey); ok {
+		r0 = rf(ctx, db, accountid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiAccountApiKey)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, accountid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountApiKeys_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountApiKeys'
+type MockQuerier_GetAccountApiKeys_Call struct {
+	*mock.Call
+}
+
+// GetAccountApiKeys is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - accountid pgtype.UUID
+func (_e *MockQuerier_Expecter) GetAccountApiKeys(ctx interface{}, db interface{}, accountid interface{}) *MockQuerier_GetAccountApiKeys_Call {
+	return &MockQuerier_GetAccountApiKeys_Call{Call: _e.mock.On("GetAccountApiKeys", ctx, db, accountid)}
+}
+
+func (_c *MockQuerier_GetAccountApiKeys_Call) Run(run func(ctx context.Context, db DBTX, accountid pgtype.UUID)) *MockQuerier_GetAccountApiKeys_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountApiKeys_Call) Return(_a0 []NeosyncApiAccountApiKey, _a1 error) *MockQuerier_GetAccountApiKeys_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountApiKeys_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccountApiKey, error)) *MockQuerier_GetAccountApiKeys_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2346,6 +2564,50 @@ func (_c *MockQuerier_IsUserInAccount_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// RemoveAccountApiKey provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) RemoveAccountApiKey(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	ret := _m.Called(ctx, db, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockQuerier_RemoveAccountApiKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveAccountApiKey'
+type MockQuerier_RemoveAccountApiKey_Call struct {
+	*mock.Call
+}
+
+// RemoveAccountApiKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) RemoveAccountApiKey(ctx interface{}, db interface{}, id interface{}) *MockQuerier_RemoveAccountApiKey_Call {
+	return &MockQuerier_RemoveAccountApiKey_Call{Call: _e.mock.On("RemoveAccountApiKey", ctx, db, id)}
+}
+
+func (_c *MockQuerier_RemoveAccountApiKey_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_RemoveAccountApiKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_RemoveAccountApiKey_Call) Return(_a0 error) *MockQuerier_RemoveAccountApiKey_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockQuerier_RemoveAccountApiKey_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_RemoveAccountApiKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveAccountInvite provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) RemoveAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)
@@ -2703,6 +2965,60 @@ func (_c *MockQuerier_SetAnonymousUser_Call) Return(_a0 NeosyncApiUser, _a1 erro
 }
 
 func (_c *MockQuerier_SetAnonymousUser_Call) RunAndReturn(run func(context.Context, DBTX) (NeosyncApiUser, error)) *MockQuerier_SetAnonymousUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateAccountApiKeyValue provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) UpdateAccountApiKeyValue(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	var r0 NeosyncApiAccountApiKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateAccountApiKeyValueParams) NeosyncApiAccountApiKey); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountApiKey)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateAccountApiKeyValueParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateAccountApiKeyValue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccountApiKeyValue'
+type MockQuerier_UpdateAccountApiKeyValue_Call struct {
+	*mock.Call
+}
+
+// UpdateAccountApiKeyValue is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg UpdateAccountApiKeyValueParams
+func (_e *MockQuerier_Expecter) UpdateAccountApiKeyValue(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateAccountApiKeyValue_Call {
+	return &MockQuerier_UpdateAccountApiKeyValue_Call{Call: _e.mock.On("UpdateAccountApiKeyValue", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_UpdateAccountApiKeyValue_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams)) *MockQuerier_UpdateAccountApiKeyValue_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateAccountApiKeyValueParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountApiKeyValue_Call) Return(_a0 NeosyncApiAccountApiKey, _a1 error) *MockQuerier_UpdateAccountApiKeyValue_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountApiKeyValue_Call) RunAndReturn(run func(context.Context, DBTX, UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error)) *MockQuerier_UpdateAccountApiKeyValue_Call {
 	_c.Call.Return(run)
 	return _c
 }

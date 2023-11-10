@@ -26,6 +26,7 @@ import (
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
@@ -77,6 +78,7 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.ConnectionServiceName,
 		mgmtv1alpha1connect.JobServiceName,
 		mgmtv1alpha1connect.TransformersServiceName,
+		mgmtv1alpha1connect.ApiKeyServiceName,
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
@@ -214,11 +216,22 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(
 			authService,
+			// auth service uses non-standard interceptors as we don't want to include the auth interceptor in this service
 			connect.WithInterceptors(
 				otelconnect.NewInterceptor(),
 				logger_interceptor.NewInterceptor(logger),
 				validateInterceptor,
 			),
+		),
+	)
+
+	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{
+		IsAuthEnabled: isAuthEnabled,
+	}, db, useraccountService)
+	api.Handle(
+		mgmtv1alpha1connect.NewApiKeyServiceHandler(
+			apiKeyService,
+			stdInterceptorConnectOpt,
 		),
 	)
 

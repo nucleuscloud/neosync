@@ -12,6 +12,7 @@ import (
 )
 
 type Querier interface {
+	CreateAccountApiKey(ctx context.Context, db DBTX, arg CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error)
 	CreateAccountInvite(ctx context.Context, db DBTX, arg CreateAccountInviteParams) (NeosyncApiAccountInvite, error)
 	CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)
 	CreateAuth0IdentityProviderAssociation(ctx context.Context, db DBTX, arg CreateAuth0IdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error)
@@ -26,6 +27,9 @@ type Querier interface {
 	DeleteCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error
 	GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error)
+	GetAccountApiKeyById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountApiKey, error)
+	GetAccountApiKeyByKeyValue(ctx context.Context, db DBTX, keyValue string) (NeosyncApiAccountApiKey, error)
+	GetAccountApiKeys(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiAccountApiKey, error)
 	GetAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error)
 	GetAccountUserAssociation(ctx context.Context, db DBTX, arg GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)
 	GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiAccount, error)
@@ -55,6 +59,7 @@ type Querier interface {
 	IsJobNameAvailable(ctx context.Context, db DBTX, arg IsJobNameAvailableParams) (int64, error)
 	IsTransformerNameAvailable(ctx context.Context, db DBTX, arg IsTransformerNameAvailableParams) (int64, error)
 	IsUserInAccount(ctx context.Context, db DBTX, arg IsUserInAccountParams) (int64, error)
+	RemoveAccountApiKey(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveAccountUser(ctx context.Context, db DBTX, arg RemoveAccountUserParams) error
 	RemoveConnectionById(ctx context.Context, db DBTX, id pgtype.UUID) error
@@ -63,6 +68,7 @@ type Querier interface {
 	RemoveJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestinations(ctx context.Context, db DBTX, jobids []pgtype.UUID) error
 	SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
+	UpdateAccountApiKeyValue(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error)
 	UpdateActiveAccountInvitesToExpired(ctx context.Context, db DBTX, arg UpdateActiveAccountInvitesToExpiredParams) (NeosyncApiAccountInvite, error)
 	UpdateConnection(ctx context.Context, db DBTX, arg UpdateConnectionParams) (NeosyncApiConnection, error)
 	UpdateCustomTransformer(ctx context.Context, db DBTX, arg UpdateCustomTransformerParams) (NeosyncApiTransformer, error)

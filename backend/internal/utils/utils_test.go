@@ -33,3 +33,11 @@ func Test_MapSlice(t *testing.T) {
 		[]bool{true, true},
 	)
 }
+
+func Test_ToSha256(t *testing.T) {
+	assert.Equal(
+		t,
+		ToSha256("foobar"),
+		"c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2",
+	)
+}
