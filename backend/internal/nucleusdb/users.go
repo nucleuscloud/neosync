@@ -167,7 +167,7 @@ func (d *NucleusDb) CreateTeamAccountInvite(
 			AccountId: accountId,
 			Email:     email,
 		})
-		if err != nil {
+		if err != nil && !IsNoRows(err) {
 			return err
 		}
 
@@ -180,6 +180,7 @@ func (d *NucleusDb) CreateTeamAccountInvite(
 		if err != nil {
 			return err
 		}
+
 		accountInvite = &invite
 		return nil
 	}); err != nil {

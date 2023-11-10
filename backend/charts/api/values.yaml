@@ -52,7 +52,7 @@ terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
 auth:
-  enabled: false
+  enabled: true
   audience:
   baseUrl:
   cliClientId:
