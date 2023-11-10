@@ -20,6 +20,7 @@ import {
   InviteUserToTeamAccountResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
 import { getErrorMessage } from '@/util/util';
+import { DialogClose } from '@radix-ui/react-dialog';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { InvitesTable } from './InviteTable';
@@ -33,19 +34,25 @@ export default function MemberManagementSettings(props: Props): ReactElement {
   const { accountId } = props;
   const [showNewInviteDialog, setShowNewinviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
+  const [openInviteCreated, setOpenInviteCreated] = useState(false);
+  const [newInviteToken, setNewInviteToken] = useState('');
 
   async function onSubmit(email: string): Promise<void> {
     try {
-      await inviteUserToTeamAccount(accountId, email);
+      const invite = await inviteUserToTeamAccount(accountId, email);
       setShowNewinviteDialog(false);
+      if (invite?.invite?.token) {
+        setNewInviteToken(invite.invite.token);
+        setOpenInviteCreated(true);
+      }
       toast({
-        title: 'Successfully created team!',
+        title: 'Successfully created invite!',
         variant: 'success',
       });
     } catch (err) {
       console.error(err);
       toast({
-        title: 'Unable to create team',
+        title: 'Unable to create invite',
         description: getErrorMessage(err),
         variant: 'destructive',
       });
@@ -54,6 +61,11 @@ export default function MemberManagementSettings(props: Props): ReactElement {
 
   return (
     <div className="mt-10">
+      <InviteCreatedDialog
+        open={openInviteCreated}
+        setOpen={setOpenInviteCreated}
+        token={newInviteToken}
+      />
       <Dialog open={showNewInviteDialog} onOpenChange={setShowNewinviteDialog}>
         <SubPageHeader
           header="Members and Invites"
@@ -112,6 +124,33 @@ export default function MemberManagementSettings(props: Props): ReactElement {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+interface InviteCreatedDialogProps {
+  open: boolean;
+  setOpen: (value: boolean) => void;
+  token: string;
+}
+
+function InviteCreatedDialog(props: InviteCreatedDialogProps): ReactElement {
+  const { open, setOpen, token } = props;
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {/* <DialogTrigger asChild>{trigger}</DialogTrigger> */}
+      <DialogContent>
+        <DialogHeader>Invite created!</DialogHeader>
+        <DialogDescription>{token}</DialogDescription>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="secondary">
+              <ButtonText text="Close" />
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

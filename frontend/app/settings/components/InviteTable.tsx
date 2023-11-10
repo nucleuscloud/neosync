@@ -21,6 +21,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,7 @@ import { AccountInvite } from '@/neosync-api-client/mgmt/v1alpha1/user_account_p
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { useCopyToClipboard } from 'usehooks-ts';
 
 interface ColumnProps {
   onDeleted(id: string): void;
@@ -228,6 +230,7 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const invite = row.original as AccountInvite;
   const { toast } = useToast();
+  const [, copyFn] = useCopyToClipboard();
 
   async function onRemove(): Promise<void> {
     try {
@@ -254,6 +257,17 @@ export function DataTableRowActions<TData>({
         <DotsHorizontalIcon className="h-4 w-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => {
+            copyFn(invite.token)
+              .then(() => {})
+              .catch((err) => console.error(err));
+          }}
+        >
+          Copy Link
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DeleteConfirmationDialog
           trigger={
             <DropdownMenuItem
