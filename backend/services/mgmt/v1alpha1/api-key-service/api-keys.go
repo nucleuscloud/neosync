@@ -24,12 +24,8 @@ func (s *Service) GetAccountApiKeys(
 	}
 
 	apiKeys, err := s.db.Q.GetAccountApiKeys(ctx, s.db.Db, *accountUuid)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return connect.NewResponse(&mgmtv1alpha1.GetAccountApiKeysResponse{
-			ApiKeys: []*mgmtv1alpha1.AccountApiKey{},
-		}), nil
 	}
 
 	dtos := make([]*mgmtv1alpha1.AccountApiKey, len(apiKeys))
