@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { default as NeoCron } from 'neocron';
+import NeoCron from 'neocron';
 import 'neocron/dist/src/globals.css';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
