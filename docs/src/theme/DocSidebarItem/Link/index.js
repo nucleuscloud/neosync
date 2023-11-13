@@ -23,6 +23,7 @@ import {
   BsFillKeyFill,
   BsFunnel,
   BsGenderAmbiguous,
+  BsPinMap,
   BsShieldCheck,
 } from 'react-icons/bs';
 import {
@@ -169,6 +170,8 @@ export const RenderIcon = (name) => {
       return <BsCalendarDate />;
     case 'UUID':
       return <BsFillKeyFill />;
+    case 'Zipcode':
+      return <BsPinMap />;
     default:
       return <LayersIcon />;
   }
