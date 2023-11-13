@@ -32,6 +32,7 @@ import { MdPassword } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
 import { RxAvatar, RxComponentBoolean } from 'react-icons/rx';
 import { SiKubernetes } from 'react-icons/si';
+import { TbDecimal } from 'react-icons/tb';
 import styles from './styles.module.css';
 
 export default function DocSidebarItemLink({
@@ -142,6 +143,8 @@ export const RenderIcon = (name) => {
       return <BsGenderAmbiguous />;
     case 'Random Boolean':
       return <RxComponentBoolean />;
+    case 'Random Float':
+      return <TbDecimal />;
     default:
       return <LayersIcon />;
   }

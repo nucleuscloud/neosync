@@ -181,6 +181,11 @@ const sidebars = {
           id: 'transformers/system/random-bool',
           label: 'Random Boolean',
         },
+        {
+          type: 'doc',
+          id: 'transformers/system/random-float',
+          label: 'Random Float',
+        },
       ],
     },
     {
