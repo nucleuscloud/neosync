@@ -1,0 +1,106 @@
+---
+title: Phone (string)
+id: string-phone
+hide_title: true
+slug: /transformers/system/string-phone
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="Phone (string)"
+  type="string"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/phone.go"
+/>
+
+## Definition
+
+The phone transformer can anonymize an existing phone number or completely generate a new one. There are two phone number transformers that differ by type and the configurations that are available to customize the transformer. This transformer specifically takes a string value and returns a string value. The [Phone (integer) transformer](/transformers/system/string-phone) takes in an integer value and returns an integer value.
+
+By default, the phone (string) transformer generates a random 10 digit phone number with no hyphens.
+
+For example, the following input value:
+`7829828714`
+
+Would produce the following ouput value:
+`5698437232`
+
+You can see we generated a new phone string value that can be used as an string phone number.
+
+Phone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to respect the length of the input value if you're working with phone numbers longer than 10 digits in length. In fact, you can generate a specific international "looking" phone number by specifying the [e164 format](https://www.twilio.com/docs/glossary/what-e164) config.
+
+## Configurations
+
+Depending on your validations, you may want to configure the output phone number. As we discussed above, some phone numbers may be longer than the default 10 digits in length. The phone number (string) transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Include hyphens',
+        'Includes hyphens in the output phone numnber. Note that this config can only be used with default 10 digit phone numbers. ',
+        'false',
+        '9238724378',
+        '290-374-8675',
+      ],
+    },
+    {
+      data: [
+        'PreserveLength',
+        'Preserve Length will ensure that the output phone number is the same length as the input phone number.',
+        'false',
+        '892387243786243',
+        '290374867526392',
+      ],
+    },
+    {
+      data: [
+        'e164 Format',
+        'Will output the phone number in e164 format which includes a + sign at the beginning of the phone number.',
+        'false',
+        '89238724378',
+        '+29486752632',
+      ],
+    },
+  ]}
+/>
+
+## Examples
+
+There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
+
+<DocsTable
+  headers={[
+    'PreserveLength',
+    'Include Hyphens',
+    'e164 Format',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: ['false', 'false', 'false', '2890923784', '5209273239'],
+    },
+    {
+      data: ['false', 'true', 'false', '2890923784', '520-927-3239'],
+    },
+    {
+      data: ['true', 'false', 'false', '289092378423', '520927323239'],
+    },
+    {
+      data: ['false', 'false', 'true', '2890923784', '+520922339'],
+    },
+    {
+      data: ['true', 'false', 'true', '+289092378423', '+520927323921'],
+    },
+  ]}
+/>

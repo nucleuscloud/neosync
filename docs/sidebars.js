@@ -133,6 +133,11 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'transformers/system/string-phone',
+          label: 'Phone (string)',
+        },
+        {
+          type: 'doc',
           id: 'transformers/system/ssn',
           label: 'SSN',
         },

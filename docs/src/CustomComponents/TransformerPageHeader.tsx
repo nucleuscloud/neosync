@@ -14,7 +14,10 @@ export const TransformerPageHeader = (props: Props) => {
     <div className="transformer-page-header">
       <div>{title}</div>
       <Badge>{type}</Badge>
-      <Link href={apiRef} className="flex items-center">
+      <Link
+        href={apiRef}
+        className="no-underline text-gray-900 flex items-center hover:text-gray-900"
+      >
         <Badge>API reference</Badge>
       </Link>
     </div>

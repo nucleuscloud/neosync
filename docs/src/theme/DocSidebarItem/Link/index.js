@@ -94,7 +94,9 @@ export const RenderIcon = (name) => {
       return <FaAws />;
     case 'Email':
       return <AiOutlineMail />;
-    case 'Phone':
+    case 'Phone (integer)':
+      return <AiOutlinePhone />;
+    case 'Phone (string)':
       return <AiOutlinePhone />;
     case 'SSN':
       return <MdPassword />;
