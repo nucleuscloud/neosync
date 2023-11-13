@@ -4,7 +4,7 @@ const config = {
     'docusaurus.config.js',
     'sidebars.js',
     'static/sync-dark-mode.js',
-    'src/CustomComponents/**',
+    'src/**',
     'src/theme/**',
   ],
   ignoreDependencies: [
@@ -13,9 +13,13 @@ const config = {
     '@radix-ui/react-icons',
     'autoprefixer',
     'postcss',
+    'node',
+    '@docusaurus/theme-classic',
     'prism-react-renderer',
     'react-icons',
     'tailwindcss',
+    'class-variance-authority',
+    'tailwind-merge',
   ],
   ignoreBinaries: [],
 };
