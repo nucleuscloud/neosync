@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,4 +41,25 @@ func Test_ToSha256(t *testing.T) {
 		ToSha256("foobar"),
 		"c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2",
 	)
+}
+
+func Test_GetBearerTokenFromHeader(t *testing.T) {
+	_, err := GetBearerTokenFromHeader(http.Header{}, "Authorization")
+	assert.Error(t, err)
+	_, err = GetBearerTokenFromHeader(http.Header{"Authorization": []string{}}, "Authorization")
+	assert.Error(t, err)
+	_, err = GetBearerTokenFromHeader(http.Header{"Authorization": []string{"Foo"}}, "Authorization")
+	assert.Error(t, err)
+	_, err = GetBearerTokenFromHeader(http.Header{"Authorization": []string{"Foo Foo Foo"}}, "Authorization")
+	assert.Error(t, err)
+	_, err = GetBearerTokenFromHeader(http.Header{"Authorization": []string{"Foo Foo"}}, "Authorization")
+	assert.Error(t, err)
+	_, err = GetBearerTokenFromHeader(http.Header{"Authorization": []string{"Bearer"}}, "Authorization")
+	assert.Error(t, err)
+	_, err = GetBearerTokenFromHeader(http.Header{"Authorization": []string{"Bearer 123"}}, "Authorizationn")
+	assert.Error(t, err)
+
+	token, err := GetBearerTokenFromHeader(http.Header{"Authorization": []string{"Bearer 123"}}, "Authorization")
+	assert.Nil(t, err)
+	assert.Equal(t, token, "123")
 }

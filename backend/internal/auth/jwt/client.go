@@ -11,6 +11,7 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/utils"
 )
 
 type ClientConfig struct {
@@ -99,28 +100,9 @@ func hasScope(scopes []string, expectedScope string) bool {
 	return false
 }
 
-func getBearerTokenFromHeader(
-	header http.Header,
-	key string,
-) (string, error) {
-	unparsedToken := header.Get(key)
-	if unparsedToken == "" {
-		return "", nucleuserrors.NewUnauthenticated("must provide valid bearer token")
-	}
-	pieces := strings.Split(unparsedToken, " ")
-	if len(pieces) != 2 {
-		return "", nucleuserrors.NewUnauthenticated("token not in proper format")
-	}
-	if pieces[0] != "Bearer" {
-		return "", nucleuserrors.NewUnauthenticated("must provided bearer token")
-	}
-	token := pieces[1]
-	return token, nil
-}
-
 // Validates the ctx is authenticated. Stuffs the parsed token onto the context
 func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error) {
-	token, err := getBearerTokenFromHeader(header, "Authorization")
+	token, err := utils.GetBearerTokenFromHeader(header, "Authorization")
 	if err != nil {
 		return nil, err
 	}
