@@ -2,38 +2,34 @@ package authmw
 
 import (
 	"context"
+	"errors"
 	"net/http"
+
+	"github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 )
 
-type JwtClient interface {
+type AuthClient interface {
 	InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error)
 }
 
 type AuthMiddleware struct {
-	jwtClient JwtClient
-	// db        *nucleusdb.NucleusDb
+	jwtClient    AuthClient
+	apiKeyClient AuthClient
 }
 
 func New(
-	jwtClient JwtClient,
-	// db *nucleusdb.NucleusDb,
+	jwtClient AuthClient,
+	apiKeyClient AuthClient,
 ) *AuthMiddleware {
-
-	return &AuthMiddleware{jwtClient: jwtClient}
+	return &AuthMiddleware{jwtClient: jwtClient, apiKeyClient: apiKeyClient}
 }
 
-func (n *AuthMiddleware) ValidateAndInjectAll(ctx context.Context, header http.Header) (context.Context, error) {
-	ctx, err := n.ValidateAndInjectJwtToken(ctx, header)
-	if err != nil {
+func (n *AuthMiddleware) InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error) {
+	ctx, err := n.apiKeyClient.InjectTokenCtx(ctx, header)
+	if err != nil && !errors.Is(err, apikey.InvalidApiKeyErr) {
 		return nil, err
-	}
-	return ctx, nil
-}
-
-func (n *AuthMiddleware) ValidateAndInjectJwtToken(ctx context.Context, header http.Header) (context.Context, error) {
-	ctx, err := n.jwtClient.InjectTokenCtx(ctx, header)
-	if err != nil {
-		return nil, err
+	} else if err != nil && errors.Is(err, apikey.InvalidApiKeyErr) {
+		return n.jwtClient.InjectTokenCtx(ctx, header)
 	}
 	return ctx, nil
 }

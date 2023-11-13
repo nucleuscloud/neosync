@@ -17,6 +17,7 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	"github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
@@ -134,7 +135,16 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		stdInterceptors = append(stdInterceptors, auth_interceptor.NewInterceptor(authmw.New(jwtclient).ValidateAndInjectAll))
+		apikeyClient := apikey.New(db.Q, db.Db)
+		stdInterceptors = append(
+			stdInterceptors,
+			auth_interceptor.NewInterceptor(
+				authmw.New(
+					jwtclient,
+					apikeyClient,
+				).InjectTokenCtx,
+			),
+		)
 	}
 
 	stdInterceptorConnectOpt := connect.WithInterceptors(
