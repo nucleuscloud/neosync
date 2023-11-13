@@ -33,6 +33,7 @@ import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
 import { RxAvatar, RxComponentBoolean } from 'react-icons/rx';
 import { SiKubernetes } from 'react-icons/si';
 import { TbDecimal } from 'react-icons/tb';
+import { TiSortNumerically } from 'react-icons/ti';
 import styles from './styles.module.css';
 
 export default function DocSidebarItemLink({
@@ -145,6 +146,8 @@ export const RenderIcon = (name) => {
       return <RxComponentBoolean />;
     case 'Random Float':
       return <TbDecimal />;
+    case 'Random Integer':
+      return <TiSortNumerically />;
     default:
       return <LayersIcon />;
   }

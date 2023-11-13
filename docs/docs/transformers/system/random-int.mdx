@@ -1,0 +1,78 @@
+---
+title: Random Integer
+id: random-int
+hide_title: true
+slug: /transformers/system/random-int
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="Random Integer"
+  type="integer"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/random_int.go"
+/>
+
+## Definition
+
+The random integer transformer generates a random integer.
+
+For example:
+`6782`
+
+By default, the random int transformer generates an integer of 4 digits long.
+
+## Configurations
+
+Depending on your validations, you may want to configure the output integer. The random integer transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Preserve Length',
+        'Preserves the length of the input integer to the output integer.',
+        'false',
+        '12334',
+        '78223',
+      ],
+    },
+    {
+      data: [
+        'Int Length',
+        'Specifies how many digits you want the integer to be. This has a max of 18 digits. ',
+        '4',
+        '7',
+        '2782736',
+      ],
+    },
+  ]}
+/>
+
+## Examples
+
+There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['PreserveLength', 'Int Length', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', '5', '87242', '23324'],
+    },
+    {
+      data: ['true', 'N/A', '9183', '6721'],
+    },
+    {
+      data: ['false', 'N/A', '51', '5419'],
+    },
+  ]}
+/>
