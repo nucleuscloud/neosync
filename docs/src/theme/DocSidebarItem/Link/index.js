@@ -30,7 +30,7 @@ import { GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
-import { RxAvatar } from 'react-icons/rx';
+import { RxAvatar, RxComponentBoolean } from 'react-icons/rx';
 import { SiKubernetes } from 'react-icons/si';
 import styles from './styles.module.css';
 
@@ -140,6 +140,8 @@ export const RenderIcon = (name) => {
       return <FaRegAddressBook />;
     case 'Gender':
       return <BsGenderAmbiguous />;
+    case 'Random Boolean':
+      return <RxComponentBoolean />;
     default:
       return <LayersIcon />;
   }

@@ -176,6 +176,11 @@ const sidebars = {
           id: 'transformers/system/ssn',
           label: 'SSN',
         },
+        {
+          type: 'doc',
+          id: 'transformers/system/random-bool',
+          label: 'Random Boolean',
+        },
       ],
     },
     {
