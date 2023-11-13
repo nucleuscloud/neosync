@@ -103,9 +103,13 @@ func serve(ctx context.Context) error {
 		if schemaDir == "" {
 			return errors.New("must provide DB_SCHEMA_DIR env var to run auto db migrations")
 		}
+		dbMigConfig, err := getDbMigrationConfig()
+		if err != nil {
+			return err
+		}
 		if err := up_cmd.Up(
 			ctx,
-			nucleusdb.GetDbUrl(dbconfig),
+			nucleusdb.GetDbUrl(dbMigConfig),
 			schemaDir,
 			logger,
 		); err != nil {
@@ -253,6 +257,47 @@ func serve(ctx context.Context) error {
 }
 
 func getDbConfig() (*nucleusdb.ConnectConfig, error) {
+	dbHost := viper.GetString("DB_HOST")
+	if dbHost == "" {
+		return nil, fmt.Errorf("must provide DB_HOST in environment")
+	}
+
+	dbPort := viper.GetInt("DB_PORT")
+	if dbPort == 0 {
+		return nil, fmt.Errorf("must provide DB_PORT in environment")
+	}
+
+	dbName := viper.GetString("DB_NAME")
+	if dbName == "" {
+		return nil, fmt.Errorf("must provide DB_NAME in environment")
+	}
+
+	dbUser := viper.GetString("DB_USER")
+	if dbUser == "" {
+		return nil, fmt.Errorf("must provide DB_USER in environment")
+	}
+
+	dbPass := viper.GetString("DB_PASS")
+	if dbPass == "" {
+		return nil, fmt.Errorf("must provide DB_PASS in environment")
+	}
+
+	sslMode := "require"
+	if viper.IsSet("DB_SSL_DISABLE") && viper.GetBool("DB_SSL_DISABLE") {
+		sslMode = "disable"
+	}
+
+	return &nucleusdb.ConnectConfig{
+		Host:     dbHost,
+		Port:     dbPort,
+		Database: dbName,
+		User:     dbUser,
+		Pass:     dbPass,
+		SslMode:  &sslMode,
+	}, nil
+}
+
+func getDbMigrationConfig() (*nucleusdb.ConnectConfig, error) {
 	dbHost := viper.GetString("DB_HOST")
 	if dbHost == "" {
 		return nil, fmt.Errorf("must provide DB_HOST in environment")
