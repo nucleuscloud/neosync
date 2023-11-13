@@ -37,7 +37,7 @@ migrations:
     disableSsl: false
     schemaDir: /app/migrations
     migrationsTableName: neosync_api_schema_migrations
-    migrationsTableQuoted: true
+    migrationsTableQuoted: false
 
 istio:
   enabled: false
