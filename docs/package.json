@@ -37,7 +37,7 @@
     "@docusaurus/module-type-aliases": "2.4.3",
     "@tsconfig/docusaurus": "^2.0.2",
     "knip": "^2.40.2",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.0",
     "typescript": "^5.2.2"
   },
   "browserslist": {
