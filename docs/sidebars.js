@@ -128,8 +128,8 @@ const sidebars = {
         },
         {
           type: 'doc',
-          id: 'transformers/system/phone',
-          label: 'Phone',
+          id: 'transformers/system/int-phone',
+          label: 'Phone (integer)',
         },
         {
           type: 'doc',

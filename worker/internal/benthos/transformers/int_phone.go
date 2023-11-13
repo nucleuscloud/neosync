@@ -47,7 +47,7 @@ func GenerateIntPhoneNumber(number int64, preserveLength bool) (int64, error) {
 
 	} else {
 
-		res, err := GenerateIntPhoneNumberRandomLength()
+		res, err := GenerateRandomTenDigitIntPhoneNumber()
 		if err != nil {
 			return 0, fmt.Errorf("unable to convert phone number string to int64")
 		}
@@ -70,7 +70,7 @@ func GenerateIntPhoneNumberPreserveLength(number int64) (int64, error) {
 
 }
 
-func GenerateIntPhoneNumberRandomLength() (int64, error) {
+func GenerateRandomTenDigitIntPhoneNumber() (int64, error) {
 
 	res, err := transformer_utils.GenerateRandomInt(int64(10))
 
