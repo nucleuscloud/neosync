@@ -444,6 +444,37 @@ func (q *Queries) GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID
 	return i, err
 }
 
+const getUserIdentityAssociationsByUserIds = `-- name: GetUserIdentityAssociationsByUserIds :many
+SELECT id, user_id, auth0_provider_id, created_at, updated_at from neosync_api.user_identity_provider_associations
+WHERE user_id = ANY($1::uuid[])
+`
+
+func (q *Queries) GetUserIdentityAssociationsByUserIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error) {
+	rows, err := db.Query(ctx, getUserIdentityAssociationsByUserIds, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NeosyncApiUserIdentityProviderAssociation
+	for rows.Next() {
+		var i NeosyncApiUserIdentityProviderAssociation
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Auth0ProviderID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUsersByTeamAccount = `-- name: GetUsersByTeamAccount :many
 SELECT u.id, u.created_at, u.updated_at from neosync_api.users u
 INNER JOIN neosync_api.account_user_associations aua ON aua.user_id = u.id
@@ -531,6 +562,30 @@ func (q *Queries) SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser
 	row := db.QueryRow(ctx, setAnonymousUser)
 	var i NeosyncApiUser
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
+	return i, err
+}
+
+const updateAccountInviteToAccepted = `-- name: UpdateAccountInviteToAccepted :one
+UPDATE neosync_api.account_invites
+SET accepted = true
+WHERE id = $1
+RETURNING id, account_id, sender_user_id, email, token, accepted, created_at, updated_at, expires_at
+`
+
+func (q *Queries) UpdateAccountInviteToAccepted(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error) {
+	row := db.QueryRow(ctx, updateAccountInviteToAccepted, id)
+	var i NeosyncApiAccountInvite
+	err := row.Scan(
+		&i.ID,
+		&i.AccountID,
+		&i.SenderUserID,
+		&i.Email,
+		&i.Token,
+		&i.Accepted,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ExpiresAt,
+	)
 	return i, err
 }
 

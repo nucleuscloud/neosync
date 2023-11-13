@@ -1258,3 +1258,77 @@ export class RemoveTeamAccountInviteResponse extends Message<RemoveTeamAccountIn
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.AcceptTeamAccountInviteRequest
+ */
+export class AcceptTeamAccountInviteRequest extends Message<AcceptTeamAccountInviteRequest> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string token = 2;
+   */
+  token = "";
+
+  constructor(data?: PartialMessage<AcceptTeamAccountInviteRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AcceptTeamAccountInviteRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AcceptTeamAccountInviteRequest {
+    return new AcceptTeamAccountInviteRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AcceptTeamAccountInviteRequest {
+    return new AcceptTeamAccountInviteRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AcceptTeamAccountInviteRequest {
+    return new AcceptTeamAccountInviteRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AcceptTeamAccountInviteRequest | PlainMessage<AcceptTeamAccountInviteRequest> | undefined, b: AcceptTeamAccountInviteRequest | PlainMessage<AcceptTeamAccountInviteRequest> | undefined): boolean {
+    return proto3.util.equals(AcceptTeamAccountInviteRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AcceptTeamAccountInviteResponse
+ */
+export class AcceptTeamAccountInviteResponse extends Message<AcceptTeamAccountInviteResponse> {
+  constructor(data?: PartialMessage<AcceptTeamAccountInviteResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AcceptTeamAccountInviteResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AcceptTeamAccountInviteResponse {
+    return new AcceptTeamAccountInviteResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AcceptTeamAccountInviteResponse {
+    return new AcceptTeamAccountInviteResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AcceptTeamAccountInviteResponse {
+    return new AcceptTeamAccountInviteResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AcceptTeamAccountInviteResponse | PlainMessage<AcceptTeamAccountInviteResponse> | undefined, b: AcceptTeamAccountInviteResponse | PlainMessage<AcceptTeamAccountInviteResponse> | undefined): boolean {
+    return proto3.util.equals(AcceptTeamAccountInviteResponse, a, b);
+  }
+}
+

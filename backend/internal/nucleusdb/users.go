@@ -188,5 +188,43 @@ func (d *NucleusDb) CreateTeamAccountInvite(
 		return nil, err
 	}
 	return accountInvite, nil
+}
 
+// check if user already in account
+// set invitation as accepted
+// create user account association record
+
+func (d *NucleusDb) AddUserToAccount(
+	ctx context.Context,
+	accountId pgtype.UUID,
+	userId pgtype.UUID,
+	inviteId pgtype.UUID,
+) error {
+	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+		_, err := d.Q.GetAccountUserAssociation(ctx, dbtx, db_queries.GetAccountUserAssociationParams{
+			AccountId: accountId,
+			UserId:    userId,
+		})
+		if err != nil && !IsNoRows(err) {
+			return err
+		} else if err != nil && IsNoRows(err) {
+			_, err := d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
+				AccountID: accountId,
+				UserID:    userId,
+			})
+			if err != nil {
+				return err
+			}
+			_, err = d.Q.UpdateAccountInviteToAccepted(ctx, dbtx, inviteId)
+			if err != nil {
+				return err
+			}
+		} else {
+			return nucleuserrors.NewAlreadyExists("account user association already exists")
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	return nil
 }

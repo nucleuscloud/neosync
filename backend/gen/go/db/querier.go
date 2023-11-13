@@ -49,6 +49,7 @@ type Querier interface {
 	GetUser(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiUser, error)
 	GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUserIdentityProviderAssociation, error)
 	GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error)
+	GetUserIdentityAssociationsByUserIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)
 	GetUsersByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUser, error)
 	IsConnectionInAccount(ctx context.Context, db DBTX, arg IsConnectionInAccountParams) (int64, error)
 	IsConnectionNameAvailable(ctx context.Context, db DBTX, arg IsConnectionNameAvailableParams) (int64, error)
@@ -63,6 +64,7 @@ type Querier interface {
 	RemoveJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) error
 	RemoveJobConnectionDestinations(ctx context.Context, db DBTX, jobids []pgtype.UUID) error
 	SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
+	UpdateAccountInviteToAccepted(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error)
 	UpdateActiveAccountInvitesToExpired(ctx context.Context, db DBTX, arg UpdateActiveAccountInvitesToExpiredParams) (NeosyncApiAccountInvite, error)
 	UpdateConnection(ctx context.Context, db DBTX, arg UpdateConnectionParams) (NeosyncApiConnection, error)
 	UpdateCustomTransformer(ctx context.Context, db DBTX, arg UpdateCustomTransformerParams) (NeosyncApiTransformer, error)

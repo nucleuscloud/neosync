@@ -2,6 +2,8 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
@@ -207,6 +209,25 @@ func (s *Service) GetTeamAccountMembers(
 		return nil, err
 	}
 
+	userIds := []pgtype.UUID{}
+	for _, u := range users {
+		userIds = append(userIds, u.ID)
+	}
+
+	userAuths, err := s.db.Q.GetUserIdentityAssociationsByUserIds(ctx, s.db.Db, userIds)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, u := range userAuths {
+		x, err := s.authMgmt.GetUserById(ctx, u.Auth0ProviderID)
+		if err != nil {
+			return nil, err
+		}
+		jsonF, _ := json.MarshalIndent(x, "", " ")
+		fmt.Printf("\n\n  %s \n\n", string(jsonF))
+	}
+
 	dtoUsers := []*mgmtv1alpha1.AccountUser{}
 	for _, user := range users {
 		dtoUsers = append(dtoUsers, &mgmtv1alpha1.AccountUser{
@@ -346,6 +367,51 @@ func (s *Service) RemoveTeamAccountInvite(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountInviteResponse{}), nil
+}
+
+func (s *Service) AcceptTeamAccountInvite(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.AcceptTeamAccountInviteRequest],
+) (*connect.Response[mgmtv1alpha1.AcceptTeamAccountInviteResponse], error) {
+	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
+	if err != nil {
+		return nil, err
+	}
+	inviteId, err := nucleusdb.ToUuid(req.Msg.Id)
+	if err != nil {
+		return nil, err
+	}
+	invite, err := s.db.Q.GetAccountInvite(ctx, s.db.Db, inviteId)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.verifyTeamAccount(ctx, invite.AccountID); err != nil {
+		return nil, err
+	}
+
+	if req.Msg.Token != invite.Token {
+		return nil, nucleuserrors.NewForbidden("unable to invite user to account")
+	}
+
+	if invite.Accepted.Bool {
+		return nil, nucleuserrors.NewForbidden("account invitation already accepted")
+	}
+
+	if invite.ExpiresAt.Time.Before(time.Now()) {
+		return nil, nucleuserrors.NewForbidden("account invitation expired")
+	}
+
+	err = s.db.AddUserToAccount(ctx, invite.AccountID, userUuid, invite.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.AcceptTeamAccountInviteResponse{}), nil
 }
 
 func (s *Service) verifyTeamAccount(ctx context.Context, accountId pgtype.UUID) error {

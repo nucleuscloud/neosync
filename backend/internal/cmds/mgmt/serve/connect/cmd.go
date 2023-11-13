@@ -17,6 +17,7 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	authmgmt "github.com/nucleuscloud/neosync/backend/internal/auth-mgmt"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	"github.com/nucleuscloud/neosync/backend/internal/authmw"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
@@ -137,10 +138,15 @@ func serve(ctx context.Context) error {
 
 	api := http.NewServeMux()
 
+	authMgmt, err := authmgmt.New(getAuthBaseUrl(), "N53szkXwrMZmWiMQ96bJVCSuafn6myMR", "ZggNj5-HTCOdYzovNBZTDIys9sdLIl9aKOqn23yXMonECpG7N2qELVwQEfY_It5T")
+	if err != nil {
+		return err
+	}
+
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled: isAuthEnabled,
 		Temporal:      getDefaultTemporalConfig(),
-	}, db)
+	}, db, authMgmt)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,

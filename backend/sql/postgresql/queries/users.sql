@@ -33,6 +33,10 @@ INSERT INTO neosync_api.user_identity_provider_associations (
 )
 RETURNING *;
 
+-- name: GetUserIdentityAssociationsByUserIds :many
+SELECT * from neosync_api.user_identity_provider_associations
+WHERE user_id = ANY($1::uuid[]);
+
 -- name: GetAccount :one
 SELECT * from neosync_api.accounts
 WHERE id = $1;
@@ -144,6 +148,12 @@ WHERE account_id = sqlc.arg('accountId') AND expires_at > CURRENT_TIMESTAMP AND 
 UPDATE neosync_api.account_invites
 SET expires_at = CURRENT_TIMESTAMP
 WHERE account_id = sqlc.arg('accountId') AND email = sqlc.arg('email') AND expires_at > CURRENT_TIMESTAMP
+RETURNING *;
+
+-- name: UpdateAccountInviteToAccepted :one
+UPDATE neosync_api.account_invites
+SET accepted = true
+WHERE id = $1
 RETURNING *;
 
 -- name: GetAccountInvite :one
