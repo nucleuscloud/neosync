@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -44,8 +46,18 @@ func GetDbUrl(cfg *ConnectConfig) string {
 		cfg.Port,
 		cfg.Database,
 	)
+	pgOpts := url.Values{}
 	if cfg.SslMode != nil && *cfg.SslMode != "" {
-		dburl = fmt.Sprintf("%s?sslmode=%s", dburl, *cfg.SslMode)
+		pgOpts["sslmode"] = []string{*cfg.SslMode}
+	}
+	if cfg.MigrationsTableName != nil && *cfg.MigrationsTableName != "" {
+		pgOpts["x-migrations-table"] = []string{*cfg.MigrationsTableName}
+	}
+	if cfg.MigrationsTableQuoted != nil {
+		pgOpts["x-migrations-table-quoted"] = []string{strconv.FormatBool(*cfg.MigrationsTableQuoted)}
+	}
+	if len(pgOpts) > 0 {
+		return fmt.Sprintf("%s?%s", dburl, pgOpts.Encode())
 	}
 	return dburl
 }
