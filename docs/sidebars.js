@@ -123,11 +123,6 @@ const sidebars = {
         },
         {
           type: 'doc',
-          id: 'transformers/system/physical-address',
-          label: 'Physical Address',
-        },
-        {
-          type: 'doc',
           id: 'transformers/system/int-phone',
           label: 'Phone (integer)',
         },
@@ -210,6 +205,16 @@ const sidebars = {
           type: 'doc',
           id: 'transformers/system/unix-ts',
           label: 'Unix Timestamp',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/utc-ts',
+          label: 'UTC Timestamp',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/uuid',
+          label: 'UUID',
         },
       ],
     },

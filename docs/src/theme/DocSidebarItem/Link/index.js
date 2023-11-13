@@ -18,12 +18,17 @@ import {
   AiOutlinePhone,
 } from 'react-icons/ai';
 import { BiLogoPostgresql, BiSolidCity, BiTimeFive } from 'react-icons/bi';
-import { BsFunnel, BsGenderAmbiguous, BsShieldCheck } from 'react-icons/bs';
+import {
+  BsCalendarDate,
+  BsFillKeyFill,
+  BsFunnel,
+  BsGenderAmbiguous,
+  BsShieldCheck,
+} from 'react-icons/bs';
 import {
   FaAws,
   FaDocker,
   FaRegAddressBook,
-  FaRegAddressCard,
   FaStreetView,
 } from 'react-icons/fa';
 import { GiTexas } from 'react-icons/gi';
@@ -118,8 +123,6 @@ export const RenderIcon = (name) => {
       return <AiOutlinePhone />;
     case 'SSN':
       return <MdPassword />;
-    case 'Physical Address':
-      return <FaRegAddressCard />;
     case 'Custom':
       return <GoCode />;
     case 'System':
@@ -162,6 +165,10 @@ export const RenderIcon = (name) => {
       return <FaStreetView />;
     case 'Unix Timestamp':
       return <BiTimeFive />;
+    case 'UTC Timestamp':
+      return <BsCalendarDate />;
+    case 'UUID':
+      return <BsFillKeyFill />;
     default:
       return <LayersIcon />;
   }

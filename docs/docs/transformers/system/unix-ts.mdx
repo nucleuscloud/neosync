@@ -19,7 +19,7 @@ import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
 
 The unix timestamp transformer randomly generates a unix timestamp in UTC timezone and returns back an int64 representation of that timestamp.
 
-By default, the generated timestamp will always be in the **past**. To generate a timestamp that is in the future, set the `alwaysFuture` config to true.
+By default, the generated timestamp will always be in the **past**. To generate a timestamp that is in the future, set the `Future` config to true.
 
 ## Configurations
 
@@ -36,8 +36,8 @@ Depending on your validations, you may want to configure the output unix timesta
   rowData={[
     {
       data: [
-        'Always Future',
-        'Always generates a timestamp in the future',
+        'Future',
+        'Always generates a unix timestamp in the future',
         'false',
         'N/A',
         '2524608000',
@@ -51,7 +51,7 @@ Depending on your validations, you may want to configure the output unix timesta
 Here are some examples of what an output state value may look like.
 
 <DocsTable
-  headers={['Always Future', 'Example Input', 'Example Output']}
+  headers={['Future', 'Example Input', 'Example Output']}
   rowData={[
     {
       data: ['true', '946684800', '2524608000'],
