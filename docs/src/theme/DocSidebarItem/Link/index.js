@@ -12,8 +12,12 @@ import {
 import IconExternalLink from '@theme/Icon/ExternalLink';
 import clsx from 'clsx';
 import React from 'react';
-import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
-import { BiLogoPostgresql } from 'react-icons/bi';
+import {
+  AiOutlineCreditCard,
+  AiOutlineMail,
+  AiOutlinePhone,
+} from 'react-icons/ai';
+import { BiLogoPostgresql, BiSolidCity } from 'react-icons/bi';
 import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
 import { FaAws, FaDocker, FaRegAddressCard } from 'react-icons/fa';
 import { GoCode } from 'react-icons/go';
@@ -116,6 +120,10 @@ export const RenderIcon = (name) => {
       return <PiFlaskLight />;
     case 'Subset Data':
       return <BsFunnel />;
+    case 'City':
+      return <BiSolidCity />;
+    case 'Card Number':
+      return <AiOutlineCreditCard />;
     default:
       return <LayersIcon />;
   }

@@ -138,6 +138,16 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'transformers/system/city',
+          label: 'City',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/card-number',
+          label: 'Card Number',
+        },
+        {
+          type: 'doc',
           id: 'transformers/system/ssn',
           label: 'SSN',
         },
