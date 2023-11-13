@@ -4,7 +4,7 @@ const config = {
     'docusaurus.config.js',
     'sidebars.js',
     'static/sync-dark-mode.js',
-    'src/components/HomepageFeatures/**',
+    'src/CustomComponents/**',
     'src/theme/**',
   ],
   ignoreDependencies: [

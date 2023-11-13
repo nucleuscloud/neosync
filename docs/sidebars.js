@@ -112,28 +112,28 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Pre-built',
+      label: 'System',
       collapsible: true,
       collapsed: true,
       items: [
         {
           type: 'doc',
-          id: 'transformers/pre-built/email',
+          id: 'transformers/system/email',
           label: 'Email',
         },
         {
           type: 'doc',
-          id: 'transformers/pre-built/physical-address',
+          id: 'transformers/system/physical-address',
           label: 'Physical Address',
         },
         {
           type: 'doc',
-          id: 'transformers/pre-built/phone',
+          id: 'transformers/system/phone',
           label: 'Phone',
         },
         {
           type: 'doc',
-          id: 'transformers/pre-built/ssn',
+          id: 'transformers/system/ssn',
           label: 'SSN',
         },
       ],
