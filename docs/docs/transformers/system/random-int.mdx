@@ -48,7 +48,7 @@ Depending on your validations, you may want to configure the output integer. The
     },
     {
       data: [
-        'Int Length',
+        'Integer Length',
         'Specifies how many digits you want the integer to be. This has a max of 18 digits. ',
         '4',
         '7',
@@ -63,7 +63,12 @@ Depending on your validations, you may want to configure the output integer. The
 There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
 
 <DocsTable
-  headers={['PreserveLength', 'Int Length', 'Example Input', 'Example Output']}
+  headers={[
+    'PreserveLength',
+    'Integer Length',
+    'Example Input',
+    'Example Output',
+  ]}
   rowData={[
     {
       data: ['false', '5', '87242', '23324'],

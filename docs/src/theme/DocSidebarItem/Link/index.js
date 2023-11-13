@@ -30,7 +30,11 @@ import { GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
-import { RxAvatar, RxComponentBoolean } from 'react-icons/rx';
+import {
+  RxAvatar,
+  RxComponentBoolean,
+  RxLetterCaseCapitalize,
+} from 'react-icons/rx';
 import { SiKubernetes } from 'react-icons/si';
 import { TbDecimal } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
@@ -148,6 +152,8 @@ export const RenderIcon = (name) => {
       return <TbDecimal />;
     case 'Random Integer':
       return <TiSortNumerically />;
+    case 'Random String':
+      return <RxLetterCaseCapitalize />;
     default:
       return <LayersIcon />;
   }
