@@ -143,8 +143,18 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'transformers/system/full-address',
+          label: 'Full Address',
+        },
+        {
+          type: 'doc',
           id: 'transformers/system/card-number',
           label: 'Card Number',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/first-name',
+          label: 'First Name',
         },
         {
           type: 'doc',

@@ -19,12 +19,18 @@ import {
 } from 'react-icons/ai';
 import { BiLogoPostgresql, BiSolidCity } from 'react-icons/bi';
 import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
-import { FaAws, FaDocker, FaRegAddressCard } from 'react-icons/fa';
+import {
+  FaAws,
+  FaDocker,
+  FaRegAddressBook,
+  FaRegAddressCard,
+} from 'react-icons/fa';
 import { GoCode } from 'react-icons/go';
 import { GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
+import { RxAvatar } from 'react-icons/rx';
 import { SiKubernetes } from 'react-icons/si';
 import styles from './styles.module.css';
 
@@ -124,6 +130,10 @@ export const RenderIcon = (name) => {
       return <BiSolidCity />;
     case 'Card Number':
       return <AiOutlineCreditCard />;
+    case 'First Name':
+      return <RxAvatar />;
+    case 'Full Address':
+      return <FaRegAddressBook />;
     default:
       return <LayersIcon />;
   }
