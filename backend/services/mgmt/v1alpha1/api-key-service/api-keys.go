@@ -88,19 +88,18 @@ func (s *Service) CreateAccountApiKey(
 		clearKeyValue,
 	)
 
-	newApiKey, err := s.db.Q.CreateAccountApiKey(ctx, s.db.Db, db_queries.CreateAccountApiKeyParams{
-		KeyName:     req.Msg.Name,
-		KeyValue:    hashedKeyValue,
-		AccountID:   *accountUuid,
-		ExpiresAt:   expiresAt,
-		CreatedByID: *userUuid,
-		UpdatedByID: *userUuid,
+	newApiKey, err := s.db.CreateAccountApikey(ctx, &nucleusdb.CreateAccountApiKeyRequest{
+		KeyName:           req.Msg.Name,
+		KeyValue:          hashedKeyValue,
+		AccountUuid:       *accountUuid,
+		CreatedByUserUuid: *userUuid,
+		ExpiresAt:         expiresAt,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.CreateAccountApiKeyResponse{
-		ApiKey: dtomaps.ToAccountApiKeyDto(&newApiKey, &clearKeyValue),
+		ApiKey: dtomaps.ToAccountApiKeyDto(newApiKey, &clearKeyValue),
 	}), nil
 }
 

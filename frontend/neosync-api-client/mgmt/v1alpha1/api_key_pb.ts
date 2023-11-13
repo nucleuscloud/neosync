@@ -140,6 +140,11 @@ export class AccountApiKey extends Message<AccountApiKey> {
    */
   keyValue?: string;
 
+  /**
+   * @generated from field: string user_id = 9;
+   */
+  userId = "";
+
   constructor(data?: PartialMessage<AccountApiKey>) {
     super();
     proto3.util.initPartial(data, this);
@@ -156,6 +161,7 @@ export class AccountApiKey extends Message<AccountApiKey> {
     { no: 6, name: "updated_by_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 7, name: "updated_at", kind: "message", T: Timestamp },
     { no: 8, name: "key_value", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 9, name: "user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountApiKey {

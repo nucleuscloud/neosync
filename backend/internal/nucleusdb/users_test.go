@@ -85,7 +85,7 @@ func Test_SetUserByAuth0Id_NoAssociation(t *testing.T) {
 	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
 	querierMock.On("GetUserByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilUser, sql.ErrNoRows)
 	querierMock.On("GetUserAssociationByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilAssociation, sql.ErrNoRows)
-	querierMock.On("CreateUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
+	querierMock.On("CreateNonMachineUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
 	querierMock.On("CreateAuth0IdentityProviderAssociation", ctx, mockTx, db_queries.CreateAuth0IdentityProviderAssociationParams{
 		UserID:          userUuid,
 		Auth0ProviderID: mockAuth0Id,
@@ -117,7 +117,7 @@ func Test_SetUserByAuth0Id_Association_NoUser(t *testing.T) {
 	querierMock.On("GetUserByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilUser, sql.ErrNoRows)
 	querierMock.On("GetUserAssociationByAuth0Id", ctx, mockTx, mockAuth0Id).Return(db_queries.NeosyncApiUserIdentityProviderAssociation{UserID: userUuid}, nil)
 	querierMock.On("GetUser", ctx, mockTx, userUuid).Return(nilUser, sql.ErrNoRows)
-	querierMock.On("CreateUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
+	querierMock.On("CreateNonMachineUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
 
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
@@ -144,7 +144,7 @@ func Test_SetUserByAuth0Id_CreateAuth0IdentityProviderAssociation_Error(t *testi
 	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
 	querierMock.On("GetUserByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilUser, sql.ErrNoRows)
 	querierMock.On("GetUserAssociationByAuth0Id", ctx, mockTx, mockAuth0Id).Return(nilAssociation, sql.ErrNoRows)
-	querierMock.On("CreateUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
+	querierMock.On("CreateNonMachineUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
 	querierMock.On("CreateAuth0IdentityProviderAssociation", ctx, mockTx, db_queries.CreateAuth0IdentityProviderAssociationParams{
 		UserID:          userUuid,
 		Auth0ProviderID: mockAuth0Id,

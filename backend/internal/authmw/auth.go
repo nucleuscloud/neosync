@@ -23,14 +23,14 @@ func New(
 }
 
 func (n *AuthMiddleware) ValidateAndInjectAll(ctx context.Context, header http.Header) (context.Context, error) {
-	ctx, err := n.ValidateAndInjectToken(ctx, header)
+	ctx, err := n.ValidateAndInjectJwtToken(ctx, header)
 	if err != nil {
 		return nil, err
 	}
 	return ctx, nil
 }
 
-func (n *AuthMiddleware) ValidateAndInjectToken(ctx context.Context, header http.Header) (context.Context, error) {
+func (n *AuthMiddleware) ValidateAndInjectJwtToken(ctx context.Context, header http.Header) (context.Context, error) {
 	ctx, err := n.jwtClient.InjectTokenCtx(ctx, header)
 	if err != nil {
 		return nil, err

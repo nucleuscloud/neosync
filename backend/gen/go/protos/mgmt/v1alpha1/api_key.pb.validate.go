@@ -392,6 +392,8 @@ func (m *AccountApiKey) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for UserId
+
 	if m.KeyValue != nil {
 		// no validation rules for KeyValue
 	}
