@@ -1,13 +1,13 @@
 quiet: False
 disable-version-string: True
 with-expecter: True
-filename: 'mock_{{.InterfaceName}}.go'
-dir: '{{.InterfaceDir}}'
-mockname: 'Mock{{.InterfaceName}}'
-outpkg: '{{.PackageName}}'
+filename: "mock_{{.InterfaceName}}.go"
+dir: "{{.InterfaceDir}}"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "{{.PackageName}}"
 inpackage: True
 packages:
-  github.com/nucleuscloud/neosync/backend/internal/jwt:
+  github.com/nucleuscloud/neosync/backend/internal/auth/jwt:
     # config:
     interfaces:
       JwtValidator:

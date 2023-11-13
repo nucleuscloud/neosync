@@ -8,9 +8,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	authjwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	authjwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 )
 

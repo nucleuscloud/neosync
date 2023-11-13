@@ -18,11 +18,11 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
+	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmw"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
