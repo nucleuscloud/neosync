@@ -168,12 +168,22 @@ func Test_Service_GetAccountApiKey_Found_ForbiddenAccount(t *testing.T) {
 func Test_Service_CreateAccountApiKey(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
+	mockTx := new(nucleusdb.MockTx)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 
 	svc := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService)
 
 	mockIsUserInAccount(mockUserAccountService, true)
 	mockUserAccountCalls(mockUserAccountService, true, uuid.NewString())
+	mockDbtx.On("Begin", mock.Anything).Return(mockTx, nil)
+	mockTx.On("Commit", mock.Anything).Return(nil)
+	mockTx.On("Rollback", mock.Anything).Return(nil)
+	user := db_queries.NeosyncApiUser{
+		ID:       newPgUuid(t),
+		UserType: 1,
+	}
+	mockQuerier.On("CreateMachineUser", mock.Anything, mock.Anything, mock.Anything).
+		Return(user, nil)
 	rawData := db_queries.NeosyncApiAccountApiKey{
 		ID:          newPgUuid(t),
 		AccountID:   newPgUuid(t),
@@ -184,6 +194,7 @@ func Test_Service_CreateAccountApiKey(t *testing.T) {
 		UpdatedAt:   pgtype.Timestamp{Time: time.Now(), Valid: true},
 		ExpiresAt:   pgtype.Timestamp{Time: time.Now().Add(24 * time.Hour), Valid: true},
 		KeyName:     "foo",
+		UserID:      user.ID,
 	}
 	mockQuerier.On("CreateAccountApiKey", mock.Anything, mock.Anything, mock.Anything).
 		Return(rawData, nil)
