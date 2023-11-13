@@ -17,7 +17,7 @@ INSERT INTO neosync_api.account_api_keys (
 ) VALUES (
   $1, $2, $3, $4, $5, $6
 )
-RETURNING id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name
+RETURNING id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name, user_id
 `
 
 type CreateAccountApiKeyParams struct {
@@ -49,12 +49,13 @@ func (q *Queries) CreateAccountApiKey(ctx context.Context, db DBTX, arg CreateAc
 		&i.UpdatedAt,
 		&i.ExpiresAt,
 		&i.KeyName,
+		&i.UserID,
 	)
 	return i, err
 }
 
 const getAccountApiKeyById = `-- name: GetAccountApiKeyById :one
-SELECT id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name from neosync_api.account_api_keys WHERE id = $1
+SELECT id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name, user_id from neosync_api.account_api_keys WHERE id = $1
 `
 
 func (q *Queries) GetAccountApiKeyById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountApiKey, error) {
@@ -70,12 +71,13 @@ func (q *Queries) GetAccountApiKeyById(ctx context.Context, db DBTX, id pgtype.U
 		&i.UpdatedAt,
 		&i.ExpiresAt,
 		&i.KeyName,
+		&i.UserID,
 	)
 	return i, err
 }
 
 const getAccountApiKeyByKeyValue = `-- name: GetAccountApiKeyByKeyValue :one
-SELECT id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name from neosync_api.account_api_keys WHERE key_value = $1
+SELECT id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name, user_id from neosync_api.account_api_keys WHERE key_value = $1
 `
 
 func (q *Queries) GetAccountApiKeyByKeyValue(ctx context.Context, db DBTX, keyValue string) (NeosyncApiAccountApiKey, error) {
@@ -91,12 +93,13 @@ func (q *Queries) GetAccountApiKeyByKeyValue(ctx context.Context, db DBTX, keyVa
 		&i.UpdatedAt,
 		&i.ExpiresAt,
 		&i.KeyName,
+		&i.UserID,
 	)
 	return i, err
 }
 
 const getAccountApiKeys = `-- name: GetAccountApiKeys :many
-SELECT aak.id, aak.account_id, aak.key_value, aak.created_by_id, aak.updated_by_id, aak.created_at, aak.updated_at, aak.expires_at, aak.key_name from neosync_api.account_api_keys aak
+SELECT aak.id, aak.account_id, aak.key_value, aak.created_by_id, aak.updated_by_id, aak.created_at, aak.updated_at, aak.expires_at, aak.key_name, aak.user_id from neosync_api.account_api_keys aak
 INNER JOIN neosync_api.accounts a on a.id = aak.account_id
 WHERE a.id = $1
 `
@@ -120,6 +123,7 @@ func (q *Queries) GetAccountApiKeys(ctx context.Context, db DBTX, accountid pgty
 			&i.UpdatedAt,
 			&i.ExpiresAt,
 			&i.KeyName,
+			&i.UserID,
 		); err != nil {
 			return nil, err
 		}
@@ -146,7 +150,7 @@ SET key_value = $1,
     expires_at = $2,
     updated_by_id = $3
 WHERE id = $4
-RETURNING id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name
+RETURNING id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name, user_id
 `
 
 type UpdateAccountApiKeyValueParams struct {
@@ -174,6 +178,7 @@ func (q *Queries) UpdateAccountApiKeyValue(ctx context.Context, db DBTX, arg Upd
 		&i.UpdatedAt,
 		&i.ExpiresAt,
 		&i.KeyName,
+		&i.UserID,
 	)
 	return i, err
 }

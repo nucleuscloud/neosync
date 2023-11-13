@@ -156,13 +156,18 @@ INSERT INTO neosync_api.users (
 ) VALUES (
   DEFAULT, DEFAULT, DEFAULT
 )
-RETURNING id, created_at, updated_at
+RETURNING id, created_at, updated_at, user_type
 `
 
 func (q *Queries) CreateUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
 	row := db.QueryRow(ctx, createUser)
 	var i NeosyncApiUser
-	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserType,
+	)
 	return i, err
 }
 
@@ -302,14 +307,19 @@ func (q *Queries) GetActiveAccountInvites(ctx context.Context, db DBTX, accounti
 }
 
 const getAnonymousUser = `-- name: GetAnonymousUser :one
-SELECT id, created_at, updated_at from neosync_api.users
+SELECT id, created_at, updated_at, user_type from neosync_api.users
 WHERE id = '00000000-0000-0000-0000-000000000000'
 `
 
 func (q *Queries) GetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
 	row := db.QueryRow(ctx, getAnonymousUser)
 	var i NeosyncApiUser
-	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserType,
+	)
 	return i, err
 }
 
@@ -402,14 +412,19 @@ func (q *Queries) GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, a
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, created_at, updated_at FROM neosync_api.users
+SELECT id, created_at, updated_at, user_type FROM neosync_api.users
 WHERE id = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiUser, error) {
 	row := db.QueryRow(ctx, getUser, id)
 	var i NeosyncApiUser
-	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserType,
+	)
 	return i, err
 }
 
@@ -432,7 +447,7 @@ func (q *Queries) GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth
 }
 
 const getUserByAuth0Id = `-- name: GetUserByAuth0Id :one
-SELECT u.id, u.created_at, u.updated_at from neosync_api.users u
+SELECT u.id, u.created_at, u.updated_at, u.user_type from neosync_api.users u
 INNER JOIN neosync_api.user_identity_provider_associations uipa ON uipa.user_id = u.id
 WHERE uipa.auth0_provider_id = $1
 `
@@ -440,12 +455,17 @@ WHERE uipa.auth0_provider_id = $1
 func (q *Queries) GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error) {
 	row := db.QueryRow(ctx, getUserByAuth0Id, auth0ProviderID)
 	var i NeosyncApiUser
-	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserType,
+	)
 	return i, err
 }
 
 const getUsersByTeamAccount = `-- name: GetUsersByTeamAccount :many
-SELECT u.id, u.created_at, u.updated_at from neosync_api.users u
+SELECT u.id, u.created_at, u.updated_at, u.user_type from neosync_api.users u
 INNER JOIN neosync_api.account_user_associations aua ON aua.user_id = u.id
 INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
 WHERE a.id = $1 AND a.account_type = 1
@@ -460,7 +480,12 @@ func (q *Queries) GetUsersByTeamAccount(ctx context.Context, db DBTX, accountid 
 	var items []NeosyncApiUser
 	for rows.Next() {
 		var i NeosyncApiUser
-		if err := rows.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.UserType,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -524,13 +549,18 @@ INSERT INTO neosync_api.users (
 ON CONFLICT (id)
 DO
   UPDATE SET updated_at = current_timestamp
-RETURNING id, created_at, updated_at
+RETURNING id, created_at, updated_at, user_type
 `
 
 func (q *Queries) SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
 	row := db.QueryRow(ctx, setAnonymousUser)
 	var i NeosyncApiUser
-	err := row.Scan(&i.ID, &i.CreatedAt, &i.UpdatedAt)
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserType,
+	)
 	return i, err
 }
 
