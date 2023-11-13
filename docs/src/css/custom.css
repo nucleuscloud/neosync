@@ -84,6 +84,10 @@ this is the class for the sidebar categories that section headers
     @apply flex flex-col text-left font-bold text-3xl;
   }
 
+  .transformer-page-header {
+    @apply flex flex-row gap-4 font-bold text-3xl items-center;
+  }
+
   .heroImage {
     @apply py-10;
   }
