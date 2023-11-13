@@ -138,6 +138,11 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'transformers/system/street-address',
+          label: 'Street Address',
+        },
+        {
+          type: 'doc',
           id: 'transformers/system/city',
           label: 'City',
         },
@@ -145,6 +150,11 @@ const sidebars = {
           type: 'doc',
           id: 'transformers/system/full-address',
           label: 'Full Address',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/state',
+          label: 'State',
         },
         {
           type: 'doc',
@@ -195,6 +205,11 @@ const sidebars = {
           type: 'doc',
           id: 'transformers/system/random-string',
           label: 'Random String',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/unix-ts',
+          label: 'Unix Timestamp',
         },
       ],
     },

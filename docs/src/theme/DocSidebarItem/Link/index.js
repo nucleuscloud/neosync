@@ -17,14 +17,16 @@ import {
   AiOutlineMail,
   AiOutlinePhone,
 } from 'react-icons/ai';
-import { BiLogoPostgresql, BiSolidCity } from 'react-icons/bi';
+import { BiLogoPostgresql, BiSolidCity, BiTimeFive } from 'react-icons/bi';
 import { BsFunnel, BsGenderAmbiguous, BsShieldCheck } from 'react-icons/bs';
 import {
   FaAws,
   FaDocker,
   FaRegAddressBook,
   FaRegAddressCard,
+  FaStreetView,
 } from 'react-icons/fa';
+import { GiTexas } from 'react-icons/gi';
 import { GoCode } from 'react-icons/go';
 import { GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
@@ -154,6 +156,12 @@ export const RenderIcon = (name) => {
       return <TiSortNumerically />;
     case 'Random String':
       return <RxLetterCaseCapitalize />;
+    case 'State':
+      return <GiTexas />;
+    case 'Street Address':
+      return <FaStreetView />;
+    case 'Unix Timestamp':
+      return <BiTimeFive />;
     default:
       return <LayersIcon />;
   }
