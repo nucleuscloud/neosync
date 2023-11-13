@@ -57,6 +57,23 @@ func Test_GetDbUrl(t *testing.T) {
 		}),
 		"postgres://myuser:mypass@localhost:5432/neosync?sslmode=disable",
 	)
+
+	migrationsTableName := "test-table-name"
+	migrationsTableQuoted := true
+	assert.Equal(
+		t,
+		GetDbUrl(&ConnectConfig{
+			User:                  "myuser",
+			Pass:                  "mypass",
+			Host:                  "localhost",
+			Port:                  5432,
+			Database:              "neosync",
+			SslMode:               &sslmode,
+			MigrationsTableName:   &migrationsTableName,
+			MigrationsTableQuoted: &migrationsTableQuoted,
+		}),
+		"postgres://myuser:mypass@localhost:5432/neosync?sslmode=disable&x-migrations-table=test-table-name&x-migrations-table-quoted=true",
+	)
 }
 
 func Test_ToUuid(t *testing.T) {

@@ -56,7 +56,10 @@ func GetDbUrl(cfg *ConnectConfig) string {
 	if cfg.MigrationsTableQuoted != nil {
 		pgOpts["x-migrations-table-quoted"] = []string{strconv.FormatBool(*cfg.MigrationsTableQuoted)}
 	}
-	return fmt.Sprintf("%s?%s", dburl, pgOpts.Encode())
+	if len(pgOpts) > 0 {
+		return fmt.Sprintf("%s?%s", dburl, pgOpts.Encode())
+	}
+	return dburl
 }
 
 func UUIDString(value pgtype.UUID) string {
