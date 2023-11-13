@@ -163,6 +163,11 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'transformers/system/gender',
+          label: 'Gender',
+        },
+        {
+          type: 'doc',
           id: 'transformers/system/ssn',
           label: 'SSN',
         },

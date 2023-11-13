@@ -18,7 +18,7 @@ import {
   AiOutlinePhone,
 } from 'react-icons/ai';
 import { BiLogoPostgresql, BiSolidCity } from 'react-icons/bi';
-import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
+import { BsFunnel, BsGenderAmbiguous, BsShieldCheck } from 'react-icons/bs';
 import {
   FaAws,
   FaDocker,
@@ -138,6 +138,8 @@ export const RenderIcon = (name) => {
       return <RxAvatar />;
     case 'Full Address':
       return <FaRegAddressBook />;
+    case 'Gender':
+      return <BsGenderAmbiguous />;
     default:
       return <LayersIcon />;
   }

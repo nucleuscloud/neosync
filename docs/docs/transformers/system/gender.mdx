@@ -1,0 +1,84 @@
+---
+title: Gender
+id: gender
+hide_title: true
+slug: /transformers/system/gender
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="Gender"
+  type="string"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/gender.go"
+/>
+
+## Definition
+
+The gender transformer randomly selects a gender value from a predefined list of genders. Here is the list:
+
+<DocsTable
+  headers={['Gender', 'Abbreviation']}
+  rowData={[
+    {
+      data: ['male', 'm'],
+    },
+    {
+      data: ['female', 'f'],
+    },
+    {
+      data: ['nonbinary', 'n'],
+    },
+    {
+      data: ['undefined', 'u'],
+    },
+  ]}
+/>
+
+By default, the gender transformer does not abbreviate the gender. If you'd like to return an abbreviated gender, pass in the `abbreviate` config.
+
+## Configurations
+
+Depending on your validations, you may want to configure the output gender. The gender transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Abbreviate',
+        'Abbreviate will abbreviate the output gender so that it is only one character. ',
+        'false',
+        'N/A',
+        'u',
+      ],
+    },
+  ]}
+/>
+
+## Examples
+
+There are several ways you can mix-and-match configurations to get different full name formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['Abbreviate', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'N/A', 'male'],
+    },
+    {
+      data: ['true', 'N/A', 'f'],
+    },
+    {
+      data: ['false', 'female', 'nonbinary'],
+    },
+  ]}
+/>

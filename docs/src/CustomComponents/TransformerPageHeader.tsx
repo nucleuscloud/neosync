@@ -18,7 +18,7 @@ export const TransformerPageHeader = (props: Props) => {
         href={apiRef}
         className="no-underline text-gray-900 flex items-center hover:text-gray-900"
       >
-        <Badge>Code reference</Badge>
+        <Badge>code reference</Badge>
       </Link>
     </div>
   );
