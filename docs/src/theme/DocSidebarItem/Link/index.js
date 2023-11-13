@@ -132,6 +132,10 @@ export const RenderIcon = (name) => {
       return <AiOutlineCreditCard />;
     case 'First Name':
       return <RxAvatar />;
+    case 'Full Name':
+      return <RxAvatar />;
+    case 'Last Name':
+      return <RxAvatar />;
     case 'Full Address':
       return <FaRegAddressBook />;
     default:

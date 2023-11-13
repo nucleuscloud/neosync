@@ -158,6 +158,11 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'transformers/system/full-name',
+          label: 'Full Name',
+        },
+        {
+          type: 'doc',
           id: 'transformers/system/ssn',
           label: 'SSN',
         },
