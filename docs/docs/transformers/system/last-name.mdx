@@ -1,0 +1,66 @@
+---
+title: Last Name
+id: last-name
+hide_title: true
+slug: /transformers/system/last-name
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="Last Name"
+  type="string"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/lastname.go"
+/>
+
+## Definition
+
+The last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
+
+By default, the last name transformer generates a last name of random length. To preserve the length of the input last name, you can set the `preserveLength` config.
+
+## Configurations
+
+Depending on your validations, you may want to configure the output last name. The last name transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'PreserveLength',
+        'Preserve Length will ensure that the output last name is the same length as the input last name. The preserveLength config only preserves names up to 12 characters long.',
+        'false',
+        'Hills',
+        'Kunze',
+      ],
+    },
+  ]}
+/>
+
+## Examples
+
+There are several ways you can mix-and-match configurations to get different last name formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['PreserveLength', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'Lei', 'Dach'],
+    },
+    {
+      data: ['true', 'Littel', 'Sporer'],
+    },
+    {
+      data: ['false', 'Johnsonston', 'Rodriguezon'],
+    },
+  ]}
+/>
