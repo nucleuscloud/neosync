@@ -1,9 +1,14 @@
 import React, { ReactElement } from 'react';
 
-export function DocsImage(): ReactElement {
+interface Props {
+  href: string;
+}
+
+export function DocsImage(props: Props): ReactElement {
+  const { href } = props;
   return (
     <div className="docsImage">
-      <img src="https://assets.nucleuscloud.com/neosync/docs/transformers-page.png" />
+      <img src={href} />
     </div>
   );
 }
