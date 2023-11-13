@@ -17,9 +17,9 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
-	"github.com/nucleuscloud/neosync/backend/internal/authmw"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
