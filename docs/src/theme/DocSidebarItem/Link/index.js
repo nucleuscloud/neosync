@@ -102,7 +102,7 @@ export const RenderIcon = (name) => {
       return <FaRegAddressCard />;
     case 'Custom':
       return <GoCode />;
-    case 'Pre-built':
+    case 'System':
       return <IoBuildOutline />;
     case 'Use cases':
       return <BsShieldCheck />;
