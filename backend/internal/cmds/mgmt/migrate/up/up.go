@@ -171,12 +171,26 @@ func getDbUrl() (string, error) {
 		sslMode = "disable"
 	}
 
+	var migrationsTable *string
+	if viper.IsSet("DB_MIGRATIONS_TABLE") {
+		table := viper.GetString("DB_MIGRATIONS_TABLE")
+		migrationsTable = &table
+	}
+
+	var tableQuoted *bool
+	if viper.IsSet("DB_MIGRATIONS_TABLE_QUOTED") {
+		isQuoted := viper.GetBool("DB_MIGRATIONS_TABLE_QUOTED")
+		tableQuoted = &isQuoted
+	}
+
 	return nucleusdb.GetDbUrl(&nucleusdb.ConnectConfig{
-		Host:     dbHost,
-		Port:     dbPort,
-		Database: dbName,
-		User:     dbUser,
-		Pass:     dbPass,
-		SslMode:  &sslMode,
+		Host:                  dbHost,
+		Port:                  dbPort,
+		Database:              dbName,
+		User:                  dbUser,
+		Pass:                  dbPass,
+		SslMode:               &sslMode,
+		MigrationsTableName:   migrationsTable,
+		MigrationsTableQuoted: tableQuoted,
 	}), nil
 }
