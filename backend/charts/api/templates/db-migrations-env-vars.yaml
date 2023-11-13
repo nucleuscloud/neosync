@@ -15,5 +15,6 @@ stringData:
     DB_SSL_DISABLE: {{ .Values.migrations.db.disableSsl | quote}}
 
     DB_SCHEMA_DIR: {{ .Values.migrations.db.schemaDir }}
-
+    DB_MIGRATIONS_TABLE: {{ .Values.migrations.db.migrationsTableName }}
+    DB_MIGRATIONS_TABLE_QUOTED: {{ .Values.migrations.db.migrationsTableQuoted | quote }}
 
