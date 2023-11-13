@@ -21,9 +21,10 @@ type Querier interface {
 	CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error)
 	CreateJobConnectionDestination(ctx context.Context, db DBTX, arg CreateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error)
 	CreateJobConnectionDestinations(ctx context.Context, db DBTX, arg []CreateJobConnectionDestinationsParams) (int64, error)
+	CreateMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
+	CreateNonMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error)
 	CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error)
-	CreateUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	DeleteCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error
 	GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error)

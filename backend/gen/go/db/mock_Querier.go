@@ -510,6 +510,112 @@ func (_c *MockQuerier_CreateJobConnectionDestinations_Call) RunAndReturn(run fun
 	return _c
 }
 
+// CreateMachineUser provides a mock function with given fields: ctx, db
+func (_m *MockQuerier) CreateMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
+	ret := _m.Called(ctx, db)
+
+	var r0 NeosyncApiUser
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) (NeosyncApiUser, error)); ok {
+		return rf(ctx, db)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) NeosyncApiUser); ok {
+		r0 = rf(ctx, db)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiUser)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
+		r1 = rf(ctx, db)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_CreateMachineUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateMachineUser'
+type MockQuerier_CreateMachineUser_Call struct {
+	*mock.Call
+}
+
+// CreateMachineUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+func (_e *MockQuerier_Expecter) CreateMachineUser(ctx interface{}, db interface{}) *MockQuerier_CreateMachineUser_Call {
+	return &MockQuerier_CreateMachineUser_Call{Call: _e.mock.On("CreateMachineUser", ctx, db)}
+}
+
+func (_c *MockQuerier_CreateMachineUser_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_CreateMachineUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_CreateMachineUser_Call) Return(_a0 NeosyncApiUser, _a1 error) *MockQuerier_CreateMachineUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_CreateMachineUser_Call) RunAndReturn(run func(context.Context, DBTX) (NeosyncApiUser, error)) *MockQuerier_CreateMachineUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateNonMachineUser provides a mock function with given fields: ctx, db
+func (_m *MockQuerier) CreateNonMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
+	ret := _m.Called(ctx, db)
+
+	var r0 NeosyncApiUser
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) (NeosyncApiUser, error)); ok {
+		return rf(ctx, db)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX) NeosyncApiUser); ok {
+		r0 = rf(ctx, db)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiUser)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
+		r1 = rf(ctx, db)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_CreateNonMachineUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateNonMachineUser'
+type MockQuerier_CreateNonMachineUser_Call struct {
+	*mock.Call
+}
+
+// CreateNonMachineUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+func (_e *MockQuerier_Expecter) CreateNonMachineUser(ctx interface{}, db interface{}) *MockQuerier_CreateNonMachineUser_Call {
+	return &MockQuerier_CreateNonMachineUser_Call{Call: _e.mock.On("CreateNonMachineUser", ctx, db)}
+}
+
+func (_c *MockQuerier_CreateNonMachineUser_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_CreateNonMachineUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_CreateNonMachineUser_Call) Return(_a0 NeosyncApiUser, _a1 error) *MockQuerier_CreateNonMachineUser_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_CreateNonMachineUser_Call) RunAndReturn(run func(context.Context, DBTX) (NeosyncApiUser, error)) *MockQuerier_CreateNonMachineUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreatePersonalAccount provides a mock function with given fields: ctx, db, accountSlug
 func (_m *MockQuerier) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, accountSlug)
@@ -614,59 +720,6 @@ func (_c *MockQuerier_CreateTeamAccount_Call) Return(_a0 NeosyncApiAccount, _a1 
 }
 
 func (_c *MockQuerier_CreateTeamAccount_Call) RunAndReturn(run func(context.Context, DBTX, string) (NeosyncApiAccount, error)) *MockQuerier_CreateTeamAccount_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// CreateUser provides a mock function with given fields: ctx, db
-func (_m *MockQuerier) CreateUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
-	ret := _m.Called(ctx, db)
-
-	var r0 NeosyncApiUser
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) (NeosyncApiUser, error)); ok {
-		return rf(ctx, db)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX) NeosyncApiUser); ok {
-		r0 = rf(ctx, db)
-	} else {
-		r0 = ret.Get(0).(NeosyncApiUser)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX) error); ok {
-		r1 = rf(ctx, db)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_CreateUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateUser'
-type MockQuerier_CreateUser_Call struct {
-	*mock.Call
-}
-
-// CreateUser is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-func (_e *MockQuerier_Expecter) CreateUser(ctx interface{}, db interface{}) *MockQuerier_CreateUser_Call {
-	return &MockQuerier_CreateUser_Call{Call: _e.mock.On("CreateUser", ctx, db)}
-}
-
-func (_c *MockQuerier_CreateUser_Call) Run(run func(ctx context.Context, db DBTX)) *MockQuerier_CreateUser_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_CreateUser_Call) Return(_a0 NeosyncApiUser, _a1 error) *MockQuerier_CreateUser_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_CreateUser_Call) RunAndReturn(run func(context.Context, DBTX) (NeosyncApiUser, error)) *MockQuerier_CreateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

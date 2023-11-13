@@ -104,6 +104,48 @@ func (q *Queries) CreateAuth0IdentityProviderAssociation(ctx context.Context, db
 	return i, err
 }
 
+const createMachineUser = `-- name: CreateMachineUser :one
+INSERT INTO neosync_api.users (
+  id, created_at, updated_at, user_type
+) VALUES (
+  DEFAULT, DEFAULT, DEFAULT, 1
+)
+RETURNING id, created_at, updated_at, user_type
+`
+
+func (q *Queries) CreateMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
+	row := db.QueryRow(ctx, createMachineUser)
+	var i NeosyncApiUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserType,
+	)
+	return i, err
+}
+
+const createNonMachineUser = `-- name: CreateNonMachineUser :one
+INSERT INTO neosync_api.users (
+  id, created_at, updated_at, user_type
+) VALUES (
+  DEFAULT, DEFAULT, DEFAULT, 0
+)
+RETURNING id, created_at, updated_at, user_type
+`
+
+func (q *Queries) CreateNonMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
+	row := db.QueryRow(ctx, createNonMachineUser)
+	var i NeosyncApiUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserType,
+	)
+	return i, err
+}
+
 const createPersonalAccount = `-- name: CreatePersonalAccount :one
 INSERT INTO neosync_api.accounts (
   account_type, account_slug
@@ -146,27 +188,6 @@ func (q *Queries) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug st
 		&i.AccountType,
 		&i.AccountSlug,
 		&i.TemporalConfig,
-	)
-	return i, err
-}
-
-const createUser = `-- name: CreateUser :one
-INSERT INTO neosync_api.users (
-  id, created_at, updated_at
-) VALUES (
-  DEFAULT, DEFAULT, DEFAULT
-)
-RETURNING id, created_at, updated_at, user_type
-`
-
-func (q *Queries) CreateUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
-	row := db.QueryRow(ctx, createUser)
-	var i NeosyncApiUser
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.UserType,
 	)
 	return i, err
 }
@@ -449,7 +470,7 @@ func (q *Queries) GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth
 const getUserByAuth0Id = `-- name: GetUserByAuth0Id :one
 SELECT u.id, u.created_at, u.updated_at, u.user_type from neosync_api.users u
 INNER JOIN neosync_api.user_identity_provider_associations uipa ON uipa.user_id = u.id
-WHERE uipa.auth0_provider_id = $1
+WHERE uipa.auth0_provider_id = $1 and u.user_type = 0
 `
 
 func (q *Queries) GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error) {
@@ -516,7 +537,7 @@ func (q *Queries) IsUserInAccount(ctx context.Context, db DBTX, arg IsUserInAcco
 }
 
 const removeAccountInvite = `-- name: RemoveAccountInvite :exec
-DELETE FROM neosync_api.account_invites 
+DELETE FROM neosync_api.account_invites
 WHERE id = $1
 `
 
@@ -526,7 +547,7 @@ func (q *Queries) RemoveAccountInvite(ctx context.Context, db DBTX, id pgtype.UU
 }
 
 const removeAccountUser = `-- name: RemoveAccountUser :exec
-DELETE FROM neosync_api.account_user_associations 
+DELETE FROM neosync_api.account_user_associations
 WHERE account_id = $1 AND user_id = $2
 `
 

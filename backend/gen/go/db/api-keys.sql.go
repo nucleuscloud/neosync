@@ -13,9 +13,9 @@ import (
 
 const createAccountApiKey = `-- name: CreateAccountApiKey :one
 INSERT INTO neosync_api.account_api_keys (
-  key_name, key_value, account_id, expires_at, created_by_id, updated_by_id
+  key_name, key_value, account_id, expires_at, created_by_id, updated_by_id, user_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6
+  $1, $2, $3, $4, $5, $6, $7
 )
 RETURNING id, account_id, key_value, created_by_id, updated_by_id, created_at, updated_at, expires_at, key_name, user_id
 `
@@ -27,6 +27,7 @@ type CreateAccountApiKeyParams struct {
 	ExpiresAt   pgtype.Timestamp
 	CreatedByID pgtype.UUID
 	UpdatedByID pgtype.UUID
+	UserID      pgtype.UUID
 }
 
 func (q *Queries) CreateAccountApiKey(ctx context.Context, db DBTX, arg CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error) {
@@ -37,6 +38,7 @@ func (q *Queries) CreateAccountApiKey(ctx context.Context, db DBTX, arg CreateAc
 		arg.ExpiresAt,
 		arg.CreatedByID,
 		arg.UpdatedByID,
+		arg.UserID,
 	)
 	var i NeosyncApiAccountApiKey
 	err := row.Scan(
