@@ -12,16 +12,40 @@ import {
 import IconExternalLink from '@theme/Icon/ExternalLink';
 import clsx from 'clsx';
 import React from 'react';
-import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
-import { BiLogoPostgresql } from 'react-icons/bi';
-import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
-import { FaAws, FaDocker, FaRegAddressCard } from 'react-icons/fa';
+import {
+  AiOutlineCreditCard,
+  AiOutlineMail,
+  AiOutlinePhone,
+} from 'react-icons/ai';
+import { BiLogoPostgresql, BiSolidCity, BiTimeFive } from 'react-icons/bi';
+import {
+  BsCalendarDate,
+  BsFillKeyFill,
+  BsFunnel,
+  BsGenderAmbiguous,
+  BsPinMap,
+  BsShieldCheck,
+} from 'react-icons/bs';
+import {
+  FaAws,
+  FaDocker,
+  FaRegAddressBook,
+  FaStreetView,
+} from 'react-icons/fa';
+import { GiTexas } from 'react-icons/gi';
 import { GoCode } from 'react-icons/go';
 import { GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
+import {
+  RxAvatar,
+  RxComponentBoolean,
+  RxLetterCaseCapitalize,
+} from 'react-icons/rx';
 import { SiKubernetes } from 'react-icons/si';
+import { TbDecimal } from 'react-icons/tb';
+import { TiSortNumerically } from 'react-icons/ti';
 import styles from './styles.module.css';
 
 export default function DocSidebarItemLink({
@@ -94,12 +118,12 @@ export const RenderIcon = (name) => {
       return <FaAws />;
     case 'Email':
       return <AiOutlineMail />;
-    case 'Phone':
+    case 'Phone (integer)':
+      return <AiOutlinePhone />;
+    case 'Phone (string)':
       return <AiOutlinePhone />;
     case 'SSN':
       return <MdPassword />;
-    case 'Physical Address':
-      return <FaRegAddressCard />;
     case 'Custom':
       return <GoCode />;
     case 'System':
@@ -114,6 +138,40 @@ export const RenderIcon = (name) => {
       return <PiFlaskLight />;
     case 'Subset Data':
       return <BsFunnel />;
+    case 'City':
+      return <BiSolidCity />;
+    case 'Card Number':
+      return <AiOutlineCreditCard />;
+    case 'First Name':
+      return <RxAvatar />;
+    case 'Full Name':
+      return <RxAvatar />;
+    case 'Last Name':
+      return <RxAvatar />;
+    case 'Full Address':
+      return <FaRegAddressBook />;
+    case 'Gender':
+      return <BsGenderAmbiguous />;
+    case 'Random Boolean':
+      return <RxComponentBoolean />;
+    case 'Random Float':
+      return <TbDecimal />;
+    case 'Random Integer':
+      return <TiSortNumerically />;
+    case 'Random String':
+      return <RxLetterCaseCapitalize />;
+    case 'State':
+      return <GiTexas />;
+    case 'Street Address':
+      return <FaStreetView />;
+    case 'Unix Timestamp':
+      return <BiTimeFive />;
+    case 'UTC Timestamp':
+      return <BsCalendarDate />;
+    case 'UUID':
+      return <BsFillKeyFill />;
+    case 'Zipcode':
+      return <BsPinMap />;
     default:
       return <LayersIcon />;
   }

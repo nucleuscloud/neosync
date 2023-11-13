@@ -24,7 +24,7 @@ func TestGenerateIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 
 func TestGenerateIntPhoneNumberPreserveLengthFalse(t *testing.T) {
 
-	res, err := GenerateIntPhoneNumberRandomLength()
+	res, err := GenerateRandomTenDigitIntPhoneNumber()
 
 	numStr := strconv.FormatInt(res, 10)
 

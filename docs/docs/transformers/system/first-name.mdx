@@ -1,0 +1,66 @@
+---
+title: First Name
+id: first-name
+hide_title: true
+slug: /transformers/system/first-name
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="First Name"
+  type="string"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/firstName.go"
+/>
+
+## Definition
+
+The first name transformer generates a valid first name from a list of predefined first name values. You can see the entire list of first name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/first-names.json).
+
+By default, the first name transformer generates a first name of random length. To preserve the length of the input first name, you can set the `preserveLength` config.
+
+## Configurations
+
+Depending on your validations, you may want to configure the output first name. The first name transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'PreserveLength',
+        'Preserve Length will ensure that the output first name is the same length as the input first name. The preserveLength config only preserves names up to 12 characters long.',
+        'false',
+        'John',
+        'Bill',
+      ],
+    },
+  ]}
+/>
+
+## Examples
+
+There are several ways you can mix-and-match configurations to get different first name formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['PreserveLength', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'Joe', 'Benjamin'],
+    },
+    {
+      data: ['true', 'Frank', 'Dante'],
+    },
+    {
+      data: ['false', 'Aidan', 'Gregory'],
+    },
+  ]}
+/>

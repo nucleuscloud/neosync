@@ -140,4 +140,8 @@ this is the class for the sidebar categories that section headers
   .pagination-nav__sublabel {
     @apply text-xs;
   }
+
+  .docsImage {
+    @apply border border-gray-300 shadow-lg rounded-lg overflow-hidden my-6;
+  }
 }
