@@ -4,21 +4,26 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 const (
-	anonymousUserId  = "00000000-0000-0000-0000-000000000000"
-	mockAuthProvider = "test-provider"
-	mockUserId       = "d5e29f1f-b920-458c-8b86-f3a180e06d98"
-	mockAccountId    = "5629813e-1a35-4874-922c-9827d85f0378"
+	anonymousUserId   = "00000000-0000-0000-0000-000000000000"
+	mockAuthProvider  = "test-provider"
+	mockUserId        = "d5e29f1f-b920-458c-8b86-f3a180e06d98"
+	mockAccountId     = "5629813e-1a35-4874-922c-9827d85f0378"
+	mockTransformerId = "884765c6-1708-488d-b03a-70a02b12c81e"
 )
 
 func Test_GetSystemTransformers(t *testing.T) {
@@ -29,12 +34,59 @@ func Test_GetSystemTransformers(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t, 23, len(resp.Msg.GetTransformers()))
-
+	assert.Equal(t, 23, len(resp.Msg.GetTransformers())) //the number of system transformers
 }
 
-type mockConnector struct {
-	db *sql.DB
+func Test_GetCustomTransformers(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	transformers := []db_queries.NeosyncApiTransformer{mockTransformer(mockAccountId, mockUserId, mockTransformerId)}
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("GetCustomTransformersByAccount", context.Background(), mock.Anything, accountUuid).Return(transformers, nil)
+
+	resp, err := m.Service.GetCustomTransformers(context.Background(), &connect.Request[mgmtv1alpha1.GetCustomTransformersRequest]{
+		Msg: &mgmtv1alpha1.GetCustomTransformersRequest{
+			AccountId: mockAccountId,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 1, len(resp.Msg.GetTransformers()))
+	assert.Equal(t, mockTransformerId, resp.Msg.Transformers[0].Id)
+}
+
+//nolint:all
+func mockTransformer(accountId, userId, transformerId string) db_queries.NeosyncApiTransformer {
+
+	id, _ := nucleusdb.ToUuid(transformerId)
+	accountUuid, _ := nucleusdb.ToUuid(accountId)
+	userUuid, _ := nucleusdb.ToUuid(userId)
+	currentTime := time.Now()
+	var timestamp pgtype.Timestamp
+	timestamp.Time = currentTime
+
+	return db_queries.NeosyncApiTransformer{
+		ID:                id,
+		CreatedAt:         timestamp,
+		UpdatedAt:         timestamp,
+		Name:              "transformer-name",
+		Description:       "transformer-description",
+		Type:              "transformer-type",
+		Source:            "transformer-source",
+		TransformerConfig: &pg_models.TransformerConfigs{},
+		AccountID:         accountUuid,
+		CreatedByID:       userUuid,
+		UpdatedByID:       userUuid,
+	}
+}
+
+func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) {
+	userAccountServiceMock.On("IsUserInAccount", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
+		Ok: isInAccount,
+	}), nil)
 }
 
 type serviceMocks struct {
