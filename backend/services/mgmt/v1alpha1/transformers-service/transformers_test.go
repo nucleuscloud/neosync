@@ -19,11 +19,15 @@ import (
 )
 
 const (
-	anonymousUserId   = "00000000-0000-0000-0000-000000000000"
-	mockAuthProvider  = "test-provider"
-	mockUserId        = "d5e29f1f-b920-458c-8b86-f3a180e06d98"
-	mockAccountId     = "5629813e-1a35-4874-922c-9827d85f0378"
-	mockTransformerId = "884765c6-1708-488d-b03a-70a02b12c81e"
+	anonymousUserId            = "00000000-0000-0000-0000-000000000000"
+	mockAuthProvider           = "test-provider"
+	mockUserId                 = "d5e29f1f-b920-458c-8b86-f3a180e06d98"
+	mockAccountId              = "5629813e-1a35-4874-922c-9827d85f0378"
+	mockTransformerName        = "transformer-name"
+	mockTransformerDescription = "transformer-description"
+	mockTransformerType        = "transformer-type"
+	mockTransformerSource      = "transformer-source"
+	mockTransformerId          = "884765c6-1708-488d-b03a-70a02b12c81e"
 )
 
 func Test_GetSystemTransformers(t *testing.T) {
@@ -79,6 +83,45 @@ func Test_GetCustomTransformersById(t *testing.T) {
 	assert.Equal(t, mockTransformerId, resp.Msg.Transformer.Id)
 }
 
+func Test_CreateCustomTransformer(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	mockMgmtTransformerConfig := getTransformerConfigMock()
+	mockTransformerConfig := &pg_models.TransformerConfigs{}
+	_ = mockTransformerConfig.FromTransformerConfigDto(mockMgmtTransformerConfig)
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("CreateCustomTransformer", context.Background(), mock.Anything, db_queries.CreateCustomTransformerParams{
+		AccountID:         accountUuid,
+		Name:              mockTransformerName,
+		Description:       mockTransformerDescription,
+		TransformerConfig: mockTransformerConfig,
+		Type:              mockTransformerType,
+		Source:            mockTransformerSource,
+		CreatedByID:       userUuid,
+		UpdatedByID:       userUuid,
+	}).Return(transformer, nil)
+
+	resp, err := m.Service.CreateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.CreateCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.CreateCustomTransformerRequest{
+			AccountId:         mockAccountId,
+			Name:              mockTransformerName,
+			Description:       mockTransformerDescription,
+			Type:              mockTransformerType,
+			Source:            mockTransformerSource,
+			TransformerConfig: mockMgmtTransformerConfig,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mockAccountId, resp.Msg.Transformer.AccountId)
+	assert.Equal(t, mockTransformerId, resp.Msg.Transformer.Id)
+}
+
 //nolint:all
 func mockTransformer(accountId, userId, transformerId string) db_queries.NeosyncApiTransformer {
 
@@ -93,10 +136,10 @@ func mockTransformer(accountId, userId, transformerId string) db_queries.Neosync
 		ID:                id,
 		CreatedAt:         timestamp,
 		UpdatedAt:         timestamp,
-		Name:              "transformer-name",
-		Description:       "transformer-description",
-		Type:              "transformer-type",
-		Source:            "transformer-source",
+		Name:              mockTransformerName,
+		Description:       mockTransformerDescription,
+		Type:              mockTransformerType,
+		Source:            mockTransformerSource,
 		TransformerConfig: &pg_models.TransformerConfigs{},
 		AccountID:         accountUuid,
 		CreatedByID:       userUuid,
@@ -107,6 +150,13 @@ func mockTransformer(accountId, userId, transformerId string) db_queries.Neosync
 func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) {
 	userAccountServiceMock.On("IsUserInAccount", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
 		Ok: isInAccount,
+	}), nil)
+}
+
+func mockUserAccountCalls(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) {
+	mockIsUserInAccount(userAccountServiceMock, isInAccount)
+	userAccountServiceMock.On("GetUser", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
+		UserId: mockUserId,
 	}), nil)
 }
 
@@ -138,5 +188,16 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		UserAccountServiceMock: mockUserAccountService,
 		SqlMock:                sqlMock,
 		SqlDbMock:              sqlDbMock,
+	}
+}
+
+func getTransformerConfigMock() *mgmtv1alpha1.TransformerConfig {
+	return &mgmtv1alpha1.TransformerConfig{
+		Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
+			EmailConfig: &mgmtv1alpha1.EmailConfig{
+				PreserveDomain: false,
+				PreserveLength: false,
+			},
+		},
 	}
 }
