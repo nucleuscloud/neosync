@@ -43,7 +43,7 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 
 	if luhn {
 
-		val, err := GenerateValidVLuhnCheckCardNumber()
+		val, err := GenerateValidLuhnCheckCardNumber()
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a luhn valid card number")
@@ -67,7 +67,7 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 }
 
 // generates a card number that passes luhn validation
-func GenerateValidVLuhnCheckCardNumber() (int64, error) {
+func GenerateValidLuhnCheckCardNumber() (int64, error) {
 
 	// To find the checksum digit on
 	cardNo := make([]int, 0)
@@ -82,15 +82,19 @@ func GenerateValidVLuhnCheckCardNumber() (int64, error) {
 	}
 
 	// Acc no (9 digits)
-	nineDigits, _ := transformer_utils.GenerateRandomInt(int64(9))
-	strNine := strconv.FormatInt(nineDigits, 10)
-	var nineInts []int
-	for _, k := range strNine {
-		nineInts = append(nineInts, int(k))
+	nineDigits, err := transformer_utils.GenerateRandomInt(int64(9))
+	if err != nil {
+		return 0, err
 	}
-	for _, i := range nineInts {
-		cardNo = append(cardNo, i)
-		cardNum = append(cardNum, i)
+	strNine := strconv.FormatInt(nineDigits, 10)
+	for _, k := range strNine {
+		digit, err := strconv.Atoi(string(k))
+		if err != nil {
+			fmt.Println("Error converting to int:", err)
+			continue
+		}
+		cardNo = append(cardNo, digit)
+		cardNum = append(cardNum, digit)
 	}
 
 	// odd position digits
