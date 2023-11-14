@@ -1,12 +1,12 @@
-package apikey
+package auth_apikey
 
 import (
 	"context"
 	"errors"
 	"net/http"
-	"regexp"
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/utils"
 )
@@ -17,13 +17,7 @@ type TokenContextData struct {
 	ApiKey   *db_queries.NeosyncApiAccountApiKey
 }
 
-const (
-	//nolint:gosec
-	tokenPattern = `^(neo)_(at)_v([\d+])_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$`
-)
-
 var (
-	tokenRegex       = regexp.MustCompile(tokenPattern)
 	InvalidApiKeyErr = errors.New("token is not a valid neosync api key")
 )
 
@@ -48,7 +42,7 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header) (contex
 	if err != nil {
 		return nil, err
 	}
-	if !tokenRegex.MatchString(token) {
+	if !apikey.IsValidV1AccountKey(token) {
 		return nil, InvalidApiKeyErr
 	}
 

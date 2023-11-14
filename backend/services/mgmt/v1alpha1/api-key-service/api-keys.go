@@ -2,12 +2,11 @@ package v1alpha1_apikeyservice
 
 import (
 	"context"
-	"fmt"
 
 	"connectrpc.com/connect"
-	"github.com/google/uuid"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -83,7 +82,7 @@ func (s *Service) CreateAccountApiKey(
 		return nil, err
 	}
 
-	clearKeyValue := getNewKeyValue()
+	clearKeyValue := apikey.NewV1AccountKey()
 	hashedKeyValue := utils.ToSha256(
 		clearKeyValue,
 	)
@@ -101,10 +100,6 @@ func (s *Service) CreateAccountApiKey(
 	return connect.NewResponse(&mgmtv1alpha1.CreateAccountApiKeyResponse{
 		ApiKey: dtomaps.ToAccountApiKeyDto(newApiKey, &clearKeyValue),
 	}), nil
-}
-
-func getNewKeyValue() string {
-	return fmt.Sprintf("neo_at_v1_%s", uuid.New().String())
 }
 
 func (s *Service) RegenerateAccountApiKey(
@@ -131,7 +126,7 @@ func (s *Service) RegenerateAccountApiKey(
 	if err != nil {
 		return nil, err
 	}
-	clearKeyValue := getNewKeyValue()
+	clearKeyValue := apikey.NewV1AccountKey()
 	hashedKeyValue := utils.ToSha256(
 		clearKeyValue,
 	)

@@ -1,0 +1,109 @@
+package auth_apikey
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"testing"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
+	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	"github.com/nucleuscloud/neosync/backend/internal/apikey"
+	"github.com/stretchr/testify/mock"
+	"github.com/zeebo/assert"
+)
+
+func Test_Client_New(t *testing.T) {
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockDbTx := db_queries.NewMockDBTX(t)
+
+	assert.NotNil(t, New(mockQuerier, mockDbTx))
+}
+
+func Test_Client_InjectTokenCtx(t *testing.T) {
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockDbTx := db_queries.NewMockDBTX(t)
+
+	client := New(mockQuerier, mockDbTx)
+
+	fakeToken := apikey.NewV1AccountKey()
+	apiKeyRecord := db_queries.NeosyncApiAccountApiKey{
+		ID: pgtype.UUID{Valid: true},
+	}
+	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, fakeToken).
+		Return(apiKeyRecord, nil)
+
+	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
+		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, newctx)
+
+	data, err := GetTokenDataFromCtx(newctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, data)
+	assert.Equal(
+		t,
+		data,
+		&TokenContextData{
+			RawToken: fakeToken,
+			ApiKey:   &apiKeyRecord,
+		},
+	)
+}
+
+func Test_Client_InjectTokenCtx_InvalidHeader(t *testing.T) {
+	client := &Client{}
+	_, err := client.InjectTokenCtx(context.Background(), http.Header{"Authorization": []string{}})
+	assert.Error(t, err)
+}
+
+func Test_Client_InjectTokenCtx_InvalidToken(t *testing.T) {
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockDbTx := db_queries.NewMockDBTX(t)
+
+	client := New(mockQuerier, mockDbTx)
+
+	fakeToken := apikey.NewV1AccountKey()
+	apiKeyRecord := db_queries.NeosyncApiAccountApiKey{
+		ID: pgtype.UUID{Valid: true},
+	}
+	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, fakeToken).
+		Return(apiKeyRecord, nil)
+
+	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
+		"Authorization": []string{"Bearer 123"},
+	})
+	assert.Error(t, err)
+	assert.Nil(t, newctx)
+}
+
+func Test_Client_InjectTokenCtx_NotFoundKeyValue(t *testing.T) {
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockDbTx := db_queries.NewMockDBTX(t)
+
+	client := New(mockQuerier, mockDbTx)
+
+	fakeToken := apikey.NewV1AccountKey()
+
+	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, fakeToken).
+		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
+
+	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
+		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
+	})
+	assert.Error(t, err)
+	assert.Nil(t, newctx)
+}
+
+func Test_GetTokenDataFromCtx(t *testing.T) {
+	ctx := context.WithValue(context.Background(), TokenContextKey{}, &TokenContextData{})
+	_, err := GetTokenDataFromCtx(ctx)
+	assert.NoError(t, err)
+}
+
+func Test_GetTokenDataFromCtx_UnAuthenticated(t *testing.T) {
+	_, err := GetTokenDataFromCtx(context.Background())
+	assert.Error(t, err)
+}

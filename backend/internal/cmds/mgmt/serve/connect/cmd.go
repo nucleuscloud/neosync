@@ -17,7 +17,7 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
-	"github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
@@ -143,7 +143,7 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		apikeyClient := apikey.New(db.Q, db.Db)
+		apikeyClient := auth_apikey.New(db.Q, db.Db)
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
 			auth_interceptor.NewInterceptor(

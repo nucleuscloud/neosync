@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 )
 
 type AuthClient interface {
@@ -26,9 +26,9 @@ func New(
 
 func (n *AuthMiddleware) InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error) {
 	ctx, err := n.apiKeyClient.InjectTokenCtx(ctx, header)
-	if err != nil && !errors.Is(err, apikey.InvalidApiKeyErr) {
+	if err != nil && !errors.Is(err, auth_apikey.InvalidApiKeyErr) {
 		return nil, err
-	} else if err != nil && errors.Is(err, apikey.InvalidApiKeyErr) {
+	} else if err != nil && errors.Is(err, auth_apikey.InvalidApiKeyErr) {
 		return n.jwtClient.InjectTokenCtx(ctx, header)
 	}
 	return ctx, nil
