@@ -58,6 +58,10 @@ auth:
   cliClientId:
   cliAudience:
   clientMap:
+  api:
+    clientId:
+    clientSecret:
+    baseUrl:
 
 temporal:
   url:

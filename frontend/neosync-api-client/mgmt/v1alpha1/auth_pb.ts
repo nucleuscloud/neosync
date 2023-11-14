@@ -7,6 +7,26 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum mgmt.v1alpha1.AuthProvider
+ */
+export enum AuthProvider {
+  /**
+   * @generated from enum value: AUTH_PROVIDER_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: AUTH_PROVIDER_AUTH_0 = 1;
+   */
+  AUTH_0 = 1,
+}
+// Retrieve enum metadata with: proto3.getEnumType(AuthProvider)
+proto3.util.setEnumType(AuthProvider, "mgmt.v1alpha1.AuthProvider", [
+  { no: 0, name: "AUTH_PROVIDER_UNSPECIFIED" },
+  { no: 1, name: "AUTH_PROVIDER_AUTH_0" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.LoginCliRequest
  */
 export class LoginCliRequest extends Message<LoginCliRequest> {
@@ -378,6 +398,141 @@ export class GetCliIssuerResponse extends Message<GetCliIssuerResponse> {
 
   static equals(a: GetCliIssuerResponse | PlainMessage<GetCliIssuerResponse> | undefined, b: GetCliIssuerResponse | PlainMessage<GetCliIssuerResponse> | undefined): boolean {
     return proto3.util.equals(GetCliIssuerResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AuthUser
+ */
+export class AuthUser extends Message<AuthUser> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string email = 3;
+   */
+  email = "";
+
+  /**
+   * @generated from field: string image = 4;
+   */
+  image = "";
+
+  constructor(data?: PartialMessage<AuthUser>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AuthUser";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AuthUser {
+    return new AuthUser().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AuthUser {
+    return new AuthUser().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AuthUser {
+    return new AuthUser().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AuthUser | PlainMessage<AuthUser> | undefined, b: AuthUser | PlainMessage<AuthUser> | undefined): boolean {
+    return proto3.util.equals(AuthUser, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAuthUserRequest
+ */
+export class GetAuthUserRequest extends Message<GetAuthUserRequest> {
+  /**
+   * @generated from field: string user_id = 1;
+   */
+  userId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.AuthProvider auth_provider = 2;
+   */
+  authProvider = AuthProvider.UNSPECIFIED;
+
+  constructor(data?: PartialMessage<GetAuthUserRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAuthUserRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "auth_provider", kind: "enum", T: proto3.getEnumType(AuthProvider) },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAuthUserRequest {
+    return new GetAuthUserRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAuthUserRequest {
+    return new GetAuthUserRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAuthUserRequest {
+    return new GetAuthUserRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAuthUserRequest | PlainMessage<GetAuthUserRequest> | undefined, b: GetAuthUserRequest | PlainMessage<GetAuthUserRequest> | undefined): boolean {
+    return proto3.util.equals(GetAuthUserRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAuthUserResponse
+ */
+export class GetAuthUserResponse extends Message<GetAuthUserResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.AuthUser user = 1;
+   */
+  user?: AuthUser;
+
+  constructor(data?: PartialMessage<GetAuthUserResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAuthUserResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "user", kind: "message", T: AuthUser },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAuthUserResponse {
+    return new GetAuthUserResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAuthUserResponse {
+    return new GetAuthUserResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAuthUserResponse {
+    return new GetAuthUserResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAuthUserResponse | PlainMessage<GetAuthUserResponse> | undefined, b: GetAuthUserResponse | PlainMessage<GetAuthUserResponse> | undefined): boolean {
+    return proto3.util.equals(GetAuthUserResponse, a, b);
   }
 }
 

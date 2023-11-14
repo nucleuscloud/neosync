@@ -17,8 +17,8 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
-	authmgmt "github.com/nucleuscloud/neosync/backend/internal/auth-mgmt"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
+	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	"github.com/nucleuscloud/neosync/backend/internal/authmw"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
@@ -138,15 +138,56 @@ func serve(ctx context.Context) error {
 
 	api := http.NewServeMux()
 
-	authMgmt, err := authmgmt.New(getAuthBaseUrl(), "N53szkXwrMZmWiMQ96bJVCSuafn6myMR", "ZggNj5-HTCOdYzovNBZTDIys9sdLIl9aKOqn23yXMonECpG7N2qELVwQEfY_It5T")
+	authBaseUrl := getAuthBaseUrl()
+	tokenUrl := getAuthTokenUrl()
+	clientIdSecretMap := getAuthClientIdSecretMap()
+
+	authclient := auth_client.New(tokenUrl, clientIdSecretMap)
+
+	var issuerStr string
+	issuerUrl, err := url.Parse(authBaseUrl + "/")
 	if err != nil {
-		return err
+		if isAuthEnabled {
+			return err
+		}
+	} else {
+		issuerStr = issuerUrl.String()
 	}
+
+	var auth0Mgmt *auth0.Auth0MgmtClient
+	if isAuthEnabled {
+		authApiBaseUrl := getAuthApiBaseUrl()
+		authApiClientId := getAuthApiClientId()
+		authApiClientSecret := getAuthApiClientSecret()
+		authmanagement, err := auth0.New(authApiBaseUrl, authApiClientId, authApiClientSecret)
+		if err != nil {
+			return err
+		}
+		auth0Mgmt = authmanagement
+	}
+
+	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{
+		IsAuthEnabled: isAuthEnabled,
+		AuthorizeUrl:  getAuthAuthorizeUrl(),
+		CliClientId:   viper.GetString("AUTH_CLI_CLIENT_ID"),
+		CliAudience:   getAuthCliAudience(),
+		IssuerUrl:     issuerStr,
+	}, authclient, auth0Mgmt)
+	api.Handle(
+		mgmtv1alpha1connect.NewAuthServiceHandler(
+			authService,
+			connect.WithInterceptors(
+				otelconnect.NewInterceptor(),
+				logger_interceptor.NewInterceptor(logger),
+				validateInterceptor,
+			),
+		),
+	)
 
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled: isAuthEnabled,
 		Temporal:      getDefaultTemporalConfig(),
-	}, db, authMgmt)
+	}, db, authService)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -191,40 +232,6 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
 			stdInterceptorConnectOpt,
-		),
-	)
-
-	authBaseUrl := getAuthBaseUrl()
-	tokenUrl := getAuthTokenUrl()
-	clientIdSecretMap := getAuthClientIdSecretMap()
-
-	authclient := auth_client.New(tokenUrl, clientIdSecretMap)
-
-	var issuerStr string
-	issuerUrl, err := url.Parse(authBaseUrl + "/")
-	if err != nil {
-		if isAuthEnabled {
-			return err
-		}
-	} else {
-		issuerStr = issuerUrl.String()
-	}
-
-	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{
-		IsAuthEnabled: isAuthEnabled,
-		AuthorizeUrl:  getAuthAuthorizeUrl(),
-		CliClientId:   viper.GetString("AUTH_CLI_CLIENT_ID"),
-		CliAudience:   getAuthCliAudience(),
-		IssuerUrl:     issuerStr,
-	}, authclient)
-	api.Handle(
-		mgmtv1alpha1connect.NewAuthServiceHandler(
-			authService,
-			connect.WithInterceptors(
-				otelconnect.NewInterceptor(),
-				logger_interceptor.NewInterceptor(logger),
-				validateInterceptor,
-			),
 		),
 	)
 
@@ -383,4 +390,16 @@ func getAuthAuthorizeUrl() string {
 
 func getAuthClientIdSecretMap() map[string]string {
 	return viper.GetStringMapString("AUTH_CLIENTID_SECRET")
+}
+
+func getAuthApiBaseUrl() string {
+	return viper.GetString("AUTH_API_BASEURL")
+}
+
+func getAuthApiClientId() string {
+	return viper.GetString("AUTH_API_CLIENT_ID")
+}
+
+func getAuthApiClientSecret() string {
+	return viper.GetString("AUTH_API_CLIENT_SECRET")
 }

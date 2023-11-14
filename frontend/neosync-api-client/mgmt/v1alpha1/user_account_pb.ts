@@ -775,6 +775,21 @@ export class AccountUser extends Message<AccountUser> {
    */
   id = "";
 
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string image = 3;
+   */
+  image = "";
+
+  /**
+   * @generated from field: string email = 4;
+   */
+  email = "";
+
   constructor(data?: PartialMessage<AccountUser>) {
     super();
     proto3.util.initPartial(data, this);
@@ -784,6 +799,9 @@ export class AccountUser extends Message<AccountUser> {
   static readonly typeName = "mgmt.v1alpha1.AccountUser";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "image", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "email", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountUser {

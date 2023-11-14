@@ -55,14 +55,15 @@ function getColumns(
       accessorKey: 'name',
       header: 'Name',
       cell: ({ row }) => (
-        <div className="flex flex-row">
-          <Avatar className="mr-2 h-5 w-5">
+        <div className="flex flex-row items-center gap-4">
+          <Avatar className="mr-2 h-12 w-12">
             <AvatarImage
-              src={`https://avatar.vercel.sh/${row.original.id}.png`}
+              // src={`https://avatar.vercel.sh/${row.original.id}.png`}
+              src={row.original.image}
               alt={row.original.id}
             />
           </Avatar>
-          <span className=" truncate font-medium">{row.original.id}</span>
+          <span className=" truncate font-medium">{row.getValue('name')}</span>
         </div>
       ),
     },
@@ -70,7 +71,7 @@ function getColumns(
       accessorKey: 'email',
       header: 'Email',
       cell: ({ row }) => (
-        <span className=" truncate font-medium">{row.original.id}</span>
+        <span className=" truncate font-medium">{row.getValue('email')}</span>
       ),
     },
     {

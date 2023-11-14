@@ -2,8 +2,6 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
@@ -14,6 +12,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"golang.org/x/sync/errgroup"
 )
 
 func (s *Service) GetUser(
@@ -214,25 +213,37 @@ func (s *Service) GetTeamAccountMembers(
 		userIds = append(userIds, u.ID)
 	}
 
-	userAuths, err := s.db.Q.GetUserIdentityAssociationsByUserIds(ctx, s.db.Db, userIds)
+	userIdentities, err := s.db.Q.GetUserIdentityAssociationsByUserIds(ctx, s.db.Db, userIds)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, u := range userAuths {
-		x, err := s.authMgmt.GetUserById(ctx, u.Auth0ProviderID)
-		if err != nil {
-			return nil, err
-		}
-		jsonF, _ := json.MarshalIndent(x, "", " ")
-		fmt.Printf("\n\n  %s \n\n", string(jsonF))
+	dtoUsers := make([]*mgmtv1alpha1.AccountUser, len(userIdentities))
+	group := new(errgroup.Group)
+	for i := range userIdentities {
+		i := i
+		user := userIdentities[i]
+		group.Go(func() error {
+			authUser, err := s.authService.GetAuthUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
+				UserId:       user.Auth0ProviderID,
+				AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
+			}))
+			if err != nil {
+				return err
+			}
+			dtoUsers[i] = &mgmtv1alpha1.AccountUser{
+				Id:    nucleusdb.UUIDString(user.ID),
+				Name:  authUser.Msg.User.Name,
+				Email: authUser.Msg.User.Email,
+				Image: authUser.Msg.User.Image,
+			}
+			return nil
+		})
 	}
 
-	dtoUsers := []*mgmtv1alpha1.AccountUser{}
-	for _, user := range users {
-		dtoUsers = append(dtoUsers, &mgmtv1alpha1.AccountUser{
-			Id: nucleusdb.UUIDString(user.ID),
-		})
+	err = group.Wait()
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetTeamAccountMembersResponse{

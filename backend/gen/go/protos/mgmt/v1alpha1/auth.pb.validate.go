@@ -1008,3 +1008,347 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetCliIssuerResponseValidationError{}
+
+// Validate checks the field values on AuthUser with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *AuthUser) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AuthUser with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in AuthUserMultiError, or nil
+// if none found.
+func (m *AuthUser) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AuthUser) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Name
+
+	// no validation rules for Email
+
+	// no validation rules for Image
+
+	if len(errors) > 0 {
+		return AuthUserMultiError(errors)
+	}
+
+	return nil
+}
+
+// AuthUserMultiError is an error wrapping multiple validation errors returned
+// by AuthUser.ValidateAll() if the designated constraints aren't met.
+type AuthUserMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AuthUserMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AuthUserMultiError) AllErrors() []error { return m }
+
+// AuthUserValidationError is the validation error returned by
+// AuthUser.Validate if the designated constraints aren't met.
+type AuthUserValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AuthUserValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AuthUserValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AuthUserValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AuthUserValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AuthUserValidationError) ErrorName() string { return "AuthUserValidationError" }
+
+// Error satisfies the builtin error interface
+func (e AuthUserValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAuthUser.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AuthUserValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AuthUserValidationError{}
+
+// Validate checks the field values on GetAuthUserRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetAuthUserRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetAuthUserRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetAuthUserRequestMultiError, or nil if none found.
+func (m *GetAuthUserRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAuthUserRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for UserId
+
+	// no validation rules for AuthProvider
+
+	if len(errors) > 0 {
+		return GetAuthUserRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAuthUserRequestMultiError is an error wrapping multiple validation errors
+// returned by GetAuthUserRequest.ValidateAll() if the designated constraints
+// aren't met.
+type GetAuthUserRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAuthUserRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAuthUserRequestMultiError) AllErrors() []error { return m }
+
+// GetAuthUserRequestValidationError is the validation error returned by
+// GetAuthUserRequest.Validate if the designated constraints aren't met.
+type GetAuthUserRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAuthUserRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAuthUserRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAuthUserRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAuthUserRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAuthUserRequestValidationError) ErrorName() string {
+	return "GetAuthUserRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAuthUserRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAuthUserRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAuthUserRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAuthUserRequestValidationError{}
+
+// Validate checks the field values on GetAuthUserResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetAuthUserResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetAuthUserResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetAuthUserResponseMultiError, or nil if none found.
+func (m *GetAuthUserResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAuthUserResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetUser()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetAuthUserResponseValidationError{
+					field:  "User",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetAuthUserResponseValidationError{
+					field:  "User",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUser()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetAuthUserResponseValidationError{
+				field:  "User",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetAuthUserResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAuthUserResponseMultiError is an error wrapping multiple validation
+// errors returned by GetAuthUserResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetAuthUserResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAuthUserResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAuthUserResponseMultiError) AllErrors() []error { return m }
+
+// GetAuthUserResponseValidationError is the validation error returned by
+// GetAuthUserResponse.Validate if the designated constraints aren't met.
+type GetAuthUserResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAuthUserResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAuthUserResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAuthUserResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAuthUserResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAuthUserResponseValidationError) ErrorName() string {
+	return "GetAuthUserResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAuthUserResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAuthUserResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAuthUserResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAuthUserResponseValidationError{}

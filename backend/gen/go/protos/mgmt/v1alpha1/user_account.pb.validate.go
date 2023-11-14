@@ -2253,6 +2253,12 @@ func (m *AccountUser) validate(all bool) error {
 
 	// no validation rules for Id
 
+	// no validation rules for Name
+
+	// no validation rules for Image
+
+	// no validation rules for Email
+
 	if len(errors) > 0 {
 		return AccountUserMultiError(errors)
 	}

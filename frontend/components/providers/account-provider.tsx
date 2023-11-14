@@ -13,10 +13,12 @@ import { useLocalStorage } from 'usehooks-ts';
 interface AccountContextType {
   account: UserAccount | undefined;
   setAccount: (updatedAccount: UserAccount) => void;
+  isLoading: boolean;
 }
 const AccountContext = createContext<AccountContextType>({
   account: undefined,
   setAccount: () => {},
+  isLoading: false,
 });
 
 const USER_ACCOUNT_KEY = 'user-account';
@@ -51,7 +53,7 @@ export default function AccountProvider(props: Props): ReactElement {
 
   return (
     <AccountContext.Provider
-      value={{ account: userAccount, setAccount: setUserAccount }}
+      value={{ account: userAccount, setAccount: setUserAccount, isLoading }}
     >
       {children}
     </AccountContext.Provider>

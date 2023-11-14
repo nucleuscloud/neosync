@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import SubPageHeader from '@/components/headers/SubPageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
 import {
@@ -26,12 +28,11 @@ import { ReactElement, useState } from 'react';
 import { InvitesTable } from './InviteTable';
 import { MembersTable } from './MemberTable';
 
-interface Props {
-  accountId: string;
-}
+interface Props {}
 
-export default function MemberManagementSettings(props: Props): ReactElement {
-  const { accountId } = props;
+export default function MemberManagementSettings(_: Props): ReactElement {
+  const { account, isLoading } = useAccount();
+  const accountId = account?.id || '';
   const [showNewInviteDialog, setShowNewinviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [openInviteCreated, setOpenInviteCreated] = useState(false);
@@ -57,6 +58,15 @@ export default function MemberManagementSettings(props: Props): ReactElement {
         variant: 'destructive',
       });
     }
+  }
+
+  if (isLoading) {
+    return <Skeleton className="w-full h-12" />;
+  }
+
+  const isTeamAccount = account?.type.toString() == 'USER_ACCOUNT_TYPE_TEAM';
+  if (!isTeamAccount) {
+    return <div></div>;
   }
 
   return (
@@ -138,7 +148,6 @@ function InviteCreatedDialog(props: InviteCreatedDialogProps): ReactElement {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* <DialogTrigger asChild>{trigger}</DialogTrigger> */}
       <DialogContent>
         <DialogHeader>Invite created!</DialogHeader>
         <DialogDescription>{token}</DialogDescription>
