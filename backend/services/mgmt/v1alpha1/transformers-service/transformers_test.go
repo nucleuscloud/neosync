@@ -58,6 +58,27 @@ func Test_GetCustomTransformers(t *testing.T) {
 	assert.Equal(t, mockTransformerId, resp.Msg.Transformers[0].Id)
 }
 
+func Test_GetCustomTransformersById(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformers := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	transformerId, _ := nucleusdb.ToUuid(mockTransformerId)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerId).Return(transformers, nil)
+
+	resp, err := m.Service.GetCustomTransformerById(context.Background(), &connect.Request[mgmtv1alpha1.GetCustomTransformerByIdRequest]{
+		Msg: &mgmtv1alpha1.GetCustomTransformerByIdRequest{
+			TransformerId: mockTransformerId,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mockAccountId, resp.Msg.Transformer.AccountId)
+	assert.Equal(t, mockTransformerId, resp.Msg.Transformer.Id)
+}
+
 //nolint:all
 func mockTransformer(accountId, userId, transformerId string) db_queries.NeosyncApiTransformer {
 
