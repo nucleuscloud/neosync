@@ -17,12 +17,13 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
+	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
-	"github.com/nucleuscloud/neosync/backend/internal/authmw"
+	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
@@ -122,11 +123,19 @@ func serve(ctx context.Context) error {
 		return err
 	}
 
+	otelInterceptor := otelconnect.NewInterceptor()
+	loggerInterceptor := logger_interceptor.NewInterceptor(logger)
+
 	stdInterceptors := []connect.Interceptor{
-		otelconnect.NewInterceptor(),
-		logger_interceptor.NewInterceptor(logger),
+		otelInterceptor,
+		loggerInterceptor,
 		validateInterceptor,
 	}
+
+	// standard auth interceptors that should be applied to most services
+	stdAuthInterceptors := []connect.Interceptor{}
+	// this will only authenticate jwts, not api keys. Mostly used by just the api key service
+	jwtOnlyAuthInterceptors := []connect.Interceptor{}
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
@@ -134,12 +143,23 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		stdInterceptors = append(stdInterceptors, auth_interceptor.NewInterceptor(authmw.New(jwtclient).ValidateAndInjectAll))
+		apikeyClient := auth_apikey.New(db.Q, db.Db)
+		stdAuthInterceptors = append(
+			stdAuthInterceptors,
+			auth_interceptor.NewInterceptor(
+				authmw.New(
+					jwtclient,
+					apikeyClient,
+				).InjectTokenCtx,
+			),
+		)
+		jwtOnlyAuthInterceptors = append(
+			jwtOnlyAuthInterceptors,
+			auth_interceptor.NewInterceptor(
+				jwtclient.InjectTokenCtx,
+			),
+		)
 	}
-
-	stdInterceptorConnectOpt := connect.WithInterceptors(
-		stdInterceptors...,
-	)
 
 	api := http.NewServeMux()
 
@@ -150,7 +170,8 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
-			stdInterceptorConnectOpt,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
 		),
 	)
 
@@ -158,7 +179,8 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
-			stdInterceptorConnectOpt,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
 		),
 	)
 	authcerts, err := getTemporalAuthCertificate()
@@ -182,7 +204,8 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
-			stdInterceptorConnectOpt,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
 		),
 	)
 
@@ -190,7 +213,8 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
-			stdInterceptorConnectOpt,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
 		),
 	)
 
@@ -220,12 +244,7 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(
 			authService,
-			// auth service uses non-standard interceptors as we don't want to include the auth interceptor in this service
-			connect.WithInterceptors(
-				otelconnect.NewInterceptor(),
-				logger_interceptor.NewInterceptor(logger),
-				validateInterceptor,
-			),
+			connect.WithInterceptors(stdInterceptors...),
 		),
 	)
 
@@ -235,7 +254,8 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewApiKeyServiceHandler(
 			apiKeyService,
-			stdInterceptorConnectOpt,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(jwtOnlyAuthInterceptors...),
 		),
 	)
 

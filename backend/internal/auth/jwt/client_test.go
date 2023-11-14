@@ -71,27 +71,6 @@ func Test_New(t *testing.T) {
 	assert.Error(t, err, "fails if api audiences is nil")
 }
 
-func Test_getBearerTokenFromHeader(t *testing.T) {
-	_, err := getBearerTokenFromHeader(http.Header{}, "Authorization")
-	assert.Error(t, err)
-	_, err = getBearerTokenFromHeader(http.Header{"Authorization": []string{}}, "Authorization")
-	assert.Error(t, err)
-	_, err = getBearerTokenFromHeader(http.Header{"Authorization": []string{"Foo"}}, "Authorization")
-	assert.Error(t, err)
-	_, err = getBearerTokenFromHeader(http.Header{"Authorization": []string{"Foo Foo Foo"}}, "Authorization")
-	assert.Error(t, err)
-	_, err = getBearerTokenFromHeader(http.Header{"Authorization": []string{"Foo Foo"}}, "Authorization")
-	assert.Error(t, err)
-	_, err = getBearerTokenFromHeader(http.Header{"Authorization": []string{"Bearer"}}, "Authorization")
-	assert.Error(t, err)
-	_, err = getBearerTokenFromHeader(http.Header{"Authorization": []string{"Bearer 123"}}, "Authorizationn")
-	assert.Error(t, err)
-
-	token, err := getBearerTokenFromHeader(http.Header{"Authorization": []string{"Bearer 123"}}, "Authorization")
-	assert.Nil(t, err)
-	assert.Equal(t, token, "123")
-}
-
 func Test_Client_InjectTokenCtx(t *testing.T) {
 	customclaims := &CustomClaims{
 		Scope: "foo bar",
