@@ -3,6 +3,7 @@ package v1alpha1_transformersservice
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"testing"
 	"time"
 
@@ -66,10 +67,10 @@ func Test_GetCustomTransformersById(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	transformers := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
 	transformerId, _ := nucleusdb.ToUuid(mockTransformerId)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerId).Return(transformers, nil)
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerId).Return(transformer, nil)
 
 	resp, err := m.Service.GetCustomTransformerById(context.Background(), &connect.Request[mgmtv1alpha1.GetCustomTransformerByIdRequest]{
 		Msg: &mgmtv1alpha1.GetCustomTransformerByIdRequest{
@@ -120,6 +121,131 @@ func Test_CreateCustomTransformer(t *testing.T) {
 	assert.NotNil(t, resp)
 	assert.Equal(t, mockAccountId, resp.Msg.Transformer.AccountId)
 	assert.Equal(t, mockTransformerId, resp.Msg.Transformer.Id)
+}
+
+func Test_CreateCustomTransformer_Error(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	mockMgmtTransformerConfig := getTransformerConfigMock()
+	mockTransformerConfig := &pg_models.TransformerConfigs{}
+	_ = mockTransformerConfig.FromTransformerConfigDto(mockMgmtTransformerConfig)
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+
+	var nilConnection db_queries.NeosyncApiTransformer
+
+	m.UserAccountServiceMock.On("GetUser", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
+		UserId: mockUserId,
+	}), nil)
+
+	m.QuerierMock.On("CreateCustomTransformer", context.Background(), mock.Anything, db_queries.
+		CreateCustomTransformerParams{
+		AccountID:         accountUuid,
+		Name:              mockTransformerName,
+		Description:       mockTransformerDescription,
+		TransformerConfig: mockTransformerConfig,
+		Type:              mockTransformerType,
+		Source:            mockTransformerSource,
+		CreatedByID:       userUuid,
+		UpdatedByID:       userUuid,
+	}).Return(nilConnection, errors.New("help"))
+
+	resp, err := m.Service.CreateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.CreateCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.CreateCustomTransformerRequest{
+			AccountId:         mockAccountId,
+			Name:              mockTransformerName,
+			Description:       mockTransformerDescription,
+			Type:              mockTransformerType,
+			Source:            mockTransformerSource,
+			TransformerConfig: mockMgmtTransformerConfig,
+		},
+	})
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_DeleteCustomTransformer(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
+	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+	m.QuerierMock.On("DeleteCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(nil)
+
+	resp, err := m.Service.DeleteCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.DeleteCustomTransformerRequest{
+			TransformerId: mockTransformerId,
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func Test_DeleteConnection_NotFound(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
+	var nilConnection db_queries.NeosyncApiTransformer
+
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(nilConnection, sql.ErrNoRows)
+
+	resp, err := m.Service.DeleteCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.DeleteCustomTransformerRequest{
+			TransformerId: mockTransformerId,
+		},
+	})
+
+	m.QuerierMock.AssertNotCalled(t, "DeleteTransformerById", context.Background(), mock.Anything, mock.Anything)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func Test_DeleteConnection_RemoveError(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
+	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+	m.QuerierMock.On("DeleteCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(errors.New("sad"))
+
+	resp, err := m.Service.DeleteCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.DeleteCustomTransformerRequest{
+			TransformerId: mockTransformerId,
+		},
+	})
+
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_DeleteConnection_UnverifiedUserError(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
+	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	mockIsUserInAccount(m.UserAccountServiceMock, false)
+
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+
+	resp, err := m.Service.DeleteCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.DeleteCustomTransformerRequest{
+			TransformerId: mockTransformerId,
+		},
+	})
+
+	m.QuerierMock.AssertNotCalled(t, "DeleteCustomTransformerById")
+	assert.Error(t, err)
+	assert.Nil(t, resp)
 }
 
 //nolint:all
