@@ -39,7 +39,7 @@ func Test_GetSystemTransformers(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t, 23, len(resp.Msg.GetTransformers())) //the number of system transformers
+	assert.Equal(t, 23, len(resp.Msg.GetTransformers())) // the number of system transformers
 }
 
 func Test_GetCustomTransformers(t *testing.T) {
@@ -248,6 +248,132 @@ func Test_DeleteConnection_UnverifiedUserError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
+func Test_UpdateTransformer(t *testing.T) {
+
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	mockMgmtTransformerConfig := getTransformerConfigMock()
+	mockTransformerConfig := &pg_models.TransformerConfigs{}
+	_ = mockTransformerConfig.FromTransformerConfigDto(mockMgmtTransformerConfig)
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+
+	m.QuerierMock.On("UpdateCustomTransformer", context.Background(), mock.Anything, db_queries.UpdateCustomTransformerParams{
+		ID:                transformerUuid,
+		Name:              mockTransformerName,
+		TransformerConfig: mockTransformerConfig,
+		UpdatedByID:       userUuid,
+		Description:       mockTransformerDescription,
+	}).Return(transformer, nil)
+
+	resp, err := m.Service.UpdateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.UpdateCustomTransformerRequest{
+			TransformerId:     mockTransformerId,
+			TransformerConfig: mockMgmtTransformerConfig,
+			Name:              mockTransformerName,
+			Description:       mockTransformerDescription,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mockTransformerId, resp.Msg.Transformer.Id)
+}
+
+func Test_UpdateTransformer_UpdateError(t *testing.T) {
+
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	mockMgmtTransformerConfig := getTransformerConfigMock()
+	mockTransformerConfig := &pg_models.TransformerConfigs{}
+	_ = mockTransformerConfig.FromTransformerConfigDto(mockMgmtTransformerConfig)
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	var nilTransformer db_queries.NeosyncApiTransformer
+
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+
+	m.QuerierMock.On("UpdateCustomTransformer", context.Background(), mock.Anything, db_queries.UpdateCustomTransformerParams{
+		ID:                transformerUuid,
+		Name:              mockTransformerName,
+		TransformerConfig: mockTransformerConfig,
+		UpdatedByID:       userUuid,
+		Description:       mockTransformerDescription,
+	}).Return(nilTransformer, errors.New("boo"))
+
+	resp, err := m.Service.UpdateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.UpdateCustomTransformerRequest{
+			TransformerId:     mockTransformerId,
+			TransformerConfig: mockMgmtTransformerConfig,
+			Name:              mockTransformerName,
+			Description:       mockTransformerDescription,
+		},
+	})
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_UpdateTransformer_GetTransformerError(t *testing.T) {
+
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
+	mockMgmtTransformerConfig := getTransformerConfigMock()
+
+	var nilTransformer db_queries.NeosyncApiTransformer
+
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(nilTransformer, sql.ErrNoRows)
+
+	resp, err := m.Service.UpdateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.UpdateCustomTransformerRequest{
+			TransformerId:     mockTransformerId,
+			TransformerConfig: mockMgmtTransformerConfig,
+			Name:              mockTransformerName,
+			Description:       mockTransformerDescription,
+		},
+	})
+	m.QuerierMock.AssertNotCalled(t, "UpdateCustomTransformer", mock.Anything, mock.Anything, mock.Anything)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_UpdateTransformer_UnverifiedUser(t *testing.T) {
+
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
+	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	mockMgmtTransformerConfig := getTransformerConfigMock()
+	mockTransformerConfig := &pg_models.TransformerConfigs{}
+	_ = mockTransformerConfig.FromTransformerConfigDto(mockMgmtTransformerConfig)
+	mockIsUserInAccount(m.UserAccountServiceMock, false)
+
+	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+
+	resp, err := m.Service.UpdateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]{
+		Msg: &mgmtv1alpha1.UpdateCustomTransformerRequest{
+			TransformerId:     mockTransformerId,
+			TransformerConfig: mockMgmtTransformerConfig,
+			Name:              mockTransformerName,
+			Description:       mockTransformerDescription,
+		},
+	})
+
+	m.QuerierMock.AssertNotCalled(t, "UpdateCustomTransformer", mock.Anything, mock.Anything, mock.Anything)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
 func Test_IsTtransformerNameAvailable_True(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
@@ -325,6 +451,7 @@ func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAcc
 	}), nil)
 }
 
+//nolint:all
 func mockUserAccountCalls(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) {
 	mockIsUserInAccount(userAccountServiceMock, isInAccount)
 	userAccountServiceMock.On("GetUser", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
