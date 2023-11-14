@@ -11,6 +11,9 @@ packages:
     # config:
     interfaces:
       JwtValidator:
+  github.com/nucleuscloud/neosync/backend/internal/auth/authmw:
+    interfaces:
+      AuthClient:
   github.com/nucleuscloud/neosync/backend/internal/nucleusdb:
     # config:
     interfaces:
