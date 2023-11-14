@@ -110,6 +110,7 @@ message TransformerConfig {
     FullAddress full_address_config = 21;
     CreditCard credit_card_config = 22;
     SHA256Hash sha256hash_config = 23;
+    SocialSecurityNumber ssn_config = 24;
   }
 }
 
@@ -187,6 +188,8 @@ message CreditCard {
 }
 
 message SHA256Hash {}
+
+message SocialSecurityNumber {}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}

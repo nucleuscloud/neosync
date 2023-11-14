@@ -839,6 +839,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: SHA256Hash;
     case: "sha256hashConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.SocialSecurityNumber ssn_config = 24;
+     */
+    value: SocialSecurityNumber;
+    case: "ssnConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -872,6 +878,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 21, name: "full_address_config", kind: "message", T: FullAddress, oneof: "config" },
     { no: 22, name: "credit_card_config", kind: "message", T: CreditCard, oneof: "config" },
     { no: 23, name: "sha256hash_config", kind: "message", T: SHA256Hash, oneof: "config" },
+    { no: 24, name: "ssn_config", kind: "message", T: SocialSecurityNumber, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -1715,6 +1722,37 @@ export class SHA256Hash extends Message<SHA256Hash> {
 
   static equals(a: SHA256Hash | PlainMessage<SHA256Hash> | undefined, b: SHA256Hash | PlainMessage<SHA256Hash> | undefined): boolean {
     return proto3.util.equals(SHA256Hash, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SocialSecurityNumber
+ */
+export class SocialSecurityNumber extends Message<SocialSecurityNumber> {
+  constructor(data?: PartialMessage<SocialSecurityNumber>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SocialSecurityNumber";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SocialSecurityNumber {
+    return new SocialSecurityNumber().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SocialSecurityNumber {
+    return new SocialSecurityNumber().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SocialSecurityNumber {
+    return new SocialSecurityNumber().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SocialSecurityNumber | PlainMessage<SocialSecurityNumber> | undefined, b: SocialSecurityNumber | PlainMessage<SocialSecurityNumber> | undefined): boolean {
+    return proto3.util.equals(SocialSecurityNumber, a, b);
   }
 }
 
