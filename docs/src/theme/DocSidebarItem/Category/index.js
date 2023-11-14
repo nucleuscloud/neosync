@@ -15,10 +15,10 @@ import {
 } from '@docusaurus/theme-common/internal';
 import useIsBrowser from '@docusaurus/useIsBrowser';
 import { CaretDownIcon, CaretRightIcon } from '@radix-ui/react-icons';
+import { IconHandler } from '@site/src/CustomComponents/IconHandler';
 import DocSidebarItems from '@theme/DocSidebarItems';
 import clsx from 'clsx';
 import React, { useEffect, useMemo } from 'react';
-import { RenderIcon } from '../Link';
 // If we navigate to a category and it becomes active, it should automatically
 // expand itself
 function useAutoExpandActiveCategory({ isActive, collapsed, updateCollapsed }) {
@@ -166,7 +166,7 @@ export default function DocSidebarItemCategory({
           {...props}
         >
           <div className="gap-4 flex flex-row items-center font-normal text-gray-800">
-            {RenderIcon(label)}
+            {IconHandler(label)}
             {label}
             {handleCollapsible()}
           </div>
