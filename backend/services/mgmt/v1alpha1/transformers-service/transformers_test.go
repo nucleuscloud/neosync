@@ -248,6 +248,52 @@ func Test_DeleteConnection_UnverifiedUserError(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
+func Test_IsTtransformerNameAvailable_True(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("IsTransformerNameAvailable", context.Background(), mock.Anything, db_queries.IsTransformerNameAvailableParams{
+		AccountId:       accountUuid,
+		TransformerName: mockTransformerName,
+	}).Return(int64(0), nil)
+
+	resp, err := m.Service.IsTransformerNameAvailable(context.Background(), &connect.Request[mgmtv1alpha1.IsTransformerNameAvailableRequest]{
+		Msg: &mgmtv1alpha1.IsTransformerNameAvailableRequest{
+			AccountId:       mockAccountId,
+			TransformerName: mockTransformerName,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, true, resp.Msg.IsAvailable)
+}
+
+func Test_IsConnectionNameAvailable_False(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("IsTransformerNameAvailable", context.Background(), mock.Anything, db_queries.IsTransformerNameAvailableParams{
+		AccountId:       accountUuid,
+		TransformerName: mockTransformerName,
+	}).Return(int64(1), nil)
+
+	resp, err := m.Service.IsTransformerNameAvailable(context.Background(), &connect.Request[mgmtv1alpha1.IsTransformerNameAvailableRequest]{
+		Msg: &mgmtv1alpha1.IsTransformerNameAvailableRequest{
+			AccountId:       mockAccountId,
+			TransformerName: mockTransformerName,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, false, resp.Msg.IsAvailable)
+}
+
 //nolint:all
 func mockTransformer(accountId, userId, transformerId string) db_queries.NeosyncApiTransformer {
 
