@@ -12,12 +12,12 @@ import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
 <TransformerPageHeader
   title="Card Number"
   type="string"
-  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/credit_card.go"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/card_number.go"
 />
 
 ## Definition
 
-The credit card transformer can anonymize an existing email address or completely generate a new one. A card number can be quite complex but we make it easy to generate valid luhn-check card numbers.
+The card number transformer can anonymize an existing email address or completely generate a new one. A card number can be quite complex but we make it easy to generate valid luhn-check card numbers.
 
 By default, the card number transformer generates a random 16 digit card number that is _not_ luhn valid. If you want luhn validation, please set the luhn-check config to `true`.
 

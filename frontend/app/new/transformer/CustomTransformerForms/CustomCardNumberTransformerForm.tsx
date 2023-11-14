@@ -15,7 +15,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomCreditCardTransformerForm(
+export default function CustomCardNumberTransformerForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext();
@@ -32,7 +32,7 @@ export default function CustomCreditCardTransformerForm(
             <div className="space-y-0.5">
               <FormLabel>Valid Luhn</FormLabel>
               <FormDescription>
-                Generate a 16 digit credit card number that passes a luhn check.
+                Generate a 16 digit card number that passes a luhn check.
               </FormDescription>
             </div>
             <FormControl>

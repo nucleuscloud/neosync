@@ -2,7 +2,6 @@ package neosync_transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"strconv"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -19,7 +18,7 @@ func init() {
 		Param(bloblang.NewBoolParam("luhn_check"))
 
 	// register the plugin
-	err := bloblang.RegisterFunctionV2("creditcardtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("cardnumbertransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		luhn, err := args.GetBool("luhn_check")
 		if err != nil {
@@ -27,7 +26,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateCreditCard(luhn)
+			res, err := GenerateCardNumber(luhn)
 			return res, err
 		}, nil
 	})
@@ -39,15 +38,15 @@ func init() {
 }
 
 // main transformer logic goes here
-func GenerateCreditCard(luhn bool) (int64, error) {
+func GenerateCardNumber(luhn bool) (int64, error) {
 	var returnValue int64
 
 	if luhn {
 
-		val, err := GenerateValidVLuhnCheckCreditCard()
+		val, err := GenerateValidLuhnCheckCardNumber()
 
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate a luhn valid credit card number")
+			return 0, fmt.Errorf("unable to generate a luhn valid card number")
 		}
 
 		returnValue = val
@@ -57,7 +56,7 @@ func GenerateCreditCard(luhn bool) (int64, error) {
 		val, err := transformer_utils.GenerateRandomInt(defualtCCLength)
 
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random credit card number")
+			return 0, fmt.Errorf("unable to generate a random card number")
 		}
 
 		returnValue = val
@@ -67,8 +66,8 @@ func GenerateCreditCard(luhn bool) (int64, error) {
 	return returnValue, nil
 }
 
-// generates a credit card number that passes luhn validation
-func GenerateValidVLuhnCheckCreditCard() (int64, error) {
+// generates a card number that passes luhn validation
+func GenerateValidLuhnCheckCardNumber() (int64, error) {
 
 	// To find the checksum digit on
 	cardNo := make([]int, 0)
@@ -83,10 +82,18 @@ func GenerateValidVLuhnCheckCreditCard() (int64, error) {
 	}
 
 	// Acc no (9 digits)
-	seventh15 := rand.Perm(9)[:9]
-	for _, i := range seventh15 {
-		cardNo = append(cardNo, i)
-		cardNum = append(cardNum, i)
+	nineDigits, err := transformer_utils.GenerateRandomInt(int64(9))
+	if err != nil {
+		return 0, err
+	}
+	strNine := strconv.FormatInt(nineDigits, 10)
+	for _, k := range strNine {
+		digit, err := strconv.Atoi(string(k))
+		if err != nil {
+			continue
+		}
+		cardNo = append(cardNo, digit)
+		cardNum = append(cardNum, digit)
 	}
 
 	// odd position digits

@@ -108,7 +108,7 @@ message TransformerConfig {
     Zipcode zipcode_config = 19;
     State state_config = 20;
     FullAddress full_address_config = 21;
-    CreditCard credit_card_config = 22;
+    CardNumber card_number_config = 22;
     SHA256Hash sha256hash_config = 23;
     SocialSecurityNumber ssn_config = 24;
   }
@@ -183,7 +183,7 @@ message State {}
 
 message FullAddress {}
 
-message CreditCard {
+message CardNumber {
   bool valid_luhn = 1;
 }
 

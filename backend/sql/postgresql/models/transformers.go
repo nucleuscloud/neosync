@@ -31,7 +31,7 @@ type TransformerConfigs struct {
 	Zipcode              *ZipcodeConfig              `json:"zipcode,omitempty"`
 	State                *StateConfig                `json:"state,omitempty"`
 	FullAddress          *FullAddressConfig          `json:"fullAddress,omitempty"`
-	CreditCard           *CreditCardConfig           `json:"creditcard,omitempty"`
+	CardNumber           *CardNumberConfig           `json:"cardnumber,omitempty"`
 	SHA256Hash           *SHA256HashConfig           `json:"sha256Hash,omitempty"`
 	SocialSecurityNumber *SocialSecurityNumberConfig `json:"social_security_number,omitempty"`
 }
@@ -105,7 +105,7 @@ type StateConfig struct{}
 
 type FullAddressConfig struct{}
 
-type CreditCardConfig struct {
+type CardNumberConfig struct {
 	ValidLuhn bool `json:"validLuhn"`
 }
 
@@ -211,14 +211,17 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 
 	case *mgmtv1alpha1.TransformerConfig_FullAddressConfig:
 		t.FullAddress = &FullAddressConfig{}
-	case *mgmtv1alpha1.TransformerConfig_CreditCardConfig:
-		t.CreditCard = &CreditCardConfig{
-			ValidLuhn: tr.GetCreditCardConfig().ValidLuhn,
+
+	case *mgmtv1alpha1.TransformerConfig_CardNumberConfig:
+		t.CardNumber = &CardNumberConfig{
+			ValidLuhn: tr.GetCardNumberConfig().ValidLuhn,
 		}
 	case *mgmtv1alpha1.TransformerConfig_Sha256HashConfig:
 		t.SHA256Hash = &SHA256HashConfig{}
+
 	case *mgmtv1alpha1.TransformerConfig_SsnConfig:
 		t.SocialSecurityNumber = &SocialSecurityNumberConfig{}
+
 	default:
 		t = &TransformerConfigs{}
 	}
@@ -396,11 +399,11 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 				FullAddressConfig: &mgmtv1alpha1.FullAddress{},
 			},
 		}
-	case tr.CreditCard != nil:
+	case tr.CardNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_CreditCardConfig{
-				CreditCardConfig: &mgmtv1alpha1.CreditCard{
-					ValidLuhn: tr.CreditCard.ValidLuhn,
+			Config: &mgmtv1alpha1.TransformerConfig_CardNumberConfig{
+				CardNumberConfig: &mgmtv1alpha1.CardNumber{
+					ValidLuhn: tr.CardNumber.ValidLuhn,
 				},
 			},
 		}

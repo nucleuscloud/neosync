@@ -38,7 +38,7 @@ const (
 	Zipcode              Transformation = "zipcode"
 	State                Transformation = "state"
 	FullAddress          Transformation = "full_address"
-	CreditCard           Transformation = "credit_card"
+	CardNumber           Transformation = "card_number"
 	SHA256               Transformation = "sha256_hash"
 	SocialSecurityNumber Transformation = "social_security_number"
 )
@@ -190,9 +190,9 @@ func (s *Service) GetSystemTransformers(
 					FullAddressConfig: &mgmtv1alpha1.FullAddress{},
 				},
 			}},
-			{Value: string(CreditCard), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_CreditCardConfig{
-					CreditCardConfig: &mgmtv1alpha1.CreditCard{
+			{Value: string(CardNumber), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_CardNumberConfig{
+					CardNumberConfig: &mgmtv1alpha1.CardNumber{
 						ValidLuhn: true,
 					},
 				},
