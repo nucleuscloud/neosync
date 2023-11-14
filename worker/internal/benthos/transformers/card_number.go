@@ -90,7 +90,6 @@ func GenerateValidLuhnCheckCardNumber() (int64, error) {
 	for _, k := range strNine {
 		digit, err := strconv.Atoi(string(k))
 		if err != nil {
-			fmt.Println("Error converting to int:", err)
 			continue
 		}
 		cardNo = append(cardNo, digit)
