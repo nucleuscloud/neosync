@@ -65,13 +65,6 @@ func Test_Client_InjectTokenCtx_InvalidToken(t *testing.T) {
 
 	client := New(mockQuerier, mockDbTx)
 
-	fakeToken := apikey.NewV1AccountKey()
-	apiKeyRecord := db_queries.NeosyncApiAccountApiKey{
-		ID: pgtype.UUID{Valid: true},
-	}
-	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, fakeToken).
-		Return(apiKeyRecord, nil)
-
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
 		"Authorization": []string{"Bearer 123"},
 	})
