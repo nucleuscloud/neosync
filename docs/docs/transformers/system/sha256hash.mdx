@@ -1,0 +1,52 @@
+---
+title: Hash
+id: hash
+hide_title: true
+slug: /transformers/system/hash
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="Hash"
+  type="string"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/activities.go"
+/>
+
+## Definition
+
+The hash transformer creates a SHA256 hash and hex encodes the resulting value and returns it as a string. Before the value is hashed, it's first transformed into a byte array to account for flexible input types.
+
+## Configurations
+
+There are no configurations for the hash transformer.
+
+## Examples
+
+Here are some examples of what an output state value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: [
+        'first name',
+        '1b836d86806e16bd45164b9d665ce86dac9d9d55bf79d0e771265da9fbf950d1',
+      ],
+    },
+    {
+      data: [
+        '5667328',
+        'c74f07e35232c844a6639fef0c82ad093351cfa1a1b458fd2afc44cc19211508C',
+      ],
+    },
+    {
+      data: [
+        `['one', 'two']`,
+        '18dd7ce288e5538fbdd9c736aa9951ddb317e42c0b928e2b4db672414a82f811',
+      ],
+    },
+  ]}
+/>

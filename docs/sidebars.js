@@ -178,6 +178,11 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'transformers/system/hash',
+          label: 'Hash',
+        },
+        {
+          type: 'doc',
           id: 'transformers/system/ssn',
           label: 'SSN',
         },
