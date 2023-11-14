@@ -19,7 +19,7 @@ func init() {
 		Param(bloblang.NewBoolParam("luhn_check"))
 
 	// register the plugin
-	err := bloblang.RegisterFunctionV2("creditcardtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("cardnumbertransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		luhn, err := args.GetBool("luhn_check")
 		if err != nil {
@@ -27,7 +27,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateCreditCard(luhn)
+			res, err := GenerateCardNumber(luhn)
 			return res, err
 		}, nil
 	})
@@ -39,15 +39,15 @@ func init() {
 }
 
 // main transformer logic goes here
-func GenerateCreditCard(luhn bool) (int64, error) {
+func GenerateCardNumber(luhn bool) (int64, error) {
 	var returnValue int64
 
 	if luhn {
 
-		val, err := GenerateValidVLuhnCheckCreditCard()
+		val, err := GenerateValidVLuhnCheckCardNumber()
 
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate a luhn valid credit card number")
+			return 0, fmt.Errorf("unable to generate a luhn valid card number")
 		}
 
 		returnValue = val
@@ -57,7 +57,7 @@ func GenerateCreditCard(luhn bool) (int64, error) {
 		val, err := transformer_utils.GenerateRandomInt(defualtCCLength)
 
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random credit card number")
+			return 0, fmt.Errorf("unable to generate a random card number")
 		}
 
 		returnValue = val
@@ -67,8 +67,8 @@ func GenerateCreditCard(luhn bool) (int64, error) {
 	return returnValue, nil
 }
 
-// generates a credit card number that passes luhn validation
-func GenerateValidVLuhnCheckCreditCard() (int64, error) {
+// generates a card number that passes luhn validation
+func GenerateValidVLuhnCheckCardNumber() (int64, error) {
 
 	// To find the checksum digit on
 	cardNo := make([]int, 0)

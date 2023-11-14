@@ -829,10 +829,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "fullAddressConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.CreditCard credit_card_config = 22;
+     * @generated from field: mgmt.v1alpha1.CardNumber card_number_config = 22;
      */
-    value: CreditCard;
-    case: "creditCardConfig";
+    value: CardNumber;
+    case: "cardNumberConfig";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.SHA256Hash sha256hash_config = 23;
@@ -876,7 +876,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 19, name: "zipcode_config", kind: "message", T: Zipcode, oneof: "config" },
     { no: 20, name: "state_config", kind: "message", T: State, oneof: "config" },
     { no: 21, name: "full_address_config", kind: "message", T: FullAddress, oneof: "config" },
-    { no: 22, name: "credit_card_config", kind: "message", T: CreditCard, oneof: "config" },
+    { no: 22, name: "card_number_config", kind: "message", T: CardNumber, oneof: "config" },
     { no: 23, name: "sha256hash_config", kind: "message", T: SHA256Hash, oneof: "config" },
     { no: 24, name: "ssn_config", kind: "message", T: SocialSecurityNumber, oneof: "config" },
   ]);
@@ -1658,39 +1658,39 @@ export class FullAddress extends Message<FullAddress> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.CreditCard
+ * @generated from message mgmt.v1alpha1.CardNumber
  */
-export class CreditCard extends Message<CreditCard> {
+export class CardNumber extends Message<CardNumber> {
   /**
    * @generated from field: bool valid_luhn = 1;
    */
   validLuhn = false;
 
-  constructor(data?: PartialMessage<CreditCard>) {
+  constructor(data?: PartialMessage<CardNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.CreditCard";
+  static readonly typeName = "mgmt.v1alpha1.CardNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "valid_luhn", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreditCard {
-    return new CreditCard().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CardNumber {
+    return new CardNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreditCard {
-    return new CreditCard().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CardNumber {
+    return new CardNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreditCard {
-    return new CreditCard().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CardNumber {
+    return new CardNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: CreditCard | PlainMessage<CreditCard> | undefined, b: CreditCard | PlainMessage<CreditCard> | undefined): boolean {
-    return proto3.util.equals(CreditCard, a, b);
+  static equals(a: CardNumber | PlainMessage<CardNumber> | undefined, b: CardNumber | PlainMessage<CardNumber> | undefined): boolean {
+    return proto3.util.equals(CardNumber, a, b);
   }
 }
 

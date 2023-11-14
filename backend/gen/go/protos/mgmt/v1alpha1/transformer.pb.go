@@ -928,7 +928,7 @@ type TransformerConfig struct {
 	//	*TransformerConfig_ZipcodeConfig
 	//	*TransformerConfig_StateConfig
 	//	*TransformerConfig_FullAddressConfig
-	//	*TransformerConfig_CreditCardConfig
+	//	*TransformerConfig_CardNumberConfig
 	//	*TransformerConfig_Sha256HashConfig
 	//	*TransformerConfig_SsnConfig
 	Config isTransformerConfig_Config `protobuf_oneof:"config"`
@@ -1120,9 +1120,9 @@ func (x *TransformerConfig) GetFullAddressConfig() *FullAddress {
 	return nil
 }
 
-func (x *TransformerConfig) GetCreditCardConfig() *CreditCard {
-	if x, ok := x.GetConfig().(*TransformerConfig_CreditCardConfig); ok {
-		return x.CreditCardConfig
+func (x *TransformerConfig) GetCardNumberConfig() *CardNumber {
+	if x, ok := x.GetConfig().(*TransformerConfig_CardNumberConfig); ok {
+		return x.CardNumberConfig
 	}
 	return nil
 }
@@ -1229,8 +1229,8 @@ type TransformerConfig_FullAddressConfig struct {
 	FullAddressConfig *FullAddress `protobuf:"bytes,21,opt,name=full_address_config,json=fullAddressConfig,proto3,oneof"`
 }
 
-type TransformerConfig_CreditCardConfig struct {
-	CreditCardConfig *CreditCard `protobuf:"bytes,22,opt,name=credit_card_config,json=creditCardConfig,proto3,oneof"`
+type TransformerConfig_CardNumberConfig struct {
+	CardNumberConfig *CardNumber `protobuf:"bytes,22,opt,name=card_number_config,json=cardNumberConfig,proto3,oneof"`
 }
 
 type TransformerConfig_Sha256HashConfig struct {
@@ -1283,7 +1283,7 @@ func (*TransformerConfig_StateConfig) isTransformerConfig_Config() {}
 
 func (*TransformerConfig_FullAddressConfig) isTransformerConfig_Config() {}
 
-func (*TransformerConfig_CreditCardConfig) isTransformerConfig_Config() {}
+func (*TransformerConfig_CardNumberConfig) isTransformerConfig_Config() {}
 
 func (*TransformerConfig_Sha256HashConfig) isTransformerConfig_Config() {}
 
@@ -2242,7 +2242,7 @@ func (*FullAddress) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{37}
 }
 
-type CreditCard struct {
+type CardNumber struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -2250,8 +2250,8 @@ type CreditCard struct {
 	ValidLuhn bool `protobuf:"varint,1,opt,name=valid_luhn,json=validLuhn,proto3" json:"valid_luhn,omitempty"`
 }
 
-func (x *CreditCard) Reset() {
-	*x = CreditCard{}
+func (x *CardNumber) Reset() {
+	*x = CardNumber{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2259,13 +2259,13 @@ func (x *CreditCard) Reset() {
 	}
 }
 
-func (x *CreditCard) String() string {
+func (x *CardNumber) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreditCard) ProtoMessage() {}
+func (*CardNumber) ProtoMessage() {}
 
-func (x *CreditCard) ProtoReflect() protoreflect.Message {
+func (x *CardNumber) ProtoReflect() protoreflect.Message {
 	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2277,12 +2277,12 @@ func (x *CreditCard) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreditCard.ProtoReflect.Descriptor instead.
-func (*CreditCard) Descriptor() ([]byte, []int) {
+// Deprecated: Use CardNumber.ProtoReflect.Descriptor instead.
+func (*CardNumber) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{38}
 }
 
-func (x *CreditCard) GetValidLuhn() bool {
+func (x *CardNumber) GetValidLuhn() bool {
 	if x != nil {
 		return x.ValidLuhn
 	}
@@ -2593,11 +2593,11 @@ var file_mgmt_v1alpha1_transformer_proto_rawDesc = []byte{
 	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x46, 0x75, 0x6c,
 	0x6c, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x48, 0x00, 0x52, 0x11, 0x66, 0x75, 0x6c, 0x6c,
 	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x49, 0x0a,
-	0x12, 0x63, 0x72, 0x65, 0x64, 0x69, 0x74, 0x5f, 0x63, 0x61, 0x72, 0x64, 0x5f, 0x63, 0x6f, 0x6e,
+	0x12, 0x63, 0x61, 0x72, 0x64, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e,
 	0x66, 0x69, 0x67, 0x18, 0x16, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x6d, 0x67, 0x6d, 0x74,
-	0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65, 0x64, 0x69, 0x74,
-	0x43, 0x61, 0x72, 0x64, 0x48, 0x00, 0x52, 0x10, 0x63, 0x72, 0x65, 0x64, 0x69, 0x74, 0x43, 0x61,
-	0x72, 0x64, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x48, 0x0a, 0x11, 0x73, 0x68, 0x61, 0x32,
+	0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x61, 0x72, 0x64, 0x4e, 0x75,
+	0x6d, 0x62, 0x65, 0x72, 0x48, 0x00, 0x52, 0x10, 0x63, 0x61, 0x72, 0x64, 0x4e, 0x75, 0x6d, 0x62,
+	0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x48, 0x0a, 0x11, 0x73, 0x68, 0x61, 0x32,
 	0x35, 0x36, 0x68, 0x61, 0x73, 0x68, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x17, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70,
 	0x68, 0x61, 0x31, 0x2e, 0x53, 0x48, 0x41, 0x32, 0x35, 0x36, 0x48, 0x61, 0x73, 0x68, 0x48, 0x00,
@@ -2670,7 +2670,7 @@ var file_mgmt_v1alpha1_transformer_proto_rawDesc = []byte{
 	0x72, 0x65, 0x73, 0x73, 0x22, 0x09, 0x0a, 0x07, 0x5a, 0x69, 0x70, 0x63, 0x6f, 0x64, 0x65, 0x22,
 	0x06, 0x0a, 0x04, 0x43, 0x69, 0x74, 0x79, 0x22, 0x07, 0x0a, 0x05, 0x53, 0x74, 0x61, 0x74, 0x65,
 	0x22, 0x0d, 0x0a, 0x0b, 0x46, 0x75, 0x6c, 0x6c, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22,
-	0x2b, 0x0a, 0x0a, 0x43, 0x72, 0x65, 0x64, 0x69, 0x74, 0x43, 0x61, 0x72, 0x64, 0x12, 0x1d, 0x0a,
+	0x2b, 0x0a, 0x0a, 0x43, 0x61, 0x72, 0x64, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12, 0x1d, 0x0a,
 	0x0a, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x5f, 0x6c, 0x75, 0x68, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x08, 0x52, 0x09, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x4c, 0x75, 0x68, 0x6e, 0x22, 0x0c, 0x0a, 0x0a,
 	0x53, 0x48, 0x41, 0x32, 0x35, 0x36, 0x48, 0x61, 0x73, 0x68, 0x22, 0x16, 0x0a, 0x14, 0x53, 0x6f,
@@ -2799,7 +2799,7 @@ var file_mgmt_v1alpha1_transformer_proto_goTypes = []interface{}{
 	(*City)(nil),                               // 35: mgmt.v1alpha1.City
 	(*State)(nil),                              // 36: mgmt.v1alpha1.State
 	(*FullAddress)(nil),                        // 37: mgmt.v1alpha1.FullAddress
-	(*CreditCard)(nil),                         // 38: mgmt.v1alpha1.CreditCard
+	(*CardNumber)(nil),                         // 38: mgmt.v1alpha1.CardNumber
 	(*SHA256Hash)(nil),                         // 39: mgmt.v1alpha1.SHA256Hash
 	(*SocialSecurityNumber)(nil),               // 40: mgmt.v1alpha1.SocialSecurityNumber
 	(*timestamppb.Timestamp)(nil),              // 41: google.protobuf.Timestamp
@@ -2837,7 +2837,7 @@ var file_mgmt_v1alpha1_transformer_proto_depIdxs = []int32{
 	34, // 29: mgmt.v1alpha1.TransformerConfig.zipcode_config:type_name -> mgmt.v1alpha1.Zipcode
 	36, // 30: mgmt.v1alpha1.TransformerConfig.state_config:type_name -> mgmt.v1alpha1.State
 	37, // 31: mgmt.v1alpha1.TransformerConfig.full_address_config:type_name -> mgmt.v1alpha1.FullAddress
-	38, // 32: mgmt.v1alpha1.TransformerConfig.credit_card_config:type_name -> mgmt.v1alpha1.CreditCard
+	38, // 32: mgmt.v1alpha1.TransformerConfig.card_number_config:type_name -> mgmt.v1alpha1.CardNumber
 	39, // 33: mgmt.v1alpha1.TransformerConfig.sha256hash_config:type_name -> mgmt.v1alpha1.SHA256Hash
 	40, // 34: mgmt.v1alpha1.TransformerConfig.ssn_config:type_name -> mgmt.v1alpha1.SocialSecurityNumber
 	0,  // 35: mgmt.v1alpha1.TransformersService.GetSystemTransformers:input_type -> mgmt.v1alpha1.GetSystemTransformersRequest
@@ -3324,7 +3324,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_transformer_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CreditCard); i {
+			switch v := v.(*CardNumber); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -3382,7 +3382,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 		(*TransformerConfig_ZipcodeConfig)(nil),
 		(*TransformerConfig_StateConfig)(nil),
 		(*TransformerConfig_FullAddressConfig)(nil),
-		(*TransformerConfig_CreditCardConfig)(nil),
+		(*TransformerConfig_CardNumberConfig)(nil),
 		(*TransformerConfig_Sha256HashConfig)(nil),
 		(*TransformerConfig_SsnConfig)(nil),
 	}

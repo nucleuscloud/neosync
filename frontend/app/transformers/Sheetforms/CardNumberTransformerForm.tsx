@@ -10,7 +10,7 @@ import {
 
 import { Switch } from '@/components/ui/switch';
 import {
-  CreditCard,
+  CardNumber,
   CustomTransformer,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
@@ -21,12 +21,12 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function CreditCardTransformerForm(props: Props): ReactElement {
+export default function CardNumberTransformerForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as CreditCard;
+  const config = transformer?.config?.config.value as CardNumber;
 
   const [vl, setVl] = useState<boolean>(
     config?.validLuhn ? config?.validLuhn : false
@@ -53,7 +53,7 @@ export default function CreditCardTransformerForm(props: Props): ReactElement {
             <div className="space-y-0.5">
               <FormLabel>Valid Luhn</FormLabel>
               <FormDescription>
-                Generate a 16 digit credit card number that passes a luhn check.
+                Generate a 16 digit card number that passes a luhn check.
               </FormDescription>
             </div>
             <FormControl>

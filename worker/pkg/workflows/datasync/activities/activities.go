@@ -666,9 +666,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "statetransformer()", nil
 	case "full_address":
 		return "fulladdresstransformer()", nil
-	case "credit_card":
-		luhn := col.Transformer.Config.GetCreditCardConfig().ValidLuhn
-		return fmt.Sprintf(`creditcardtransformer(%t)`, luhn), nil
+	case "card_number":
+		luhn := col.Transformer.Config.GetCardNumberConfig().ValidLuhn
+		return fmt.Sprintf(`cardnumbertransformer(%t)`, luhn), nil
 	case "sha256":
 		return fmt.Sprintf(`this.%s.bytes().hash("sha256").encode("hex")`, col.Column), nil
 	case "social_security_number":

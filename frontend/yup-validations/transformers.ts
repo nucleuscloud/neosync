@@ -1,6 +1,6 @@
 import {
+  CardNumber,
   City,
-  CreditCard,
   CustomTransformer,
   EmailConfig,
   FirstName,
@@ -134,12 +134,12 @@ interface GenderTransformerConfigs {
   abbreviate: boolean;
 }
 
-interface CreditCardTransformer {
+interface CardNumberTransformer {
   case?: string | undefined;
-  value: CreditCardTransformerConfigs;
+  value: CardNumberTransformerConfigs;
 }
 
-interface CreditCardTransformerConfigs {
+interface CardNumberTransformerConfigs {
   validLuhn: boolean;
 }
 
@@ -428,14 +428,14 @@ export function ToTransformerConfigOptions(
         }),
       });
     }
-    case 'creditcard': {
-      const g = t.config.config as CreditCardTransformer;
+    case 'card_number': {
+      const g = t.config.config as CardNumberTransformer;
       return new Transformer({
         value: val.source,
         config: new TransformerConfig({
           config: {
-            case: 'creditCardConfig',
-            value: new CreditCard({
+            case: 'cardNumberConfig',
+            value: new CardNumber({
               validLuhn: g.value.validLuhn,
             }),
           },
