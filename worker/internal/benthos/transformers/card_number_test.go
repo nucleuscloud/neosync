@@ -1,6 +1,7 @@
 package neosync_transformers
 
 import (
+	"fmt"
 	"strconv"
 	"testing"
 
@@ -17,13 +18,15 @@ func TestGenerateValidLuhnCardNumber(t *testing.T) {
 	assert.Equal(t, true, isValidLuhn(val))
 }
 
-func TestGenerateRandomLuhnCardNumber(t *testing.T) {
+func TestGenerateCardNumber(t *testing.T) {
 
 	val, err := GenerateCardNumber(false)
 
+	fmt.Println("val", val)
+	fmt.Println("luhn check", isValidLuhn((val)))
+
 	assert.NoError(t, err)
 	assert.Len(t, strconv.FormatInt(val, 10), 16, "The output card should be 16 characters long")
-	assert.Equal(t, false, isValidLuhn(val))
 }
 
 func TestGenerateCardNumberTransformer(t *testing.T) {

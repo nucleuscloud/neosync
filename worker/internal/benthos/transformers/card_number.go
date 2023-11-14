@@ -2,7 +2,6 @@ package neosync_transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"strconv"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -83,8 +82,13 @@ func GenerateValidVLuhnCheckCardNumber() (int64, error) {
 	}
 
 	// Acc no (9 digits)
-	seventh15 := rand.Perm(9)[:9]
-	for _, i := range seventh15 {
+	nineDigits, _ := transformer_utils.GenerateRandomInt(int64(9))
+	strNine := strconv.FormatInt(nineDigits, 10)
+	var nineInts []int
+	for _, k := range strNine {
+		nineInts = append(nineInts, int(k))
+	}
+	for _, i := range nineInts {
 		cardNo = append(cardNo, i)
 		cardNum = append(cardNum, i)
 	}
