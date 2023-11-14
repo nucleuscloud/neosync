@@ -10,29 +10,30 @@ type Transformer struct {
 }
 
 type TransformerConfigs struct {
-	EmailConfig    *EmailConfigs         `json:"emailConfig,omitempty"`
-	FirstName      *FirstNameConfig      `json:"firstName,omitempty"`
-	LastName       *LastNameConfig       `json:"lastName,omitempty"`
-	FullName       *FullNameConfig       `json:"fullName,omitempty"`
-	Uuid           *UuidConfig           `json:"uuid,omitempty"`
-	PhoneNumber    *PhoneNumberConfig    `json:"phoneNumber,omitempty"`
-	IntPhoneNumber *IntPhoneNumberConfig `json:"intPhoneNumber,omitempty"`
-	Passthrough    *PassthroughConfig    `json:"passthrough,omitempty"`
-	Null           *NullConfig           `json:"null,omitempty"`
-	RandomString   *RandomStringConfig   `json:"randomString,omitempty"`
-	RandomBool     *RandomBoolConfig     `json:"randomBool,omitempty"`
-	RandomInt      *RandomIntConfig      `json:"randomInt,omitempty"`
-	RandomFloat    *RandomFloatConfig    `json:"randomFloat,omitempty"`
-	Gender         *GenderConfig         `json:"gender,omitempty"`
-	UTCTimestamp   *UTCTimestampConfig   `json:"utcTimestamp,omitempty"`
-	UnixTimestamp  *UnixTimestampConfig  `json:"unixTimestamp,omitempty"`
-	StreetAddress  *StreetAddressConfig  `json:"streetAddress,omitempty"`
-	City           *CityConfig           `json:"city,omitempty"`
-	Zipcode        *ZipcodeConfig        `json:"zipcode,omitempty"`
-	State          *StateConfig          `json:"state,omitempty"`
-	FullAddress    *FullAddressConfig    `json:"fullAddress,omitempty"`
-	CreditCard     *CreditCardConfig     `json:"creditcard,omitempty"`
-	SHA256Hash     *SHA256HashConfig     `json:"sha256Hash,omitempty"`
+	EmailConfig          *EmailConfigs               `json:"emailConfig,omitempty"`
+	FirstName            *FirstNameConfig            `json:"firstName,omitempty"`
+	LastName             *LastNameConfig             `json:"lastName,omitempty"`
+	FullName             *FullNameConfig             `json:"fullName,omitempty"`
+	Uuid                 *UuidConfig                 `json:"uuid,omitempty"`
+	PhoneNumber          *PhoneNumberConfig          `json:"phoneNumber,omitempty"`
+	IntPhoneNumber       *IntPhoneNumberConfig       `json:"intPhoneNumber,omitempty"`
+	Passthrough          *PassthroughConfig          `json:"passthrough,omitempty"`
+	Null                 *NullConfig                 `json:"null,omitempty"`
+	RandomString         *RandomStringConfig         `json:"randomString,omitempty"`
+	RandomBool           *RandomBoolConfig           `json:"randomBool,omitempty"`
+	RandomInt            *RandomIntConfig            `json:"randomInt,omitempty"`
+	RandomFloat          *RandomFloatConfig          `json:"randomFloat,omitempty"`
+	Gender               *GenderConfig               `json:"gender,omitempty"`
+	UTCTimestamp         *UTCTimestampConfig         `json:"utcTimestamp,omitempty"`
+	UnixTimestamp        *UnixTimestampConfig        `json:"unixTimestamp,omitempty"`
+	StreetAddress        *StreetAddressConfig        `json:"streetAddress,omitempty"`
+	City                 *CityConfig                 `json:"city,omitempty"`
+	Zipcode              *ZipcodeConfig              `json:"zipcode,omitempty"`
+	State                *StateConfig                `json:"state,omitempty"`
+	FullAddress          *FullAddressConfig          `json:"fullAddress,omitempty"`
+	CreditCard           *CreditCardConfig           `json:"creditcard,omitempty"`
+	SHA256Hash           *SHA256HashConfig           `json:"sha256Hash,omitempty"`
+	SocialSecurityNumber *SocialSecurityNumberConfig `json:"social_security_number,omitempty"`
 }
 
 type EmailConfigs struct {
@@ -109,6 +110,8 @@ type CreditCardConfig struct {
 }
 
 type SHA256HashConfig struct{}
+
+type SocialSecurityNumberConfig struct{}
 
 // from API -> DB
 func (t *Transformer) FromTransformerDto(tr *mgmtv1alpha1.Transformer) error {
@@ -214,6 +217,8 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		}
 	case *mgmtv1alpha1.TransformerConfig_Sha256HashConfig:
 		t.SHA256Hash = &SHA256HashConfig{}
+	case *mgmtv1alpha1.TransformerConfig_SsnConfig:
+		t.SocialSecurityNumber = &SocialSecurityNumberConfig{}
 	default:
 		t = &TransformerConfigs{}
 	}
@@ -403,6 +408,12 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Sha256HashConfig{
 				Sha256HashConfig: &mgmtv1alpha1.SHA256Hash{},
+			},
+		}
+	case tr.SocialSecurityNumber != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_SsnConfig{
+				SsnConfig: &mgmtv1alpha1.SocialSecurityNumber{},
 			},
 		}
 	default:

@@ -671,6 +671,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf(`creditcardtransformer(%t)`, luhn), nil
 	case "sha256":
 		return fmt.Sprintf(`this.%s.bytes().hash("sha256").encode("hex")`, col.Column), nil
+	case "social_security_number":
+		return "ssntransformer()", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

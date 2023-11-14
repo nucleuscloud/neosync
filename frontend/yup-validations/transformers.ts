@@ -17,6 +17,7 @@ import {
   RandomInt,
   RandomString,
   SHA256Hash,
+  SocialSecurityNumber,
   State,
   StreetAddress,
   Transformer,
@@ -448,6 +449,17 @@ export function ToTransformerConfigOptions(
           config: {
             case: 'sha256hashConfig',
             value: new SHA256Hash({}),
+          },
+        }),
+      });
+    }
+    case 'social_security_number': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'ssnConfig',
+            value: new SocialSecurityNumber({}),
           },
         }),
       });

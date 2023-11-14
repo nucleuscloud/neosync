@@ -423,6 +423,14 @@ export function handleTransformerMetadata(
         type: 'string',
       },
     },
+    {
+      social_security_number: {
+        name: 'Social Security Number',
+        description:
+          'Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>',
+        type: 'string',
+      },
+    },
   ];
 
   const def = {
