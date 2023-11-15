@@ -1,0 +1,43 @@
+---
+title: SSN
+id: ssn
+hide_title: true
+slug: /transformers/system/ssn
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="SSN"
+  type="string"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/ssn.go"
+/>
+
+## Definition
+
+The ssn transformer randomly generates a social security number and returns it with hyphens as a string.
+
+For, example:
+`123-45-6789`
+
+## Configurations
+
+There are no configurations for the ssn transformer.
+
+## Examples
+
+Here are some examples of what an output street address value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', '892-23-7634'],
+    },
+    {
+      data: ['453-23-6533', '479-82-3224'],
+    },
+  ]}
+/>

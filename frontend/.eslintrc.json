@@ -3,6 +3,7 @@
   "rules": {
     // Note: you must disable the base rule as it can report incorrect errors
     "no-unused-vars": "off",
+    //"react-hooks/exhaustive-deps": "off", //turn this on if we want to ignore warnings like having state setters in useEffect dependency arrays
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
@@ -11,7 +12,7 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
-    "no-console": ["error", { "allow": ["error"] }],
+    // "no-console": ["error", { "allow": ["error"] }],
     "@typescript-eslint/no-explicit-any": "error"
   },
   "plugins": ["@typescript-eslint"],

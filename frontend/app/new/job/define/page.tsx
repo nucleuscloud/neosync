@@ -15,9 +15,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { yupResolver } from '@hookform/resolvers/yup';
+import NeoCron from 'neocron';
+import 'neocron/dist/src/globals.css';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import { DEFINE_FORM_SCHEMA, DefineFormValues } from '../schema';
@@ -35,7 +37,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     `${sessionPrefix}-new-job-define`,
     {
       jobName: '',
-      cronSchedule: '',
+      cronSchedule: '* * * * *',
       initiateJobRun: false,
     }
   );
@@ -44,15 +46,25 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     resolver: yupResolver<DefineFormValues>(DEFINE_FORM_SCHEMA),
     defaultValues,
   });
+
+  const isBrowser = () => typeof window !== 'undefined';
+
   useFormPersist(`${sessionPrefix}-new-job-define`, {
     watch: form.watch,
     setValue: form.setValue,
-    storage: window.sessionStorage,
+    storage: isBrowser() ? window.sessionStorage : undefined,
   });
 
   async function onSubmit(_values: DefineFormValues) {
     router.push(`/new/job/flow?sessionId=${sessionPrefix}`);
   }
+
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // This code runs after mount, indicating we're on the client
+    setIsClient(true);
+  }, []);
 
   return (
     <OverviewContainer
@@ -79,24 +91,25 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </FormItem>
             )}
           />
-
-          <FormField
-            control={form.control}
-            name="cronSchedule"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Schedule</FormLabel>
-                <FormControl>
-                  <Input placeholder="Cron Schedule" {...field} />
-                </FormControl>
-                <FormDescription>
-                  The schedule to run the job against if not a oneoff.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+          {isClient && (
+            <Controller
+              control={form.control}
+              name="cronSchedule"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Schedule</FormLabel>
+                  <FormControl>
+                    <NeoCron
+                      cronString={field.value ?? ''}
+                      defaultCronString="* * * * *"
+                      setCronString={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
           <div className="max-w-[500px]">
             <FormField
               name="initiateJobRun"
@@ -115,7 +128,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               )}
             />
           </div>
-
           <div className="flex flex-row justify-end">
             <Button type="submit">Next</Button>
           </div>

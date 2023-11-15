@@ -2939,7 +2939,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_CreditCardConfig:
+	case *TransformerConfig_CardNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -2952,11 +2952,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetCreditCardConfig()).(type) {
+			switch v := interface{}(m.GetCardNumberConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "CreditCardConfig",
+						field:  "CardNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2964,16 +2964,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "CreditCardConfig",
+						field:  "CardNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetCreditCardConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetCardNumberConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "CreditCardConfig",
+					field:  "CardNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -3015,6 +3015,47 @@ func (m *TransformerConfig) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
 					field:  "Sha256HashConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *TransformerConfig_SsnConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetSsnConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "SsnConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "SsnConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetSsnConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "SsnConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -5217,22 +5258,22 @@ var _ interface {
 	ErrorName() string
 } = FullAddressValidationError{}
 
-// Validate checks the field values on CreditCard with the rules defined in the
+// Validate checks the field values on CardNumber with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *CreditCard) Validate() error {
+func (m *CardNumber) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CreditCard with the rules defined in
+// ValidateAll checks the field values on CardNumber with the rules defined in
 // the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in CreditCardMultiError, or
+// result is a list of violation errors wrapped in CardNumberMultiError, or
 // nil if none found.
-func (m *CreditCard) ValidateAll() error {
+func (m *CardNumber) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CreditCard) validate(all bool) error {
+func (m *CardNumber) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -5242,18 +5283,18 @@ func (m *CreditCard) validate(all bool) error {
 	// no validation rules for ValidLuhn
 
 	if len(errors) > 0 {
-		return CreditCardMultiError(errors)
+		return CardNumberMultiError(errors)
 	}
 
 	return nil
 }
 
-// CreditCardMultiError is an error wrapping multiple validation errors
-// returned by CreditCard.ValidateAll() if the designated constraints aren't met.
-type CreditCardMultiError []error
+// CardNumberMultiError is an error wrapping multiple validation errors
+// returned by CardNumber.ValidateAll() if the designated constraints aren't met.
+type CardNumberMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CreditCardMultiError) Error() string {
+func (m CardNumberMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5262,11 +5303,11 @@ func (m CreditCardMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CreditCardMultiError) AllErrors() []error { return m }
+func (m CardNumberMultiError) AllErrors() []error { return m }
 
-// CreditCardValidationError is the validation error returned by
-// CreditCard.Validate if the designated constraints aren't met.
-type CreditCardValidationError struct {
+// CardNumberValidationError is the validation error returned by
+// CardNumber.Validate if the designated constraints aren't met.
+type CardNumberValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5274,22 +5315,22 @@ type CreditCardValidationError struct {
 }
 
 // Field function returns field value.
-func (e CreditCardValidationError) Field() string { return e.field }
+func (e CardNumberValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CreditCardValidationError) Reason() string { return e.reason }
+func (e CardNumberValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CreditCardValidationError) Cause() error { return e.cause }
+func (e CardNumberValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CreditCardValidationError) Key() bool { return e.key }
+func (e CardNumberValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CreditCardValidationError) ErrorName() string { return "CreditCardValidationError" }
+func (e CardNumberValidationError) ErrorName() string { return "CardNumberValidationError" }
 
 // Error satisfies the builtin error interface
-func (e CreditCardValidationError) Error() string {
+func (e CardNumberValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5301,14 +5342,14 @@ func (e CreditCardValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCreditCard.%s: %s%s",
+		"invalid %sCardNumber.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CreditCardValidationError{}
+var _ error = CardNumberValidationError{}
 
 var _ interface {
 	Field() string
@@ -5316,7 +5357,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CreditCardValidationError{}
+} = CardNumberValidationError{}
 
 // Validate checks the field values on SHA256Hash with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -5416,3 +5457,105 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SHA256HashValidationError{}
+
+// Validate checks the field values on SocialSecurityNumber with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SocialSecurityNumber) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SocialSecurityNumber with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SocialSecurityNumberMultiError, or nil if none found.
+func (m *SocialSecurityNumber) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SocialSecurityNumber) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return SocialSecurityNumberMultiError(errors)
+	}
+
+	return nil
+}
+
+// SocialSecurityNumberMultiError is an error wrapping multiple validation
+// errors returned by SocialSecurityNumber.ValidateAll() if the designated
+// constraints aren't met.
+type SocialSecurityNumberMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SocialSecurityNumberMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SocialSecurityNumberMultiError) AllErrors() []error { return m }
+
+// SocialSecurityNumberValidationError is the validation error returned by
+// SocialSecurityNumber.Validate if the designated constraints aren't met.
+type SocialSecurityNumberValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SocialSecurityNumberValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SocialSecurityNumberValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SocialSecurityNumberValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SocialSecurityNumberValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SocialSecurityNumberValidationError) ErrorName() string {
+	return "SocialSecurityNumberValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SocialSecurityNumberValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSocialSecurityNumber.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SocialSecurityNumberValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SocialSecurityNumberValidationError{}

@@ -18,6 +18,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
+	"github.com/spf13/viper"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -25,13 +26,13 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
+	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 )
 
 const nullString = "null"
 
 type GenerateBenthosConfigsRequest struct {
 	JobId      string
-	BackendUrl string
 	WorkflowId string
 }
 type GenerateBenthosConfigsResponse struct {
@@ -63,19 +64,33 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 	}()
 
+	neosyncUrl := viper.GetString("NEOSYNC_URL")
+	if neosyncUrl == "" {
+		neosyncUrl = "localhost:8080"
+	}
+
+	neosyncApiKey := viper.GetString("NEOSYNC_API_KEY")
+
 	pgpoolmap := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.New()
 	mysqlpoolmap := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.New()
 
+	httpClient := http.DefaultClient
+	if neosyncApiKey != "" {
+		httpClient = http_client.NewWithHeaders(
+			map[string]string{"Authorization": fmt.Sprintf("Bearer %s", neosyncApiKey)},
+		)
+	}
+
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		http.DefaultClient,
-		req.BackendUrl,
+		httpClient,
+		neosyncUrl,
 	)
 
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		http.DefaultClient,
-		req.BackendUrl,
+		httpClient,
+		neosyncUrl,
 	)
 	bbuilder := newBenthosBuilder(
 		pgpoolmap,
@@ -666,11 +681,13 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "statetransformer()", nil
 	case "full_address":
 		return "fulladdresstransformer()", nil
-	case "credit_card":
-		luhn := col.Transformer.Config.GetCreditCardConfig().ValidLuhn
-		return fmt.Sprintf(`creditcardtransformer(%t)`, luhn), nil
+	case "card_number":
+		luhn := col.Transformer.Config.GetCardNumberConfig().ValidLuhn
+		return fmt.Sprintf(`cardnumbertransformer(%t)`, luhn), nil
 	case "sha256":
 		return fmt.Sprintf(`this.%s.bytes().hash("sha256").encode("hex")`, col.Column), nil
+	case "social_security_number":
+		return "ssntransformer()", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

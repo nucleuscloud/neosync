@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+message CreateAccountApiKeyRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  // Validate between now and one year: now < x < 1year
+  google.protobuf.Timestamp expires_at = 3 [
+    (buf.validate.field).timestamp.gt_now = true,
+    (buf.validate.field).timestamp.within = {seconds: 31536000}
+  ];
+}
+message CreateAccountApiKeyResponse {
+  AccountApiKey api_key = 1;
+}
+
+message AccountApiKey {
+  string id = 1;
+  string name = 2;
+  string account_id = 3;
+  string created_by_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string updated_by_id = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  /* key_value is only returned on initial creation or when it is regenerated */
+  optional string key_value = 8;
+  string user_id = 9;
+}
+
+message GetAccountApiKeysRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetAccountApiKeysResponse {
+  repeated AccountApiKey api_keys = 1;
+}
+
+message GetAccountApiKeyRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetAccountApiKeyResponse {
+  AccountApiKey api_key = 1;
+}
+
+message RegenerateAccountApiKeyRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  // Validate between now and one year: now < x < 1year
+  google.protobuf.Timestamp expires_at = 2 [
+    (buf.validate.field).timestamp.gt_now = true,
+    (buf.validate.field).timestamp.within = {seconds: 31536000}
+  ];
+}
+message RegenerateAccountApiKeyResponse {
+  AccountApiKey api_key = 1;
+}
+
+message DeleteAccountApiKeyRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+message DeleteAccountApiKeyResponse {}
+
+service ApiKeyService {
+  rpc GetAccountApiKeys(GetAccountApiKeysRequest) returns (GetAccountApiKeysResponse) {}
+  rpc GetAccountApiKey(GetAccountApiKeyRequest) returns (GetAccountApiKeyResponse) {}
+  rpc CreateAccountApiKey(CreateAccountApiKeyRequest) returns (CreateAccountApiKeyResponse) {}
+  rpc RegenerateAccountApiKey(RegenerateAccountApiKeyRequest) returns (RegenerateAccountApiKeyResponse) {}
+  rpc DeleteAccountApiKey(DeleteAccountApiKeyRequest) returns (DeleteAccountApiKeyResponse) {}
+}

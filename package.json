@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@types/node": "^20.9.0"
+  },
+  "dependencies": {
+    "neocron": "^0.4.3"
+  }
+}

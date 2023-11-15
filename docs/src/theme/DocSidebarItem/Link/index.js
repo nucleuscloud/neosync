@@ -2,26 +2,10 @@ import Link from '@docusaurus/Link';
 import isInternalUrl from '@docusaurus/isInternalUrl';
 import { ThemeClassNames } from '@docusaurus/theme-common';
 import { isActiveSidebarItem } from '@docusaurus/theme-common/internal';
-import {
-  HomeIcon,
-  LayersIcon,
-  LinkBreak1Icon,
-  Share1Icon,
-  TokensIcon,
-} from '@radix-ui/react-icons';
+import { IconHandler } from '@site/src/CustomComponents/IconHandler';
 import IconExternalLink from '@theme/Icon/ExternalLink';
 import clsx from 'clsx';
 import React from 'react';
-import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
-import { BiLogoPostgresql } from 'react-icons/bi';
-import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
-import { FaAws, FaDocker, FaRegAddressCard } from 'react-icons/fa';
-import { GoCode } from 'react-icons/go';
-import { GrMysql } from 'react-icons/gr';
-import { IoBuildOutline } from 'react-icons/io5';
-import { MdPassword } from 'react-icons/md';
-import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
-import { SiKubernetes } from 'react-icons/si';
 import styles from './styles.module.css';
 
 export default function DocSidebarItemLink({
@@ -63,7 +47,7 @@ export default function DocSidebarItemLink({
         {...props}
       >
         <div className="gap-4 flex flex-row items-center font-normal text-gray-800">
-          {RenderIcon(item.label)}
+          {IconHandler(item.label)}
           {label}
           {!isInternalLink && <IconExternalLink />}
         </div>
@@ -71,50 +55,3 @@ export default function DocSidebarItemLink({
     </li>
   );
 }
-
-//when adding new side links, add an icon to the switch here
-
-export const RenderIcon = (name) => {
-  switch (name) {
-    case 'Platform':
-      return <TokensIcon />;
-    case 'Introduction':
-      return <HomeIcon />;
-    case 'Architecture':
-      return <Share1Icon />;
-    case 'Kubernetes':
-      return <SiKubernetes />;
-    case 'Docker Compose':
-      return <FaDocker />;
-    case 'Postgres':
-      return <BiLogoPostgresql />;
-    case 'Mysql':
-      return <GrMysql />;
-    case 'S3':
-      return <FaAws />;
-    case 'Email':
-      return <AiOutlineMail />;
-    case 'Phone':
-      return <AiOutlinePhone />;
-    case 'SSN':
-      return <MdPassword />;
-    case 'Physical Address':
-      return <FaRegAddressCard />;
-    case 'Custom':
-      return <GoCode />;
-    case 'Pre-built':
-      return <IoBuildOutline />;
-    case 'Use cases':
-      return <BsShieldCheck />;
-    case 'Anonymize Data':
-      return <LinkBreak1Icon />;
-    case 'Replicate Data':
-      return <PiArrowsSplitLight />;
-    case 'Synthetic Data':
-      return <PiFlaskLight />;
-    case 'Subset Data':
-      return <BsFunnel />;
-    default:
-      return <LayersIcon />;
-  }
-};

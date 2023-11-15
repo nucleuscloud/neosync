@@ -21,7 +21,7 @@ import {
   Pencil1Icon,
 } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useRef, useState } from 'react';
-import CreditCardTransformerForm from './Sheetforms/CreditCardTransformerForm';
+import CardNumberTransformerForm from './Sheetforms/CardNumberTransformerForm';
 import EmailTransformerForm from './Sheetforms/EmailTransformerForm';
 import FirstNameTransformerForm from './Sheetforms/FirstnameTransformerForm';
 import FullNameTransformerForm from './Sheetforms/FullnameTransformerForm';
@@ -211,9 +211,9 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    case 'credit_card':
+    case 'card_number':
       return (
-        <CreditCardTransformerForm
+        <CardNumberTransformerForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
@@ -408,10 +408,10 @@ export function handleTransformerMetadata(
       },
     },
     {
-      credit_card: {
-        name: 'Credit Card',
+      card_number: {
+        name: 'Card Number',
         description:
-          'Randomly generates a 16 digit credit card number with an option to generate a luhn valid credit card number.',
+          'Randomly generates a 16 digit card number with an option to generate a luhn valid card number.',
         type: 'int64',
       },
     },
@@ -420,6 +420,14 @@ export function handleTransformerMetadata(
         name: 'SHA256 Hash',
         description:
           'SHA256 hashes the input value and returns back a string representation of the hash.',
+        type: 'string',
+      },
+    },
+    {
+      social_security_number: {
+        name: 'Social Security Number',
+        description:
+          'Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>',
         type: 'string',
       },
     },

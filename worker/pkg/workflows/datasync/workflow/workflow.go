@@ -6,7 +6,6 @@ import (
 	"time"
 
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
-	"github.com/spf13/viper"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
@@ -21,11 +20,6 @@ type WorkflowRequest struct {
 type WorkflowResponse struct{}
 
 func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
-	neosyncUrl := viper.GetString("NEOSYNC_URL")
-	if neosyncUrl == "" {
-		neosyncUrl = "localhost:8080"
-	}
-
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 2 * time.Minute, // this will need to be drastically increased and probably settable via the UI
 		RetryPolicy: &temporal.RetryPolicy{
@@ -43,7 +37,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	var bcResp *datasync_activities.GenerateBenthosConfigsResponse
 	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &datasync_activities.GenerateBenthosConfigsRequest{
 		JobId:      req.JobId,
-		BackendUrl: neosyncUrl,
 		WorkflowId: wfinfo.WorkflowExecution.ID,
 	}).Get(ctx, &bcResp)
 	if err != nil {

@@ -16,30 +16,31 @@ import (
 type Transformation string
 
 const (
-	Invalid        Transformation = "invalid"
-	Passthrough    Transformation = "passthrough"
-	Uuid           Transformation = "uuid"
-	FirstName      Transformation = "first_name"
-	LastName       Transformation = "last_name"
-	FullName       Transformation = "full_name"
-	PhoneNumber    Transformation = "phone_number"
-	IntPhoneNumber Transformation = "int_phone_number"
-	Email          Transformation = "email"
-	Null           Transformation = "null"
-	RandomString   Transformation = "random_string"
-	RandomBool     Transformation = "random_bool"
-	RandomInt      Transformation = "random_int"
-	RandomFloat    Transformation = "random_float"
-	Gender         Transformation = "gender"
-	UTCTimestamp   Transformation = "utc_timestamp"
-	UnixTimestamp  Transformation = "unix_timestamp"
-	StreetAddress  Transformation = "street_address"
-	City           Transformation = "city"
-	Zipcode        Transformation = "zipcode"
-	State          Transformation = "state"
-	FullAddress    Transformation = "full_address"
-	CreditCard     Transformation = "credit_card"
-	SHA256         Transformation = "sha256_hash"
+	Invalid              Transformation = "invalid"
+	Passthrough          Transformation = "passthrough"
+	Uuid                 Transformation = "uuid"
+	FirstName            Transformation = "first_name"
+	LastName             Transformation = "last_name"
+	FullName             Transformation = "full_name"
+	PhoneNumber          Transformation = "phone_number"
+	IntPhoneNumber       Transformation = "int_phone_number"
+	Email                Transformation = "email"
+	Null                 Transformation = "null"
+	RandomString         Transformation = "random_string"
+	RandomBool           Transformation = "random_bool"
+	RandomInt            Transformation = "random_int"
+	RandomFloat          Transformation = "random_float"
+	Gender               Transformation = "gender"
+	UTCTimestamp         Transformation = "utc_timestamp"
+	UnixTimestamp        Transformation = "unix_timestamp"
+	StreetAddress        Transformation = "street_address"
+	City                 Transformation = "city"
+	Zipcode              Transformation = "zipcode"
+	State                Transformation = "state"
+	FullAddress          Transformation = "full_address"
+	CardNumber           Transformation = "card_number"
+	SHA256               Transformation = "sha256_hash"
+	SocialSecurityNumber Transformation = "social_security_number"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -189,9 +190,9 @@ func (s *Service) GetSystemTransformers(
 					FullAddressConfig: &mgmtv1alpha1.FullAddress{},
 				},
 			}},
-			{Value: string(CreditCard), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_CreditCardConfig{
-					CreditCardConfig: &mgmtv1alpha1.CreditCard{
+			{Value: string(CardNumber), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_CardNumberConfig{
+					CardNumberConfig: &mgmtv1alpha1.CardNumber{
 						ValidLuhn: true,
 					},
 				},
@@ -199,6 +200,11 @@ func (s *Service) GetSystemTransformers(
 			{Value: string(SHA256), Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_Sha256HashConfig{
 					Sha256HashConfig: &mgmtv1alpha1.SHA256Hash{},
+				},
+			}},
+			{Value: string(SocialSecurityNumber), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_SsnConfig{
+					SsnConfig: &mgmtv1alpha1.SocialSecurityNumber{},
 				},
 			}},
 		},

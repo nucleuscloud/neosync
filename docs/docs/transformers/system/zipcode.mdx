@@ -1,0 +1,42 @@
+---
+title: Zipcode
+id: zipcode
+hide_title: true
+slug: /transformers/system/zipcode
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="Zipcode"
+  type="string"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/zipcode.go"
+/>
+
+## Definition
+
+The zipcode transformer generates a randomly selected US zipcode. You can see the complete list of zipcodes that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
+
+If you'd rather not get back a real zipcode value, you can use the [Random String Transformer](/transformers/system/random-string) to generate a random string value.
+
+## Configurations
+
+There are no configurations for the zipcode transformer.
+
+## Examples
+
+Here are some examples of what an output zipcode value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['87932', '27563'],
+    },
+    {
+      data: ['78232', '90237'],
+    },
+  ]}
+/>

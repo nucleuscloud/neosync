@@ -1,16 +1,19 @@
 quiet: False
 disable-version-string: True
 with-expecter: True
-filename: 'mock_{{.InterfaceName}}.go'
-dir: '{{.InterfaceDir}}'
-mockname: 'Mock{{.InterfaceName}}'
-outpkg: '{{.PackageName}}'
+filename: "mock_{{.InterfaceName}}.go"
+dir: "{{.InterfaceDir}}"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "{{.PackageName}}"
 inpackage: True
 packages:
-  github.com/nucleuscloud/neosync/backend/internal/jwt:
+  github.com/nucleuscloud/neosync/backend/internal/auth/jwt:
     # config:
     interfaces:
       JwtValidator:
+  github.com/nucleuscloud/neosync/backend/internal/auth/authmw:
+    interfaces:
+      AuthClient:
   github.com/nucleuscloud/neosync/backend/internal/nucleusdb:
     # config:
     interfaces:
@@ -19,6 +22,7 @@ packages:
     # config:
     interfaces:
       Querier:
+      DBTX:
   github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect:
     # config:
     interfaces:

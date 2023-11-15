@@ -1,6 +1,6 @@
 import {
+  CardNumber,
   City,
-  CreditCard,
   CustomTransformer,
   EmailConfig,
   FirstName,
@@ -17,6 +17,7 @@ import {
   RandomInt,
   RandomString,
   SHA256Hash,
+  SocialSecurityNumber,
   State,
   StreetAddress,
   Transformer,
@@ -133,12 +134,12 @@ interface GenderTransformerConfigs {
   abbreviate: boolean;
 }
 
-interface CreditCardTransformer {
+interface CardNumberTransformer {
   case?: string | undefined;
-  value: CreditCardTransformerConfigs;
+  value: CardNumberTransformerConfigs;
 }
 
-interface CreditCardTransformerConfigs {
+interface CardNumberTransformerConfigs {
   validLuhn: boolean;
 }
 
@@ -427,14 +428,14 @@ export function ToTransformerConfigOptions(
         }),
       });
     }
-    case 'creditcard': {
-      const g = t.config.config as CreditCardTransformer;
+    case 'card_number': {
+      const g = t.config.config as CardNumberTransformer;
       return new Transformer({
         value: val.source,
         config: new TransformerConfig({
           config: {
-            case: 'creditCardConfig',
-            value: new CreditCard({
+            case: 'cardNumberConfig',
+            value: new CardNumber({
               validLuhn: g.value.validLuhn,
             }),
           },
@@ -448,6 +449,17 @@ export function ToTransformerConfigOptions(
           config: {
             case: 'sha256hashConfig',
             value: new SHA256Hash({}),
+          },
+        }),
+      });
+    }
+    case 'social_security_number': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'ssnConfig',
+            value: new SocialSecurityNumber({}),
           },
         }),
       });

@@ -26,7 +26,7 @@ func (d *NucleusDb) SetUserByAuth0Id(
 				return err
 			} else if err != nil && IsNoRows(err) {
 				// create user, create association
-				user, err = d.Q.CreateUser(ctx, dbtx)
+				user, err = d.Q.CreateNonMachineUser(ctx, dbtx)
 				if err != nil {
 					return err
 				}
@@ -45,7 +45,7 @@ func (d *NucleusDb) SetUserByAuth0Id(
 						return err
 					}
 				} else if err != nil && IsNoRows(err) {
-					user, err = d.Q.CreateUser(ctx, dbtx)
+					user, err = d.Q.CreateNonMachineUser(ctx, dbtx)
 					if err != nil {
 						return err
 					}

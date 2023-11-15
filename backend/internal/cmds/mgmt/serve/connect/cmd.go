@@ -17,16 +17,18 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
+	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
+	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
-	"github.com/nucleuscloud/neosync/backend/internal/authmw"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
+	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
@@ -78,6 +80,7 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.ConnectionServiceName,
 		mgmtv1alpha1connect.JobServiceName,
 		mgmtv1alpha1connect.TransformersServiceName,
+		mgmtv1alpha1connect.ApiKeyServiceName,
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
@@ -102,9 +105,13 @@ func serve(ctx context.Context) error {
 		if schemaDir == "" {
 			return errors.New("must provide DB_SCHEMA_DIR env var to run auto db migrations")
 		}
+		dbMigConfig, err := getDbMigrationConfig()
+		if err != nil {
+			return err
+		}
 		if err := up_cmd.Up(
 			ctx,
-			nucleusdb.GetDbUrl(dbconfig),
+			nucleusdb.GetDbUrl(dbMigConfig),
 			schemaDir,
 			logger,
 		); err != nil {
@@ -117,11 +124,19 @@ func serve(ctx context.Context) error {
 		return err
 	}
 
+	otelInterceptor := otelconnect.NewInterceptor()
+	loggerInterceptor := logger_interceptor.NewInterceptor(logger)
+
 	stdInterceptors := []connect.Interceptor{
-		otelconnect.NewInterceptor(),
-		logger_interceptor.NewInterceptor(logger),
+		otelInterceptor,
+		loggerInterceptor,
 		validateInterceptor,
 	}
+
+	// standard auth interceptors that should be applied to most services
+	stdAuthInterceptors := []connect.Interceptor{}
+	// this will only authenticate jwts, not api keys. Mostly used by just the api key service
+	jwtOnlyAuthInterceptors := []connect.Interceptor{}
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
@@ -129,12 +144,23 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		stdInterceptors = append(stdInterceptors, auth_interceptor.NewInterceptor(authmw.New(jwtclient).ValidateAndInjectAll))
+		apikeyClient := auth_apikey.New(db.Q, db.Db)
+		stdAuthInterceptors = append(
+			stdAuthInterceptors,
+			auth_interceptor.NewInterceptor(
+				authmw.New(
+					jwtclient,
+					apikeyClient,
+				).InjectTokenCtx,
+			),
+		)
+		jwtOnlyAuthInterceptors = append(
+			jwtOnlyAuthInterceptors,
+			auth_interceptor.NewInterceptor(
+				jwtclient.InjectTokenCtx,
+			),
+		)
 	}
-
-	stdInterceptorConnectOpt := connect.WithInterceptors(
-		stdInterceptors...,
-	)
 
 	api := http.NewServeMux()
 
@@ -176,11 +202,7 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(
 			authService,
-			connect.WithInterceptors(
-				otelconnect.NewInterceptor(),
-				logger_interceptor.NewInterceptor(logger),
-				validateInterceptor,
-			),
+			connect.WithInterceptors(stdInterceptors...),
 		),
 	)
 
@@ -191,7 +213,19 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
-			stdInterceptorConnectOpt,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
+		),
+	)
+
+	apiKeyService := v1alpha1_apikeyservice.New(&v1alpha1_apikeyservice.Config{
+		IsAuthEnabled: isAuthEnabled,
+	}, db, useraccountService)
+	api.Handle(
+		mgmtv1alpha1connect.NewApiKeyServiceHandler(
+			apiKeyService,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(jwtOnlyAuthInterceptors...),
 		),
 	)
 
@@ -199,7 +233,8 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
-			stdInterceptorConnectOpt,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
 		),
 	)
 	authcerts, err := getTemporalAuthCertificate()
@@ -223,7 +258,8 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewJobServiceHandler(
 			jobService,
-			stdInterceptorConnectOpt,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
 		),
 	)
 
@@ -231,7 +267,8 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
-			stdInterceptorConnectOpt,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
 		),
 	)
 
@@ -290,6 +327,61 @@ func getDbConfig() (*nucleusdb.ConnectConfig, error) {
 		User:     dbUser,
 		Pass:     dbPass,
 		SslMode:  &sslMode,
+	}, nil
+}
+
+func getDbMigrationConfig() (*nucleusdb.ConnectConfig, error) {
+	dbHost := viper.GetString("DB_HOST")
+	if dbHost == "" {
+		return nil, fmt.Errorf("must provide DB_HOST in environment")
+	}
+
+	dbPort := viper.GetInt("DB_PORT")
+	if dbPort == 0 {
+		return nil, fmt.Errorf("must provide DB_PORT in environment")
+	}
+
+	dbName := viper.GetString("DB_NAME")
+	if dbName == "" {
+		return nil, fmt.Errorf("must provide DB_NAME in environment")
+	}
+
+	dbUser := viper.GetString("DB_USER")
+	if dbUser == "" {
+		return nil, fmt.Errorf("must provide DB_USER in environment")
+	}
+
+	dbPass := viper.GetString("DB_PASS")
+	if dbPass == "" {
+		return nil, fmt.Errorf("must provide DB_PASS in environment")
+	}
+
+	sslMode := "require"
+	if viper.IsSet("DB_SSL_DISABLE") && viper.GetBool("DB_SSL_DISABLE") {
+		sslMode = "disable"
+	}
+
+	var migrationsTable *string
+	if viper.IsSet("DB_MIGRATIONS_TABLE") {
+		table := viper.GetString("DB_MIGRATIONS_TABLE")
+		migrationsTable = &table
+	}
+
+	var tableQuoted *bool
+	if viper.IsSet("DB_MIGRATIONS_TABLE_QUOTED") {
+		isQuoted := viper.GetBool("DB_MIGRATIONS_TABLE_QUOTED")
+		tableQuoted = &isQuoted
+	}
+
+	return &nucleusdb.ConnectConfig{
+		Host:                  dbHost,
+		Port:                  dbPort,
+		Database:              dbName,
+		User:                  dbUser,
+		Pass:                  dbPass,
+		SslMode:               &sslMode,
+		MigrationsTableName:   migrationsTable,
+		MigrationsTableQuoted: tableQuoted,
 	}, nil
 }
 

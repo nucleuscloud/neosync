@@ -27,7 +27,15 @@ func NewCmd() *cobra.Command {
 		Use:   "login",
 		Short: "Login to Neosync",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			apiKey, err := cmd.Flags().GetString("api-key")
+			if err != nil {
+				return err
+			}
 			cmd.SilenceUsage = true
+			if apiKey != "" {
+				slog.Info(`found api key, no need to log in. run "neosync whoami" to verify that the api key is valid`)
+				return nil
+			}
 			return login(cmd.Context())
 		},
 	}

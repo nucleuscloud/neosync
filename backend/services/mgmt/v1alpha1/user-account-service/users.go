@@ -9,10 +9,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
+	authjwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
+	"github.com/nucleuscloud/neosync/backend/internal/auth/tokenctx"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
-	authjwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"golang.org/x/sync/errgroup"
 )
@@ -21,8 +23,15 @@ func (s *Service) GetUser(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetUserRequest],
 ) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
-
 	if !s.cfg.IsAuthEnabled {
+		// intentionally ignoring error here because we are in unauth mode anyways
+		// but if it's available, let's return the api key's user id
+		apiTokenCtxData, _ := auth_apikey.GetTokenDataFromCtx(ctx)
+		if apiTokenCtxData != nil {
+			return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
+				UserId: nucleusdb.UUIDString(apiTokenCtxData.ApiKey.UserID),
+			}), nil
+		}
 		user, err := s.db.Q.GetAnonymousUser(ctx, s.db.Db)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, nucleuserrors.New(err)
@@ -37,21 +46,28 @@ func (s *Service) GetUser(
 		}), nil
 	}
 
-	tokenCtxData, err := authjwt.GetTokenDataFromCtx(ctx)
+	tokenctxResp, err := tokenctx.GetTokenCtx(ctx)
 	if err != nil {
-		return nil, nucleuserrors.New(err)
+		return nil, err
 	}
 
-	user, err := s.db.Q.GetUserAssociationByAuth0Id(ctx, s.db.Db, tokenCtxData.AuthUserId)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, nucleuserrors.New(err)
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find user")
-	}
+	if tokenctxResp.ApiKeyContextData != nil {
+		return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
+			UserId: nucleusdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
+		}), nil
+	} else if tokenctxResp.JwtContextData != nil {
+		user, err := s.db.Q.GetUserAssociationByAuth0Id(ctx, s.db.Db, tokenctxResp.JwtContextData.AuthUserId)
+		if err != nil && !nucleusdb.IsNoRows(err) {
+			return nil, nucleuserrors.New(err)
+		} else if err != nil && nucleusdb.IsNoRows(err) {
+			return nil, nucleuserrors.NewNotFound("unable to find user")
+		}
 
-	return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
-		UserId: nucleusdb.UUIDString(user.UserID),
-	}), nil
+		return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
+			UserId: nucleusdb.UUIDString(user.UserID),
+		}), nil
+	}
+	return nil, nucleuserrors.NewUnauthenticated("unable to find a valid user based on the provided auth credentials")
 }
 
 func (s *Service) SetUser(
@@ -59,6 +75,14 @@ func (s *Service) SetUser(
 	req *connect.Request[mgmtv1alpha1.SetUserRequest],
 ) (*connect.Response[mgmtv1alpha1.SetUserResponse], error) {
 	if !s.cfg.IsAuthEnabled {
+		// intentionally ignoring error here because we are in unauth mode anyways
+		// but if it's available, let's return the api key's user id
+		apiTokenCtxData, _ := auth_apikey.GetTokenDataFromCtx(ctx)
+		if apiTokenCtxData != nil {
+			return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
+				UserId: nucleusdb.UUIDString(apiTokenCtxData.ApiKey.UserID),
+			}), nil
+		}
 		user, err := s.db.Q.SetAnonymousUser(ctx, s.db.Db)
 		if err != nil {
 			return nil, err
@@ -68,19 +92,30 @@ func (s *Service) SetUser(
 		}), nil
 	}
 
-	tokenCtxData, err := authjwt.GetTokenDataFromCtx(ctx)
+	tokenctxResp, err := tokenctx.GetTokenCtx(ctx)
 	if err != nil {
-		return nil, nucleuserrors.New(err)
+		return nil, err
 	}
+	if tokenctxResp.ApiKeyContextData != nil {
+		return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
+			UserId: nucleusdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
+		}), nil
+	} else if tokenctxResp.JwtContextData != nil {
+		tokenCtxData, err := authjwt.GetTokenDataFromCtx(ctx)
+		if err != nil {
+			return nil, nucleuserrors.New(err)
+		}
 
-	user, err := s.db.SetUserByAuth0Id(ctx, tokenCtxData.AuthUserId)
-	if err != nil {
-		return nil, nucleuserrors.New(err)
+		user, err := s.db.SetUserByAuth0Id(ctx, tokenCtxData.AuthUserId)
+		if err != nil {
+			return nil, nucleuserrors.New(err)
+		}
+
+		return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
+			UserId: nucleusdb.UUIDString(user.ID),
+		}), nil
 	}
-
-	return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
-		UserId: nucleusdb.UUIDString(user.ID),
-	}), nil
+	return nil, nucleuserrors.NewUnauthenticated("unable to find a valid user based on the provided auth credentials")
 }
 
 func (s *Service) GetUserAccounts(

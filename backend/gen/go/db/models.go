@@ -28,6 +28,7 @@ type NeosyncApiAccountApiKey struct {
 	UpdatedAt   pgtype.Timestamp
 	ExpiresAt   pgtype.Timestamp
 	KeyName     string
+	UserID      pgtype.UUID
 }
 
 type NeosyncApiAccountInvite struct {
@@ -103,6 +104,7 @@ type NeosyncApiUser struct {
 	ID        pgtype.UUID
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp
+	UserType  int16
 }
 
 type NeosyncApiUserIdentityProviderAssociation struct {

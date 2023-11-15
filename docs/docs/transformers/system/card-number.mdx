@@ -1,0 +1,63 @@
+---
+title: Card Number
+id: card-number
+hide_title: true
+slug: /transformers/system/card-number
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="Card Number"
+  type="string"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/card_number.go"
+/>
+
+## Definition
+
+The card number transformer can anonymize an existing email address or completely generate a new one. A card number can be quite complex but we make it easy to generate valid luhn-check card numbers.
+
+By default, the card number transformer generates a random 16 digit card number that is _not_ luhn valid. If you want luhn validation, please set the luhn-check config to `true`.
+
+## Configurations
+
+Depending on your validations, you may want to configure the output card number. The card number transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Luhn Check',
+        'Generate a card number that can pass luhn validation.',
+        'false',
+        'N/A',
+        '4117093725369003',
+      ],
+    },
+  ]}
+/>
+
+## Examples
+
+Here are some examples of an output card number:
+
+<DocsTable
+  headers={['Luhn Check', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'N/A', '3627893345931223'],
+    },
+    {
+      data: ['true', 'N/A', '2499253263836374'],
+    },
+  ]}
+/>

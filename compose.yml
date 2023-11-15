@@ -67,6 +67,8 @@ services:
       - DB_USER=postgres
       - DB_PASS=foofar
       - DB_SSL_DISABLE=true
+      - DB_MIGRATIONS_TABLE=neosync_api_schema_migrations
+      - DB_MIGRATIONS_TABLE_QUOTED=false
 
       - AUTH_ENABLED=false
 

@@ -30,6 +30,7 @@ shutdownTimeoutSeconds:
 
 neosync:
   url:
+  apiKey:
 
 temporal:
   url:

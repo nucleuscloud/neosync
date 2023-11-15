@@ -31,12 +31,14 @@ type NucleusDb struct {
 }
 
 type ConnectConfig struct {
-	Host     string
-	Port     int
-	Database string
-	User     string
-	Pass     string
-	SslMode  *string
+	Host                  string
+	Port                  int
+	Database              string
+	User                  string
+	Pass                  string
+	SslMode               *string
+	MigrationsTableName   *string
+	MigrationsTableQuoted *bool
 }
 
 func New(db DBTX, q db_queries.Querier) *NucleusDb {

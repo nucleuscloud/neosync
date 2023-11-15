@@ -82,7 +82,8 @@ export default function EmailTransformerForm(props: Props): ReactElement {
             <div className="space-y-0.5">
               <FormLabel>Preserve Domain</FormLabel>
               <FormDescription>
-                Set the length of the output email to be the same as the input
+                Preserve the input domain including top level domain to the
+                output value
               </FormDescription>
             </div>
             <FormControl>

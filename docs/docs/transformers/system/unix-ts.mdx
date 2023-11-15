@@ -1,0 +1,63 @@
+---
+title: Unix Timestamp
+id: unix-ts
+hide_title: true
+slug: /transformers/system/unix-ts
+---
+
+import { TransformerPageHeader } from '@site/src/CustomComponents/TransformerPageHeader.tsx';
+
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+
+<TransformerPageHeader
+  title="Unix Timestamp"
+  type="int64"
+  apiRef="https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/unix_timestamp.go"
+/>
+
+## Definition
+
+The unix timestamp transformer randomly generates a unix timestamp in UTC timezone and returns back an int64 representation of that timestamp.
+
+By default, the generated timestamp will always be in the **past**. To generate a timestamp that is in the future, set the `Future` config to true.
+
+## Configurations
+
+Depending on your validations, you may want to configure the output unix timestamp. The unix timestamp transformer has the following configuration options:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Future',
+        'Always generates a unix timestamp in the future',
+        'false',
+        'N/A',
+        '2524608000',
+      ],
+    },
+  ]}
+/>
+
+## Examples
+
+Here are some examples of what an output state value may look like.
+
+<DocsTable
+  headers={['Future', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['true', '946684800', '2524608000'],
+    },
+    {
+      data: ['false', '761684800', '946684800'],
+    },
+  ]}
+/>

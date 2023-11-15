@@ -9,13 +9,21 @@ WHERE auth0_provider_id = $1;
 -- name: GetUserByAuth0Id :one
 SELECT u.* from neosync_api.users u
 INNER JOIN neosync_api.user_identity_provider_associations uipa ON uipa.user_id = u.id
-WHERE uipa.auth0_provider_id = $1;
+WHERE uipa.auth0_provider_id = $1 and u.user_type = 0;
 
--- name: CreateUser :one
+-- name: CreateNonMachineUser :one
 INSERT INTO neosync_api.users (
-  id, created_at, updated_at
+  id, created_at, updated_at, user_type
 ) VALUES (
-  DEFAULT, DEFAULT, DEFAULT
+  DEFAULT, DEFAULT, DEFAULT, 0
+)
+RETURNING *;
+
+-- name: CreateMachineUser :one
+INSERT INTO neosync_api.users (
+  id, created_at, updated_at, user_type
+) VALUES (
+  DEFAULT, DEFAULT, DEFAULT, 1
 )
 RETURNING *;
 
@@ -133,7 +141,7 @@ INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE a.id = sqlc.arg('accountId') AND u.id = sqlc.arg('userId');
 
 -- name: RemoveAccountUser :exec
-DELETE FROM neosync_api.account_user_associations 
+DELETE FROM neosync_api.account_user_associations
 WHERE account_id = sqlc.arg('accountId') AND user_id = sqlc.arg('userId');
 
 -- name: CreateAccountInvite :one
@@ -169,5 +177,5 @@ SELECT * FROM neosync_api.account_invites
 WHERE token = $1;
 
 -- name: RemoveAccountInvite :exec
-DELETE FROM neosync_api.account_invites 
+DELETE FROM neosync_api.account_invites
 WHERE id = $1;

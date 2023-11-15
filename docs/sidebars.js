@@ -112,29 +112,124 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Pre-built',
+      label: 'System',
       collapsible: true,
       collapsed: true,
       items: [
         {
           type: 'doc',
-          id: 'transformers/pre-built/email',
+          id: 'transformers/system/email',
           label: 'Email',
         },
         {
           type: 'doc',
-          id: 'transformers/pre-built/physical-address',
-          label: 'Physical Address',
+          id: 'transformers/system/int-phone',
+          label: 'Phone (integer)',
         },
         {
           type: 'doc',
-          id: 'transformers/pre-built/phone',
-          label: 'Phone',
+          id: 'transformers/system/string-phone',
+          label: 'Phone (string)',
         },
         {
           type: 'doc',
-          id: 'transformers/pre-built/ssn',
+          id: 'transformers/system/street-address',
+          label: 'Street Address',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/city',
+          label: 'City',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/full-address',
+          label: 'Full Address',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/state',
+          label: 'State',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/card-number',
+          label: 'Card Number',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/first-name',
+          label: 'First Name',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/last-name',
+          label: 'Last Name',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/full-name',
+          label: 'Full Name',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/gender',
+          label: 'Gender',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/hash',
+          label: 'Hash',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/null-t',
+          label: 'Null Value',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/ssn',
           label: 'SSN',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/random-bool',
+          label: 'Random Boolean',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/random-float',
+          label: 'Random Float',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/random-int',
+          label: 'Random Integer',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/random-string',
+          label: 'Random String',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/unix-ts',
+          label: 'Unix Timestamp',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/utc-ts',
+          label: 'UTC Timestamp',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/uuid',
+          label: 'UUID',
+        },
+        {
+          type: 'doc',
+          id: 'transformers/system/zipcode',
+          label: 'Zipcode',
         },
       ],
     },

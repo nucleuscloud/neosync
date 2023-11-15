@@ -24,14 +24,19 @@ func newListCmd() *cobra.Command {
 		Aliases: []string{"ls"},
 		Short:   "list jobs",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			apiKey, err := cmd.Flags().GetString("api-key")
+			if err != nil {
+				return err
+			}
 			cmd.SilenceUsage = true
-			return listJobs(cmd.Context())
+			return listJobs(cmd.Context(), &apiKey)
 		},
 	}
 }
 
 func listJobs(
 	ctx context.Context,
+	apiKey *string,
 ) error {
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
@@ -40,7 +45,9 @@ func listJobs(
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
+		connect.WithInterceptors(
+			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
+		),
 	)
 
 	// todo: this should be settable via cli context in the future to allow users to switch active accounts
@@ -60,7 +67,9 @@ func listJobs(
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
+		connect.WithInterceptors(
+			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
+		),
 	)
 	res, err := jobclient.GetJobs(ctx, connect.NewRequest[mgmtv1alpha1.GetJobsRequest](&mgmtv1alpha1.GetJobsRequest{
 		AccountId: account.Id,
