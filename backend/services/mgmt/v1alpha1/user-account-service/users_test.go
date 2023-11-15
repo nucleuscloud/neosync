@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/stretchr/testify/assert"
@@ -52,6 +53,28 @@ func Test_GetUser_Anonymous_Error(t *testing.T) {
 	m.QuerierMock.AssertNotCalled(t, "SetAnonymousUser", context.Background(), mock.Anything)
 	assert.Error(t, err)
 	assert.Nil(t, resp)
+}
+
+func Test_Service_GetUser_AuthDisabled_ApiKey(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: false})
+
+	uuidStr := uuid.NewString()
+	useruuid, _ := nucleusdb.ToUuid(uuidStr)
+	ctx := context.WithValue(
+		context.Background(),
+		auth_apikey.TokenContextKey{},
+		&auth_apikey.TokenContextData{
+			RawToken: uuidStr,
+			ApiKey: &db_queries.NeosyncApiAccountApiKey{
+				UserID: useruuid,
+			},
+		},
+	)
+
+	resp, err := m.Service.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, resp.Msg.UserId, uuidStr)
 }
 
 func Test_GetUser_SetAnonymous(t *testing.T) {
@@ -134,6 +157,28 @@ func Test_SetUser_Anonymous(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, anonymousUserId, resp.Msg.GetUserId())
+}
+
+func Test_Service_SetUser_AuthDisabled_ApiKey(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: false})
+
+	uuidStr := uuid.NewString()
+	useruuid, _ := nucleusdb.ToUuid(uuidStr)
+	ctx := context.WithValue(
+		context.Background(),
+		auth_apikey.TokenContextKey{},
+		&auth_apikey.TokenContextData{
+			RawToken: uuidStr,
+			ApiKey: &db_queries.NeosyncApiAccountApiKey{
+				UserID: useruuid,
+			},
+		},
+	)
+
+	resp, err := m.Service.SetUser(ctx, connect.NewRequest(&mgmtv1alpha1.SetUserRequest{}))
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, resp.Msg.UserId, uuidStr)
 }
 
 func Test_SetUser_InvalidToken(t *testing.T) {
