@@ -39,6 +39,23 @@ func Test_headerTransport_RoundTrip(t *testing.T) {
 	)
 }
 
+func Test_headerTransport_RoundTrip_NilHttpHeader(t *testing.T) {
+	mockRt := new(mockRoundTripper)
+	mockRt.On("RoundTrip", mock.Anything).Return(&http.Response{}, nil)
+
+	transport := &headerTransport{
+		Transport: mockRt,
+		Headers:   map[string]string{"Foo": "Bar", "Bar": "Baz"},
+	}
+	//nolint:bodyclose
+	resp, err := transport.RoundTrip(&http.Request{
+		Header: nil,
+	})
+	assert.NoError(t, err)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
 type mockRoundTripper struct {
 	mock.Mock
 }

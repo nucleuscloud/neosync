@@ -21,6 +21,9 @@ type headerTransport struct {
 }
 
 func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.Header == nil {
+		req.Header = http.Header{}
+	}
 	for key, value := range t.Headers {
 		req.Header.Add(key, value)
 	}
