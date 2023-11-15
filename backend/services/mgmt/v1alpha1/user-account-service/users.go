@@ -136,8 +136,8 @@ func (s *Service) GetUserAccounts(
 	}
 
 	dtoAccounts := []*mgmtv1alpha1.UserAccount{}
-	for _, account := range accounts {
-		dtoAccounts = append(dtoAccounts, dtomaps.ToUserAccount(&account))
+	for index := range accounts {
+		dtoAccounts = append(dtoAccounts, dtomaps.ToUserAccount(&accounts[index]))
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetUserAccountsResponse{

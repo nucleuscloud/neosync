@@ -20,6 +20,7 @@ const (
 	mockAccountId   = "5629813e-1a35-4874-922c-9827d85f0378"
 	mockTeamName    = "team-name"
 	mockAuth0Id     = "643a8663-6b2e-4d29-a0f0-4a0700ff21ea"
+	mockEmail       = "fake@fake.com"
 )
 
 // SetUserByAuth0Id
@@ -398,7 +399,6 @@ func Test_CreateTeamAccountInvite(t *testing.T) {
 
 	userUuid, _ := ToUuid(mockUserId)
 	accountUuid, _ := ToUuid(mockAccountId)
-	email := "fakeemail@fakefake.com"
 	expiresAt := pgtype.Timestamp{
 		Time: time.Now(),
 	}
@@ -410,23 +410,23 @@ func Test_CreateTeamAccountInvite(t *testing.T) {
 	querierMock.On("GetAccount", ctx, mockTx, accountUuid).Return(db_queries.NeosyncApiAccount{AccountType: int16(1)}, nil)
 	querierMock.On("UpdateActiveAccountInvitesToExpired", ctx, mockTx, db_queries.UpdateActiveAccountInvitesToExpiredParams{
 		AccountId: accountUuid,
-		Email:     email,
+		Email:     mockEmail,
 	}).Return(db_queries.NeosyncApiAccountInvite{}, nil)
 	querierMock.On("CreateAccountInvite", ctx, mockTx, db_queries.CreateAccountInviteParams{
 		AccountID:    accountUuid,
 		SenderUserID: userUuid,
-		Email:        email,
+		Email:        mockEmail,
 		ExpiresAt:    expiresAt,
 	}).Return(db_queries.NeosyncApiAccountInvite{
 		AccountID:    accountUuid,
 		SenderUserID: userUuid,
-		Email:        email,
+		Email:        mockEmail,
 		ExpiresAt:    expiresAt,
 	}, nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 	mockTx.On("Commit", ctx).Return(nil)
 
-	resp, err := service.CreateTeamAccountInvite(context.Background(), accountUuid, userUuid, email, expiresAt)
+	resp, err := service.CreateTeamAccountInvite(context.Background(), accountUuid, userUuid, mockEmail, expiresAt)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
@@ -439,7 +439,6 @@ func Test_CreateTeamAccountInvite_NotTeamAccount(t *testing.T) {
 
 	userUuid, _ := ToUuid(mockUserId)
 	accountUuid, _ := ToUuid(mockAccountId)
-	email := "fakeemail@fakefake.com"
 	expiresAt := pgtype.Timestamp{
 		Time: time.Now(),
 	}
@@ -452,7 +451,7 @@ func Test_CreateTeamAccountInvite_NotTeamAccount(t *testing.T) {
 	mockTx.On("Rollback", ctx).Return(nil)
 	mockTx.On("Commit", ctx).Return(nil)
 
-	resp, err := service.CreateTeamAccountInvite(context.Background(), accountUuid, userUuid, email, expiresAt)
+	resp, err := service.CreateTeamAccountInvite(context.Background(), accountUuid, userUuid, mockEmail, expiresAt)
 
 	querierMock.AssertNotCalled(t, "UpdateActiveAccountInvitesToExpired", mock.Anything, mock.Anything, mock.Anything)
 	querierMock.AssertNotCalled(t, "CreateAccountInvite", mock.Anything, mock.Anything, mock.Anything)
@@ -470,7 +469,6 @@ func Test_ValidateInviteAddUserToAccount_InvalidEmail(t *testing.T) {
 	userUuid, _ := ToUuid(mockUserId)
 	accountUuid, _ := ToUuid(mockAccountId)
 	token := uuid.NewString()
-	email := "fakeemail@fakefake.com"
 	expiresAt := pgtype.Timestamp{
 		Time: time.Now(),
 	}
@@ -486,7 +484,7 @@ func Test_ValidateInviteAddUserToAccount_InvalidEmail(t *testing.T) {
 	mockTx.On("Rollback", ctx).Return(nil)
 	mockTx.On("Commit", ctx).Return(nil)
 
-	_, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, email)
+	_, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, mockEmail)
 
 	querierMock.AssertNotCalled(t, "CreateAccountUserAssociation", mock.Anything, mock.Anything, mock.Anything)
 	querierMock.AssertNotCalled(t, "UpdateAccountInviteToAccepted", mock.Anything, mock.Anything, mock.Anything)
@@ -503,7 +501,6 @@ func Test_ValidateInviteAddUserToAccount_UserAlreadyInAccount(t *testing.T) {
 	accountUuid, _ := ToUuid(mockAccountId)
 	inviteUuid, _ := ToUuid(uuid.NewString())
 	token := uuid.NewString()
-	email := "fakeemail@fakefake.com"
 	expiresAt := pgtype.Timestamp{
 		Time: time.Now(),
 	}
@@ -513,7 +510,7 @@ func Test_ValidateInviteAddUserToAccount_UserAlreadyInAccount(t *testing.T) {
 	querierMock.On("GetAccountInviteByToken", ctx, mockTx, token).Return(db_queries.NeosyncApiAccountInvite{
 		AccountID:    accountUuid,
 		SenderUserID: userUuid,
-		Email:        email,
+		Email:        mockEmail,
 		ExpiresAt:    expiresAt,
 		ID:           inviteUuid,
 	}, nil)
@@ -525,7 +522,7 @@ func Test_ValidateInviteAddUserToAccount_UserAlreadyInAccount(t *testing.T) {
 	mockTx.On("Rollback", ctx).Return(nil)
 	mockTx.On("Commit", ctx).Return(nil)
 
-	resp, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, email)
+	resp, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, mockEmail)
 
 	querierMock.AssertNotCalled(t, "CreateAccountUserAssociation", mock.Anything, mock.Anything, mock.Anything)
 	assert.NoError(t, err)
@@ -543,7 +540,6 @@ func Test_ValidateInviteAddUserToAccount_InvitedAlreadyAccepted(t *testing.T) {
 	accountUuid, _ := ToUuid(mockAccountId)
 	inviteUuid, _ := ToUuid(uuid.NewString())
 	token := uuid.NewString()
-	email := "fakeemail@fakefake.com"
 	expiresAt := pgtype.Timestamp{
 		Time: time.Now(),
 	}
@@ -553,7 +549,7 @@ func Test_ValidateInviteAddUserToAccount_InvitedAlreadyAccepted(t *testing.T) {
 	querierMock.On("GetAccountInviteByToken", ctx, mockTx, token).Return(db_queries.NeosyncApiAccountInvite{
 		AccountID:    accountUuid,
 		SenderUserID: userUuid,
-		Email:        email,
+		Email:        mockEmail,
 		ExpiresAt:    expiresAt,
 		ID:           inviteUuid,
 		Accepted:     pgtype.Bool{Bool: true},
@@ -565,7 +561,7 @@ func Test_ValidateInviteAddUserToAccount_InvitedAlreadyAccepted(t *testing.T) {
 	mockTx.On("Rollback", ctx).Return(nil)
 	mockTx.On("Commit", ctx).Return(nil)
 
-	_, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, email)
+	_, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, mockEmail)
 
 	querierMock.AssertNotCalled(t, "CreateAccountUserAssociation", mock.Anything, mock.Anything, mock.Anything)
 	querierMock.AssertNotCalled(t, "UpdateAccountInviteToAccepted", mock.Anything, mock.Anything, mock.Anything)
@@ -582,7 +578,6 @@ func Test_ValidateInviteAddUserToAccount_InvitedExpired(t *testing.T) {
 	accountUuid, _ := ToUuid(mockAccountId)
 	inviteUuid, _ := ToUuid(uuid.NewString())
 	token := uuid.NewString()
-	email := "fakeemail@fakefake.com"
 	expiresAt := pgtype.Timestamp{
 		Time: time.Now().Add(-1 * time.Hour),
 	}
@@ -592,7 +587,7 @@ func Test_ValidateInviteAddUserToAccount_InvitedExpired(t *testing.T) {
 	querierMock.On("GetAccountInviteByToken", ctx, mockTx, token).Return(db_queries.NeosyncApiAccountInvite{
 		AccountID:    accountUuid,
 		SenderUserID: userUuid,
-		Email:        email,
+		Email:        mockEmail,
 		ExpiresAt:    expiresAt,
 		ID:           inviteUuid,
 		Accepted:     pgtype.Bool{Bool: false},
@@ -605,7 +600,7 @@ func Test_ValidateInviteAddUserToAccount_InvitedExpired(t *testing.T) {
 	mockTx.On("Rollback", ctx).Return(nil)
 	mockTx.On("Commit", ctx).Return(nil)
 
-	_, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, email)
+	_, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, mockEmail)
 
 	querierMock.AssertNotCalled(t, "CreateAccountUserAssociation", mock.Anything, mock.Anything, mock.Anything)
 	assert.Error(t, err)
@@ -621,7 +616,6 @@ func Test_ValidateInviteAddUserToAccount(t *testing.T) {
 	accountUuid, _ := ToUuid(mockAccountId)
 	inviteUuid, _ := ToUuid(uuid.NewString())
 	token := uuid.NewString()
-	email := "fakeemail@fakefake.com"
 	expiresAt := pgtype.Timestamp{
 		Time: time.Now().Add(1 * time.Hour),
 	}
@@ -631,7 +625,7 @@ func Test_ValidateInviteAddUserToAccount(t *testing.T) {
 	querierMock.On("GetAccountInviteByToken", ctx, mockTx, token).Return(db_queries.NeosyncApiAccountInvite{
 		AccountID:    accountUuid,
 		SenderUserID: userUuid,
-		Email:        email,
+		Email:        mockEmail,
 		ExpiresAt:    expiresAt,
 		ID:           inviteUuid,
 		Accepted:     pgtype.Bool{Bool: false},
@@ -648,7 +642,7 @@ func Test_ValidateInviteAddUserToAccount(t *testing.T) {
 	mockTx.On("Rollback", ctx).Return(nil)
 	mockTx.On("Commit", ctx).Return(nil)
 
-	resp, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, email)
+	resp, err := service.ValidateInviteAddUserToAccount(context.Background(), userUuid, token, mockEmail)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
