@@ -16,14 +16,16 @@ import { DataTable } from './components/DataTable/data-table';
 
 export default function Jobs() {
   return (
-    <OverviewContainer
-      Header={<PageHeader header="Jobs" extraHeading={<NewJobButton />} />}
-      containerClassName="jobs-page"
-    >
-      <div>
-        <JobTable />
-      </div>
-    </OverviewContainer>
+    <div className="mx-24">
+      <OverviewContainer
+        Header={<PageHeader header="Jobs" extraHeading={<NewJobButton />} />}
+        containerClassName="jobs-page"
+      >
+        <div>
+          <JobTable />
+        </div>
+      </OverviewContainer>
+    </div>
   );
 }
 

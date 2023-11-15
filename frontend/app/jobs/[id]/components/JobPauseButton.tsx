@@ -1,5 +1,7 @@
 'use client';
-import SwitchCard from '@/components/switches/SwitchCard';
+import ButtonText from '@/components/ButtonText';
+import Spinner from '@/components/Spinner';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import {
   JobStatus,
@@ -7,7 +9,8 @@ import {
   PauseJobResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
-import { ReactElement } from 'react';
+import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
+import { ReactElement, useEffect, useState } from 'react';
 
 interface Props {
   jobId: string;
@@ -15,14 +18,25 @@ interface Props {
   mutate: () => void;
 }
 
-export default function JobPauseSwitch({
+export default function JobPauseButton({
   status,
   mutate,
   jobId,
 }: Props): ReactElement {
   const { toast } = useToast();
+  const [buttonText, setButtonText] = useState(
+    status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job'
+  );
 
-  async function onClick(isPaused: boolean) {
+  const [isTrying, setIsTrying] = useState<boolean>(false);
+
+  useEffect(() => {
+    setButtonText(status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job');
+    console.log('status in useeffect', status);
+  }, [status]);
+
+  async function updateJobStatus(isPaused: boolean) {
+    setIsTrying(true);
     try {
       await pauseJob(jobId, isPaused);
       toast({
@@ -30,6 +44,8 @@ export default function JobPauseSwitch({
         variant: 'default',
       });
       mutate();
+      setIsTrying(false);
+      setButtonText((val) => (val == 'Pause Job' ? 'Resume Job' : 'Pause Job'));
     } catch (err) {
       console.error(err);
       toast({
@@ -37,19 +53,31 @@ export default function JobPauseSwitch({
         description: getErrorMessage(err),
         variant: 'destructive',
       });
+      setIsTrying(false);
     }
   }
 
+  const handleIcon = () => {
+    if (isTrying) {
+      return <Spinner />;
+    } else if (!isTrying && buttonText != 'Pause Job') {
+      return <PlayIcon />;
+    } else {
+      return <PauseIcon />;
+    }
+  };
+
   return (
     <div className="max-w-[300px]">
-      <SwitchCard
-        isChecked={status == JobStatus.PAUSED || false}
-        onCheckedChange={async (value) => {
-          onClick(value);
+      <Button
+        variant="outline"
+        onClick={async () => {
+          const isCurrentlyPaused = status === JobStatus.PAUSED;
+          updateJobStatus(!isCurrentlyPaused);
         }}
-        title="Pause job"
-        description="Prevents future job runs."
-      />
+      >
+        <ButtonText leftIcon={handleIcon()} text={buttonText} />
+      </Button>
     </div>
   );
 }

@@ -79,7 +79,7 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
       : '';
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle>Schedule</CardTitle>
       </CardHeader>
