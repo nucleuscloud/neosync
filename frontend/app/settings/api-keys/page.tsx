@@ -3,11 +3,15 @@ import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
+import { useGetAccountApiKeys } from '@/libs/hooks/useGetAccountApiKeys';
 import { PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import SubNav, { ITEMS } from '../temporal/components/SubNav';
+import { getColumns } from './components/ApiKeysTable/columns';
+import { DataTable } from './components/ApiKeysTable/data-table';
 
 export default function ApiKeys(): ReactElement {
   return (
@@ -31,8 +35,25 @@ interface ApiKeyTableProps {}
 function ApiKeyTable(props: ApiKeyTableProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
+  const { isLoading, data, mutate } = useGetAccountApiKeys(account?.id ?? '');
 
-  return <div>TODO Table</div>;
+  if (isLoading) {
+    return <SkeletonTable />;
+  }
+
+  const apiKeys = data?.apiKeys ?? [];
+
+  const columns = getColumns({
+    onDeleted() {
+      mutate();
+    },
+  });
+
+  return (
+    <div>
+      <DataTable columns={columns} data={apiKeys} />
+    </div>
+  );
 }
 
 interface NewApiKeyButtonProps {}
