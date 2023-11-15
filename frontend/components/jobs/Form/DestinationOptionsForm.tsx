@@ -79,7 +79,7 @@ export default function DestinationOptionsForm(
                             }
                           }}
                           title="Truncate Cascade"
-                          description="Adds CASCADE to the end of the TRUNCATE statement"
+                          description="TRUNCATE CASCADE to all tables"
                         />
                       </FormControl>
                       <FormMessage />

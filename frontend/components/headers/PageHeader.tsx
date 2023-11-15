@@ -23,7 +23,7 @@ export default function PageHeader(props: Props) {
   return (
     <div
       className={cn(
-        'page-header-container flex flex-col gap-8',
+        'page-header-container flex flex-col gap-2',
         pageHeaderContainerClassName
       )}
     >
@@ -35,8 +35,9 @@ export default function PageHeader(props: Props) {
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
       {description ? (
-        <h3 className="text-muted-foreground">{description}</h3>
+        <h3 className="text-muted-foreground text-sm">{description}</h3>
       ) : null}
+
       <div>
         <Separator />
       </div>

@@ -97,27 +97,29 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   return (
-    <OverviewContainer
-      Header={
-        <PageHeader
-          header="Schemas"
-          description="Define source to destination mappings for your data"
-        />
-      }
-    >
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <SchemaTable data={form.getValues().mappings} />
-          <div className="flex flex-row gap-1 justify-between">
-            <Button key="back" type="button" onClick={() => router.back()}>
-              Back
-            </Button>
-            <Button key="submit" type="submit">
-              Next
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </OverviewContainer>
+    <div className="mx-24">
+      <OverviewContainer
+        Header={
+          <PageHeader
+            header="Schemas"
+            description="Define source to destination mappings for your data"
+          />
+        }
+      >
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <SchemaTable data={form.getValues().mappings} />
+            <div className="flex flex-row gap-1 justify-between">
+              <Button key="back" type="button" onClick={() => router.back()}>
+                Back
+              </Button>
+              <Button key="submit" type="submit">
+                Next
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </OverviewContainer>
+    </div>
   );
 }
