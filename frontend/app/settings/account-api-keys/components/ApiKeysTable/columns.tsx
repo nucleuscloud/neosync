@@ -29,7 +29,7 @@ export function getColumns(
         <div>
           <NextLink
             className="hover:underline"
-            href={`/settings/api-keys/${row.getValue('id')}`}
+            href={`/settings/account-api-keys/${row.getValue('id')}`}
           >
             <span>{row.getValue('id')}</span>
           </NextLink>

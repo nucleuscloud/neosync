@@ -24,7 +24,7 @@ export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
         title: 'Successfully removed api key!',
         variant: 'default',
       });
-      router.push(`/settings/api-keys`);
+      router.push(`/settings/account-api-keys`);
     } catch (err) {
       console.error(err);
       toast({

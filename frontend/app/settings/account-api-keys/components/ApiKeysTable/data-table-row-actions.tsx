@@ -61,7 +61,7 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/settings/api-keys/${apikey.id}`)}
+          onClick={() => router.push(`/settings/account-api-keys/${apikey.id}`)}
         >
           View
         </DropdownMenuItem>

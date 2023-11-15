@@ -20,7 +20,7 @@ export const ITEMS: Item[] = [
     title: 'Temporal',
   },
   {
-    href: '/settings/api-keys',
+    href: '/settings/account-api-keys',
     title: 'API Keys',
   },
 ];
