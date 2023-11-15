@@ -1,3 +1,4 @@
+import { ApiKeyService } from '@/neosync-api-client/mgmt/v1alpha1/api_key_connect';
 import { ConnectionService } from '@/neosync-api-client/mgmt/v1alpha1/connection_connect';
 import { JobService } from '@/neosync-api-client/mgmt/v1alpha1/job_connect';
 import { TransformersService } from '@/neosync-api-client/mgmt/v1alpha1/transformer_connect';
@@ -20,6 +21,7 @@ interface NeosyncContext {
   userClient: PromiseClient<typeof UserAccountService>;
   jobsClient: PromiseClient<typeof JobService>;
   transformerClient: PromiseClient<typeof TransformersService>;
+  apikeyClient: PromiseClient<typeof ApiKeyService>;
 }
 
 type NeosyncApiHandler<T = unknown> = (ctx: NeosyncContext) => Promise<T>;
@@ -63,6 +65,7 @@ async function getNeosyncContext(req: NextRequest): Promise<NeosyncContext> {
     userClient: createPromiseClient(UserAccountService, transport),
     jobsClient: createPromiseClient(JobService, transport),
     transformerClient: createPromiseClient(TransformersService, transport),
+    apikeyClient: createPromiseClient(ApiKeyService, transport),
   };
 }
 
