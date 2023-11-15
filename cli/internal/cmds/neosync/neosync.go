@@ -20,12 +20,12 @@ const (
 	neosyncDirName           = ".neosync"
 	cliSettingsFileNameNoExt = ".neosync-cli"
 	cliSettingsFileExt       = "yaml"
+
+	apiKeyEnvVarName = "NEOSYNC_API_KEY" //nolint:gosec
+	apiKeyFlag       = "api-key"
 )
 
 func Execute() {
-	var cfgFile string
-	cobra.OnInitialize(func() { initConfig(cfgFile) })
-
 	rootCmd := &cobra.Command{
 		Use:   "neosync",
 		Short: "Terminal UI that interfaces with the Neosync system.",
@@ -43,12 +43,32 @@ func Execute() {
 		},
 	}
 
+	var cfgFile string
+	cobra.OnInitialize(
+		func() { initConfig(cfgFile) },
+		func() {
+			apiKey, err := rootCmd.Flags().GetString(apiKeyFlag)
+			if err != nil {
+				panic(err)
+			}
+			envApiKey := viper.GetString(apiKeyEnvVarName)
+			if apiKey == "" && envApiKey != "" {
+				err = rootCmd.Flags().Set(apiKeyFlag, envApiKey)
+				if err != nil {
+					panic(err)
+				}
+			}
+		},
+	)
+
 	rootCmd.Version = version.Get().GitVersion
 	rootCmd.SetVersionTemplate(`{{printf "%s\n" .Version}}`)
 
 	rootCmd.PersistentFlags().StringVar(
 		&cfgFile, "config", "", fmt.Sprintf("config file (default is $HOME/%s.%s)", cliSettingsFileNameNoExt, cliSettingsFileExt),
 	)
+
+	rootCmd.PersistentFlags().String(apiKeyFlag, "", fmt.Sprintf("Neosync API Key. Takes precedence over $%s", apiKeyEnvVarName))
 	rootCmd.AddCommand(jobs_cmd.NewCmd())
 	rootCmd.AddCommand(version_cmd.NewCmd())
 	rootCmd.AddCommand(whoami_cmd.NewCmd())
