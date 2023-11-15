@@ -28,11 +28,14 @@ export default function JobPauseButton({
     status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job'
   );
 
+  const [buttonIcon, setButtonIcon] = useState<JSX.Element>(
+    status === JobStatus.PAUSED ? <PlayIcon /> : <PauseIcon />
+  );
   const [isTrying, setIsTrying] = useState<boolean>(false);
 
   useEffect(() => {
     setButtonText(status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job');
-    console.log('status in useeffect', status);
+    setButtonIcon(status === JobStatus.PAUSED ? <PlayIcon /> : <PauseIcon />);
   }, [status]);
 
   async function updateJobStatus(isPaused: boolean) {
@@ -46,6 +49,7 @@ export default function JobPauseButton({
       mutate();
       setIsTrying(false);
       setButtonText((val) => (val == 'Pause Job' ? 'Resume Job' : 'Pause Job'));
+      setButtonIcon(handleIcon());
     } catch (err) {
       console.error(err);
       toast({
@@ -60,7 +64,7 @@ export default function JobPauseButton({
   const handleIcon = () => {
     if (isTrying) {
       return <Spinner />;
-    } else if (!isTrying && buttonText != 'Pause Job') {
+    } else if (!isTrying && buttonText == 'Resume Job') {
       return <PlayIcon />;
     } else {
       return <PauseIcon />;
@@ -76,7 +80,7 @@ export default function JobPauseButton({
           updateJobStatus(!isCurrentlyPaused);
         }}
       >
-        <ButtonText leftIcon={handleIcon()} text={buttonText} />
+        <ButtonText leftIcon={buttonIcon} text={buttonText} />
       </Button>
     </div>
   );

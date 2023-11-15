@@ -103,9 +103,8 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       <OverviewContainer
         Header={
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">Job Overview</h2>
             <PageHeader
-              pageHeaderContainerClassName="gap-4"
+              pageHeaderContainerClassName="gap-2"
               header={data?.job?.name || ''}
               description={data?.job?.id || ''}
               extraHeading={
@@ -142,7 +141,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       >
         <div className="flex flex-col gap-6">
           <SubNav items={sidebarNavItems} />
-          <div>{children}</div>
+          <div className="mt-10">{children}</div>
         </div>
       </OverviewContainer>
     </div>

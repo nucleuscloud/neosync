@@ -12,6 +12,13 @@ export function MainNav({
   ...props
 }: React.HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
+
+  const highlightPathName = (href: string): boolean => {
+    if (href === '/' && pathname === '/') {
+      return true;
+    }
+    return href !== '/' && pathname.startsWith(href);
+  };
   return (
     <div className="mr-4 hidden md:flex">
       <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -28,7 +35,7 @@ export function MainNav({
           href="/"
           className={cn(
             'text-sm font-medium transition-colors hover:text-primary',
-            pathname === '/' ? 'text-foreground' : 'text-foreground/60'
+            highlightPathName('/') ? 'text-foreground' : 'text-foreground/60'
           )}
         >
           Overview
@@ -37,7 +44,9 @@ export function MainNav({
           href="/jobs"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            pathname === '/jobs' ? 'text-foreground' : 'text-foreground/60'
+            highlightPathName('/jobs')
+              ? 'text-foreground'
+              : 'text-foreground/60'
           )}
         >
           Jobs
@@ -46,7 +55,9 @@ export function MainNav({
           href="/runs"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            pathname === '/runs' ? 'text-foreground' : 'text-foreground/60'
+            highlightPathName('/runs')
+              ? 'text-foreground'
+              : 'text-foreground/60'
           )}
         >
           Runs
@@ -55,7 +66,7 @@ export function MainNav({
           href="/transformers"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            pathname === '/transformers'
+            highlightPathName('/transformers')
               ? 'text-foreground'
               : 'text-foreground/60'
           )}
@@ -66,7 +77,7 @@ export function MainNav({
           href="/connections"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            pathname === '/connections'
+            highlightPathName('/connections')
               ? 'text-foreground'
               : 'text-foreground/60'
           )}
@@ -78,7 +89,9 @@ export function MainNav({
           href="/settings"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            pathname === '/settings' ? 'text-foreground' : 'text-foreground/60'
+            highlightPathName('/settings')
+              ? 'text-foreground'
+              : 'text-foreground/60'
           )}
         >
           Settings
