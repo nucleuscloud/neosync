@@ -40,6 +40,7 @@ import { formatDateTime, getErrorMessage } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from 'usehooks-ts';
+import InviteUserForm from './InviteUserForm';
 
 interface ColumnProps {
   onDeleted(id: string): void;
@@ -111,6 +112,7 @@ export function InvitesTable(props: Props) {
       data={data?.invites || []}
       accountId={accountId}
       onDeleted={() => mutate()}
+      onSubmit={() => mutate()}
     />
   );
 }
@@ -119,9 +121,10 @@ interface DataTableProps {
   data: AccountInvite[];
   accountId: string;
   onDeleted(id: string): void;
+  onSubmit(): void;
 }
 function DataTable(props: DataTableProps): React.ReactElement {
-  const { data, accountId, onDeleted } = props;
+  const { data, accountId, onDeleted, onSubmit } = props;
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -153,7 +156,7 @@ function DataTable(props: DataTableProps): React.ReactElement {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 justify-between">
         <Input
           placeholder="Filter emails..."
           value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
@@ -162,6 +165,7 @@ function DataTable(props: DataTableProps): React.ReactElement {
           }
           className="max-w-sm"
         />
+        <InviteUserForm accountId={accountId} onInvited={onSubmit} />
       </div>
       <div className="rounded-md border">
         <Table>
@@ -236,7 +240,7 @@ export function DataTableRowActions<TData>({
     try {
       await deleteAccountInvite(accountId, invite.id);
       toast({
-        title: 'Invited deleted successfully!',
+        title: 'Invite deleted successfully!',
       });
       onDeleted();
     } catch (err) {
@@ -260,7 +264,7 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem
           className="cursor-pointer"
           onClick={() => {
-            copyFn(invite.token)
+            copyFn(`http://localhost:3000/invite?token=${invite.token}`)
               .then(() => {})
               .catch((err) => console.error(err));
           }}

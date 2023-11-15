@@ -100,11 +100,7 @@ func (s *Service) GetUserAccounts(
 
 	dtoAccounts := []*mgmtv1alpha1.UserAccount{}
 	for _, account := range accounts {
-		dtoAccounts = append(dtoAccounts, &mgmtv1alpha1.UserAccount{
-			Id:   nucleusdb.UUIDString(account.ID),
-			Name: account.AccountSlug,
-			Type: dtomaps.ToAccountTypeDto(account.AccountType),
-		})
+		dtoAccounts = append(dtoAccounts, dtomaps.ToUserAccount(&account))
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetUserAccountsResponse{
@@ -203,17 +199,7 @@ func (s *Service) GetTeamAccountMembers(
 	if err != nil {
 		return nil, err
 	}
-	users, err := s.db.Q.GetUsersByTeamAccount(ctx, s.db.Db, *accountId)
-	if err != nil {
-		return nil, err
-	}
-
-	userIds := []pgtype.UUID{}
-	for _, u := range users {
-		userIds = append(userIds, u.ID)
-	}
-
-	userIdentities, err := s.db.Q.GetUserIdentityAssociationsByUserIds(ctx, s.db.Db, userIds)
+	userIdentities, err := s.db.Q.GetUserIdentitiesByTeamAccount(ctx, s.db.Db, *accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +218,7 @@ func (s *Service) GetTeamAccountMembers(
 				return err
 			}
 			dtoUsers[i] = &mgmtv1alpha1.AccountUser{
-				Id:    nucleusdb.UUIDString(user.ID),
+				Id:    nucleusdb.UUIDString(user.UserID),
 				Name:  authUser.Msg.User.Name,
 				Email: authUser.Msg.User.Email,
 				Image: authUser.Msg.User.Image,
@@ -392,37 +378,39 @@ func (s *Service) AcceptTeamAccountInvite(
 	if err != nil {
 		return nil, err
 	}
-	inviteId, err := nucleusdb.ToUuid(req.Msg.Id)
-	if err != nil {
-		return nil, err
-	}
-	invite, err := s.db.Q.GetAccountInvite(ctx, s.db.Db, inviteId)
-	if err != nil {
-		return nil, err
-	}
 
-	if err := s.verifyTeamAccount(ctx, invite.AccountID); err != nil {
-		return nil, err
-	}
+	// invite, err := s.db.Q.GetAccountInviteByToken(ctx, s.db.Db, req.Msg.Token)
+	// if err != nil && !nucleusdb.IsNoRows(err) {
+	// 	return nil, nucleuserrors.New(err)
+	// } else if err != nil && nucleusdb.IsNoRows(err) {
+	// 	return nil, nucleuserrors.NewBadRequest("invalid invite. unable to accept invite")
+	// }
 
-	if req.Msg.Token != invite.Token {
-		return nil, nucleuserrors.NewForbidden("unable to invite user to account")
-	}
+	// if invite.Accepted.Bool {
+	// 	return nil, nucleuserrors.NewBadRequest("account invitation already accepted")
+	// }
 
-	if invite.Accepted.Bool {
-		return nil, nucleuserrors.NewForbidden("account invitation already accepted")
-	}
+	// if invite.ExpiresAt.Time.Before(time.Now()) {
+	// 	return nil, nucleuserrors.NewForbidden("account invitation expired")
+	// }
 
-	if invite.ExpiresAt.Time.Before(time.Now()) {
-		return nil, nucleuserrors.NewForbidden("account invitation expired")
-	}
-
-	err = s.db.AddUserToAccount(ctx, invite.AccountID, userUuid, invite.ID)
+	accountId, err := s.db.ValidateTokenAndAddUserToAccount(ctx, userUuid, req.Msg.Token)
 	if err != nil {
 		return nil, err
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.AcceptTeamAccountInviteResponse{}), nil
+	if err := s.verifyTeamAccount(ctx, accountId); err != nil {
+		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.AcceptTeamAccountInviteResponse{
+		Account: dtomaps.ToUserAccount(&account),
+	}), nil
 }
 
 func (s *Service) verifyTeamAccount(ctx context.Context, accountId pgtype.UUID) error {

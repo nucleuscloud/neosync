@@ -27,6 +27,7 @@ type Querier interface {
 	DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error
 	GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error)
 	GetAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error)
+	GetAccountInviteByToken(ctx context.Context, db DBTX, token string) (NeosyncApiAccountInvite, error)
 	GetAccountUserAssociation(ctx context.Context, db DBTX, arg GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)
 	GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiAccount, error)
 	GetActiveAccountInvites(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiAccountInvite, error)
@@ -49,8 +50,8 @@ type Querier interface {
 	GetUser(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiUser, error)
 	GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUserIdentityProviderAssociation, error)
 	GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error)
+	GetUserIdentitiesByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)
 	GetUserIdentityAssociationsByUserIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)
-	GetUsersByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUser, error)
 	IsConnectionInAccount(ctx context.Context, db DBTX, arg IsConnectionInAccountParams) (int64, error)
 	IsConnectionNameAvailable(ctx context.Context, db DBTX, arg IsConnectionNameAvailableParams) (int64, error)
 	IsJobNameAvailable(ctx context.Context, db DBTX, arg IsJobNameAvailableParams) (int64, error)

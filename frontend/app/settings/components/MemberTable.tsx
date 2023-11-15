@@ -58,9 +58,11 @@ function getColumns(
         <div className="flex flex-row items-center gap-4">
           <Avatar className="mr-2 h-12 w-12">
             <AvatarImage
-              // src={`https://avatar.vercel.sh/${row.original.id}.png`}
-              src={row.original.image}
-              alt={row.original.id}
+              src={
+                row.original.image ||
+                `https://avatar.vercel.sh/${row.getValue('name')}.png`
+              }
+              alt={row.getValue('name')}
             />
           </Avatar>
           <span className=" truncate font-medium">{row.getValue('name')}</span>

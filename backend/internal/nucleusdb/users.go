@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -190,10 +191,6 @@ func (d *NucleusDb) CreateTeamAccountInvite(
 	return accountInvite, nil
 }
 
-// check if user already in account
-// set invitation as accepted
-// create user account association record
-
 func (d *NucleusDb) AddUserToAccount(
 	ctx context.Context,
 	accountId pgtype.UUID,
@@ -220,11 +217,71 @@ func (d *NucleusDb) AddUserToAccount(
 				return err
 			}
 		} else {
-			return nucleuserrors.NewAlreadyExists("account user association already exists")
+			_, err = d.Q.UpdateAccountInviteToAccepted(ctx, dbtx, inviteId)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
 		return nil
 	}); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (d *NucleusDb) ValidateTokenAndAddUserToAccount(
+	ctx context.Context,
+	userId pgtype.UUID,
+	token string,
+) (pgtype.UUID, error) {
+	var accountId pgtype.UUID
+	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
+		invite, err := d.Q.GetAccountInviteByToken(ctx, dbtx, token)
+		if err != nil && !IsNoRows(err) {
+			return nucleuserrors.New(err)
+		} else if err != nil && IsNoRows(err) {
+			return nucleuserrors.NewBadRequest("invalid invite. unable to accept invite")
+		}
+		accountId = invite.AccountID
+		_, err = d.Q.GetAccountUserAssociation(ctx, dbtx, db_queries.GetAccountUserAssociationParams{
+			AccountId: invite.AccountID,
+			UserId:    userId,
+		})
+		if err != nil && !IsNoRows(err) {
+			return err
+		} else if err != nil && IsNoRows(err) {
+			if invite.Accepted.Bool {
+				return nucleuserrors.NewBadRequest("account invitation already accepted")
+			}
+
+			if invite.ExpiresAt.Time.Before(time.Now()) {
+				return nucleuserrors.NewForbidden("account invitation expired")
+			}
+
+			_, err := d.Q.CreateAccountUserAssociation(ctx, dbtx, db_queries.CreateAccountUserAssociationParams{
+				AccountID: invite.AccountID,
+				UserID:    userId,
+			})
+			if err != nil {
+				return err
+			}
+			_, err = d.Q.UpdateAccountInviteToAccepted(ctx, dbtx, invite.ID)
+			if err != nil {
+				return err
+			}
+		} else {
+			if !invite.Accepted.Bool {
+				_, err = d.Q.UpdateAccountInviteToAccepted(ctx, dbtx, invite.ID)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+		return nil
+	}); err != nil {
+		return pgtype.UUID{}, err
+	}
+	return accountId, nil
 }

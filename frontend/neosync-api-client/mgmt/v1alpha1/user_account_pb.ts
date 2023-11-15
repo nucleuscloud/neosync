@@ -1281,12 +1281,7 @@ export class RemoveTeamAccountInviteResponse extends Message<RemoveTeamAccountIn
  */
 export class AcceptTeamAccountInviteRequest extends Message<AcceptTeamAccountInviteRequest> {
   /**
-   * @generated from field: string id = 1;
-   */
-  id = "";
-
-  /**
-   * @generated from field: string token = 2;
+   * @generated from field: string token = 1;
    */
   token = "";
 
@@ -1298,8 +1293,7 @@ export class AcceptTeamAccountInviteRequest extends Message<AcceptTeamAccountInv
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.AcceptTeamAccountInviteRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AcceptTeamAccountInviteRequest {
@@ -1323,6 +1317,11 @@ export class AcceptTeamAccountInviteRequest extends Message<AcceptTeamAccountInv
  * @generated from message mgmt.v1alpha1.AcceptTeamAccountInviteResponse
  */
 export class AcceptTeamAccountInviteResponse extends Message<AcceptTeamAccountInviteResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.UserAccount account = 1;
+   */
+  account?: UserAccount;
+
   constructor(data?: PartialMessage<AcceptTeamAccountInviteResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1331,6 +1330,7 @@ export class AcceptTeamAccountInviteResponse extends Message<AcceptTeamAccountIn
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.AcceptTeamAccountInviteResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account", kind: "message", T: UserAccount },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AcceptTeamAccountInviteResponse {

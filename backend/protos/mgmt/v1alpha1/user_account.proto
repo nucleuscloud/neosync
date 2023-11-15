@@ -129,10 +129,11 @@ message RemoveTeamAccountInviteRequest {
 message RemoveTeamAccountInviteResponse {}
 
 message AcceptTeamAccountInviteRequest {
-  string id = 1 [(buf.validate.field).string.uuid = true];
-  string token = 2 [(buf.validate.field).string.min_len = 1];
+  string token = 1 [(buf.validate.field).string.min_len = 1];
 }
-message AcceptTeamAccountInviteResponse {}
+message AcceptTeamAccountInviteResponse {
+  UserAccount account = 1;
+}
 
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
