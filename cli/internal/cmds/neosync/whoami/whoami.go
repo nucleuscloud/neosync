@@ -19,15 +19,19 @@ func NewCmd() *cobra.Command {
 		Use:   "whoami",
 		Short: "Find out who you are",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			apiKey, err := cmd.Flags().GetString("api-key")
+			if err != nil {
+				return err
+			}
 			cmd.SilenceUsage = true
-			return whoami(cmd.Context())
+			return whoami(cmd.Context(), &apiKey)
 		},
 	}
 
 	return cmd
 }
 
-func whoami(ctx context.Context) error {
+func whoami(ctx context.Context, apiKey *string) error {
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
 		return err
@@ -35,7 +39,9 @@ func whoami(ctx context.Context) error {
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
+		connect.WithInterceptors(
+			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
+		),
 	)
 	resp, err := userclient.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {

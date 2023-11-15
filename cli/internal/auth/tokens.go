@@ -21,7 +21,18 @@ const (
 	AuthHeader = "Authorization"
 )
 
-func GetAuthHeaderToken(ctx context.Context) (string, error) {
+func GetAuthHeaderTokenFn(
+	apiKey *string,
+) func(ctx context.Context) (string, error) {
+	return func(ctx context.Context) (string, error) {
+		if apiKey != nil && *apiKey != "" {
+			return *apiKey, nil
+		}
+		return getAuthHeaderToken(ctx)
+	}
+}
+
+func getAuthHeaderToken(ctx context.Context) (string, error) {
 	token, err := getToken(ctx)
 	if err != nil {
 		return "", err

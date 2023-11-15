@@ -24,6 +24,11 @@ func newTriggerCmd() *cobra.Command {
 				return errors.New("must provide job uuid as argument")
 			}
 
+			apiKey, err := cmd.Flags().GetString("api-key")
+			if err != nil {
+				return err
+			}
+
 			jobId := args[0]
 
 			jobUuid, err := uuid.Parse(jobId)
@@ -32,7 +37,7 @@ func newTriggerCmd() *cobra.Command {
 			}
 
 			cmd.SilenceUsage = true
-			return triggerJob(cmd.Context(), jobUuid.String())
+			return triggerJob(cmd.Context(), jobUuid.String(), &apiKey)
 		},
 	}
 }
@@ -40,6 +45,7 @@ func newTriggerCmd() *cobra.Command {
 func triggerJob(
 	ctx context.Context,
 	jobId string,
+	apiKey *string,
 ) error {
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
@@ -48,7 +54,7 @@ func triggerJob(
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
-		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderToken)),
+		connect.WithInterceptors(auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey))),
 	)
 	_, err = jobclient.CreateJobRun(ctx, connect.NewRequest[mgmtv1alpha1.CreateJobRunRequest](&mgmtv1alpha1.CreateJobRunRequest{
 		JobId: jobId,
