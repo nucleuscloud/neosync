@@ -72,6 +72,14 @@ func (s *Service) SetUser(
 	req *connect.Request[mgmtv1alpha1.SetUserRequest],
 ) (*connect.Response[mgmtv1alpha1.SetUserResponse], error) {
 	if !s.cfg.IsAuthEnabled {
+		// intentionally ignoring error here because we are in unauth mode anyways
+		// but if it's available, let's return the api key's user id
+		apiTokenCtxData, _ := auth_apikey.GetTokenDataFromCtx(ctx)
+		if apiTokenCtxData != nil {
+			return connect.NewResponse(&mgmtv1alpha1.SetUserResponse{
+				UserId: nucleusdb.UUIDString(apiTokenCtxData.ApiKey.UserID),
+			}), nil
+		}
 		user, err := s.db.Q.SetAnonymousUser(ctx, s.db.Db)
 		if err != nil {
 			return nil, err
