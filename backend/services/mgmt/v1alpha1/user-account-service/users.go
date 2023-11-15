@@ -400,7 +400,7 @@ func (s *Service) AcceptTeamAccountInvite(
 		return nil, err
 	}
 
-	accountId, err := s.db.ValidateTokenAndAddUserToAccount(ctx, userUuid, req.Msg.Token, authUser.Msg.User.Email)
+	accountId, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, authUser.Msg.User.Email)
 	if err != nil {
 		return nil, err
 	}

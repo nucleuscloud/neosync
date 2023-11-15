@@ -813,6 +813,60 @@ func (_c *MockQuerier_GetAccountInvite_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// GetAccountInviteByToken provides a mock function with given fields: ctx, db, token
+func (_m *MockQuerier) GetAccountInviteByToken(ctx context.Context, db DBTX, token string) (NeosyncApiAccountInvite, error) {
+	ret := _m.Called(ctx, db, token)
+
+	var r0 NeosyncApiAccountInvite
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) (NeosyncApiAccountInvite, error)); ok {
+		return rf(ctx, db, token)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) NeosyncApiAccountInvite); ok {
+		r0 = rf(ctx, db, token)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountInvite)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
+		r1 = rf(ctx, db, token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountInviteByToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountInviteByToken'
+type MockQuerier_GetAccountInviteByToken_Call struct {
+	*mock.Call
+}
+
+// GetAccountInviteByToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - token string
+func (_e *MockQuerier_Expecter) GetAccountInviteByToken(ctx interface{}, db interface{}, token interface{}) *MockQuerier_GetAccountInviteByToken_Call {
+	return &MockQuerier_GetAccountInviteByToken_Call{Call: _e.mock.On("GetAccountInviteByToken", ctx, db, token)}
+}
+
+func (_c *MockQuerier_GetAccountInviteByToken_Call) Run(run func(ctx context.Context, db DBTX, token string)) *MockQuerier_GetAccountInviteByToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountInviteByToken_Call) Return(_a0 NeosyncApiAccountInvite, _a1 error) *MockQuerier_GetAccountInviteByToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountInviteByToken_Call) RunAndReturn(run func(context.Context, DBTX, string) (NeosyncApiAccountInvite, error)) *MockQuerier_GetAccountInviteByToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAccountUserAssociation provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) GetAccountUserAssociation(ctx context.Context, db DBTX, arg GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -2020,20 +2074,20 @@ func (_c *MockQuerier_GetUserByAuth0Id_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
-// GetUsersByTeamAccount provides a mock function with given fields: ctx, db, accountid
-func (_m *MockQuerier) GetUsersByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUser, error) {
+// GetUserIdentitiesByTeamAccount provides a mock function with given fields: ctx, db, accountid
+func (_m *MockQuerier) GetUserIdentitiesByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error) {
 	ret := _m.Called(ctx, db, accountid)
 
-	var r0 []NeosyncApiUser
+	var r0 []NeosyncApiUserIdentityProviderAssociation
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiUser, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)); ok {
 		return rf(ctx, db, accountid)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiUser); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiUserIdentityProviderAssociation); ok {
 		r0 = rf(ctx, db, accountid)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]NeosyncApiUser)
+			r0 = ret.Get(0).([]NeosyncApiUserIdentityProviderAssociation)
 		}
 	}
 
@@ -2046,32 +2100,142 @@ func (_m *MockQuerier) GetUsersByTeamAccount(ctx context.Context, db DBTX, accou
 	return r0, r1
 }
 
-// MockQuerier_GetUsersByTeamAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUsersByTeamAccount'
-type MockQuerier_GetUsersByTeamAccount_Call struct {
+// MockQuerier_GetUserIdentitiesByTeamAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserIdentitiesByTeamAccount'
+type MockQuerier_GetUserIdentitiesByTeamAccount_Call struct {
 	*mock.Call
 }
 
-// GetUsersByTeamAccount is a helper method to define mock.On call
+// GetUserIdentitiesByTeamAccount is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
 //   - accountid pgtype.UUID
-func (_e *MockQuerier_Expecter) GetUsersByTeamAccount(ctx interface{}, db interface{}, accountid interface{}) *MockQuerier_GetUsersByTeamAccount_Call {
-	return &MockQuerier_GetUsersByTeamAccount_Call{Call: _e.mock.On("GetUsersByTeamAccount", ctx, db, accountid)}
+func (_e *MockQuerier_Expecter) GetUserIdentitiesByTeamAccount(ctx interface{}, db interface{}, accountid interface{}) *MockQuerier_GetUserIdentitiesByTeamAccount_Call {
+	return &MockQuerier_GetUserIdentitiesByTeamAccount_Call{Call: _e.mock.On("GetUserIdentitiesByTeamAccount", ctx, db, accountid)}
 }
 
-func (_c *MockQuerier_GetUsersByTeamAccount_Call) Run(run func(ctx context.Context, db DBTX, accountid pgtype.UUID)) *MockQuerier_GetUsersByTeamAccount_Call {
+func (_c *MockQuerier_GetUserIdentitiesByTeamAccount_Call) Run(run func(ctx context.Context, db DBTX, accountid pgtype.UUID)) *MockQuerier_GetUserIdentitiesByTeamAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
 	})
 	return _c
 }
 
-func (_c *MockQuerier_GetUsersByTeamAccount_Call) Return(_a0 []NeosyncApiUser, _a1 error) *MockQuerier_GetUsersByTeamAccount_Call {
+func (_c *MockQuerier_GetUserIdentitiesByTeamAccount_Call) Return(_a0 []NeosyncApiUserIdentityProviderAssociation, _a1 error) *MockQuerier_GetUserIdentitiesByTeamAccount_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetUsersByTeamAccount_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiUser, error)) *MockQuerier_GetUsersByTeamAccount_Call {
+func (_c *MockQuerier_GetUserIdentitiesByTeamAccount_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)) *MockQuerier_GetUserIdentitiesByTeamAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetUserIdentityAssociationsByUserIds provides a mock function with given fields: ctx, db, dollar_1
+func (_m *MockQuerier) GetUserIdentityAssociationsByUserIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error) {
+	ret := _m.Called(ctx, db, dollar_1)
+
+	var r0 []NeosyncApiUserIdentityProviderAssociation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)); ok {
+		return rf(ctx, db, dollar_1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []pgtype.UUID) []NeosyncApiUserIdentityProviderAssociation); ok {
+		r0 = rf(ctx, db, dollar_1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiUserIdentityProviderAssociation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, dollar_1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetUserIdentityAssociationsByUserIds_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserIdentityAssociationsByUserIds'
+type MockQuerier_GetUserIdentityAssociationsByUserIds_Call struct {
+	*mock.Call
+}
+
+// GetUserIdentityAssociationsByUserIds is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - dollar_1 []pgtype.UUID
+func (_e *MockQuerier_Expecter) GetUserIdentityAssociationsByUserIds(ctx interface{}, db interface{}, dollar_1 interface{}) *MockQuerier_GetUserIdentityAssociationsByUserIds_Call {
+	return &MockQuerier_GetUserIdentityAssociationsByUserIds_Call{Call: _e.mock.On("GetUserIdentityAssociationsByUserIds", ctx, db, dollar_1)}
+}
+
+func (_c *MockQuerier_GetUserIdentityAssociationsByUserIds_Call) Run(run func(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID)) *MockQuerier_GetUserIdentityAssociationsByUserIds_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetUserIdentityAssociationsByUserIds_Call) Return(_a0 []NeosyncApiUserIdentityProviderAssociation, _a1 error) *MockQuerier_GetUserIdentityAssociationsByUserIds_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetUserIdentityAssociationsByUserIds_Call) RunAndReturn(run func(context.Context, DBTX, []pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)) *MockQuerier_GetUserIdentityAssociationsByUserIds_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetUserIdentityByUserId provides a mock function with given fields: ctx, db, userID
+func (_m *MockQuerier) GetUserIdentityByUserId(ctx context.Context, db DBTX, userID pgtype.UUID) (NeosyncApiUserIdentityProviderAssociation, error) {
+	ret := _m.Called(ctx, db, userID)
+
+	var r0 NeosyncApiUserIdentityProviderAssociation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiUserIdentityProviderAssociation, error)); ok {
+		return rf(ctx, db, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) NeosyncApiUserIdentityProviderAssociation); ok {
+		r0 = rf(ctx, db, userID)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiUserIdentityProviderAssociation)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetUserIdentityByUserId_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserIdentityByUserId'
+type MockQuerier_GetUserIdentityByUserId_Call struct {
+	*mock.Call
+}
+
+// GetUserIdentityByUserId is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - userID pgtype.UUID
+func (_e *MockQuerier_Expecter) GetUserIdentityByUserId(ctx interface{}, db interface{}, userID interface{}) *MockQuerier_GetUserIdentityByUserId_Call {
+	return &MockQuerier_GetUserIdentityByUserId_Call{Call: _e.mock.On("GetUserIdentityByUserId", ctx, db, userID)}
+}
+
+func (_c *MockQuerier_GetUserIdentityByUserId_Call) Run(run func(ctx context.Context, db DBTX, userID pgtype.UUID)) *MockQuerier_GetUserIdentityByUserId_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetUserIdentityByUserId_Call) Return(_a0 NeosyncApiUserIdentityProviderAssociation, _a1 error) *MockQuerier_GetUserIdentityByUserId_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetUserIdentityByUserId_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiUserIdentityProviderAssociation, error)) *MockQuerier_GetUserIdentityByUserId_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2703,6 +2867,60 @@ func (_c *MockQuerier_SetAnonymousUser_Call) Return(_a0 NeosyncApiUser, _a1 erro
 }
 
 func (_c *MockQuerier_SetAnonymousUser_Call) RunAndReturn(run func(context.Context, DBTX) (NeosyncApiUser, error)) *MockQuerier_SetAnonymousUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateAccountInviteToAccepted provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) UpdateAccountInviteToAccepted(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error) {
+	ret := _m.Called(ctx, db, id)
+
+	var r0 NeosyncApiAccountInvite
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountInvite, error)); ok {
+		return rf(ctx, db, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) NeosyncApiAccountInvite); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccountInvite)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateAccountInviteToAccepted_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccountInviteToAccepted'
+type MockQuerier_UpdateAccountInviteToAccepted_Call struct {
+	*mock.Call
+}
+
+// UpdateAccountInviteToAccepted is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) UpdateAccountInviteToAccepted(ctx interface{}, db interface{}, id interface{}) *MockQuerier_UpdateAccountInviteToAccepted_Call {
+	return &MockQuerier_UpdateAccountInviteToAccepted_Call{Call: _e.mock.On("UpdateAccountInviteToAccepted", ctx, db, id)}
+}
+
+func (_c *MockQuerier_UpdateAccountInviteToAccepted_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_UpdateAccountInviteToAccepted_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountInviteToAccepted_Call) Return(_a0 NeosyncApiAccountInvite, _a1 error) *MockQuerier_UpdateAccountInviteToAccepted_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountInviteToAccepted_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountInvite, error)) *MockQuerier_UpdateAccountInviteToAccepted_Call {
 	_c.Call.Return(run)
 	return _c
 }

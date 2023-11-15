@@ -4,13 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/stretchr/testify/assert"
@@ -108,7 +111,6 @@ func Test_GetUser_AssociationError(t *testing.T) {
 }
 
 // SetUser
-
 func Test_SetUser_Anonymous_Error(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: false})
 
@@ -277,11 +279,45 @@ func Test_GetTeamAccountMembers(t *testing.T) {
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	authProviderId := "auth-provider-id"
 	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
-	m.QuerierMock.On("GetUsersByTeamAccount", ctx, mock.Anything, accountUuid).Return(
-		[]db_queries.NeosyncApiUser{{ID: userUuid}},
+	m.QuerierMock.On("GetUserIdentitiesByTeamAccount", ctx, mock.Anything, accountUuid).Return(
+		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, Auth0ProviderID: authProviderId}},
 		nil,
 	)
+	m.AuthServiceMock.On("GetAuthUser", ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
+		UserId:       authProviderId,
+		AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
+	})).Return(connect.NewResponse(&mgmtv1alpha1.GetAuthUserResponse{
+		User: &mgmtv1alpha1.AuthUser{
+			Id: authProviderId,
+		},
+	}), nil)
+
+	resp, err := m.Service.GetTeamAccountMembers(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]{Msg: &mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: mockAccountId}})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 1, len(resp.Msg.Users))
+	assert.Equal(t, mockUserId, resp.Msg.Users[0].Id)
+}
+
+func Test_GetTeamAccountMembers_NoAuthUser(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	authProviderId := "auth-provider-id"
+	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
+	m.QuerierMock.On("GetUserIdentitiesByTeamAccount", ctx, mock.Anything, accountUuid).Return(
+		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, Auth0ProviderID: authProviderId}},
+		nil,
+	)
+	m.AuthServiceMock.On("GetAuthUser", ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
+		UserId:       authProviderId,
+		AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
+	})).Return(connect.NewResponse(&mgmtv1alpha1.GetAuthUserResponse{}), fmt.Errorf("bad news"))
 
 	resp, err := m.Service.GetTeamAccountMembers(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]{Msg: &mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: mockAccountId}})
 
@@ -444,22 +480,90 @@ func Test_RemoveTeamAccountInvite_NotFound(t *testing.T) {
 	assert.NotNil(t, resp)
 }
 
+// AcceptTeamAccountInvite
+
+func Test_AcceptTeamAccountInvite(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockTx := new(nucleusdb.MockTx)
+
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	token := uuid.NewString()
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	inviteUuid, _ := nucleusdb.ToUuid(uuid.NewString())
+	email := "fakeemail@fakefake.com"
+	expiresAt := pgtype.Timestamp{
+		Time: time.Now().Add(1 * time.Hour),
+	}
+
+	mockVerifyTeamAccount(ctx, m.QuerierMock, accountUuid, true)
+	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserIdentityByUserId", ctx, mock.Anything, userUuid).Return(userAssociation, nil)
+	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	m.AuthServiceMock.On("GetAuthUser", ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
+		UserId:       userAssociation.Auth0ProviderID,
+		AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
+	})).Return(connect.NewResponse(&mgmtv1alpha1.GetAuthUserResponse{
+		User: &mgmtv1alpha1.AuthUser{
+			Id:    userAssociation.Auth0ProviderID,
+			Email: email,
+		},
+	}), nil)
+	m.QuerierMock.On("GetAccountInviteByToken", ctx, mockTx, token).Return(db_queries.NeosyncApiAccountInvite{
+		AccountID:    accountUuid,
+		SenderUserID: userUuid,
+		Email:        email,
+		ExpiresAt:    expiresAt,
+		ID:           inviteUuid,
+		Accepted:     pgtype.Bool{Bool: false},
+	}, nil)
+	m.QuerierMock.On("UpdateAccountInviteToAccepted", ctx, mockTx, inviteUuid).Return(db_queries.NeosyncApiAccountInvite{}, nil)
+	m.QuerierMock.On("GetAccountUserAssociation", ctx, mockTx, db_queries.GetAccountUserAssociationParams{
+		AccountId: accountUuid,
+		UserId:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{}, sql.ErrNoRows)
+	m.QuerierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
+		AccountID: accountUuid,
+		UserID:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{}, nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+	mockTx.On("Commit", ctx).Return(nil)
+	m.QuerierMock.On("GetAccount", ctx, mock.Anything, accountUuid).Return(db_queries.NeosyncApiAccount{
+		ID:          accountUuid,
+		AccountType: int16(1),
+	}, nil)
+
+	resp, err := m.Service.AcceptTeamAccountInvite(ctx, &connect.Request[mgmtv1alpha1.AcceptTeamAccountInviteRequest]{
+		Msg: &mgmtv1alpha1.AcceptTeamAccountInviteRequest{
+			Token: token,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mockAccountId, resp.Msg.Account.Id)
+}
+
 type serviceMocks struct {
-	Service     *Service
-	DbtxMock    *nucleusdb.MockDBTX
-	QuerierMock *db_queries.MockQuerier
+	Service         *Service
+	DbtxMock        *nucleusdb.MockDBTX
+	QuerierMock     *db_queries.MockQuerier
+	AuthServiceMock *mgmtv1alpha1connect.MockAuthServiceClient
 }
 
 func createServiceMock(t *testing.T, config *Config) *serviceMocks {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
+	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
 
-	service := New(config, nucleusdb.New(mockDbtx, mockQuerier))
+	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
 
 	return &serviceMocks{
-		Service:     service,
-		DbtxMock:    mockDbtx,
-		QuerierMock: mockQuerier,
+		Service:         service,
+		DbtxMock:        mockDbtx,
+		QuerierMock:     mockQuerier,
+		AuthServiceMock: mockAuthService,
 	}
 }
 
