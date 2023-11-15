@@ -7,36 +7,33 @@ import { AcceptTeamAccountInviteResponse } from '@/neosync-api-client/mgmt/v1alp
 import { getErrorMessage } from '@/util/util';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useRef, useState } from 'react';
 
 export default function InvitePage(): ReactElement {
-  const { account, setAccount } = useAccount();
+  const { setAccount } = useAccount();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const router = useRouter();
   const [error, setError] = useState<string>();
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     if (token) {
-      const acceptInvite = async () => {
-        console.log('HERE');
-        try {
-          const res = await acceptTeamInvite(token);
-          if (res.account) {
-            setAccount(res.account);
-          }
-          // router.push(`/settings`);
-        } catch (err) {
-          console.error(err);
-          setError(getErrorMessage(err));
-        }
-      };
-      acceptInvite();
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        acceptTeamInvite(token)
+          .then((res) => {
+            if (res.account) {
+              setAccount(res.account);
+              router.replace(`/`);
+            }
+          })
+          .catch((err) => setError(getErrorMessage(err)));
+      }
     }
   }, [token]);
 
   return (
-    // <div className="h-full justify-items-center border">
     <div className="flex justify-center mt-24">
       <Card className="w-1/2 h-/12 py-24">
         <CardHeader className="space-y-1 items-center">

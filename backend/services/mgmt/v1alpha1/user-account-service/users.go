@@ -2,12 +2,14 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/jwt"
@@ -195,6 +197,7 @@ func (s *Service) GetTeamAccountMembers(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest],
 ) (*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
@@ -215,6 +218,10 @@ func (s *Service) GetTeamAccountMembers(
 				AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
 			}))
 			if err != nil {
+				// if unable to get auth user still return user id
+				dtoUsers[i] = &mgmtv1alpha1.AccountUser{
+					Id: nucleusdb.UUIDString(user.UserID),
+				}
 				return err
 			}
 			dtoUsers[i] = &mgmtv1alpha1.AccountUser{
@@ -229,7 +236,7 @@ func (s *Service) GetTeamAccountMembers(
 
 	err = group.Wait()
 	if err != nil {
-		return nil, err
+		logger.Error(fmt.Errorf("unable to hydrate auth user: %w", err).Error())
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetTeamAccountMembersResponse{
@@ -379,22 +386,21 @@ func (s *Service) AcceptTeamAccountInvite(
 		return nil, err
 	}
 
-	// invite, err := s.db.Q.GetAccountInviteByToken(ctx, s.db.Db, req.Msg.Token)
-	// if err != nil && !nucleusdb.IsNoRows(err) {
-	// 	return nil, nucleuserrors.New(err)
-	// } else if err != nil && nucleusdb.IsNoRows(err) {
-	// 	return nil, nucleuserrors.NewBadRequest("invalid invite. unable to accept invite")
-	// }
+	userIdentity, err := s.db.Q.GetUserIdentityByUserId(ctx, s.db.Db, userUuid)
+	if err != nil {
+		return nil, err
+	}
 
-	// if invite.Accepted.Bool {
-	// 	return nil, nucleuserrors.NewBadRequest("account invitation already accepted")
-	// }
+	// check auth user email to invite email
+	authUser, err := s.authService.GetAuthUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
+		UserId:       userIdentity.Auth0ProviderID,
+		AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
+	}))
+	if err != nil {
+		return nil, err
+	}
 
-	// if invite.ExpiresAt.Time.Before(time.Now()) {
-	// 	return nil, nucleuserrors.NewForbidden("account invitation expired")
-	// }
-
-	accountId, err := s.db.ValidateTokenAndAddUserToAccount(ctx, userUuid, req.Msg.Token)
+	accountId, err := s.db.ValidateTokenAndAddUserToAccount(ctx, userUuid, req.Msg.Token, authUser.Msg.User.Email)
 	if err != nil {
 		return nil, err
 	}

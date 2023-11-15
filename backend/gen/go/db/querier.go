@@ -52,6 +52,7 @@ type Querier interface {
 	GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error)
 	GetUserIdentitiesByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)
 	GetUserIdentityAssociationsByUserIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)
+	GetUserIdentityByUserId(ctx context.Context, db DBTX, userID pgtype.UUID) (NeosyncApiUserIdentityProviderAssociation, error)
 	IsConnectionInAccount(ctx context.Context, db DBTX, arg IsConnectionInAccountParams) (int64, error)
 	IsConnectionNameAvailable(ctx context.Context, db DBTX, arg IsConnectionNameAvailableParams) (int64, error)
 	IsJobNameAvailable(ctx context.Context, db DBTX, arg IsJobNameAvailableParams) (int64, error)

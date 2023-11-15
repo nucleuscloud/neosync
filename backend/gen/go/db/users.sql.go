@@ -530,6 +530,24 @@ func (q *Queries) GetUserIdentityAssociationsByUserIds(ctx context.Context, db D
 	return items, nil
 }
 
+const getUserIdentityByUserId = `-- name: GetUserIdentityByUserId :one
+SELECT aipa.id, aipa.user_id, aipa.auth0_provider_id, aipa.created_at, aipa.updated_at FROM neosync_api.user_identity_provider_associations aipa
+WHERE aipa.user_id = $1
+`
+
+func (q *Queries) GetUserIdentityByUserId(ctx context.Context, db DBTX, userID pgtype.UUID) (NeosyncApiUserIdentityProviderAssociation, error) {
+	row := db.QueryRow(ctx, getUserIdentityByUserId, userID)
+	var i NeosyncApiUserIdentityProviderAssociation
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Auth0ProviderID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const isUserInAccount = `-- name: IsUserInAccount :one
 SELECT count(aua.id) from neosync_api.account_user_associations aua
 INNER JOIN neosync_api.accounts a ON a.id = aua.account_id

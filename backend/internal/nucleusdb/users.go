@@ -234,6 +234,7 @@ func (d *NucleusDb) ValidateTokenAndAddUserToAccount(
 	ctx context.Context,
 	userId pgtype.UUID,
 	token string,
+	userEmail string,
 ) (pgtype.UUID, error) {
 	var accountId pgtype.UUID
 	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
@@ -242,6 +243,15 @@ func (d *NucleusDb) ValidateTokenAndAddUserToAccount(
 			return nucleuserrors.New(err)
 		} else if err != nil && IsNoRows(err) {
 			return nucleuserrors.NewBadRequest("invalid invite. unable to accept invite")
+		}
+		if invite.Email != userEmail {
+			return nucleuserrors.NewBadRequest("invalid invite email. unable to accept invite")
+		}
+		if !invite.Accepted.Bool {
+			_, err = d.Q.UpdateAccountInviteToAccepted(ctx, dbtx, invite.ID)
+			if err != nil {
+				return err
+			}
 		}
 		accountId = invite.AccountID
 		_, err = d.Q.GetAccountUserAssociation(ctx, dbtx, db_queries.GetAccountUserAssociationParams{
@@ -271,12 +281,6 @@ func (d *NucleusDb) ValidateTokenAndAddUserToAccount(
 				return err
 			}
 		} else {
-			if !invite.Accepted.Bool {
-				_, err = d.Q.UpdateAccountInviteToAccepted(ctx, dbtx, invite.ID)
-				if err != nil {
-					return err
-				}
-			}
 			return nil
 		}
 		return nil

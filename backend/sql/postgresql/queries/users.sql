@@ -25,6 +25,10 @@ JOIN neosync_api.account_user_associations aua ON aua.user_id = aipa.user_id
 JOIN neosync_api.accounts a ON a.id = aua.account_id
 WHERE aua.account_id = sqlc.arg('accountId') AND a.account_type = 1;
 
+-- name: GetUserIdentityByUserId :one
+SELECT aipa.* FROM neosync_api.user_identity_provider_associations aipa
+WHERE aipa.user_id = $1;
+
 -- name: CreateAuth0IdentityProviderAssociation :one
 INSERT INTO neosync_api.user_identity_provider_associations (
   user_id, auth0_provider_id
