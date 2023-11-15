@@ -17,9 +17,8 @@ export function MainNav({
     if (href === '/' && pathname === '/') {
       return true;
     }
-    return pathname.includes(href);
+    return href !== '/' && pathname.includes(href);
   };
-
   return (
     <div className="mr-4 hidden md:flex">
       <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -45,9 +44,7 @@ export function MainNav({
           href="/jobs"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            highlightPathName('/jobs')
-              ? 'text-foreground'
-              : 'text-foreground/60'
+            highlightPathName('/job') ? 'text-foreground' : 'text-foreground/60'
           )}
         >
           Jobs
@@ -56,9 +53,7 @@ export function MainNav({
           href="/runs"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            highlightPathName('/runs')
-              ? 'text-foreground'
-              : 'text-foreground/60'
+            highlightPathName('/run') ? 'text-foreground' : 'text-foreground/60'
           )}
         >
           Runs
@@ -67,7 +62,7 @@ export function MainNav({
           href="/transformers"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            highlightPathName('/transformers')
+            highlightPathName('/transformer')
               ? 'text-foreground'
               : 'text-foreground/60'
           )}

@@ -160,8 +160,6 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
     );
   }
 
-  console.log('source destination', jobId);
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
