@@ -9,6 +9,7 @@ export default async function Postgres() {
         <PageHeader
           header="AWS S3"
           description="Configure an AWS S3 data connection"
+          pageHeaderContainerClassName="mx-64"
         />
       }
     >

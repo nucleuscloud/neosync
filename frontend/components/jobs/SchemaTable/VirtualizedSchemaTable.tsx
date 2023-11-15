@@ -164,7 +164,6 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
             <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </div>
-
         <VirtualizedSchemaList
           rows={rows}
           allRows={data}

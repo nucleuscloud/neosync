@@ -9,17 +9,20 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
-import { TrashIcon } from '@radix-ui/react-icons';
+import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import JobPauseButton from './components/JobPauseButton';
 
 export default function JobIdLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
   const basePath = `/jobs/${params?.id}`;
-  const { data, isLoading } = useGetJob(id);
+  const { data, isLoading, mutate } = useGetJob(id);
   const router = useRouter();
+  const { data: jobStatus } = useGetJobStatus(id);
 
   async function onTriggerJobRun(): Promise<void> {
     try {
@@ -96,38 +99,52 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   }
 
   return (
-    <OverviewContainer
-      Header={
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Job Overview</h2>
-          <PageHeader
-            pageHeaderContainerClassName="gap-4"
-            header={data?.job?.name || ''}
-            description={data?.job?.id || ''}
-            extraHeading={
-              <div className="flex flex-row space-x-4">
-                <DeleteConfirmationDialog
-                  trigger={
-                    <Button variant="destructive">
-                      <ButtonText leftIcon={<TrashIcon />} text="Delete Job" />
-                    </Button>
-                  }
-                  headerText="Are you sure you want to delete this job?"
-                  description="Deleting this job will also delete all job runs."
-                  onConfirm={async () => onDelete()}
-                />
-                <Button onClick={() => onTriggerJobRun()}>Trigger Run</Button>
-              </div>
-            }
-          />
+    <div className="mx-24">
+      <OverviewContainer
+        Header={
+          <div>
+            <PageHeader
+              pageHeaderContainerClassName="gap-2"
+              header={data?.job?.name || ''}
+              description={data?.job?.id || ''}
+              extraHeading={
+                <div className="flex flex-row space-x-4">
+                  <DeleteConfirmationDialog
+                    trigger={
+                      <Button variant="destructive">
+                        <ButtonText
+                          leftIcon={<TrashIcon />}
+                          text="Delete Job"
+                        />
+                      </Button>
+                    }
+                    headerText="Are you sure you want to delete this job?"
+                    description="Deleting this job will also delete all job runs."
+                    onConfirm={async () => onDelete()}
+                  />
+                  <JobPauseButton
+                    jobId={id}
+                    status={jobStatus?.status}
+                    mutate={mutate}
+                  />
+                  <Button onClick={() => onTriggerJobRun()}>
+                    <ButtonText
+                      leftIcon={<LightningBoltIcon />}
+                      text="Trigger Run"
+                    />
+                  </Button>
+                </div>
+              }
+            />
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-6">
+          <SubNav items={sidebarNavItems} />
+          <div className="mt-10">{children}</div>
         </div>
-      }
-    >
-      <div className="flex flex-col gap-6">
-        <SubNav items={sidebarNavItems} />
-        <div>{children}</div>
-      </div>
-    </OverviewContainer>
+      </OverviewContainer>
+    </div>
   );
 }
 

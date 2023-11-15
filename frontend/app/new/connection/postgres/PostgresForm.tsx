@@ -96,150 +96,160 @@ export default function PostgresForm() {
     }
   }
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="connectionName"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="Connection Name" {...field} />
-              </FormControl>
-              <FormDescription>
-                The unique name of the connection.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="mx-64">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="connectionName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Connection Name</FormLabel>
+                <FormDescription>
+                  The unique name of the connection.
+                </FormDescription>
+                <FormControl>
+                  <Input placeholder="Connection Name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.host"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="Host" {...field} />
-              </FormControl>
-              <FormDescription>Host</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.host"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Host Name</FormLabel>
+                <FormDescription>The host name</FormDescription>
+                <FormControl>
+                  <Input placeholder="Host" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.port"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="5432" {...field} />
-              </FormControl>
-              <FormDescription>The port of the database</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.port"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Port</FormLabel>
+                <FormDescription>The port of the database</FormDescription>
+                <FormControl>
+                  <Input placeholder="5432" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.name"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="postgres" {...field} />
-              </FormControl>
-              <FormDescription>The name of the database</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Database Name</FormLabel>
+                <FormDescription>The name of the database</FormDescription>
+                <FormControl>
+                  <Input placeholder="postgres" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.user"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="postgres" {...field} />
-              </FormControl>
-              <FormDescription>The username</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.user"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Database Username</FormLabel>
+                <FormDescription>The username</FormDescription>
+                <FormControl>
+                  <Input placeholder="postgres" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.pass"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="postgres" {...field} />
-              </FormControl>
-              <FormDescription>Password</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.pass"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Database Password</FormLabel>
+                <FormDescription>Password</FormDescription>
+                <FormControl>
+                  <Input placeholder="postgres" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.sslMode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>SSL Mode</FormLabel>
-              <FormControl>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Source" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SSL_MODES.map((mode) => (
-                      <SelectItem
-                        className="cursor-pointer"
-                        key={mode}
-                        value={mode}
-                      >
-                        {mode}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormDescription>
-                The location of the source data set.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <TestConnectionResult resp={checkResp} />
-        <div className="flex flex-row gap-3 justify-items-end">
-          <Button
-            onClick={async () => {
-              try {
-                const resp = await checkPostgresConnection(form.getValues().db);
-                setCheckResp(resp);
-              } catch (err) {
-                setCheckResp(
-                  new CheckConnectionConfigResponse({
-                    isConnected: false,
-                    connectionError:
-                      err instanceof Error ? err.message : 'unknown error',
-                  })
-                );
-              }
-            }}
-            type="button"
-          >
-            Test Connection
-          </Button>
-          <Button type="submit">Submit</Button>
-        </div>
-      </form>
-    </Form>
+          <FormField
+            control={form.control}
+            name="db.sslMode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>SSL Mode</FormLabel>
+                <FormDescription>
+                  Turn on SSL Mode to use TLS for client/server encryption.
+                </FormDescription>
+                <FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SSL_MODES.map((mode) => (
+                        <SelectItem
+                          className="cursor-pointer"
+                          key={mode}
+                          value={mode}
+                        >
+                          {mode}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <TestConnectionResult resp={checkResp} />
+          <div className="flex flex-row gap-3 justify-between">
+            <Button
+              onClick={async () => {
+                try {
+                  const resp = await checkPostgresConnection(
+                    form.getValues().db
+                  );
+                  setCheckResp(resp);
+                } catch (err) {
+                  setCheckResp(
+                    new CheckConnectionConfigResponse({
+                      isConnected: false,
+                      connectionError:
+                        err instanceof Error ? err.message : 'unknown error',
+                    })
+                  );
+                }
+              }}
+              type="button"
+            >
+              Test Connection
+            </Button>
+            <Button type="submit">Submit</Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }
 
