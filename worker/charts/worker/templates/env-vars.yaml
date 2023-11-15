@@ -49,4 +49,10 @@ stringData:
     TEMPORAL_CERT: {{ .Values.temporal.certificate.certContents }}
     {{- end }}
 
+    {{- if and .Values.neosync .Values.neosync.url }}
     NEOSYNC_URL: {{ .Values.neosync.url }}
+    {{- end }}
+
+    {{- if and .Values.neosync .Values.neosync.apiKey }}
+    NEOSYNC_API_KEY: {{ .Values.neosync.apiKey }}
+    {{- end }}

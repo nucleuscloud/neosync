@@ -127,7 +127,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", BackendUrl: "123", WorkflowId: "123"},
+		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		log.NewStructuredLogger(slog.Default()),
 	)
 	assert.Nil(t, err)
