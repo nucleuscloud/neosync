@@ -227,7 +227,7 @@ interface DataTableRowActionsProps<TData> {
   accountId: string;
 }
 
-export function DataTableRowActions<TData>({
+function DataTableRowActions<TData>({
   row,
   onDeleted,
   accountId,
