@@ -17,8 +17,9 @@ export function MainNav({
     if (href === '/' && pathname === '/') {
       return true;
     }
-    return href !== '/' && pathname.startsWith(href);
+    return pathname.includes(href);
   };
+
   return (
     <div className="mr-4 hidden md:flex">
       <Link href="/" className="mr-6 flex items-center space-x-2">
@@ -77,7 +78,7 @@ export function MainNav({
           href="/connections"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            highlightPathName('/connections')
+            highlightPathName('connection')
               ? 'text-foreground'
               : 'text-foreground/60'
           )}

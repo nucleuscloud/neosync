@@ -47,9 +47,9 @@ export default function TransformerSelect(props: Props): ReactElement {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between w-[160px]"
+          className="justify-between w-[200px]"
         >
-          <div className="whitespace-nowrap truncate">
+          <div className="whitespace-nowrap truncate w-[200px]">
             {ToTitleCase(value) ? ToTitleCase(value) : 'Select a transformer'}
           </div>
 

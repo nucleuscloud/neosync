@@ -8,6 +8,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -88,135 +89,144 @@ export default function MysqlForm() {
     }
   }
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="connectionName"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="Connection Name" {...field} />
-              </FormControl>
-              <FormDescription>
-                The unique name of the connection.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="mx-64">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="connectionName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Connection Name</FormLabel>
+                <FormDescription>The name of the connection</FormDescription>
+                <FormControl>
+                  <Input placeholder="Connection Name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.host"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="Host" {...field} />
-              </FormControl>
-              <FormDescription>Host</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.host"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Host Name</FormLabel>
+                <FormDescription>The host name</FormDescription>
+                <FormControl>
+                  <Input placeholder="Host" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.port"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="5432" {...field} />
-              </FormControl>
-              <FormDescription>The port of the database</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.port"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Port</FormLabel>
+                <FormDescription>The port of the database</FormDescription>
+                <FormControl>
+                  <Input placeholder="5432" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.name"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="mysql" {...field} />
-              </FormControl>
-              <FormDescription>The name of the database</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Database Name</FormLabel>
+                <FormDescription>The name of the database</FormDescription>
+                <FormControl>
+                  <Input placeholder="mysql" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.user"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="mysql" {...field} />
-              </FormControl>
-              <FormDescription>The username</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.user"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Database Username</FormLabel>
+                <FormDescription>The username of the database</FormDescription>
+                <FormControl>
+                  <Input placeholder="mysql" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.pass"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="mysql" {...field} />
-              </FormControl>
-              <FormDescription>Password</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.pass"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Database Password</FormLabel>
+                <FormDescription>The password of the database</FormDescription>
+                <FormControl>
+                  <Input placeholder="mysql" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="db.protocol"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="tcp" {...field} />
-              </FormControl>
-              <FormDescription>Protocol</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="db.protocol"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Protocpol</FormLabel>
+                <FormDescription>Connection protocol</FormDescription>
+                <FormControl>
+                  <Input placeholder="tcp" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <TestConnectionResult resp={checkResp} />
-        <div className="flex flex-row gap-3 justify-end">
-          <Button
-            onClick={async () => {
-              try {
-                const resp = await checkPostgresConnection(form.getValues().db);
-                setCheckResp(resp);
-              } catch (err) {
-                setCheckResp(
-                  new CheckConnectionConfigResponse({
-                    isConnected: false,
-                    connectionError:
-                      err instanceof Error ? err.message : 'unknown error',
-                  })
-                );
-              }
-            }}
-            type="button"
-            variant="secondary"
-          >
-            Test Connection
-          </Button>
+          <TestConnectionResult resp={checkResp} />
+          <div className="flex flex-row gap-3 justify-between">
+            <Button
+              onClick={async () => {
+                try {
+                  const resp = await checkPostgresConnection(
+                    form.getValues().db
+                  );
+                  setCheckResp(resp);
+                } catch (err) {
+                  setCheckResp(
+                    new CheckConnectionConfigResponse({
+                      isConnected: false,
+                      connectionError:
+                        err instanceof Error ? err.message : 'unknown error',
+                    })
+                  );
+                }
+              }}
+              type="button"
+              variant="secondary"
+            >
+              Test Connection
+            </Button>
 
-          <Button type="submit">Submit</Button>
-        </div>
-      </form>
-    </Form>
+            <Button type="submit">Submit</Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }
 

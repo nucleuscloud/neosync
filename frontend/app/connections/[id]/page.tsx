@@ -18,7 +18,7 @@ export default function ConnectionPage({ params }: PageProps) {
   }
   if (isLoading) {
     return (
-      <div className="mt-10">
+      <div className="mt-10 mx-24">
         <SkeletonForm />
       </div>
     );
@@ -49,7 +49,10 @@ export default function ConnectionPage({ params }: PageProps) {
     ),
   });
   return (
-    <OverviewContainer Header={connectionComponent.header}>
+    <OverviewContainer
+      Header={connectionComponent.header}
+      containerClassName="mx-64"
+    >
       <div className="connection-details-container">
         <div>
           <div className="flex flex-col">
