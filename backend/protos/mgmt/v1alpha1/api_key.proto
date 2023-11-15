@@ -29,6 +29,7 @@ message AccountApiKey {
   /* key_value is only returned on initial creation or when it is regenerated */
   optional string key_value = 8;
   string user_id = 9;
+  google.protobuf.Timestamp expires_at = 10;
 }
 
 message GetAccountApiKeysRequest {

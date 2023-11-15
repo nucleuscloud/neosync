@@ -21,5 +21,6 @@ func ToAccountApiKeyDto(
 		UpdatedAt:   timestamppb.New(input.UpdatedAt.Time),
 		KeyValue:    cleartextKeyValue,
 		UserId:      nucleusdb.UUIDString(input.UserID),
+		ExpiresAt:   timestamppb.New(input.ExpiresAt.Time),
 	}
 }
