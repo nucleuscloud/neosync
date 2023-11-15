@@ -7,8 +7,9 @@ export default async function Postgres() {
     <OverviewContainer
       Header={
         <PageHeader
-          header="Myql"
+          header="Mysql"
           description="Configure a Mysql data connection"
+          pageHeaderContainerClassName="mx-64"
         />
       }
     >

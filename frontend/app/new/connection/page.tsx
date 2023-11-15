@@ -30,10 +30,11 @@ export default function NewConnection(): ReactElement {
         <PageHeader
           header="Create a new Connection"
           description="Connect a new datasource to use in jobs or other synchronizations."
+          pageHeaderContainerClassName="mx-24"
         />
       }
     >
-      <div className="gap-6 rounded-lg p-8 md:grid lg:grid-cols-2 xl:grid-cols-3 content-stretch">
+      <div className="gap-6 rounded-lg md:grid lg:grid-cols-2 xl:grid-cols-3 content-stretch mx-24">
         {CONNECTIONS.map((connection) => (
           <ConnectionCard key={connection.urlSlug} connection={connection} />
         ))}

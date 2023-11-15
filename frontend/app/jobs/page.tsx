@@ -18,7 +18,7 @@ export default function Jobs() {
   return (
     <OverviewContainer
       Header={<PageHeader header="Jobs" extraHeading={<NewJobButton />} />}
-      containerClassName="jobs-page"
+      containerClassName="jobs-page mx-24"
     >
       <div>
         <JobTable />

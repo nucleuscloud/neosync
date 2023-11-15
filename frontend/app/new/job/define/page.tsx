@@ -1,7 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import SwitchCard from '@/components/switches/SwitchCard';
+import PlainSwitch from '@/components/switches/PlainSwitch';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { yupResolver } from '@hookform/resolvers/yup';
 import NeoCron from 'neocron';
 import 'neocron/dist/src/globals.css';
@@ -67,72 +68,82 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, []);
 
   return (
-    <OverviewContainer
-      Header={
-        <PageHeader
-          header="Create a new Job"
-          description="Define a new job to move, transform, or scan data"
-        />
-      }
-    >
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="jobName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Job Name" {...field} />
-                </FormControl>
-                <FormDescription>The unique name of the job.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+    <div className="mx-64">
+      <OverviewContainer
+        Header={
+          <PageHeader
+            header="Create a new Job"
+            description="Define a new job to move, transform, or scan data"
           />
-          {isClient && (
-            <Controller
-              control={form.control}
-              name="cronSchedule"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Schedule</FormLabel>
-                  <FormControl>
-                    <NeoCron
-                      cronString={field.value ?? ''}
-                      defaultCronString="* * * * *"
-                      setCronString={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-          <div className="max-w-[500px]">
+        }
+      >
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
-              name="initiateJobRun"
+              control={form.control}
+              name="jobName"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormDescription>The unique name of the job.</FormDescription>
                   <FormControl>
-                    <SwitchCard
-                      isChecked={field.value || false}
-                      onCheckedChange={field.onChange}
-                      title="Initiate Job Run"
-                      description="Initiates a single job run immediately after job is created."
-                    />
+                    <Input placeholder="Job Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-          <div className="flex flex-row justify-end">
-            <Button type="submit">Next</Button>
-          </div>
-        </form>
-      </Form>
-    </OverviewContainer>
+            {isClient && (
+              <Controller
+                control={form.control}
+                name="cronSchedule"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Schedule</FormLabel>
+                    <FormDescription>
+                      Enter in a cron string or select a schedule to run this
+                      job.
+                    </FormDescription>
+                    <FormControl>
+                      <NeoCron
+                        cronString={field.value ?? ''}
+                        defaultCronString="* * * * *"
+                        setCronString={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            <div>
+              <FormLabel>Settings</FormLabel>
+              <div className="pt-4">
+                <FormField
+                  name="initiateJobRun"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <PlainSwitch
+                          isChecked={field.value || false}
+                          onCheckedChange={field.onChange}
+                          title="Initiate Job Run"
+                          description="Initiates a single job run immediately after job is created."
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <Separator className="mt-2" />
+            </div>
+            <div className="flex flex-row justify-end">
+              <Button type="submit">Next</Button>
+            </div>
+          </form>
+        </Form>
+      </OverviewContainer>
+    </div>
   );
 }

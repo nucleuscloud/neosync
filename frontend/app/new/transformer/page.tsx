@@ -94,6 +94,7 @@ export default function NewTransformer(): ReactElement {
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a new Transformer" />}
+      containerClassName="mx-64"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -211,7 +212,9 @@ export default function NewTransformer(): ReactElement {
             {handleCustomTransformerForm(base.value)}
           </div>
           <div className="flex flex-row justify-end">
-            <Button type="submit">Next</Button>
+            <Button type="submit" disabled={!form.formState.isValid}>
+              Next
+            </Button>
           </div>
         </form>
       </Form>

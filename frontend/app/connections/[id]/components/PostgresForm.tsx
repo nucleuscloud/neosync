@@ -202,7 +202,7 @@ export default function PostgresForm(props: Props) {
           )}
         />
         <TestConnectionResult resp={checkResp} />
-        <div className="flex flex-row gap-3 justify-end">
+        <div className="flex flex-row gap-3 justify-between">
           <Button
             onClick={async () => {
               try {

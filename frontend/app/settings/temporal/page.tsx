@@ -8,7 +8,7 @@ export default function Temporal(): ReactElement {
   return (
     <OverviewContainer
       Header={<PageHeader header="Temporal Settings" />}
-      containerClassName="temporal-settings-page"
+      containerClassName="temporal-settings-page mx-24"
     >
       <div className="flex flex-col gap-4">
         <div>

@@ -7,7 +7,6 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { ReactElement } from 'react';
 import JobNextRuns from './components/NextRuns';
-import JobPauseSwitch from './components/PauseSwitch';
 import JobRecentRuns from './components/RecentRuns';
 import JobScheduleCard from './components/ScheduleCard';
 
@@ -37,7 +36,6 @@ export default function Page({ params }: PageProps): ReactElement {
   return (
     <div className="job-details-container">
       <div className="flex flex-col gap-5">
-        <JobPauseSwitch jobId={id} status={jobStatus?.status} mutate={mutate} />
         <JobScheduleCard job={data?.job} mutate={mutate} />
         <JobRecentRuns jobId={id} />
         <div className="flex">

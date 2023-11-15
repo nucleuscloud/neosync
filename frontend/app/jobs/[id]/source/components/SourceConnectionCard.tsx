@@ -170,6 +170,9 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Source</FormLabel>
+                <FormDescription>
+                  The location of the source data set.
+                </FormDescription>
                 <FormControl>
                   <Select
                     value={field.value}
@@ -200,9 +203,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormDescription>
-                  The location of the source data set.
-                </FormDescription>
+
                 <FormMessage />
               </FormItem>
             )}

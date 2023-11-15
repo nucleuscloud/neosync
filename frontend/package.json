@@ -43,7 +43,7 @@
     "cron-validate": "^1.4.5",
     "date-fns": "^2.30.0",
     "nanoid": "^5.0.3",
-    "neocron": "^0.4.6",
+    "neocron": "^0.4.8",
     "next": "^14.0.2",
     "next-auth": "^4.24.4",
     "next-themes": "^0.2.1",
