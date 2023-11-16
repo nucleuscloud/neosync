@@ -148,7 +148,6 @@ export default function MysqlForm(props: Props) {
         <FormField
           control={form.control}
           name="db.user"
-          s
           render={({ field }) => (
             <FormItem>
               <FormLabel>Database Username</FormLabel>

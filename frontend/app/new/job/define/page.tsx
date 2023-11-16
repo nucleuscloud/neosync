@@ -101,8 +101,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   <FormItem>
                     <FormLabel>Schedule</FormLabel>
                     <FormDescription>
-                      Enter in a cron string or select a schedule to run this
-                      job.
+                      Define a schedule to run this job.
                     </FormDescription>
                     <FormControl>
                       <NeoCron

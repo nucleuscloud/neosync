@@ -94,7 +94,6 @@ export default function TemporalConfigForm(): ReactElement {
                   <FormControl>
                     <Input placeholder="Temporal URL" {...field} />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
@@ -111,7 +110,6 @@ export default function TemporalConfigForm(): ReactElement {
                   <FormControl>
                     <Input placeholder="Temporal Namespace" {...field} />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}
@@ -131,7 +129,6 @@ export default function TemporalConfigForm(): ReactElement {
                       {...field}
                     />
                   </FormControl>
-
                   <FormMessage />
                 </FormItem>
               )}

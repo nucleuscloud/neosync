@@ -99,6 +99,9 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
           render={() => (
             <FormItem>
               <FormLabel>Source Transformer</FormLabel>
+              <FormDescription>
+                The system transformer to clone.
+              </FormDescription>
               <FormControl>
                 <Select disabled={true}>
                   <SelectTrigger className="w-[1000px]">
@@ -108,9 +111,6 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
                   </SelectTrigger>
                 </Select>
               </FormControl>
-              <FormDescription>
-                The source transformer to clone.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -122,6 +122,9 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Name</FormLabel>
+                <FormDescription>
+                  The unique name of the Transformer.
+                </FormDescription>
                 <FormControl>
                   <Input
                     placeholder="Transformer Name"
@@ -129,9 +132,6 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
                     className="w-[1000px]"
                   />
                 </FormControl>
-                <FormDescription>
-                  The unique name of the Transformer.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -143,6 +143,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description</FormLabel>
+                  <FormDescription>The Transformer decription.</FormDescription>
                   <FormControl>
                     <Input
                       placeholder="Transformer Name"
@@ -150,7 +151,6 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
                       className="w-[1000px]"
                     />
                   </FormControl>
-                  <FormDescription>The Transformer decription.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
