@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
@@ -19,6 +20,7 @@ type TokenContextData struct {
 
 var (
 	InvalidApiKeyErr = errors.New("token is not a valid neosync api key")
+	ApiKeyExpiredErr = nucleuserrors.NewUnauthenticated("token is expired")
 )
 
 type Queries interface {
@@ -49,6 +51,10 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header) (contex
 	apiKey, err := c.q.GetAccountApiKeyByKeyValue(ctx, c.db, token)
 	if err != nil {
 		return nil, err
+	}
+
+	if time.Now().After(apiKey.ExpiresAt.Time) {
+		return nil, ApiKeyExpiredErr
 	}
 
 	newctx := context.WithValue(ctx, TokenContextKey{}, &TokenContextData{
