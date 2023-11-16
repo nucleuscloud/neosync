@@ -25,11 +25,11 @@ func New(
 }
 
 func (n *AuthMiddleware) InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error) {
-	ctx, err := n.apiKeyClient.InjectTokenCtx(ctx, header)
+	apiKeyCtx, err := n.apiKeyClient.InjectTokenCtx(ctx, header)
 	if err != nil && !errors.Is(err, auth_apikey.InvalidApiKeyErr) {
 		return nil, err
 	} else if err != nil && errors.Is(err, auth_apikey.InvalidApiKeyErr) {
 		return n.jwtClient.InjectTokenCtx(ctx, header)
 	}
-	return ctx, nil
+	return apiKeyCtx, nil
 }
