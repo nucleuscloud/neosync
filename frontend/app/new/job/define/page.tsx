@@ -1,7 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import PlainSwitch from '@/components/switches/PlainSwitch';
+import SwitchCard from '@/components/switches/SwitchCard';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +14,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import { yupResolver } from '@hookform/resolvers/yup';
 import NeoCron from 'neocron';
 import 'neocron/dist/src/globals.css';
@@ -123,7 +122,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <PlainSwitch
+                        <SwitchCard
                           isChecked={field.value || false}
                           onCheckedChange={field.onChange}
                           title="Initiate Job Run"
@@ -135,7 +134,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   )}
                 />
               </div>
-              <Separator className="mt-2" />
             </div>
             <div className="flex flex-row justify-end">
               <Button type="submit">Next</Button>
