@@ -44,11 +44,8 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Name" />
       ),
       cell: ({ row }) => {
-        // const label = labels.find((label) => label.value === row.original.label);
-
         return (
           <div className="flex space-x-2">
-            {/* {label && <Badge variant="outline">{label.label}</Badge>} */}
             <span className="max-w-[500px] truncate font-medium">
               {row.getValue('name')}
             </span>
@@ -62,7 +59,6 @@ export function getColumns(
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => {
-        // const label = labels.find((label) => label.value === row.original.label);
         const expiresAt = row
           .getValue<Timestamp>('expiresAt')
           .toDate()

@@ -8,10 +8,7 @@ export async function PUT(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.apikeyClient.regenerateAccountApiKey(
-      new RegenerateAccountApiKeyRequest({
-        id: params.id,
-      })
-    );
+    const body = RegenerateAccountApiKeyRequest.fromJson(await req.json());
+    return ctx.apikeyClient.regenerateAccountApiKey(body);
   })(req);
 }

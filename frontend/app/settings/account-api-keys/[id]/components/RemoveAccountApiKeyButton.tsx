@@ -5,16 +5,16 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { TrashIcon } from '@radix-ui/react-icons';
-import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 
 interface Props {
   id: string;
+  trigger?: ReactNode;
+  onDeleted?(): void;
 }
 
 export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
-  const { id } = props;
-  const router = useRouter();
+  const { id, trigger, onDeleted } = props;
   const { toast } = useToast();
 
   async function onDelete(): Promise<void> {
@@ -24,7 +24,9 @@ export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
         title: 'Successfully removed api key!',
         variant: 'default',
       });
-      router.push(`/settings/account-api-keys`);
+      if (onDeleted) {
+        onDeleted();
+      }
     } catch (err) {
       console.error(err);
       toast({
@@ -38,9 +40,13 @@ export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
   return (
     <DeleteConfirmationDialog
       trigger={
-        <Button variant="destructive">
-          <ButtonText leftIcon={<TrashIcon />} text="Delete API Key" />
-        </Button>
+        trigger ? (
+          trigger
+        ) : (
+          <Button variant="destructive">
+            <ButtonText leftIcon={<TrashIcon />} text="Delete API Key" />
+          </Button>
+        )
       }
       headerText="Are you sure you want to delete this api key?"
       description="Deleting this api key is irreversable and may break running workloads!"

@@ -3,7 +3,6 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
-import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,10 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/components/ui/use-toast';
 import { AccountApiKey } from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
-import { getErrorMessage } from '@/util/util';
 import { useRouter } from 'next/navigation';
+import RemoveAccountApiKeyButton from '../../[id]/components/RemoveAccountApiKeyButton';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -28,24 +26,6 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const apikey = row.original as AccountApiKey;
   const router = useRouter();
-  const { toast } = useToast();
-
-  async function onDelete(): Promise<void> {
-    try {
-      await removeApiKey(apikey.id);
-      toast({
-        title: 'API Key removed successfully!',
-      });
-      onDeleted();
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: 'Unable to remove api key',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      });
-    }
-  }
 
   return (
     <DropdownMenu modal={false}>
@@ -66,7 +46,8 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DeleteConfirmationDialog
+        <RemoveAccountApiKeyButton
+          id={apikey.id}
           trigger={
             <DropdownMenuItem
               className="cursor-pointer"
@@ -75,9 +56,7 @@ export function DataTableRowActions<TData>({
               Delete
             </DropdownMenuItem>
           }
-          headerText="Are you sure you want to delete this connection?"
-          description="Deleting this connection is irreversable!"
-          onConfirm={async () => onDelete()}
+          onDeleted={() => onDeleted()}
         />
       </DropdownMenuContent>
     </DropdownMenu>
