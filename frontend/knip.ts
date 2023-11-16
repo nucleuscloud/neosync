@@ -32,6 +32,7 @@ const config: KnipConfig = {
     'memoize-one',
     'tailwindcss-animate',
     'use-resize-observer',
+    'react-day-picker',
   ],
   ignoreBinaries: ['tail'],
 };

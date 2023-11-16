@@ -19,6 +19,10 @@ export const ITEMS: Item[] = [
     href: '/settings/temporal',
     title: 'Temporal',
   },
+  {
+    href: '/settings/account-api-keys',
+    title: 'API Keys',
+  },
 ];
 
 interface Props extends HTMLAttributes<HTMLElement> {

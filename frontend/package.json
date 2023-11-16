@@ -48,6 +48,7 @@
     "next-auth": "^4.24.4",
     "next-themes": "^0.2.1",
     "react": "18.2.0",
+    "react-day-picker": "^8.9.1",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.48.2",
     "react-hook-form-persist": "^3.0.0",

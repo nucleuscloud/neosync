@@ -10,6 +10,7 @@ message CreateAccountApiKeyRequest {
   string name = 2 [(buf.validate.field).string.min_len = 1];
   // Validate between now and one year: now < x < 1year
   google.protobuf.Timestamp expires_at = 3 [
+    (buf.validate.field).required = true,
     (buf.validate.field).timestamp.gt_now = true,
     (buf.validate.field).timestamp.within = {seconds: 31536000}
   ];
@@ -29,6 +30,7 @@ message AccountApiKey {
   /* key_value is only returned on initial creation or when it is regenerated */
   optional string key_value = 8;
   string user_id = 9;
+  google.protobuf.Timestamp expires_at = 10;
 }
 
 message GetAccountApiKeysRequest {
@@ -49,6 +51,7 @@ message RegenerateAccountApiKeyRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
   // Validate between now and one year: now < x < 1year
   google.protobuf.Timestamp expires_at = 2 [
+    (buf.validate.field).required = true,
     (buf.validate.field).timestamp.gt_now = true,
     (buf.validate.field).timestamp.within = {seconds: 31536000}
   ];
