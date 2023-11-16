@@ -145,11 +145,6 @@ export class AccountApiKey extends Message<AccountApiKey> {
    */
   userId = "";
 
-  /**
-   * @generated from field: google.protobuf.Timestamp expires_at = 10;
-   */
-  expiresAt?: Timestamp;
-
   constructor(data?: PartialMessage<AccountApiKey>) {
     super();
     proto3.util.initPartial(data, this);
@@ -167,7 +162,6 @@ export class AccountApiKey extends Message<AccountApiKey> {
     { no: 7, name: "updated_at", kind: "message", T: Timestamp },
     { no: 8, name: "key_value", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 9, name: "user_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 10, name: "expires_at", kind: "message", T: Timestamp },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountApiKey {
