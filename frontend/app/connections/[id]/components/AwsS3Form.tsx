@@ -9,6 +9,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -21,7 +22,7 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
-import { FaTerminal } from 'react-icons/fa';
+import { IoAlertCircleOutline } from 'react-icons/io5';
 import * as Yup from 'yup';
 
 const FORM_SCHEMA = Yup.object({
@@ -78,10 +79,12 @@ export default function AwsS3Form(props: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Alert>
-          <FaTerminal className="h-4 w-4" />
-          <AlertTitle>Heads up!</AlertTitle>
-          <AlertDescription>
+        <Alert variant="warning">
+          <div className="flex flex-row items-center gap-2">
+            <IoAlertCircleOutline className="h-6 w-6" />
+            <AlertTitle className="font-semibold">Heads up!</AlertTitle>
+          </div>
+          <AlertDescription className="pl-8">
             Right now AWS S3 connections can only be used as a destination
           </AlertDescription>
         </Alert>
@@ -91,13 +94,14 @@ export default function AwsS3Form(props: Props) {
           disabled={true}
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Connection Name</FormLabel>
+              <FormDescription>
+                <RequiredLabel />
+                The connection name.
+              </FormDescription>
               <FormControl>
                 <Input placeholder="Connection Name" {...field} />
               </FormControl>
-              <FormDescription>
-                <RequiredLabel />
-                The unique name of the connection.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -108,13 +112,14 @@ export default function AwsS3Form(props: Props) {
           name="s3.bucketArn"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Bucket ARN</FormLabel>
+              <FormDescription>
+                <RequiredLabel />
+                The bucket ARN
+              </FormDescription>
               <FormControl>
                 <Input placeholder="Bucket ARN" {...field} />
               </FormControl>
-              <FormDescription>
-                <RequiredLabel />
-                Bucket ARN
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -125,10 +130,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.pathPrefix"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Path Prefix</FormLabel>
+              <FormDescription>The path prefix of the bucket</FormDescription>
               <FormControl>
                 <Input placeholder="/..." {...field} />
               </FormControl>
-              <FormDescription>Path Prefix</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -139,10 +145,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.region"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Region</FormLabel>
+              <FormDescription>The AWS region to target</FormDescription>
               <FormControl>
                 <Input placeholder="" {...field} />
               </FormControl>
-              <FormDescription>The AWS region to target</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -153,12 +160,13 @@ export default function AwsS3Form(props: Props) {
           name="s3.endpoint"
           render={({ field }) => (
             <FormItem>
-              <FormControl>
-                <Input placeholder="" {...field} />
-              </FormControl>
+              <FormLabel>Custom Endpoint</FormLabel>
               <FormDescription>
                 Allows specifying a custom endpoint for the AWS API
               </FormDescription>
+              <FormControl>
+                <Input placeholder="" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -176,10 +184,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.profile"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Profile Name</FormLabel>
+              <FormDescription>AWS Profile Name</FormDescription>
               <FormControl>
                 <Input placeholder="default" {...field} />
               </FormControl>
-              <FormDescription>AWS Profile Name</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -190,6 +199,8 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.accessKeyId"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Access Key Id</FormLabel>
+              <FormDescription>Access Key Id</FormDescription>
               <FormControl>
                 <Input placeholder="Access Key Id" {...field} />
               </FormControl>
@@ -204,10 +215,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.secretAccessKey"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Secret Access Key</FormLabel>
+              <FormDescription>AWS Secret Access Key</FormDescription>
               <FormControl>
                 <Input placeholder="Secret Access Key" {...field} />
               </FormControl>
-              <FormDescription>Secret Access Key</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -218,10 +230,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.sessionToken"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Session Token</FormLabel>
+              <FormDescription>AWS Session Token</FormDescription>
               <FormControl>
                 <Input placeholder="Session Token" {...field} />
               </FormControl>
-              <FormDescription>Session Token</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -240,7 +253,6 @@ export default function AwsS3Form(props: Props) {
                   description="Use the credentials of a host EC2 machine configured to assume an IAM role associated with the instance."
                 />
               </FormControl>
-              {/* <FormDescription>From EC2 Role</FormDescription> */}
               <FormMessage />
             </FormItem>
           )}
@@ -251,10 +263,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.roleArn"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Role ARN</FormLabel>
+              <FormDescription>Role ARN</FormDescription>
               <FormControl>
                 <Input placeholder="Role Arn" {...field} />
               </FormControl>
-              <FormDescription>Role Arn</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -265,10 +278,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.roleExternalId"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Role External Id</FormLabel>
+              <FormDescription>Role External Id</FormDescription>
               <FormControl>
                 <Input placeholder="Role External Id" {...field} />
               </FormControl>
-              <FormDescription>Role External Id</FormDescription>
               <FormMessage />
             </FormItem>
           )}
