@@ -3,6 +3,7 @@ bin
 
 .env.prod
 .env.stage
+.env.dev
 .env.dev.secrets
 .env.stage.secrets
 .env.prod.secrets

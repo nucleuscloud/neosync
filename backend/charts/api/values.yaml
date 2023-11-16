@@ -54,12 +54,16 @@ terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
 auth:
-  enabled: false
+  enabled: true
   audience:
   baseUrl:
   cliClientId:
   cliAudience:
   clientMap:
+  api:
+    clientId:
+    clientSecret:
+    baseUrl:
 
 temporal:
   url:

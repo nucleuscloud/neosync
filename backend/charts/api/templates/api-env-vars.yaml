@@ -69,3 +69,15 @@ stringData:
     {{- if and .Values.temporal .Values.temporal.certificate .Values.temporal.certificate.certContents }}
     TEMPORAL_CERT: {{ .Values.temporal.certificate.certContents }}
     {{- end }}
+
+    {{- if and .Values.auth .Values.auth.api .Values.auth.api.clientId }}
+    AUTH_API_CLIENT_ID: {{ .Values.auth.api.clientId }}
+    {{- end }}
+
+    {{- if and .Values.auth .Values.auth.api .Values.auth.api.clientSecret }}
+    AUTH_API_CLIENT_SECRET: {{ .Values.auth.api.clientSecret }}
+    {{- end }}
+
+    {{- if and .Values.auth .Values.auth.api .Values.auth.api.baseUrl }}
+    AUTH_API_BASEURL: {{ .Values.auth.api.baseUrl }}
+    {{- end }}

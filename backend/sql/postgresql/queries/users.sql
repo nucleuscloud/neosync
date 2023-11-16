@@ -27,11 +27,15 @@ INSERT INTO neosync_api.users (
 )
 RETURNING *;
 
--- name: GetUsersByTeamAccount :many
-SELECT u.* from neosync_api.users u
-INNER JOIN neosync_api.account_user_associations aua ON aua.user_id = u.id
-INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
-WHERE a.id = sqlc.arg('accountId') AND a.account_type = 1;
+-- name: GetUserIdentitiesByTeamAccount :many
+SELECT aipa.* FROM neosync_api.user_identity_provider_associations aipa
+JOIN neosync_api.account_user_associations aua ON aua.user_id = aipa.user_id
+JOIN neosync_api.accounts a ON a.id = aua.account_id
+WHERE aua.account_id = sqlc.arg('accountId') AND a.account_type = 1;
+
+-- name: GetUserIdentityByUserId :one
+SELECT aipa.* FROM neosync_api.user_identity_provider_associations aipa
+WHERE aipa.user_id = $1;
 
 -- name: CreateAuth0IdentityProviderAssociation :one
 INSERT INTO neosync_api.user_identity_provider_associations (
@@ -40,6 +44,10 @@ INSERT INTO neosync_api.user_identity_provider_associations (
   $1, $2
 )
 RETURNING *;
+
+-- name: GetUserIdentityAssociationsByUserIds :many
+SELECT * from neosync_api.user_identity_provider_associations
+WHERE user_id = ANY($1::uuid[]);
 
 -- name: GetAccount :one
 SELECT * from neosync_api.accounts
@@ -146,7 +154,7 @@ RETURNING *;
 
 -- name: GetActiveAccountInvites :many
 SELECT * FROM neosync_api.account_invites
-WHERE account_id = sqlc.arg('accountId') AND expires_at > CURRENT_TIMESTAMP;
+WHERE account_id = sqlc.arg('accountId') AND expires_at > CURRENT_TIMESTAMP AND accepted = false; 
 
 -- name: UpdateActiveAccountInvitesToExpired :one
 UPDATE neosync_api.account_invites
@@ -154,9 +162,19 @@ SET expires_at = CURRENT_TIMESTAMP
 WHERE account_id = sqlc.arg('accountId') AND email = sqlc.arg('email') AND expires_at > CURRENT_TIMESTAMP
 RETURNING *;
 
+-- name: UpdateAccountInviteToAccepted :one
+UPDATE neosync_api.account_invites
+SET accepted = true
+WHERE id = $1
+RETURNING *;
+
 -- name: GetAccountInvite :one
 SELECT * FROM neosync_api.account_invites
 WHERE id = $1;
+
+-- name: GetAccountInviteByToken :one
+SELECT * FROM neosync_api.account_invites
+WHERE token = $1;
 
 -- name: RemoveAccountInvite :exec
 DELETE FROM neosync_api.account_invites

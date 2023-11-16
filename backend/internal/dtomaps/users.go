@@ -31,3 +31,11 @@ func ToAccountInviteDto(input *db_queries.NeosyncApiAccountInvite) *mgmtv1alpha1
 		ExpiresAt:    timestamppb.New(input.ExpiresAt.Time),
 	}
 }
+
+func ToUserAccount(input *db_queries.NeosyncApiAccount) *mgmtv1alpha1.UserAccount {
+	return &mgmtv1alpha1.UserAccount{
+		Id:   nucleusdb.UUIDString(input.ID),
+		Name: input.AccountSlug,
+		Type: ToAccountTypeDto(input.AccountType),
+	}
+}

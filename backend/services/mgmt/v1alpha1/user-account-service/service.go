@@ -1,12 +1,14 @@
 package v1alpha1_useraccountservice
 
 import (
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 )
 
 type Service struct {
-	cfg *Config
-	db  *nucleusdb.NucleusDb
+	cfg         *Config
+	db          *nucleusdb.NucleusDb
+	authService mgmtv1alpha1connect.AuthServiceClient
 }
 
 type Config struct {
@@ -23,10 +25,12 @@ type TemporalConfig struct {
 func New(
 	cfg *Config,
 	db *nucleusdb.NucleusDb,
+	authService mgmtv1alpha1connect.AuthServiceClient,
 ) *Service {
 
 	return &Service{
-		cfg: cfg,
-		db:  db,
+		cfg:         cfg,
+		db:          db,
+		authService: authService,
 	}
 }

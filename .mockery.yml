@@ -29,6 +29,7 @@ packages:
       UserAccountServiceClient:
       JobServiceClient:
       ConnectionServiceClient:
+      AuthServiceClient:
   github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
     interfaces:
       DB:

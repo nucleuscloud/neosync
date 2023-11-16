@@ -2,6 +2,7 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
@@ -11,9 +12,11 @@ import (
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/auth/tokenctx"
+	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"golang.org/x/sync/errgroup"
 )
 
 func (s *Service) GetUser(
@@ -133,12 +136,8 @@ func (s *Service) GetUserAccounts(
 	}
 
 	dtoAccounts := []*mgmtv1alpha1.UserAccount{}
-	for _, account := range accounts {
-		dtoAccounts = append(dtoAccounts, &mgmtv1alpha1.UserAccount{
-			Id:   nucleusdb.UUIDString(account.ID),
-			Name: account.AccountSlug,
-			Type: dtomaps.ToAccountTypeDto(account.AccountType),
-		})
+	for index := range accounts {
+		dtoAccounts = append(dtoAccounts, dtomaps.ToUserAccount(&accounts[index]))
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetUserAccountsResponse{
@@ -233,20 +232,46 @@ func (s *Service) GetTeamAccountMembers(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest],
 ) (*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	accountId, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
-	users, err := s.db.Q.GetUsersByTeamAccount(ctx, s.db.Db, *accountId)
+	userIdentities, err := s.db.Q.GetUserIdentitiesByTeamAccount(ctx, s.db.Db, *accountId)
 	if err != nil {
 		return nil, err
 	}
 
-	dtoUsers := []*mgmtv1alpha1.AccountUser{}
-	for _, user := range users {
-		dtoUsers = append(dtoUsers, &mgmtv1alpha1.AccountUser{
-			Id: nucleusdb.UUIDString(user.ID),
+	dtoUsers := make([]*mgmtv1alpha1.AccountUser, len(userIdentities))
+	group := new(errgroup.Group)
+	for i := range userIdentities {
+		i := i
+		user := userIdentities[i]
+		group.Go(func() error {
+			authUser, err := s.authService.GetAuthUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
+				UserId:       user.Auth0ProviderID,
+				AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
+			}))
+			if err != nil {
+				// if unable to get auth user still return user id
+				dtoUsers[i] = &mgmtv1alpha1.AccountUser{
+					Id: nucleusdb.UUIDString(user.UserID),
+				}
+				return err
+			}
+			dtoUsers[i] = &mgmtv1alpha1.AccountUser{
+				Id:    nucleusdb.UUIDString(user.UserID),
+				Name:  authUser.Msg.User.Name,
+				Email: authUser.Msg.User.Email,
+				Image: authUser.Msg.User.Image,
+			}
+			return nil
 		})
+	}
+
+	err = group.Wait()
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to hydrate auth user: %w", err).Error())
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetTeamAccountMembersResponse{
@@ -381,6 +406,52 @@ func (s *Service) RemoveTeamAccountInvite(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.RemoveTeamAccountInviteResponse{}), nil
+}
+
+func (s *Service) AcceptTeamAccountInvite(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.AcceptTeamAccountInviteRequest],
+) (*connect.Response[mgmtv1alpha1.AcceptTeamAccountInviteResponse], error) {
+	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	userIdentity, err := s.db.Q.GetUserIdentityByUserId(ctx, s.db.Db, userUuid)
+	if err != nil {
+		return nil, err
+	}
+
+	// check auth user email to invite email
+	authUser, err := s.authService.GetAuthUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
+		UserId:       userIdentity.Auth0ProviderID,
+		AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	accountId, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, authUser.Msg.User.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.verifyTeamAccount(ctx, accountId); err != nil {
+		return nil, err
+	}
+
+	account, err := s.db.Q.GetAccount(ctx, s.db.Db, accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.AcceptTeamAccountInviteResponse{
+		Account: dtomaps.ToUserAccount(&account),
+	}), nil
 }
 
 func (s *Service) verifyTeamAccount(ctx context.Context, accountId pgtype.UUID) error {

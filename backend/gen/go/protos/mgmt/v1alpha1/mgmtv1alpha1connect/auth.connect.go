@@ -44,6 +44,8 @@ const (
 	// AuthServiceGetAuthStatusProcedure is the fully-qualified name of the AuthService's GetAuthStatus
 	// RPC.
 	AuthServiceGetAuthStatusProcedure = "/mgmt.v1alpha1.AuthService/GetAuthStatus"
+	// AuthServiceGetAuthUserProcedure is the fully-qualified name of the AuthService's GetAuthUser RPC.
+	AuthServiceGetAuthUserProcedure = "/mgmt.v1alpha1.AuthService/GetAuthUser"
 )
 
 // AuthServiceClient is a client for the mgmt.v1alpha1.AuthService service.
@@ -52,6 +54,7 @@ type AuthServiceClient interface {
 	GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error)
 	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
 	GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error)
+	GetAuthUser(context.Context, *connect.Request[v1alpha1.GetAuthUserRequest]) (*connect.Response[v1alpha1.GetAuthUserResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the mgmt.v1alpha1.AuthService service. By default,
@@ -84,6 +87,11 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			baseURL+AuthServiceGetAuthStatusProcedure,
 			opts...,
 		),
+		getAuthUser: connect.NewClient[v1alpha1.GetAuthUserRequest, v1alpha1.GetAuthUserResponse](
+			httpClient,
+			baseURL+AuthServiceGetAuthUserProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -93,6 +101,7 @@ type authServiceClient struct {
 	getCliIssuer    *connect.Client[v1alpha1.GetCliIssuerRequest, v1alpha1.GetCliIssuerResponse]
 	getAuthorizeUrl *connect.Client[v1alpha1.GetAuthorizeUrlRequest, v1alpha1.GetAuthorizeUrlResponse]
 	getAuthStatus   *connect.Client[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse]
+	getAuthUser     *connect.Client[v1alpha1.GetAuthUserRequest, v1alpha1.GetAuthUserResponse]
 }
 
 // LoginCli calls mgmt.v1alpha1.AuthService.LoginCli.
@@ -115,12 +124,18 @@ func (c *authServiceClient) GetAuthStatus(ctx context.Context, req *connect.Requ
 	return c.getAuthStatus.CallUnary(ctx, req)
 }
 
+// GetAuthUser calls mgmt.v1alpha1.AuthService.GetAuthUser.
+func (c *authServiceClient) GetAuthUser(ctx context.Context, req *connect.Request[v1alpha1.GetAuthUserRequest]) (*connect.Response[v1alpha1.GetAuthUserResponse], error) {
+	return c.getAuthUser.CallUnary(ctx, req)
+}
+
 // AuthServiceHandler is an implementation of the mgmt.v1alpha1.AuthService service.
 type AuthServiceHandler interface {
 	LoginCli(context.Context, *connect.Request[v1alpha1.LoginCliRequest]) (*connect.Response[v1alpha1.LoginCliResponse], error)
 	GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error)
 	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
 	GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error)
+	GetAuthUser(context.Context, *connect.Request[v1alpha1.GetAuthUserRequest]) (*connect.Response[v1alpha1.GetAuthUserResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -149,6 +164,11 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		svc.GetAuthStatus,
 		opts...,
 	)
+	authServiceGetAuthUserHandler := connect.NewUnaryHandler(
+		AuthServiceGetAuthUserProcedure,
+		svc.GetAuthUser,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AuthServiceLoginCliProcedure:
@@ -159,6 +179,8 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceGetAuthorizeUrlHandler.ServeHTTP(w, r)
 		case AuthServiceGetAuthStatusProcedure:
 			authServiceGetAuthStatusHandler.ServeHTTP(w, r)
+		case AuthServiceGetAuthUserProcedure:
+			authServiceGetAuthUserHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -182,4 +204,8 @@ func (UnimplementedAuthServiceHandler) GetAuthorizeUrl(context.Context, *connect
 
 func (UnimplementedAuthServiceHandler) GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.GetAuthStatus is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) GetAuthUser(context.Context, *connect.Request[v1alpha1.GetAuthUserRequest]) (*connect.Response[v1alpha1.GetAuthUserResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.GetAuthUser is not implemented"))
 }
