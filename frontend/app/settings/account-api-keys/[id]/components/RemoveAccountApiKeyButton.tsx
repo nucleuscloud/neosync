@@ -22,7 +22,7 @@ export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
       await removeAccountApiKey(id);
       toast({
         title: 'Successfully removed api key!',
-        variant: 'default',
+        variant: 'success',
       });
       if (onDeleted) {
         onDeleted();
