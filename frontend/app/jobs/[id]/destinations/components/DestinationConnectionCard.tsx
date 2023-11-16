@@ -103,6 +103,9 @@ export default function DestinationConnectionCard({
     }
   }
 
+  const dest = availableConnections.find(
+    (item) => item.id == destination.connectionId
+  );
   return (
     <Card>
       <Form {...form}>
@@ -127,7 +130,7 @@ export default function DestinationConnectionCard({
                         value={field.value}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a destination ..." />
+                          <SelectValue placeholder={dest?.name} />
                         </SelectTrigger>
                         <SelectContent>
                           {availableConnections.map((connection) => (

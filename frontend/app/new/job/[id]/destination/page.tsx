@@ -99,8 +99,8 @@ export default function Page({ params }: PageProps): ReactElement {
   }
 
   return (
-    <div className="job-details-container">
-      <div className="mt-10">
+    <div className="job-details-container mx-24">
+      <div className="my-10">
         <PageHeader
           header="Create new Destination Connections"
           description={`Connect new destination datasources.`}
@@ -147,7 +147,7 @@ export default function Page({ params }: PageProps): ReactElement {
                                   value={field.value}
                                 >
                                   <SelectTrigger>
-                                    <SelectValue />
+                                    <SelectValue placeholder="Select a destination ..." />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {availableConnections.map((connection) => (
