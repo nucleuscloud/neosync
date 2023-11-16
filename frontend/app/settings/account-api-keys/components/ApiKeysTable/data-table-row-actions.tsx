@@ -62,14 +62,3 @@ export function DataTableRowActions<TData>({
     </DropdownMenu>
   );
 }
-
-async function removeApiKey(keyId: string): Promise<void> {
-  const res = await fetch(`/api/api-keys/account/${keyId}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  await res.json();
-}
