@@ -39,6 +39,9 @@ neosyncApi:
 nextAuthSecret: 'This is an example'
 nextAuthUrl: 'http://localhost:3000'
 
+nextPublic:
+  appBaseUrl: 'http://localhost:3000'
+
 auth:
   enabled: false
 

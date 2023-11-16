@@ -1,10 +1,11 @@
-import { isAuthEnabled } from '@/api-only/auth-config';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useGetAuthEnabled } from '@/libs/hooks/useGetAuthEnabled';
 import MemberManagementSettings from './components/MemberManagementSettings';
 import SubNav, { ITEMS } from './temporal/components/SubNav';
 
 export default function Settings() {
+  const authEnabled = useGetAuthEnabled();
   return (
     <OverviewContainer
       Header={<PageHeader header="Settings" />}
@@ -14,7 +15,7 @@ export default function Settings() {
         <div>
           <SubNav items={ITEMS} />
         </div>
-        {isAuthEnabled() && <MemberManagementSettings />}
+        {authEnabled && <MemberManagementSettings />}
       </div>
     </OverviewContainer>
   );

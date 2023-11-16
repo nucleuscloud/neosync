@@ -43,4 +43,8 @@ stringData:
     AUTH0_AUDIENCE: {{ .Values.auth0.audience }}
     {{- end }}
 
+    {{ if .Values.nextPublic.appBaseUrl }}
+    NEXT_PUBLIC_BASE_URL: {{ .Values.nextPublic.appBaseUrl }}
+    {{- end }}
+
     AUTH_ENABLED: {{ .Values.auth.enabled | default "false" | quote }}
