@@ -31,7 +31,7 @@ func Test_Client_InjectTokenCtx(t *testing.T) {
 	client := New(mockQuerier, mockDbTx)
 
 	fakeToken := apikey.NewV1AccountKey()
-	expiresAt, err := nucleusdb.ToTimestamp(time.Now().Add(5 * time.Second))
+	expiresAt, err := nucleusdb.ToTimestamp(time.Now().Add(5 * time.Minute))
 	assert.NoError(t, err)
 	apiKeyRecord := db_queries.NeosyncApiAccountApiKey{
 		ID:        pgtype.UUID{Valid: true},
