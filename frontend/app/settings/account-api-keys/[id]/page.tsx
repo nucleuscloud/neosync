@@ -1,13 +1,17 @@
 'use client';
 import { ApiKeyValueSessionStore } from '@/app/new/account-api-key/NewApiKeyForm';
+import ButtonText from '@/components/ButtonText';
 import { CopyButton } from '@/components/CopyButton';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { useGetAccountApiKey } from '@/libs/hooks/useGetAccountApiKey';
 import { formatDateTime } from '@/util/util';
+import { ReloadIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 import { ReactElement, useEffect, useState } from 'react';
 import { useSessionStorage } from 'usehooks-ts';
 import RemoveAccountApiKeyButton from './components/RemoveAccountApiKeyButton';
@@ -55,8 +59,16 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
           header={data.apiKey.name}
           description={data.apiKey.id}
           extraHeading={
-            <div>
+            <div className="flex flex-row gap-2">
               <RemoveAccountApiKeyButton id={id} />
+              <Link href={`/settings/account-api-keys/${id}/regenerate`}>
+                <Button type="button">
+                  <ButtonText
+                    leftIcon={<ReloadIcon className="h-4 w-4" />}
+                    text="Regenerate"
+                  />
+                </Button>
+              </Link>
             </div>
           }
         />

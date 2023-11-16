@@ -32,6 +32,7 @@ import { cn } from '@/libs/utils';
 import {
   CreateAccountApiKeyRequest,
   CreateAccountApiKeyResponse,
+  GetAccountApiKeyResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
 import { getErrorMessage } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
@@ -85,7 +86,12 @@ export default function NewApiKeyForm(): ReactElement {
           );
         }
         router.push(`/settings/account-api-keys/${apiKey.apiKey.id}`);
-        mutate(`/api/api-keys/account/${apiKey.apiKey.id}`, apiKey);
+        mutate(
+          `/api/api-keys/account/${apiKey.apiKey.id}`,
+          new GetAccountApiKeyResponse({
+            apiKey: apiKey.apiKey,
+          })
+        );
       } else {
         router.push(`/settings/account-api-keys`);
       }
