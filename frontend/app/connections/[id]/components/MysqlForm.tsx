@@ -7,6 +7,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -88,12 +89,11 @@ export default function MysqlForm(props: Props) {
           name="connectionName"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Connection Name</FormLabel>
+              <FormDescription>The name of the connection</FormDescription>
               <FormControl>
                 <Input disabled placeholder="Connection Name" {...field} />
               </FormControl>
-              <FormDescription>
-                The unique name of the connection.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -104,10 +104,11 @@ export default function MysqlForm(props: Props) {
           name="db.host"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Host Name</FormLabel>
+              <FormDescription>The host name</FormDescription>
               <FormControl>
                 <Input placeholder="Host" {...field} />
               </FormControl>
-              <FormDescription>Host</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -118,10 +119,11 @@ export default function MysqlForm(props: Props) {
           name="db.port"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Port</FormLabel>
+              <FormDescription>The database port </FormDescription>
               <FormControl>
                 <Input placeholder="3306" {...field} />
               </FormControl>
-              <FormDescription>The port of the database</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -132,6 +134,8 @@ export default function MysqlForm(props: Props) {
           name="db.name"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Database Name</FormLabel>
+              <FormDescription>The name of the database</FormDescription>
               <FormControl>
                 <Input placeholder="mysql" {...field} />
               </FormControl>
@@ -146,10 +150,11 @@ export default function MysqlForm(props: Props) {
           name="db.user"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Database Username</FormLabel>
+              <FormDescription>The username of the database</FormDescription>
               <FormControl>
                 <Input placeholder="mysql" {...field} />
               </FormControl>
-              <FormDescription>The username</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -160,10 +165,11 @@ export default function MysqlForm(props: Props) {
           name="db.pass"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Database Password</FormLabel>
+              <FormDescription>The password of the database</FormDescription>
               <FormControl>
                 <Input placeholder="mysql" {...field} />
               </FormControl>
-              <FormDescription>Password</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -174,10 +180,11 @@ export default function MysqlForm(props: Props) {
           name="db.protocol"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Protocpol</FormLabel>
+              <FormDescription>Connection protocol</FormDescription>
               <FormControl>
                 <Input placeholder="tcp" {...field} />
               </FormControl>
-              <FormDescription>Protocol</FormDescription>
               <FormMessage />
             </FormItem>
           )}

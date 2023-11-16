@@ -10,6 +10,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -100,15 +101,17 @@ export default function AwsS3Form() {
           <FormField
             control={form.control}
             name="connectionName"
+            disabled={true}
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Connection Name</FormLabel>
+                <FormDescription>
+                  <RequiredLabel />
+                  The connection name.
+                </FormDescription>
                 <FormControl>
                   <Input placeholder="Connection Name" {...field} />
                 </FormControl>
-                <FormDescription>
-                  <RequiredLabel />
-                  The unique name of the connection.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -119,13 +122,14 @@ export default function AwsS3Form() {
             name="s3.bucketArn"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Bucket ARN</FormLabel>
+                <FormDescription>
+                  <RequiredLabel />
+                  The bucket ARN
+                </FormDescription>
                 <FormControl>
                   <Input placeholder="Bucket ARN" {...field} />
                 </FormControl>
-                <FormDescription>
-                  <RequiredLabel />
-                  Bucket ARN
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -136,10 +140,11 @@ export default function AwsS3Form() {
             name="s3.pathPrefix"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Path Prefix</FormLabel>
+                <FormDescription>The path prefix of the bucket</FormDescription>
                 <FormControl>
                   <Input placeholder="/..." {...field} />
                 </FormControl>
-                <FormDescription>Path Prefix</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -150,10 +155,11 @@ export default function AwsS3Form() {
             name="s3.region"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>AWS Region</FormLabel>
+                <FormDescription>The AWS region to target</FormDescription>
                 <FormControl>
                   <Input placeholder="" {...field} />
                 </FormControl>
-                <FormDescription>The AWS region to target</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -164,12 +170,13 @@ export default function AwsS3Form() {
             name="s3.endpoint"
             render={({ field }) => (
               <FormItem>
-                <FormControl>
-                  <Input placeholder="" {...field} />
-                </FormControl>
+                <FormLabel>Custom Endpoint</FormLabel>
                 <FormDescription>
                   Allows specifying a custom endpoint for the AWS API
                 </FormDescription>
+                <FormControl>
+                  <Input placeholder="" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -187,10 +194,11 @@ export default function AwsS3Form() {
             name="s3.credentials.profile"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>AWS Profile Name</FormLabel>
+                <FormDescription>AWS Profile Name</FormDescription>
                 <FormControl>
                   <Input placeholder="default" {...field} />
                 </FormControl>
-                <FormDescription>AWS Profile Name</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -201,10 +209,11 @@ export default function AwsS3Form() {
             name="s3.credentials.accessKeyId"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>Access Key Id</FormLabel>
+                <FormDescription>Access Key Id</FormDescription>
                 <FormControl>
                   <Input placeholder="Access Key Id" {...field} />
                 </FormControl>
-                <FormDescription>Access Key Id</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -215,10 +224,11 @@ export default function AwsS3Form() {
             name="s3.credentials.secretAccessKey"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>AWS Secret Access Key</FormLabel>
+                <FormDescription>AWS Secret Access Key</FormDescription>
                 <FormControl>
                   <Input placeholder="Secret Access Key" {...field} />
                 </FormControl>
-                <FormDescription>Secret Access Key</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -229,10 +239,11 @@ export default function AwsS3Form() {
             name="s3.credentials.sessionToken"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>AWS Session Token</FormLabel>
+                <FormDescription>AWS Session Token</FormDescription>
                 <FormControl>
                   <Input placeholder="Session Token" {...field} />
                 </FormControl>
-                <FormDescription>Session Token</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -251,7 +262,6 @@ export default function AwsS3Form() {
                     description="Use the credentials of a host EC2 machine configured to assume an IAM role associated with the instance."
                   />
                 </FormControl>
-                {/* <FormDescription>From EC2 Role</FormDescription> */}
                 <FormMessage />
               </FormItem>
             )}
@@ -262,10 +272,11 @@ export default function AwsS3Form() {
             name="s3.credentials.roleArn"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>AWS Role ARN</FormLabel>
+                <FormDescription>Role ARN</FormDescription>
                 <FormControl>
                   <Input placeholder="Role Arn" {...field} />
                 </FormControl>
-                <FormDescription>Role Arn</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -276,15 +287,16 @@ export default function AwsS3Form() {
             name="s3.credentials.roleExternalId"
             render={({ field }) => (
               <FormItem>
+                <FormLabel>AWS Role External Id</FormLabel>
+                <FormDescription>Role External Id</FormDescription>
                 <FormControl>
                   <Input placeholder="Role External Id" {...field} />
                 </FormControl>
-                <FormDescription>Role External Id</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <div className="flex flex-row gap-3 justify-end">
+          <div className="flex flex-row gap-3 justify-items-end">
             <Button type="submit">Submit</Button>
           </div>
         </form>

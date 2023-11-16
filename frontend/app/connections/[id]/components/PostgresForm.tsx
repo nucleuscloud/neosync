@@ -89,12 +89,13 @@ export default function PostgresForm(props: Props) {
           name="connectionName"
           render={({ field }) => (
             <FormItem>
-              <FormControl>
-                <Input disabled placeholder="Connection Name" {...field} />
-              </FormControl>
+              <FormLabel>Connection Name</FormLabel>
               <FormDescription>
                 The unique name of the connection.
               </FormDescription>
+              <FormControl>
+                <Input disabled placeholder="Connection Name" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -105,10 +106,11 @@ export default function PostgresForm(props: Props) {
           name="db.host"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Host Name</FormLabel>
+              <FormDescription>The host name</FormDescription>
               <FormControl>
                 <Input placeholder="Host" {...field} />
               </FormControl>
-              <FormDescription>Host</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -119,10 +121,11 @@ export default function PostgresForm(props: Props) {
           name="db.port"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Port</FormLabel>
+              <FormDescription>The port of the database</FormDescription>
               <FormControl>
                 <Input placeholder="5432" {...field} />
               </FormControl>
-              <FormDescription>The port of the database</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -133,10 +136,11 @@ export default function PostgresForm(props: Props) {
           name="db.name"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Database Name</FormLabel>
+              <FormDescription>The name of the database</FormDescription>
               <FormControl>
                 <Input placeholder="postgres" {...field} />
               </FormControl>
-              <FormDescription>The name of the database</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -147,10 +151,11 @@ export default function PostgresForm(props: Props) {
           name="db.user"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Database Username</FormLabel>
+              <FormDescription>The username</FormDescription>
               <FormControl>
                 <Input placeholder="postgres" {...field} />
               </FormControl>
-              <FormDescription>The username</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -161,10 +166,11 @@ export default function PostgresForm(props: Props) {
           name="db.pass"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Database Password</FormLabel>
+              <FormDescription>Password</FormDescription>
               <FormControl>
                 <Input placeholder="postgres" {...field} />
               </FormControl>
-              <FormDescription>Password</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -176,6 +182,9 @@ export default function PostgresForm(props: Props) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>SSL Mode</FormLabel>
+              <FormDescription>
+                Turn on SSL Mode to use TLS for client/server encryption.
+              </FormDescription>
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
@@ -194,9 +203,6 @@ export default function PostgresForm(props: Props) {
                   </SelectContent>
                 </Select>
               </FormControl>
-              <FormDescription>
-                The location of the source data set.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

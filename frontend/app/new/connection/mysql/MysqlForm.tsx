@@ -128,7 +128,7 @@ export default function MysqlForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Port</FormLabel>
-                <FormDescription>The port of the database</FormDescription>
+                <FormDescription>The database port </FormDescription>
                 <FormControl>
                   <Input placeholder="5432" {...field} />
                 </FormControl>

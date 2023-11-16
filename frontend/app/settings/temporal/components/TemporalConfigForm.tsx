@@ -7,6 +7,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -79,19 +80,20 @@ export default function TemporalConfigForm(): ReactElement {
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-3">
+          <div className="space-y-10">
             <FormField
               control={form.control}
               name="temporalUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormControl>
-                    <Input placeholder="Temporal URL" {...field} />
-                  </FormControl>
+                  <FormLabel>Temporal Instance URL</FormLabel>
                   <FormDescription>
                     The temporal url that will be used to connect to the
                     temporal instance.
                   </FormDescription>
+                  <FormControl>
+                    <Input placeholder="Temporal URL" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -101,12 +103,13 @@ export default function TemporalConfigForm(): ReactElement {
               name="namespace"
               render={({ field }) => (
                 <FormItem>
-                  <FormControl>
-                    <Input placeholder="Temporal Namespace" {...field} />
-                  </FormControl>
+                  <FormLabel>Temporal Namespace</FormLabel>
                   <FormDescription>
                     The name of the temporal namespace.
                   </FormDescription>
+                  <FormControl>
+                    <Input placeholder="Temporal Namespace" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -116,15 +119,16 @@ export default function TemporalConfigForm(): ReactElement {
               name="syncJobName"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Temporal Job Queue Name</FormLabel>
+                  <FormDescription>
+                    The name of the temporal job queue for the sync-job worker.
+                  </FormDescription>
                   <FormControl>
                     <Input
                       placeholder="Worker Sync Job Queue Name"
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    The name of the temporal job queue for the sync-job worker.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
