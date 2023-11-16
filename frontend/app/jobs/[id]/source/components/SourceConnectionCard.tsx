@@ -160,6 +160,10 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
     );
   }
 
+  const source = connections.find(
+    (item) => item.id == data?.job?.source?.connectionId
+  );
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -182,7 +186,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Source" />
+                      <SelectValue placeholder={source?.name} />
                     </SelectTrigger>
                     <SelectContent>
                       {connections
