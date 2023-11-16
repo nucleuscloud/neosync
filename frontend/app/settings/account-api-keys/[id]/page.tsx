@@ -1,20 +1,34 @@
 'use client';
+import { ApiKeyValueSessionStore } from '@/app/new/account-api-key/NewApiKeyForm';
 import { CopyButton } from '@/components/CopyButton';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountApiKey } from '@/libs/hooks/useGetAccountApiKey';
 import { formatDateTime } from '@/util/util';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
+import { useSessionStorage } from 'usehooks-ts';
 import RemoveAccountApiKeyButton from './components/RemoveAccountApiKeyButton';
 
 export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { data, isLoading, mutate } = useGetAccountApiKey(id);
-  const { toast } = useToast();
+  const { data, isLoading } = useGetAccountApiKey(id);
+  const [sessionApiKeyValue] = useSessionStorage<
+    ApiKeyValueSessionStore | undefined
+  >(id, undefined);
+  const [apiKeyValue, setApiKeyValue] = useState<string | undefined>(
+    sessionApiKeyValue?.keyValue
+  );
+  // Don't persist the api key in session storage any longer than is necessary.
+  useEffect(() => {
+    if (!!sessionApiKeyValue) {
+      window.sessionStorage.removeItem(id);
+      setApiKeyValue(sessionApiKeyValue.keyValue);
+    }
+  }, [sessionApiKeyValue]);
+
   if (!id) {
     return <div>Not Found</div>;
   }
@@ -50,9 +64,9 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
       containerClassName="mx-24"
     >
       <div className="flex flex-col gap-3">
-        {data.apiKey.keyValue && (
+        {apiKeyValue && (
           <div>
-            <KeyValueAlert keyValue={data.apiKey.keyValue} />
+            <KeyValueAlert keyValue={apiKeyValue} />
           </div>
         )}
 

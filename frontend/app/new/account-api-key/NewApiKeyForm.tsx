@@ -51,6 +51,10 @@ const FORM_SCHEMA = Yup.object({
 });
 type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
+export interface ApiKeyValueSessionStore {
+  keyValue: string;
+}
+
 export default function NewApiKeyForm(): ReactElement {
   const { account } = useAccount();
   const { toast } = useToast();
@@ -60,7 +64,7 @@ export default function NewApiKeyForm(): ReactElement {
     defaultValues: {
       name: '',
       expiresAtSelect: '7',
-      expiresAt: addDays(new Date(), 7),
+      expiresAt: startOfDay(addDays(new Date(), 7)),
     },
   });
 
@@ -71,6 +75,15 @@ export default function NewApiKeyForm(): ReactElement {
     try {
       const apiKey = await createNewApiKey(values, account.id);
       if (apiKey.apiKey?.id) {
+        if (apiKey.apiKey.keyValue && !!window?.sessionStorage) {
+          const storeVal: ApiKeyValueSessionStore = {
+            keyValue: apiKey.apiKey.keyValue,
+          };
+          window.sessionStorage.setItem(
+            apiKey.apiKey.id,
+            JSON.stringify(storeVal)
+          );
+        }
         router.push(`/settings/account-api-keys/${apiKey.apiKey.id}`);
         mutate(`/api/api-keys/account/${apiKey.apiKey.id}`, apiKey);
       } else {
@@ -224,7 +237,6 @@ async function createNewApiKey(
   formData: FormValues,
   accountId: string
 ): Promise<CreateAccountApiKeyResponse> {
-  console.log(formData.expiresAt);
   const body = new CreateAccountApiKeyRequest({
     accountId,
     name: formData.name,
