@@ -47,6 +47,7 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
           }
         />
       }
+      containerClassName="mx-24"
     >
       <div className="flex flex-col gap-3">
         {data.apiKey.keyValue && (

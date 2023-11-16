@@ -12,6 +12,7 @@ export default function NewAccountApiKey(): ReactElement {
           description="API Keys can be used to interact with Neosync programmatically"
         />
       }
+      containerClassName="mx-24"
     >
       <NewApiKeyForm />
     </OverviewContainer>
