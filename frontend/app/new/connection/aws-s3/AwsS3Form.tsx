@@ -214,7 +214,6 @@ export default function AwsS3Form() {
                 <FormControl>
                   <Input placeholder="Access Key Id" {...field} />
                 </FormControl>
-                <FormDescription>Access Key Id</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
