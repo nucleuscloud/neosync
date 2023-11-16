@@ -2,14 +2,17 @@ package auth_apikey
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/stretchr/testify/mock"
 	"github.com/zeebo/assert"
 )
@@ -28,8 +31,11 @@ func Test_Client_InjectTokenCtx(t *testing.T) {
 	client := New(mockQuerier, mockDbTx)
 
 	fakeToken := apikey.NewV1AccountKey()
+	expiresAt, err := nucleusdb.ToTimestamp(time.Now().Add(5 * time.Minute))
+	assert.NoError(t, err)
 	apiKeyRecord := db_queries.NeosyncApiAccountApiKey{
-		ID: pgtype.UUID{Valid: true},
+		ID:        pgtype.UUID{Valid: true},
+		ExpiresAt: expiresAt,
 	}
 	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, fakeToken).
 		Return(apiKeyRecord, nil)
@@ -51,6 +57,30 @@ func Test_Client_InjectTokenCtx(t *testing.T) {
 			ApiKey:   &apiKeyRecord,
 		},
 	)
+}
+
+func Test_Client_InjectTokenCtx_Expired(t *testing.T) {
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockDbTx := db_queries.NewMockDBTX(t)
+
+	client := New(mockQuerier, mockDbTx)
+
+	fakeToken := apikey.NewV1AccountKey()
+	expiresAt, err := nucleusdb.ToTimestamp(time.Now().Add(-5 * time.Second))
+	assert.NoError(t, err)
+	apiKeyRecord := db_queries.NeosyncApiAccountApiKey{
+		ID:        pgtype.UUID{Valid: true},
+		ExpiresAt: expiresAt,
+	}
+	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, fakeToken).
+		Return(apiKeyRecord, nil)
+
+	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
+		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
+	})
+	assert.Error(t, err)
+	assert.True(t, errors.Is(err, ApiKeyExpiredErr))
+	assert.Nil(t, newctx)
 }
 
 func Test_Client_InjectTokenCtx_InvalidHeader(t *testing.T) {
