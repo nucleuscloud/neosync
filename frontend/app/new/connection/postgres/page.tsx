@@ -8,7 +8,7 @@ export default async function Postgres() {
       Header={
         <PageHeader
           header="PostgreSQL"
-          description="Configure a PostgreSQL data connection"
+          description="Configure a PostgreSQL database as a connection"
           pageHeaderContainerClassName="mx-64"
         />
       }

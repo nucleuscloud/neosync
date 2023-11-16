@@ -1,5 +1,9 @@
 'use client';
-import { useAccount } from '@/components/providers/account-provider';
+import FormError from '@/components/FormError';
+import {
+  getAccount,
+  useAccount,
+} from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,20 +28,54 @@ import {
   ConnectionConfig,
   CreateConnectionRequest,
   CreateConnectionResponse,
+  IsConnectionNameAvailableResponse,
   PostgresConnection,
   PostgresConnectionConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { SSL_MODES } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ExclamationTriangleIcon, RocketIcon } from '@radix-ui/react-icons';
+import {
+  CheckCircledIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string().required(),
+  connectionName: Yup.string()
+    .required('Connection Name is a required field')
+    .test(
+      'validConnectionName',
+      'Checking Connection Name',
+      async (value, context) => {
+        if (!value || value.length < 3) {
+          return context.createError({
+            message: 'Connection Name must be at least 3 characters long',
+          });
+        }
+        const account = getAccount();
+        if (!account) {
+          return false;
+        }
 
+        try {
+          const res = await isConnectionNameAvailable(value, account.id);
+          if (!res.isAvailable) {
+            return context.createError({
+              message: 'This Connection Name is already taken.',
+            });
+          }
+          return true;
+        } catch (error) {
+          console.error('Error checking connection name availability:', error);
+          return context.createError({
+            message: 'Error validating name availability.',
+          });
+        }
+      }
+    ),
   db: Yup.object({
     host: Yup.string().required(),
     name: Yup.string().required(),
@@ -95,22 +133,35 @@ export default function PostgresForm() {
       console.error(err);
     }
   }
+
   return (
     <div className="mx-64">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
+          <Controller
             control={form.control}
             name="connectionName"
-            render={({ field }) => (
+            render={({ field: { onChange, ...field } }) => (
               <FormItem>
                 <FormLabel>Connection Name</FormLabel>
                 <FormDescription>
                   The unique name of the connection.
                 </FormDescription>
                 <FormControl>
-                  <Input placeholder="Connection Name" {...field} />
+                  <Input
+                    placeholder="Connection Name"
+                    {...field}
+                    onChange={async ({ target: { value } }) => {
+                      onChange(value);
+                      await form.trigger('connectionName');
+                    }}
+                  />
                 </FormControl>
+                <FormError
+                  errorMessage={
+                    form.formState.errors.connectionName?.message ?? ''
+                  }
+                />
                 <FormMessage />
               </FormItem>
             )}
@@ -203,7 +254,7 @@ export default function PostgresForm() {
                 <FormControl>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Source" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {SSL_MODES.map((mode) => (
@@ -225,6 +276,7 @@ export default function PostgresForm() {
           <TestConnectionResult resp={checkResp} />
           <div className="flex flex-row gap-3 justify-between">
             <Button
+              variant="outline"
               onClick={async () => {
                 try {
                   const resp = await checkPostgresConnection(
@@ -263,7 +315,7 @@ function TestConnectionResult(props: TestConnectionResultProps): ReactElement {
     if (resp.isConnected) {
       return (
         <SuccessAlert
-          title="Woohoo!"
+          title="Success!"
           description="Successfully connected to database!"
         />
       );
@@ -287,8 +339,8 @@ interface SuccessAlertProps {
 function SuccessAlert(props: SuccessAlertProps): ReactElement {
   const { title, description } = props;
   return (
-    <Alert>
-      <RocketIcon className="h-4 w-4" />
+    <Alert variant="success">
+      <CheckCircledIcon className="h-4 w-4" />
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription>{description}</AlertDescription>
     </Alert>
@@ -367,4 +419,24 @@ async function checkPostgresConnection(
     throw new Error(body.message);
   }
   return CheckConnectionConfigResponse.fromJson(await res.json());
+}
+
+export async function isConnectionNameAvailable(
+  name: string,
+  accountId: string
+): Promise<IsConnectionNameAvailableResponse> {
+  const res = await fetch(
+    `/api/connections/is-connection-name-available?connectionName=${name}&accountId=${accountId}`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json',
+      },
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return IsConnectionNameAvailableResponse.fromJson(await res.json());
 }
