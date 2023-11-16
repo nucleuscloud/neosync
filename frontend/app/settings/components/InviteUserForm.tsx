@@ -1,6 +1,7 @@
 'use client';
 
 import ButtonText from '@/components/ButtonText';
+import { CopyButton } from '@/components/CopyButton';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
+import { useGetInviteLink } from '@/libs/hooks/useGetInviteLink';
 import {
   InviteUserToTeamAccountRequest,
   InviteUserToTeamAccountResponse,
@@ -30,7 +32,6 @@ import { DialogClose } from '@radix-ui/react-dialog';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useCopyToClipboard } from 'usehooks-ts';
 import * as Yup from 'yup';
 
 const FORM_SCHEMA = Yup.object({
@@ -150,8 +151,7 @@ interface InviteCreatedDialogProps {
 
 function InviteCreatedDialog(props: InviteCreatedDialogProps): ReactElement {
   const { open, setOpen, token } = props;
-  const [, copyFn] = useCopyToClipboard();
-  const link = `http://localhost:3000/invite?token=${token}`;
+  const link = useGetInviteLink(token);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -166,18 +166,12 @@ function InviteCreatedDialog(props: InviteCreatedDialogProps): ReactElement {
         </DialogHeader>
         <div className="flex flex-row gap-2">
           <Input value={link} readOnly />
-          <Button
-            variant="secondary"
-            className="shrink-0"
-            onClick={() => {
-              copyFn(link)
-                .then(() => {})
-                .catch((err) => console.error(err));
-            }}
-            type="button"
-          >
-            Copy Link
-          </Button>
+          <CopyButton
+            buttonVariant="outline"
+            textToCopy={link}
+            onCopiedText="Success!"
+            onHoverText="Copy the invite link"
+          />
         </div>
         <DialogFooter>
           <DialogClose asChild>

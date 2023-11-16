@@ -3,7 +3,6 @@
 import {
   ColumnDef,
   ColumnFiltersState,
-  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -15,15 +14,10 @@ import {
 } from '@tanstack/react-table';
 import * as React from 'react';
 
+import { CopyButton } from '@/components/CopyButton';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -35,11 +29,11 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountInvites } from '@/libs/hooks/useGetAccountInvites';
+import { useGetInviteLink } from '@/libs/hooks/useGetInviteLink';
 import { AccountInvite } from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
-import { useCopyToClipboard } from 'usehooks-ts';
+import { TrashIcon } from '@radix-ui/react-icons';
 import InviteUserForm from './InviteUserForm';
 
 interface ColumnProps {
@@ -85,13 +79,18 @@ function getColumns(
     },
     {
       id: 'actions',
-      cell: ({ row }) => (
-        <DataTableRowActions
-          accountId={accountId}
-          row={row}
-          onDeleted={() => onDeleted(row.id)}
-        />
-      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex flex-row gap-2">
+            <CopyInviteButton token={row.original.token} />
+            <DeleteInviteButton
+              accountId={accountId}
+              onDeleted={onDeleted}
+              inviteId={row.original.id}
+            />
+          </div>
+        );
+      },
     },
   ];
 }
@@ -221,28 +220,26 @@ function DataTable(props: DataTableProps): React.ReactElement {
   );
 }
 
-interface DataTableRowActionsProps<TData> {
-  row: Row<TData>;
-  onDeleted(): void;
+interface DeleteInviteButtonProps {
+  inviteId: string;
+  onDeleted(id: string): void;
   accountId: string;
 }
 
-function DataTableRowActions<TData>({
-  row,
+function DeleteInviteButton({
+  inviteId,
   onDeleted,
   accountId,
-}: DataTableRowActionsProps<TData>) {
-  const invite = row.original as AccountInvite;
+}: DeleteInviteButtonProps) {
   const { toast } = useToast();
-  const [, copyFn] = useCopyToClipboard();
 
   async function onRemove(): Promise<void> {
     try {
-      await deleteAccountInvite(accountId, invite.id);
+      await deleteAccountInvite(accountId, inviteId);
       toast({
         title: 'Invite deleted successfully!',
       });
-      onDeleted();
+      onDeleted(inviteId);
     } catch (err) {
       console.error(err);
       toast({
@@ -254,39 +251,33 @@ function DataTableRowActions<TData>({
   }
 
   return (
-    <DropdownMenu
-      modal={false} // needed because otherwise this breaks after a single use in conjunction with the delete dialog
-    >
-      <DropdownMenuTrigger className="hover:bg-gray-100 py-1 px-2 rounded-lg">
-        <DotsHorizontalIcon className="h-4 w-4" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem
-          className="cursor-pointer"
-          onClick={() => {
-            copyFn(`http://localhost:3000/invite?token=${invite.token}`)
-              .then(() => {})
-              .catch((err) => console.error(err));
-          }}
-        >
-          Copy Link
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DeleteConfirmationDialog
-          trigger={
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onSelect={(e) => e.preventDefault()} // needed for the delete modal to not automatically close
-            >
-              Remove
-            </DropdownMenuItem>
-          }
-          headerText="Are you sure you want to delete this invite?"
-          description=""
-          onConfirm={() => onRemove()}
-        />
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <DeleteConfirmationDialog
+      trigger={
+        <Button variant="destructive" size="icon">
+          <TrashIcon />
+        </Button>
+      }
+      headerText="Are you sure you want to delete this invite?"
+      description=""
+      onConfirm={async () => onRemove()}
+    />
+  );
+}
+
+interface CopyInviteButtonProps {
+  token: string;
+}
+
+function CopyInviteButton({ token }: CopyInviteButtonProps) {
+  const link = useGetInviteLink(token);
+
+  return (
+    <CopyButton
+      buttonVariant="outline"
+      textToCopy={link}
+      onCopiedText="Success!"
+      onHoverText="Copy the invite link"
+    />
   );
 }
 
