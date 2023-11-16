@@ -178,7 +178,10 @@ export default function NewApiKeyForm(): ReactElement {
                 </SelectContent>
               </Select>
               <FormDescription>
-                The time that this API key will expire.
+                <p>
+                  The token will expire on{' '}
+                  {format(form.getValues().expiresAt, 'PPP')}
+                </p>
               </FormDescription>
               <FormMessage />
             </FormItem>
