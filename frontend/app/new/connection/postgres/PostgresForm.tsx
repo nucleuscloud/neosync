@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from '@/components/ui/use-toast';
 import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
@@ -35,6 +36,7 @@ import {
   PostgresConnection,
   PostgresConnectionConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { getErrorMessage } from '@/util/util';
 import { SSL_MODES } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -138,6 +140,10 @@ export default function PostgresForm() {
         values.connectionName,
         account.id
       );
+      toast({
+        title: 'Successfully created connection!',
+        variant: 'success',
+      });
 
       const returnTo = searchParams.get('returnTo');
       if (returnTo) {
@@ -149,6 +155,11 @@ export default function PostgresForm() {
       }
     } catch (err) {
       console.error('Error in form submission:', err);
+      toast({
+        title: 'Unable to create connection',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
     }
   }
 
@@ -230,7 +241,6 @@ export default function PostgresForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {' '}
                   <RequiredLabel />
                   Database Name
                 </FormLabel>
@@ -249,7 +259,6 @@ export default function PostgresForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {' '}
                   <RequiredLabel />
                   Database Username
                 </FormLabel>
@@ -268,7 +277,6 @@ export default function PostgresForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {' '}
                   <RequiredLabel />
                   Database Password
                 </FormLabel>
@@ -376,7 +384,7 @@ function TestConnectionResult(props: TestConnectionResultProps): ReactElement {
       return (
         <SuccessAlert
           title="Success!"
-          description="Successfully connected to database!"
+          description="Successfully connected to the database!"
         />
       );
     } else {
