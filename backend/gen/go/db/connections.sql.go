@@ -195,20 +195,26 @@ func (q *Queries) RemoveConnectionByNameAndAccount(ctx context.Context, db DBTX,
 
 const updateConnection = `-- name: UpdateConnection :one
 UPDATE neosync_api.connections
-SET connection_config = $1,
-updated_by_id = $2
-WHERE id = $3
+SET name = $1, connection_config = $2,
+updated_by_id = $3
+WHERE id = $4
 RETURNING id, created_at, updated_at, name, account_id, connection_config, created_by_id, updated_by_id
 `
 
 type UpdateConnectionParams struct {
+	Name             string
 	ConnectionConfig *pg_models.ConnectionConfig
 	UpdatedByID      pgtype.UUID
 	ID               pgtype.UUID
 }
 
 func (q *Queries) UpdateConnection(ctx context.Context, db DBTX, arg UpdateConnectionParams) (NeosyncApiConnection, error) {
-	row := db.QueryRow(ctx, updateConnection, arg.ConnectionConfig, arg.UpdatedByID, arg.ID)
+	row := db.QueryRow(ctx, updateConnection,
+		arg.Name,
+		arg.ConnectionConfig,
+		arg.UpdatedByID,
+		arg.ID,
+	)
 	var i NeosyncApiConnection
 	err := row.Scan(
 		&i.ID,

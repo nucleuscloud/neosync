@@ -198,6 +198,7 @@ func (s *Service) UpdateConnection(
 		ID:               connection.ID,
 		ConnectionConfig: cc,
 		UpdatedByID:      *userUuid,
+		Name:             req.Msg.Name,
 	})
 	if err != nil {
 		return nil, err
