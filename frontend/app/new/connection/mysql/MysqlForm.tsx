@@ -3,10 +3,7 @@ import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import {
-  getAccount,
-  useAccount,
-} from '@/components/providers/account-provider';
+import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +16,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import {
   CheckConnectionConfigRequest,
@@ -30,6 +34,11 @@ import {
   MysqlConnectionConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { getErrorMessage } from '@/util/util';
+import {
+  MYSQL_CONNECTION_PROTOCOLS,
+  MYSQL_FORM_SCHEMA,
+  MysqlFormValues,
+} from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckCircledIcon,
@@ -38,64 +47,11 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-import { isConnectionNameAvailable } from '../postgres/PostgresForm';
-
-const FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string()
-    .required('Connection Name is a required field.')
-    .test(
-      'validConnectionName',
-      'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
-      async (value, context) => {
-        if (!value || value.length < 3) {
-          return false;
-        }
-        const regex = /^[a-z0-9-]+$/;
-        if (!regex.test(value)) {
-          return context.createError({
-            message:
-              'Connection Name can only include lowercase letters, numbers, and hyphens.',
-          });
-        }
-
-        const account = getAccount();
-        if (!account) {
-          return false;
-        }
-
-        try {
-          const res = await isConnectionNameAvailable(value, account.id);
-          if (!res.isAvailable) {
-            return context.createError({
-              message: 'This Connection Name is already taken.',
-            });
-          }
-          return true;
-        } catch (error) {
-          return context.createError({
-            message: 'Error validating name availability.',
-          });
-        }
-      }
-    ),
-
-  db: Yup.object({
-    host: Yup.string().required(),
-    name: Yup.string().required(),
-    user: Yup.string().required(),
-    pass: Yup.string().required(),
-    port: Yup.number().integer().positive().required(),
-    protocol: Yup.string().required(),
-  }).required(),
-});
-
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function MysqlForm() {
   const { account } = useAccount();
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+  const form = useForm<MysqlFormValues>({
+    resolver: yupResolver(MYSQL_FORM_SCHEMA),
     defaultValues: {
       connectionName: '',
       db: {
@@ -116,7 +72,7 @@ export default function MysqlForm() {
 
   const [isTesting, setIsTesting] = useState<boolean>(false);
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: MysqlFormValues) {
     if (!account) {
       return;
     }
@@ -218,7 +174,7 @@ export default function MysqlForm() {
                   <RequiredLabel />
                   Database Port
                 </FormLabel>
-                <FormDescription>The database port.</FormDescription>
+                <FormDescription>The database port</FormDescription>
                 <FormControl>
                   <Input placeholder="5432" {...field} />
                 </FormControl>
@@ -280,16 +236,35 @@ export default function MysqlForm() {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="db.protocol"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Protocpol</FormLabel>
-                <FormDescription>Connection protocol</FormDescription>
+                <FormLabel>
+                  <RequiredLabel />
+                  Connection Protocol
+                </FormLabel>
+                <FormDescription>
+                  The protocol that you want to use to connect to your database
+                </FormDescription>
                 <FormControl>
-                  <Input placeholder="tcp" {...field} />
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MYSQL_CONNECTION_PROTOCOLS.map((mode) => (
+                        <SelectItem
+                          className="cursor-pointer"
+                          key={mode}
+                          value={mode}
+                        >
+                          {mode}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -401,7 +376,7 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 }
 
 async function createMysqlConnection(
-  db: FormValues['db'],
+  db: MysqlFormValues['db'],
   name: string,
   accountId: string
 ): Promise<CreateConnectionResponse> {
@@ -442,8 +417,8 @@ async function createMysqlConnection(
   return CreateConnectionResponse.fromJson(await res.json());
 }
 
-async function checkMysqlConnection(
-  db: FormValues['db']
+export async function checkMysqlConnection(
+  db: MysqlFormValues['db']
 ): Promise<CheckConnectionConfigResponse> {
   const res = await fetch(`/api/connections/check`, {
     method: 'POST',

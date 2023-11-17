@@ -3,10 +3,7 @@ import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import {
-  getAccount,
-  useAccount,
-} from '@/components/providers/account-provider';
+import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,7 +34,11 @@ import {
   PostgresConnectionConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { getErrorMessage } from '@/util/util';
-import { SSL_MODES } from '@/yup-validations/connections';
+import {
+  POSTGRES_FORM_SCHEMA,
+  PostgresFormValues,
+  SSL_MODES,
+} from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckCircledIcon,
@@ -46,62 +47,11 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string()
-    .required('Connection Name is a required field')
-    .test(
-      'validConnectionName',
-      'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
-      async (value, context) => {
-        if (!value || value.length < 3) {
-          return false;
-        }
-        const regex = /^[a-z0-9-]+$/;
-        if (!regex.test(value)) {
-          return context.createError({
-            message:
-              'Connection Name can only include lowercase letters, numbers, and hyphens.',
-          });
-        }
-
-        const account = getAccount();
-        if (!account) {
-          return false;
-        }
-
-        try {
-          const res = await isConnectionNameAvailable(value, account.id);
-          if (!res.isAvailable) {
-            return context.createError({
-              message: 'This Connection Name is already taken.',
-            });
-          }
-          return true;
-        } catch (error) {
-          return context.createError({
-            message: 'Error validating name availability.',
-          });
-        }
-      }
-    ),
-  db: Yup.object({
-    host: Yup.string().required(),
-    name: Yup.string().required(),
-    user: Yup.string().required(),
-    pass: Yup.string().required(),
-    port: Yup.number().integer().positive().required(),
-    sslMode: Yup.string().optional(),
-  }).required(),
-});
-
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function PostgresForm() {
   const { account } = useAccount();
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+  const form = useForm<PostgresFormValues>({
+    resolver: yupResolver(POSTGRES_FORM_SCHEMA),
     defaultValues: {
       connectionName: '',
       db: {
@@ -122,7 +72,7 @@ export default function PostgresForm() {
 
   const [isTesting, setIsTesting] = useState<boolean>(false);
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: PostgresFormValues) {
     if (!account) {
       return;
     }
@@ -431,7 +381,7 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
   );
 }
 async function createPostgresConnection(
-  db: FormValues['db'],
+  db: PostgresFormValues['db'],
   name: string,
   accountId: string
 ): Promise<CreateConnectionResponse> {
@@ -473,7 +423,7 @@ async function createPostgresConnection(
 }
 
 async function checkPostgresConnection(
-  db: FormValues['db']
+  db: PostgresFormValues['db']
 ): Promise<CheckConnectionConfigResponse> {
   const res = await fetch(`/api/connections/postgres/check`, {
     method: 'POST',

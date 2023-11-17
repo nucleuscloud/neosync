@@ -1,10 +1,8 @@
 'use client';
-import { isConnectionNameAvailable } from '@/app/new/connection/postgres/PostgresForm';
 import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import { getAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,73 +30,27 @@ import {
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { SSL_MODES } from '@/yup-validations/connections';
+import {
+  POSTGRES_FORM_SCHEMA,
+  PostgresFormValues,
+  SSL_MODES,
+} from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ExclamationTriangleIcon, RocketIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string()
-    .required('Connection Name is a required field')
-    .test(
-      'validConnectionName',
-      'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
-      async (value, context) => {
-        if (!value || value.length < 3) {
-          return false;
-        }
-        const regex = /^[a-z0-9-]+$/;
-        if (!regex.test(value)) {
-          return context.createError({
-            message:
-              'Connection Name can only include lowercase letters, numbers, and hyphens.',
-          });
-        }
-
-        const account = getAccount();
-        if (!account) {
-          return false;
-        }
-
-        try {
-          const res = await isConnectionNameAvailable(value, account.id);
-          if (!res.isAvailable) {
-            return context.createError({
-              message: 'This Connection Name is already taken.',
-            });
-          }
-          return true;
-        } catch (error) {
-          return context.createError({
-            message: 'Error validating name availability.',
-          });
-        }
-      }
-    ),
-  db: Yup.object({
-    host: Yup.string().required(),
-    name: Yup.string().required(),
-    user: Yup.string().required(),
-    pass: Yup.string().required(),
-    port: Yup.number().integer().positive().required(),
-    sslMode: Yup.string().optional(),
-  }).required(),
-});
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 interface Props {
   connectionId: string;
-  defaultValues: FormValues;
+  defaultValues: PostgresFormValues;
   onSaved(updatedConnectionResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
 }
 
 export default function PostgresForm(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+  const form = useForm<PostgresFormValues>({
+    resolver: yupResolver(POSTGRES_FORM_SCHEMA),
     defaultValues: {
       connectionName: '',
       db: {
@@ -118,10 +70,9 @@ export default function PostgresForm(props: Props) {
 
   const [isTesting, setIsTesting] = useState<boolean>(false);
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: PostgresFormValues) {
     try {
       const checkResp = await checkPostgresConnection(values.db);
-      setCheckResp(checkResp);
 
       if (!checkResp.isConnected) {
         return;
@@ -399,7 +350,7 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 
 async function updatePostgresConnection(
   connectionId: string,
-  db: FormValues['db']
+  db: PostgresFormValues['db']
 ): Promise<UpdateConnectionResponse> {
   const res = await fetch(`/api/connections/${connectionId}`, {
     method: 'PUT',
@@ -438,7 +389,7 @@ async function updatePostgresConnection(
 }
 
 async function checkPostgresConnection(
-  db: FormValues['db']
+  db: PostgresFormValues['db']
 ): Promise<CheckConnectionConfigResponse> {
   const res = await fetch(`/api/connections/postgres/check`, {
     method: 'POST',
