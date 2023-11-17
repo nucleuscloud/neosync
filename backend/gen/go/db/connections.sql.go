@@ -134,6 +134,39 @@ func (q *Queries) GetConnectionsByAccount(ctx context.Context, db DBTX, accounti
 	return items, nil
 }
 
+const getConnectionsByIds = `-- name: GetConnectionsByIds :many
+SELECT id, created_at, updated_at, name, account_id, connection_config, created_by_id, updated_by_id from neosync_api.connections WHERE id = ANY($1::uuid[])
+`
+
+func (q *Queries) GetConnectionsByIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiConnection, error) {
+	rows, err := db.Query(ctx, getConnectionsByIds, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []NeosyncApiConnection
+	for rows.Next() {
+		var i NeosyncApiConnection
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Name,
+			&i.AccountID,
+			&i.ConnectionConfig,
+			&i.CreatedByID,
+			&i.UpdatedByID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const isConnectionInAccount = `-- name: IsConnectionInAccount :one
 SELECT count(c.id) from neosync_api.connections c
 INNER JOIN neosync_api.accounts a ON a.id = c.account_id

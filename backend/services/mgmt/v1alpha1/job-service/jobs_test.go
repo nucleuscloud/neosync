@@ -107,7 +107,11 @@ type MockScheduleClient struct {
 }
 
 func (_m *MockScheduleClient) Create(ctx context.Context, options temporal.ScheduleOptions) (temporal.ScheduleHandle, error) {
-	return nil, nil
+	args := _m.Called(ctx, options)
+	if h := args.Get(0); h != nil {
+		return h.(temporal.ScheduleHandle), args.Error(1)
+	}
+	return nil, args.Error(1)
 }
 
 func (_m *MockScheduleClient) List(ctx context.Context, options temporal.ScheduleListOptions) (temporal.ScheduleListIterator, error) {
@@ -414,8 +418,8 @@ func Test_CreateJob(t *testing.T) {
 
 	cronSchedule := "* * * * *"
 	whereClause := "where"
-	jobName := "test-job"
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
 	srcConn := getConnectionMock(mockAccountId, "test-4", nil)
 	destConn := getConnectionMock(mockAccountId, "test-1", nil)
@@ -449,59 +453,56 @@ func Test_CreateJob(t *testing.T) {
 	mockTx.On("Rollback", mock.Anything).Return(nil)
 	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, srcConn.ID).Return(srcConn, nil)
 	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, destConn.ID).Return(destConn, nil)
-	m.QuerierMock.On("GetTemporalConfigByAccount", context.Background(), mock.Anything, accountUuid).Return(&pg_models.TemporalConfig{Namespace: "namespace"}, nil)
+	m.QuerierMock.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, accountUuid).Return(&pg_models.TemporalConfig{Namespace: "namespace"}, nil)
 	mockNamespaceClient := new(MockNamespaceClient)
 	m.TemporalWfManagerMock.On("GetNamespaceClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(mockNamespaceClient, nil)
 	mockNamespaceClient.On("Describe", mock.Anything, "namespace").Return(&workflowservice.DescribeNamespaceResponse{}, nil)
-	m.TemporalWfManagerMock.On("GetScheduleClientByAccount", mock.Anything, mock.Anything, mock.Anything).Return(mockScheduleClient, nil)
+	m.TemporalWfManagerMock.On("GetScheduleClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(mockScheduleClient, nil)
 	mockScheduleClient.On("Create", mock.Anything, mock.Anything).Return(mockHandle, nil)
-	// mockHandle.On("Trigger", mock.Anything, mock.Anything).Return(nil)
+	mockHandle.On("Trigger", mock.Anything, mock.Anything).Return(nil)
+	mockHandle.On("GetID").Return(nucleusdb.UUIDString(job1.ID))
 
-	// mockHandle.On("GetID").Return(nucleusdb.UUIDString(job1.ID))
-
-	m.QuerierMock.On("CreateJob", mock.Anything, mockTx, mock.Anything).Return(job1, nil)
+	m.QuerierMock.On("CreateJob", mock.Anything, mockTx, db_queries.CreateJobParams{
+		Name:               job1.Name,
+		AccountID:          accountUuid,
+		Status:             int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
+		CronSchedule:       cron,
+		ConnectionSourceID: srcConn.ID,
+		ConnectionOptions: &pg_models.JobSourceOptions{
+			PostgresOptions: &pg_models.PostgresSourceOptions{
+				HaltOnNewColumnAddition: true,
+				Schemas: []*pg_models.PostgresSourceSchemaOption{
+					{Schema: "schema-1", Tables: []*pg_models.PostgresSourceTableOption{
+						{Table: "table-1", WhereClause: &whereClause},
+					}},
+					{Schema: "schema-2", Tables: []*pg_models.PostgresSourceTableOption{
+						{Table: "table-2", WhereClause: &whereClause},
+					}},
+				},
+			},
+		},
+		Mappings: []*pg_models.JobMapping{
+			{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &pg_models.Transformer{
+				Value:  "passthrough",
+				Config: &pg_models.TransformerConfigs{},
+			}},
+			{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &pg_models.Transformer{
+				Value:  "passthrough",
+				Config: &pg_models.TransformerConfigs{},
+			}},
+		},
+		CreatedByID: userUuid,
+		UpdatedByID: userUuid,
+	}).Return(job1, nil)
 	m.QuerierMock.On("CreateJobConnectionDestinations", mock.Anything, mockTx, destinationParams).Return(int64(1), nil)
-	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, mock.Anything).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation}, nil)
-
-	// m.QuerierMock.On("CreateJob", mock.Anything, mock.Anything, &db_queries.CreateJobParams{
-	// 	Name:               jobName,
-	// 	AccountID:          accountUuid,
-	// 	Status:             int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
-	// 	CronSchedule:       cron,
-	// 	ConnectionSourceID: srcConn.ID,
-	// 	ConnectionOptions: &pg_models.JobSourceOptions{
-	// 		PostgresOptions: &pg_models.PostgresSourceOptions{
-	// 			HaltOnNewColumnAddition: true,
-	// 			Schemas: []*pg_models.PostgresSourceSchemaOption{
-	// 				{Schema: "schema-1", Tables: []*pg_models.PostgresSourceTableOption{
-	// 					{Table: "table-1", WhereClause: &whereClause},
-	// 				}},
-	// 				{Schema: "schema-2", Tables: []*pg_models.PostgresSourceTableOption{
-	// 					{Table: "table-2", WhereClause: &whereClause},
-	// 				}},
-	// 			},
-	// 		},
-	// 	},
-	// 	Mappings: []*pg_models.JobMapping{
-	// 		{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &pg_models.Transformer{
-	// 			Value:  "passthrough",
-	// 			Config: &pg_models.TransformerConfigs{},
-	// 		}},
-	// 		{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &pg_models.Transformer{
-	// 			Value:  "passthrough",
-	// 			Config: &pg_models.TransformerConfigs{},
-	// 		}},
-	// 	},
-	// 	CreatedByID: userUuid,
-	// 	UpdatedByID: userUuid,
-	// }).Return(db_queries.NeosyncApiJob{ID: job1.ID}, nil)
+	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job1.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation}, nil)
 
 	resp, err := m.Service.CreateJob(context.Background(), &connect.Request[mgmtv1alpha1.CreateJobRequest]{
 		Msg: &mgmtv1alpha1.CreateJobRequest{
 			AccountId:      mockAccountId,
-			JobName:        jobName,
+			JobName:        job1.Name,
 			CronSchedule:   &cronSchedule,
-			InitiateJobRun: false,
+			InitiateJobRun: true,
 			Source: &mgmtv1alpha1.JobSource{
 				ConnectionId: nucleusdb.UUIDString(srcConn.ID),
 				Options: &mgmtv1alpha1.JobSourceOptions{
@@ -549,6 +550,148 @@ func Test_CreateJob(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
+}
+
+// CreateJobDestinationConnections
+func Test_CreateJobDestinationConnections(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockHandle := new(MockScheduleHandle)
+	mockScheduleClient := new(MockScheduleClient)
+	mockScheduleClient.Handle = mockHandle
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	destConn := getConnectionMock(mockAccountId, "test-1", nil)
+	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("GetConnectionsByIds", mock.Anything, mock.Anything, []pgtype.UUID{destConn.ID}).Return([]db_queries.NeosyncApiConnection{destConn}, nil)
+	m.QuerierMock.On("CreateJobConnectionDestinations", mock.Anything, mock.Anything, []db_queries.CreateJobConnectionDestinationsParams{
+		{
+			JobID:        job.ID,
+			ConnectionID: destConn.ID,
+			Options: &pg_models.JobDestinationOptions{
+				PostgresOptions: &pg_models.PostgresDestinationOptions{
+					TruncateTableConfig: &pg_models.PostgresTruncateTableConfig{
+						TruncateBeforeInsert: true,
+						TruncateCascade:      true,
+					},
+					InitTableSchema: true,
+				},
+			},
+		},
+	}).Return(int64(1), nil)
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation}, nil)
+
+	jobId := nucleusdb.UUIDString(job.ID)
+
+	resp, err := m.Service.CreateJobDestinationConnections(context.Background(), &connect.Request[mgmtv1alpha1.CreateJobDestinationConnectionsRequest]{
+		Msg: &mgmtv1alpha1.CreateJobDestinationConnectionsRequest{
+			JobId: jobId,
+			Destinations: []*mgmtv1alpha1.CreateJobDestination{{
+				ConnectionId: nucleusdb.UUIDString(destConn.ID),
+				Options: &mgmtv1alpha1.JobDestinationOptions{
+					Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+						PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+							TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+								TruncateBeforeInsert: true,
+								Cascade:              true,
+							},
+							InitTableSchema: true,
+						},
+					},
+				},
+			}},
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
+}
+
+func Test_CreateJobDestinationConnections_ConnectionNotInAccount(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockHandle := new(MockScheduleHandle)
+	mockScheduleClient := new(MockScheduleClient)
+	mockScheduleClient.Handle = mockHandle
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	destConn := getConnectionMock(uuid.NewString(), "test-1", nil)
+	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
+
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("GetConnectionsByIds", mock.Anything, mock.Anything, []pgtype.UUID{destConn.ID}).Return([]db_queries.NeosyncApiConnection{destConn}, nil)
+	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation}, nil)
+
+	jobId := nucleusdb.UUIDString(job.ID)
+
+	resp, err := m.Service.CreateJobDestinationConnections(context.Background(), &connect.Request[mgmtv1alpha1.CreateJobDestinationConnectionsRequest]{
+		Msg: &mgmtv1alpha1.CreateJobDestinationConnectionsRequest{
+			JobId: jobId,
+			Destinations: []*mgmtv1alpha1.CreateJobDestination{{
+				ConnectionId: nucleusdb.UUIDString(destConn.ID),
+				Options: &mgmtv1alpha1.JobDestinationOptions{
+					Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+						PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+							TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+								TruncateBeforeInsert: true,
+								Cascade:              true,
+							},
+							InitTableSchema: true,
+						},
+					},
+				},
+			}},
+		},
+	})
+
+	m.QuerierMock.AssertNotCalled(t, "CreateJobConnectionDestinations", mock.Anything, mock.Anything, mock.Anything)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+// UpdateJobSchedule
+
+func Test_UpdateJobSchedule(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockTx := new(nucleusdb.MockTx)
+
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	destConn := getConnectionMock(mockAccountId, "test-1", nil)
+	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
+	cronSchedule := "* * * * *"
+	cron := pgtype.Text{}
+	cron.Scan(cronSchedule)
+	jobId := nucleusdb.UUIDString(job.ID)
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	m.DbtxMock.On("Begin", mock.Anything).Return(mockTx, nil)
+	mockTx.On("Commit", mock.Anything).Return(nil)
+	mockTx.On("Rollback", mock.Anything).Return(nil)
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("UpdateJobSchedule", mock.Anything, mock.Anything, db_queries.UpdateJobScheduleParams{
+		ID:           job.ID,
+		CronSchedule: cron,
+		UpdatedByID:  userUuid,
+	}).Return(job, nil)
+	mockHandle := new(MockScheduleHandle)
+	m.TemporalWfManagerMock.On("GetScheduleHandleClientByAccount", mock.Anything, mockAccountId, jobId, mock.Anything).Return(mockHandle, nil)
+	mockHandle.On("Update", mock.Anything, mock.Anything).Return(nil)
+	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation}, nil)
+
+	resp, err := m.Service.UpdateJobSchedule(context.Background(), &connect.Request[mgmtv1alpha1.UpdateJobScheduleRequest]{
+		Msg: &mgmtv1alpha1.UpdateJobScheduleRequest{
+			Id:           jobId,
+			CronSchedule: &cronSchedule,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
 }
 
 type serviceMocks struct {
