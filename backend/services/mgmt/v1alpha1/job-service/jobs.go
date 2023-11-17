@@ -431,7 +431,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, req.Msg.AccountId, logger)
+	tScheduleClient, err := s.temporalWfManager.GetScheduleClientByAccount(ctx, req.Msg.AccountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +449,7 @@ func (s *Service) CreateJob(
 		spec.CronExpressions = []string{*schedule}
 		paused = false
 	}
-	scheduleHandle, err := tclient.ScheduleClient().Create(ctx, temporalclient.ScheduleOptions{
+	scheduleHandle, err := tScheduleClient.Create(ctx, temporalclient.ScheduleOptions{
 		ID:     jobUuid,
 		Spec:   spec,
 		Paused: paused,
@@ -463,7 +463,7 @@ func (s *Service) CreateJob(
 		logger.Error(fmt.Errorf("unable to create schedule workflow: %w", err).Error())
 		return nil, err
 	}
-	logger.Info("scheduled workflow", "workflowId", scheduleHandle.GetID())
+	// logger.Info("scheduled workflow", "workflowId", scheduleHandle.GetID())
 
 	if req.Msg.InitiateJobRun {
 		// manually trigger job run
