@@ -1,5 +1,8 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
+import Spinner from '@/components/Spinner';
+import RequiredLabel from '@/components/labels/RequiredLabel';
 import {
   getAccount,
   useAccount,
@@ -48,13 +51,19 @@ const FORM_SCHEMA = Yup.object({
     .required('Connection Name is a required field')
     .test(
       'validConnectionName',
-      'Checking Connection Name',
+      'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
       async (value, context) => {
         if (!value || value.length < 3) {
+          return false;
+        }
+        const regex = /^[a-z0-9-]+$/;
+        if (!regex.test(value)) {
           return context.createError({
-            message: 'Connection Name must be at least 3 characters long',
+            message:
+              'Connection Name can only include lowercase letters, numbers, and hyphens.',
           });
         }
+
         const account = getAccount();
         if (!account) {
           return false;
@@ -110,11 +119,22 @@ export default function PostgresForm() {
     CheckConnectionConfigResponse | undefined
   >();
 
+  const [isTesting, setIsTesting] = useState<boolean>(false);
+
   async function onSubmit(values: FormValues) {
     if (!account) {
+      console.error('Account information is missing');
       return;
     }
+
     try {
+      const checkResp = await checkPostgresConnection(values.db);
+      setCheckResp(checkResp);
+
+      if (!checkResp.isConnected) {
+        return;
+      }
+
       const connection = await createPostgresConnection(
         values.db,
         values.connectionName,
@@ -130,7 +150,7 @@ export default function PostgresForm() {
         router.push(`/connections`);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error in form submission:', err);
     }
   }
 
@@ -143,9 +163,13 @@ export default function PostgresForm() {
             name="connectionName"
             render={({ field: { onChange, ...field } }) => (
               <FormItem>
-                <FormLabel>Connection Name</FormLabel>
+                <FormLabel>
+                  {' '}
+                  <RequiredLabel />
+                  Connection Name
+                </FormLabel>
                 <FormDescription>
-                  The unique name of the connection.
+                  The unique name of the connection
                 </FormDescription>
                 <FormControl>
                   <Input
@@ -172,7 +196,11 @@ export default function PostgresForm() {
             name="db.host"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Host Name</FormLabel>
+                <FormLabel>
+                  {' '}
+                  <RequiredLabel />
+                  Host Name
+                </FormLabel>
                 <FormDescription>The host name</FormDescription>
                 <FormControl>
                   <Input placeholder="Host" {...field} />
@@ -187,8 +215,11 @@ export default function PostgresForm() {
             name="db.port"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Port</FormLabel>
-                <FormDescription>The port of the database</FormDescription>
+                <FormLabel>
+                  <RequiredLabel />
+                  Database Port
+                </FormLabel>
+                <FormDescription>The database port.</FormDescription>
                 <FormControl>
                   <Input placeholder="5432" {...field} />
                 </FormControl>
@@ -202,8 +233,12 @@ export default function PostgresForm() {
             name="db.name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Database Name</FormLabel>
-                <FormDescription>The name of the database</FormDescription>
+                <FormLabel>
+                  {' '}
+                  <RequiredLabel />
+                  Database Name
+                </FormLabel>
+                <FormDescription>The database name</FormDescription>
                 <FormControl>
                   <Input placeholder="postgres" {...field} />
                 </FormControl>
@@ -217,8 +252,12 @@ export default function PostgresForm() {
             name="db.user"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Database Username</FormLabel>
-                <FormDescription>The username</FormDescription>
+                <FormLabel>
+                  {' '}
+                  <RequiredLabel />
+                  Database Username
+                </FormLabel>
+                <FormDescription>The database username</FormDescription>
                 <FormControl>
                   <Input placeholder="postgres" {...field} />
                 </FormControl>
@@ -232,8 +271,12 @@ export default function PostgresForm() {
             name="db.pass"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Database Password</FormLabel>
-                <FormDescription>Password</FormDescription>
+                <FormLabel>
+                  {' '}
+                  <RequiredLabel />
+                  Database Password
+                </FormLabel>
+                <FormDescription>The database password</FormDescription>
                 <FormControl>
                   <Input placeholder="postgres" {...field} />
                 </FormControl>
@@ -247,7 +290,11 @@ export default function PostgresForm() {
             name="db.sslMode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>SSL Mode</FormLabel>
+                <FormLabel>
+                  {' '}
+                  <RequiredLabel />
+                  SSL Mode
+                </FormLabel>
                 <FormDescription>
                   Turn on SSL Mode to use TLS for client/server encryption.
                 </FormDescription>
@@ -278,11 +325,13 @@ export default function PostgresForm() {
             <Button
               variant="outline"
               onClick={async () => {
+                setIsTesting(true);
                 try {
                   const resp = await checkPostgresConnection(
                     form.getValues().db
                   );
                   setCheckResp(resp);
+                  setIsTesting(false);
                 } catch (err) {
                   setCheckResp(
                     new CheckConnectionConfigResponse({
@@ -291,13 +340,27 @@ export default function PostgresForm() {
                         err instanceof Error ? err.message : 'unknown error',
                     })
                   );
+                  setIsTesting(false);
                 }
               }}
               type="button"
             >
-              Test Connection
+              <ButtonText
+                leftIcon={
+                  isTesting ? <Spinner className="text-black" /> : <div></div>
+                }
+                text="Test Connection"
+              />
             </Button>
-            <Button type="submit">Submit</Button>
+
+            <Button type="submit" disabled={!form.formState.isValid}>
+              <ButtonText
+                leftIcon={
+                  form.formState.isSubmitting ? <Spinner /> : <div></div>
+                }
+                text="submit"
+              />
+            </Button>
           </div>
         </form>
       </Form>
