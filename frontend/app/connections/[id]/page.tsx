@@ -33,7 +33,7 @@ export default function ConnectionPage({ params }: PageProps) {
       );
       toast({
         title: 'Successfully updated connection!',
-        variant: 'default',
+        variant: 'success',
       });
     },
     onSaveFailed: (err) =>
