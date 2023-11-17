@@ -36,7 +36,10 @@ import {
   SSL_MODES,
 } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ExclamationTriangleIcon, RocketIcon } from '@radix-ui/react-icons';
+import {
+  CheckCircledIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -79,6 +82,7 @@ export default function PostgresForm(props: Props) {
       }
       const connectionResp = await updatePostgresConnection(
         connectionId,
+        values.connectionName,
         values.db
       );
       onSaved(connectionResp);
@@ -300,8 +304,8 @@ function TestConnectionResult(props: TestConnectionResultProps): ReactElement {
     if (resp.isConnected) {
       return (
         <SuccessAlert
-          title="Woohoo!"
-          description="Successfully connected to database!"
+          title="Success!"
+          description="Successfully connected to the database!"
         />
       );
     } else {
@@ -324,8 +328,8 @@ interface SuccessAlertProps {
 function SuccessAlert(props: SuccessAlertProps): ReactElement {
   const { title, description } = props;
   return (
-    <Alert>
-      <RocketIcon className="h-4 w-4" />
+    <Alert variant="success">
+      <CheckCircledIcon className="h-4 w-4" />
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription>{description}</AlertDescription>
     </Alert>
@@ -350,6 +354,7 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 
 async function updatePostgresConnection(
   connectionId: string,
+  connectionName: string,
   db: PostgresFormValues['db']
 ): Promise<UpdateConnectionResponse> {
   const res = await fetch(`/api/connections/${connectionId}`, {
@@ -360,6 +365,7 @@ async function updatePostgresConnection(
     body: JSON.stringify(
       new UpdateConnectionRequest({
         id: connectionId,
+        name: connectionName,
         connectionConfig: new ConnectionConfig({
           config: {
             case: 'pgConfig',

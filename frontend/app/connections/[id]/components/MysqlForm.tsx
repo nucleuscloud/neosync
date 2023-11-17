@@ -84,6 +84,7 @@ export default function MysqlForm(props: Props) {
 
       const connectionResp = await updateMysqlConnection(
         connectionId,
+        values.connectionName,
         values.db
       );
       onSaved(connectionResp);
@@ -354,6 +355,7 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 
 async function updateMysqlConnection(
   connectionId: string,
+  connectionName: string,
   db: MysqlFormValues['db']
 ): Promise<UpdateConnectionResponse> {
   const res = await fetch(`/api/connections/${connectionId}`, {
@@ -364,6 +366,7 @@ async function updateMysqlConnection(
     body: JSON.stringify(
       new UpdateConnectionRequest({
         id: connectionId,
+        name: connectionName,
         connectionConfig: new ConnectionConfig({
           config: {
             case: 'mysqlConfig',

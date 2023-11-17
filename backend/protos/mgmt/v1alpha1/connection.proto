@@ -31,8 +31,8 @@ message CreateConnectionResponse {
 
 message UpdateConnectionRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-
-  ConnectionConfig connection_config = 2;
+  string name = 2;
+  ConnectionConfig connection_config = 3;
 }
 message UpdateConnectionResponse {
   Connection connection = 1;
