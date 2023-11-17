@@ -314,6 +314,7 @@ func Test_UpdateConnection(t *testing.T) {
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(connection, nil)
 	m.QuerierMock.On("UpdateConnection", context.Background(), mock.Anything, db_queries.UpdateConnectionParams{
 		ID:               connectionUuid,
+		Name:             mockConnectionName,
 		ConnectionConfig: mockConnectionConfig,
 		UpdatedByID:      userUuid,
 	}).Return(connection, nil)
@@ -321,6 +322,7 @@ func Test_UpdateConnection(t *testing.T) {
 	resp, err := m.Service.UpdateConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateConnectionRequest]{
 		Msg: &mgmtv1alpha1.UpdateConnectionRequest{
 			Id:               mockConnectionId,
+			Name:             mockConnectionName,
 			ConnectionConfig: mockMgmtConnConfig,
 		},
 	})
@@ -346,12 +348,14 @@ func Test_UpdateConnection_UpdateError(t *testing.T) {
 	m.QuerierMock.On("UpdateConnection", context.Background(), mock.Anything, db_queries.UpdateConnectionParams{
 		ID:               connectionUuid,
 		ConnectionConfig: mockConnectionConfig,
+		Name:             mockConnectionName,
 		UpdatedByID:      userUuid,
 	}).Return(nilConnection, errors.New("boo"))
 
 	resp, err := m.Service.UpdateConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateConnectionRequest]{
 		Msg: &mgmtv1alpha1.UpdateConnectionRequest{
 			Id:               mockConnectionId,
+			Name:             mockConnectionName,
 			ConnectionConfig: mockMgmtConnConfig,
 		},
 	})
@@ -373,6 +377,7 @@ func Test_UpdateConnection_GetConnectionError(t *testing.T) {
 	resp, err := m.Service.UpdateConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateConnectionRequest]{
 		Msg: &mgmtv1alpha1.UpdateConnectionRequest{
 			Id:               mockConnectionId,
+			Name:             mockConnectionName,
 			ConnectionConfig: mockMgmtConnConfig,
 		},
 	})
@@ -398,6 +403,7 @@ func Test_UpdateConnection_UnverifiedUser(t *testing.T) {
 	resp, err := m.Service.UpdateConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateConnectionRequest]{
 		Msg: &mgmtv1alpha1.UpdateConnectionRequest{
 			Id:               mockConnectionId,
+			Name:             mockConnectionName,
 			ConnectionConfig: mockMgmtConnConfig,
 		},
 	})
