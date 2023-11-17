@@ -78,7 +78,6 @@ const FORM_SCHEMA = Yup.object({
           }
           return true;
         } catch (error) {
-          console.error('Error checking connection name availability:', error);
           return context.createError({
             message: 'Error validating name availability.',
           });
@@ -123,7 +122,6 @@ export default function PostgresForm() {
 
   async function onSubmit(values: FormValues) {
     if (!account) {
-      console.error('Account information is missing');
       return;
     }
 
@@ -164,7 +162,6 @@ export default function PostgresForm() {
             render={({ field: { onChange, ...field } }) => (
               <FormItem>
                 <FormLabel>
-                  {' '}
                   <RequiredLabel />
                   Connection Name
                 </FormLabel>
@@ -197,7 +194,6 @@ export default function PostgresForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {' '}
                   <RequiredLabel />
                   Host Name
                 </FormLabel>
@@ -324,6 +320,7 @@ export default function PostgresForm() {
           <div className="flex flex-row gap-3 justify-between">
             <Button
               variant="outline"
+              disabled={!form.formState.isValid}
               onClick={async () => {
                 setIsTesting(true);
                 try {
