@@ -69,6 +69,7 @@ export default function ViewSystemTransformers({
           extraHeading={<NewTransformerButton />}
         />
       }
+      containerClassName="mx-64"
     >
       <Form {...form}>
         <form className="space-y-8">
