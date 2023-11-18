@@ -10,10 +10,10 @@ export default async function Postgres() {
         <PageHeader
           header="Mysql"
           description="Configure a Mysql database as a connection"
-          pageHeaderContainerClassName="mx-64"
           leftIcon={<DiMysql className="w-[40px] h-[40px]" />}
         />
       }
+      containerClassName="px-12 md:px-24 lg:px-32"
     >
       <MysqlForm />
     </OverviewContainer>

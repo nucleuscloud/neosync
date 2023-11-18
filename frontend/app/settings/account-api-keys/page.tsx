@@ -19,7 +19,7 @@ export default function ApiKeys(): ReactElement {
       Header={
         <PageHeader header="API Keys" extraHeading={<NewApiKeyButton />} />
       }
-      containerClassName="apikeys-settings-page mx-24"
+      containerClassName="apikeys-settings-page"
     >
       <div className="flex flex-col gap-4">
         <div>

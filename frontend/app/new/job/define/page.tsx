@@ -67,7 +67,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, []);
 
   return (
-    <div className="mx-64">
+    <div id="newjobdefine" className="px-12 md:px-24 lg:px-32">
       <OverviewContainer
         Header={
           <PageHeader

@@ -10,10 +10,10 @@ export default async function Postgres() {
         <PageHeader
           header="PostgreSQL"
           description="Configure a PostgreSQL database as a connection"
-          pageHeaderContainerClassName="mx-64"
-          leftIcon={<DiPostgresql className="w-[40px] h-[40px]" />}
+          leftIcon={<DiPostgresql className="w-[40px]" />}
         />
       }
+      containerClassName="px-12 md:px-24 lg:px-32"
     >
       <PostgresForm />
     </OverviewContainer>
