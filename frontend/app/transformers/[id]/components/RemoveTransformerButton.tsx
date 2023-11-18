@@ -21,7 +21,7 @@ export default function RemoveTransformerButton(props: Props): ReactElement {
           await removeTransformer(transformerID);
           toast({
             title: 'Successfully removed transformer!',
-            variant: 'default',
+            variant: 'success',
           });
           router.push(`/transformers`);
         } catch (err) {
