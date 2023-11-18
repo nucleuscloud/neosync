@@ -1,4 +1,7 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
+import FormError from '@/components/FormError';
+import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import SwitchCard from '@/components/switches/SwitchCard';
@@ -21,38 +24,16 @@ import {
   CreateConnectionRequest,
   CreateConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string().required(),
-
-  s3: Yup.object({
-    bucketArn: Yup.string().required(),
-    pathPrefix: Yup.string().optional(),
-    region: Yup.string().optional(),
-    endpoint: Yup.string().optional(),
-    credentials: Yup.object({
-      profile: Yup.string().optional(),
-      accessKeyId: Yup.string(),
-      secretAccessKey: Yup.string().optional(),
-      sessionToken: Yup.string().optional(),
-      fromEc2Role: Yup.boolean().optional(),
-      roleArn: Yup.string().optional(),
-      roleExternalId: Yup.string().optional(),
-    }).optional(),
-  }).required(),
-});
-
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function AwsS3Form() {
   const { account } = useAccount();
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+  const form = useForm<AWSFormValues>({
+    resolver: yupResolver(AWS_FORM_SCHEMA),
     defaultValues: {
       connectionName: '',
       s3: {
@@ -63,7 +44,7 @@ export default function AwsS3Form() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: AWSFormValues) {
     if (!account) {
       return;
     }
@@ -98,35 +79,47 @@ export default function AwsS3Form() {
               Right now AWS S3 connections can only be used as a destination
             </AlertDescription>
           </Alert>
-          <FormField
+          <Controller
             control={form.control}
             name="connectionName"
-            disabled={true}
-            render={({ field }) => (
+            render={({ field: { onChange, ...field } }) => (
               <FormItem>
-                <FormLabel>Connection Name</FormLabel>
-                <FormDescription>
+                <FormLabel>
                   <RequiredLabel />
-                  The connection name.
+                  Connection Name
+                </FormLabel>
+                <FormDescription>
+                  The unique name of the connection
                 </FormDescription>
                 <FormControl>
-                  <Input placeholder="Connection Name" {...field} />
+                  <Input
+                    placeholder="Connection Name"
+                    {...field}
+                    onChange={async ({ target: { value } }) => {
+                      onChange(value);
+                      await form.trigger('connectionName');
+                    }}
+                  />
                 </FormControl>
+                <FormError
+                  errorMessage={
+                    form.formState.errors.connectionName?.message ?? ''
+                  }
+                />
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="s3.bucketArn"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bucket ARN</FormLabel>
-                <FormDescription>
+                <FormLabel>
                   <RequiredLabel />
-                  The bucket ARN
-                </FormDescription>
+                  Bucket ARN
+                </FormLabel>
+                <FormDescription>The bucket ARN</FormDescription>
                 <FormControl>
                   <Input placeholder="Bucket ARN" {...field} />
                 </FormControl>
@@ -181,14 +174,6 @@ export default function AwsS3Form() {
               </FormItem>
             )}
           />
-
-          <div className="space-y-2">
-            <h2 className="text-1xl font-bold tracking-tight">Manual Setup</h2>
-            <p className="text-sm tracking-tight">
-              Optional manual configuration of AWS credentials to use
-            </p>
-          </div>
-
           <FormField
             control={form.control}
             name="s3.credentials.profile"
@@ -296,8 +281,15 @@ export default function AwsS3Form() {
               </FormItem>
             )}
           />
-          <div className="flex flex-row gap-3 justify-items-end">
-            <Button type="submit">Submit</Button>
+          <div className="flex flex-row gap-3 justify-end">
+            <Button type="submit">
+              <ButtonText
+                leftIcon={
+                  form.formState.isSubmitting ? <Spinner /> : <div></div>
+                }
+                text="submit"
+              />
+            </Button>
           </div>
         </form>
       </Form>
@@ -306,7 +298,7 @@ export default function AwsS3Form() {
 }
 
 async function createAwsS3Connection(
-  s3: FormValues['s3'],
+  s3: AWSFormValues['s3'],
   name: string,
   accountId: string
 ): Promise<CreateConnectionResponse> {

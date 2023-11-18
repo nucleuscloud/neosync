@@ -28,7 +28,7 @@ export default function PageHeader(props: Props) {
       )}
     >
       <div className="flex flex-row justify-between">
-        <div className="flex flex-row items-center gap-1">
+        <div className="flex flex-row items-center gap-3">
           {leftIcon ? leftIcon : null}
           <h1 className="text-2xl font-bold tracking-tight">{header}</h1>
         </div>

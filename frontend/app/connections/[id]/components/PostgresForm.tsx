@@ -66,6 +66,7 @@ export default function PostgresForm(props: Props) {
       },
     },
     values: defaultValues,
+    context: { originalConnectionName: defaultValues.connectionName },
   });
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined

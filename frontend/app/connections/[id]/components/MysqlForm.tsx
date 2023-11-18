@@ -67,6 +67,7 @@ export default function MysqlForm(props: Props) {
       },
     },
     values: defaultValues,
+    context: { originalConnectionName: defaultValues.connectionName },
   });
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
