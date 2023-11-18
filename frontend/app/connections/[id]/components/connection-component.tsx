@@ -148,7 +148,7 @@ export function getConnectionComponentDetails(
         header: (
           <PageHeader
             header="AWS S3"
-            leftIcon={<ConnectionIcon name="awsS3" />}
+            leftIcon={<ConnectionIcon name="aws S3" />}
             extraHeading={extraPageHeading}
           />
         ),
