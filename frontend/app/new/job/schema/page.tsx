@@ -97,7 +97,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   return (
-    <div className="mx-24">
+    <div>
       <OverviewContainer
         Header={
           <PageHeader

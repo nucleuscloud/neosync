@@ -22,7 +22,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
         />
       }
     >
-      <div>{/* <Define sessionPrefix={sessionToken} /> */}</div>
+      <div></div>
     </OverviewContainer>
   );
 }

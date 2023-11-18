@@ -8,7 +8,7 @@ export default function JobRuns(): ReactElement {
   return (
     <OverviewContainer
       Header={<PageHeader header="Runs" />}
-      containerClassName="runs-page mx-24"
+      containerClassName="runs-page"
     >
       <RunsTable />
     </OverviewContainer>

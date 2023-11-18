@@ -99,7 +99,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   }
 
   return (
-    <div className="mx-24">
+    <div>
       <OverviewContainer
         Header={
           <div>

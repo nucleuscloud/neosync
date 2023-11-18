@@ -94,7 +94,7 @@ export default function NewTransformer(): ReactElement {
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a new Transformer" />}
-      containerClassName="mx-64"
+      containerClassName="px-12 md:px-24 lg:px-32"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

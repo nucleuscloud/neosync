@@ -98,7 +98,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   return (
-    <div className="mx-64">
+    <div id="newjobflowcontainer">
       <OverviewContainer
         Header={
           <PageHeader
