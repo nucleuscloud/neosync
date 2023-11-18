@@ -20,51 +20,31 @@ import {
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string(),
-  s3: Yup.object({
-    bucketArn: Yup.string().required(),
-    pathPrefix: Yup.string().optional(),
-    region: Yup.string().optional(),
-    endpoint: Yup.string().optional(),
-    credentials: Yup.object({
-      profile: Yup.string().optional(),
-      accessKeyId: Yup.string(),
-      secretAccessKey: Yup.string().optional(),
-      sessionToken: Yup.string().optional(),
-      fromEc2Role: Yup.boolean().optional(),
-      roleArn: Yup.string().optional(),
-      roleExternalId: Yup.string().optional(),
-    }).optional(),
-  }).required(),
-});
-
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 interface Props {
   connectionId: string;
-  defaultValues: FormValues;
+  defaultValues: AWSFormValues;
   onSaved(updatedConnectionResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
 }
 
 export default function AwsS3Form(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+  const form = useForm<AWSFormValues>({
+    resolver: yupResolver(AWS_FORM_SCHEMA),
     defaultValues: {
       connectionName: '',
       s3: {},
     },
     values: defaultValues,
+    context: { originalConnectionName: defaultValues.connectionName },
   });
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: AWSFormValues) {
     try {
       const connectionResp = await updateAwsS3Connection(
         values.s3,
@@ -295,7 +275,7 @@ export default function AwsS3Form(props: Props) {
 }
 
 async function updateAwsS3Connection(
-  s3: FormValues['s3'],
+  s3: AWSFormValues['s3'],
   connectionId: string
 ): Promise<UpdateConnectionResponse> {
   const res = await fetch(`/api/connections/${connectionId}`, {

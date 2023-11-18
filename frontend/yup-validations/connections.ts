@@ -30,53 +30,55 @@ export const SSL_MODES = [
   'verify-full',
 ];
 
+const connectionNameSchema = Yup.string()
+  .required()
+  .test(
+    'validConnectionName',
+    'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
+    async (value, context) => {
+      if (!value || value.length < 3) {
+        return false;
+      }
+
+      const regex = /^[a-z0-9-]+$/;
+      if (!regex.test(value)) {
+        return context.createError({
+          message:
+            'Connection Name can only include lowercase letters, numbers, and hyphens.',
+        });
+      }
+
+      const account = getAccount();
+      if (!account) {
+        return false;
+      }
+
+      // this handles the case in the update flow wehre teh connection already exists
+      // we return true otherwise the isConnectionName func below will fail since it already exists
+      if (value == context?.options?.context?.originalConnectionName) {
+        return true;
+      }
+
+      try {
+        const res = await isConnectionNameAvailable(value, account.id);
+        if (!res.isAvailable) {
+          return context.createError({
+            message: 'This Connection Name is already taken.',
+          });
+        }
+        return true;
+      } catch (error) {
+        return context.createError({
+          message: 'Error validating name availability.',
+        });
+      }
+    }
+  );
+
 export const MYSQL_CONNECTION_PROTOCOLS = ['tcp', 'sock', 'pipe', 'memory'];
 
 export const MYSQL_FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string()
-    .required('Connection Name is a required field.')
-    .test(
-      'validConnectionName',
-      'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
-      async (value, context) => {
-        if (!value || value.length < 3) {
-          return false;
-        }
-
-        const regex = /^[a-z0-9-]+$/;
-        if (!regex.test(value)) {
-          return context.createError({
-            message:
-              'Connection Name can only include lowercase letters, numbers, and hyphens.',
-          });
-        }
-
-        const account = getAccount();
-        if (!account) {
-          return false;
-        }
-
-        // this handles the case in the update flow wehre teh connection already exists
-        // we return true otherwise the isConnectionName func below will fail since it already exists
-        if (value == context.originalValue) {
-          return true;
-        }
-
-        try {
-          const res = await isConnectionNameAvailable(value, account.id);
-          if (!res.isAvailable) {
-            return context.createError({
-              message: 'This Connection Name is already taken.',
-            });
-          }
-          return true;
-        } catch (error) {
-          return context.createError({
-            message: 'Error validating name availability.',
-          });
-        }
-      }
-    ),
+  connectionName: connectionNameSchema,
   db: Yup.object({
     host: Yup.string().required(),
     name: Yup.string().required(),
@@ -90,49 +92,7 @@ export const MYSQL_FORM_SCHEMA = Yup.object({
 export type MysqlFormValues = Yup.InferType<typeof MYSQL_FORM_SCHEMA>;
 
 export const POSTGRES_FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string()
-    .required('Connection Name is a required field')
-    .test(
-      'validConnectionName',
-      'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
-      async (value, context) => {
-        if (!value || value.length < 3) {
-          return false;
-        }
-        const regex = /^[a-z0-9-]+$/;
-        if (!regex.test(value)) {
-          return context.createError({
-            message:
-              'Connection Name can only include lowercase letters, numbers, and hyphens.',
-          });
-        }
-
-        const account = getAccount();
-        if (!account) {
-          return false;
-        }
-
-        // this handles the case in the update flow wehre teh connection already exists
-        // we return true otherwise the isConnectionName func below will fail since it already exists
-        if (value == context.originalValue) {
-          return true;
-        }
-
-        try {
-          const res = await isConnectionNameAvailable(value, account.id);
-          if (!res.isAvailable) {
-            return context.createError({
-              message: 'This Connection Name is already taken.',
-            });
-          }
-          return true;
-        } catch (error) {
-          return context.createError({
-            message: 'Error validating name availability.',
-          });
-        }
-      }
-    ),
+  connectionName: connectionNameSchema,
   db: Yup.object({
     host: Yup.string().required(),
     name: Yup.string().required(),
@@ -143,3 +103,24 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
   }).required(),
 });
 export type PostgresFormValues = Yup.InferType<typeof POSTGRES_FORM_SCHEMA>;
+
+export const AWS_FORM_SCHEMA = Yup.object({
+  connectionName: connectionNameSchema,
+  s3: Yup.object({
+    bucketArn: Yup.string().required(),
+    pathPrefix: Yup.string().optional(),
+    region: Yup.string().optional(),
+    endpoint: Yup.string().optional(),
+    credentials: Yup.object({
+      profile: Yup.string().optional(),
+      accessKeyId: Yup.string(),
+      secretAccessKey: Yup.string().optional(),
+      sessionToken: Yup.string().optional(),
+      fromEc2Role: Yup.boolean().optional(),
+      roleArn: Yup.string().optional(),
+      roleExternalId: Yup.string().optional(),
+    }).optional(),
+  }).required(),
+});
+
+export type AWSFormValues = Yup.InferType<typeof AWS_FORM_SCHEMA>;
