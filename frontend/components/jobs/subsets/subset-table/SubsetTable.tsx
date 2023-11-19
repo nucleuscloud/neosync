@@ -1,3 +1,4 @@
+'use client';
 import { ReactElement } from 'react';
 import { TableRow, getColumns } from './column';
 import { DataTable } from './data-table';

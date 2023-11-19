@@ -1,8 +1,6 @@
 'use client';
 
 import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
@@ -38,14 +36,15 @@ import {
 } from '@/yup-validations/jobs';
 import { ToTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
+import JobsProgressSteps from '../JobsProgressSteps';
 import {
+  ConnectFormValues,
   DefineFormValues,
-  FlowFormValues,
   FormValues,
   SUBSET_FORM_SCHEMA,
   SubsetFormValues,
@@ -77,8 +76,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   // Used to complete the whole form
-  const [flowFormValues] = useSessionStorage<FlowFormValues>(
-    `${sessionPrefix}-new-job-flow`,
+  const [connectFormValues] = useSessionStorage<ConnectFormValues>(
+    `${sessionPrefix}-new-job-connect`,
     {
       sourceId: '',
       sourceOptions: {},
@@ -125,7 +124,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const job = await createNewJob(
         {
           define: defineFormValues,
-          flow: flowFormValues,
+          connect: connectFormValues,
           schema: schemaFormValues,
           subset: values,
         },
@@ -185,101 +184,95 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
+  const params = usePathname();
+  const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
+
   return (
-    <div className="mx-24">
-      <OverviewContainer
-        Header={
-          <PageHeader
-            header="Subset your data"
-            description="Further subset your source connection tables to reduce the amount of data translated to your destination(s)"
-          />
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-1xl font-bold tracking-tight">
-              Set table subset rules by pressing the edit button and filling out
-              the form below
-            </h2>
-          </div>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="flex flex-col gap-2"
-            >
-              <div>
-                <SubsetTable
-                  data={Object.values(tableRowData)}
-                  onEdit={(schema, table) => {
-                    const key = buildRowKey(schema, table);
-                    if (tableRowData[key]) {
-                      // make copy so as to not edit in place
-                      setItemToEdit({
-                        ...tableRowData[key],
-                      });
-                    }
-                  }}
-                  hasLocalChange={hasLocalChange}
-                  onReset={onLocalRowReset}
-                />
-              </div>
-              <div className="my-4">
-                <Separator />
-              </div>
-              <div>
-                <EditItem
-                  connectionId={flowFormValues.sourceId}
-                  item={itemToEdit}
-                  onItem={setItemToEdit}
-                  onCancel={() => setItemToEdit(undefined)}
-                  onSave={() => {
-                    if (!itemToEdit) {
-                      return;
-                    }
-                    const key = buildRowKey(
-                      itemToEdit.schema,
-                      itemToEdit.table
+    <div className="px-12 md:px-24 lg:px-32 flex flex-col gap-20">
+      <div className="mt-10">
+        <JobsProgressSteps stepName={stepName} />
+      </div>
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-1xl font-bold tracking-tight">
+            Set table subset rules by pressing the edit button and filling out
+            the form below
+          </h2>
+        </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-2"
+          >
+            <div>
+              <SubsetTable
+                data={Object.values(tableRowData)}
+                onEdit={(schema, table) => {
+                  const key = buildRowKey(schema, table);
+                  if (tableRowData[key]) {
+                    // make copy so as to not edit in place
+                    setItemToEdit({
+                      ...tableRowData[key],
+                    });
+                  }
+                }}
+                hasLocalChange={hasLocalChange}
+                onReset={onLocalRowReset}
+              />
+            </div>
+            <div className="my-4">
+              <Separator />
+            </div>
+            <div>
+              <EditItem
+                connectionId={connectFormValues.sourceId}
+                item={itemToEdit}
+                onItem={setItemToEdit}
+                onCancel={() => setItemToEdit(undefined)}
+                onSave={() => {
+                  if (!itemToEdit) {
+                    return;
+                  }
+                  const key = buildRowKey(itemToEdit.schema, itemToEdit.table);
+                  const idx = form
+                    .getValues()
+                    .subsets.findIndex(
+                      (item) => buildRowKey(item.schema, item.table) === key
                     );
-                    const idx = form
-                      .getValues()
-                      .subsets.findIndex(
-                        (item) => buildRowKey(item.schema, item.table) === key
-                      );
-                    if (idx >= 0) {
-                      form.setValue(`subsets.${idx}`, {
+                  if (idx >= 0) {
+                    form.setValue(`subsets.${idx}`, {
+                      schema: itemToEdit.schema,
+                      table: itemToEdit.table,
+                      whereClause: itemToEdit.where,
+                    });
+                  } else {
+                    form.setValue(
+                      `subsets`,
+                      form.getValues().subsets.concat({
                         schema: itemToEdit.schema,
                         table: itemToEdit.table,
                         whereClause: itemToEdit.where,
-                      });
-                    } else {
-                      form.setValue(
-                        `subsets`,
-                        form.getValues().subsets.concat({
-                          schema: itemToEdit.schema,
-                          table: itemToEdit.table,
-                          whereClause: itemToEdit.where,
-                        })
-                      );
-                    }
-                    setItemToEdit(undefined);
-                  }}
-                />
-              </div>
-              <div className="my-6">
-                <Separator />
-              </div>
-              <div className="flex flex-row gap-1 justify-between">
-                <Button key="back" type="button" onClick={() => router.back()}>
-                  Back
-                </Button>
-                <Button key="submit" type="submit">
-                  Save
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
-      </OverviewContainer>
+                      })
+                    );
+                  }
+                  setItemToEdit(undefined);
+                }}
+              />
+            </div>
+            <div className="my-6">
+              <Separator />
+            </div>
+            <div className="flex flex-row gap-1 justify-between">
+              <Button key="back" type="button" onClick={() => router.back()}>
+                Back
+              </Button>
+              <Button key="submit" type="submit">
+                Save
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }
@@ -294,7 +287,7 @@ async function createNewJob(
     connections.map((connection) => [connection.id, connection])
   );
   const sourceConnection = connections.find(
-    (c) => c.id == formData.flow.sourceId
+    (c) => c.id == formData.connect.sourceId
   );
 
   const body = new CreateJobRequest({
@@ -311,10 +304,10 @@ async function createNewJob(
       });
     }),
     source: new JobSource({
-      connectionId: formData.flow.sourceId,
+      connectionId: formData.connect.sourceId,
       options: toJobSourceOptions(formData, sourceConnection),
     }),
-    destinations: formData.flow.destinations.map((d) => {
+    destinations: formData.connect.destinations.map((d) => {
       return new JobDestination({
         connectionId: d.connectionId,
         options: toJobDestinationOptions(
@@ -339,7 +332,7 @@ async function createNewJob(
             case: 'postgresOptions',
             value: new PostgresSourceConnectionOptions({
               haltOnNewColumnAddition:
-                values.flow.sourceOptions.haltOnNewColumnAddition,
+                values.connect.sourceOptions.haltOnNewColumnAddition,
             }),
           },
         });
@@ -349,7 +342,7 @@ async function createNewJob(
             case: 'mysqlOptions',
             value: new MysqlSourceConnectionOptions({
               haltOnNewColumnAddition:
-                values.flow.sourceOptions.haltOnNewColumnAddition,
+                values.connect.sourceOptions.haltOnNewColumnAddition,
             }),
           },
         });

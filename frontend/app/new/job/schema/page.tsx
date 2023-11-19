@@ -1,7 +1,5 @@
 'use client';
 
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import {
   SchemaTable,
   getConnectionSchema,
@@ -14,12 +12,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import { FlowFormValues } from '../schema';
+import JobsProgressSteps from '../JobsProgressSteps';
+import { ConnectFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -34,8 +33,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const sessionPrefix = searchParams?.sessionId ?? '';
 
-  const [flowFormValues] = useSessionStorage<FlowFormValues>(
-    `${sessionPrefix}-new-job-flow`,
+  const [connectFormValues] = useSessionStorage<ConnectFormValues>(
+    `${sessionPrefix}-new-job-connect`,
     {
       sourceId: '',
       sourceOptions: {},
@@ -49,7 +48,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   async function getSchema() {
     try {
-      const res = await getConnectionSchema(flowFormValues.sourceId);
+      const res = await getConnectionSchema(connectFormValues.sourceId);
       if (!res) {
         return { mappings: [] };
       }
@@ -96,30 +95,28 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
+  const params = usePathname();
+  const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
+
   return (
-    <div>
-      <OverviewContainer
-        Header={
-          <PageHeader
-            header="Schemas"
-            description="Define source to destination mappings for your data"
-          />
-        }
-      >
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <SchemaTable data={form.getValues().mappings} />
-            <div className="flex flex-row gap-1 justify-between">
-              <Button key="back" type="button" onClick={() => router.back()}>
-                Back
-              </Button>
-              <Button key="submit" type="submit">
-                Next
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </OverviewContainer>
+    <div className="flex flex-col gap-20">
+      <div className="mt-10">
+        <JobsProgressSteps stepName={stepName} />
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <SchemaTable data={form.getValues().mappings} />
+          <div className="flex flex-row gap-1 justify-between">
+            <Button key="back" type="button" onClick={() => router.back()}>
+              Back
+            </Button>
+            <Button key="submit" type="submit">
+              Next
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }
