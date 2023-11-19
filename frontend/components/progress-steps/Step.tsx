@@ -33,8 +33,6 @@ interface StepCircleProps {
 
 const StepCircle = (props: StepCircleProps) => {
   const { isCompleted, isLastStep, name, isActive } = props;
-  console.log('is complete', isCompleted);
-  console.log('is active', isActive);
   return (
     <div className="flex flex-row">
       <div className=" flex flex-col gap-2 items-center">

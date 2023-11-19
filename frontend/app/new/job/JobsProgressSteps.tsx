@@ -1,6 +1,6 @@
 import { Step } from '@/components/progress-steps/Step';
 import { useStep } from '@/components/progress-steps/useStep';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect } from 'react';
 
 interface OnboardStep {
   name: string;
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function JobsProgressSteps(props: Props): ReactElement {
-  const { stepName, isCompleted } = props;
+  const { stepName } = props;
 
   //maxStep must match the steps.length below
   const [currentStep, { setStep }] = useStep({
@@ -40,18 +40,8 @@ export default function JobsProgressSteps(props: Props): ReactElement {
 
   // use useeffect to update the current step basd on the prop setting in the child component
 
-  const [currentIndex, setCurrentIndex] = useState<number>(
-    steps?.findIndex((item) => item.name == stepName)
-  );
-
-  console.log('stepName', stepName);
-  console.log('current', currentIndex);
-  console.log('iscompletd', isCompleted);
-
   useEffect(() => {
     const ind = steps?.findIndex((item) => item.name == stepName);
-    console.log('ind', ind);
-    setCurrentIndex(ind);
     setStep(ind);
   }, [stepName]);
 
@@ -61,7 +51,7 @@ export default function JobsProgressSteps(props: Props): ReactElement {
         {steps.map((step, idx) => {
           return (
             <Step
-              isCompleted={currentIndex + 1 > idx}
+              isCompleted={currentStep > idx}
               key={step.name}
               isActive={currentStep === idx}
               isLastStep={steps.length === idx + 1}
