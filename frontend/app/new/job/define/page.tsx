@@ -57,7 +57,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   async function onSubmit(_values: DefineFormValues) {
-    router.push(`/new/job/flow?sessionId=${sessionPrefix}`);
+    router.push(`/new/job/connect?sessionId=${sessionPrefix}`);
   }
 
   const [isClient, setIsClient] = useState(false);

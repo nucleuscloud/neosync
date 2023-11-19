@@ -22,23 +22,17 @@ export default function JobsProgressSteps(props: Props): ReactElement {
   const steps: OnboardStep[] = [
     {
       name: 'define',
-      //<Welcome onNextStep={() => setStep(currentStep + 1)} />,
     },
     {
-      name: 'flow',
-      //<Welcome onNextStep={() => setStep(currentStep + 1)} />,
+      name: 'connect',
     },
     {
       name: 'schema',
-      //<Welcome onNextStep={() => setStep(currentStep + 1)} />,
     },
     {
       name: 'subset',
-      //<Welcome onNextStep={() => setStep(currentStep + 1)} />,
     },
   ];
-
-  // use useeffect to update the current step basd on the prop setting in the child component
 
   useEffect(() => {
     const ind = steps?.findIndex((item) => item.name == stepName);

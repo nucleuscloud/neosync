@@ -45,8 +45,8 @@ import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps from '../JobsProgressSteps';
 import {
+  ConnectFormValues,
   DefineFormValues,
-  FlowFormValues,
   FormValues,
   SUBSET_FORM_SCHEMA,
   SubsetFormValues,
@@ -78,8 +78,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   // Used to complete the whole form
-  const [flowFormValues] = useSessionStorage<FlowFormValues>(
-    `${sessionPrefix}-new-job-flow`,
+  const [connectFormValues] = useSessionStorage<ConnectFormValues>(
+    `${sessionPrefix}-new-job-connect`,
     {
       sourceId: '',
       sourceOptions: {},
@@ -126,7 +126,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const job = await createNewJob(
         {
           define: defineFormValues,
-          flow: flowFormValues,
+          connect: connectFormValues,
           schema: schemaFormValues,
           subset: values,
         },
@@ -233,7 +233,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </div>
               <div>
                 <EditItem
-                  connectionId={flowFormValues.sourceId}
+                  connectionId={connectFormValues.sourceId}
                   item={itemToEdit}
                   onItem={setItemToEdit}
                   onCancel={() => setItemToEdit(undefined)}
@@ -299,7 +299,7 @@ async function createNewJob(
     connections.map((connection) => [connection.id, connection])
   );
   const sourceConnection = connections.find(
-    (c) => c.id == formData.flow.sourceId
+    (c) => c.id == formData.connect.sourceId
   );
 
   const body = new CreateJobRequest({
@@ -316,10 +316,10 @@ async function createNewJob(
       });
     }),
     source: new JobSource({
-      connectionId: formData.flow.sourceId,
+      connectionId: formData.connect.sourceId,
       options: toJobSourceOptions(formData, sourceConnection),
     }),
-    destinations: formData.flow.destinations.map((d) => {
+    destinations: formData.connect.destinations.map((d) => {
       return new JobDestination({
         connectionId: d.connectionId,
         options: toJobDestinationOptions(
@@ -344,7 +344,7 @@ async function createNewJob(
             case: 'postgresOptions',
             value: new PostgresSourceConnectionOptions({
               haltOnNewColumnAddition:
-                values.flow.sourceOptions.haltOnNewColumnAddition,
+                values.connect.sourceOptions.haltOnNewColumnAddition,
             }),
           },
         });
@@ -354,7 +354,7 @@ async function createNewJob(
             case: 'mysqlOptions',
             value: new MysqlSourceConnectionOptions({
               haltOnNewColumnAddition:
-                values.flow.sourceOptions.haltOnNewColumnAddition,
+                values.connect.sourceOptions.haltOnNewColumnAddition,
             }),
           },
         });

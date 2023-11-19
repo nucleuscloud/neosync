@@ -48,7 +48,9 @@ const StepCircle = (props: StepCircleProps) => {
         >
           {isCompleted && <CheckIcon className="text-white" />}
         </div>
-        <div className="text-xs">{toTitleCase(name)}</div>
+        <div className="text-xs w-[50px] justify-center flex">
+          {toTitleCase(name)}
+        </div>
       </div>
       {!isLastStep && (
         <div className=" w-[30px] h-[2px] mt-3 rounded-xl bg-gray-300" />

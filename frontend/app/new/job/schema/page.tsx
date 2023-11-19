@@ -20,7 +20,7 @@ import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps from '../JobsProgressSteps';
-import { FlowFormValues } from '../schema';
+import { ConnectFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -35,8 +35,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const sessionPrefix = searchParams?.sessionId ?? '';
 
-  const [flowFormValues] = useSessionStorage<FlowFormValues>(
-    `${sessionPrefix}-new-job-flow`,
+  const [connectFormValues] = useSessionStorage<ConnectFormValues>(
+    `${sessionPrefix}-new-job-connect`,
     {
       sourceId: '',
       sourceOptions: {},
@@ -50,7 +50,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   async function getSchema() {
     try {
-      const res = await getConnectionSchema(flowFormValues.sourceId);
+      const res = await getConnectionSchema(connectFormValues.sourceId);
       if (!res) {
         return { mappings: [] };
       }

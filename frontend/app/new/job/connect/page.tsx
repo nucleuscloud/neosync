@@ -34,7 +34,7 @@ import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../components/jobs/Form/DestinationOptionsForm';
 import JobsProgressSteps from '../JobsProgressSteps';
-import { FLOW_FORM_SCHEMA, FlowFormValues } from '../schema';
+import { CONNECT_FORM_SCHEMA, ConnectFormValues } from '../schema';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 
@@ -48,8 +48,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [searchParams?.sessionId]);
 
   const sessionPrefix = searchParams?.sessionId ?? '';
-  const [defaultValues] = useSessionStorage<FlowFormValues>(
-    `${sessionPrefix}-new-job-flow`,
+  const [defaultValues] = useSessionStorage<ConnectFormValues>(
+    `${sessionPrefix}-new-job-connect`,
     {
       sourceId: '',
       sourceOptions: {},
@@ -58,7 +58,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   const form = useForm({
-    resolver: yupResolver<FlowFormValues>(FLOW_FORM_SCHEMA),
+    resolver: yupResolver<ConnectFormValues>(CONNECT_FORM_SCHEMA),
     defaultValues,
   });
 
@@ -66,7 +66,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     control: form.control,
     name: 'destinations',
   });
-  useFormPersist(`${sessionPrefix}-new-job-flow`, {
+  useFormPersist(`${sessionPrefix}-new-job-connect`, {
     watch: form.watch,
     setValue: form.setValue,
     storage: window.sessionStorage,
@@ -76,7 +76,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const connections = connectionsData?.connections ?? [];
 
-  async function onSubmit(_values: FlowFormValues) {
+  async function onSubmit(_values: ConnectFormValues) {
     router.push(`/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
@@ -100,9 +100,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const params = usePathname();
   const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
-  const [isCompleted, setIsCompleted] = useState<boolean>(
-    form.getValues('sourceId') !== '' ? true : false
-  );
 
   return (
     <div id="newjobflowcontainer">
@@ -110,7 +107,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         Header={
           <PageHeader
             header="Connect"
-            description="Define your source and destination(s)"
+            description="Define your source and destination(s) connections"
           />
         }
       >
@@ -147,7 +144,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               if (value === NEW_CONNECTION_VALUE) {
                                 router.push(
                                   `/new/connection?returnTo=${encodeURIComponent(
-                                    `/new/job/flow?sessionId=${sessionPrefix}`
+                                    `/new/job/connect?sessionId=${sessionPrefix}`
                                   )}`
                                 );
                                 return;
@@ -291,7 +288,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         if (value === NEW_CONNECTION_VALUE) {
                                           router.push(
                                             `/new/connection?returnTo=${encodeURIComponent(
-                                              `/new/job/flow?sessionId=${sessionPrefix}`
+                                              `/new/job/connect?sessionId=${sessionPrefix}`
                                             )}`
                                           );
                                           return;
