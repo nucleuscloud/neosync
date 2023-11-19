@@ -71,10 +71,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const params = usePathname();
   const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
 
-  const [isCompleted, setIsCompleted] = useState<boolean>(
-    form.getValues('jobName') !== '' ? true : false
-  );
-
   return (
     <div id="newjobdefine" className="px-12 md:px-24 lg:px-32">
       <OverviewContainer
