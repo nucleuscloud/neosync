@@ -1,8 +1,6 @@
 'use client';
 
 import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
@@ -190,101 +188,91 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
 
   return (
-    <div className="mx-24">
-      <OverviewContainer
-        Header={
-          <PageHeader
-            header="Subset your data"
-            description="Further subset your source connection tables to reduce the amount of data translated to your destination(s)"
-          />
-        }
-      >
+    <div className="px-12 md:px-24 lg:px-32 flex flex-col gap-20">
+      <div className="mt-10">
         <JobsProgressSteps stepName={stepName} />
-        <div className="flex flex-col gap-4">
-          <div>
-            <h2 className="text-1xl font-bold tracking-tight">
-              Set table subset rules by pressing the edit button and filling out
-              the form below
-            </h2>
-          </div>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="flex flex-col gap-2"
-            >
-              <div>
-                <SubsetTable
-                  data={Object.values(tableRowData)}
-                  onEdit={(schema, table) => {
-                    const key = buildRowKey(schema, table);
-                    if (tableRowData[key]) {
-                      // make copy so as to not edit in place
-                      setItemToEdit({
-                        ...tableRowData[key],
-                      });
-                    }
-                  }}
-                  hasLocalChange={hasLocalChange}
-                  onReset={onLocalRowReset}
-                />
-              </div>
-              <div className="my-4">
-                <Separator />
-              </div>
-              <div>
-                <EditItem
-                  connectionId={connectFormValues.sourceId}
-                  item={itemToEdit}
-                  onItem={setItemToEdit}
-                  onCancel={() => setItemToEdit(undefined)}
-                  onSave={() => {
-                    if (!itemToEdit) {
-                      return;
-                    }
-                    const key = buildRowKey(
-                      itemToEdit.schema,
-                      itemToEdit.table
+      </div>
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-1xl font-bold tracking-tight">
+            Set table subset rules by pressing the edit button and filling out
+            the form below
+          </h2>
+        </div>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-2"
+          >
+            <div>
+              <SubsetTable
+                data={Object.values(tableRowData)}
+                onEdit={(schema, table) => {
+                  const key = buildRowKey(schema, table);
+                  if (tableRowData[key]) {
+                    // make copy so as to not edit in place
+                    setItemToEdit({
+                      ...tableRowData[key],
+                    });
+                  }
+                }}
+                hasLocalChange={hasLocalChange}
+                onReset={onLocalRowReset}
+              />
+            </div>
+            <div className="my-4">
+              <Separator />
+            </div>
+            <div>
+              <EditItem
+                connectionId={connectFormValues.sourceId}
+                item={itemToEdit}
+                onItem={setItemToEdit}
+                onCancel={() => setItemToEdit(undefined)}
+                onSave={() => {
+                  if (!itemToEdit) {
+                    return;
+                  }
+                  const key = buildRowKey(itemToEdit.schema, itemToEdit.table);
+                  const idx = form
+                    .getValues()
+                    .subsets.findIndex(
+                      (item) => buildRowKey(item.schema, item.table) === key
                     );
-                    const idx = form
-                      .getValues()
-                      .subsets.findIndex(
-                        (item) => buildRowKey(item.schema, item.table) === key
-                      );
-                    if (idx >= 0) {
-                      form.setValue(`subsets.${idx}`, {
+                  if (idx >= 0) {
+                    form.setValue(`subsets.${idx}`, {
+                      schema: itemToEdit.schema,
+                      table: itemToEdit.table,
+                      whereClause: itemToEdit.where,
+                    });
+                  } else {
+                    form.setValue(
+                      `subsets`,
+                      form.getValues().subsets.concat({
                         schema: itemToEdit.schema,
                         table: itemToEdit.table,
                         whereClause: itemToEdit.where,
-                      });
-                    } else {
-                      form.setValue(
-                        `subsets`,
-                        form.getValues().subsets.concat({
-                          schema: itemToEdit.schema,
-                          table: itemToEdit.table,
-                          whereClause: itemToEdit.where,
-                        })
-                      );
-                    }
-                    setItemToEdit(undefined);
-                  }}
-                />
-              </div>
-              <div className="my-6">
-                <Separator />
-              </div>
-              <div className="flex flex-row gap-1 justify-between">
-                <Button key="back" type="button" onClick={() => router.back()}>
-                  Back
-                </Button>
-                <Button key="submit" type="submit">
-                  Save
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
-      </OverviewContainer>
+                      })
+                    );
+                  }
+                  setItemToEdit(undefined);
+                }}
+              />
+            </div>
+            <div className="my-6">
+              <Separator />
+            </div>
+            <div className="flex flex-row gap-1 justify-between">
+              <Button key="back" type="button" onClick={() => router.back()}>
+                Back
+              </Button>
+              <Button key="submit" type="submit">
+                Save
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }

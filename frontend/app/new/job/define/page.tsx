@@ -1,6 +1,4 @@
 'use client';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
@@ -72,81 +70,77 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
 
   return (
-    <div id="newjobdefine" className="px-12 md:px-24 lg:px-32">
-      <OverviewContainer
-        Header={
-          <PageHeader
-            header="Create a new Job"
-            description="Define a new job to move, transform, or scan data"
-          />
-        }
-      >
+    <div
+      id="newjobdefine"
+      className="px-12 md:px-24 lg:px-32 flex flex-col gap-20"
+    >
+      <div className="mt-10">
         <JobsProgressSteps stepName={stepName} />
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
+      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormField
+            control={form.control}
+            name="jobName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormDescription>The unique name of the job.</FormDescription>
+                <FormControl>
+                  <Input placeholder="Job Name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {isClient && (
+            <Controller
               control={form.control}
-              name="jobName"
+              name="cronSchedule"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormDescription>The unique name of the job.</FormDescription>
+                  <FormLabel>Schedule</FormLabel>
+                  <FormDescription>
+                    Define a schedule to run this job.
+                  </FormDescription>
                   <FormControl>
-                    <Input placeholder="Job Name" {...field} />
+                    <NeoCron
+                      cronString={field.value ?? ''}
+                      defaultCronString="* * * * *"
+                      setCronString={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {isClient && (
-              <Controller
-                control={form.control}
-                name="cronSchedule"
+          )}
+          <div>
+            <FormLabel>Settings</FormLabel>
+            <div className="pt-4">
+              <FormField
+                name="initiateJobRun"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Schedule</FormLabel>
-                    <FormDescription>
-                      Define a schedule to run this job.
-                    </FormDescription>
                     <FormControl>
-                      <NeoCron
-                        cronString={field.value ?? ''}
-                        defaultCronString="* * * * *"
-                        setCronString={field.onChange}
+                      <SwitchCard
+                        isChecked={field.value || false}
+                        onCheckedChange={field.onChange}
+                        title="Initiate Job Run"
+                        description="Initiates a single job run immediately after job is created."
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
-            <div>
-              <FormLabel>Settings</FormLabel>
-              <div className="pt-4">
-                <FormField
-                  name="initiateJobRun"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <SwitchCard
-                          isChecked={field.value || false}
-                          onCheckedChange={field.onChange}
-                          title="Initiate Job Run"
-                          description="Initiates a single job run immediately after job is created."
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
             </div>
-            <div className="flex flex-row justify-end">
-              <Button type="submit">Next</Button>
-            </div>
-          </form>
-        </Form>
-      </OverviewContainer>
+          </div>
+          <div className="flex flex-row justify-end">
+            <Button type="submit">Next</Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

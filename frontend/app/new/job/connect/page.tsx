@@ -1,6 +1,4 @@
 'use client';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -102,377 +100,373 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
 
   return (
-    <div id="newjobflowcontainer">
-      <OverviewContainer
-        Header={
-          <PageHeader
-            header="Connect"
-            description="Define your source and destination(s) connections"
-          />
-        }
-      >
+    <div
+      id="newjobflowcontainer"
+      className="px-12 md:px-24 lg:px-32 flex flex-col gap-20"
+    >
+      <div className="mt-10">
         <JobsProgressSteps stepName={stepName} />
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div
-              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
-            >
+      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
+          >
+            <div>
               <div>
-                <div>
-                  <div className="space-y-0.5">
-                    <h2 className="text-xl font-semibold tracking-tight">
-                      Source
-                    </h2>
-                    <p className="text-muted-foreground text-sm">
-                      The location of the source data set.
-                    </p>
-                  </div>
+                <div className="space-y-0.5">
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    Source
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    The location of the source data set.
+                  </p>
                 </div>
               </div>
-              <div className="space-y-4 col-span-2">
-                <FormField
-                  control={form.control}
-                  name="sourceId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        {isConnectionsLoading ? (
-                          <Skeleton className="w-full h-12 rounded-lg" />
-                        ) : (
-                          <Select
-                            onValueChange={(value: string) => {
-                              if (value === NEW_CONNECTION_VALUE) {
-                                router.push(
-                                  `/new/connection?returnTo=${encodeURIComponent(
-                                    `/new/job/connect?sessionId=${sessionPrefix}`
-                                  )}`
-                                );
-                                return;
-                              }
-                              if (value == destConn) {
-                                form.setError(`sourceId`, {
-                                  type: 'string',
-                                  message:
-                                    'Source must be different from destination',
-                                });
-                              }
-                              if (
-                                !isValidConnectionPair(
-                                  value,
-                                  destConn,
-                                  connections
-                                )
-                              ) {
-                                const isSource = true;
-                                form.setError(`sourceId`, {
-                                  type: 'string',
-                                  message: `Source connection type must one of ${getErrorConnectionTypes(
-                                    isSource,
-                                    value,
-                                    connections
-                                  )}`,
-                                });
-                              }
-
-                              if (
-                                isValidConnectionPair(
-                                  value,
-                                  destConn,
-                                  connections
-                                ) &&
-                                value != destConn
-                              ) {
-                                form.clearErrors();
-                              }
-                              setSourceConn(value);
-                              if (form.formState.errors) {
-                                form.clearErrors;
-                              }
-                              field.onChange(value);
-                              form.setValue('sourceOptions', {
-                                haltOnNewColumnAddition: false,
-                              });
-                            }}
-                            value={field.value}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a source ..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {postgresConns.length > 0 && (
-                                <SelectGroup>
-                                  <SelectLabel>Postgres</SelectLabel>
-                                  {postgresConns.map((connection) => (
-                                    <SelectItem
-                                      className="cursor-pointer"
-                                      key={connection.id}
-                                      value={connection.id}
-                                    >
-                                      {connection.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectGroup>
-                              )}
-
-                              {mysqlConns.length > 0 && (
-                                <SelectGroup>
-                                  <SelectLabel>Mysql</SelectLabel>
-                                  {mysqlConns.map((connection) => (
-                                    <SelectItem
-                                      className="cursor-pointer"
-                                      key={connection.id}
-                                      value={connection.id}
-                                    >
-                                      {connection.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectGroup>
-                              )}
-                              <SelectItem
-                                className="cursor-pointer"
-                                key="new-src-connection"
-                                value={NEW_CONNECTION_VALUE}
-                              >
-                                <div className="flex flex-row gap-1 items-center">
-                                  <PlusIcon />
-                                  <p>New Connection</p>
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <SourceOptionsForm
-                  connection={connections.find(
-                    (c) => c.id == form.getValues().sourceId
-                  )}
-                  maxColNum={2}
-                />
-              </div>
             </div>
-            <Separator className="my-6" />
+            <div className="space-y-4 col-span-2">
+              <FormField
+                control={form.control}
+                name="sourceId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      {isConnectionsLoading ? (
+                        <Skeleton className="w-full h-12 rounded-lg" />
+                      ) : (
+                        <Select
+                          onValueChange={(value: string) => {
+                            if (value === NEW_CONNECTION_VALUE) {
+                              router.push(
+                                `/new/connection?returnTo=${encodeURIComponent(
+                                  `/new/job/connect?sessionId=${sessionPrefix}`
+                                )}`
+                              );
+                              return;
+                            }
+                            if (value == destConn) {
+                              form.setError(`sourceId`, {
+                                type: 'string',
+                                message:
+                                  'Source must be different from destination',
+                              });
+                            }
+                            if (
+                              !isValidConnectionPair(
+                                value,
+                                destConn,
+                                connections
+                              )
+                            ) {
+                              const isSource = true;
+                              form.setError(`sourceId`, {
+                                type: 'string',
+                                message: `Source connection type must one of ${getErrorConnectionTypes(
+                                  isSource,
+                                  value,
+                                  connections
+                                )}`,
+                              });
+                            }
 
-            <div
-              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
-            >
-              <div className="space-y-0.5">
-                <h2 className="text-xl font-semibold tracking-tight">
-                  Destination(s)
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  Where the data set should be synced.
-                </p>
-              </div>
-              <div className="space-y-12 col-span-2">
-                {fields.map(({}, index) => {
-                  return (
-                    <div className="space-y-4 col-span-2" key={index}>
-                      <div className="flex flew-row space-x-4">
-                        <div className="basis-11/12">
-                          <FormField
-                            control={form.control}
-                            name={`destinations.${index}.connectionId`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  {isConnectionsLoading ? (
-                                    <Skeleton className="w-full h-12 rounded-lg" />
-                                  ) : (
-                                    <Select
-                                      onValueChange={(value: string) => {
-                                        if (value === NEW_CONNECTION_VALUE) {
-                                          router.push(
-                                            `/new/connection?returnTo=${encodeURIComponent(
-                                              `/new/job/connect?sessionId=${sessionPrefix}`
-                                            )}`
-                                          );
-                                          return;
-                                        }
-                                        setDestConn(value);
-                                        if (value == sourceConn) {
-                                          form.setError(
-                                            `destinations.${index}.connectionId`,
-                                            {
-                                              type: 'string',
-                                              message:
-                                                'Destination must be different from source',
-                                            }
-                                          );
-                                        }
-                                        if (
-                                          !isValidConnectionPair(
-                                            value,
-                                            sourceConn,
-                                            connections
-                                          )
-                                        ) {
-                                          const isSource = false;
-                                          form.setError(
-                                            `destinations.${index}.connectionId`,
-                                            {
-                                              type: 'string',
-                                              message: `Destination connection type must one of ${getErrorConnectionTypes(
-                                                isSource,
-                                                sourceConn,
-                                                connections
-                                              )}`,
-                                            }
-                                          );
-                                        }
-                                        if (
-                                          isValidConnectionPair(
-                                            value,
-                                            sourceConn,
-                                            connections
-                                          ) &&
-                                          value != sourceConn
-                                        ) {
-                                          form.clearErrors();
-                                        }
-                                        form.setValue(
-                                          `destinations.${index}.destinationOptions`,
+                            if (
+                              isValidConnectionPair(
+                                value,
+                                destConn,
+                                connections
+                              ) &&
+                              value != destConn
+                            ) {
+                              form.clearErrors();
+                            }
+                            setSourceConn(value);
+                            if (form.formState.errors) {
+                              form.clearErrors;
+                            }
+                            field.onChange(value);
+                            form.setValue('sourceOptions', {
+                              haltOnNewColumnAddition: false,
+                            });
+                          }}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a source ..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {postgresConns.length > 0 && (
+                              <SelectGroup>
+                                <SelectLabel>Postgres</SelectLabel>
+                                {postgresConns.map((connection) => (
+                                  <SelectItem
+                                    className="cursor-pointer"
+                                    key={connection.id}
+                                    value={connection.id}
+                                  >
+                                    {connection.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            )}
+
+                            {mysqlConns.length > 0 && (
+                              <SelectGroup>
+                                <SelectLabel>Mysql</SelectLabel>
+                                {mysqlConns.map((connection) => (
+                                  <SelectItem
+                                    className="cursor-pointer"
+                                    key={connection.id}
+                                    value={connection.id}
+                                  >
+                                    {connection.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            )}
+                            <SelectItem
+                              className="cursor-pointer"
+                              key="new-src-connection"
+                              value={NEW_CONNECTION_VALUE}
+                            >
+                              <div className="flex flex-row gap-1 items-center">
+                                <PlusIcon />
+                                <p>New Connection</p>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <SourceOptionsForm
+                connection={connections.find(
+                  (c) => c.id == form.getValues().sourceId
+                )}
+                maxColNum={2}
+              />
+            </div>
+          </div>
+          <Separator className="my-6" />
+
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
+          >
+            <div className="space-y-0.5">
+              <h2 className="text-xl font-semibold tracking-tight">
+                Destination(s)
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Where the data set should be synced.
+              </p>
+            </div>
+            <div className="space-y-12 col-span-2">
+              {fields.map(({}, index) => {
+                return (
+                  <div className="space-y-4 col-span-2" key={index}>
+                    <div className="flex flew-row space-x-4">
+                      <div className="basis-11/12">
+                        <FormField
+                          control={form.control}
+                          name={`destinations.${index}.connectionId`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                {isConnectionsLoading ? (
+                                  <Skeleton className="w-full h-12 rounded-lg" />
+                                ) : (
+                                  <Select
+                                    onValueChange={(value: string) => {
+                                      if (value === NEW_CONNECTION_VALUE) {
+                                        router.push(
+                                          `/new/connection?returnTo=${encodeURIComponent(
+                                            `/new/job/connect?sessionId=${sessionPrefix}`
+                                          )}`
+                                        );
+                                        return;
+                                      }
+                                      setDestConn(value);
+                                      if (value == sourceConn) {
+                                        form.setError(
+                                          `destinations.${index}.connectionId`,
                                           {
-                                            truncateBeforeInsert: false,
-                                            truncateCascade: false,
-                                            initTableSchema: false,
+                                            type: 'string',
+                                            message:
+                                              'Destination must be different from source',
                                           }
                                         );
-                                        field.onChange(value);
-                                      }}
-                                      value={field.value}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select a destination ..." />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {postgresConns.length > 0 && (
-                                          <SelectGroup>
-                                            <SelectLabel>Postgres</SelectLabel>
-                                            {postgresConns.map((connection) => (
-                                              <SelectItem
-                                                className="cursor-pointer"
-                                                key={connection.id}
-                                                value={connection.id}
-                                              >
-                                                {connection.name}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectGroup>
-                                        )}
+                                      }
+                                      if (
+                                        !isValidConnectionPair(
+                                          value,
+                                          sourceConn,
+                                          connections
+                                        )
+                                      ) {
+                                        const isSource = false;
+                                        form.setError(
+                                          `destinations.${index}.connectionId`,
+                                          {
+                                            type: 'string',
+                                            message: `Destination connection type must one of ${getErrorConnectionTypes(
+                                              isSource,
+                                              sourceConn,
+                                              connections
+                                            )}`,
+                                          }
+                                        );
+                                      }
+                                      if (
+                                        isValidConnectionPair(
+                                          value,
+                                          sourceConn,
+                                          connections
+                                        ) &&
+                                        value != sourceConn
+                                      ) {
+                                        form.clearErrors();
+                                      }
+                                      form.setValue(
+                                        `destinations.${index}.destinationOptions`,
+                                        {
+                                          truncateBeforeInsert: false,
+                                          truncateCascade: false,
+                                          initTableSchema: false,
+                                        }
+                                      );
+                                      field.onChange(value);
+                                    }}
+                                    value={field.value}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select a destination ..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {postgresConns.length > 0 && (
+                                        <SelectGroup>
+                                          <SelectLabel>Postgres</SelectLabel>
+                                          {postgresConns.map((connection) => (
+                                            <SelectItem
+                                              className="cursor-pointer"
+                                              key={connection.id}
+                                              value={connection.id}
+                                            >
+                                              {connection.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectGroup>
+                                      )}
 
-                                        {mysqlConns.length > 0 && (
-                                          <SelectGroup>
-                                            <SelectLabel>Mysql</SelectLabel>
-                                            {mysqlConns.map((connection) => (
-                                              <SelectItem
-                                                className="cursor-pointer"
-                                                key={connection.id}
-                                                value={connection.id}
-                                              >
-                                                {connection.name}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectGroup>
-                                        )}
-                                        {awsS3Conns.length > 0 && (
-                                          <SelectGroup>
-                                            <SelectLabel>AWS S3</SelectLabel>
-                                            {awsS3Conns.map((connection) => (
-                                              <SelectItem
-                                                className="cursor-pointer"
-                                                key={connection.id}
-                                                value={connection.id}
-                                              >
-                                                {connection.name}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectGroup>
-                                        )}
-                                        <SelectItem
-                                          className="cursor-pointer"
-                                          key="new-dst-connection"
-                                          value={NEW_CONNECTION_VALUE}
-                                        >
-                                          <div className="flex flex-row gap-1 items-center">
-                                            <PlusIcon />
-                                            <p>New Connection</p>
-                                          </div>
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            disabled={fields.length == 1}
-                            onClick={() => {
-                              if (fields.length != 1) {
-                                remove(index);
-                              }
-                            }}
-                          >
-                            <Cross2Icon className="w-4 h-4" />
-                          </Button>
-                        </div>
+                                      {mysqlConns.length > 0 && (
+                                        <SelectGroup>
+                                          <SelectLabel>Mysql</SelectLabel>
+                                          {mysqlConns.map((connection) => (
+                                            <SelectItem
+                                              className="cursor-pointer"
+                                              key={connection.id}
+                                              value={connection.id}
+                                            >
+                                              {connection.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectGroup>
+                                      )}
+                                      {awsS3Conns.length > 0 && (
+                                        <SelectGroup>
+                                          <SelectLabel>AWS S3</SelectLabel>
+                                          {awsS3Conns.map((connection) => (
+                                            <SelectItem
+                                              className="cursor-pointer"
+                                              key={connection.id}
+                                              value={connection.id}
+                                            >
+                                              {connection.name}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectGroup>
+                                      )}
+                                      <SelectItem
+                                        className="cursor-pointer"
+                                        key="new-dst-connection"
+                                        value={NEW_CONNECTION_VALUE}
+                                      >
+                                        <div className="flex flex-row gap-1 items-center">
+                                          <PlusIcon />
+                                          <p>New Connection</p>
+                                        </div>
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
-                      <DestinationOptionsForm
-                        index={index}
-                        connection={connections.find(
-                          (c) =>
-                            c.id ==
-                            form.getValues().destinations[index].connectionId
-                        )}
-                        maxColNum={2}
-                      />
+                      <div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={fields.length == 1}
+                          onClick={() => {
+                            if (fields.length != 1) {
+                              remove(index);
+                            }
+                          }}
+                        >
+                          <Cross2Icon className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                  );
-                })}
+                    <DestinationOptionsForm
+                      index={index}
+                      connection={connections.find(
+                        (c) =>
+                          c.id ==
+                          form.getValues().destinations[index].connectionId
+                      )}
+                      maxColNum={2}
+                    />
+                  </div>
+                );
+              })}
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    append({
-                      connectionId: '',
-                      destinationOptions: {},
-                    });
-                  }}
-                >
-                  Add
-                  <PlusIcon className="ml-2 w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex flex-row gap-1 justify-between">
-              <Button type="button" onClick={() => router.back()}>
-                Back
-              </Button>
               <Button
-                type="submit"
-                disabled={
-                  (errors?.destinations?.length ?? 0) > 0 ||
-                  (errors.sourceId?.message?.length ?? 0) > 0
-                }
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  append({
+                    connectionId: '',
+                    destinationOptions: {},
+                  });
+                }}
               >
-                Next
+                Add
+                <PlusIcon className="ml-2 w-4 h-4" />
               </Button>
             </div>
-          </form>
-        </Form>
-      </OverviewContainer>
+          </div>
+
+          <div className="flex flex-row gap-1 justify-between">
+            <Button type="button" onClick={() => router.back()}>
+              Back
+            </Button>
+            <Button
+              type="submit"
+              disabled={
+                (errors?.destinations?.length ?? 0) > 0 ||
+                (errors.sourceId?.message?.length ?? 0) > 0
+              }
+            >
+              Next
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

@@ -1,7 +1,5 @@
 'use client';
 
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import {
   SchemaTable,
   getConnectionSchema,
@@ -101,30 +99,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
 
   return (
-    <div>
-      <OverviewContainer
-        Header={
-          <PageHeader
-            header="Schemas"
-            description="Define source to destination mappings for your data"
-          />
-        }
-      >
+    <div className="flex flex-col gap-20">
+      <div className="mt-10">
         <JobsProgressSteps stepName={stepName} />
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <SchemaTable data={form.getValues().mappings} />
-            <div className="flex flex-row gap-1 justify-between">
-              <Button key="back" type="button" onClick={() => router.back()}>
-                Back
-              </Button>
-              <Button key="submit" type="submit">
-                Next
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </OverviewContainer>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <SchemaTable data={form.getValues().mappings} />
+          <div className="flex flex-row gap-1 justify-between">
+            <Button key="back" type="button" onClick={() => router.back()}>
+              Back
+            </Button>
+            <Button key="submit" type="submit">
+              Next
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }
