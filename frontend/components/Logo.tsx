@@ -11,14 +11,18 @@ export default function Logo({ className }: LogoProps) {
   const { resolvedTheme } = useTheme();
 
   const [src, setSrc] = useState(
-    'https://assets.nucleuscloud.com/neosync/neosync_black.svg'
+    'https://assets.nucleuscloud.com/neosync/newbrand/logo_and_test_light_mode.svg'
   );
 
   useEffect(() => {
     if (resolvedTheme === 'dark') {
-      setSrc('https://assets.nucleuscloud.com/neosync/neosync_white.svg');
+      setSrc(
+        'https://assets.nucleuscloud.com/neosync/newbrand/logo_text_dark_mode.svg'
+      );
     } else {
-      setSrc('https://assets.nucleuscloud.com/neosync/neosync_black.svg');
+      setSrc(
+        'https://assets.nucleuscloud.com/neosync/newbrand/logo_and_test_light_mode.svg'
+      );
     }
   }, [resolvedTheme]);
 
@@ -27,8 +31,8 @@ export default function Logo({ className }: LogoProps) {
       src={src}
       alt="NeosyncLogo"
       className={className}
-      width={64}
-      height={20}
+      width={84}
+      height={40}
     />
   );
 }

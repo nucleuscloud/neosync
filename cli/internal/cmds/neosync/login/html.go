@@ -90,7 +90,7 @@ const (
 	`
 
 	loginPageSuccess = `
-  <div class='nav'><a href="https://neosync.dev"><img class='neosyncLogo' src="https://assets.nucleuscloud.com/neosync/neosync_black.svg"></a></div>
+  <div class='nav'><a href="https://neosync.dev"><img class='neosyncLogo' src="https://assets.nucleuscloud.com/neosync/newbrand/logo_light_mode.svg"></a></div>
   <div class='successText'>
       <h1>Login Success!</h1>
       <p>You've successfully logged in to Neosync CLI.</p>
@@ -102,7 +102,7 @@ const (
 	`
 
 	loginPageError = `
-    <div><a href="https://neosync.dev"><img class='neosyncLogo' src="https://assets.nucleuscloud.com/neosync/neosync_black.svg"></a></div>
+    <div><a href="https://neosync.dev"><img class='neosyncLogo' src="https://assets.nucleuscloud.com/neosync/newbrand/logo_light_mode.svg"></a></div>
     <div class='successText'>
         <h1>There was a problem logging you in!</h1>
         <p class="error-text">Error Code: {{ .ErrorCode }}</p>

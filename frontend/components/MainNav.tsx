@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 
-import { siteConfig } from '@/app/config/site';
 import { cn } from '@/libs/utils';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
@@ -22,10 +21,10 @@ export function MainNav({
   return (
     <div className="mr-4 hidden md:flex">
       <Link href="/" className="mr-6 flex items-center space-x-2">
-        <Logo className="w-5 object-scale-down" />
-        <span className="hidden font-bold sm:inline-block">
+        <Logo className="" />
+        {/* <span className="hidden font-bold sm:inline-block">
           {siteConfig.name}
-        </span>
+        </span> */}
       </Link>
       <nav
         className={cn('flex items-center space-x-4 lg:space-x-6', className)}

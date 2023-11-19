@@ -8,7 +8,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
   title: 'Neosync',
   tagline: 'Open source Test Data Management',
-  favicon: 'img/neosync_favicon.png',
+  favicon: 'img/logo_light_mode.png',
 
   // Set the production url of your site here
   url: 'https://docs.neosync.dev',
@@ -75,11 +75,11 @@ const config = {
         respectPrefersColorScheme: false,
       },
       navbar: {
-        title: 'Neosync',
+        // title: 'Neosync',
         logo: {
-          alt: 'My Site Logo',
-          srcDark: 'img/white-logo.png',
-          src: 'img/neosync_just_logo.png',
+          alt: 'Neosync',
+          srcDark: 'img/logo_and_text_dark_mode.png',
+          src: 'img/logo_and_text_light_mode.png',
         },
         items: [
           {
