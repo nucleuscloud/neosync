@@ -47,12 +47,11 @@ export default function TransformerSelect(props: Props): ReactElement {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between w-[200px]"
+          className="justify-between w-[175px]"
         >
-          <div className="whitespace-nowrap truncate w-[200px]">
+          <div className="whitespace-nowrap truncate w-[175px]">
             {ToTitleCase(value) ? ToTitleCase(value) : 'Select a transformer'}
           </div>
-
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
