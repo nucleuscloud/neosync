@@ -14,11 +14,12 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
+import JobsProgressSteps from '../JobsProgressSteps';
 import { FlowFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
@@ -96,6 +97,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
+  const params = usePathname();
+  const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
+
   return (
     <div>
       <OverviewContainer
@@ -106,6 +110,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           />
         }
       >
+        <JobsProgressSteps stepName={stepName} />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <SchemaTable data={form.getValues().mappings} />

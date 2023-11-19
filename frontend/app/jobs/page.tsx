@@ -68,10 +68,7 @@ function JobTable(props: JobTableProps): ReactElement {
   );
 }
 
-interface NewJobButtonProps {}
-
-function NewJobButton(props: NewJobButtonProps): ReactElement {
-  const {} = props;
+function NewJobButton(): ReactElement {
   return (
     <NextLink href={'/new/job'}>
       <Button>

@@ -38,11 +38,12 @@ import {
 } from '@/yup-validations/jobs';
 import { ToTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
+import JobsProgressSteps from '../JobsProgressSteps';
 import {
   DefineFormValues,
   FlowFormValues,
@@ -185,6 +186,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
+  const params = usePathname();
+  const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
+
   return (
     <div className="mx-24">
       <OverviewContainer
@@ -195,6 +199,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           />
         }
       >
+        <JobsProgressSteps stepName={stepName} />
         <div className="flex flex-col gap-4">
           <div>
             <h2 className="text-1xl font-bold tracking-tight">

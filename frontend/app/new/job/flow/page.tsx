@@ -27,12 +27,13 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../components/jobs/Form/DestinationOptionsForm';
+import JobsProgressSteps from '../JobsProgressSteps';
 import { FLOW_FORM_SCHEMA, FlowFormValues } from '../schema';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
@@ -97,16 +98,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     (c) => c.connectionConfig?.config.case == 'awsS3Config'
   );
 
+  const params = usePathname();
+  const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
+  const [isCompleted, setIsCompleted] = useState<boolean>(
+    form.getValues('sourceId') !== '' ? true : false
+  );
+
   return (
     <div id="newjobflowcontainer">
       <OverviewContainer
         Header={
           <PageHeader
-            header="Create a new Job"
-            description="Define a new job to move, transform, or scan data"
+            header="Connect"
+            description="Define your source and destination(s)"
           />
         }
       >
+        <JobsProgressSteps stepName={stepName} />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div
