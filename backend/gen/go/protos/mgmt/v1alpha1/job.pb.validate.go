@@ -293,173 +293,33 @@ func (m *JobSource) validate(all bool) error {
 
 	var errors []error
 
-	switch v := m.Config.(type) {
-	case *JobSource_Postgres:
-		if v == nil {
-			err := JobSourceValidationError{
-				field:  "Config",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(m.GetPostgres()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobSourceValidationError{
-						field:  "Postgres",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, JobSourceValidationError{
-						field:  "Postgres",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetPostgres()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return JobSourceValidationError{
-					field:  "Postgres",
+	if all {
+		switch v := interface{}(m.GetConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobSourceValidationError{
+					field:  "Config",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
 			}
-		}
-
-	case *JobSource_AwsS3:
-		if v == nil {
-			err := JobSourceValidationError{
-				field:  "Config",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(m.GetAwsS3()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobSourceValidationError{
-						field:  "AwsS3",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, JobSourceValidationError{
-						field:  "AwsS3",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetAwsS3()).(interface{ Validate() error }); ok {
+		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				return JobSourceValidationError{
-					field:  "AwsS3",
+				errors = append(errors, JobSourceValidationError{
+					field:  "Config",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
 			}
 		}
-
-	case *JobSource_Mysql:
-		if v == nil {
-			err := JobSourceValidationError{
+	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobSourceValidationError{
 				field:  "Config",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(m.GetMysql()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobSourceValidationError{
-						field:  "Mysql",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, JobSourceValidationError{
-						field:  "Mysql",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetMysql()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return JobSourceValidationError{
-					field:  "Mysql",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
+				reason: "embedded message failed validation",
+				cause:  err,
 			}
 		}
-
-	case *JobSource_Generate:
-		if v == nil {
-			err := JobSourceValidationError{
-				field:  "Config",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(m.GetGenerate()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobSourceValidationError{
-						field:  "Generate",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, JobSourceValidationError{
-						field:  "Generate",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetGenerate()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return JobSourceValidationError{
-					field:  "Generate",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	default:
-		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
@@ -538,6 +398,275 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JobSourceValidationError{}
+
+// Validate checks the field values on JobSourceConfig with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *JobSourceConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on JobSourceConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// JobSourceConfigMultiError, or nil if none found.
+func (m *JobSourceConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *JobSourceConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	switch v := m.Config.(type) {
+	case *JobSourceConfig_Postgres:
+		if v == nil {
+			err := JobSourceConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPostgres()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceConfigValidationError{
+						field:  "Postgres",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceConfigValidationError{
+						field:  "Postgres",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPostgres()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceConfigValidationError{
+					field:  "Postgres",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *JobSourceConfig_AwsS3:
+		if v == nil {
+			err := JobSourceConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetAwsS3()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceConfigValidationError{
+						field:  "AwsS3",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceConfigValidationError{
+						field:  "AwsS3",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetAwsS3()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceConfigValidationError{
+					field:  "AwsS3",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *JobSourceConfig_Mysql:
+		if v == nil {
+			err := JobSourceConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetMysql()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceConfigValidationError{
+						field:  "Mysql",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceConfigValidationError{
+						field:  "Mysql",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetMysql()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceConfigValidationError{
+					field:  "Mysql",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *JobSourceConfig_Generate:
+		if v == nil {
+			err := JobSourceConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetGenerate()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceConfigValidationError{
+						field:  "Generate",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceConfigValidationError{
+						field:  "Generate",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetGenerate()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceConfigValidationError{
+					field:  "Generate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return JobSourceConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// JobSourceConfigMultiError is an error wrapping multiple validation errors
+// returned by JobSourceConfig.ValidateAll() if the designated constraints
+// aren't met.
+type JobSourceConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m JobSourceConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m JobSourceConfigMultiError) AllErrors() []error { return m }
+
+// JobSourceConfigValidationError is the validation error returned by
+// JobSourceConfig.Validate if the designated constraints aren't met.
+type JobSourceConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e JobSourceConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e JobSourceConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e JobSourceConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e JobSourceConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e JobSourceConfigValidationError) ErrorName() string { return "JobSourceConfigValidationError" }
+
+// Error satisfies the builtin error interface
+func (e JobSourceConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sJobSourceConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = JobSourceConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = JobSourceConfigValidationError{}
 
 // Validate checks the field values on CreateJobDestination with the rules
 // defined in the proto definition for this message. If any rules are
