@@ -861,11 +861,11 @@ func (m *GenerateSourceOptions) validate(all bool) error {
 
 	}
 
-	switch v := m.ForeignKeyConstraintStrategy.(type) {
+	switch v := m.ForeignKeyConstraintConfig.(type) {
 	case *GenerateSourceOptions_IgnoreForeignKeys:
 		if v == nil {
 			err := GenerateSourceOptionsValidationError{
-				field:  "ForeignKeyConstraintStrategy",
+				field:  "ForeignKeyConstraintConfig",
 				reason: "oneof value cannot be a typed-nil",
 			}
 			if !all {
@@ -877,7 +877,7 @@ func (m *GenerateSourceOptions) validate(all bool) error {
 	case *GenerateSourceOptions_FkSourceConnectionId:
 		if v == nil {
 			err := GenerateSourceOptionsValidationError{
-				field:  "ForeignKeyConstraintStrategy",
+				field:  "ForeignKeyConstraintConfig",
 				reason: "oneof value cannot be a typed-nil",
 			}
 			if !all {

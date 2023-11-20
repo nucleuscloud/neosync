@@ -373,9 +373,9 @@ export class GenerateSourceOptions extends Message<GenerateSourceOptions> {
   schemas: GenerateSourceSchemaOption[] = [];
 
   /**
-   * @generated from oneof mgmt.v1alpha1.GenerateSourceOptions.foreign_key_constraint_strategy
+   * @generated from oneof mgmt.v1alpha1.GenerateSourceOptions.foreign_key_constraint_config
    */
-  foreignKeyConstraintStrategy: {
+  foreignKeyConstraintConfig: {
     /**
      * @generated from field: bool ignore_foreign_keys = 2;
      */
@@ -398,8 +398,8 @@ export class GenerateSourceOptions extends Message<GenerateSourceOptions> {
   static readonly typeName = "mgmt.v1alpha1.GenerateSourceOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "schemas", kind: "message", T: GenerateSourceSchemaOption, repeated: true },
-    { no: 2, name: "ignore_foreign_keys", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "foreign_key_constraint_strategy" },
-    { no: 3, name: "fk_source_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "foreign_key_constraint_strategy" },
+    { no: 2, name: "ignore_foreign_keys", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "foreign_key_constraint_config" },
+    { no: 3, name: "fk_source_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "foreign_key_constraint_config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateSourceOptions {
