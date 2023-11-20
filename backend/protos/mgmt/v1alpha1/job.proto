@@ -16,10 +16,10 @@ message GetJobsResponse {
 message JobSource {
   oneof config {
     option (buf.validate.oneof).required = true;
-    PostgresSourceConnectionOptions postgres_options = 1;
-    AwsS3SourceConnectionOptions aws_s3_options = 2;
-    MysqlSourceConnectionOptions mysql_options = 3;
-    SourceGenerateOptions generate_options = 4;
+    PostgresSourceConnectionOptions postgres = 1;
+    AwsS3SourceConnectionOptions aws_s3 = 2;
+    MysqlSourceConnectionOptions mysql = 3;
+    SourceGenerateOptions generate = 4;
   }
 }
 

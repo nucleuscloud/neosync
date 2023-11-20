@@ -216,28 +216,28 @@ export class JobSource extends Message<JobSource> {
    */
   config: {
     /**
-     * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions postgres_options = 1;
+     * @generated from field: mgmt.v1alpha1.PostgresSourceConnectionOptions postgres = 1;
      */
     value: PostgresSourceConnectionOptions;
-    case: "postgresOptions";
+    case: "postgres";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.AwsS3SourceConnectionOptions aws_s3_options = 2;
+     * @generated from field: mgmt.v1alpha1.AwsS3SourceConnectionOptions aws_s3 = 2;
      */
     value: AwsS3SourceConnectionOptions;
-    case: "awsS3Options";
+    case: "awsS3";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.MysqlSourceConnectionOptions mysql_options = 3;
+     * @generated from field: mgmt.v1alpha1.MysqlSourceConnectionOptions mysql = 3;
      */
     value: MysqlSourceConnectionOptions;
-    case: "mysqlOptions";
+    case: "mysql";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.SourceGenerateOptions generate_options = 4;
+     * @generated from field: mgmt.v1alpha1.SourceGenerateOptions generate = 4;
      */
     value: SourceGenerateOptions;
-    case: "generateOptions";
+    case: "generate";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobSource>) {
@@ -248,10 +248,10 @@ export class JobSource extends Message<JobSource> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.JobSource";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "postgres_options", kind: "message", T: PostgresSourceConnectionOptions, oneof: "config" },
-    { no: 2, name: "aws_s3_options", kind: "message", T: AwsS3SourceConnectionOptions, oneof: "config" },
-    { no: 3, name: "mysql_options", kind: "message", T: MysqlSourceConnectionOptions, oneof: "config" },
-    { no: 4, name: "generate_options", kind: "message", T: SourceGenerateOptions, oneof: "config" },
+    { no: 1, name: "postgres", kind: "message", T: PostgresSourceConnectionOptions, oneof: "config" },
+    { no: 2, name: "aws_s3", kind: "message", T: AwsS3SourceConnectionOptions, oneof: "config" },
+    { no: 3, name: "mysql", kind: "message", T: MysqlSourceConnectionOptions, oneof: "config" },
+    { no: 4, name: "generate", kind: "message", T: SourceGenerateOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSource {

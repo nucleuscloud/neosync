@@ -294,7 +294,7 @@ func (m *JobSource) validate(all bool) error {
 	var errors []error
 
 	switch v := m.Config.(type) {
-	case *JobSource_PostgresOptions:
+	case *JobSource_Postgres:
 		if v == nil {
 			err := JobSourceValidationError{
 				field:  "Config",
@@ -307,11 +307,11 @@ func (m *JobSource) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetPostgresOptions()).(type) {
+			switch v := interface{}(m.GetPostgres()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, JobSourceValidationError{
-						field:  "PostgresOptions",
+						field:  "Postgres",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -319,23 +319,23 @@ func (m *JobSource) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, JobSourceValidationError{
-						field:  "PostgresOptions",
+						field:  "Postgres",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetPostgresOptions()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetPostgres()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return JobSourceValidationError{
-					field:  "PostgresOptions",
+					field:  "Postgres",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
 			}
 		}
 
-	case *JobSource_AwsS3Options:
+	case *JobSource_AwsS3:
 		if v == nil {
 			err := JobSourceValidationError{
 				field:  "Config",
@@ -348,11 +348,11 @@ func (m *JobSource) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetAwsS3Options()).(type) {
+			switch v := interface{}(m.GetAwsS3()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, JobSourceValidationError{
-						field:  "AwsS3Options",
+						field:  "AwsS3",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -360,23 +360,23 @@ func (m *JobSource) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, JobSourceValidationError{
-						field:  "AwsS3Options",
+						field:  "AwsS3",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetAwsS3Options()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetAwsS3()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return JobSourceValidationError{
-					field:  "AwsS3Options",
+					field:  "AwsS3",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
 			}
 		}
 
-	case *JobSource_MysqlOptions:
+	case *JobSource_Mysql:
 		if v == nil {
 			err := JobSourceValidationError{
 				field:  "Config",
@@ -389,11 +389,11 @@ func (m *JobSource) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetMysqlOptions()).(type) {
+			switch v := interface{}(m.GetMysql()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, JobSourceValidationError{
-						field:  "MysqlOptions",
+						field:  "Mysql",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -401,23 +401,23 @@ func (m *JobSource) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, JobSourceValidationError{
-						field:  "MysqlOptions",
+						field:  "Mysql",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetMysqlOptions()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetMysql()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return JobSourceValidationError{
-					field:  "MysqlOptions",
+					field:  "Mysql",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
 			}
 		}
 
-	case *JobSource_GenerateOptions:
+	case *JobSource_Generate:
 		if v == nil {
 			err := JobSourceValidationError{
 				field:  "Config",
@@ -430,11 +430,11 @@ func (m *JobSource) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGenerateOptions()).(type) {
+			switch v := interface{}(m.GetGenerate()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, JobSourceValidationError{
-						field:  "GenerateOptions",
+						field:  "Generate",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -442,16 +442,16 @@ func (m *JobSource) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, JobSourceValidationError{
-						field:  "GenerateOptions",
+						field:  "Generate",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGenerateOptions()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetGenerate()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return JobSourceValidationError{
-					field:  "GenerateOptions",
+					field:  "Generate",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
