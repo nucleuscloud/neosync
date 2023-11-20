@@ -1521,6 +1521,62 @@ func (_c *MockQuerier_GetConnectionsByAccount_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// GetConnectionsByIds provides a mock function with given fields: ctx, db, dollar_1
+func (_m *MockQuerier) GetConnectionsByIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiConnection, error) {
+	ret := _m.Called(ctx, db, dollar_1)
+
+	var r0 []NeosyncApiConnection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []pgtype.UUID) ([]NeosyncApiConnection, error)); ok {
+		return rf(ctx, db, dollar_1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []pgtype.UUID) []NeosyncApiConnection); ok {
+		r0 = rf(ctx, db, dollar_1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiConnection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, dollar_1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetConnectionsByIds_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetConnectionsByIds'
+type MockQuerier_GetConnectionsByIds_Call struct {
+	*mock.Call
+}
+
+// GetConnectionsByIds is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - dollar_1 []pgtype.UUID
+func (_e *MockQuerier_Expecter) GetConnectionsByIds(ctx interface{}, db interface{}, dollar_1 interface{}) *MockQuerier_GetConnectionsByIds_Call {
+	return &MockQuerier_GetConnectionsByIds_Call{Call: _e.mock.On("GetConnectionsByIds", ctx, db, dollar_1)}
+}
+
+func (_c *MockQuerier_GetConnectionsByIds_Call) Run(run func(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID)) *MockQuerier_GetConnectionsByIds_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetConnectionsByIds_Call) Return(_a0 []NeosyncApiConnection, _a1 error) *MockQuerier_GetConnectionsByIds_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetConnectionsByIds_Call) RunAndReturn(run func(context.Context, DBTX, []pgtype.UUID) ([]NeosyncApiConnection, error)) *MockQuerier_GetConnectionsByIds_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCustomTransformerById provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
 	ret := _m.Called(ctx, db, id)

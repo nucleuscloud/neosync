@@ -1,6 +1,9 @@
 -- name: GetConnectionById :one
 SELECT * from neosync_api.connections WHERE id = $1;
 
+-- name: GetConnectionsByIds :many
+SELECT * from neosync_api.connections WHERE id = ANY($1::uuid[]);
+
 -- name: GetConnectionByNameAndAccount :one
 SELECT c.* from neosync_api.connections c
 INNER JOIN neosync_api.accounts a ON a.id = c.account_id

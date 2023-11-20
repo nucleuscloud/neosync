@@ -431,7 +431,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, req.Msg.AccountId, logger)
+	tScheduleClient, err := s.temporalWfManager.GetScheduleClientByAccount(ctx, req.Msg.AccountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +449,7 @@ func (s *Service) CreateJob(
 		spec.CronExpressions = []string{*schedule}
 		paused = false
 	}
-	scheduleHandle, err := tclient.ScheduleClient().Create(ctx, temporalclient.ScheduleOptions{
+	scheduleHandle, err := tScheduleClient.Create(ctx, temporalclient.ScheduleOptions{
 		ID:     jobUuid,
 		Spec:   spec,
 		Paused: paused,
@@ -585,7 +585,7 @@ func (s *Service) CreateJobDestinationConnections(
 		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
-	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
+	accountUuid, err := s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
 	if err != nil {
 		return nil, err
 	}
@@ -596,6 +596,7 @@ func (s *Service) CreateJobDestinationConnections(
 	logger = logger.With("userId", userUuid)
 
 	connectionIds := []string{}
+	connectionUuids := []pgtype.UUID{}
 	destinations := []*Destination{}
 	for _, dest := range req.Msg.Destinations {
 		destUuid, err := nucleusdb.ToUuid(dest.ConnectionId)
@@ -609,9 +610,18 @@ func (s *Service) CreateJobDestinationConnections(
 		}
 		destinations = append(destinations, &Destination{ConnectionId: destUuid, Options: options})
 		connectionIds = append(connectionIds, dest.ConnectionId)
+		connectionUuids = append(connectionUuids, destUuid)
 	}
 
 	if !verifyConnectionIdsUnique(connectionIds) {
+		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
+	}
+
+	isInSameAccount, err := verifyConnectionsInAccount(ctx, s.db, connectionUuids, *accountUuid)
+	if err != nil {
+		return nil, err
+	}
+	if !isInSameAccount {
 		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
 	}
 
@@ -666,11 +676,6 @@ func (s *Service) UpdateJobSchedule(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
-	if err != nil {
-		return nil, err
-	}
-
 	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
@@ -700,7 +705,10 @@ func (s *Service) UpdateJobSchedule(
 		}
 
 		// update temporal scheduled job
-		scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
+		scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), nucleusdb.UUIDString(job.ID), logger)
+		if err != nil {
+			return err
+		}
 		err = scheduleHandle.Update(ctx, temporalclient.ScheduleUpdateOptions{
 			DoUpdate: func(schedule temporalclient.ScheduleUpdateInput) (*temporalclient.ScheduleUpdate, error) {
 				schedule.Description.Schedule.Spec = spec
@@ -753,12 +761,10 @@ func (s *Service) PauseJob(
 		return nil, err
 	}
 
-	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
+	scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), nucleusdb.UUIDString(job.ID), logger)
 	if err != nil {
 		return nil, err
 	}
-
-	scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 	if req.Msg.Pause {
 		logger.Info("pausing job")
 		err = scheduleHandle.Pause(ctx, temporalclient.SchedulePauseOptions{Note: req.Msg.GetNote()})
@@ -1155,6 +1161,21 @@ func getWorkflowExecutionsByJobIds(
 	}
 
 	return executions, nil
+}
+
+func verifyConnectionsInAccount(ctx context.Context, db *nucleusdb.NucleusDb, connectionUuids []pgtype.UUID, accountUuid pgtype.UUID) (bool, error) {
+	conns, err := db.Q.GetConnectionsByIds(ctx, db.Db, connectionUuids)
+	if err != nil {
+		return false, err
+	}
+
+	for i := range conns {
+		c := conns[i]
+		if c.AccountID != accountUuid {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 func verifyConnectionIdsUnique(connectionIds []string) bool {

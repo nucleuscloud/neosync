@@ -192,37 +192,6 @@ func Test_SetUser_InvalidToken(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// TODO fix these test @alisha
-// // FAILING
-// func Test_SetUser_Error(t *testing.T) {
-//	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-
-// 	ctx := getAuthenticatedCtx(mockAuthProvider)
-// 	var nilUser db_queries.NeosyncApiUser
-// 	var tx pgx.Tx
-// 	m.QuerierMock.On("GetUserByAuth0Id", ctx, mock.Anything, mock.Anything).Return(nilUser, errors.New("some error"))
-// 	mockDbtx.On("Begin", ctx).Return(tx, errors.New("some error"))
-
-// 	_, err := m.Service.SetUser(ctx, &connect.Request[mgmtv1alpha1.SetUserRequest]{})
-// 	assert.Error(t, err)
-// }
-
-// // FAILING
-// func Test_SetUser(t *testing.T) {
-// 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-
-// 	user := getUserMock(mockUserId)
-// 	ctx := getAuthenticatedCtx(mockAuthProvider)
-// 	var tx pgx.Tx
-// 	m.QuerierMock.On("GetUserByAuth0Id", ctx, mock.Anything, mock.Anything).Return(user, errors.New("some error"))
-// 	mockDbtx.On("Begin", ctx).Return(tx, nil)
-
-// 	resp, err := m.Service.SetUser(ctx, &connect.Request[mgmtv1alpha1.SetUserRequest]{})
-// 	assert.NoError(t, err)
-// 	assert.NotNil(t, resp)
-// 	assert.Equal(t, mockUserId, resp.Msg.GetUserId())
-// }
-
 // GetUserAccounts
 func Test_GetUserAccounts(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
@@ -246,8 +215,32 @@ func Test_GetUserAccounts(t *testing.T) {
 	assert.Equal(t, slug, resp.Msg.GetAccounts()[0].Name)
 }
 
-// SetPersonalAccount
-// TODO @alisha
+func Test_SetPersonalAccount(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockTx := new(nucleusdb.MockTx)
+
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
+	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	m.QuerierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
+	m.QuerierMock.On("GetAccountUserAssociation", ctx, mockTx, db_queries.GetAccountUserAssociationParams{
+		AccountId: accountUuid,
+		UserId:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{}, nil)
+	mockTx.On("Commit", ctx).Return(nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+
+	resp, err := m.Service.SetPersonalAccount(ctx, &connect.Request[mgmtv1alpha1.SetPersonalAccountRequest]{
+		Msg: &mgmtv1alpha1.SetPersonalAccountRequest{},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mockAccountId, resp.Msg.AccountId)
+}
 
 // IsUserInAccount
 func Test_IsUserInAccount_True(t *testing.T) {
