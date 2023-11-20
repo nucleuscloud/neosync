@@ -63,21 +63,23 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}
 	responses := []*BenthosConfigResponse{}
 
-	sourceConnection, err := b.getConnectionById(ctx, job.Source.ConnectionId)
-	if err != nil {
-		return nil, err
-	}
-
 	groupedMappings := groupMappingsByTable(job.Mappings)
 
-	switch connection := sourceConnection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		dsn, err := getPgDsn(connection.PgConfig)
+	switch jobSourceConfig := job.Source.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
 		if err != nil {
 			return nil, err
 		}
-
-		sqlOpts := job.Source.Options.GetPostgresOptions()
+		pgconfig := sourceConnection.ConnectionConfig.GetPgConfig()
+		if pgconfig == nil {
+			return nil, errors.New("source connection is not a postgres config")
+		}
+		dsn, err := getPgDsn(pgconfig)
+		if err != nil {
+			return nil, err
+		}
+		sqlOpts := jobSourceConfig.Postgres
 		var sourceTableOpts map[string]*sourceTableOptions
 		if sqlOpts != nil {
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
@@ -127,13 +129,21 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				resp.DependsOn = dependsOn
 			}
 		}
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		dsn, err := getMysqlDsn(connection.MysqlConfig)
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Mysql.ConnectionId)
+		if err != nil {
+			return nil, err
+		}
+		mysqlconfig := sourceConnection.ConnectionConfig.GetMysqlConfig()
+		if mysqlconfig == nil {
+			return nil, errors.New("source connection is not a mysql config")
+		}
+		dsn, err := getMysqlDsn(mysqlconfig)
 		if err != nil {
 			return nil, err
 		}
 
-		sqlOpts := job.Source.Options.GetMysqlOptions()
+		sqlOpts := jobSourceConfig.Mysql
 		var sourceTableOpts map[string]*sourceTableOptions
 		if sqlOpts != nil {
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
@@ -183,9 +193,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				resp.DependsOn = dependsOn
 			}
 		}
-
 	default:
-		return nil, fmt.Errorf("unsupported source connection")
+		return nil, errors.New("unsupported job source")
 	}
 
 	for _, destination := range job.Destinations {

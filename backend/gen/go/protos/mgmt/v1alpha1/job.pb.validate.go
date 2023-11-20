@@ -294,11 +294,11 @@ func (m *JobSource) validate(all bool) error {
 	var errors []error
 
 	if all {
-		switch v := interface{}(m.GetConfig()).(type) {
+		switch v := interface{}(m.GetOptions()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, JobSourceValidationError{
-					field:  "Config",
+					field:  "Options",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -306,16 +306,16 @@ func (m *JobSource) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, JobSourceValidationError{
-					field:  "Config",
+					field:  "Options",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetOptions()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return JobSourceValidationError{
-				field:  "Config",
+				field:  "Options",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -399,22 +399,22 @@ var _ interface {
 	ErrorName() string
 } = JobSourceValidationError{}
 
-// Validate checks the field values on JobSourceConfig with the rules defined
+// Validate checks the field values on JobSourceOptions with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
-func (m *JobSourceConfig) Validate() error {
+func (m *JobSourceOptions) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on JobSourceConfig with the rules
+// ValidateAll checks the field values on JobSourceOptions with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// JobSourceConfigMultiError, or nil if none found.
-func (m *JobSourceConfig) ValidateAll() error {
+// JobSourceOptionsMultiError, or nil if none found.
+func (m *JobSourceOptions) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *JobSourceConfig) validate(all bool) error {
+func (m *JobSourceOptions) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -422,9 +422,9 @@ func (m *JobSourceConfig) validate(all bool) error {
 	var errors []error
 
 	switch v := m.Config.(type) {
-	case *JobSourceConfig_Postgres:
+	case *JobSourceOptions_Postgres:
 		if v == nil {
-			err := JobSourceConfigValidationError{
+			err := JobSourceOptionsValidationError{
 				field:  "Config",
 				reason: "oneof value cannot be a typed-nil",
 			}
@@ -438,7 +438,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 			switch v := interface{}(m.GetPostgres()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobSourceConfigValidationError{
+					errors = append(errors, JobSourceOptionsValidationError{
 						field:  "Postgres",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -446,7 +446,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, JobSourceConfigValidationError{
+					errors = append(errors, JobSourceOptionsValidationError{
 						field:  "Postgres",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -455,7 +455,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(m.GetPostgres()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return JobSourceConfigValidationError{
+				return JobSourceOptionsValidationError{
 					field:  "Postgres",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -463,9 +463,9 @@ func (m *JobSourceConfig) validate(all bool) error {
 			}
 		}
 
-	case *JobSourceConfig_AwsS3:
+	case *JobSourceOptions_AwsS3:
 		if v == nil {
-			err := JobSourceConfigValidationError{
+			err := JobSourceOptionsValidationError{
 				field:  "Config",
 				reason: "oneof value cannot be a typed-nil",
 			}
@@ -479,7 +479,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 			switch v := interface{}(m.GetAwsS3()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobSourceConfigValidationError{
+					errors = append(errors, JobSourceOptionsValidationError{
 						field:  "AwsS3",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -487,7 +487,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, JobSourceConfigValidationError{
+					errors = append(errors, JobSourceOptionsValidationError{
 						field:  "AwsS3",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -496,7 +496,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(m.GetAwsS3()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return JobSourceConfigValidationError{
+				return JobSourceOptionsValidationError{
 					field:  "AwsS3",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -504,9 +504,9 @@ func (m *JobSourceConfig) validate(all bool) error {
 			}
 		}
 
-	case *JobSourceConfig_Mysql:
+	case *JobSourceOptions_Mysql:
 		if v == nil {
-			err := JobSourceConfigValidationError{
+			err := JobSourceOptionsValidationError{
 				field:  "Config",
 				reason: "oneof value cannot be a typed-nil",
 			}
@@ -520,7 +520,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 			switch v := interface{}(m.GetMysql()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobSourceConfigValidationError{
+					errors = append(errors, JobSourceOptionsValidationError{
 						field:  "Mysql",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -528,7 +528,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, JobSourceConfigValidationError{
+					errors = append(errors, JobSourceOptionsValidationError{
 						field:  "Mysql",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -537,7 +537,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(m.GetMysql()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return JobSourceConfigValidationError{
+				return JobSourceOptionsValidationError{
 					field:  "Mysql",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -545,9 +545,9 @@ func (m *JobSourceConfig) validate(all bool) error {
 			}
 		}
 
-	case *JobSourceConfig_Generate:
+	case *JobSourceOptions_Generate:
 		if v == nil {
-			err := JobSourceConfigValidationError{
+			err := JobSourceOptionsValidationError{
 				field:  "Config",
 				reason: "oneof value cannot be a typed-nil",
 			}
@@ -561,7 +561,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 			switch v := interface{}(m.GetGenerate()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, JobSourceConfigValidationError{
+					errors = append(errors, JobSourceOptionsValidationError{
 						field:  "Generate",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -569,7 +569,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, JobSourceConfigValidationError{
+					errors = append(errors, JobSourceOptionsValidationError{
 						field:  "Generate",
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -578,7 +578,7 @@ func (m *JobSourceConfig) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(m.GetGenerate()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return JobSourceConfigValidationError{
+				return JobSourceOptionsValidationError{
 					field:  "Generate",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -591,19 +591,19 @@ func (m *JobSourceConfig) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return JobSourceConfigMultiError(errors)
+		return JobSourceOptionsMultiError(errors)
 	}
 
 	return nil
 }
 
-// JobSourceConfigMultiError is an error wrapping multiple validation errors
-// returned by JobSourceConfig.ValidateAll() if the designated constraints
+// JobSourceOptionsMultiError is an error wrapping multiple validation errors
+// returned by JobSourceOptions.ValidateAll() if the designated constraints
 // aren't met.
-type JobSourceConfigMultiError []error
+type JobSourceOptionsMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m JobSourceConfigMultiError) Error() string {
+func (m JobSourceOptionsMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -612,11 +612,11 @@ func (m JobSourceConfigMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m JobSourceConfigMultiError) AllErrors() []error { return m }
+func (m JobSourceOptionsMultiError) AllErrors() []error { return m }
 
-// JobSourceConfigValidationError is the validation error returned by
-// JobSourceConfig.Validate if the designated constraints aren't met.
-type JobSourceConfigValidationError struct {
+// JobSourceOptionsValidationError is the validation error returned by
+// JobSourceOptions.Validate if the designated constraints aren't met.
+type JobSourceOptionsValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -624,22 +624,22 @@ type JobSourceConfigValidationError struct {
 }
 
 // Field function returns field value.
-func (e JobSourceConfigValidationError) Field() string { return e.field }
+func (e JobSourceOptionsValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e JobSourceConfigValidationError) Reason() string { return e.reason }
+func (e JobSourceOptionsValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e JobSourceConfigValidationError) Cause() error { return e.cause }
+func (e JobSourceOptionsValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e JobSourceConfigValidationError) Key() bool { return e.key }
+func (e JobSourceOptionsValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e JobSourceConfigValidationError) ErrorName() string { return "JobSourceConfigValidationError" }
+func (e JobSourceOptionsValidationError) ErrorName() string { return "JobSourceOptionsValidationError" }
 
 // Error satisfies the builtin error interface
-func (e JobSourceConfigValidationError) Error() string {
+func (e JobSourceOptionsValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -651,14 +651,14 @@ func (e JobSourceConfigValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sJobSourceConfig.%s: %s%s",
+		"invalid %sJobSourceOptions.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = JobSourceConfigValidationError{}
+var _ error = JobSourceOptionsValidationError{}
 
 var _ interface {
 	Field() string
@@ -666,7 +666,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = JobSourceConfigValidationError{}
+} = JobSourceOptionsValidationError{}
 
 // Validate checks the field values on CreateJobDestination with the rules
 // defined in the proto definition for this message. If any rules are

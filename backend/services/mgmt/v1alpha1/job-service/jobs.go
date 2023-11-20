@@ -339,7 +339,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
-	connectionIds := []string{req.Msg.Source.ConnectionId}
+	connectionIds := []string{}
 	destinations := []*Destination{}
 	for _, dest := range req.Msg.Destinations {
 		destUuid, err := nucleusdb.ToUuid(dest.ConnectionId)
@@ -355,21 +355,51 @@ func (s *Service) CreateJob(
 		connectionIds = append(connectionIds, dest.ConnectionId)
 	}
 
+	// we leave out generation fk source connection id as it might be set to a destination id
+	switch config := req.Msg.Source.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		connectionIds = append(connectionIds, config.Mysql.ConnectionId)
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		connectionIds = append(connectionIds, config.Postgres.ConnectionId)
+	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
+		connectionIds = append(connectionIds, config.AwsS3.ConnectionId)
+	}
+
 	if !verifyConnectionIdsUnique(connectionIds) {
 		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
 	}
 
-	sourceUuid, err := nucleusdb.ToUuid(req.Msg.Source.ConnectionId)
-	if err != nil {
-		return nil, err
+	var connectionIdToVerify *string
+	switch config := req.Msg.Source.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		connectionIdToVerify = &config.Mysql.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		connectionIdToVerify = &config.Postgres.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
+		connectionIdToVerify = &config.AwsS3.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		switch fkConfig := config.Generate.ForeignKeyConstraintConfig.(type) {
+		case *mgmtv1alpha1.GenerateSourceOptions_FkSourceConnectionId:
+			connectionIdToVerify = &fkConfig.FkSourceConnectionId
+		}
 	}
-	areConnectionsCompatible, err := verifyConnectionsAreCompatible(ctx, s.db, sourceUuid, destinations)
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to verify if connections are compatible: %w", err).Error())
-		return nil, err
-	}
-	if !areConnectionsCompatible {
-		return nil, nucleuserrors.NewBadRequest("connection types are incompatible")
+	if connectionIdToVerify != nil {
+		if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, req.Msg.AccountId); err != nil {
+			return nil, err
+		}
+
+		sourceUuid, err := nucleusdb.ToUuid(*connectionIdToVerify)
+		if err != nil {
+			return nil, err
+		}
+		areConnectionsCompatible, err := verifyConnectionsAreCompatible(ctx, s.db, sourceUuid, destinations)
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to verify if connections are compatible: %w", err).Error())
+			return nil, err
+		}
+		if !areConnectionsCompatible {
+			return nil, nucleuserrors.NewBadRequest("connection types are incompatible")
+		}
 	}
 
 	cron := pgtype.Text{}
@@ -378,10 +408,6 @@ func (s *Service) CreateJob(
 		if err != nil {
 			return nil, err
 		}
-	}
-	connectionSourceUuid, err := nucleusdb.ToUuid(req.Msg.Source.ConnectionId)
-	if err != nil {
-		return nil, err
 	}
 
 	mappings := []*pg_models.JobMapping{}
@@ -417,15 +443,14 @@ func (s *Service) CreateJob(
 	}
 
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
-		Name:               req.Msg.JobName,
-		AccountID:          *accountUuid,
-		Status:             int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
-		CronSchedule:       cron,
-		ConnectionSourceID: connectionSourceUuid,
-		ConnectionOptions:  connectionOptions,
-		Mappings:           mappings,
-		CreatedByID:        *userUuid,
-		UpdatedByID:        *userUuid,
+		Name:              req.Msg.JobName,
+		AccountID:         *accountUuid,
+		Status:            int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
+		CronSchedule:      cron,
+		ConnectionOptions: connectionOptions,
+		Mappings:          mappings,
+		CreatedByID:       *userUuid,
+		UpdatedByID:       *userUuid,
 	}, connDestParams)
 	if err != nil {
 		return nil, err
@@ -819,13 +844,25 @@ func (s *Service) UpdateJobSourceConnection(
 		return nil, err
 	}
 
-	connectionUuid, err := nucleusdb.ToUuid(req.Msg.Source.ConnectionId)
-	if err != nil {
-		return nil, err
+	var connectionIdToVerify *string
+	switch config := req.Msg.Source.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		connectionIdToVerify = &config.Mysql.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		connectionIdToVerify = &config.Postgres.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
+		connectionIdToVerify = &config.AwsS3.ConnectionId
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		switch fkConfig := config.Generate.ForeignKeyConstraintConfig.(type) {
+		case *mgmtv1alpha1.GenerateSourceOptions_FkSourceConnectionId:
+			connectionIdToVerify = &fkConfig.FkSourceConnectionId
+		}
 	}
 
-	if err := s.verifyConnectionInAccount(ctx, req.Msg.Source.ConnectionId, nucleusdb.UUIDString(job.AccountID)); err != nil {
-		return nil, err
+	if connectionIdToVerify != nil {
+		if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, nucleusdb.UUIDString(job.AccountID)); err != nil {
+			return nil, err
+		}
 	}
 
 	connectionOptions := &pg_models.JobSourceOptions{}
@@ -846,9 +883,9 @@ func (s *Service) UpdateJobSourceConnection(
 
 	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
 		_, err = s.db.Q.UpdateJobSource(ctx, dbtx, db_queries.UpdateJobSourceParams{
-			ID:                 job.ID,
-			ConnectionSourceID: connectionUuid,
-			ConnectionOptions:  connectionOptions,
+			ID: job.ID,
+			// ConnectionSourceID: connectionUuid,
+			ConnectionOptions: connectionOptions,
 
 			UpdatedByID: *userUuid,
 		})

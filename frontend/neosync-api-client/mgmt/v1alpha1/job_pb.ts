@@ -212,9 +212,9 @@ export class GetJobsResponse extends Message<GetJobsResponse> {
  */
 export class JobSource extends Message<JobSource> {
   /**
-   * @generated from field: mgmt.v1alpha1.JobSourceConfig config = 1;
+   * @generated from field: mgmt.v1alpha1.JobSourceOptions options = 1;
    */
-  config?: JobSourceConfig;
+  options?: JobSourceOptions;
 
   constructor(data?: PartialMessage<JobSource>) {
     super();
@@ -224,7 +224,7 @@ export class JobSource extends Message<JobSource> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.JobSource";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "config", kind: "message", T: JobSourceConfig },
+    { no: 1, name: "options", kind: "message", T: JobSourceOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSource {
@@ -245,11 +245,11 @@ export class JobSource extends Message<JobSource> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.JobSourceConfig
+ * @generated from message mgmt.v1alpha1.JobSourceOptions
  */
-export class JobSourceConfig extends Message<JobSourceConfig> {
+export class JobSourceOptions extends Message<JobSourceOptions> {
   /**
-   * @generated from oneof mgmt.v1alpha1.JobSourceConfig.config
+   * @generated from oneof mgmt.v1alpha1.JobSourceOptions.config
    */
   config: {
     /**
@@ -277,13 +277,13 @@ export class JobSourceConfig extends Message<JobSourceConfig> {
     case: "generate";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
-  constructor(data?: PartialMessage<JobSourceConfig>) {
+  constructor(data?: PartialMessage<JobSourceOptions>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.JobSourceConfig";
+  static readonly typeName = "mgmt.v1alpha1.JobSourceOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "postgres", kind: "message", T: PostgresSourceConnectionOptions, oneof: "config" },
     { no: 2, name: "aws_s3", kind: "message", T: AwsS3SourceConnectionOptions, oneof: "config" },
@@ -291,20 +291,20 @@ export class JobSourceConfig extends Message<JobSourceConfig> {
     { no: 4, name: "generate", kind: "message", T: GenerateSourceOptions, oneof: "config" },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceConfig {
-    return new JobSourceConfig().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceOptions {
+    return new JobSourceOptions().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobSourceConfig {
-    return new JobSourceConfig().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobSourceOptions {
+    return new JobSourceOptions().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobSourceConfig {
-    return new JobSourceConfig().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobSourceOptions {
+    return new JobSourceOptions().fromJsonString(jsonString, options);
   }
 
-  static equals(a: JobSourceConfig | PlainMessage<JobSourceConfig> | undefined, b: JobSourceConfig | PlainMessage<JobSourceConfig> | undefined): boolean {
-    return proto3.util.equals(JobSourceConfig, a, b);
+  static equals(a: JobSourceOptions | PlainMessage<JobSourceOptions> | undefined, b: JobSourceOptions | PlainMessage<JobSourceOptions> | undefined): boolean {
+    return proto3.util.equals(JobSourceOptions, a, b);
   }
 }
 
