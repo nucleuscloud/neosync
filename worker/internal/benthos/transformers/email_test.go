@@ -1,17 +1,19 @@
 package neosync_transformers
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 const email = "evis@gmail.com"
 
-func TestGenerateEmail(t *testing.T) {
+func Test_GenerateEmail(t *testing.T) {
 
 	res, err := GenerateEmailPreserveDomain(email, true)
 
@@ -22,7 +24,7 @@ func TestGenerateEmail(t *testing.T) {
 	assert.Equal(t, true, isValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
 }
 
-func TestGenerateEmailPreserveDomain(t *testing.T) {
+func Test_GenerateEmailPreserveDomain(t *testing.T) {
 
 	res, err := GenerateEmailPreserveDomain(email, true)
 
@@ -33,7 +35,7 @@ func TestGenerateEmailPreserveDomain(t *testing.T) {
 	assert.Equal(t, true, isValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
 }
 
-func TestGenerateEmailPreserveLength(t *testing.T) {
+func Test_GenerateEmailPreserveLength(t *testing.T) {
 
 	res, err := GenerateEmailPreserveLength(email, true)
 
@@ -41,7 +43,7 @@ func TestGenerateEmailPreserveLength(t *testing.T) {
 	assert.Equal(t, len(email), len(res), "The length of the emails should be the same")
 }
 
-func TestGenerateEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
+func Test_GenerateEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
 	email := "johndoe@gmail.com"
 
 	res, err := GenerateEmailPreserveDomainAndLength(email, true, true)
@@ -51,7 +53,7 @@ func TestGenerateEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
 
 }
 
-func TestGenerateEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
+func Test_GenerateEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
 	email := "johndoe@gmail.com"
 
 	res, err := GenerateEmail(email, false, false)
@@ -61,36 +63,76 @@ func TestGenerateEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
 
 }
 
-func TestGenerateDomain(t *testing.T) {
+func Test_GenerateDomain(t *testing.T) {
 
 	res, err := GenerateDomain()
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidDomain(res))
+	assert.Equal(t, true, IsValidDomain(res), "The expected email should have a valid domain")
 
 }
 
-func TestGenerateUsername(t *testing.T) {
+func Test_GenerateUsername(t *testing.T) {
 
 	res, err := GenerateRandomUsername()
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidUsername(res))
+	assert.Equal(t, true, IsValidUsername(res), "The expected email should have a valid username")
 
 }
 
-func TestEmailTransformer(t *testing.T) {
-	mapping := `root = this.emailtransformer(true, true)`
+func Test_GenerateRandomEmail(t *testing.T) {
+	res, err := GenerateRandomEmail()
+
+	assert.NoError(t, err)
+	assert.Equal(t, true, isValidEmail(res), "The expected email should be have a valid email structure")
+}
+
+func Test_EmailTransformerWithValue(t *testing.T) {
+	testVal := "evil@gmail.com"
+	mapping := fmt.Sprintf(`root = emailtransformer("%s",true,true)`, testVal)
 	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
-	testVal := "evil@gmail.com"
-
-	res, err := ex.Query(testVal)
+	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
 	assert.Len(t, res.(string), len(testVal), "Generated email must be the same length as the input email")
 	assert.Equal(t, strings.Split(res.(string), "@")[1], "gmail.com")
+}
+
+func Test_EmailTransformerWithEmptyValue(t *testing.T) {
+	testVal := ""
+	mapping := fmt.Sprintf(`root = emailtransformer("%s",true,true)`, testVal)
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err)
+	assert.NoError(t, err, "failed to parse the email transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, true, isValidEmail(res.(string)))
+}
+
+func Test_EmailTransformerEmailParamError(t *testing.T) {
+	mapping := `root = emailtransformer(,true,true)`
+	_, err := bloblang.Parse(mapping)
+	assert.Error(t, err, "failed to parse the email transformer, missing param")
+
+}
+func Test_EmailTransformerPreserveLengthParamError(t *testing.T) {
+	testVal := ""
+	mapping := fmt.Sprintf(`root = emailtransformer("%s",true)`, testVal)
+	_, err := bloblang.Parse(mapping)
+	assert.Error(t, err, "failed to parse the email transformer, missing param")
+
+}
+func Test_EmailTransformerErrorParams(t *testing.T) {
+	mapping := `root = emailtransformer(,true,true)`
+	_, err := bloblang.Parse(mapping)
+	assert.Error(t, err, "failed to parse the email transformer, missing param")
+
 }
 
 func isValidEmail(email string) bool {
@@ -124,4 +166,18 @@ func IsValidUsername(domain string) bool {
 
 	// Use the regex pattern to validate the email
 	return re.MatchString(domain)
+}
+
+type MockParsedParams struct {
+	mock.Mock
+}
+
+func (m *MockParsedParams) GetString(key string) (string, error) {
+	args := m.Called(key)
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockParsedParams) GetBool(key string) (bool, error) {
+	args := m.Called(key)
+	return args.Bool(0), args.Error(1)
 }
