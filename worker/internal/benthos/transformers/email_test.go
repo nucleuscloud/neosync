@@ -90,7 +90,7 @@ func Test_GenerateRandomEmail(t *testing.T) {
 
 func Test_EmailTransformerWithValue(t *testing.T) {
 	testVal := "evil@gmail.com"
-	mapping := fmt.Sprintf(`root = emailtransformer("%s",true,true)`, testVal)
+	mapping := fmt.Sprintf(`root = emailtransformer(%q,true,true)`, testVal)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err)
 	assert.NoError(t, err, "failed to parse the email transformer")
@@ -104,7 +104,7 @@ func Test_EmailTransformerWithValue(t *testing.T) {
 
 func Test_EmailTransformerWithEmptyValue(t *testing.T) {
 	testVal := ""
-	mapping := fmt.Sprintf(`root = emailtransformer("%s",true,true)`, testVal)
+	mapping := fmt.Sprintf(`root = emailtransformer(%q,true,true)`, testVal)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err)
 	assert.NoError(t, err, "failed to parse the email transformer")
@@ -123,7 +123,7 @@ func Test_EmailTransformerEmailParamError(t *testing.T) {
 }
 func Test_EmailTransformerPreserveLengthParamError(t *testing.T) {
 	testVal := ""
-	mapping := fmt.Sprintf(`root = emailtransformer("%s",true)`, testVal)
+	mapping := fmt.Sprintf(`root = emailtransformer(%q,true)`, testVal)
 	_, err := bloblang.Parse(mapping)
 	assert.Error(t, err, "failed to parse the email transformer, missing param")
 
@@ -132,6 +132,14 @@ func Test_EmailTransformerErrorParams(t *testing.T) {
 	mapping := `root = emailtransformer(,true,true)`
 	_, err := bloblang.Parse(mapping)
 	assert.Error(t, err, "failed to parse the email transformer, missing param")
+
+}
+
+func Test_ParseEmailError(t *testing.T) {
+	test := "ehiu.com"
+
+	_, err := parseEmail(test)
+	assert.Error(t, err)
 
 }
 

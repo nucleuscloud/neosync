@@ -189,7 +189,6 @@ func GenerateDomain() (string, error) {
 	var result string
 
 	domain, err := transformer_utils.GenerateRandomStringWithLength(6)
-
 	if err != nil {
 		return "", fmt.Errorf("unable to generate random domain name")
 	}
@@ -225,7 +224,6 @@ func parseEmail(email string) ([]string, error) {
 
 	inputEmail, err := mail.ParseAddress(email)
 	if err != nil {
-
 		return nil, fmt.Errorf("invalid email format: %s", email)
 	}
 
