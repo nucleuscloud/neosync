@@ -92,7 +92,6 @@ func Test_EmailTransformerWithValue(t *testing.T) {
 	testVal := "evil@gmail.com"
 	mapping := fmt.Sprintf(`root = emailtransformer(%q,true,true)`, testVal)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
 	res, err := ex.Query(nil)
@@ -103,10 +102,8 @@ func Test_EmailTransformerWithValue(t *testing.T) {
 }
 
 func Test_EmailTransformerWithEmptyValue(t *testing.T) {
-	testVal := ""
-	mapping := fmt.Sprintf(`root = emailtransformer(%q,true,true)`, testVal)
+	mapping := `root = emailtransformer()`
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
 	res, err := ex.Query(nil)
@@ -115,24 +112,38 @@ func Test_EmailTransformerWithEmptyValue(t *testing.T) {
 	assert.Equal(t, true, isValidEmail(res.(string)))
 }
 
-func Test_EmailTransformerEmailParamError(t *testing.T) {
-	mapping := `root = emailtransformer(,true,true)`
-	_, err := bloblang.Parse(mapping)
-	assert.Error(t, err, "failed to parse the email transformer, missing param")
-
-}
-func Test_EmailTransformerPreserveLengthParamError(t *testing.T) {
-	testVal := ""
+// testing that even if some params are passed, as long as the email param is passed, it'll generate the right value
+func Test_EmailTransformerWithMissingParams(t *testing.T) {
+	testVal := "evil@gmail.com"
 	mapping := fmt.Sprintf(`root = emailtransformer(%q,true)`, testVal)
-	_, err := bloblang.Parse(mapping)
-	assert.Error(t, err, "failed to parse the email transformer, missing param")
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the email transformer")
 
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	fmt.Println("val", res)
+
+	assert.Equal(t, true, isValidEmail(res.(string)))
 }
-func Test_EmailTransformerErrorParams(t *testing.T) {
-	mapping := `root = emailtransformer(,true,true)`
-	_, err := bloblang.Parse(mapping)
-	assert.Error(t, err, "failed to parse the email transformer, missing param")
 
+// testing that even if some params are passed, as long as the email param isn't passed, it'll always generate a random value
+// Note: that if the args aren't named then it will fail, see the test below
+func Test_EmailTransformerWithEmptyValueButSomeNamedParams(t *testing.T) {
+	mapping := `root = emailtransformer(preserve_length: true,preserve_domain: false)`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the email transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, true, isValidEmail(res.(string)))
+}
+
+func Test_EmailTransformerWithEmptyValueButSomeUnnamedParams(t *testing.T) {
+	mapping := `root = emailtransformer(true, false)`
+	_, err := bloblang.Parse(mapping)
+	assert.Error(t, err, "failed to parse the email transformer")
 }
 
 func Test_ParseEmailError(t *testing.T) {

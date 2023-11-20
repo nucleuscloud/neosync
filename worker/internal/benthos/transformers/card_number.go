@@ -124,12 +124,13 @@ func GenerateValidLuhnCheckCardNumber() (int64, error) {
 	// append the checksum to the card number
 	cardNum = append(cardNum, checkSum)
 
-	// convert the card number to a string
+	// convert the card number to a string to build the card number format
 	cardNumStr := ""
 	for _, d := range cardNum {
 		cardNumStr += fmt.Sprintf("%d", d)
 	}
 
+	// convert the card number back to an int to return it
 	cardNumInt, err := strconv.ParseInt(cardNumStr, 10, 64)
 	if err != nil {
 		return 0, err

@@ -14,26 +14,48 @@ var tld = []string{"com", "org", "net", "edu", "gov", "app", "dev"}
 
 func init() {
 
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam("email")).Param(bloblang.NewBoolParam("preserve_length")).Param(bloblang.NewBoolParam("preserve_domain"))
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewStringParam("email").Optional()).
+		Param(bloblang.NewBoolParam("preserve_length").Optional()).
+		Param(bloblang.NewBoolParam("preserve_domain").Optional())
 
 	err := bloblang.RegisterFunctionV2("emailtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		email, err := args.GetString("email")
+		// optional params return a pointer
+
+		emailPtr, err := args.GetOptionalString("email")
 		if err != nil {
 			return nil, err
 		}
 
-		preserveLength, err := args.GetBool("preserve_length")
+		// check if pointer is nil aka the param is not set
+		var email string
+		if emailPtr != nil {
+			email = *emailPtr
+		}
+
+		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
 		if err != nil {
 			return nil, err
 		}
 
-		preserveDomain, err := args.GetBool("preserve_domain")
+		var preserveLength bool
+		if preserveLengthPtr != nil {
+			preserveLength = *preserveLengthPtr
+		}
+
+		preserveDomainPtr, err := args.GetOptionalBool("preserve_domain")
 		if err != nil {
 			return nil, err
+		}
+
+		var preserveDomain bool
+		if preserveDomainPtr != nil {
+			preserveDomain = *preserveDomainPtr
 		}
 
 		return func() (any, error) {
+
 			res, err := GenerateEmail(email, preserveLength, preserveDomain)
 			return res, err
 		}, nil
