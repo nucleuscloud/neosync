@@ -122,8 +122,6 @@ func Test_EmailTransformerWithMissingParams(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	fmt.Println("val", res)
-
 	assert.Equal(t, true, isValidEmail(res.(string)))
 }
 
