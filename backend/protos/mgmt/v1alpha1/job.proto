@@ -35,27 +35,19 @@ message JobDestination {
 }
 
 message SourceGenerateOptions {
-  repeated SourceGenerateSchemaOption schemas = 1;
+  repeated SourceGenerateSchemaOption schemas = 1 [(buf.validate.field).repeated.min_items = 1];
   oneof foreign_key_constraint_strategy {
     bool ignore_foreign_keys = 2;
-    string fk_source_connection_id = 3;
+    string fk_source_connection_id = 3 [(buf.validate.field).string.uuid = true];
   }
 }
 message SourceGenerateSchemaOption {
-  string schema = 1;
-  repeated SourceGenerateTableOption tables = 2;
+  string schema = 1 [(buf.validate.field).string.min_len = 1];
+  repeated SourceGenerateTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
 }
 message SourceGenerateTableOption {
-  string table = 1;
-  int64 row_count = 2;
-}
-
-message ConstraintStrategy {
-  oneof strat {
-    string connection_id = 1;
-    bool use_first_destination = 2;
-    bool ignore = 3;
-  }
+  string table = 1 [(buf.validate.field).string.min_len = 1];
+  int64 row_count = 2 [(buf.validate.field).int64.gte = 1];
 }
 
 message PostgresSourceConnectionOptions {

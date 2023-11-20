@@ -506,63 +506,6 @@ export class SourceGenerateTableOption extends Message<SourceGenerateTableOption
 }
 
 /**
- * @generated from message mgmt.v1alpha1.ConstraintStrategy
- */
-export class ConstraintStrategy extends Message<ConstraintStrategy> {
-  /**
-   * @generated from oneof mgmt.v1alpha1.ConstraintStrategy.strat
-   */
-  strat: {
-    /**
-     * @generated from field: string connection_id = 1;
-     */
-    value: string;
-    case: "connectionId";
-  } | {
-    /**
-     * @generated from field: bool use_first_destination = 2;
-     */
-    value: boolean;
-    case: "useFirstDestination";
-  } | {
-    /**
-     * @generated from field: bool ignore = 3;
-     */
-    value: boolean;
-    case: "ignore";
-  } | { case: undefined; value?: undefined } = { case: undefined };
-
-  constructor(data?: PartialMessage<ConstraintStrategy>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.ConstraintStrategy";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "strat" },
-    { no: 2, name: "use_first_destination", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "strat" },
-    { no: 3, name: "ignore", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "strat" },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConstraintStrategy {
-    return new ConstraintStrategy().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConstraintStrategy {
-    return new ConstraintStrategy().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConstraintStrategy {
-    return new ConstraintStrategy().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ConstraintStrategy | PlainMessage<ConstraintStrategy> | undefined, b: ConstraintStrategy | PlainMessage<ConstraintStrategy> | undefined): boolean {
-    return proto3.util.equals(ConstraintStrategy, a, b);
-  }
-}
-
-/**
  * @generated from message mgmt.v1alpha1.PostgresSourceConnectionOptions
  */
 export class PostgresSourceConnectionOptions extends Message<PostgresSourceConnectionOptions> {
