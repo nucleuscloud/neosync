@@ -1,6 +1,4 @@
 GO=go
-BUF=buf
-SOPS=sops
 
 default: all
 
@@ -9,7 +7,7 @@ all: build
 vet:
 	$(GO) vet ./...
 
-build: protos vet ## Build and grpc gateway
+build: gen vet
 	hack/build.sh
 .PHONY: build
 
@@ -21,11 +19,11 @@ run:
 # 	CGO_ENABLED=0 $(GO) build -gcflags="all=-N -l" -o bin/mgmt cmd/mgmt/*.go
 # .PHONY: build-debug
 
-protos: ## Generate code
-	./hack/gen.sh
+protos: gen
 .PHONY: protos
 
-gen: protos
+gen:
+	./hack/gen.sh
 .PHONY: gen
 
 install-tools: install-go-tools
