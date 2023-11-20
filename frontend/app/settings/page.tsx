@@ -9,7 +9,7 @@ export default function Settings() {
   return (
     <OverviewContainer
       Header={<PageHeader header="Settings" />}
-      containerClassName="settings-page mx-24"
+      containerClassName="settings-page"
     >
       <div className="flex flex-col gap-4">
         <div>

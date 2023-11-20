@@ -115,7 +115,7 @@ export default function Page({ params }: PageProps): ReactElement {
           }
         />
       }
-      containerClassName="runs-page mx-24"
+      containerClassName="runs-page"
     >
       {isLoading ? (
         <div className="space-y-24">

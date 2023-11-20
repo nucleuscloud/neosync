@@ -32,7 +32,7 @@ export default function NewCustomTransformerPage({ params }: PageProps) {
           }
         />
       }
-      containerClassName="mx-64"
+      containerClassName="px-12 md:px-24 lg:px-32"
     >
       <div className="transformer-details-container">
         <div>

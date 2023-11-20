@@ -1,4 +1,9 @@
 'use client';
+import { checkMysqlConnection } from '@/app/new/connection/mysql/MysqlForm';
+import ButtonText from '@/components/ButtonText';
+import FormError from '@/components/FormError';
+import Spinner from '@/components/Spinner';
+import RequiredLabel from '@/components/labels/RequiredLabel';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,11 +12,18 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  CheckConnectionConfigRequest,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
   MysqlConnection,
@@ -19,38 +31,30 @@ import {
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import {
+  MYSQL_CONNECTION_PROTOCOLS,
+  MYSQL_FORM_SCHEMA,
+  MysqlFormValues,
+} from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ExclamationTriangleIcon, RocketIcon } from '@radix-ui/react-icons';
+import {
+  CheckCircledIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string().required(),
-
-  db: Yup.object({
-    host: Yup.string().required(),
-    name: Yup.string().required(),
-    user: Yup.string().required(),
-    pass: Yup.string().required(),
-    port: Yup.number().integer().positive().required(),
-    protocol: Yup.string().required(),
-  }).required(),
-});
-
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+import { Controller, useForm } from 'react-hook-form';
 
 interface Props {
   connectionId: string;
-  defaultValues: FormValues;
+  defaultValues: MysqlFormValues;
   onSaved(updatedConnectionResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
 }
 
 export default function MysqlForm(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+  const form = useForm<MysqlFormValues>({
+    resolver: yupResolver(MYSQL_FORM_SCHEMA),
     defaultValues: {
       connectionName: '',
       db: {
@@ -63,15 +67,25 @@ export default function MysqlForm(props: Props) {
       },
     },
     values: defaultValues,
+    context: { originalConnectionName: defaultValues.connectionName },
   });
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
 
-  async function onSubmit(values: FormValues) {
+  const [isTesting, setIsTesting] = useState<boolean>(false);
+
+  async function onSubmit(values: MysqlFormValues) {
     try {
-      const connectionResp = await updatePostgresConnection(
+      const checkResp = await checkMysqlConnection(values.db);
+
+      if (!checkResp.isConnected) {
+        return;
+      }
+
+      const connectionResp = await updateMysqlConnection(
         connectionId,
+        values.connectionName,
         values.db
       );
       onSaved(connectionResp);
@@ -80,20 +94,37 @@ export default function MysqlForm(props: Props) {
       onSaveFailed(err);
     }
   }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
+        <Controller
           control={form.control}
           name="connectionName"
-          render={({ field }) => (
+          render={({ field: { onChange, ...field } }) => (
             <FormItem>
-              <FormControl>
-                <Input disabled placeholder="Connection Name" {...field} />
-              </FormControl>
+              <FormLabel>
+                <RequiredLabel />
+                Connection Name
+              </FormLabel>
               <FormDescription>
-                The unique name of the connection.
+                The unique name of the connection
               </FormDescription>
+              <FormControl>
+                <Input
+                  placeholder="Connection Name"
+                  {...field}
+                  onChange={async ({ target: { value } }) => {
+                    onChange(value);
+                    await form.trigger('connectionName');
+                  }}
+                />
+              </FormControl>
+              <FormError
+                errorMessage={
+                  form.formState.errors.connectionName?.message ?? ''
+                }
+              />
               <FormMessage />
             </FormItem>
           )}
@@ -104,10 +135,14 @@ export default function MysqlForm(props: Props) {
           name="db.host"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>
+                <RequiredLabel />
+                Host Name
+              </FormLabel>
+              <FormDescription>The host name</FormDescription>
               <FormControl>
                 <Input placeholder="Host" {...field} />
               </FormControl>
-              <FormDescription>Host</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -118,10 +153,14 @@ export default function MysqlForm(props: Props) {
           name="db.port"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>
+                <RequiredLabel />
+                Database Port
+              </FormLabel>
+              <FormDescription>The database port</FormDescription>
               <FormControl>
                 <Input placeholder="3306" {...field} />
               </FormControl>
-              <FormDescription>The port of the database</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -132,6 +171,11 @@ export default function MysqlForm(props: Props) {
           name="db.name"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>
+                <RequiredLabel />
+                Database Name
+              </FormLabel>
+              <FormDescription>The database name</FormDescription>
               <FormControl>
                 <Input placeholder="mysql" {...field} />
               </FormControl>
@@ -146,10 +190,11 @@ export default function MysqlForm(props: Props) {
           name="db.user"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Database Username</FormLabel>
+              <FormDescription>The username of the database</FormDescription>
               <FormControl>
                 <Input placeholder="mysql" {...field} />
               </FormControl>
-              <FormDescription>The username</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -160,10 +205,14 @@ export default function MysqlForm(props: Props) {
           name="db.pass"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>
+                <RequiredLabel />
+                Database Password
+              </FormLabel>
+              <FormDescription>The database password</FormDescription>
               <FormControl>
                 <Input placeholder="mysql" {...field} />
               </FormControl>
-              <FormDescription>Password</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -174,22 +223,46 @@ export default function MysqlForm(props: Props) {
           name="db.protocol"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>
+                <RequiredLabel />
+                Connection Protocol
+              </FormLabel>
+              <FormDescription>
+                The protocol that you want to use to connect to your database
+              </FormDescription>
               <FormControl>
-                <Input placeholder="tcp" {...field} />
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MYSQL_CONNECTION_PROTOCOLS.map((mode) => (
+                      <SelectItem
+                        className="cursor-pointer"
+                        key={mode}
+                        value={mode}
+                      >
+                        {mode}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
-              <FormDescription>Protocol</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-
         <TestConnectionResult resp={checkResp} />
         <div className="flex flex-row gap-3 justify-between">
           <Button
+            variant="outline"
+            disabled={!form.formState.isValid}
             onClick={async () => {
+              setIsTesting(true);
               try {
-                const resp = await checkPostgresConnection(form.getValues().db);
+                const resp = await checkMysqlConnection(form.getValues().db);
                 setCheckResp(resp);
+                setIsTesting(false);
               } catch (err) {
                 setCheckResp(
                   new CheckConnectionConfigResponse({
@@ -198,15 +271,25 @@ export default function MysqlForm(props: Props) {
                       err instanceof Error ? err.message : 'unknown error',
                   })
                 );
+                setIsTesting(false);
               }
             }}
             type="button"
-            variant="secondary"
           >
-            Test Connection
+            <ButtonText
+              leftIcon={
+                isTesting ? <Spinner className="text-black" /> : <div></div>
+              }
+              text="Test Connection"
+            />
           </Button>
 
-          <Button type="submit">Submit</Button>
+          <Button type="submit" disabled={!form.formState.isValid}>
+            <ButtonText
+              leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
+              text="submit"
+            />
+          </Button>
         </div>
       </form>
     </Form>
@@ -223,8 +306,8 @@ function TestConnectionResult(props: TestConnectionResultProps): ReactElement {
     if (resp.isConnected) {
       return (
         <SuccessAlert
-          title="Woohoo!"
-          description="Successfully connected to database!"
+          title="Success!"
+          description="Successfully connected to the database!"
         />
       );
     } else {
@@ -247,8 +330,8 @@ interface SuccessAlertProps {
 function SuccessAlert(props: SuccessAlertProps): ReactElement {
   const { title, description } = props;
   return (
-    <Alert>
-      <RocketIcon className="h-4 w-4" />
+    <Alert variant="success">
+      <CheckCircledIcon className="h-4 w-4" />
       <AlertTitle>{title}</AlertTitle>
       <AlertDescription>{description}</AlertDescription>
     </Alert>
@@ -271,9 +354,10 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
   );
 }
 
-async function updatePostgresConnection(
+async function updateMysqlConnection(
   connectionId: string,
-  db: FormValues['db']
+  connectionName: string,
+  db: MysqlFormValues['db']
 ): Promise<UpdateConnectionResponse> {
   const res = await fetch(`/api/connections/${connectionId}`, {
     method: 'PUT',
@@ -283,6 +367,7 @@ async function updatePostgresConnection(
     body: JSON.stringify(
       new UpdateConnectionRequest({
         id: connectionId,
+        name: connectionName,
         connectionConfig: new ConnectionConfig({
           config: {
             case: 'mysqlConfig',
@@ -309,42 +394,4 @@ async function updatePostgresConnection(
     throw new Error(body.message);
   }
   return UpdateConnectionResponse.fromJson(await res.json());
-}
-
-async function checkPostgresConnection(
-  db: FormValues['db']
-): Promise<CheckConnectionConfigResponse> {
-  const res = await fetch(`/api/connections/check`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CheckConnectionConfigRequest({
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'mysqlConfig',
-            value: new MysqlConnectionConfig({
-              connectionConfig: {
-                case: 'connection',
-                value: new MysqlConnection({
-                  host: db.host,
-                  name: db.name,
-                  user: db.user,
-                  pass: db.pass,
-                  port: db.port,
-                  protocol: db.protocol,
-                }),
-              },
-            }),
-          },
-        }),
-      })
-    ),
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return CheckConnectionConfigResponse.fromJson(await res.json());
 }

@@ -1,10 +1,10 @@
-import React from 'react';
 import Logo from '@theme/Logo';
+import React from 'react';
 export default function NavbarLogo() {
   return (
     <Logo
       className="navbar__brand"
-      imageClassName="navbar__logo w-10 h-6"
+      imageClassName="navbar__logo w-[84px] h-[20px]"
       titleClassName="navbar__title text--truncate"
     />
   );

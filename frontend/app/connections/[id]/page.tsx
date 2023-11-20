@@ -18,7 +18,7 @@ export default function ConnectionPage({ params }: PageProps) {
   }
   if (isLoading) {
     return (
-      <div className="mt-10 mx-24">
+      <div className="mt-10">
         <SkeletonForm />
       </div>
     );
@@ -33,7 +33,7 @@ export default function ConnectionPage({ params }: PageProps) {
       );
       toast({
         title: 'Successfully updated connection!',
-        variant: 'default',
+        variant: 'success',
       });
     },
     onSaveFailed: (err) =>
@@ -51,7 +51,7 @@ export default function ConnectionPage({ params }: PageProps) {
   return (
     <OverviewContainer
       Header={connectionComponent.header}
-      containerClassName="mx-64"
+      containerClassName=""
     >
       <div className="connection-details-container">
         <div>

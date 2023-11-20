@@ -31,9 +31,9 @@ RETURNING *;
 
 -- name: UpdateConnection :one
 UPDATE neosync_api.connections
-SET connection_config = $1,
-updated_by_id = $2
-WHERE id = $3
+SET name = $1, connection_config = $2,
+updated_by_id = $3
+WHERE id = $4
 RETURNING *;
 
 -- name: IsConnectionNameAvailable :one

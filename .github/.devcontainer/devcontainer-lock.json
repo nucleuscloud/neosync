@@ -1,5 +1,10 @@
 {
   "features": {
+    "ghcr.io/brokeyourbike/devcontainer-features/mockery-go:0.2.0": {
+      "version": "0.2.0",
+      "resolved": "ghcr.io/brokeyourbike/devcontainer-features/mockery-go@sha256:d068a6f83d88151b618dbc9e54ad122157ab378c0ae41247f35144c92bab5547",
+      "integrity": "sha256:d068a6f83d88151b618dbc9e54ad122157ab378c0ae41247f35144c92bab5547"
+    },
     "ghcr.io/devcontainers-contrib/features/grpcurl-asdf:2": {
       "version": "2.0.14",
       "resolved": "ghcr.io/devcontainers-contrib/features/grpcurl-asdf@sha256:9e90a5c3525aa1da83f569a1ba53ffea20e53c844be1dabc7adc4f776ef65c8e",

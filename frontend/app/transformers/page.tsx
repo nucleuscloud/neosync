@@ -23,7 +23,7 @@ export default function Transformers(): ReactElement {
           extraHeading={<NewTransformerButton />}
         />
       }
-      containerClassName="transformer-page mx-24"
+      containerClassName="transformer-page"
     >
       <TransformersTable />
     </OverviewContainer>

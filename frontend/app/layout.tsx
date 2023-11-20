@@ -28,7 +28,7 @@ export default async function RootLayout({
       <head />
       <body
         className={cn(
-          'min-h-screen bg-background font-sans antialiased',
+          'min-h-screen bg-background font-sans antialiased overflow-scroll',
           fontSans.variable
         )}
       >
@@ -42,7 +42,9 @@ export default async function RootLayout({
             <AccountProvider>
               <div className="relative flex min-h-screen flex-col">
                 <SiteHeader />
-                <div className="flex-1">{children}</div>
+                <div className="flex-1 container" id="top-level-layout">
+                  {children}
+                </div>
                 <SiteFooter />
                 <Toaster />
               </div>

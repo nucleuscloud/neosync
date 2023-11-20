@@ -51,9 +51,6 @@ function isErrorWithMessage(error: unknown): error is { message: string } {
   );
 }
 
-export const ToTitleCase = (str: string) => {
-  return str.replace(
-    /\w\S*/g,
-    (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-  );
+export const toTitleCase = (str: string) => {
+  return str.toLowerCase().replace(/\b\w/g, (s) => s.toUpperCase());
 };

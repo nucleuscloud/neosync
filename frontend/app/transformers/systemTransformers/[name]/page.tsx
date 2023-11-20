@@ -69,6 +69,7 @@ export default function ViewSystemTransformers({
           extraHeading={<NewTransformerButton />}
         />
       }
+      containerClassName="px-12 md:px-24 lg:px-32"
     >
       <Form {...form}>
         <form className="space-y-8">
@@ -80,6 +81,7 @@ export default function ViewSystemTransformers({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
+                  <FormDescription>The Transformer name</FormDescription>
                   <FormControl>
                     <Input
                       placeholder="Transformer Name"
@@ -87,7 +89,6 @@ export default function ViewSystemTransformers({
                       className="w-[1000px]"
                     />
                   </FormControl>
-                  <FormDescription>The Transformer name</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -100,6 +101,9 @@ export default function ViewSystemTransformers({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
+                    <FormDescription>
+                      The Transformer decription.
+                    </FormDescription>
                     <FormControl>
                       <Input
                         placeholder="Transformer Name"
@@ -107,9 +111,6 @@ export default function ViewSystemTransformers({
                         className="w-[1000px]"
                       />
                     </FormControl>
-                    <FormDescription>
-                      The Transformer decription.
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -123,6 +124,7 @@ export default function ViewSystemTransformers({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type</FormLabel>
+                    <FormDescription>The Transformer type.</FormDescription>
                     <FormControl>
                       <Input
                         placeholder="Transformer type"
@@ -130,7 +132,6 @@ export default function ViewSystemTransformers({
                         className="w-[1000px]"
                       />
                     </FormControl>
-                    <FormDescription>The Transformer type.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

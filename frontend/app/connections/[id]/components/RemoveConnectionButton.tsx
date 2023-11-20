@@ -21,7 +21,7 @@ export default function RemoveConnectionButton(props: Props): ReactElement {
       await removeConnection(connectionId);
       toast({
         title: 'Successfully removed connection!',
-        variant: 'default',
+        variant: 'success',
       });
       router.push(`/connections`);
     } catch (err) {

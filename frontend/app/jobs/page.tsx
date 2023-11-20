@@ -18,7 +18,7 @@ export default function Jobs() {
   return (
     <OverviewContainer
       Header={<PageHeader header="Jobs" extraHeading={<NewJobButton />} />}
-      containerClassName="jobs-page mx-24"
+      containerClassName="jobs-page"
     >
       <div>
         <JobTable />
@@ -68,10 +68,7 @@ function JobTable(props: JobTableProps): ReactElement {
   );
 }
 
-interface NewJobButtonProps {}
-
-function NewJobButton(props: NewJobButtonProps): ReactElement {
-  const {} = props;
+function NewJobButton(): ReactElement {
   return (
     <NextLink href={'/new/job'}>
       <Button>

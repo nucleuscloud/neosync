@@ -1,4 +1,7 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
+import FormError from '@/components/FormError';
+import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -9,6 +12,7 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -19,51 +23,31 @@ import {
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useForm } from 'react-hook-form';
-import { FaTerminal } from 'react-icons/fa';
-import * as Yup from 'yup';
-
-const FORM_SCHEMA = Yup.object({
-  connectionName: Yup.string(),
-  s3: Yup.object({
-    bucketArn: Yup.string().required(),
-    pathPrefix: Yup.string().optional(),
-    region: Yup.string().optional(),
-    endpoint: Yup.string().optional(),
-    credentials: Yup.object({
-      profile: Yup.string().optional(),
-      accessKeyId: Yup.string(),
-      secretAccessKey: Yup.string().optional(),
-      sessionToken: Yup.string().optional(),
-      fromEc2Role: Yup.boolean().optional(),
-      roleArn: Yup.string().optional(),
-      roleExternalId: Yup.string().optional(),
-    }).optional(),
-  }).required(),
-});
-
-type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
+import { Controller, useForm } from 'react-hook-form';
+import { IoAlertCircleOutline } from 'react-icons/io5';
 
 interface Props {
   connectionId: string;
-  defaultValues: FormValues;
+  defaultValues: AWSFormValues;
   onSaved(updatedConnectionResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
 }
 
 export default function AwsS3Form(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
-  const form = useForm<FormValues>({
-    resolver: yupResolver(FORM_SCHEMA),
+  const form = useForm<AWSFormValues>({
+    resolver: yupResolver(AWS_FORM_SCHEMA),
     defaultValues: {
       connectionName: '',
       s3: {},
     },
     values: defaultValues,
+    context: { originalConnectionName: defaultValues.connectionName },
   });
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: AWSFormValues) {
     try {
       const connectionResp = await updateAwsS3Connection(
         values.s3,
@@ -78,43 +62,59 @@ export default function AwsS3Form(props: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Alert>
-          <FaTerminal className="h-4 w-4" />
-          <AlertTitle>Heads up!</AlertTitle>
-          <AlertDescription>
+        <Alert variant="warning">
+          <div className="flex flex-row items-center gap-2">
+            <IoAlertCircleOutline className="h-6 w-6" />
+            <AlertTitle className="font-semibold">Heads up!</AlertTitle>
+          </div>
+          <AlertDescription className="pl-8">
             Right now AWS S3 connections can only be used as a destination
           </AlertDescription>
         </Alert>
-        <FormField
+        <Controller
           control={form.control}
           name="connectionName"
-          disabled={true}
-          render={({ field }) => (
+          render={({ field: { onChange, ...field } }) => (
             <FormItem>
-              <FormControl>
-                <Input placeholder="Connection Name" {...field} />
-              </FormControl>
-              <FormDescription>
+              <FormLabel>
                 <RequiredLabel />
-                The unique name of the connection.
+                Connection Name
+              </FormLabel>
+              <FormDescription>
+                The unique name of the connection
               </FormDescription>
+              <FormControl>
+                <Input
+                  placeholder="Connection Name"
+                  {...field}
+                  onChange={async ({ target: { value } }) => {
+                    onChange(value);
+                    await form.trigger('connectionName');
+                  }}
+                />
+              </FormControl>
+              <FormError
+                errorMessage={
+                  form.formState.errors.connectionName?.message ?? ''
+                }
+              />
               <FormMessage />
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="s3.bucketArn"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>
+                <RequiredLabel />
+                Bucket ARN
+              </FormLabel>
+              <FormDescription>The bucket ARN</FormDescription>
               <FormControl>
                 <Input placeholder="Bucket ARN" {...field} />
               </FormControl>
-              <FormDescription>
-                <RequiredLabel />
-                Bucket ARN
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -125,10 +125,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.pathPrefix"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Path Prefix</FormLabel>
+              <FormDescription>The path prefix of the bucket</FormDescription>
               <FormControl>
                 <Input placeholder="/..." {...field} />
               </FormControl>
-              <FormDescription>Path Prefix</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -139,10 +140,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.region"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Region</FormLabel>
+              <FormDescription>The AWS region to target</FormDescription>
               <FormControl>
                 <Input placeholder="" {...field} />
               </FormControl>
-              <FormDescription>The AWS region to target</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -153,33 +155,27 @@ export default function AwsS3Form(props: Props) {
           name="s3.endpoint"
           render={({ field }) => (
             <FormItem>
-              <FormControl>
-                <Input placeholder="" {...field} />
-              </FormControl>
+              <FormLabel>Custom Endpoint</FormLabel>
               <FormDescription>
                 Allows specifying a custom endpoint for the AWS API
               </FormDescription>
+              <FormControl>
+                <Input placeholder="" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <div className="space-y-2">
-          <h2 className="text-1xl font-bold tracking-tight">Manual Setup</h2>
-          <p className="text-sm tracking-tight">
-            Optional manual configuration of AWS credentials to use
-          </p>
-        </div>
-
         <FormField
           control={form.control}
           name="s3.credentials.profile"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Profile Name</FormLabel>
+              <FormDescription>AWS Profile Name</FormDescription>
               <FormControl>
                 <Input placeholder="default" {...field} />
               </FormControl>
-              <FormDescription>AWS Profile Name</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -190,10 +186,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.accessKeyId"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Access Key Id</FormLabel>
+              <FormDescription>Access Key Id</FormDescription>
               <FormControl>
                 <Input placeholder="Access Key Id" {...field} />
               </FormControl>
-              <FormDescription>Access Key Id</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -204,10 +201,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.secretAccessKey"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Secret Access Key</FormLabel>
+              <FormDescription>AWS Secret Access Key</FormDescription>
               <FormControl>
                 <Input placeholder="Secret Access Key" {...field} />
               </FormControl>
-              <FormDescription>Secret Access Key</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -218,10 +216,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.sessionToken"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Session Token</FormLabel>
+              <FormDescription>AWS Session Token</FormDescription>
               <FormControl>
                 <Input placeholder="Session Token" {...field} />
               </FormControl>
-              <FormDescription>Session Token</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -240,7 +239,6 @@ export default function AwsS3Form(props: Props) {
                   description="Use the credentials of a host EC2 machine configured to assume an IAM role associated with the instance."
                 />
               </FormControl>
-              {/* <FormDescription>From EC2 Role</FormDescription> */}
               <FormMessage />
             </FormItem>
           )}
@@ -251,10 +249,11 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.roleArn"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Role ARN</FormLabel>
+              <FormDescription>Role ARN</FormDescription>
               <FormControl>
                 <Input placeholder="Role Arn" {...field} />
               </FormControl>
-              <FormDescription>Role Arn</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -265,16 +264,22 @@ export default function AwsS3Form(props: Props) {
           name="s3.credentials.roleExternalId"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>AWS Role External Id</FormLabel>
+              <FormDescription>Role External Id</FormDescription>
               <FormControl>
                 <Input placeholder="Role External Id" {...field} />
               </FormControl>
-              <FormDescription>Role External Id</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="flex flex-row gap-3 justify-items-end">
-          <Button type="submit">Submit</Button>
+        <div className="flex flex-row gap-3 justify-end">
+          <Button type="submit">
+            <ButtonText
+              leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
+              text="submit"
+            />
+          </Button>
         </div>
       </form>
     </Form>
@@ -282,7 +287,7 @@ export default function AwsS3Form(props: Props) {
 }
 
 async function updateAwsS3Connection(
-  s3: FormValues['s3'],
+  s3: AWSFormValues['s3'],
   connectionId: string
 ): Promise<UpdateConnectionResponse> {
   const res = await fetch(`/api/connections/${connectionId}`, {

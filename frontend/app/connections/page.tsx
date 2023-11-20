@@ -21,7 +21,7 @@ export default function Connections(): ReactElement {
           extraHeading={<NewConnectionButton />}
         />
       }
-      containerClassName="connections-page mx-24"
+      containerClassName="connections-page"
     >
       <ConnectionTable />
     </OverviewContainer>

@@ -35,6 +35,7 @@ export function DataTableRowActions<TData>({
       await removeJob(job.id);
       toast({
         title: 'Job removed successfully!',
+        variant: 'success',
       });
       onDeleted();
     } catch (err) {

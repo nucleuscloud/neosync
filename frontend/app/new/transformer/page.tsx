@@ -94,7 +94,7 @@ export default function NewTransformer(): ReactElement {
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a new Transformer" />}
-      containerClassName="mx-64"
+      containerClassName="px-12 md:px-24 lg:px-32"
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -104,12 +104,15 @@ export default function NewTransformer(): ReactElement {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Source Transformer</FormLabel>
+                <FormDescription>
+                  The system transformer to clone.
+                </FormDescription>
                 <FormControl>
                   <Select
                     open={openBaseSelect}
                     onOpenChange={setOpenBaseSelect}
                   >
-                    <SelectTrigger className="w-[1000px]">
+                    <SelectTrigger>
                       {base.value ? base.value : 'Select a transformer'}
                     </SelectTrigger>
                     <SelectContent>
@@ -155,9 +158,6 @@ export default function NewTransformer(): ReactElement {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormDescription>
-                  The source transformer to clone.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -170,16 +170,12 @@ export default function NewTransformer(): ReactElement {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Transformer Name"
-                        {...field}
-                        className="w-[1000px]"
-                      />
-                    </FormControl>
                     <FormDescription>
                       The unique name of the transformer.
                     </FormDescription>
+                    <FormControl>
+                      <Input placeholder="Transformer Name" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -191,16 +187,15 @@ export default function NewTransformer(): ReactElement {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Description</FormLabel>
+                      <FormDescription>
+                        The Transformer decription.
+                      </FormDescription>
                       <FormControl>
                         <Input
                           placeholder="Transformer description"
                           {...field}
-                          className="w-[1000px]"
                         />
                       </FormControl>
-                      <FormDescription>
-                        The Transformer decription.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -208,9 +203,7 @@ export default function NewTransformer(): ReactElement {
               </div>
             </div>
           )}
-          <div className="w-[1000px]">
-            {handleCustomTransformerForm(base.value)}
-          </div>
+          <div>{handleCustomTransformerForm(base.value)}</div>
           <div className="flex flex-row justify-end">
             <Button type="submit" disabled={!form.formState.isValid}>
               Next
