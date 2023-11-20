@@ -250,12 +250,7 @@ export class UpdateConnectionRequest extends Message<UpdateConnectionRequest> {
   id = "";
 
   /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  /**
-   * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 3;
+   * @generated from field: mgmt.v1alpha1.ConnectionConfig connection_config = 2;
    */
   connectionConfig?: ConnectionConfig;
 
@@ -268,8 +263,7 @@ export class UpdateConnectionRequest extends Message<UpdateConnectionRequest> {
   static readonly typeName = "mgmt.v1alpha1.UpdateConnectionRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "connection_config", kind: "message", T: ConnectionConfig },
+    { no: 2, name: "connection_config", kind: "message", T: ConnectionConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateConnectionRequest {
