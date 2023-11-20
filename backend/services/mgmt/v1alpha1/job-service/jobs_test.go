@@ -839,6 +839,204 @@ func Test_SetJobSourceSqlConnectionSubsets_InvalidConnection(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
+// UpdateJobDestinationConnection
+func Test_UpdateJobDestinationConnection_Update(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	jobId := nucleusdb.UUIDString(job.ID)
+	destinationId := uuid.NewString()
+	destinationUuid, _ := nucleusdb.ToUuid(destinationId)
+	connectionId := uuid.NewString()
+	connectionUuid, _ := nucleusdb.ToUuid(connectionId)
+	updatedOptions := &mgmtv1alpha1.JobDestinationOptions{
+		Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+			PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+				TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+					TruncateBeforeInsert: true,
+					Cascade:              true,
+				},
+			},
+		},
+	}
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{}, nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(1), nil)
+
+	m.QuerierMock.On("UpdateJobConnectionDestination", mock.Anything, mock.Anything, db_queries.UpdateJobConnectionDestinationParams{
+		ID:           destinationUuid,
+		ConnectionID: connectionUuid,
+		Options: &pg_models.JobDestinationOptions{
+			PostgresOptions: &pg_models.PostgresDestinationOptions{
+				TruncateTableConfig: &pg_models.PostgresTruncateTableConfig{
+					TruncateBeforeInsert: true,
+					TruncateCascade:      true,
+				},
+			},
+		},
+	}).Return(db_queries.NeosyncApiJobDestinationConnectionAssociation{}, nil)
+
+	resp, err := m.Service.UpdateJobDestinationConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateJobDestinationConnectionRequest]{
+		Msg: &mgmtv1alpha1.UpdateJobDestinationConnectionRequest{
+			JobId:         jobId,
+			DestinationId: destinationId,
+			ConnectionId:  connectionId,
+			Options:       updatedOptions,
+		},
+	})
+
+	m.QuerierMock.AssertNotCalled(t, "CreateJobConnectionDestination", mock.Anything, mock.Anything, mock.Anything)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, jobId, resp.Msg.Job.Id)
+}
+
+func Test_UpdateJobDestinationConnection_Create(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	jobId := nucleusdb.UUIDString(job.ID)
+	destinationId := uuid.NewString()
+	connectionId := uuid.NewString()
+	connectionUuid, _ := nucleusdb.ToUuid(connectionId)
+	updatedOptions := &mgmtv1alpha1.JobDestinationOptions{
+		Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+			PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+				TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+					TruncateBeforeInsert: true,
+					Cascade:              true,
+				},
+			},
+		},
+	}
+	var nilDestConnAssociation db_queries.NeosyncApiJobDestinationConnectionAssociation
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{}, nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(1), nil)
+
+	m.QuerierMock.On("UpdateJobConnectionDestination", mock.Anything, mock.Anything, mock.Anything).Return(nilDestConnAssociation, sql.ErrNoRows)
+	m.QuerierMock.On("CreateJobConnectionDestination", mock.Anything, mock.Anything, db_queries.CreateJobConnectionDestinationParams{
+		JobID:        job.ID,
+		ConnectionID: connectionUuid,
+		Options: &pg_models.JobDestinationOptions{
+			PostgresOptions: &pg_models.PostgresDestinationOptions{
+				TruncateTableConfig: &pg_models.PostgresTruncateTableConfig{
+					TruncateBeforeInsert: true,
+					TruncateCascade:      true,
+				},
+			},
+		},
+	}).Return(db_queries.NeosyncApiJobDestinationConnectionAssociation{}, nil)
+
+	resp, err := m.Service.UpdateJobDestinationConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateJobDestinationConnectionRequest]{
+		Msg: &mgmtv1alpha1.UpdateJobDestinationConnectionRequest{
+			JobId:         jobId,
+			DestinationId: destinationId,
+			ConnectionId:  connectionId,
+			Options:       updatedOptions,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, jobId, resp.Msg.Job.Id)
+}
+
+func Test_DeleteJobDestinationConnection(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	destinationId := uuid.NewString()
+	destinationUuid, _ := nucleusdb.ToUuid(destinationId)
+	connId, _ := nucleusdb.ToUuid(uuid.NewString())
+	destinationConn := mockJobDestConnAssociation(job.ID, connId, nil)
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("GetJobConnectionDestination", mock.Anything, mock.Anything, destinationUuid).Return(destinationConn, nil)
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(1), nil)
+
+	m.QuerierMock.On("RemoveJobConnectionDestination", mock.Anything, mock.Anything, destinationUuid).Return(nil)
+
+	resp, err := m.Service.DeleteJobDestinationConnection(context.Background(), &connect.Request[mgmtv1alpha1.DeleteJobDestinationConnectionRequest]{
+		Msg: &mgmtv1alpha1.DeleteJobDestinationConnectionRequest{
+			DestinationId: destinationId,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func Test_DeleteJobDestinationConnection_NotFound(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	destinationId := uuid.NewString()
+	destinationUuid, _ := nucleusdb.ToUuid(destinationId)
+	var nilDestConnAssociation db_queries.NeosyncApiJobDestinationConnectionAssociation
+
+	m.QuerierMock.On("GetJobConnectionDestination", mock.Anything, mock.Anything, destinationUuid).Return(nilDestConnAssociation, sql.ErrNoRows)
+
+	resp, err := m.Service.DeleteJobDestinationConnection(context.Background(), &connect.Request[mgmtv1alpha1.DeleteJobDestinationConnectionRequest]{
+		Msg: &mgmtv1alpha1.DeleteJobDestinationConnectionRequest{
+			DestinationId: destinationId,
+		},
+	})
+
+	m.QuerierMock.AssertNotCalled(t, "RemoveJobConnectionDestination", mock.Anything, mock.Anything, mock.Anything)
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+// IsJobNameAvailable
+func Test_IsJobNameAvailable_Available(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	jobName := "unique_job_name"
+	accountId := mockAccountId
+	accountUuid, _ := nucleusdb.ToUuid(accountId)
+
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("IsJobNameAvailable", mock.Anything, mock.Anything, db_queries.IsJobNameAvailableParams{
+		AccountId: accountUuid,
+		JobName:   jobName,
+	}).Return(int64(0), nil)
+
+	resp, err := m.Service.IsJobNameAvailable(context.Background(), &connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest]{
+		Msg: &mgmtv1alpha1.IsJobNameAvailableRequest{
+			AccountId: accountId,
+			Name:      jobName,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.True(t, resp.Msg.IsAvailable)
+}
+
+func Test_IsJobNameAvailable_NotAvailable(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	jobName := "existing_job_name"
+	accountId := mockAccountId
+	accountUuid, _ := nucleusdb.ToUuid(accountId)
+
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("IsJobNameAvailable", mock.Anything, mock.Anything, db_queries.IsJobNameAvailableParams{
+		AccountId: accountUuid,
+		JobName:   jobName,
+	}).Return(int64(1), nil)
+
+	resp, err := m.Service.IsJobNameAvailable(context.Background(), &connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest]{
+		Msg: &mgmtv1alpha1.IsJobNameAvailableRequest{
+			AccountId: accountId,
+			Name:      jobName,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.False(t, resp.Msg.IsAvailable)
+}
+
 type serviceMocks struct {
 	Service                     *Service
 	DbtxMock                    *nucleusdb.MockDBTX
