@@ -12,20 +12,34 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("preserve_length"))
+		Param(bloblang.NewInt64Param("number").Optional()).
+		Param(bloblang.NewBoolParam("preserve_length").Optional())
 
 	// register the plugin
-	err := bloblang.RegisterMethodV2("intphonetransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterFunctionV2("intphonetransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		preserveLength, err := args.GetBool("preserve_length")
+		numberPtr, err := args.GetOptionalInt64("number")
 		if err != nil {
 			return nil, err
 		}
+		var number int64
+		if numberPtr != nil {
+			number = *numberPtr
+		}
 
-		return bloblang.Int64Method(func(s int64) (any, error) {
-			res, err := GenerateIntPhoneNumber(s, preserveLength)
+		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
+		if err != nil {
+			return nil, err
+		}
+		var preserveLength bool
+		if preserveLengthPtr != nil {
+			preserveLength = *preserveLengthPtr
+		}
+
+		return func() (any, error) {
+			res, err := GenerateIntPhoneNumber(number, preserveLength)
 			return res, err
-		}), nil
+		}, nil
 	})
 
 	if err != nil {
@@ -37,14 +51,25 @@ func init() {
 // generates a random phone number and returns it as an int64
 func GenerateIntPhoneNumber(number int64, preserveLength bool) (int64, error) {
 
-	if preserveLength {
+	if number != 0 {
+		if preserveLength {
 
-		res, err := GenerateIntPhoneNumberPreserveLength(number)
-		if err != nil {
-			return 0, fmt.Errorf("unable to convert phone number string to int64")
+			res, err := GenerateIntPhoneNumberPreserveLength(number)
+			if err != nil {
+				return 0, fmt.Errorf("unable to convert phone number string to int64")
+			}
+			return res, err
+
+		} else {
+
+			res, err := GenerateRandomTenDigitIntPhoneNumber()
+			if err != nil {
+				return 0, fmt.Errorf("unable to convert phone number string to int64")
+			}
+
+			return res, err
+
 		}
-		return res, err
-
 	} else {
 
 		res, err := GenerateRandomTenDigitIntPhoneNumber()
