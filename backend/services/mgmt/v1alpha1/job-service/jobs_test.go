@@ -376,38 +376,6 @@ func Test_GetJobStatuses(t *testing.T) {
 
 }
 
-// // GetJobRecentRuns
-// func Test_GetJobRecentRuns(t *testing.T) {
-// 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-
-// 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-// 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-// 	jobId := nucleusdb.UUIDString(job.ID)
-
-// 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
-
-// 	mockHandle := new(MockScheduleHandle)
-// 	m.TemporalWfManagerMock.On("GetScheduleHandleClientByAccount", mock.Anything, mockAccountId, jobId, mock.Anything).Return(mockHandle, nil)
-
-// 	mockHandle.On("Describe", mock.Anything).Return(&temporal.ScheduleDescription{
-// 		Info: ScheduleInfo{
-// 			RecentActions: []ScheduleActionResult{
-
-// 			},
-// 		},
-// 	}, nil)
-
-// 	resp, err := m.Service.GetJobStatus(context.Background(), &connect.Request[mgmtv1alpha1.GetJobStatusRequest]{
-// 		Msg: &mgmtv1alpha1.GetJobStatusRequest{
-// 			JobId: jobId,
-// 		},
-// 	})
-
-// 	assert.NoError(t, err)
-// 	assert.NotNil(t, resp)
-// 	assert.Equal(t, mgmtv1alpha1.JobStatus(1), resp.Msg.Status)
-// }
-
 // CreateJob
 func Test_CreateJob(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
@@ -746,7 +714,6 @@ func Test_PauseJob_UnPause(t *testing.T) {
 }
 
 // UpdateJobSourceConnection
-
 func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockTx := new(nucleusdb.MockTx)
@@ -825,23 +792,28 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 }
 
 // SetJobSourceSqlConnectionSubsets
-func Test_SetJobSourceSqlConnectionSubsets(t *testing.T) {
+func Test_SetJobSourceSqlConnectionSubsets_InvalidConnection(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	conn := &mgmtv1alpha1.Connection{
+		Name: "conn",
+		ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
+				AwsS3Config: &mgmtv1alpha1.AwsS3ConnectionConfig{},
+			},
+		},
+	}
 	jobId := nucleusdb.UUIDString(job.ID)
 	whereClause := "where"
 
-	// Mock calls for authorization and job retrieval
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
-	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
 
-	// Mocking the function for setting SQL Source Subsets
-	m.QuerierMock.On("SetSqlSourceSubsets", mock.Anything, job.ID, mock.Anything, userUuid).Return(nil)
-
-	// Mocking the retrieval of the updated job
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
-	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{}, nil)
+	m.ConnectionServiceClientMock.On("GetConnection", mock.Anything, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: nucleusdb.UUIDString(job.ConnectionSourceID),
+	})).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: conn,
+	}), nil)
 
 	resp, err := m.Service.SetJobSourceSqlConnectionSubsets(context.Background(), &connect.Request[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsRequest]{
 		Msg: &mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsRequest{
@@ -861,10 +833,9 @@ func Test_SetJobSourceSqlConnectionSubsets(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, jobId, resp.Msg.Job.Id)
-	// Additional assertions can be made based on the expected behavior
+	m.QuerierMock.AssertNotCalled(t, "SetSqlSourceSubsets", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	assert.Error(t, err)
+	assert.Nil(t, resp)
 }
 
 type serviceMocks struct {
