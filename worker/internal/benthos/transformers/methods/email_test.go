@@ -1,4 +1,4 @@
-package neosync_transformers
+package neosync_benthos_transformers_methods
 
 import (
 	"regexp"
