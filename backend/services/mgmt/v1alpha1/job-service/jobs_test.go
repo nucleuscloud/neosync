@@ -106,6 +106,7 @@ type MockScheduleClient struct {
 	Handle temporal.ScheduleHandle
 }
 
+//nolint:all
 func (_m *MockScheduleClient) Create(ctx context.Context, options temporal.ScheduleOptions) (temporal.ScheduleHandle, error) {
 	args := _m.Called(ctx, options)
 	if h := args.Get(0); h != nil {
@@ -149,8 +150,8 @@ func Test_GetJobs(t *testing.T) {
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
 	job2 := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	destConn1 := getConnectionMock(mockAccountId, "test-1", nil)
-	destConn2 := getConnectionMock(mockAccountId, "test-2", nil)
+	destConn1 := getConnectionMock(mockAccountId, "test-1")
+	destConn2 := getConnectionMock(mockAccountId, "test-2")
 	destConnAssociation1 := mockJobDestConnAssociation(job1.ID, destConn1.ID, &pg_models.JobDestinationOptions{})
 	destConnAssociation2 := mockJobDestConnAssociation(job2.ID, destConn2.ID, &pg_models.JobDestinationOptions{})
 	m.QuerierMock.On("GetJobsByAccount", context.Background(), mock.Anything, accountUuid).Return([]db_queries.NeosyncApiJob{job1, job2}, nil)
@@ -203,7 +204,7 @@ func Test_GetJob(t *testing.T) {
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	destConn := getConnectionMock(mockAccountId, "test-1", nil)
+	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
 	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation}, nil)
@@ -389,8 +390,8 @@ func Test_CreateJob(t *testing.T) {
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	srcConn := getConnectionMock(mockAccountId, "test-4", nil)
-	destConn := getConnectionMock(mockAccountId, "test-1", nil)
+	srcConn := getConnectionMock(mockAccountId, "test-4")
+	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job1.ID, destConn.ID, &pg_models.JobDestinationOptions{
 		PostgresOptions: &pg_models.PostgresDestinationOptions{
 			TruncateTableConfig: &pg_models.PostgresTruncateTableConfig{
@@ -402,7 +403,7 @@ func Test_CreateJob(t *testing.T) {
 	})
 
 	cron := pgtype.Text{}
-	cron.Scan(cronSchedule)
+	_ = cron.Scan(cronSchedule)
 	destinationParams := []db_queries.CreateJobConnectionDestinationsParams{
 		{JobID: job1.ID, ConnectionID: destConn.ID, Options: &pg_models.JobDestinationOptions{
 			PostgresOptions: &pg_models.PostgresDestinationOptions{
@@ -528,7 +529,7 @@ func Test_CreateJobDestinationConnections(t *testing.T) {
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	destConn := getConnectionMock(mockAccountId, "test-1", nil)
+	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
 	m.QuerierMock.On("GetConnectionsByIds", mock.Anything, mock.Anything, []pgtype.UUID{destConn.ID}).Return([]db_queries.NeosyncApiConnection{destConn}, nil)
@@ -585,7 +586,7 @@ func Test_CreateJobDestinationConnections_ConnectionNotInAccount(t *testing.T) {
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	destConn := getConnectionMock(uuid.NewString(), "test-1", nil)
+	destConn := getConnectionMock(uuid.NewString(), "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
@@ -626,11 +627,11 @@ func Test_UpdateJobSchedule(t *testing.T) {
 
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	destConn := getConnectionMock(mockAccountId, "test-1", nil)
+	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	cronSchedule := "* * * * *"
 	cron := pgtype.Text{}
-	cron.Scan(cronSchedule)
+	_ = cron.Scan(cronSchedule)
 	jobId := nucleusdb.UUIDString(job.ID)
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
@@ -666,7 +667,7 @@ func Test_PauseJob_Pause(t *testing.T) {
 	mockHandle := new(MockScheduleHandle)
 
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	destConn := getConnectionMock(mockAccountId, "test-1", nil)
+	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	jobId := nucleusdb.UUIDString(job.ID)
 
@@ -692,7 +693,7 @@ func Test_PauseJob_UnPause(t *testing.T) {
 	mockHandle := new(MockScheduleHandle)
 
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	destConn := getConnectionMock(mockAccountId, "test-1", nil)
+	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	jobId := nucleusdb.UUIDString(job.ID)
 
@@ -719,10 +720,10 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 	mockTx := new(nucleusdb.MockTx)
 
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	conn := getConnectionMock(mockAccountId, "test-1", nil)
+	conn := getConnectionMock(mockAccountId, "test-1")
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	whereClause := "where"
+	whereClause := "where1"
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	m.DbtxMock.On("Begin", mock.Anything).Return(mockTx, nil)
@@ -804,7 +805,7 @@ func Test_SetJobSourceSqlConnectionSubsets_InvalidConnection(t *testing.T) {
 		},
 	}
 	jobId := nucleusdb.UUIDString(job.ID)
-	whereClause := "where"
+	whereClause := "where2"
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 
@@ -920,7 +921,7 @@ func mockJobDestConnAssociation(jobUuid, connectionUuid pgtype.UUID, options *pg
 	}
 }
 
-func getConnectionMock(accountId, name string, id *pgtype.UUID) db_queries.NeosyncApiConnection {
+func getConnectionMock(accountId, name string) db_queries.NeosyncApiConnection {
 	accountUuid, _ := nucleusdb.ToUuid(accountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 
@@ -931,9 +932,6 @@ func getConnectionMock(accountId, name string, id *pgtype.UUID) db_queries.Neosy
 	sslMode := "disable"
 
 	connUuid, _ := nucleusdb.ToUuid(uuid.NewString())
-	if id != nil {
-		connUuid = *id
-	}
 	return db_queries.NeosyncApiConnection{
 		AccountID:   accountUuid,
 		Name:        name,

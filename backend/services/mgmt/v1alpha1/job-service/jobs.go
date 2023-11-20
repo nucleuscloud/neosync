@@ -676,11 +676,6 @@ func (s *Service) UpdateJobSchedule(
 		return nil, err
 	}
 
-	// tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	userUuid, err := s.getUserUuid(ctx)
 	if err != nil {
 		return nil, err
@@ -710,7 +705,6 @@ func (s *Service) UpdateJobSchedule(
 		}
 
 		// update temporal scheduled job
-		// scheduleHandle := tclient.ScheduleClient().GetHandle(ctx, nucleusdb.UUIDString(job.ID))
 		scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), nucleusdb.UUIDString(job.ID), logger)
 		if err != nil {
 			return err
@@ -766,11 +760,6 @@ func (s *Service) PauseJob(
 	if err != nil {
 		return nil, err
 	}
-
-	// tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), logger)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), nucleusdb.UUIDString(job.ID), logger)
 	if err != nil {
