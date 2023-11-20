@@ -579,7 +579,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("this.%s.lastnametransformer(%t)", col.Column, pl), nil
 	case "full_name":
 		pl := col.Transformer.Config.GetFullNameConfig().PreserveLength
-		return fmt.Sprintf("this.%s.fullnametransformer(%t)", col.Column, pl), nil
+		return fmt.Sprintf("fullnametransformer(%s,%t)", col.Column, pl), nil
 	case "phone_number":
 		pl := col.Transformer.Config.GetPhoneNumberConfig().PreserveLength
 		ef := col.Transformer.Config.GetPhoneNumberConfig().E164Format

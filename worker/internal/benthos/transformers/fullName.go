@@ -9,20 +9,24 @@ import (
 
 func init() {
 
-	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("preserve_length"))
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam(("name"))).Param(bloblang.NewBoolParam("preserve_length"))
 
 	// register the plugin
-	err := bloblang.RegisterMethodV2("fullnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterFunctionV2("fullnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+
+		name, err := args.GetString("name")
+		if err != nil {
+			return nil, err
+		}
 
 		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
 			return nil, err
 		}
-		return bloblang.StringMethod(func(s string) (any, error) {
-			res, err := GenerateFullName(s, preserveLength)
+		return func() (any, error) {
+			res, err := GenerateFullName(name, preserveLength)
 			return res, err
-		}), nil
+		}, nil
 	})
 
 	if err != nil {
@@ -32,15 +36,21 @@ func init() {
 }
 
 // generates a random full name
-func GenerateFullName(fn string, pl bool) (string, error) {
+func GenerateFullName(name string, pl bool) (string, error) {
 
-	if !pl {
+	if name != "" {
+		if !pl {
+			res, err := GenerateFullNameWithRandomLength()
+			return res, err
+		} else {
+			res, err := GenerateFullNameWithLength(name)
+			return res, err
+		}
+	} else {
 		res, err := GenerateFullNameWithRandomLength()
 		return res, err
-	} else {
-		res, err := GenerateFullNameWithLength(fn)
-		return res, err
 	}
+
 }
 
 // main transformer logic goes here
