@@ -41,7 +41,6 @@ docker run --rm -i \
   "sqlc/sqlc:${SQLC_VERSION}" generate &
 wait
 
-# docker run --rm -i --volume "./:/src" --workdir "/src" "vektra/mockery:${MOCKERY_VERSION}" &
 update_frontend_client &
 
 wait
