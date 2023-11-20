@@ -37,6 +37,7 @@
 		"ghcr.io/devcontainers/features/go:1": {},
 		"ghcr.io/guiyomh/features/golangci-lint:0": {},
 		"ghcr.io/nucleuscloud/devcontainer-features/sqlc:1": {},
+		"ghcr.io/brokeyourbike/devcontainer-features/mockery-go:0.2.0": {},
 		/* NodeJS/Browser */
 		"ghcr.io/devcontainers/features/node:1": {},
 		/* Temporal */
