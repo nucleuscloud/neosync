@@ -16,7 +16,6 @@ func init() {
 
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam("email")).Param(bloblang.NewBoolParam("preserve_length")).Param(bloblang.NewBoolParam("preserve_domain"))
 
-	// register the plugin
 	err := bloblang.RegisterFunctionV2("emailtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		email, err := args.GetString("email")
@@ -47,7 +46,6 @@ func init() {
 
 }
 
-// generates a random email address
 func GenerateEmail(email string, preserveLength, preserveDomain bool) (string, error) {
 
 	var returnValue string

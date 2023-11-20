@@ -567,75 +567,19 @@ root.{destination_col} = transformerfunction(args)
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 
 	switch col.Transformer.Value {
-	case "latitude":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "longitude":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "date":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "time_string":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "month_name":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "year_string":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "day_of_week":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "day_of_month":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "century":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "timezone":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "time_period":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "email":
 		pd := col.Transformer.Config.GetEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetEmailConfig().PreserveLength
-		return fmt.Sprintf("emailtransformer(%s,%t, %t)", col.Transformer.Value, pd, pl), nil
-	case "mac_address":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "domain_name":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "url":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "username":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "ipv4":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "ipv6":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "password":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "jwt":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "word":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "sentence":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "paragraph":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "title_male":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "title_female":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
+		return fmt.Sprintf("emailtransformer(%s,%t, %t)", col.Column, pd, pl), nil
 	case "first_name":
 		pl := col.Transformer.Config.GetFirstNameConfig().PreserveLength
-		return fmt.Sprintf("this.%s.firstnametransformer(%t)", col.Column, pl), nil
-	case "first_name_female":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
+		return fmt.Sprintf("firstnametransformer(%s,%t)", col.Column, pl), nil
 	case "last_name":
 		pl := col.Transformer.Config.GetLastNameConfig().PreserveLength
 		return fmt.Sprintf("this.%s.lastnametransformer(%t)", col.Column, pl), nil
 	case "full_name":
 		pl := col.Transformer.Config.GetFullNameConfig().PreserveLength
 		return fmt.Sprintf("this.%s.fullnametransformer(%t)", col.Column, pl), nil
-	case "chinese_first_name":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "chinese_last_name":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
-	case "chinese_name":
-		return fmt.Sprintf("fake(%q)", col.Transformer.Value), nil
 	case "phone_number":
 		pl := col.Transformer.Config.GetPhoneNumberConfig().PreserveLength
 		ef := col.Transformer.Config.GetPhoneNumberConfig().E164Format

@@ -26,19 +26,25 @@ var (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("preserve_length"))
+		Param(bloblang.NewStringParam(("name"))).Param(bloblang.NewBoolParam("preserve_length"))
 
 	// register the plugin
-	err := bloblang.RegisterMethodV2("firstnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterFunctionV2("firstnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+
+		name, err := args.GetString("name")
+		if err != nil {
+			return nil, err
+		}
 
 		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
 			return nil, err
 		}
-		return bloblang.StringMethod(func(s string) (any, error) {
-			res, err := GenerateFirstName(s, preserveLength)
+		return func() (any, error) {
+			res, err := GenerateFirstName(name, preserveLength)
 			return res, err
-		}), nil
+		}, nil
+
 	})
 
 	if err != nil {
@@ -50,11 +56,16 @@ func init() {
 // Generates a random first name
 func GenerateFirstName(name string, preserveLength bool) (string, error) {
 
-	if !preserveLength {
-		res, err := GenerateFirstNameWithRandomLength()
-		return res, err
+	if name != "" {
+		if !preserveLength {
+			res, err := GenerateFirstNameWithRandomLength()
+			return res, err
+		} else {
+			res, err := GenerateFirstNameWithLength(name)
+			return res, err
+		}
 	} else {
-		res, err := GenerateFirstNameWithLength(name)
+		res, err := GenerateFirstNameWithRandomLength()
 		return res, err
 	}
 }
@@ -72,7 +83,6 @@ func GenerateFirstNameWithRandomLength() (string, error) {
 
 	names := data.Names
 
-	// get a random length from the first_names.json file
 	var nameLengths []int
 
 	for _, v := range names {
@@ -107,7 +117,6 @@ func GenerateFirstNameWithRandomLength() (string, error) {
 	return returnValue, nil
 }
 
-// main transformer logic goes here
 func GenerateFirstNameWithLength(fn string) (string, error) {
 
 	var returnValue string
