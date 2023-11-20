@@ -26,20 +26,29 @@ var (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam(("name"))).Param(bloblang.NewBoolParam("preserve_length"))
+		Param(bloblang.NewStringParam(("name")).Optional()).Param(bloblang.NewBoolParam("preserve_length").Optional())
 
 	// register the plugin
 	err := bloblang.RegisterFunctionV2("firstnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		name, err := args.GetString("name")
+		namePtr, err := args.GetOptionalString("name")
 		if err != nil {
 			return nil, err
+		}
+		var name string
+		if namePtr != nil {
+			name = *namePtr
 		}
 
-		preserveLength, err := args.GetBool("preserve_length")
+		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
 		if err != nil {
 			return nil, err
 		}
+		var preserveLength bool
+		if preserveLengthPtr != nil {
+			preserveLength = *preserveLengthPtr
+		}
+
 		return func() (any, error) {
 			res, err := GenerateFirstName(name, preserveLength)
 			return res, err
