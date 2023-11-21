@@ -78,7 +78,7 @@ interface SchemaMap {
   };
 }
 
-function getConnectionIdFromSource(
+export function getConnectionIdFromSource(
   js: JobSource | undefined
 ): string | undefined {
   if (
