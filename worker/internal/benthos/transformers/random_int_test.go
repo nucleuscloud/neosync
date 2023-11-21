@@ -57,7 +57,6 @@ func TestGenerateandomIntPreserveLengthFalseIntLength(t *testing.T) {
 func TestRandomIntTransformerWithValue(t *testing.T) {
 	testVal := int64(397283)
 	mapping := fmt.Sprintf(`root = randominttransformer(%d, false, 6)`, testVal)
-	fmt.Println("mapping", mapping)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 
