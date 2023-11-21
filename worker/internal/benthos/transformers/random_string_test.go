@@ -67,3 +67,15 @@ func TestRandomStringTransformerWithNoValue(t *testing.T) {
 	assert.Equal(t, 10, len(res.(string)), "Generated string must be the same length as the input string")
 	assert.IsType(t, res, "")
 }
+
+func TestRandomStringTransformerWithNoValueAndLength(t *testing.T) {
+	mapping := `root = randomstringtransformer(str_length:6)`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the random string transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 6, len(res.(string)), "Generated string must be the same length as the input string")
+	assert.IsType(t, res, "")
+}

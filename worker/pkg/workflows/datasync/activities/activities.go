@@ -598,7 +598,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "random_string":
 		pl := col.Transformer.Config.GetRandomStringConfig().PreserveLength
 		sl := col.Transformer.Config.GetRandomStringConfig().StrLength
-		return fmt.Sprintf(`this.%s.randomstringtransformer(%t, %d)`, col.Column, pl, sl), nil
+		return fmt.Sprintf(`randomstringtransformer(this.%s,%t, %d)`, col.Column, pl, sl), nil
 	case "random_int":
 		pl := col.Transformer.Config.GetRandomIntConfig().PreserveLength
 		sl := col.Transformer.Config.GetRandomIntConfig().IntLength
@@ -629,7 +629,11 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		luhn := col.Transformer.Config.GetCardNumberConfig().ValidLuhn
 		return fmt.Sprintf(`cardnumbertransformer(%t)`, luhn), nil
 	case "sha256":
-		return fmt.Sprintf(`this.%s.bytes().hash("sha256").encode("hex")`, col.Column), nil
+		if col.Column != "" {
+			return fmt.Sprintf(`root = this.%s.bytes().hash("sha256").encode("hex")`, col.Column), nil
+		} else {
+			return `sha256hash()`, nil
+		}
 	case "social_security_number":
 		return "ssntransformer()", nil
 	default:

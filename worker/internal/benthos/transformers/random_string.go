@@ -107,6 +107,16 @@ func GenerateRandomString(value string, preserveLength bool, strLength int64) (s
 			returnValue = val
 
 		}
+	} else if strLength != 0 {
+
+		val, err := transformer_utils.GenerateRandomStringWithLength(strLength)
+
+		if err != nil {
+			return "", fmt.Errorf("unable to generate a random string with length")
+		}
+
+		returnValue = val
+
 	} else {
 
 		val, err := transformer_utils.GenerateRandomStringWithLength(defaultStrLength)

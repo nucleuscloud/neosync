@@ -68,6 +68,19 @@ func TestRandomFloatTransformerWithNoValue(t *testing.T) {
 	assert.Equal(t, 6, actual, "The length of the output float needs to match the digits before + the digits after")
 }
 
+func TestRandomFloatTransformerWithNoValueAndLength(t *testing.T) {
+	mapping := `root = randomfloattransformer(digits_before_decimal: 2, digits_after_decimal: 2)`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the random float transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	actual := GetFloatLength(res.(float64)).DigitsAfterDecimalLength + GetFloatLength(res.(float64)).DigitsBeforeDecimalLength
+	assert.IsType(t, res, float64(1))
+	assert.Equal(t, 4, actual, "The length of the output float needs to match the digits before + the digits after")
+}
+
 func Test_GetFloatLength(t *testing.T) {
 	val := float64(3.14)
 	res := GetFloatLength(val)

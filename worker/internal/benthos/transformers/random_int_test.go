@@ -79,3 +79,15 @@ func TestRandomIntTransformerWithNoValue(t *testing.T) {
 	assert.Equal(t, int64(4), transformer_utils.GetIntLength(res.(int64))) // Generated int must be the same length as the input int"
 	assert.IsType(t, res, int64(2))
 }
+
+func TestRandomIntTransformerWithNoValueAndLength(t *testing.T) {
+	mapping := `root = randominttransformer(int_length: 4)`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the random int transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, int64(4), transformer_utils.GetIntLength(res.(int64))) // Generated int must be the same length as the input int"
+	assert.IsType(t, res, int64(2))
+}

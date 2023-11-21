@@ -85,6 +85,9 @@ func GenerateRandomFloat(value float64, preserveLength bool, digitsAfterDecimal,
 			res, err := GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecimal)
 			return res, err
 		}
+	} else if digitsBeforeDecimal != 0 && digitsAfterDecimal != 0 {
+		res, err := GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecimal)
+		return res, err
 	} else {
 		res, err := GenerateRandomFloatWithRandomLength()
 		return res, err
