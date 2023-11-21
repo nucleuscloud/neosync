@@ -27,6 +27,7 @@ import { toPostgresSourceSchemaOptions } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { getConnectionIdFromSource } from '../../source/components/SourceConnectionCard';
 
 interface Props {
   jobId: string;
@@ -36,9 +37,9 @@ export default function SubsetCard(props: Props): ReactElement {
   const { jobId } = props;
   const { toast } = useToast();
   const { data, mutate: mutateJob, isLoading: isJobLoading } = useGetJob(jobId);
-  const { data: schema, isLoading: isSchemaLoading } = useGetConnectionSchema(
-    data?.job?.source?.connectionId
-  );
+  const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
+  const { data: schema, isLoading: isSchemaLoading } =
+    useGetConnectionSchema(sourceConnectionId);
 
   const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({
@@ -145,7 +146,7 @@ export default function SubsetCard(props: Props): ReactElement {
           </div>
           <div>
             <EditItem
-              connectionId={data?.job?.source?.connectionId ?? ''}
+              connectionId={sourceConnectionId ?? ''}
               item={itemToEdit}
               onItem={setItemToEdit}
               onCancel={() => setItemToEdit(undefined)}
@@ -203,8 +204,8 @@ export default function SubsetCard(props: Props): ReactElement {
 function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
   if (
     !sourceOpts ||
-    (sourceOpts.config.case !== 'postgresOptions' &&
-      sourceOpts.config.case !== 'mysqlOptions')
+    (sourceOpts.config.case !== 'postgres' &&
+      sourceOpts.config.case !== 'mysql')
   ) {
     return { subsets: [] };
   }
