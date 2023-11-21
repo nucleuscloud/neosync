@@ -378,9 +378,9 @@ func (s *Service) CreateJob(
 	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
 		connectionIdToVerify = &config.AwsS3.ConnectionId
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		switch fkConfig := config.Generate.ForeignKeyConstraintConfig.(type) {
-		case *mgmtv1alpha1.GenerateSourceOptions_FkSourceConnectionId:
-			connectionIdToVerify = &fkConfig.FkSourceConnectionId
+		fkConnId := config.Generate.GetFkSourceConnectionId()
+		if fkConnId != "" {
+			connectionIdToVerify = &fkConnId
 		}
 	}
 	if connectionIdToVerify != nil {
@@ -853,9 +853,9 @@ func (s *Service) UpdateJobSourceConnection(
 	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
 		connectionIdToVerify = &config.AwsS3.ConnectionId
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		switch fkConfig := config.Generate.ForeignKeyConstraintConfig.(type) {
-		case *mgmtv1alpha1.GenerateSourceOptions_FkSourceConnectionId:
-			connectionIdToVerify = &fkConfig.FkSourceConnectionId
+		fkConnId := config.Generate.GetFkSourceConnectionId()
+		if fkConnId != "" {
+			connectionIdToVerify = &fkConnId
 		}
 	}
 
