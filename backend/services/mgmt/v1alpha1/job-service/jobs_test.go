@@ -324,6 +324,10 @@ func Test_CreateJob(t *testing.T) {
 	m.DbtxMock.On("Begin", mock.Anything).Return(mockTx, nil)
 	mockTx.On("Commit", mock.Anything).Return(nil)
 	mockTx.On("Rollback", mock.Anything).Return(nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
+		AccountId:    accountUuid,
+		ConnectionId: srcConn.ID,
+	}).Return(int64(1), nil)
 	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, srcConn.ID).Return(srcConn, nil)
 	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, destConn.ID).Return(destConn, nil)
 	m.QuerierMock.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, accountUuid).Return(&pg_models.TemporalConfig{Namespace: "namespace"}, nil)
@@ -336,13 +340,13 @@ func Test_CreateJob(t *testing.T) {
 	mockHandle.On("GetID").Return(nucleusdb.UUIDString(job1.ID))
 
 	m.QuerierMock.On("CreateJob", mock.Anything, mockTx, db_queries.CreateJobParams{
-		Name:               job1.Name,
-		AccountID:          accountUuid,
-		Status:             int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
-		CronSchedule:       cron,
-		ConnectionSourceID: srcConn.ID,
+		Name:         job1.Name,
+		AccountID:    accountUuid,
+		Status:       int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
+		CronSchedule: cron,
 		ConnectionOptions: &pg_models.JobSourceOptions{
 			PostgresOptions: &pg_models.PostgresSourceOptions{
+				ConnectionId:            nucleusdb.UUIDString(srcConn.ID),
 				HaltOnNewColumnAddition: true,
 				Schemas: []*pg_models.PostgresSourceSchemaOption{
 					{Schema: "schema-1", Tables: []*pg_models.PostgresSourceTableOption{
@@ -377,10 +381,10 @@ func Test_CreateJob(t *testing.T) {
 			CronSchedule:   &cronSchedule,
 			InitiateJobRun: true,
 			Source: &mgmtv1alpha1.JobSource{
-				ConnectionId: nucleusdb.UUIDString(srcConn.ID),
 				Options: &mgmtv1alpha1.JobSourceOptions{
-					Config: &mgmtv1alpha1.JobSourceOptions_PostgresOptions{
-						PostgresOptions: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+					Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+						Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+							ConnectionId:            nucleusdb.UUIDString(srcConn.ID),
 							HaltOnNewColumnAddition: true,
 							Schemas: []*mgmtv1alpha1.PostgresSourceSchemaOption{
 								{Schema: "schema-1", Tables: []*mgmtv1alpha1.PostgresSourceTableOption{
@@ -635,10 +639,10 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 	mockTx.On("Rollback", mock.Anything).Return(nil)
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
 	m.QuerierMock.On("UpdateJobSource", mock.Anything, mockTx, db_queries.UpdateJobSourceParams{
-		ID:                 job.ID,
-		ConnectionSourceID: conn.ID,
+		ID: job.ID,
 		ConnectionOptions: &pg_models.JobSourceOptions{
 			PostgresOptions: &pg_models.PostgresSourceOptions{
+				ConnectionId:            nucleusdb.UUIDString(conn.ID),
 				HaltOnNewColumnAddition: true,
 				Schemas: []*pg_models.PostgresSourceSchemaOption{
 					{Schema: "schema-1", Tables: []*pg_models.PostgresSourceTableOption{
@@ -669,10 +673,10 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 		Msg: &mgmtv1alpha1.UpdateJobSourceConnectionRequest{
 			Id: nucleusdb.UUIDString(job.ID),
 			Source: &mgmtv1alpha1.JobSource{
-				ConnectionId: nucleusdb.UUIDString(conn.ID),
 				Options: &mgmtv1alpha1.JobSourceOptions{
-					Config: &mgmtv1alpha1.JobSourceOptions_PostgresOptions{
-						PostgresOptions: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+					Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+						Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+							ConnectionId:            nucleusdb.UUIDString(conn.ID),
 							HaltOnNewColumnAddition: true,
 							Schemas: []*mgmtv1alpha1.PostgresSourceSchemaOption{
 								{Schema: "schema-1", Tables: []*mgmtv1alpha1.PostgresSourceTableOption{
