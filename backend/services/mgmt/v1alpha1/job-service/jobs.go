@@ -883,8 +883,7 @@ func (s *Service) UpdateJobSourceConnection(
 
 	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
 		_, err = s.db.Q.UpdateJobSource(ctx, dbtx, db_queries.UpdateJobSourceParams{
-			ID: job.ID,
-			// ConnectionSourceID: connectionUuid,
+			ID:                job.ID,
 			ConnectionOptions: connectionOptions,
 
 			UpdatedByID: *userUuid,
