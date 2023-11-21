@@ -78,13 +78,25 @@ interface SchemaMap {
   };
 }
 
+function getConnectionIdFromSource(
+  js: JobSource | undefined
+): string | undefined {
+  if (
+    js?.options?.config.case === 'postgres' ||
+    js?.options?.config.case === 'mysql' ||
+    js?.options?.config.case === 'awsS3'
+  ) {
+    return js.options.config.value.connectionId;
+  }
+  return undefined;
+}
+
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
   const { account } = useAccount();
   const { data, mutate } = useGetJob(jobId);
-  const { data: schema } = useGetConnectionSchema(
-    data?.job?.source?.connectionId
-  );
+  const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
+  const { data: schema } = useGetConnectionSchema(sourceConnectionId);
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
 
@@ -160,9 +172,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
     );
   }
 
-  const source = connections.find(
-    (item) => item.id == data?.job?.source?.connectionId
-  );
+  const source = connections.find((item) => item.id == sourceConnectionId);
 
   return (
     <Form {...form}>
@@ -252,8 +262,7 @@ async function updateJobConnection(
           });
         }),
         source: new JobSource({
-          connectionId: values.sourceId,
-          options: toJobSourceOptions(values, job, connection),
+          options: toJobSourceOptions(values, job, connection, values.sourceId),
         }),
       })
     ),
@@ -268,15 +277,17 @@ async function updateJobConnection(
 function toJobSourceOptions(
   values: SourceFormValues,
   job: Job,
-  connection: Connection
+  connection: Connection,
+  newSourceId: string
 ): JobSourceOptions {
   switch (connection.connectionConfig?.config.case) {
     case 'pgConfig':
       return new JobSourceOptions({
         config: {
-          case: 'postgresOptions',
+          case: 'postgres',
           value: new PostgresSourceConnectionOptions({
             ...getExistingPostgresSourceConnectionOptions(job),
+            connectionId: newSourceId,
             haltOnNewColumnAddition:
               values.sourceOptions.haltOnNewColumnAddition,
           }),
@@ -285,9 +296,10 @@ function toJobSourceOptions(
     case 'mysqlConfig':
       return new JobSourceOptions({
         config: {
-          case: 'mysqlOptions',
+          case: 'mysql',
           value: new MysqlSourceConnectionOptions({
             ...getExistingMysqlSourceConnectionOptions(job),
+            connectionId: newSourceId,
             haltOnNewColumnAddition:
               values.sourceOptions.haltOnNewColumnAddition,
           }),
@@ -301,7 +313,7 @@ function toJobSourceOptions(
 function getExistingPostgresSourceConnectionOptions(
   job: Job
 ): PostgresSourceConnectionOptions | undefined {
-  return job.source?.options?.config.case === 'postgresOptions'
+  return job.source?.options?.config.case === 'postgres'
     ? job.source.options.config.value
     : undefined;
 }
@@ -309,7 +321,7 @@ function getExistingPostgresSourceConnectionOptions(
 function getExistingMysqlSourceConnectionOptions(
   job: Job
 ): MysqlSourceConnectionOptions | undefined {
-  return job.source?.options?.config.case === 'mysqlOptions'
+  return job.source?.options?.config.case === 'mysql'
     ? job.source.options.config.value
     : undefined;
 }
@@ -370,7 +382,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
 
   const destinationIds = job?.destinations.map((d) => d.connectionId);
   const values = {
-    sourceId: job?.source?.connectionId || '',
+    // sourceId: job?.source?.connectionId || '',
     sourceOptions: {},
     destinationIds: destinationIds,
     mappings: mappings || [],
@@ -379,6 +391,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
   //update to map the tranformer values from proto defintion to the yup validation definition
   const yupValidationValues = {
     ...values,
+    sourceId: getConnectionIdFromSource(job.source) || '',
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
       transformer: {
@@ -389,17 +402,19 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
   };
 
   switch (job?.source?.options?.config.case) {
-    case 'postgresOptions':
+    case 'postgres':
       return {
         ...yupValidationValues,
+        sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           haltOnNewColumnAddition:
             job?.source?.options?.config.value.haltOnNewColumnAddition,
         },
       };
-    case 'mysqlOptions':
+    case 'mysql':
       return {
         ...yupValidationValues,
+        sourceId: getConnectionIdFromSource(job.source) || '',
         sourceOptions: {
           haltOnNewColumnAddition:
             job?.source?.options?.config.value.haltOnNewColumnAddition,

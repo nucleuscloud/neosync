@@ -97,7 +97,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   const params = usePathname();
-  const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
+  const [stepName] = useState<string>(params.split('/').pop() ?? '');
 
   return (
     <div
