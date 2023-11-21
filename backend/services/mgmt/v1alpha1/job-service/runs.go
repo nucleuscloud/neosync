@@ -385,12 +385,10 @@ func (s *Service) getVerifiedJobRun(
 	runId string,
 	accountId string,
 ) (*getVerifiedJobRunResponse, error) {
-	// userAccountsResp, err := s.useraccountService.GetUserAccounts(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserAccountsRequest{}))
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// for _, userAccount := range userAccountsResp.Msg.Accounts {
+	_, err := s.verifyUserInAccount(ctx, accountId)
+	if err != nil {
+		return nil, err
+	}
 	accountUuid, err := nucleusdb.ToUuid(accountId)
 	if err != nil {
 		return nil, err
@@ -419,6 +417,4 @@ func (s *Service) getVerifiedJobRun(
 		NeosyncAccountId:  accountId,
 		TemporalConfig:    tconfig,
 	}, nil
-	// }
-	// return nil, nucleuserrors.NewNotFound("unable to find job run by run id")
 }
