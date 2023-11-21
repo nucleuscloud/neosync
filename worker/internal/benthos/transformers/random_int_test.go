@@ -61,7 +61,7 @@ func TestRandomIntTransformerWithValue(t *testing.T) {
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 
-	res, err := ex.Query(testVal)
+	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
 	assert.Equal(t, transformer_utils.GetIntLength(testVal), transformer_utils.GetIntLength(res.(int64))) // Generated int must be the same length as the input int"

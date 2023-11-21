@@ -48,7 +48,7 @@ func TestRandomFloatTransformerWithValue(t *testing.T) {
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random float transformer")
 
-	res, err := ex.Query(testVal)
+	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
 	assert.Equal(t, GetFloatLength(testVal), GetFloatLength(res.(float64))) // Generated Float must be the same length as the input Float"

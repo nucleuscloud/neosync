@@ -106,7 +106,7 @@ func Test_PhoneNumberTransformerWithValue(t *testing.T) {
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
-	res, err := ex.Query(testVal)
+	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
 	assert.Len(t, res.(string), len(testVal), "Generated phone number must be the same length as the input phone number")
@@ -119,7 +119,7 @@ func Test_PhoneNumberTransformerWithNoValue(t *testing.T) {
 
 	testVal := "6183849282"
 
-	res, err := ex.Query(testVal)
+	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
 	assert.Len(t, res.(string), len(testVal), "Generated phone number must be the same length as the input phone number")
