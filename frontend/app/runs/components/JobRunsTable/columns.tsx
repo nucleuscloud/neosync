@@ -12,12 +12,13 @@ import { DataTableRowActions } from './data-table-row-actions';
 
 interface GetColumnsProps {
   onDeleted(id: string): void;
+  accountId: string;
 }
 
 export function getColumns(
   props: GetColumnsProps
 ): ColumnDef<PlainMessage<JobRun>>[] {
-  const { onDeleted } = props;
+  const { onDeleted, accountId } = props;
   return [
     {
       accessorKey: 'status',
@@ -129,7 +130,11 @@ export function getColumns(
     {
       id: 'actions',
       cell: ({ row }) => (
-        <DataTableRowActions row={row} onDeleted={() => onDeleted(row.id)} />
+        <DataTableRowActions
+          row={row}
+          onDeleted={() => onDeleted(row.id)}
+          accountId={accountId}
+        />
       ),
     },
   ];

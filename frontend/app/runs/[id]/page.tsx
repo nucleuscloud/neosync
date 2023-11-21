@@ -7,6 +7,7 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import Spinner from '@/components/Spinner';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -26,10 +27,12 @@ import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
 
 export default function Page({ params }: PageProps): ReactElement {
+  const { account } = useAccount();
+  const accountId = account?.id || '';
   const id = params?.id ?? '';
   const router = useRouter();
   const { toast } = useToast();
-  const { data, isLoading, mutate } = useGetJobRun(id, {
+  const { data, isLoading, mutate } = useGetJobRun(id, accountId, {
     refreshIntervalFn: refreshWhenJobRunning,
   });
 
@@ -38,7 +41,7 @@ export default function Page({ params }: PageProps): ReactElement {
     isLoading: eventsIsLoading,
     isValidating,
     mutate: eventMutate,
-  } = useGetJobRunEvents(id, {
+  } = useGetJobRunEvents(id, accountId, {
     refreshIntervalFn: refreshEventsWhenEventsIncomplete,
   });
 
@@ -46,7 +49,7 @@ export default function Page({ params }: PageProps): ReactElement {
 
   async function onDelete(): Promise<void> {
     try {
-      await removeJobRun(id);
+      await removeJobRun(id, accountId);
       toast({
         title: 'Job run removed successfully!',
       });
@@ -63,7 +66,7 @@ export default function Page({ params }: PageProps): ReactElement {
 
   async function onCancel(): Promise<void> {
     try {
-      await cancelJobRun(id);
+      await cancelJobRun(id, accountId);
       toast({
         title: 'Job run canceled successfully!',
       });
@@ -255,8 +258,11 @@ function ButtonLink(props: ButtonProps): ReactElement {
   );
 }
 
-async function removeJobRun(jobRunId: string): Promise<void> {
-  const res = await fetch(`/api/runs/${jobRunId}`, {
+async function removeJobRun(
+  jobRunId: string,
+  accountId: string
+): Promise<void> {
+  const res = await fetch(`/api/runs/${jobRunId}?accountId=${accountId}`, {
     method: 'DELETE',
   });
   if (!res.ok) {
@@ -266,10 +272,16 @@ async function removeJobRun(jobRunId: string): Promise<void> {
   await res.json();
 }
 
-async function cancelJobRun(jobRunId: string): Promise<void> {
-  const res = await fetch(`/api/runs/${jobRunId}/cancel`, {
-    method: 'PUT',
-  });
+async function cancelJobRun(
+  jobRunId: string,
+  accountId: string
+): Promise<void> {
+  const res = await fetch(
+    `/api/runs/${jobRunId}/cancel?accountId=${accountId}`,
+    {
+      method: 'PUT',
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

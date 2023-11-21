@@ -43,6 +43,7 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
     onDeleted() {
       mutate();
     },
+    accountId: account?.id || '',
   });
 
   function refreshClick(): void {

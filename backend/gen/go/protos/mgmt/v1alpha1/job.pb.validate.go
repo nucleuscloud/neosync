@@ -6272,6 +6272,8 @@ func (m *GetJobRunRequest) validate(all bool) error {
 
 	// no validation rules for JobRunId
 
+	// no validation rules for AccountId
+
 	if len(errors) > 0 {
 		return GetJobRunRequestMultiError(errors)
 	}
@@ -6710,6 +6712,8 @@ func (m *CancelJobRunRequest) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for JobRunId
+
+	// no validation rules for AccountId
 
 	if len(errors) > 0 {
 		return CancelJobRunRequestMultiError(errors)
@@ -9661,6 +9665,8 @@ func (m *GetJobRunEventsRequest) validate(all bool) error {
 
 	// no validation rules for JobRunId
 
+	// no validation rules for AccountId
+
 	if len(errors) > 0 {
 		return GetJobRunEventsRequestMultiError(errors)
 	}
@@ -9902,6 +9908,8 @@ func (m *DeleteJobRunRequest) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for JobRunId
+
+	// no validation rules for AccountId
 
 	if len(errors) > 0 {
 		return DeleteJobRunRequestMultiError(errors)

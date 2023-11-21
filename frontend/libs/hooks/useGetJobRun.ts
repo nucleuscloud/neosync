@@ -13,12 +13,13 @@ interface GetJobRunOptions {
 
 export function useGetJobRun(
   runId: string,
+  accountId: string,
   opts: GetJobRunOptions = {}
 ): HookReply<GetJobRunResponse> {
   const { refreshIntervalFn } = opts;
   return useNucleusAuthenticatedFetch<GetJobRunResponse, JsonValue>(
-    `/api/runs/${runId}`,
-    !!runId,
+    `/api/runs/${runId}?accountId=${accountId}`,
+    !!runId || !!accountId,
     {
       refreshInterval: getRefreshIntervalFn(refreshIntervalFn),
     },

@@ -1,7 +1,6 @@
 package dtomaps
 
 import (
-	"fmt"
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -40,12 +39,7 @@ func ToJobRunDto(
 
 func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *common.SearchAttributes) string {
 	scheduledByIDPayload := searchAttributes.IndexedFields["TemporalScheduledById"]
-	var scheduledByID string
-	err := converter.GetDefaultDataConverter().FromPayload(scheduledByIDPayload, &scheduledByID)
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to get job id from workflow: %w", err).Error())
-	}
-	return scheduledByID
+	return converter.GetDefaultDataConverter().ToString(scheduledByIDPayload)
 }
 
 func ToJobRunEventTaskDto(event *history.HistoryEvent, taskError *mgmtv1alpha1.JobRunEventTaskError) *mgmtv1alpha1.JobRunEventTask {

@@ -18,11 +18,13 @@ import { useRouter } from 'next/navigation';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
+  accountId: string;
   onDeleted(): void;
 }
 
 export function DataTableRowActions<TData>({
   row,
+  accountId,
   onDeleted,
 }: DataTableRowActionsProps<TData>) {
   const run = row.original as JobRun;
@@ -31,7 +33,7 @@ export function DataTableRowActions<TData>({
 
   async function onDelete(): Promise<void> {
     try {
-      await removeJobRun(run.id);
+      await removeJobRun(run.id, accountId);
       toast({
         title: 'Job run removed successfully!',
       });
@@ -48,7 +50,7 @@ export function DataTableRowActions<TData>({
 
   async function onCancel(): Promise<void> {
     try {
-      await cancelJobRun(run.id);
+      await cancelJobRun(run.id, accountId);
       toast({
         title: 'Job run canceled successfully!',
       });
@@ -94,8 +96,11 @@ export function DataTableRowActions<TData>({
   );
 }
 
-async function removeJobRun(jobRunId: string): Promise<void> {
-  const res = await fetch(`/api/runs/${jobRunId}`, {
+async function removeJobRun(
+  jobRunId: string,
+  accountId: string
+): Promise<void> {
+  const res = await fetch(`/api/runs/${jobRunId}?accountId=${accountId}`, {
     method: 'DELETE',
   });
   if (!res.ok) {
@@ -105,10 +110,16 @@ async function removeJobRun(jobRunId: string): Promise<void> {
   await res.json();
 }
 
-async function cancelJobRun(jobRunId: string): Promise<void> {
-  const res = await fetch(`/api/runs/${jobRunId}/cancel`, {
-    method: 'PUT',
-  });
+async function cancelJobRun(
+  jobRunId: string,
+  accountId: string
+): Promise<void> {
+  const res = await fetch(
+    `/api/runs/${jobRunId}/cancel?accountId=${accountId}`,
+    {
+      method: 'PUT',
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

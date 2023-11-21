@@ -229,6 +229,7 @@ message GetJobRunsResponse {
 
 message GetJobRunRequest {
   string job_run_id = 1;
+  string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message GetJobRunResponse {
   JobRun job_run = 1;
@@ -241,6 +242,7 @@ message CreateJobRunResponse {}
 
 message CancelJobRunRequest {
   string job_run_id = 1;
+  string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message CancelJobRunResponse {}
 
@@ -381,6 +383,7 @@ message JobRunEvent {
 
 message GetJobRunEventsRequest {
   string job_run_id = 1;
+  string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 
 message GetJobRunEventsResponse {
@@ -390,6 +393,7 @@ message GetJobRunEventsResponse {
 
 message DeleteJobRunRequest {
   string job_run_id = 1;
+  string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message DeleteJobRunResponse {}
 
