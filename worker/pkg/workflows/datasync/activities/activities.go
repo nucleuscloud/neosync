@@ -570,16 +570,16 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "email":
 		pd := col.Transformer.Config.GetEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetEmailConfig().PreserveLength
-		return fmt.Sprintf("emailtransformer(%s,%t, %t)", col.Column, pd, pl), nil
+		return fmt.Sprintf("emailtransformer(this.%s,%t, %t)", col.Column, pd, pl), nil
 	case "first_name":
 		pl := col.Transformer.Config.GetFirstNameConfig().PreserveLength
-		return fmt.Sprintf("firstnametransformer(%s,%t)", col.Column, pl), nil
+		return fmt.Sprintf("firstnametransformer(this.%s,%t)", col.Column, pl), nil
 	case "last_name":
 		pl := col.Transformer.Config.GetLastNameConfig().PreserveLength
-		return fmt.Sprintf("this.%s.lastnametransformer(%t)", col.Column, pl), nil
+		return fmt.Sprintf("lastnametransformer(this.%s, %t)", col.Column, pl), nil
 	case "full_name":
 		pl := col.Transformer.Config.GetFullNameConfig().PreserveLength
-		return fmt.Sprintf("fullnametransformer(%s,%t)", col.Column, pl), nil
+		return fmt.Sprintf("fullnametransformer(this.%s,%t)", col.Column, pl), nil
 	case "phone_number":
 		pl := col.Transformer.Config.GetPhoneNumberConfig().PreserveLength
 		ef := col.Transformer.Config.GetPhoneNumberConfig().E164Format
@@ -587,7 +587,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("this.%s.phonetransformer(%t, %t, %t)", col.Column, pl, ef, ih), nil
 	case "int_phone_number":
 		pl := col.Transformer.Config.GetIntPhoneNumberConfig().PreserveLength
-		return fmt.Sprintf("this.%s.intphonetransformer(%t)", col.Column, pl), nil
+		return fmt.Sprintf("intphonetransformer(this.%s, %t)", col.Column, pl), nil
 	case "uuid":
 		ih := col.Transformer.Config.GetUuidConfig().IncludeHyphen
 		return fmt.Sprintf("uuidtransformer(%t)", ih), nil

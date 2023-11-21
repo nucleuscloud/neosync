@@ -26,7 +26,7 @@ var (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam(("name")).Optional()).Param(bloblang.NewBoolParam("preserve_length").Optional())
+		Param(bloblang.NewStringParam("name").Optional()).Param(bloblang.NewBoolParam("preserve_length").Optional())
 
 	// register the plugin
 	err := bloblang.RegisterFunctionV2("firstnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

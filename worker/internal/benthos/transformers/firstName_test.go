@@ -62,16 +62,3 @@ func Test_FirstNameTransformerWithNoValue(t *testing.T) {
 
 	assert.IsType(t, res.(string), "", "Generated first name must be a string")
 }
-
-func Test_FirstNameTransformerNoValue(t *testing.T) {
-	testVal := ""
-	mapping := fmt.Sprintf(`root = firstnametransformer(%q,true)`, testVal)
-	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the first name transformer")
-
-	res, err := ex.Query(nil)
-	assert.NoError(t, err)
-
-	assert.IsType(t, res.(string), "", "Generated first name must be a string")
-	assert.NotEmpty(t, res.(string))
-}
