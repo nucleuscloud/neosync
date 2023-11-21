@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessRandomBool(t *testing.T) {
+func Test_ProcessRandomBool(t *testing.T) {
 
 	res, err := GenerateRandomBool()
 
@@ -16,7 +16,7 @@ func TestProcessRandomBool(t *testing.T) {
 
 }
 
-func TestRandomBoolTransformer(t *testing.T) {
+func Test_RandomBoolTransformer(t *testing.T) {
 	mapping := `root = randombooltransformer()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random bool transformer")

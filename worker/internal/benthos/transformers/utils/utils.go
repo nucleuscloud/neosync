@@ -79,20 +79,21 @@ func IntSliceToStringSlice(ints []int64) []string {
 	return str
 }
 
-// generates a random integer of length l that is passed in as a int64 param
-func GenerateRandomInt(digits int64) (int64, error) {
-	if digits <= 0 {
+// generates a random integer of length l that is passed in as a int64 param i.e. an l of 3 will generate
+// an int64 of 3 digits such as 123 or 789.
+func GenerateRandomInt(l int64) (int64, error) {
+	if l <= 0 {
 		return 0, fmt.Errorf("count is zero or not a positive integer")
 	}
 
 	// int64 only supports 18 digits, so if the count => 19, this will error out
-	if digits >= 19 {
+	if l >= 19 {
 		return 0, fmt.Errorf("count has to be less than 18 digits since int64 only supports up to 18 digits")
 	}
 
 	// Calculate the min and max values for count
-	minValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(digits-1), nil)
-	maxValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(digits), nil)
+	minValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(l-1), nil)
+	maxValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(l), nil)
 
 	// Generate a random integer within the specified range
 	randInt, err := rand.Int(rand.Reader, maxValue)
@@ -105,7 +106,7 @@ func GenerateRandomInt(digits int64) (int64, error) {
 
 	*/
 
-	if FirstDigitIsNine(randInt.Int64()) && GetIntLength(randInt.Int64()) == digits {
+	if FirstDigitIsNine(randInt.Int64()) && GetIntLength(randInt.Int64()) == l {
 		return randInt.Int64(), nil
 	} else {
 		randInt.Add(randInt, minValue)
