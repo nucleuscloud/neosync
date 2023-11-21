@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateFullAddress(t *testing.T) {
+func Test_GenerateFullAddress(t *testing.T) {
 
 	res, err := GenerateRandomFullAddress()
 
@@ -15,7 +15,7 @@ func TestGenerateFullAddress(t *testing.T) {
 	assert.IsType(t, Address{}.Address1, res, "The returned street address should be a string")
 }
 
-func TestFullAddressTransformer(t *testing.T) {
+func Test_FullAddressTransformer(t *testing.T) {
 	mapping := `root = fulladdresstransformer()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the street address transformer")

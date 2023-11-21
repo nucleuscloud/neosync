@@ -75,7 +75,6 @@ const config = {
         respectPrefersColorScheme: false,
       },
       navbar: {
-        // title: 'Neosync',
         logo: {
           alt: 'Neosync',
           srcDark: 'img/logo_and_text_dark_mode.png',

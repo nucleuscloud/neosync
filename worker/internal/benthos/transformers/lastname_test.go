@@ -1,13 +1,14 @@
 package neosync_transformers
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessLastNamePreserveLengthTrue(t *testing.T) {
+func Test_GenerateLastNamePreserveLengthTrue(t *testing.T) {
 
 	name := "jill"
 	expectedLength := 4
@@ -19,7 +20,7 @@ func TestProcessLastNamePreserveLengthTrue(t *testing.T) {
 	assert.IsType(t, "", res, "The first name should be a string") // Check if the result is a string
 }
 
-func TestProcessLastNamePreserveLengthFalse(t *testing.T) {
+func Test_GenerateLastNamePreserveLengthFalse(t *testing.T) {
 
 	res, err := GenerateLastNameWithRandomLength()
 
@@ -28,15 +29,25 @@ func TestProcessLastNamePreserveLengthFalse(t *testing.T) {
 	assert.IsType(t, "", res, "The first name should be a string") // Check if the result is a string
 }
 
-func TestLastNameTransformer(t *testing.T) {
-	mapping := `root = this.lastnametransformer(true)`
+func Test_LastNameTransformerWithValue(t *testing.T) {
+	testVal := "johnson"
+	mapping := fmt.Sprintf(`root = lastnametransformer(%q,true)`, testVal)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the first name transformer")
 
-	testVal := "johnson"
-
-	res, err := ex.Query(testVal)
+	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
 	assert.Len(t, res.(string), len(testVal), "Generated last name must be as long as input last name")
+}
+
+func Test_LastNameTransformerWithNoValue(t *testing.T) {
+	mapping := `root = lastnametransformer()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the first name transformer")
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	assert.IsType(t, res.(string), "", "Generated last name must be a string")
 }

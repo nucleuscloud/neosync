@@ -16,38 +16,55 @@ var (
 
 func init() {
 
-	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("preserve_length"))
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam("name").Optional()).Param(bloblang.NewBoolParam("preserve_length").Optional())
 
-	// register the plugin
-	err := bloblang.RegisterMethodV2("lastnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterFunctionV2("lastnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		preserveLength, err := args.GetBool("preserve_length")
+		namePtr, err := args.GetOptionalString("name")
 		if err != nil {
 			return nil, err
 		}
-		return bloblang.StringMethod(func(s string) (any, error) {
-			res, err := GenerateLastName(s, preserveLength)
+		var name string
+		if namePtr != nil {
+			name = *namePtr
+		}
+
+		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
+		if err != nil {
+			return nil, err
+		}
+		var preserveLength bool
+		if preserveLengthPtr != nil {
+			preserveLength = *preserveLengthPtr
+		}
+
+		return func() (any, error) {
+			res, err := GenerateLastName(name, preserveLength)
 			return res, err
-		}), nil
+		}, nil
 	})
 
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // Generates a random last name
 func GenerateLastName(name string, preserveLength bool) (string, error) {
 
-	if !preserveLength {
+	if name != "" {
+		if !preserveLength {
+			res, err := GenerateLastNameWithRandomLength()
+			return res, err
+		} else {
+			res, err := GenerateLastNameWithLength(name)
+			return res, err
+		}
+	} else {
 		res, err := GenerateLastNameWithRandomLength()
 		return res, err
-	} else {
-		res, err := GenerateLastNameWithLength(name)
-		return res, err
 	}
+
 }
 
 func GenerateLastNameWithRandomLength() (string, error) {

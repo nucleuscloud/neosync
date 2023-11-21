@@ -1,6 +1,7 @@
 package neosync_transformers
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGeneratePhoneNumberPreserveLengthTrue(t *testing.T) {
+func Test_GeneratePhoneNumberPreserveLengthTrue(t *testing.T) {
 
 	pn := "1838492832"
 	expectedLength := 10
@@ -20,7 +21,7 @@ func TestGeneratePhoneNumberPreserveLengthTrue(t *testing.T) {
 
 }
 
-func TestGeneratePhoneNumberPreserveLengthTrueHyphens(t *testing.T) {
+func Test_GeneratePhoneNumberPreserveLengthTrueHyphens(t *testing.T) {
 
 	// we strip the hyphens when we Generate the phone number and the include hyphens param is set to false so the return val will not include hyphens
 	pn := "183-849-2838"
@@ -33,7 +34,7 @@ func TestGeneratePhoneNumberPreserveLengthTrueHyphens(t *testing.T) {
 
 }
 
-func TestGeneratePhoneNumberPreserveLengthFalseHyphens(t *testing.T) {
+func Test_GeneratePhoneNumberPreserveLengthFalseHyphens(t *testing.T) {
 
 	pn := "183-849-2831"
 
@@ -44,7 +45,7 @@ func TestGeneratePhoneNumberPreserveLengthFalseHyphens(t *testing.T) {
 
 }
 
-func TestGeneratePhoneNumberPreserveLengthFalseNoHyphens(t *testing.T) {
+func Test_GeneratePhoneNumberPreserveLengthFalseNoHyphens(t *testing.T) {
 
 	res, err := GenerateRandomPhoneNumberWithNoHyphens()
 
@@ -53,7 +54,7 @@ func TestGeneratePhoneNumberPreserveLengthFalseNoHyphens(t *testing.T) {
 	assert.Equal(t, len(res), 10)
 }
 
-func TestGeneratePhoneNumberPreserveLengthFalseIncludeHyphensTrue(t *testing.T) {
+func Test_GeneratePhoneNumberPreserveLengthFalseIncludeHyphensTrue(t *testing.T) {
 
 	expectedLength := 12
 
@@ -64,7 +65,7 @@ func TestGeneratePhoneNumberPreserveLengthFalseIncludeHyphensTrue(t *testing.T) 
 
 }
 
-func TestGeneratePhoneNumberPreserveLengthTrueIncludeHyphensTrueError(t *testing.T) {
+func Test_GeneratePhoneNumberPreserveLengthTrueIncludeHyphensTrueError(t *testing.T) {
 
 	pn := "183-849-2839"
 	_, err := GeneratePhoneNumber(pn, true, false, true)
@@ -73,7 +74,7 @@ func TestGeneratePhoneNumberPreserveLengthTrueIncludeHyphensTrueError(t *testing
 
 }
 
-func TestGeneratePhoneNumberE164Format(t *testing.T) {
+func Test_GeneratePhoneNumberE164Format(t *testing.T) {
 
 	pn := "+2393573894"
 	expectedLength := 11
@@ -86,7 +87,7 @@ func TestGeneratePhoneNumberE164Format(t *testing.T) {
 
 }
 
-func TestGeneratePhoneNumberE164FormatPreserveLength(t *testing.T) {
+func Test_GeneratePhoneNumberE164FormatPreserveLength(t *testing.T) {
 
 	pn := "+2393573894"
 	expectedLength := 11
@@ -99,20 +100,31 @@ func TestGeneratePhoneNumberE164FormatPreserveLength(t *testing.T) {
 
 }
 
-func TestPhoneNumberTransformer(t *testing.T) {
-	mapping := `root = this.phonetransformer(true, false, false)`
+func Test_PhoneNumberTransformerWithValue(t *testing.T) {
+	testVal := "6183849282"
+	mapping := fmt.Sprintf(`root = phonetransformer(%q, true, false, false)`, testVal)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
-	testVal := "6183849282"
-
-	res, err := ex.Query(testVal)
+	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
 	assert.Len(t, res.(string), len(testVal), "Generated phone number must be the same length as the input phone number")
 }
 
-func TestValidateE164True(t *testing.T) {
+func Test_PhoneNumberTransformerWithNoValue(t *testing.T) {
+	mapping := `root = phonetransformer()`
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the phone transformer")
+
+	testVal := "6183849282"
+
+	res, err := ex.Query(nil)
+	assert.NoError(t, err)
+
+	assert.Len(t, res.(string), len(testVal), "Generated phone number must be the same length as the input phone number")
+}
+func Test_ValidateE164True(t *testing.T) {
 
 	val := "+6272636472"
 
@@ -121,7 +133,7 @@ func TestValidateE164True(t *testing.T) {
 	assert.Equal(t, res, true, "The e164 number should have a plus sign at the 0th index and be 10 < x < 15 characters long.")
 }
 
-func TestValidateE164FalseTooLong(t *testing.T) {
+func Test_ValidateE164FalseTooLong(t *testing.T) {
 
 	val := "627263647278439"
 
@@ -130,7 +142,7 @@ func TestValidateE164FalseTooLong(t *testing.T) {
 	assert.Equal(t, res, false, "The e164 number should  be x < 15 characters long.")
 }
 
-func TestValidateE164FalseNoPlusSign(t *testing.T) {
+func Test_ValidateE164FalseNoPlusSign(t *testing.T) {
 
 	val := "6272636472784"
 
@@ -139,7 +151,7 @@ func TestValidateE164FalseNoPlusSign(t *testing.T) {
 	assert.Equal(t, res, false, "The e164 number should have a plus sign at the beginning.")
 }
 
-func TestValidateE164FalseTooshort(t *testing.T) {
+func Test_ValidateE164FalseTooshort(t *testing.T) {
 
 	val := "627263"
 

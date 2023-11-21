@@ -13,26 +13,46 @@ const defaultIntLength = 4
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("preserve_length")).
-		Param(bloblang.NewInt64Param("int_length"))
+		Param(bloblang.NewInt64Param("value").Optional()).
+		Param(bloblang.NewBoolParam("preserve_length").Optional()).
+		Param(bloblang.NewInt64Param("int_length").Optional())
 
 	// register the plugin
-	err := bloblang.RegisterMethodV2("randominttransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterFunctionV2("randominttransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		preserveLength, err := args.GetBool("preserve_length")
+		valuePtr, err := args.GetOptionalInt64("value")
 		if err != nil {
 			return nil, err
 		}
 
-		intLength, err := args.GetInt64("int_length")
+		var value int64
+		if valuePtr != nil {
+			value = *valuePtr
+		}
+		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
 		if err != nil {
 			return nil, err
 		}
 
-		return bloblang.Int64Method(func(i int64) (any, error) {
-			res, err := GenerateRandomInt(i, preserveLength, intLength)
+		var preserveLength bool
+		if preserveLengthPtr != nil {
+			preserveLength = *preserveLengthPtr
+		}
+
+		intLengthPtr, err := args.GetOptionalInt64("int_length")
+		if err != nil {
+			return nil, err
+		}
+
+		var intLength int64
+		if intLengthPtr != nil {
+			intLength = *intLengthPtr
+		}
+
+		return func() (any, error) {
+			res, err := GenerateRandomInt(value, preserveLength, intLength)
 			return res, err
-		}), nil
+		}, nil
 	})
 
 	if err != nil {
@@ -41,25 +61,47 @@ func init() {
 
 }
 
-// main transformer logic goes here
-func GenerateRandomInt(i int64, preserveLength bool, intLength int64) (int64, error) {
+func GenerateRandomInt(value int64, preserveLength bool, intLength int64) (int64, error) {
 	var returnValue int64
 
 	if preserveLength && intLength > 0 {
 		return 0, fmt.Errorf("preserve length and int length params cannot both be true")
 	}
 
-	if preserveLength {
+	if value != 0 {
 
-		val, err := transformer_utils.GenerateRandomInt(transformer_utils.GetIntLength(i))
+		if preserveLength {
 
-		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random string with length")
+			val, err := transformer_utils.GenerateRandomInt(transformer_utils.GetIntLength(value))
+
+			if err != nil {
+				return 0, fmt.Errorf("unable to generate a random string with length")
+			}
+
+			returnValue = val
+
+		} else if intLength > 0 {
+
+			val, err := transformer_utils.GenerateRandomInt(intLength)
+
+			if err != nil {
+				return 0, fmt.Errorf("unable to generate a random string with length")
+			}
+
+			returnValue = val
+
+		} else {
+
+			val, err := transformer_utils.GenerateRandomInt(defaultIntLength)
+
+			if err != nil {
+				return 0, fmt.Errorf("unable to generate a random string with length")
+			}
+
+			returnValue = val
+
 		}
-
-		returnValue = val
-
-	} else if intLength > 0 {
+	} else if intLength != 0 {
 
 		val, err := transformer_utils.GenerateRandomInt(intLength)
 
@@ -70,7 +112,6 @@ func GenerateRandomInt(i int64, preserveLength bool, intLength int64) (int64, er
 		returnValue = val
 
 	} else {
-
 		val, err := transformer_utils.GenerateRandomInt(defaultIntLength)
 
 		if err != nil {
@@ -78,7 +119,6 @@ func GenerateRandomInt(i int64, preserveLength bool, intLength int64) (int64, er
 		}
 
 		returnValue = val
-
 	}
 
 	return returnValue, nil

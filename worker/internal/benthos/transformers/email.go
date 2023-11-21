@@ -15,27 +15,51 @@ var tld = []string{"com", "org", "net", "edu", "gov", "app", "dev"}
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("preserve_length")).
-		Param(bloblang.NewBoolParam("preserve_domain"))
+		Param(bloblang.NewStringParam("email").Optional()).
+		Param(bloblang.NewBoolParam("preserve_length").Optional()).
+		Param(bloblang.NewBoolParam("preserve_domain").Optional())
 
-	// register the plugin
-	err := bloblang.RegisterMethodV2("emailtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Method, error) {
+	err := bloblang.RegisterFunctionV2("emailtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		preserveLength, err := args.GetBool("preserve_length")
+		// optional params return a pointer
+
+		emailPtr, err := args.GetOptionalString("email")
 		if err != nil {
 			return nil, err
 		}
 
-		preserveDomain, err := args.GetBool("preserve_domain")
+		// check if pointer is nil aka the param is not set
+		var email string
+		if emailPtr != nil {
+			email = *emailPtr
+		}
+
+		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
 		if err != nil {
 			return nil, err
 		}
 
-		return bloblang.StringMethod(func(e string) (any, error) {
+		var preserveLength bool
+		if preserveLengthPtr != nil {
+			preserveLength = *preserveLengthPtr
+		}
 
-			res, err := GenerateEmail(e, preserveLength, preserveDomain)
+		preserveDomainPtr, err := args.GetOptionalBool("preserve_domain")
+		if err != nil {
+			return nil, err
+		}
+
+		var preserveDomain bool
+		if preserveDomainPtr != nil {
+			preserveDomain = *preserveDomainPtr
+		}
+
+		return func() (any, error) {
+
+			res, err := GenerateEmail(email, preserveLength, preserveDomain)
 			return res, err
-		}), nil
+		}, nil
+
 	})
 
 	if err != nil {
@@ -44,50 +68,68 @@ func init() {
 
 }
 
-// generates a random email address
-func GenerateEmail(e string, preserveLength, preserveDomain bool) (string, error) {
+func GenerateEmail(email string, preserveLength, preserveDomain bool) (string, error) {
 
 	var returnValue string
 	var err error
 
-	if !preserveLength && preserveDomain {
+	if email != "" {
+		if !preserveLength && preserveDomain {
 
-		returnValue, err = GenerateEmailPreserveDomain(e, true)
-		if err != nil {
-			return "", err
-		}
+			returnValue, err = GenerateEmailPreserveDomain(email, true)
+			if err != nil {
+				return "", err
+			}
 
-	} else if preserveLength && !preserveDomain {
+		} else if preserveLength && !preserveDomain {
 
-		returnValue, err = GenerateEmailPreserveLength(e, true)
-		if err != nil {
-			return "", err
-		}
+			returnValue, err = GenerateEmailPreserveLength(email, true)
+			if err != nil {
+				return "", err
+			}
 
-	} else if preserveLength && preserveDomain {
+		} else if preserveLength && preserveDomain {
 
-		returnValue, err = GenerateEmailPreserveDomainAndLength(e, true, true)
-		if err != nil {
-			return "", err
+			returnValue, err = GenerateEmailPreserveDomainAndLength(email, true, true)
+			if err != nil {
+				return "", err
+			}
+
+		} else {
+			e, err := GenerateRandomEmail()
+			if err != nil {
+				return "", nil
+			}
+
+			returnValue = e
 		}
 
 	} else {
 
-		un, err := GenerateRandomUsername()
+		e, err := GenerateRandomEmail()
 		if err != nil {
 			return "", nil
 		}
 
-		domain, err := GenerateDomain()
-		if err != nil {
-			return "", nil
-		}
-
-		// generate random email
-		returnValue = un + domain
+		returnValue = e
 	}
 
 	return returnValue, nil
+}
+
+func GenerateRandomEmail() (string, error) {
+	un, err := GenerateRandomUsername()
+	if err != nil {
+		return "", nil
+	}
+
+	domain, err := GenerateDomain()
+	if err != nil {
+		return "", nil
+	}
+
+	// generate random email
+	return un + domain, err
 }
 
 // Generate a random email and preserve the input email's domain
@@ -167,7 +209,6 @@ func GenerateDomain() (string, error) {
 	var result string
 
 	domain, err := transformer_utils.GenerateRandomStringWithLength(6)
-
 	if err != nil {
 		return "", fmt.Errorf("unable to generate random domain name")
 	}
@@ -203,7 +244,6 @@ func parseEmail(email string) ([]string, error) {
 
 	inputEmail, err := mail.ParseAddress(email)
 	if err != nil {
-
 		return nil, fmt.Errorf("invalid email format: %s", email)
 	}
 
