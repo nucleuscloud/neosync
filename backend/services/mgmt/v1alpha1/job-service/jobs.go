@@ -1040,7 +1040,7 @@ func (s *Service) DeleteJobDestinationConnection(
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return nil, nucleuserrors.NewNotFound("unable to find job destination by id")
+		return connect.NewResponse(&mgmtv1alpha1.DeleteJobDestinationConnectionResponse{}), nil
 	}
 
 	job, err := s.db.Q.GetJobById(ctx, s.db.Db, destination.JobID)

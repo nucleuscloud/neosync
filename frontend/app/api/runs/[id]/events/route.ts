@@ -7,10 +7,13 @@ export async function GET(
   req: NextRequest,
   { params }: RequestContext
 ): Promise<NextResponse> {
+  const { searchParams } = new URL(req.url);
+  const accountId = searchParams.get('accountId') ?? '';
   return withNeosyncContext(async (ctx) => {
     return ctx.jobsClient.getJobRunEvents(
       new GetJobRunEventsRequest({
         jobRunId: params.id,
+        accountId,
       })
     );
   })(req);
