@@ -1,6 +1,7 @@
 package transformers_email
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -51,6 +52,10 @@ func TransformEmail(email string, preserveLength, preserveDomain bool) (string, 
 
 	var returnValue string
 	var err error
+
+	if email == "" {
+		return "", errors.New("email field cannot be blank")
+	}
 
 	if !preserveLength && preserveDomain {
 
