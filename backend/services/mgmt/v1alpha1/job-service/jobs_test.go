@@ -321,7 +321,7 @@ func Test_CreateJob(t *testing.T) {
 	}
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
-	mockDbTranscation(m.DbtxMock, mockTx)
+	mockDbTransaction(m.DbtxMock, mockTx)
 	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
 		AccountId:    accountUuid,
 		ConnectionId: srcConn.ID,
@@ -539,7 +539,7 @@ func Test_UpdateJobSchedule(t *testing.T) {
 	jobId := nucleusdb.UUIDString(job.ID)
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
-	mockDbTranscation(m.DbtxMock, mockTx)
+	mockDbTransaction(m.DbtxMock, mockTx)
 	mockGetJob(m.UserAccountServiceMock, m.QuerierMock, job, []db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation})
 	m.QuerierMock.On("UpdateJobSchedule", mock.Anything, mock.Anything, db_queries.UpdateJobScheduleParams{
 		ID:           job.ID,
@@ -625,7 +625,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 	whereClause := "where1"
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
-	mockDbTranscation(m.DbtxMock, mockTx)
+	mockDbTransaction(m.DbtxMock, mockTx)
 	mockGetJob(m.UserAccountServiceMock, m.QuerierMock, job, []db_queries.NeosyncApiJobDestinationConnectionAssociation{})
 	m.QuerierMock.On("UpdateJobSource", mock.Anything, mockTx, db_queries.UpdateJobSourceParams{
 		ID: job.ID,
@@ -965,12 +965,13 @@ func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAcc
 	}), nil)
 }
 
-func mockDbTranscation(dbtxMock *nucleusdb.MockDBTX, txMock *nucleusdb.MockTx) {
+func mockDbTransaction(dbtxMock *nucleusdb.MockDBTX, txMock *nucleusdb.MockTx) {
 	dbtxMock.On("Begin", mock.Anything).Return(txMock, nil)
 	txMock.On("Commit", mock.Anything).Return(nil)
 	txMock.On("Rollback", mock.Anything).Return(nil)
 }
 
+//nolint:all
 func mockGetJob(
 	userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient,
 	querierMock *db_queries.MockQuerier,
