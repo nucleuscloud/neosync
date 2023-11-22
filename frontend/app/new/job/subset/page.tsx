@@ -304,7 +304,6 @@ async function createNewJob(
       });
     }),
     source: new JobSource({
-      connectionId: formData.connect.sourceId,
       options: toJobSourceOptions(formData, sourceConnection),
     }),
     destinations: formData.connect.destinations.map((d) => {
@@ -329,8 +328,9 @@ async function createNewJob(
       case 'pgConfig':
         return new JobSourceOptions({
           config: {
-            case: 'postgresOptions',
+            case: 'postgres',
             value: new PostgresSourceConnectionOptions({
+              connectionId: formData.connect.sourceId,
               haltOnNewColumnAddition:
                 values.connect.sourceOptions.haltOnNewColumnAddition,
             }),
@@ -339,8 +339,9 @@ async function createNewJob(
       case 'mysqlConfig':
         return new JobSourceOptions({
           config: {
-            case: 'mysqlOptions',
+            case: 'mysql',
             value: new MysqlSourceConnectionOptions({
+              connectionId: formData.connect.sourceId,
               haltOnNewColumnAddition:
                 values.connect.sourceOptions.haltOnNewColumnAddition,
             }),

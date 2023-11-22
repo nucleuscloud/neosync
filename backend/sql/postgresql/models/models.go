@@ -255,15 +255,18 @@ type JobSourceOptions struct {
 type MysqlSourceOptions struct {
 	HaltOnNewColumnAddition bool                       `json:"haltOnNewColumnAddition"`
 	Schemas                 []*MysqlSourceSchemaOption `json:"schemas"`
+	ConnectionId            string                     `json:"connectionId"`
 }
 type PostgresSourceOptions struct {
 	HaltOnNewColumnAddition bool                          `json:"haltOnNewColumnAddition"`
 	Schemas                 []*PostgresSourceSchemaOption `json:"schemas"`
+	ConnectionId            string                        `json:"connectionId"`
 }
 
 func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions {
 	dto := &mgmtv1alpha1.PostgresSourceConnectionOptions{
 		HaltOnNewColumnAddition: s.HaltOnNewColumnAddition,
+		ConnectionId:            s.ConnectionId,
 	}
 	dto.Schemas = make([]*mgmtv1alpha1.PostgresSourceSchemaOption, len(s.Schemas))
 	for idx := range s.Schemas {
@@ -287,6 +290,7 @@ func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOp
 func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions) {
 	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
 	s.Schemas = FromDtoPostgresSourceSchemaOptions(dto.Schemas)
+	s.ConnectionId = dto.ConnectionId
 }
 
 func FromDtoPostgresSourceSchemaOptions(dtos []*mgmtv1alpha1.PostgresSourceSchemaOption) []*PostgresSourceSchemaOption {
@@ -313,6 +317,7 @@ func FromDtoPostgresSourceSchemaOptions(dtos []*mgmtv1alpha1.PostgresSourceSchem
 func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MysqlSourceConnectionOptions{
 		HaltOnNewColumnAddition: s.HaltOnNewColumnAddition,
+		ConnectionId:            s.ConnectionId,
 	}
 	dto.Schemas = make([]*mgmtv1alpha1.MysqlSourceSchemaOption, len(s.Schemas))
 	for idx := range s.Schemas {
@@ -336,6 +341,7 @@ func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions 
 func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions) {
 	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
 	s.Schemas = FromDtoMysqlSourceSchemaOptions(dto.Schemas)
+	s.ConnectionId = dto.ConnectionId
 }
 
 func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOption) []*MysqlSourceSchemaOption {
@@ -380,15 +386,15 @@ type MysqlSourceTableOption struct {
 func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 	if j.PostgresOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
-			Config: &mgmtv1alpha1.JobSourceOptions_PostgresOptions{
-				PostgresOptions: j.PostgresOptions.ToDto(),
+			Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+				Postgres: j.PostgresOptions.ToDto(),
 			},
 		}
 	}
 	if j.MysqlOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
-			Config: &mgmtv1alpha1.JobSourceOptions_MysqlOptions{
-				MysqlOptions: j.MysqlOptions.ToDto(),
+			Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
+				Mysql: j.MysqlOptions.ToDto(),
 			},
 		}
 	}
@@ -397,13 +403,13 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 
 func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 	switch config := dto.Config.(type) {
-	case *mgmtv1alpha1.JobSourceOptions_PostgresOptions:
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		sqlOpts := &PostgresSourceOptions{}
-		sqlOpts.FromDto(config.PostgresOptions)
+		sqlOpts.FromDto(config.Postgres)
 		j.PostgresOptions = sqlOpts
-	case *mgmtv1alpha1.JobSourceOptions_MysqlOptions:
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		sqlOpts := &MysqlSourceOptions{}
-		sqlOpts.FromDto(config.MysqlOptions)
+		sqlOpts.FromDto(config.Mysql)
 		j.MysqlOptions = sqlOpts
 	default:
 		return fmt.Errorf("invalid config")

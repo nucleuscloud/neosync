@@ -33,8 +33,7 @@ func ToJobDto(
 		CronSchedule:    nucleusdb.ToNullableString(inputJob.CronSchedule),
 		Mappings:        mappings,
 		Source: &mgmtv1alpha1.JobSource{
-			ConnectionId: nucleusdb.UUIDString(inputJob.ConnectionSourceID),
-			Options:      inputJob.ConnectionOptions.ToDto(),
+			Options: inputJob.ConnectionOptions.ToDto(),
 		},
 		Destinations: destinations,
 		AccountId:    nucleusdb.UUIDString(inputJob.AccountID),

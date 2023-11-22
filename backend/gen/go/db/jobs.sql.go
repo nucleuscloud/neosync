@@ -14,24 +14,23 @@ import (
 
 const createJob = `-- name: CreateJob :one
 INSERT INTO neosync_api.jobs (
-  name, account_id, status, connection_source_id, connection_options, mappings,
+  name, account_id, status, connection_options, mappings,
   cron_schedule, created_by_id, updated_by_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8, $9
+  $1, $2, $3, $4, $5, $6, $7, $8
 )
 RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
 `
 
 type CreateJobParams struct {
-	Name               string
-	AccountID          pgtype.UUID
-	Status             int16
-	ConnectionSourceID pgtype.UUID
-	ConnectionOptions  *pg_models.JobSourceOptions
-	Mappings           []*pg_models.JobMapping
-	CronSchedule       pgtype.Text
-	CreatedByID        pgtype.UUID
-	UpdatedByID        pgtype.UUID
+	Name              string
+	AccountID         pgtype.UUID
+	Status            int16
+	ConnectionOptions *pg_models.JobSourceOptions
+	Mappings          []*pg_models.JobMapping
+	CronSchedule      pgtype.Text
+	CreatedByID       pgtype.UUID
+	UpdatedByID       pgtype.UUID
 }
 
 func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error) {
@@ -39,7 +38,6 @@ func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (
 		arg.Name,
 		arg.AccountID,
 		arg.Status,
-		arg.ConnectionSourceID,
 		arg.ConnectionOptions,
 		arg.Mappings,
 		arg.CronSchedule,
@@ -434,27 +432,20 @@ func (q *Queries) UpdateJobSchedule(ctx context.Context, db DBTX, arg UpdateJobS
 
 const updateJobSource = `-- name: UpdateJobSource :one
 UPDATE neosync_api.jobs
-SET connection_source_id = $1,
-connection_options = $2,
-updated_by_id = $3
-WHERE id = $4
+SET connection_options = $1,
+updated_by_id = $2
+WHERE id = $3
 RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
 `
 
 type UpdateJobSourceParams struct {
-	ConnectionSourceID pgtype.UUID
-	ConnectionOptions  *pg_models.JobSourceOptions
-	UpdatedByID        pgtype.UUID
-	ID                 pgtype.UUID
+	ConnectionOptions *pg_models.JobSourceOptions
+	UpdatedByID       pgtype.UUID
+	ID                pgtype.UUID
 }
 
 func (q *Queries) UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSourceParams) (NeosyncApiJob, error) {
-	row := db.QueryRow(ctx, updateJobSource,
-		arg.ConnectionSourceID,
-		arg.ConnectionOptions,
-		arg.UpdatedByID,
-		arg.ID,
-	)
+	row := db.QueryRow(ctx, updateJobSource, arg.ConnectionOptions, arg.UpdatedByID, arg.ID)
 	var i NeosyncApiJob
 	err := row.Scan(
 		&i.ID,

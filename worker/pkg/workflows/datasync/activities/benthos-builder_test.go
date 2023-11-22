@@ -33,10 +33,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 			Job: &mgmtv1alpha1.Job{
 				Source: &mgmtv1alpha1.JobSource{
-					ConnectionId: "123",
 					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_PostgresOptions{
-							PostgresOptions: &mgmtv1alpha1.PostgresSourceConnectionOptions{},
+						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+								ConnectionId: "123",
+							},
 						},
 					},
 				},

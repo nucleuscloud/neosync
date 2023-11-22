@@ -1,4 +1,5 @@
 'use client';
+import { getConnectionIdFromSource } from '@/app/jobs/[id]/source/components/SourceConnectionCard';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
@@ -61,7 +62,10 @@ export default function Page({ params }: PageProps): ReactElement {
   >();
 
   const connections = connectionsData?.connections ?? [];
-  const destinationIds = data?.job?.destinations.map((d) => d.connectionId);
+  const destinationIds = new Set(
+    data?.job?.destinations.map((d) => d.connectionId)
+  );
+  const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
   const form = useForm({
     resolver: yupResolver<FormValues>(FORM_SCHEMA),
     defaultValues: {
@@ -71,8 +75,7 @@ export default function Page({ params }: PageProps): ReactElement {
   });
 
   const availableConnections = connections.filter(
-    (c) =>
-      c.id != data?.job?.source?.connectionId && !destinationIds?.includes(c.id)
+    (c) => c.id != sourceConnectionId && !destinationIds?.has(c.id)
   );
 
   const { fields, append, remove } = useFieldArray({
