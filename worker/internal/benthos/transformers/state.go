@@ -1,14 +1,12 @@
 package transformers
 
 import (
-	"crypto/rand"
 	_ "embed"
-	"encoding/json"
-	"fmt"
-	"math/big"
+	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 )
 
 func init() {
@@ -16,16 +14,11 @@ func init() {
 	spec := bloblang.NewPluginSpec()
 
 	// register the function
-	err := bloblang.RegisterFunctionV2("statetransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_random_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
 
-			val, err := GenerateRandomState()
-
-			if err != nil {
-				return false, fmt.Errorf("unable to generate random state")
-			}
-			return val, nil
+			return GenerateRandomState(), nil
 		}, nil
 	})
 	if err != nil {
@@ -33,23 +26,13 @@ func init() {
 	}
 }
 
-func GenerateRandomState() (string, error) {
+// Generates a randomly selected state that exists in the United States.
+func GenerateRandomState() string {
 
-	data := struct {
-		Addresses []Address `json:"addresses"`
-	}{}
-	if err := json.Unmarshal(addressesBytes, &data); err != nil {
-		return "", err
-	}
-	addresses := data.Addresses
+	addresses := transformers_dataset.Addresses
 
 	// -1 because addresses is an array so we don't overflow
-	randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(maxIndex)-1))
-	if err != nil {
-		return Address{}.Address1, err
-	}
+	randomIndex := rand.Intn(len(addresses) - 1)
 
-	randomAddress := addresses[randomIndex.Int64()]
-
-	return randomAddress.State, nil
+	return addresses[randomIndex].State
 }

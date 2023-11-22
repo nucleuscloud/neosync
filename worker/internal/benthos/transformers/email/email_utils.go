@@ -13,7 +13,7 @@ func parseEmail(email string) ([]string, error) {
 
 	inputEmail, err := mail.ParseAddress(email)
 	if err != nil {
-		return nil, fmt.Errorf("invalid email 5322format: %s", email)
+		return nil, fmt.Errorf("invalid email format: %s", email)
 	}
 
 	parsedEmail := strings.Split(inputEmail.Address, "@")

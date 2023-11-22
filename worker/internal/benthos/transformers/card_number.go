@@ -17,8 +17,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("luhn_check"))
 
-	// register the plugin
-	err := bloblang.RegisterFunctionV2("cardnumbertransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_random_cardnumber", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		luhn, err := args.GetBool("luhn_check")
 		if err != nil {
@@ -37,7 +36,7 @@ func init() {
 
 }
 
-// main transformer logic goes here
+// Generates a 16 digit card number that can pass a luhn check if a true param is passed. Otherwise will generate a random 16 digit card number.
 func GenerateCardNumber(luhn bool) (int64, error) {
 	var returnValue int64
 
