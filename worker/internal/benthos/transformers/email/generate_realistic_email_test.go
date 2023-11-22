@@ -1,4 +1,4 @@
-package transformers
+package transformers_email
 
 import (
 	"testing"
@@ -32,14 +32,6 @@ func Test_GenerateRealisticUsername(t *testing.T) {
 
 	assert.Equal(t, true, IsValidUsername(res), "The expected email should have a valid username")
 
-}
-
-func Test_generateUsernameFirstInitialLastName(t *testing.T) {
-
-	res, err := generateUsernameFirstInitialLastName()
-	assert.NoError(t, err)
-
-	assert.Equal(t, true, IsValidUsername(res), "The expected email should have a valid username")
 }
 
 func Test_RealisticmailTransformer(t *testing.T) {

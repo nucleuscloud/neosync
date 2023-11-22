@@ -1,4 +1,4 @@
-package transformers
+package transformers_email
 
 import (
 	"fmt"
@@ -12,48 +12,30 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("email").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length").Optional()).
-		Param(bloblang.NewBoolParam("preserve_domain").Optional())
+		Param(bloblang.NewStringParam("email")).
+		Param(bloblang.NewBoolParam("preserve_length")).
+		Param(bloblang.NewBoolParam("preserve_domain"))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		// optional params return a pointer
-
-		emailPtr, err := args.GetOptionalString("email")
+		email, err := args.GetString("email")
 		if err != nil {
 			return nil, err
 		}
 
-		// check if pointer is nil aka the param is not set
-		var email string
-		if emailPtr != nil {
-			email = *emailPtr
-		}
-
-		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
+		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
 			return nil, err
 		}
 
-		var preserveLength bool
-		if preserveLengthPtr != nil {
-			preserveLength = *preserveLengthPtr
-		}
-
-		preserveDomainPtr, err := args.GetOptionalBool("preserve_domain")
+		preserveDomain, err := args.GetBool("preserve_domain")
 		if err != nil {
 			return nil, err
-		}
-
-		var preserveDomain bool
-		if preserveDomainPtr != nil {
-			preserveDomain = *preserveDomainPtr
 		}
 
 		return func() (any, error) {
 
-			res, err := GenerateEmail(email, preserveLength, preserveDomain)
+			res, err := TransformEmail(email, preserveLength, preserveDomain)
 			return res, err
 		}, nil
 
@@ -65,28 +47,28 @@ func init() {
 
 }
 
-func GenerateEmail(email string, preserveLength, preserveDomain bool) (string, error) {
+func TransformEmail(email string, preserveLength, preserveDomain bool) (string, error) {
 
 	var returnValue string
 	var err error
 
 	if !preserveLength && preserveDomain {
 
-		returnValue, err = GenerateEmailPreserveDomain(email, true)
+		returnValue, err = TransformEmailPreserveDomain(email, true)
 		if err != nil {
 			return "", err
 		}
 
 	} else if preserveLength && !preserveDomain {
 
-		returnValue, err = GenerateEmailPreserveLength(email, true)
+		returnValue, err = TransformEmailPreserveLength(email, true)
 		if err != nil {
 			return "", err
 		}
 
 	} else if preserveLength && preserveDomain {
 
-		returnValue, err = GenerateEmailPreserveDomainAndLength(email, true, true)
+		returnValue, err = TransformEmailPreserveDomainAndLength(email, true, true)
 		if err != nil {
 			return "", err
 		}
@@ -104,7 +86,7 @@ func GenerateEmail(email string, preserveLength, preserveDomain bool) (string, e
 }
 
 // Generate a random email and preserve the input email's domain
-func GenerateEmailPreserveDomain(e string, pd bool) (string, error) {
+func TransformEmailPreserveDomain(e string, pd bool) (string, error) {
 
 	parsedEmail, err := parseEmail(e)
 	if err != nil {
@@ -120,7 +102,7 @@ func GenerateEmailPreserveDomain(e string, pd bool) (string, error) {
 }
 
 // Preserve the length of email but not the domain name
-func GenerateEmailPreserveLength(e string, pl bool) (string, error) {
+func TransformEmailPreserveLength(e string, pl bool) (string, error) {
 
 	var res string
 
@@ -132,7 +114,7 @@ func GenerateEmailPreserveLength(e string, pl bool) (string, error) {
 	// split the domain to account for different domain name lengths
 	splitDomain := strings.Split(parsedEmail[1], ".")
 
-	domain, err := GenerateDomain()
+	domain, err := GenerateRandomDomain()
 	if err != nil {
 		return "", err
 	}
@@ -156,7 +138,7 @@ func GenerateEmailPreserveLength(e string, pl bool) (string, error) {
 }
 
 // preserve domain and length of the email -> keep the domain the same but slice the username to be the same length as the input username
-func GenerateEmailPreserveDomainAndLength(e string, pd, pl bool) (string, error) {
+func TransformEmailPreserveDomainAndLength(e string, pd, pl bool) (string, error) {
 
 	parsedEmail, err := parseEmail(e)
 	if err != nil {
@@ -173,24 +155,4 @@ func GenerateEmailPreserveDomainAndLength(e string, pd, pl bool) (string, error)
 	res := transformer_utils.SliceString(un, unLength) + "@" + parsedEmail[1]
 
 	return res, err
-}
-
-func GenerateDomain() (string, error) {
-
-	var result string
-
-	domain, err := transformer_utils.GenerateRandomStringWithLength(6)
-	if err != nil {
-		return "", fmt.Errorf("unable to generate random domain name")
-	}
-
-	tld, err := transformer_utils.GetRandomValueFromSlice(tld)
-	if err != nil {
-		return "", err
-	}
-
-	result = "@" + domain + "." + tld
-
-	return result, err
-
 }

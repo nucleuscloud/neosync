@@ -1,4 +1,4 @@
-package transformers
+package transformers_email
 
 import (
 	"math/rand"
@@ -76,7 +76,7 @@ func GenerateRealisticUsername() (string, error) {
 	randValue := rand.Intn(2)
 
 	if randValue == 1 {
-		val, err := generateUsernameFirstInitialLastName()
+		val, err := transformers.GenerateUsername()
 		if err != nil {
 			return "", err
 		}
@@ -93,19 +93,6 @@ func GenerateRealisticUsername() (string, error) {
 		}
 		return fn + "." + ln, nil
 	}
-
-}
-
-func generateUsernameFirstInitialLastName() (string, error) {
-
-	//randomly select a letter in the alphabet to use as a first initial
-	fn := string(alphabet[rand.Intn(len(alphabet))])
-
-	ln, err := transformers.GenerateLastNameWithRandomLength()
-	if err != nil {
-		return "", err
-	}
-	return fn + ln, nil
 
 }
 

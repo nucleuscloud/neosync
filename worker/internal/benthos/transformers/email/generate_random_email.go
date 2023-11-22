@@ -1,4 +1,4 @@
-package transformers
+package transformers_email
 
 import (
 	"github.com/benthosdev/benthos/v4/public/bloblang"

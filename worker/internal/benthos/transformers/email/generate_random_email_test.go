@@ -1,4 +1,4 @@
-package transformers
+package transformers_email
 
 import (
 	"testing"
