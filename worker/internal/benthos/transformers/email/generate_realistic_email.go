@@ -8,8 +8,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 )
 
-var alphabet = "abcdefghijklmnopqrstuvwxyz"
-
 var emailDomains = []string{
 	"gmail.com",
 	"yahoo.com",
@@ -72,6 +70,7 @@ func GenerateRealisticEmail() (string, error) {
 // Generates a realistic looking username for an email address either as firstinitial then lastName for ex. jdoe or firstname.lastname such as john.doe
 func GenerateRealisticUsername() (string, error) {
 
+	//nolint
 	// randomly generate a 0 or 1 in order to pick an email format
 	randValue := rand.Intn(2)
 
@@ -98,7 +97,7 @@ func GenerateRealisticUsername() (string, error) {
 
 // Generates a realistic looking domain such as @gmail.com
 func GenerateRealisticDomain() (string, error) {
-
+	//nolint
 	randValue := rand.Intn(len(emailDomains))
 
 	return "@" + emailDomains[randValue], nil

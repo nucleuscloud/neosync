@@ -33,7 +33,8 @@ func init() {
 // Generates a username with a lowercase first initial and titlecase lastname
 func GenerateUsername() (string, error) {
 
-	//randomly select a letter in the alphabet to use as a first initial
+	//nolint
+	// randomly select a letter in the alphabet to use as a first initial
 	fn := string(alphabet[rand.Intn(len(alphabet))])
 
 	ln, err := GenerateLastNameWithRandomLength()

@@ -12,7 +12,6 @@ import (
 const email = "evis@gmail.com"
 
 func Test_GenerateEmailPreserveLengthFalsePreserveDomainTrue(t *testing.T) {
-	email := "johndoe@gmail.com"
 
 	res, err := TransformEmail(email, false, true)
 
@@ -23,7 +22,6 @@ func Test_GenerateEmailPreserveLengthFalsePreserveDomainTrue(t *testing.T) {
 }
 
 func Test_GenerateEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
-	email := "johndoe@gmail.com"
 
 	res, err := TransformEmail(email, false, false)
 
@@ -33,7 +31,6 @@ func Test_GenerateEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
 }
 
 func Test_GenerateEmailPreserveLengthTruePreserveDomainFalse(t *testing.T) {
-	email := "johndoe@gmail.com"
 
 	res, err := TransformEmail(email, true, false)
 
@@ -70,7 +67,6 @@ func Test_GenerateEmailPreserveLength(t *testing.T) {
 }
 
 func Test_GenerateEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
-	email := "johndoe@gmail.com"
 
 	res, err := TransformEmailPreserveDomainAndLength(email, true, true)
 
@@ -89,14 +85,13 @@ func Test_GenerateUsername(t *testing.T) {
 }
 
 func Test_EmailTransformerWithValue(t *testing.T) {
-	testVal := "evil@gmail.com"
-	mapping := fmt.Sprintf(`root = transform_email(%q,true,true)`, testVal)
+	mapping := fmt.Sprintf(`root = transform_email(%q,true,true)`, email)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Len(t, res.(string), len(testVal), "Generated email must be the same length as the input email")
+	assert.Len(t, res.(string), len(email), "Generated email must be the same length as the input email")
 	assert.Equal(t, strings.Split(res.(string), "@")[1], "gmail.com")
 }

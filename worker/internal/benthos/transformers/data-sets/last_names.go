@@ -324,7 +324,6 @@ var LastNames = Names{
 				"Ledner",
 				"Legros",
 				"Lehner",
-				"Littel",
 				"Little",
 				"Maggio",
 				"Marvin",
