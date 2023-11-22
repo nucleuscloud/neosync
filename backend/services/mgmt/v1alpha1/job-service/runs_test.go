@@ -159,8 +159,33 @@ func Test_CreateJobRun(t *testing.T) {
 }
 
 // CancelJobRun
+func Test_CancelJobRun(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	temporalClientMock := new(MockTemporalClient)
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	runId := uuid.NewString()
+	workflowId := uuid.NewString()
+	workflows := []*workflowpb.WorkflowExecutionInfo{{
+		Execution: &common.WorkflowExecution{
+			WorkflowId: workflowId,
+			RunId:      runId,
+		},
+	}}
 
-// DeleteJobRun
+	mockGetVerifiedJobRun(m.QuerierMock, m.TemporalWfManagerMock, accountUuid, "default", temporalClientMock, workflows)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	temporalClientMock.On("CancelWorkflow", mock.Anything, workflowId, runId).Return(nil)
+
+	resp, err := m.Service.CancelJobRun(context.Background(), &connect.Request[mgmtv1alpha1.CancelJobRunRequest]{
+		Msg: &mgmtv1alpha1.CancelJobRunRequest{
+			JobRunId:  runId,
+			AccountId: mockAccountId,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
 
 func mockGetVerifiedJobRun(
 	querierMock *db_queries.MockQuerier,
