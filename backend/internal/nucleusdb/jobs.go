@@ -75,9 +75,8 @@ func (d *NucleusDb) SetSqlSourceSubsets(
 		}
 
 		_, err = d.Q.UpdateJobSource(ctx, dbtx, db_queries.UpdateJobSourceParams{
-			ID:                 jobId,
-			ConnectionSourceID: dbjob.ConnectionSourceID,
-			ConnectionOptions:  dbjob.ConnectionOptions,
+			ID:                jobId,
+			ConnectionOptions: dbjob.ConnectionOptions,
 
 			UpdatedByID: userUuid,
 		})

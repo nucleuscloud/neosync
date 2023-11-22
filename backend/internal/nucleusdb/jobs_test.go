@@ -110,12 +110,17 @@ func Test_SetSqlSourceSubsets(t *testing.T) {
 	service := New(dbtxMock, querierMock)
 
 	dbtxMock.On("Begin", ctx).Return(mockTx, nil)
-	querierMock.On("GetJobById", ctx, mockTx, jobUuid).Return(db_queries.NeosyncApiJob{ID: jobUuid, ConnectionSourceID: connUuid, ConnectionOptions: &pg_models.JobSourceOptions{}}, nil)
+	querierMock.On("GetJobById", ctx, mockTx, jobUuid).
+		Return(db_queries.NeosyncApiJob{ID: jobUuid, ConnectionOptions: &pg_models.JobSourceOptions{
+			PostgresOptions: &pg_models.PostgresSourceOptions{
+				ConnectionId: UUIDString(connUuid),
+			},
+		}}, nil)
 	querierMock.On("UpdateJobSource", ctx, mockTx, db_queries.UpdateJobSourceParams{
-		ID:                 jobUuid,
-		ConnectionSourceID: connUuid,
+		ID: jobUuid,
 		ConnectionOptions: &pg_models.JobSourceOptions{
 			PostgresOptions: &pg_models.PostgresSourceOptions{
+				ConnectionId: UUIDString(connUuid),
 				Schemas: []*pg_models.PostgresSourceSchemaOption{
 					{Schema: "schema", Tables: []*pg_models.PostgresSourceTableOption{{Table: "table-1", WhereClause: &whereClause}}},
 				},

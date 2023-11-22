@@ -10,6 +10,7 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
+import { getConnectionIdFromSource } from '../source/components/SourceConnectionCard';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
 
 export default function Page({ params }: PageProps): ReactElement {
@@ -20,7 +21,10 @@ export default function Page({ params }: PageProps): ReactElement {
     useGetConnections(account?.id ?? '');
 
   const connections = connectionsData?.connections ?? [];
-  const destinationIds = data?.job?.destinations.map((d) => d.connectionId);
+  const destinationIds = new Set(
+    data?.job?.destinations.map((d) => d.connectionId)
+  );
+  const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
   return (
     <div className="job-details-container">
       <SubPageHeader
@@ -44,8 +48,7 @@ export default function Page({ params }: PageProps): ReactElement {
                 availableConnections={connections.filter(
                   (c) =>
                     c.id == destination.connectionId ||
-                    (c.id != data?.job?.source?.connectionId &&
-                      !destinationIds?.includes(c.id))
+                    (c.id != sourceConnectionId && !destinationIds?.has(c.id))
                 )}
                 isDeleteDisabled={data?.job?.destinations.length == 1}
               />

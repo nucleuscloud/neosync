@@ -14,8 +14,17 @@ message GetJobsResponse {
 }
 
 message JobSource {
-  string connection_id = 1;
-  JobSourceOptions options = 2;
+  JobSourceOptions options = 1 [(buf.validate.field).required = true];
+}
+
+message JobSourceOptions {
+  oneof config {
+    option (buf.validate.oneof).required = true;
+    PostgresSourceConnectionOptions postgres = 1;
+    AwsS3SourceConnectionOptions aws_s3 = 2;
+    MysqlSourceConnectionOptions mysql = 3;
+    GenerateSourceOptions generate = 4;
+  }
 }
 
 message CreateJobDestination {
@@ -29,18 +38,26 @@ message JobDestination {
   string id = 3;
 }
 
-message JobSourceOptions {
-  oneof config {
-    option (buf.validate.oneof).required = true;
-    PostgresSourceConnectionOptions postgres_options = 1;
-    AwsS3SourceConnectionOptions aws_s3_options = 2;
-    MysqlSourceConnectionOptions mysql_options = 3;
+message GenerateSourceOptions {
+  repeated GenerateSourceSchemaOption schemas = 1 [(buf.validate.field).repeated.min_items = 1];
+  oneof foreign_key_constraint_config {
+    bool ignore_foreign_keys = 2;
+    string fk_source_connection_id = 3 [(buf.validate.field).string.uuid = true];
   }
+}
+message GenerateSourceSchemaOption {
+  string schema = 1 [(buf.validate.field).string.min_len = 1];
+  repeated GenerateSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
+}
+message GenerateSourceTableOption {
+  string table = 1 [(buf.validate.field).string.min_len = 1];
+  int64 row_count = 2 [(buf.validate.field).int64.gte = 1];
 }
 
 message PostgresSourceConnectionOptions {
   bool halt_on_new_column_addition = 1;
   repeated PostgresSourceSchemaOption schemas = 2;
+  string connection_id = 3 [(buf.validate.field).string.uuid = true];
 }
 
 message PostgresSourceSchemaOption {
@@ -55,6 +72,7 @@ message PostgresSourceTableOption {
 message MysqlSourceConnectionOptions {
   bool halt_on_new_column_addition = 1;
   repeated MysqlSourceSchemaOption schemas = 2;
+  string connection_id = 3 [(buf.validate.field).string.uuid = true];
 }
 
 message MysqlSourceSchemaOption {
@@ -66,7 +84,9 @@ message MysqlSourceTableOption {
   optional string where_clause = 2;
 }
 
-message AwsS3SourceConnectionOptions {}
+message AwsS3SourceConnectionOptions {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+}
 
 message JobDestinationOptions {
   oneof config {
