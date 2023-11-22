@@ -1,4 +1,4 @@
-package neosync_transformers
+package transformers
 
 import (
 	"strconv"

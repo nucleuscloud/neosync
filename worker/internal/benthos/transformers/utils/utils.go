@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+
 // returns a random index from a one-dimensional slice
 func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 	if len(arr) == 0 {
@@ -83,12 +85,12 @@ func IntSliceToStringSlice(ints []int64) []string {
 // an int64 of 3 digits such as 123 or 789.
 func GenerateRandomInt(l int64) (int64, error) {
 	if l <= 0 {
-		return 0, fmt.Errorf("count is zero or not a positive integer")
+		return 0, errors.New("count is zero or not a positive integer")
 	}
 
 	// int64 only supports 18 digits, so if the count => 19, this will error out
 	if l >= 19 {
-		return 0, fmt.Errorf("count has to be less than 18 digits since int64 only supports up to 18 digits")
+		return 0, errors.New("count has to be less than 18 digits since int64 only supports up to 18 digits")
 	}
 
 	// Calculate the min and max values for count
@@ -98,7 +100,7 @@ func GenerateRandomInt(l int64) (int64, error) {
 	// Generate a random integer within the specified range
 	randInt, err := rand.Int(rand.Reader, maxValue)
 	if err != nil {
-		return 0, fmt.Errorf("unable to generate a random integer")
+		return 0, errors.New("unable to generate a random integer")
 	}
 
 	/*
@@ -151,8 +153,6 @@ func IsLastDigitZero(n int64) bool {
 
 // generate a random string of length l
 func GenerateRandomStringWithLength(l int64) (string, error) {
-
-	const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
 
 	if l <= 0 {
 		return "", fmt.Errorf("the length cannot be zero or negative")
