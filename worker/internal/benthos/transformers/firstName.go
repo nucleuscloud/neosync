@@ -1,27 +1,15 @@
-package neosync_transformers
+package transformers
 
 import (
 	_ "embed"
-	"encoding/json"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-type Names struct {
-	Names []NameGroup `json:"names"`
-}
-
-type NameGroup struct {
-	NameLength int      `json:"name_length"`
-	Names      []string `json:"names"`
-}
-
-var (
-	//go:embed data-sets/first_names.json
-	firstNameBytes []byte
-)
+var firstNames = transformers_dataset.FirstNames.Names
 
 func init() {
 
@@ -83,18 +71,9 @@ func GenerateFirstNameWithRandomLength() (string, error) {
 
 	var returnValue string
 
-	data := struct {
-		Names []NameGroup `json:"names"`
-	}{}
-	if err := json.Unmarshal(firstNameBytes, &data); err != nil {
-		panic(err)
-	}
-
-	names := data.Names
-
 	var nameLengths []int
 
-	for _, v := range names {
+	for _, v := range firstNames {
 		nameLengths = append(nameLengths, v.NameLength)
 	}
 
@@ -103,7 +82,7 @@ func GenerateFirstNameWithRandomLength() (string, error) {
 		return "", err
 	}
 
-	for _, v := range names {
+	for _, v := range firstNames {
 		if v.NameLength == randomNameLengthVal {
 			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
 			if err != nil {
@@ -115,7 +94,7 @@ func GenerateFirstNameWithRandomLength() (string, error) {
 
 	// handles the case where the name provided is longer than the longest names in the first_names slice
 	if returnValue == "" {
-		res, err := transformer_utils.GetRandomValueFromSlice[string](names[3].Names)
+		res, err := transformer_utils.GetRandomValueFromSlice[string](firstNames[3].Names)
 		if err != nil {
 			return "", err
 		}
@@ -130,16 +109,7 @@ func GenerateFirstNameWithLength(fn string) (string, error) {
 
 	var returnValue string
 
-	data := struct {
-		Names []NameGroup `json:"names"`
-	}{}
-	if err := json.Unmarshal(firstNameBytes, &data); err != nil {
-		panic(err)
-	}
-
-	names := data.Names
-
-	for _, v := range names {
+	for _, v := range firstNames {
 		if v.NameLength == len(fn) {
 			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
 			if err != nil {

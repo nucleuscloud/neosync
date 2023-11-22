@@ -1,4 +1,4 @@
-package neosync_transformers
+package transformers
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-const defualtCCLength = 16
+const defaultCCLength = 16
 const defaultIIN = 400000
 
 func init() {
@@ -44,19 +44,17 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 	if luhn {
 
 		val, err := GenerateValidLuhnCheckCardNumber()
-
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate a luhn valid card number")
+			return 0, err
 		}
 
 		returnValue = val
 
 	} else {
 
-		val, err := transformer_utils.GenerateRandomInt(defualtCCLength)
-
+		val, err := transformer_utils.GenerateRandomInt(defaultCCLength)
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random card number")
+			return 0, err
 		}
 
 		returnValue = val

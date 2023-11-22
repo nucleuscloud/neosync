@@ -1,18 +1,15 @@
-package neosync_transformers
+package transformers
 
 import (
 	_ "embed"
-	"encoding/json"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-var (
-	//go:embed data-sets/last_names.json
-	lastNameBytes []byte
-)
+var lastNames = transformers_dataset.LastNames.Names
 
 func init() {
 
@@ -71,19 +68,9 @@ func GenerateLastNameWithRandomLength() (string, error) {
 
 	var returnValue string
 
-	data := struct {
-		Names []NameGroup `json:"names"`
-	}{}
-	if err := json.Unmarshal(lastNameBytes, &data); err != nil {
-		return "", err
-	}
-
-	names := data.Names
-
-	// get a random length from the last_names.json file
 	var nameLengths []int
 
-	for _, v := range names {
+	for _, v := range firstNames {
 		nameLengths = append(nameLengths, v.NameLength)
 	}
 
@@ -92,7 +79,7 @@ func GenerateLastNameWithRandomLength() (string, error) {
 		return "", err
 	}
 
-	for _, v := range names {
+	for _, v := range lastNames {
 		if v.NameLength == randomNameLengthVal {
 			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
 			if err != nil {
@@ -104,7 +91,7 @@ func GenerateLastNameWithRandomLength() (string, error) {
 
 	// handles the case where the name provided is longer than the longest names in the first_names slice
 	if returnValue == "" {
-		res, err := transformer_utils.GetRandomValueFromSlice[string](names[3].Names)
+		res, err := transformer_utils.GetRandomValueFromSlice[string](lastNames[3].Names)
 		if err != nil {
 			return "", err
 		}
@@ -120,16 +107,7 @@ func GenerateLastNameWithLength(fn string) (string, error) {
 
 	var returnValue string
 
-	data := struct {
-		Names []NameGroup `json:"names"`
-	}{}
-	if err := json.Unmarshal(lastNameBytes, &data); err != nil {
-		return "", err
-	}
-
-	names := data.Names
-
-	for _, v := range names {
+	for _, v := range lastNames {
 		if v.NameLength == len(fn) {
 			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
 			if err != nil {

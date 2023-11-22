@@ -1,16 +1,13 @@
-package neosync_transformers
+package transformers
 
 import (
 	"fmt"
-	"net/mail"
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
-
-var tld = []string{"com", "org", "net", "edu", "gov", "app", "dev"}
 
 func init() {
 
@@ -19,7 +16,7 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length").Optional()).
 		Param(bloblang.NewBoolParam("preserve_domain").Optional())
 
-	err := bloblang.RegisterFunctionV2("emailtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		// optional params return a pointer
 
@@ -73,39 +70,28 @@ func GenerateEmail(email string, preserveLength, preserveDomain bool) (string, e
 	var returnValue string
 	var err error
 
-	if email != "" {
-		if !preserveLength && preserveDomain {
+	if !preserveLength && preserveDomain {
 
-			returnValue, err = GenerateEmailPreserveDomain(email, true)
-			if err != nil {
-				return "", err
-			}
+		returnValue, err = GenerateEmailPreserveDomain(email, true)
+		if err != nil {
+			return "", err
+		}
 
-		} else if preserveLength && !preserveDomain {
+	} else if preserveLength && !preserveDomain {
 
-			returnValue, err = GenerateEmailPreserveLength(email, true)
-			if err != nil {
-				return "", err
-			}
+		returnValue, err = GenerateEmailPreserveLength(email, true)
+		if err != nil {
+			return "", err
+		}
 
-		} else if preserveLength && preserveDomain {
+	} else if preserveLength && preserveDomain {
 
-			returnValue, err = GenerateEmailPreserveDomainAndLength(email, true, true)
-			if err != nil {
-				return "", err
-			}
-
-		} else {
-			e, err := GenerateRandomEmail()
-			if err != nil {
-				return "", nil
-			}
-
-			returnValue = e
+		returnValue, err = GenerateEmailPreserveDomainAndLength(email, true, true)
+		if err != nil {
+			return "", err
 		}
 
 	} else {
-
 		e, err := GenerateRandomEmail()
 		if err != nil {
 			return "", nil
@@ -115,21 +101,6 @@ func GenerateEmail(email string, preserveLength, preserveDomain bool) (string, e
 	}
 
 	return returnValue, nil
-}
-
-func GenerateRandomEmail() (string, error) {
-	un, err := GenerateRandomUsername()
-	if err != nil {
-		return "", nil
-	}
-
-	domain, err := GenerateDomain()
-	if err != nil {
-		return "", nil
-	}
-
-	// generate random email
-	return un + domain, err
 }
 
 // Generate a random email and preserve the input email's domain
@@ -222,32 +193,4 @@ func GenerateDomain() (string, error) {
 
 	return result, err
 
-}
-
-func GenerateRandomUsername() (string, error) {
-
-	randLength, err := transformer_utils.GenerateRandomIntWithBounds(3, 8)
-	if err != nil {
-		return "", err
-	}
-
-	username, err := transformer_utils.GenerateRandomStringWithLength(int64(randLength))
-	if err != nil {
-		return "", err
-	}
-
-	return username, nil
-
-}
-
-func parseEmail(email string) ([]string, error) {
-
-	inputEmail, err := mail.ParseAddress(email)
-	if err != nil {
-		return nil, fmt.Errorf("invalid email format: %s", email)
-	}
-
-	parsedEmail := strings.Split(inputEmail.Address, "@")
-
-	return parsedEmail, nil
 }
