@@ -59,10 +59,6 @@ export default function DestinationConnectionCard({
 
   const form = useForm({
     resolver: yupResolver<FormValues>(FORM_SCHEMA),
-    defaultValues: {
-      connectionId: '',
-      destinationOptions: {},
-    },
     values: getDefaultValues(destination),
   });
 
