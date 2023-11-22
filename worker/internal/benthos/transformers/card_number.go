@@ -56,7 +56,7 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 			return 0, err
 		}
 
-		returnValue = val
+		returnValue = int64(val)
 
 	}
 
@@ -79,11 +79,11 @@ func GenerateValidLuhnCheckCardNumber() (int64, error) {
 	}
 
 	// Acc no (9 digits)
-	nineDigits, err := transformer_utils.GenerateRandomInt(int64(9))
+	nineDigits, err := transformer_utils.GenerateRandomInt(9)
 	if err != nil {
 		return 0, err
 	}
-	strNine := strconv.FormatInt(nineDigits, 10)
+	strNine := strconv.FormatInt(int64(nineDigits), 10)
 	for _, k := range strNine {
 		digit, err := strconv.Atoi(string(k))
 		if err != nil {

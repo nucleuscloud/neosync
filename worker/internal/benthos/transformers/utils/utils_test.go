@@ -27,14 +27,14 @@ func TestGetRandomValueFromSliceNonEmptySlice(t *testing.T) {
 
 func TestGenerateRandomNumberWithBoundsMinError(t *testing.T) {
 
-	_, err := GenerateRandomIntWithBounds(10, 1)
+	_, err := GenerateRandomIntWithInclusiveBounds(10, 1)
 	assert.Error(t, err, "Expected an error such that the min is greated than the max")
 }
 
 func TestGenerateRandomNumberWithBoundsMinEqualMax(t *testing.T) {
 
 	const minMax = 5
-	val, err := GenerateRandomIntWithBounds(minMax, minMax)
+	val, err := GenerateRandomIntWithInclusiveBounds(minMax, minMax)
 	assert.NoError(t, err, "Did not expect an error when min == max")
 	assert.Equal(t, minMax, val, "Expected value to be equal to min/max")
 
@@ -43,7 +43,7 @@ func TestGenerateRandomNumberWithBoundsMinEqualMax(t *testing.T) {
 func TestGenerateRandomNumberWithBoundsValid(t *testing.T) {
 
 	min, max := 2, 9
-	val, err := GenerateRandomIntWithBounds(min, max)
+	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
 	assert.NoError(t, err, "Did not expect an error for valid range")
 	assert.True(t, val >= min && val <= max, "Expected value to be within the range")
 }
@@ -96,10 +96,10 @@ func TestGenerateRandomInt(t *testing.T) {
 
 	expectedLength := 9
 
-	res, err := GenerateRandomInt(int64(expectedLength))
+	res, err := GenerateRandomInt(expectedLength)
 
 	assert.NoError(t, err)
-	numStr := strconv.FormatInt(res, 10)
+	numStr := strconv.FormatInt(int64(res), 10)
 	assert.Equal(t, len(numStr), expectedLength, "The length of the generated random int should be the same as the expectedLength")
 
 }
