@@ -18,6 +18,7 @@ func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 		return zeroValue, errors.New("slice is empty")
 	}
 
+	//nolint:all
 	randomIndex := rand.Intn(len(arr))
 
 	return arr[randomIndex], nil
@@ -36,6 +37,7 @@ func GenerateRandomIntWithInclusiveBounds(min, max int) (int, error) {
 
 	// Generate a random number in the range [0, max-min]
 	// the + 1 allows us to make the max inclusive
+	//nolint:all
 	randValue := rand.Intn(max - min + 1)
 
 	// Shift the range to [min, max]
@@ -84,6 +86,7 @@ func GenerateRandomInt(l int) (int, error) {
 	max := int(math.Pow10(l)) - 1
 
 	// Generate a random number in the range
+	//nolint:all
 	return rand.Intn(max-min+1) + min, nil
 }
 
@@ -132,6 +135,7 @@ func GenerateRandomStringWithLength(l int64) (string, error) {
 
 	for i := int64(0); i < l; i++ {
 		// Generate a random index in the range [0, len(alphabet))
+		//nolint:all
 		index := rand.Intn(len(alphabet))
 
 		// Get the character at the generated index and append it to the result

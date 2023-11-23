@@ -8,13 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var name = "evis"
+
 func Test_TransformFirstNamePreserveLengthTrue(t *testing.T) {
 
-	name := "evis"
-
 	res, err := TransformFirstName(name, true)
-
-	fmt.Println("tes", res)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(name), len(res), "The first name output should be the same length as the input")
@@ -27,16 +25,12 @@ func Test_TransformFirstNamePreserveLengthTrueOOBValue(t *testing.T) {
 
 	res, err := TransformFirstName(name, true)
 
-	fmt.Println("tes", res)
-
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(res), "The first name output should be the same length as the input")
 	assert.IsType(t, "", res, "The first name should be a string")
 }
 
 func Test_TransformFirstNamePreserveLengthFalse(t *testing.T) {
-
-	name := "evis"
 
 	res, err := TransformFirstName(name, false)
 

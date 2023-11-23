@@ -26,8 +26,6 @@ func Test_TransformLastNamePreserveLengthTrueOOBValue(t *testing.T) {
 
 	res, err := TransformLastName(name, true)
 
-	fmt.Println("tes", res)
-
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(res), "The first name output should be the same length as the input")
 	assert.IsType(t, "", res, "The first name should be a string")
