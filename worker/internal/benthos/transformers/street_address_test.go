@@ -1,30 +1,21 @@
 package transformers
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateStreetAddress(t *testing.T) {
 
-	res, err := GenerateRandomStreetAddress()
+	res := GenerateRandomStreetAddress()
 
-	assert.NoError(t, err)
-	assert.IsType(t, Address{}.Address1, res, "The returned street address should be a string")
-
-	data := struct {
-		Addresses []Address `json:"addresses"`
-	}{}
-	if err := json.Unmarshal(addressesBytes, &data); err != nil {
-		panic(err)
-	}
-	addresses := data.Addresses
+	assert.IsType(t, "", res, "The returned street address should be a string")
 
 	streetAddressExosts := false
-	for _, address := range addresses {
+	for _, address := range transformers_dataset.Addresses {
 		if address.Address1 == res {
 			streetAddressExosts = true
 			break
@@ -35,7 +26,7 @@ func TestGenerateStreetAddress(t *testing.T) {
 }
 
 func TestStreetAddressTransformer(t *testing.T) {
-	mapping := `root = streetaddresstransformer()`
+	mapping := `root = generates_random_street_address()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the street address transformer")
 
@@ -44,16 +35,8 @@ func TestStreetAddressTransformer(t *testing.T) {
 
 	assert.IsType(t, Address{}.Address1, res, "The returned street address should be a string")
 
-	data := struct {
-		Addresses []Address `json:"addresses"`
-	}{}
-	if err := json.Unmarshal(addressesBytes, &data); err != nil {
-		panic(err)
-	}
-	addresses := data.Addresses
-
 	streetAddressExosts := false
-	for _, address := range addresses {
+	for _, address := range transformers_dataset.Addresses {
 		if address.Address1 == res {
 			streetAddressExosts = true
 			break

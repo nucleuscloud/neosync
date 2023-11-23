@@ -26,7 +26,7 @@ func TestGenerateCardNumber(t *testing.T) {
 }
 
 func TestGenerateCardNumberTransformer(t *testing.T) {
-	mapping := `root = cardnumbertransformer(true)`
+	mapping := `root = generate_random_cardnumber(true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 

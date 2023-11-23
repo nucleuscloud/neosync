@@ -1,30 +1,21 @@
 package transformers
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateCity(t *testing.T) {
 
-	res, err := GenerateRandomCity()
+	res := GenerateRandomCity()
 
-	assert.NoError(t, err)
-	assert.IsType(t, Address{}.City, res, "The returned city should be a string")
-
-	data := struct {
-		Addresses []Address `json:"addresses"`
-	}{}
-	if err := json.Unmarshal(addressesBytes, &data); err != nil {
-		panic(err)
-	}
-	addresses := data.Addresses
+	assert.IsType(t, "", res, "The returned city should be a string")
 
 	cityExists := false
-	for _, address := range addresses {
+	for _, address := range transformers_dataset.Addresses {
 		if address.City == res {
 			cityExists = true
 			break
@@ -35,25 +26,17 @@ func TestGenerateCity(t *testing.T) {
 }
 
 func TestCityTransformer(t *testing.T) {
-	mapping := `root = citytransformer()`
+	mapping := `root = generate_random_city()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the city transformer")
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.IsType(t, Address{}.City, res, "The returned city should be a string")
-
-	data := struct {
-		Addresses []Address `json:"addresses"`
-	}{}
-	if err := json.Unmarshal(addressesBytes, &data); err != nil {
-		panic(err)
-	}
-	addresses := data.Addresses
+	assert.IsType(t, "", res, "The returned city should be a string")
 
 	cityExists := false
-	for _, address := range addresses {
+	for _, address := range transformers_dataset.Addresses {
 		if address.City == res {
 			cityExists = true
 			break

@@ -72,23 +72,23 @@ func GenerateRandomInt(value int64, preserveLength bool, intLength int64) (int64
 
 		if preserveLength {
 
-			val, err := transformer_utils.GenerateRandomInt(transformer_utils.GetIntLength(value))
+			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value)))
 
 			if err != nil {
 				return 0, fmt.Errorf("unable to generate a random string with length")
 			}
 
-			returnValue = val
+			returnValue = int64(val)
 
 		} else if intLength > 0 {
 
-			val, err := transformer_utils.GenerateRandomInt(intLength)
+			val, err := transformer_utils.GenerateRandomInt(int(intLength))
 
 			if err != nil {
 				return 0, fmt.Errorf("unable to generate a random string with length")
 			}
 
-			returnValue = val
+			returnValue = int64(val)
 
 		} else {
 
@@ -98,18 +98,18 @@ func GenerateRandomInt(value int64, preserveLength bool, intLength int64) (int64
 				return 0, fmt.Errorf("unable to generate a random string with length")
 			}
 
-			returnValue = val
+			returnValue = int64(val)
 
 		}
 	} else if intLength != 0 {
 
-		val, err := transformer_utils.GenerateRandomInt(intLength)
+		val, err := transformer_utils.GenerateRandomInt(int(intLength))
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random string with length")
 		}
 
-		returnValue = val
+		returnValue = int64(val)
 
 	} else {
 		val, err := transformer_utils.GenerateRandomInt(defaultIntLength)
@@ -118,7 +118,7 @@ func GenerateRandomInt(value int64, preserveLength bool, intLength int64) (int64
 			return 0, fmt.Errorf("unable to generate a random string with length")
 		}
 
-		returnValue = val
+		returnValue = int64(val)
 	}
 
 	return returnValue, nil

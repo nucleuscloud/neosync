@@ -26,7 +26,7 @@ func Test_GenerateRandomFloatPreserveLengthFalse(t *testing.T) {
 
 	expectedLength := 6
 
-	res, err := GenerateRandomFloatWithDefinedLength(int64(3), int64(3))
+	res, err := GenerateRandomFloatWithDefinedLength(3, 3)
 
 	actual := GetFloatLength(res).DigitsAfterDecimalLength + GetFloatLength(res).DigitsBeforeDecimalLength
 	assert.NoError(t, err)

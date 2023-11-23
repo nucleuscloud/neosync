@@ -39,7 +39,7 @@ func GenerateRandomSHA256Hash() (string, error) {
 		return "", err
 	}
 
-	str, err := transformer_utils.GenerateRandomStringWithLength(length)
+	str, err := transformer_utils.GenerateRandomStringWithLength(int64(length))
 	if err != nil {
 		return "", err
 	}

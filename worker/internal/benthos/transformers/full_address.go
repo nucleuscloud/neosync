@@ -1,14 +1,13 @@
 package transformers
 
 import (
-	"crypto/rand"
 	_ "embed"
-	"encoding/json"
 	"fmt"
-	"math/big"
+	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 )
 
 func init() {
@@ -16,16 +15,10 @@ func init() {
 	spec := bloblang.NewPluginSpec()
 
 	// register the function
-	err := bloblang.RegisterFunctionV2("fulladdresstransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_random_full_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
-
-			val, err := GenerateRandomFullAddress()
-
-			if err != nil {
-				return false, fmt.Errorf("unable to generate random state")
-			}
-			return val, nil
+			return GenerateRandomFullAddress(), nil
 		}, nil
 	})
 	if err != nil {
@@ -34,25 +27,17 @@ func init() {
 }
 
 // generates a random full address from the US including street address, city, state and zipcode
-func GenerateRandomFullAddress() (string, error) {
+func GenerateRandomFullAddress() string {
 
-	data := struct {
-		Addresses []Address `json:"addresses"`
-	}{}
-	if err := json.Unmarshal(addressesBytes, &data); err != nil {
-		panic(err)
-	}
-	addresses := data.Addresses
+	addresses := transformers_dataset.Addresses
 
 	// -1 because addresses is an array so we don't overflow
-	randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(maxIndex)-1))
-	if err != nil {
-		return Address{}.Address1, err
-	}
+	//nolint:all
+	randomIndex := rand.Intn(len(addresses) - 1)
 
-	randomAddress := addresses[randomIndex.Int64()]
+	randomAddress := addresses[randomIndex]
 
 	fullAddress := fmt.Sprintf(`%s %s %s, %s`, randomAddress.Address1, randomAddress.City, randomAddress.State, randomAddress.Zipcode)
 
-	return fullAddress, nil
+	return fullAddress
 }

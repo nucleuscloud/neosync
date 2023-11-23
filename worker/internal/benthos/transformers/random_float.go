@@ -79,14 +79,15 @@ func GenerateRandomFloat(value float64, preserveLength bool, digitsAfterDecimal,
 	if value != 0 {
 		if preserveLength {
 			fLen := GetFloatLength(value)
-			res, err := GenerateRandomFloatWithDefinedLength(int64(fLen.DigitsBeforeDecimalLength), int64(fLen.DigitsAfterDecimalLength))
+			res, err := GenerateRandomFloatWithDefinedLength(fLen.DigitsBeforeDecimalLength, fLen.DigitsAfterDecimalLength)
 			return res, err
 		} else {
-			res, err := GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecimal)
+
+			res, err := GenerateRandomFloatWithDefinedLength(int(digitsBeforeDecimal), int(digitsAfterDecimal))
 			return res, err
 		}
 	} else if digitsBeforeDecimal != 0 && digitsAfterDecimal != 0 {
-		res, err := GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecimal)
+		res, err := GenerateRandomFloatWithDefinedLength(int(digitsBeforeDecimal), int(digitsAfterDecimal))
 		return res, err
 	} else {
 		res, err := GenerateRandomFloatWithRandomLength()
@@ -98,18 +99,18 @@ func GenerateRandomFloatWithRandomLength() (float64, error) {
 
 	var returnValue float64
 
-	bd, err := transformer_utils.GenerateRandomInt(int64(3))
+	bd, err := transformer_utils.GenerateRandomInt(3)
 	if err != nil {
 		return 0, fmt.Errorf("unable to generate a random before digits integer")
 	}
 
-	ad, err := transformer_utils.GenerateRandomInt(int64(3))
+	ad, err := transformer_utils.GenerateRandomInt(3)
 
 	for {
-		if !transformer_utils.IsLastDigitZero(ad) {
+		if !transformer_utils.IsLastDigitZero(int64(ad)) {
 			break
 		}
-		ad, err = transformer_utils.GenerateRandomInt(int64(3))
+		ad, err = transformer_utils.GenerateRandomInt(3)
 
 		if err != nil {
 			return 0, fmt.Errorf("unable to generate a random int64 to convert to a float")
@@ -132,7 +133,7 @@ func GenerateRandomFloatWithRandomLength() (float64, error) {
 	return returnValue, nil
 }
 
-func GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecimal int64) (float64, error) {
+func GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecimal int) (float64, error) {
 
 	var returnValue float64
 
@@ -146,7 +147,7 @@ func GenerateRandomFloatWithDefinedLength(digitsBeforeDecimal, digitsAfterDecima
 	// generate a new number if it ends in a zero so that the trailing zero doesn't get stripped and return
 	// a value that is shorter than what the user asks for. This happens in when we convert the string to a float64
 	for {
-		if !transformer_utils.IsLastDigitZero(ad) {
+		if !transformer_utils.IsLastDigitZero(int64(ad)) {
 			break // Exit the loop when i is greater than or equal to 5
 		}
 		ad, err = transformer_utils.GenerateRandomInt(digitsAfterDecimal)

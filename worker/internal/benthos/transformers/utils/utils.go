@@ -1,14 +1,15 @@
 package transformer_utils
 
 import (
-	"crypto/rand"
 	"errors"
 	"fmt"
-	"math/big"
+	"math"
+	"math/rand"
 	"strconv"
 )
 
-const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+var alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+var alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 // returns a random index from a one-dimensional slice
 func GetRandomValueFromSlice[T any](arr []T) (T, error) {
@@ -17,20 +18,14 @@ func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 		return zeroValue, errors.New("slice is empty")
 	}
 
-	randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(arr))))
-	if err != nil {
-		var zeroValue T
-		return zeroValue, err
-	}
+	//nolint:all
+	randomIndex := rand.Intn(len(arr))
 
-	return arr[randomIndex.Int64()], nil
+	return arr[randomIndex], nil
 }
 
-// generates a random int between two numbers
-func GenerateRandomIntWithBounds(min, max int) (int, error) {
-
-	min64 := int64(min)
-	max64 := int64(max)
+// generates a random int between two numbers inclusive of the boundaries
+func GenerateRandomIntWithInclusiveBounds(min, max int) (int, error) {
 
 	if min > max {
 		return 0, errors.New("min cannot be greater than max")
@@ -41,14 +36,12 @@ func GenerateRandomIntWithBounds(min, max int) (int, error) {
 	}
 
 	// Generate a random number in the range [0, max-min]
-	num, err := rand.Int(rand.Reader, big.NewInt(max64-min64+1))
-	if err != nil {
-		return 0, err
-	}
+	// the + 1 allows us to make the max inclusive
+	//nolint:all
+	randValue := rand.Intn(max - min + 1)
 
 	// Shift the range to [min, max]
-	return int(num.Int64() + min64), nil
-
+	return randValue + min, nil
 }
 
 // substrings a string using rune length to account for multi-byte characters
@@ -83,38 +76,18 @@ func IntSliceToStringSlice(ints []int64) []string {
 
 // generates a random integer of length l that is passed in as a int64 param i.e. an l of 3 will generate
 // an int64 of 3 digits such as 123 or 789.
-func GenerateRandomInt(l int64) (int64, error) {
+func GenerateRandomInt(l int) (int, error) {
 	if l <= 0 {
-		return 0, errors.New("count is zero or not a positive integer")
+		return 0, errors.New("the length has to be greater than zero") // Or handle this case as an error
 	}
 
-	// int64 only supports 18 digits, so if the count => 19, this will error out
-	if l >= 19 {
-		return 0, errors.New("count has to be less than 18 digits since int64 only supports up to 18 digits")
-	}
+	// Calculate the range
+	min := int(math.Pow10(l - 1))
+	max := int(math.Pow10(l)) - 1
 
-	// Calculate the min and max values for count
-	minValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(l-1), nil)
-	maxValue := new(big.Int).Exp(big.NewInt(10), big.NewInt(l), nil)
-
-	// Generate a random integer within the specified range
-	randInt, err := rand.Int(rand.Reader, maxValue)
-	if err != nil {
-		return 0, errors.New("unable to generate a random integer")
-	}
-
-	/*
-		rand.Int generates a random number within the range [0, max-1], so if count == 8 [0 -> 9999999]. If the generated random integer is already the maximum possible value, then adding the minimum value to it will overflow it to count + 1. This is because the big.Int.Add() function adds two big integers together and returns a new big integer. If the first digit is a 9 and it's already count long then adding the min will overflow. So we only add if the digit count is not digits AND the first digit is not 9.
-
-	*/
-
-	if FirstDigitIsNine(randInt.Int64()) && GetIntLength(randInt.Int64()) == l {
-		return randInt.Int64(), nil
-	} else {
-		randInt.Add(randInt, minValue)
-		return randInt.Int64(), nil
-
-	}
+	// Generate a random number in the range
+	//nolint:all
+	return rand.Intn(max-min+1) + min, nil
 }
 
 func FirstDigitIsNine(n int64) bool {
@@ -158,25 +131,16 @@ func GenerateRandomStringWithLength(l int64) (string, error) {
 		return "", fmt.Errorf("the length cannot be zero or negative")
 	}
 
-	// Create a random source using crypto/rand
-	source := rand.Reader
-
-	// Calculate the max index in the alphabet string
-	maxIndex := big.NewInt(int64(len(alphanumeric)))
-
 	result := make([]byte, l)
 
 	for i := int64(0); i < l; i++ {
 		// Generate a random index in the range [0, len(alphabet))
-		index, err := rand.Int(source, maxIndex)
-		if err != nil {
-			return "", fmt.Errorf("unable to generate a random index for random string generation")
-		}
+		//nolint:all
+		index := rand.Intn(len(alphabet))
 
 		// Get the character at the generated index and append it to the result
-		result[i] = alphanumeric[index.Int64()]
+		result[i] = alphanumeric[index]
 	}
 
 	return string(result), nil
-
 }

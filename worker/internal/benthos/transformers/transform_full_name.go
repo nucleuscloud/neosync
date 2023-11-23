@@ -9,29 +9,19 @@ import (
 
 func init() {
 
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam(("name")).Optional()).Param(bloblang.NewBoolParam("preserve_length").Optional())
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam(("name"))).Param(bloblang.NewBoolParam("preserve_length"))
 
-	// register the plugin
-	err := bloblang.RegisterFunctionV2("fullnametransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_full_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		namePtr, err := args.GetOptionalString("name")
+		name, err := args.GetString("name")
 		if err != nil {
 			return nil, err
 		}
-		var name string
-		if namePtr != nil {
-			name = *namePtr
-		}
 
-		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
+		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
 			return nil, err
 		}
-		var preserveLength bool
-		if preserveLengthPtr != nil {
-			preserveLength = *preserveLengthPtr
-		}
-
 		return func() (any, error) {
 			res, err := GenerateFullName(name, preserveLength)
 			return res, err
@@ -44,15 +34,15 @@ func init() {
 
 }
 
-// generates a random full name
 func GenerateFullName(name string, pl bool) (string, error) {
 
 	if name != "" {
-		if !pl {
-			res, err := GenerateFullNameWithRandomLength()
-			return res, err
-		} else {
+		if pl {
 			res, err := GenerateFullNameWithLength(name)
+			return res, err
+
+		} else {
+			res, err := GenerateFullNameWithRandomLength()
 			return res, err
 		}
 	} else {
@@ -62,15 +52,14 @@ func GenerateFullName(name string, pl bool) (string, error) {
 
 }
 
-// main transformer logic goes here
 func GenerateFullNameWithRandomLength() (string, error) {
 
-	fn, err := GenerateFirstNameWithRandomLength()
+	fn, err := GenerateRandomFirstName()
 	if err != nil {
 		return "", err
 	}
 
-	ln, err := GenerateLastNameWithRandomLength()
+	ln, err := GenerateRandomLastName()
 	if err != nil {
 		return "", err
 	}
@@ -85,12 +74,12 @@ func GenerateFullNameWithLength(fn string) (string, error) {
 
 	parsedName := strings.Split(fn, " ")
 
-	fn, err := GenerateFirstName(parsedName[0], true)
+	fn, err := GenerateRandomFirstNameWithLength(parsedName[0])
 	if err != nil {
 		return "", err
 	}
 
-	ln, err := GenerateLastName(parsedName[1], true)
+	ln, err := GenerateRandomLastNameWithLength(parsedName[1])
 	if err != nil {
 		return "", err
 	}
