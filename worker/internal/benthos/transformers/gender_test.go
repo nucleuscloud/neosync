@@ -18,7 +18,7 @@ func TestGenerateGenderAbbreviateTrue(t *testing.T) {
 
 }
 
-func TestGenerateGenderAbbreviateFalse(t *testing.T) {
+func Test_GenerateGenderAbbreviateFalse(t *testing.T) {
 
 	res, err := GenerateRandomGender(false)
 
@@ -29,7 +29,7 @@ func TestGenerateGenderAbbreviateFalse(t *testing.T) {
 }
 
 func TestGenderTransformer(t *testing.T) {
-	mapping := `root = gendertransformer(true)`
+	mapping := `root = generate_random_gender(true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the gender transformer")
 

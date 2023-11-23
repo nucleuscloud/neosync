@@ -15,7 +15,8 @@ func init() {
 	err := bloblang.RegisterFunctionV2("generate_random_city", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
-			return GenerateRandomCity(), nil
+			res := GenerateRandomCity()
+			return res, nil
 		}, nil
 	})
 	if err != nil {

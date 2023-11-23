@@ -1,9 +1,7 @@
 package transformers
 
 import (
-	"crypto/rand"
-	"fmt"
-	"math/big"
+	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
@@ -14,9 +12,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("abbreviate"))
 
-	// register the function
-
-	err := bloblang.RegisterFunctionV2("gendertransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_random_gender", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		ab, err := args.GetBool("abbreviate")
 		if err != nil {
@@ -25,12 +21,12 @@ func init() {
 
 		return func() (any, error) {
 
-			val, err := GenerateRandomGender(ab)
+			res, err := GenerateRandomGender(ab)
 
 			if err != nil {
-				return false, fmt.Errorf("unable to generate random gender")
+				return false, err
 			}
-			return val, nil
+			return res, nil
 		}, nil
 	})
 	if err != nil {
@@ -41,14 +37,11 @@ func init() {
 // generates a randomly selected gender
 func GenerateRandomGender(ab bool) (string, error) {
 
-	randomInt, err := rand.Int(rand.Reader, big.NewInt(4))
-	if err != nil {
-		return "", err
-	}
+	randomInt := rand.Intn(4)
 
 	var gender string
 
-	switch randomInt.Int64() {
+	switch randomInt {
 	case 0:
 		gender = "undefined"
 	case 1:

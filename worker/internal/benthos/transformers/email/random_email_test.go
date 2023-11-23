@@ -12,7 +12,7 @@ func Test_GenerateRandomEmail(t *testing.T) {
 	res, err := GenerateRandomEmail()
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, IsValidEmail(res), "The expected email should be have a valid email structure")
+	assert.Equal(t, true, IsValidEmail(res), "The expected email should be have a valid email format")
 
 }
 
@@ -43,5 +43,5 @@ func Test_RandomEmailTransformer(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidEmail(res.(string)))
+	assert.Equal(t, true, IsValidEmail(res.(string)), " The expected email should have a valid format")
 }

@@ -8,16 +8,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateValidLuhnCardNumber(t *testing.T) {
+func Test_GenerateValidLuhnCardNumber(t *testing.T) {
 
 	val, err := GenerateValidLuhnCheckCardNumber()
 
 	assert.NoError(t, err)
 	assert.Len(t, strconv.FormatInt(val, 10), 16, "The output card should be 16 characters long")
-	assert.Equal(t, true, isValidLuhn(val))
+	assert.Equal(t, true, isValidLuhn(val), "The card number should pass luhn validation")
 }
 
-func TestGenerateCardNumber(t *testing.T) {
+func Test_GenerateCardNumber(t *testing.T) {
 
 	val, err := GenerateCardNumber(false)
 
@@ -25,7 +25,7 @@ func TestGenerateCardNumber(t *testing.T) {
 	assert.Len(t, strconv.FormatInt(val, 10), 16, "The output card should be 16 characters long")
 }
 
-func TestGenerateCardNumberTransformer(t *testing.T) {
+func Test_GenerateCardNumberTransformer(t *testing.T) {
 	mapping := `root = generate_random_cardnumber(true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
@@ -34,7 +34,7 @@ func TestGenerateCardNumberTransformer(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Len(t, strconv.FormatInt(res.(int64), 10), 16, "The output card should be 16 characters long")
-	assert.Equal(t, true, isValidLuhn(res.(int64)))
+	assert.Equal(t, true, isValidLuhn(res.(int64)), "The output card number should pass luhn validation")
 }
 
 func isValidLuhn(cc int64) bool {

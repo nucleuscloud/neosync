@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateCity(t *testing.T) {
+func Test_GenerateCity(t *testing.T) {
 
 	res := GenerateRandomCity()
 
@@ -25,7 +25,7 @@ func TestGenerateCity(t *testing.T) {
 	assert.True(t, cityExists, "The generated city should exist in the addresses array")
 }
 
-func TestCityTransformer(t *testing.T) {
+func Test_CityTransformer(t *testing.T) {
 	mapping := `root = generate_random_city()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the city transformer")
