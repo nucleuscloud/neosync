@@ -82,11 +82,11 @@ func GenerateRealisticUsername() (string, error) {
 
 		return val, nil
 	} else {
-		fn, err := transformers.GenerateFirstNameWithRandomLength()
+		fn, err := transformers.GenerateRandomFirstName()
 		if err != nil {
 			return "", err
 		}
-		ln, err := transformers.GenerateLastNameWithRandomLength()
+		ln, err := transformers.GenerateRandomLastName()
 		if err != nil {
 			return "", err
 		}

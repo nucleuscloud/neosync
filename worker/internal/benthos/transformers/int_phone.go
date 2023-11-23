@@ -86,22 +86,22 @@ func GenerateIntPhoneNumber(number int64, preserveLength bool) (int64, error) {
 func GenerateIntPhoneNumberPreserveLength(number int64) (int64, error) {
 	numStr := strconv.FormatInt(number, 10)
 
-	val, err := transformer_utils.GenerateRandomInt(int64(len(numStr))) // generates len(pn) random numbers from 0 -> 9
+	val, err := transformer_utils.GenerateRandomInt(len(numStr)) // generates len(pn) random numbers from 0 -> 9
 	if err != nil {
 		return 0, fmt.Errorf("unable to generate phone number")
 	}
 
-	return val, err
+	return int64(val), err
 
 }
 
 func GenerateRandomTenDigitIntPhoneNumber() (int64, error) {
 
-	res, err := transformer_utils.GenerateRandomInt(int64(10))
+	res, err := transformer_utils.GenerateRandomInt(10)
 
 	if err != nil {
 		return 0, fmt.Errorf("unable to generate random phone number")
 	}
 
-	return res, nil
+	return int64(res), nil
 }

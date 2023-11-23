@@ -147,13 +147,13 @@ func GeneratePhoneNumberPreserveLengthNoHyphensNotE164(number string) (string, e
 		number = strings.ReplaceAll(number, "-", "")
 	}
 
-	val, err := transformer_utils.GenerateRandomInt(int64(len(number)))
+	val, err := transformer_utils.GenerateRandomInt(len(number))
 
 	if err != nil {
 		return "", nil
 	}
 
-	returnValue := strconv.FormatInt(val, 10)
+	returnValue := strconv.FormatInt(int64(val), 10)
 
 	return returnValue, nil
 }
@@ -163,7 +163,7 @@ func GenerateRandomPhoneNumberWithHyphens() (string, error) {
 
 	// only works with 10 digit-based phone numbers like in the US
 
-	val, err := transformer_utils.GenerateRandomInt(int64(10))
+	val, err := transformer_utils.GenerateRandomInt(10)
 
 	if err != nil {
 		return "", nil
@@ -179,7 +179,7 @@ func GenerateRandomPhoneNumberWithHyphens() (string, error) {
 // generates a random E164 phone number between 10 and 15 digits long and returns it as a string
 func GenerateE164FormatPhoneNumber() (string, error) {
 
-	val, err := transformer_utils.GenerateRandomInt(int64(10))
+	val, err := transformer_utils.GenerateRandomInt(10)
 	if err != nil {
 		return "", nil
 	}
@@ -192,7 +192,7 @@ func GenerateE164FormatPhoneNumberPreserveLength(number string) (string, error) 
 
 	val := strings.Split(number, "+")
 
-	vals, err := transformer_utils.GenerateRandomInt(int64(len(val[1])))
+	vals, err := transformer_utils.GenerateRandomInt(len(val[1]))
 	if err != nil {
 		return "", nil
 	}
@@ -203,12 +203,12 @@ func GenerateE164FormatPhoneNumberPreserveLength(number string) (string, error) 
 func GenerateRandomPhoneNumberWithNoHyphens() (string, error) {
 
 	// returns a phone number with no hyphens
-	val, err := transformer_utils.GenerateRandomInt(int64(10))
+	val, err := transformer_utils.GenerateRandomInt(10)
 	if err != nil {
 		return "", err
 	}
 
-	returnValue := strconv.FormatInt(val, 10)
+	returnValue := strconv.FormatInt(int64(val), 10)
 
 	return returnValue, nil
 }

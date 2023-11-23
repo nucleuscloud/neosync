@@ -45,7 +45,7 @@ func GenerateRandomEmail() (string, error) {
 // Generates a random username comprised of randomly sampled alphanumeric characters
 func GenerateRandomUsername() (string, error) {
 
-	randLength, err := transformer_utils.GenerateRandomIntWithBounds(3, 8)
+	randLength, err := transformer_utils.GenerateRandomIntWithInclusiveBounds(3, 8)
 	if err != nil {
 		return "", err
 	}
