@@ -44,7 +44,7 @@ func Test_GenerateRandomIntLengthTooLong(t *testing.T) {
 
 	_, err := GenerateRandomInt(val, "positive")
 
-	assert.Error(t, err, "The sign should be either positive, negative or random")
+	assert.Error(t, err, "The int length cannot be greater than 18")
 
 }
 
@@ -75,7 +75,7 @@ func Test_GenerateRandomIntTransformerWithNoLength(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, int64(6), transformer_utils.GetIntLength(res.(int64)*-1))
-	assert.Equal(t, IsNegative(res.(int64)), true, "The value return should be negative")
+	assert.Equal(t, IsNegativeInt(res.(int64)), true, "The value return should be negative")
 	assert.IsType(t, res, int64(2))
 }
 
@@ -88,20 +88,20 @@ func Test_GenerateRandomIntTransformerWithLength(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, int64(5), transformer_utils.GetIntLength(res.(int64)), "The value should be the same length as the intLength")
-	assert.Equal(t, IsNegative(res.(int64)), false, "The value return should be positive")
+	assert.Equal(t, IsNegativeInt(res.(int64)), false, "The value return should be positive")
 	assert.IsType(t, res, int64(2), "The value should be an int64")
 }
 
-func Test_IsNegativeTrue(t *testing.T) {
+func Test_IsNegativeIntTrue(t *testing.T) {
 
-	val := IsNegative(-1)
+	val := IsNegativeInt(-1)
 
 	assert.True(t, val, "The value should be negative")
 }
 
-func Test_IsNegativeFalse(t *testing.T) {
+func Test_IsNegativeIntFalse(t *testing.T) {
 
-	val := IsNegative(1)
+	val := IsNegativeInt(1)
 
 	assert.False(t, val, "The value should be postive")
 }

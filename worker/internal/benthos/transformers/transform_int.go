@@ -15,7 +15,8 @@ func init() {
 
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("value")).
-		Param(bloblang.NewBoolParam("preserve_length"))
+		Param(bloblang.NewBoolParam("preserve_length")).
+		Param(bloblang.NewBoolParam("preserve_sign"))
 
 	err := bloblang.RegisterFunctionV2("transform_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
@@ -29,8 +30,13 @@ func init() {
 			return nil, err
 		}
 
+		preserveSign, err := args.GetBool("preserve_sign")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
-			res, err := TransformInt(value, preserveLength)
+			res, err := TransformInt(value, preserveLength, preserveSign)
 			return res, err
 		}, nil
 	})
@@ -41,7 +47,7 @@ func init() {
 
 }
 
-func TransformInt(value int64, preserveLength bool) (int64, error) {
+func TransformInt(value int64, preserveLength, preserveSign bool) (int64, error) {
 
 	var returnValue int64
 
@@ -51,13 +57,24 @@ func TransformInt(value int64, preserveLength bool) (int64, error) {
 
 	if preserveLength {
 
-		val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value)))
+		if value < 0 {
+			// if negative, substract one from the legnth since GetLength will count the sign in the count
+			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value) - 1))
 
-		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random string with length")
+			if err != nil {
+				return 0, fmt.Errorf("unable to generate a random string with length")
+			}
+			returnValue = int64(val)
+
+		} else {
+
+			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value)))
+
+			if err != nil {
+				return 0, fmt.Errorf("unable to generate a random string with length")
+			}
+			returnValue = int64(val)
 		}
-
-		returnValue = int64(val)
 
 	} else {
 
@@ -71,5 +88,15 @@ func TransformInt(value int64, preserveLength bool) (int64, error) {
 
 	}
 
-	return returnValue, nil
+	if preserveSign {
+
+		if value < 0 {
+			return returnValue * -1, nil
+		} else {
+			return returnValue, nil
+		}
+	} else {
+		// return a positive integer by default
+		return returnValue, nil
+	}
 }

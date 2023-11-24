@@ -87,7 +87,7 @@ func GenerateRandomInt(intLength int64, sign string) (int64, error) {
 
 }
 
-func IsNegative(val int64) bool {
+func IsNegativeInt(val int64) bool {
 	if (val * -1) < 0 {
 		return false
 	} else {

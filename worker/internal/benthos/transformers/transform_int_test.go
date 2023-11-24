@@ -12,7 +12,7 @@ func Test_TransformIntPreserveLengthFalse(t *testing.T) {
 
 	val := int64(67543543)
 
-	res, err := TransformInt(val, false)
+	res, err := TransformInt(val, false, true)
 
 	assert.NoError(t, err)
 	assert.Equal(t, transformer_utils.GetIntLength(res), int64(4), "The output int needs to be the same length as the input int")
@@ -23,7 +23,7 @@ func Test_TransformIntError(t *testing.T) {
 
 	val := int64(67567867843543)
 
-	_, err := TransformInt(val, false)
+	_, err := TransformInt(val, false, true)
 
 	assert.Error(t, err)
 
@@ -33,15 +33,29 @@ func Test_TransformIntPreserveLengthTrue(t *testing.T) {
 
 	val := int64(67543543)
 
-	res, err := TransformInt(val, true)
+	res, err := TransformInt(val, true, true)
 
 	assert.NoError(t, err)
+	assert.Equal(t, transformer_utils.GetIntLength(res), int64(transformer_utils.GetIntLength((val))), "The output int needs to be the same length as the input int")
+	assert.Equal(t, IsNegativeInt(res), false, "The value return should be postive")
+
+}
+
+func Test_TransformIntPreserveSignTrue(t *testing.T) {
+
+	val := int64(-367)
+
+	res, err := TransformInt(val, true, true)
+
+	assert.NoError(t, err)
+	assert.Equal(t, IsNegativeInt(res), true, "The value return should be negative")
+
 	assert.Equal(t, transformer_utils.GetIntLength(res), int64(transformer_utils.GetIntLength((val))), "The output int needs to be the same length as the input int")
 
 }
 
 func Test_TransformIntTransformerWithPreserveLengthFalse(t *testing.T) {
-	mapping := `root = transform_int(5, false)`
+	mapping := `root = transform_int(5, false, false)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 
@@ -53,7 +67,7 @@ func Test_TransformIntTransformerWithPreserveLengthFalse(t *testing.T) {
 }
 
 func Test_TransformIntTransformerWithPreserveLength(t *testing.T) {
-	mapping := `root = transform_int(58323, true)`
+	mapping := `root = transform_int(58323, true, true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 
