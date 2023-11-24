@@ -36,7 +36,7 @@ func isValidUuid(uuidString string) bool {
 }
 
 func TestUUIDTransformer(t *testing.T) {
-	mapping := `root = uuidtransformer(true)`
+	mapping := `root = generate_uuid(true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the uuid transformer")
 

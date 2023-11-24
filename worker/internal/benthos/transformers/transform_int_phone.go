@@ -14,7 +14,6 @@ func init() {
 		Param(bloblang.NewInt64Param("value")).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
-	// register the plugin
 	err := bloblang.RegisterFunctionV2("transform_int64_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		value, err := args.GetInt64("value")

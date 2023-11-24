@@ -16,7 +16,6 @@ func init() {
 		Param(bloblang.NewBoolParam("e164_format")).
 		Param(bloblang.NewBoolParam("include_hyphens"))
 
-	// register the plugin
 	err := bloblang.RegisterFunctionV2("generate_string_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		includeHyphens, err := args.GetBool("include_hyphens")

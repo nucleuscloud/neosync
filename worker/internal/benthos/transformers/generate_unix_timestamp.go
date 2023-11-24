@@ -14,8 +14,7 @@ func init() {
 
 	spec := bloblang.NewPluginSpec()
 
-	// register the function
-	err := bloblang.RegisterFunctionV2("unixtimestamptransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_unixtimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
 

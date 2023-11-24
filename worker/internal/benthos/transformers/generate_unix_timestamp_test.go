@@ -16,7 +16,7 @@ func TestProcessUnixTimestamp(t *testing.T) {
 }
 
 func TestUnixTimestampTransformer(t *testing.T) {
-	mapping := `root = unixtimestamptransformer()`
+	mapping := `root = generate_unixtimestamp()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random unix timestamp transformer")
 

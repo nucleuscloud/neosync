@@ -9,23 +9,15 @@ import (
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 )
 
-type Address struct {
-	Address1 string `json:"address1"`
-	Address2 string `json:"address2"`
-	City     string `json:"city"`
-	State    string `json:"state"`
-	Zipcode  string `json:"zipcode"`
-}
-
 func init() {
 
 	spec := bloblang.NewPluginSpec()
 
-	// register the function
-	err := bloblang.RegisterFunctionV2("generates_random_street_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_random_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
-			return GenerateRandomStreetAddress(), nil
+
+			return GenerateRandomState(), nil
 		}, nil
 	})
 	if err != nil {
@@ -33,7 +25,8 @@ func init() {
 	}
 }
 
-func GenerateRandomStreetAddress() string {
+// Generates a randomly selected state that exists in the United States.
+func GenerateRandomState() string {
 
 	addresses := transformers_dataset.Addresses
 
@@ -41,5 +34,5 @@ func GenerateRandomStreetAddress() string {
 	//nolint:all
 	randomIndex := rand.Intn(len(addresses) - 1)
 
-	return addresses[randomIndex].Address1
+	return addresses[randomIndex].State
 }

@@ -15,8 +15,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("include_hyphen"))
 
-	// register the plugin
-	err := bloblang.RegisterFunctionV2("uuidtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_uuid", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		include_hyphen, err := args.GetBool("include_hyphen")
 		if err != nil {

@@ -17,7 +17,6 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length").Optional()).
 		Param(bloblang.NewInt64Param("str_length").Optional())
 
-	// register the plugin
 	err := bloblang.RegisterFunctionV2("randomstringtransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		valuePtr, err := args.GetOptionalString("value")

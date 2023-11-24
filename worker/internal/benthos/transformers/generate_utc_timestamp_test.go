@@ -19,7 +19,7 @@ func TestProcessUTCTimestamp(t *testing.T) {
 }
 
 func TestUTCTimestampTransformer(t *testing.T) {
-	mapping := `root = utctimestamptransformer()`
+	mapping := `root = generate_utctimestamp()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random utc timestamp transformer")
 

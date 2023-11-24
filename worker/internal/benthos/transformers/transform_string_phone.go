@@ -13,55 +13,29 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("phone").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length").Optional()).
-		Param(bloblang.NewBoolParam("e164_format").Optional()).
-		Param(bloblang.NewBoolParam("include_hyphens").Optional())
+		Param(bloblang.NewStringParam("phone")).
+		Param(bloblang.NewBoolParam("preserve_length")).
+		Param(bloblang.NewBoolParam("include_hyphens"))
 
-	// register the plugin
-	err := bloblang.RegisterFunctionV2("phonetransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		phonePtr, err := args.GetOptionalString("phone")
-		if err != nil {
-			return nil, err
-		}
-		var phone string
-		if phonePtr != nil {
-			phone = *phonePtr
-		}
-
-		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
+		value, err := args.GetString("phone")
 		if err != nil {
 			return nil, err
 		}
 
-		var preserveLength bool
-		if preserveLengthPtr != nil {
-			preserveLength = *preserveLengthPtr
-		}
-
-		includeHyphensPtr, err := args.GetOptionalBool("include_hyphens")
+		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
 			return nil, err
 		}
 
-		var includeHyphens bool
-		if includeHyphensPtr != nil {
-			includeHyphens = *includeHyphensPtr
-		}
-
-		e164Ptr, err := args.GetOptionalBool("e164_format")
+		includeHyphens, err := args.GetBool("include_hyphens")
 		if err != nil {
 			return nil, err
-		}
-
-		var e164 bool
-		if e164Ptr != nil {
-			e164 = *e164Ptr
 		}
 
 		return func() (any, error) {
-			res, err := GeneratePhoneNumber(phone, preserveLength, e164, includeHyphens)
+			res, err := TransformPhoneNumber(value, preserveLength, includeHyphens)
 			return res, err
 		}, nil
 	})
@@ -72,71 +46,52 @@ func init() {
 
 }
 
-// generates a random phone number and returns it as a string
-func GeneratePhoneNumber(phone string, preserveLength, e164Format, includeHyphens bool) (string, error) {
+// Generates a random phone number and returns it as a string
+func TransformPhoneNumber(value string, preserveLength, includeHyphens bool) (string, error) {
 
-	if preserveLength && includeHyphens {
-		return "", fmt.Errorf("the preserve length param cannot be true if the include hyphens is true")
+	var returnValue string
+
+	if preserveLength && includeHyphens && len(value) != 10 {
+		return "", fmt.Errorf("can only preserve the length of the input phone number and include hyphens if the length of the phone number is 10")
+	} else {
+		// only works with 10 digit-based phone numbers like in the US
+		res, err := GenerateRandomPhoneNumberWithHyphens()
+		if err != nil {
+			return "", err
+		}
+		returnValue = res
 	}
 
-	if phone != "" {
-
-		if preserveLength && !includeHyphens && !e164Format {
-			res, err := GeneratePhoneNumberPreserveLengthNoHyphensNotE164(phone)
-			if err != nil {
-				return "", err
-			}
-
-			return res, nil
-
-		} else if !preserveLength && includeHyphens && !e164Format {
-			// only works with 10 digit-based phone numbers like in the US
-			res, err := GenerateRandomPhoneNumberWithHyphens()
-			if err != nil {
-				return "", err
-			}
-
-			return res, nil
-
-		} else if !preserveLength && !includeHyphens && e164Format {
-
-			/* outputs in e164 format -> for ex. +873104859612, regex: ^\+[1-9]\d{1,14}$ */
-			res, err := GenerateE164FormatPhoneNumber()
-			if err != nil {
-				return "", err
-			}
-
-			return res, nil
-		} else if e164Format && preserveLength && !includeHyphens {
-
-			res, err := GenerateE164FormatPhoneNumberPreserveLength(phone)
-			if err != nil {
-				return "", err
-			}
-
-			return res, nil
-
-		} else {
-
-			res, err := GenerateRandomPhoneNumberWithNoHyphens()
-			if err != nil {
-				return "", err
-			}
-
-			return res, nil
-
+	if preserveLength && !includeHyphens {
+		res, err := GeneratePhoneNumberPreserveLengthNoHyphensNotE164(value)
+		if err != nil {
+			return "", err
 		}
 
-	} else {
+		returnValue = res
+
+	} else if !preserveLength && includeHyphens {
+		// only works with 10 digit-based phone numbers like in the US
+		res, err := GenerateRandomPhoneNumberWithHyphens()
+		if err != nil {
+			return "", err
+		}
+
+		returnValue = res
+
+	} else if !preserveLength && !includeHyphens {
 
 		res, err := GenerateRandomPhoneNumberWithNoHyphens()
 		if err != nil {
 			return "", err
 		}
 
-		return res, nil
+		returnValue = res
+	} else {
 
 	}
+
+	return returnValue, nil
 
 }
 
@@ -176,29 +131,6 @@ func GenerateRandomPhoneNumberWithHyphens() (string, error) {
 	return fmt.Sprintf("%03d-%03d-%04d", areaCode, exchange, lineNumber), nil
 }
 
-// generates a random E164 phone number between 10 and 15 digits long and returns it as a string
-func GenerateE164FormatPhoneNumber() (string, error) {
-
-	val, err := transformer_utils.GenerateRandomInt(10)
-	if err != nil {
-		return "", nil
-	}
-	return fmt.Sprintf("+%d", val), nil
-
-}
-
-// generates a random E164 phone number and returns it as a string
-func GenerateE164FormatPhoneNumberPreserveLength(number string) (string, error) {
-
-	val := strings.Split(number, "+")
-
-	vals, err := transformer_utils.GenerateRandomInt(len(val[1]))
-	if err != nil {
-		return "", nil
-	}
-	return fmt.Sprintf("+%d", vals), nil
-}
-
 // generatea a random phone number of length 10 and returns it as a string
 func GenerateRandomPhoneNumberWithNoHyphens() (string, error) {
 
@@ -211,12 +143,4 @@ func GenerateRandomPhoneNumberWithNoHyphens() (string, error) {
 	returnValue := strconv.FormatInt(int64(val), 10)
 
 	return returnValue, nil
-}
-
-func ValidateE164(p string) bool {
-
-	if len(p) >= 10 && len(p) <= 15 && strings.Contains(p, "+") {
-		return true
-	}
-	return false
 }

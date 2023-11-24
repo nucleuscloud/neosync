@@ -12,7 +12,6 @@ func init() {
 
 	spec := bloblang.NewPluginSpec()
 
-	// register the function
 	err := bloblang.RegisterFunctionV2("ssntransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
