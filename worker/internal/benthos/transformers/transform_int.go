@@ -1,121 +1,75 @@
 package transformers
 
 import (
+	"errors"
+	"fmt"
+
+	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-// const defaultIntLength = 4
+const defaultIntLength = 4
 
-// func init() {
+func init() {
 
-// 	spec := bloblang.NewPluginSpec().
-// 		Param(bloblang.NewInt64Param("value").Optional()).
-// 		Param(bloblang.NewBoolParam("preserve_length").Optional()).
-// 		Param(bloblang.NewInt64Param("int_length").Optional())
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewInt64Param("value")).
+		Param(bloblang.NewBoolParam("preserve_length"))
 
-// 	// register the plugin
-// 	err := bloblang.RegisterFunctionV2("randominttransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-// 		valuePtr, err := args.GetOptionalInt64("value")
-// 		if err != nil {
-// 			return nil, err
-// 		}
+		value, err := args.GetInt64("value")
+		if err != nil {
+			return nil, err
+		}
 
-// 		var value int64
-// 		if valuePtr != nil {
-// 			value = *valuePtr
-// 		}
-// 		preserveLengthPtr, err := args.GetOptionalBool("preserve_length")
-// 		if err != nil {
-// 			return nil, err
-// 		}
+		preserveLength, err := args.GetBool("preserve_length")
+		if err != nil {
+			return nil, err
+		}
 
-// 		var preserveLength bool
-// 		if preserveLengthPtr != nil {
-// 			preserveLength = *preserveLengthPtr
-// 		}
+		return func() (any, error) {
+			res, err := TransformInt(value, preserveLength)
+			return res, err
+		}, nil
+	})
 
-// 		intLengthPtr, err := args.GetOptionalInt64("int_length")
-// 		if err != nil {
-// 			return nil, err
-// 		}
+	if err != nil {
+		panic(err)
+	}
 
-// 		var intLength int64
-// 		if intLengthPtr != nil {
-// 			intLength = *intLengthPtr
-// 		}
+}
 
-// 		return func() (any, error) {
-// 			res, err := GenerateRandomInt(value, preserveLength, intLength)
-// 			return res, err
-// 		}, nil
-// 	})
+func TransformInt(value int64, preserveLength bool) (int64, error) {
 
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	var returnValue int64
 
-// }
+	if transformer_utils.GetIntLength(value) > 10 {
+		return 0, errors.New("the length of the input integer cannot be greater than 18 digits")
+	}
 
-// func GenerateRandomInt(value int64, preserveLength bool, intLength int64) (int64, error) {
-// 	var returnValue int64
+	if preserveLength {
 
-// 	if preserveLength && intLength > 0 {
-// 		return 0, fmt.Errorf("preserve length and int length params cannot both be true")
-// 	}
+		val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value)))
 
-// 	if value != 0 {
+		if err != nil {
+			return 0, fmt.Errorf("unable to generate a random string with length")
+		}
 
-// 		if preserveLength {
+		returnValue = int64(val)
 
-// 			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value)))
+	} else {
 
-// 			if err != nil {
-// 				return 0, fmt.Errorf("unable to generate a random string with length")
-// 			}
+		val, err := transformer_utils.GenerateRandomInt(defaultIntLength)
 
-// 			returnValue = int64(val)
+		if err != nil {
+			return 0, fmt.Errorf("unable to generate a random string with length")
+		}
 
-// 		} else if intLength > 0 {
+		returnValue = int64(val)
 
-// 			val, err := transformer_utils.GenerateRandomInt(int(intLength))
+	}
 
-// 			if err != nil {
-// 				return 0, fmt.Errorf("unable to generate a random string with length")
-// 			}
-
-// 			returnValue = int64(val)
-
-// 		} else {
-
-// 			val, err := transformer_utils.GenerateRandomInt(defaultIntLength)
-
-// 			if err != nil {
-// 				return 0, fmt.Errorf("unable to generate a random string with length")
-// 			}
-
-// 			returnValue = int64(val)
-
-// 		}
-// 	} else if intLength != 0 {
-
-// 		val, err := transformer_utils.GenerateRandomInt(int(intLength))
-
-// 		if err != nil {
-// 			return 0, fmt.Errorf("unable to generate a random string with length")
-// 		}
-
-// 		returnValue = int64(val)
-
-// 	} else {
-// 		val, err := transformer_utils.GenerateRandomInt(defaultIntLength)
-
-// 		if err != nil {
-// 			return 0, fmt.Errorf("unable to generate a random string with length")
-// 		}
-
-// 		returnValue = int64(val)
-// 	}
-
-// 	return returnValue, nil
-// }
+	return returnValue, nil
+}

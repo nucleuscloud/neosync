@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateRandomIntDefualtLength(t *testing.T) {
+func Test_GenerateRandomIntDefualtLength(t *testing.T) {
 
 	val := int64(67543543)
 
@@ -18,7 +18,7 @@ func TestGenerateRandomIntDefualtLength(t *testing.T) {
 
 }
 
-func TestGenerateRandomIntWrongSign(t *testing.T) {
+func Test_GenerateRandomIntWrongSign(t *testing.T) {
 
 	val := int64(67543543)
 
@@ -28,7 +28,7 @@ func TestGenerateRandomIntWrongSign(t *testing.T) {
 
 }
 
-func TestGenerateRandomIntNegativeLength(t *testing.T) {
+func Test_GenerateRandomIntNegativeLength(t *testing.T) {
 
 	val := int64(-1)
 
@@ -38,7 +38,7 @@ func TestGenerateRandomIntNegativeLength(t *testing.T) {
 
 }
 
-func TestGenerateRandomIntLengthTooLong(t *testing.T) {
+func Test_GenerateRandomIntLengthTooLong(t *testing.T) {
 
 	val := int64(5678976578965789)
 
@@ -48,7 +48,7 @@ func TestGenerateRandomIntLengthTooLong(t *testing.T) {
 
 }
 
-func TestRandomIntTransformerRandomSign(t *testing.T) {
+func Test_GenerateRandomIntRandomSign(t *testing.T) {
 	mapping := `root = generate_random_int(6, "random")`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
@@ -65,7 +65,7 @@ func TestRandomIntTransformerRandomSign(t *testing.T) {
 	assert.IsType(t, res, int64(2), "The expected value should be an int64")
 }
 
-func TestGenerateRandomIntTransformerWithNoLength(t *testing.T) {
+func Test_GenerateRandomIntTransformerWithNoLength(t *testing.T) {
 
 	mapping := `root = generate_random_int(6,"negative")`
 	ex, err := bloblang.Parse(mapping)
@@ -92,14 +92,14 @@ func Test_GenerateRandomIntTransformerWithLength(t *testing.T) {
 	assert.IsType(t, res, int64(2), "The value should be an int64")
 }
 
-func Test_isNegativeTrue(t *testing.T) {
+func Test_IsNegativeTrue(t *testing.T) {
 
 	val := IsNegative(-1)
 
 	assert.True(t, val, "The value should be negative")
 }
 
-func Test_isNegativeFalse(t *testing.T) {
+func Test_IsNegativeFalse(t *testing.T) {
 
 	val := IsNegative(1)
 
