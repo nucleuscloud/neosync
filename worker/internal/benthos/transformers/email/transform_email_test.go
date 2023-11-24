@@ -93,5 +93,5 @@ func Test_EmailTransformerWithValue(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Len(t, res.(string), len(email), "Generated email must be the same length as the input email")
-	assert.Equal(t, strings.Split(res.(string), "@")[1], "The domain name should be gmail.com")
+	assert.Equal(t, strings.Split(res.(string), "@")[1], "gmail.com")
 }

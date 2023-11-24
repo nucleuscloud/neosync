@@ -23,8 +23,8 @@ func Test_GenerateRandomLastNameTransformer(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, len(res.(string)), 2, "The last name should be more than 0 characters")
-	assert.Less(t, len(res.(string)), 13, "The last name should be more than 0 characters")
-	assert.IsType(t, "", res, "The last name should be a string")
+	lastName, ok := res.(string)
+	assert.True(t, ok, "The result should be a string")
+	assert.GreaterOrEqual(t, len(lastName), 2, "The last name should be at least 2 characters long")
+	assert.Less(t, len(lastName), 13, "The last name should be less than 13 characters long")
 }

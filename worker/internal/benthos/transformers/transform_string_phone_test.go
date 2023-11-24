@@ -74,7 +74,7 @@ func Test_GeneratePhoneNumberPreserveLengthTrueIncludeHyphensTrueError(t *testin
 
 }
 
-func Test_GeneratePhoneNumberE164Format(t *testing.T) {
+func Test_TransformPhoneNumberE164Format(t *testing.T) {
 
 	pn := "+2393573894"
 	expectedLength := 11
