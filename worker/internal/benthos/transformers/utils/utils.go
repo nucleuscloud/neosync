@@ -6,6 +6,7 @@ import (
 	"math"
 	"math/rand"
 	"strconv"
+	"strings"
 )
 
 var alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
@@ -142,5 +143,5 @@ func GenerateRandomStringWithLength(l int64) (string, error) {
 		result[i] = alphanumeric[index]
 	}
 
-	return string(result), nil
+	return strings.ToLower(string(result)), nil
 }
