@@ -9,15 +9,13 @@ import (
 
 func Test_ProcessRandomBool(t *testing.T) {
 
-	res, err := GenerateRandomBool()
-
-	assert.NoError(t, err)
+	res := GenerateRandomBool()
 	assert.IsType(t, res, false)
 
 }
 
 func Test_RandomBoolTransformer(t *testing.T) {
-	mapping := `root = randombooltransformer()`
+	mapping := `root = generate_random_bool()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random bool transformer")
 

@@ -1,8 +1,7 @@
 package transformers
 
 import (
-	"crypto/rand"
-	"fmt"
+	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
@@ -12,16 +11,10 @@ func init() {
 
 	spec := bloblang.NewPluginSpec()
 
-	err := bloblang.RegisterFunctionV2("randombooltransformer", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_random_bool", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
-
-			val, err := GenerateRandomBool()
-
-			if err != nil {
-				return false, fmt.Errorf("unable to generate random bool")
-			}
-			return val, nil
+			return GenerateRandomBool(), nil
 		}, nil
 	})
 	if err != nil {
@@ -29,20 +22,11 @@ func init() {
 	}
 }
 
-func GenerateRandomBool() (bool, error) {
+// Generates a random bool value
+func GenerateRandomBool() bool {
 
-	// Create a random source using crypto/rand
-	source := rand.Reader
+	randInt := rand.Intn(2)
 
-	// read a random byte from the source
-	buf := make([]byte, 1)
-
-	_, err := source.Read(buf)
-	if err != nil {
-		return false, fmt.Errorf("unable to generate a random boolean")
-	}
-
-	// read least sig bit from byte and return bool
-	return buf[0]&1 == 1, nil
+	return randInt == 1
 
 }

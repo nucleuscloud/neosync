@@ -107,7 +107,7 @@ func GenerateRandomE164FormatPhoneNumber() (string, error) {
 
 }
 
-// generatea a random phone number of length 10 and returns it as a string
+// generates a random phone number of length 10 and returns it as a string
 func GenerateRandomPhoneNumberNoHyphens() (string, error) {
 
 	// returns a phone number with no hyphens
