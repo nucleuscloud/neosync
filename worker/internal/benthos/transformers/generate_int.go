@@ -13,12 +13,12 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("int_length")).
+		Param(bloblang.NewInt64Param("length")).
 		Param(bloblang.NewStringParam("sign"))
 
 	err := bloblang.RegisterFunctionV2("generate_random_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		intLength, err := args.GetInt64("int_length")
+		length, err := args.GetInt64("length")
 		if err != nil {
 			return nil, err
 		}
@@ -29,7 +29,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateRandomInt(intLength, sign)
+			res, err := GenerateRandomInt(length, sign)
 			return res, err
 		}, nil
 	})

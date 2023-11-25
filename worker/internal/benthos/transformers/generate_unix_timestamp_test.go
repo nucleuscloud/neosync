@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessUnixTimestamp(t *testing.T) {
+func Test_GenerateUnixTimestamp(t *testing.T) {
 
 	timestamp, err := GenerateRandomUnixTimestamp()
 	assert.NoError(t, err, "Error generating random unix timestamp")
@@ -15,7 +15,7 @@ func TestProcessUnixTimestamp(t *testing.T) {
 	assert.True(t, timestamp > 0, "Generated timestamp is not a valid Unix timestamp")
 }
 
-func TestUnixTimestampTransformer(t *testing.T) {
+func Test_UnixTimestampTransformer(t *testing.T) {
 	mapping := `root = generate_unixtimestamp()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random unix timestamp transformer")

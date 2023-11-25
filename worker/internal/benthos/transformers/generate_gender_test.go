@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateGenderAbbreviateTrue(t *testing.T) {
+func Test_GenerateGenderAbbreviateTrue(t *testing.T) {
 	res, err := GenerateRandomGender(true)
 
 	valid := []string{"f", "m", "u", "n"}
@@ -28,7 +28,7 @@ func Test_GenerateGenderAbbreviateFalse(t *testing.T) {
 	assert.Contains(t, valid, res, "Gender should be one of female, male, undefined, nonbinary")
 }
 
-func TestGenderTransformer(t *testing.T) {
+func Test_GenderTransformer(t *testing.T) {
 	mapping := `root = generate_random_gender(true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the gender transformer")

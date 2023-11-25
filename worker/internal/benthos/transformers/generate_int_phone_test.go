@@ -29,5 +29,5 @@ func Test_GenerateRandomIntPhoneNumberTransformer(t *testing.T) {
 	resStr := strconv.FormatInt(res.(int64), 10)
 
 	assert.Equal(t, len(resStr), 10, "The length of the output phone number should be the same as the input phone number")
-	assert.IsType(t, "", resStr)
+	assert.IsType(t, "", resStr, "The actual value type should be a string")
 }

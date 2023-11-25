@@ -62,8 +62,8 @@ func Test_TransformIntTransformerWithPreserveLengthFalse(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, int64(4), transformer_utils.GetIntLength(res.(int64)), "The expected value should be 4 digits long")
-	assert.IsType(t, res, int64(2), "The expected value should be an int64")
+	assert.Equal(t, int64(4), transformer_utils.GetIntLength(res.(int64)), "The actual value should be 4 digits long")
+	assert.IsType(t, res, int64(2), "The actual value should be an int64")
 }
 
 func Test_TransformIntTransformerWithPreserveLength(t *testing.T) {
@@ -74,6 +74,6 @@ func Test_TransformIntTransformerWithPreserveLength(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, int64(5), transformer_utils.GetIntLength(res.(int64)), "The expected value should be 5 digits long")
-	assert.IsType(t, res, int64(2), "The expected value should be an int64")
+	assert.Equal(t, int64(5), transformer_utils.GetIntLength(res.(int64)), "The actual value should be 5 digits long")
+	assert.IsType(t, res, int64(2), "The actual value should be an int64")
 }

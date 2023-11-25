@@ -36,7 +36,7 @@ func Test_GenerateRandomNumberWithBoundsMinEqualMax(t *testing.T) {
 	const minMax = 5
 	val, err := GenerateRandomIntWithInclusiveBounds(minMax, minMax)
 	assert.NoError(t, err, "Did not expect an error when min == max")
-	assert.Equal(t, minMax, val, "Expected value to be equal to min/max")
+	assert.Equal(t, minMax, val, "actual value to be equal to min/max")
 
 }
 
@@ -45,7 +45,7 @@ func Test_GenerateRandomNumberWithBoundsValid(t *testing.T) {
 	min, max := 2, 9
 	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
 	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val >= min && val <= max, "Expected value to be within the range")
+	assert.True(t, val >= min && val <= max, "actual value to be within the range")
 }
 
 func Test_SliceStringEmptyString(t *testing.T) {

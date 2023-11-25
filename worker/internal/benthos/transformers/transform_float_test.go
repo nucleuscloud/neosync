@@ -23,7 +23,7 @@ func Test_TransformFloatPreserveLengthTrue(t *testing.T) {
 
 	assert.Equal(t, actual, expectedLength, "The length of the output float needs to match the digits before + the digits after")
 
-	assert.Equal(t, IsNegativeFloat(testFloatValue), IsNegativeFloat(res), "The expected value should be the same sign as the input value")
+	assert.Equal(t, IsNegativeFloat(testFloatValue), IsNegativeFloat(res), "The actual value should be the same sign as the input value")
 }
 
 func Test_TransformFloatPreserveLengthFalse(t *testing.T) {
@@ -35,7 +35,7 @@ func Test_TransformFloatPreserveLengthFalse(t *testing.T) {
 
 	assert.Equal(t, defaultDigitsAfterDecimal+defaultDigitsBeforeDecimal, expectedLength, "The length of the output float needs to match the digits before + the digits after")
 
-	assert.Equal(t, IsNegativeFloat(testFloatValue), IsNegativeFloat(res), "The expected value should be the same sign as the input value")
+	assert.Equal(t, IsNegativeFloat(testFloatValue), IsNegativeFloat(res), "The actual value should be the same sign as the input value")
 }
 
 func Test_TransformFloatPreserveSignFalse(t *testing.T) {
@@ -47,7 +47,7 @@ func Test_TransformFloatPreserveSignFalse(t *testing.T) {
 
 	assert.Equal(t, defaultDigitsAfterDecimal+defaultDigitsBeforeDecimal, expectedLength, "The length of the output float needs to match the digits before + the digits after")
 
-	assert.Equal(t, IsNegativeFloat(testFloatValue), IsNegativeFloat(res), "The expected value should be positive")
+	assert.Equal(t, IsNegativeFloat(testFloatValue), IsNegativeFloat(res), "The actual value should be positive")
 }
 
 func Test_TransformFloatPreserveSignTrueNegative(t *testing.T) {
@@ -59,7 +59,7 @@ func Test_TransformFloatPreserveSignTrueNegative(t *testing.T) {
 
 	assert.Equal(t, defaultDigitsAfterDecimal+defaultDigitsBeforeDecimal, expectedLength, "The length of the output float needs to match the digits before + the digits after")
 
-	assert.Equal(t, IsNegativeFloat(testNegativeFloatValue), IsNegativeFloat(res), "The expected value should be the same sign as the input value")
+	assert.Equal(t, IsNegativeFloat(testNegativeFloatValue), IsNegativeFloat(res), "The actual value should be the same sign as the input value")
 }
 
 func Test_TransformFloatTransformer(t *testing.T) {
@@ -74,7 +74,7 @@ func Test_TransformFloatTransformer(t *testing.T) {
 
 	expectedLength := GetFloatLength(testFloatValue).DigitsAfterDecimalLength + GetFloatLength(testFloatValue).DigitsBeforeDecimalLength
 
-	assert.IsType(t, res, float64(1), "The expected value should be a float64")
+	assert.IsType(t, res, float64(1), "The actual value should be a float64")
 	assert.Equal(t, IsNegativeFloat(testFloatValue), IsNegativeFloat(res.(float64)))
 	assert.Equal(t, expectedLength, actualLength, "The length of the output float needs to match the digits before + the digits after")
 }
@@ -83,7 +83,7 @@ func Test_GetFloatLength(t *testing.T) {
 	val := float64(3.14)
 	res := GetFloatLength(val)
 
-	assert.Equal(t, int64(1), transformer_utils.GetIntLength(int64(res.DigitsBeforeDecimalLength)))
-	assert.Equal(t, int64(1), transformer_utils.GetIntLength(int64(res.DigitsAfterDecimalLength)))
+	assert.Equal(t, int64(1), transformer_utils.GetIntLength(int64(res.DigitsBeforeDecimalLength)), "The actual value should be the same length as the input value")
+	assert.Equal(t, int64(1), transformer_utils.GetIntLength(int64(res.DigitsAfterDecimalLength)), "The actual value should be the same length as the input value")
 
 }

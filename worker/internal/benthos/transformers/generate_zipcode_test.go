@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateZipcode(t *testing.T) {
+func Test_GenerateZipcode(t *testing.T) {
 
 	res := GenerateRandomZipcode()
 
@@ -25,7 +25,7 @@ func TestGenerateZipcode(t *testing.T) {
 	assert.True(t, zipcodeExists, "The generated zipcode should exist in the addresses array")
 }
 
-func TestZipcodeTransformer(t *testing.T) {
+func Test_ZipcodeTransformer(t *testing.T) {
 	mapping := `root = generate_random_zipcode()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the zipcode transformer")

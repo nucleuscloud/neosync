@@ -57,12 +57,12 @@ func Test_GenerateRandomIntRandomSign(t *testing.T) {
 	assert.NoError(t, err)
 
 	if res.(int64) < 0 {
-		assert.Equal(t, int64(6), transformer_utils.GetIntLength(res.(int64)*-1), "The expected value should be negative and 6 digits in length")
+		assert.Equal(t, int64(6), transformer_utils.GetIntLength(res.(int64)*-1), "The actual value should be negative and 6 digits in length")
 	} else {
-		assert.Equal(t, int64(6), transformer_utils.GetIntLength(res.(int64)), "The expected value should be positive and 6 digits in length")
+		assert.Equal(t, int64(6), transformer_utils.GetIntLength(res.(int64)), "The actual value should be positive and 6 digits in length")
 	}
 
-	assert.IsType(t, res, int64(2), "The expected value should be an int64")
+	assert.IsType(t, res, int64(2), "The actual value should be an int64")
 }
 
 func Test_GenerateRandomIntTransformerWithNoLength(t *testing.T) {
@@ -76,7 +76,7 @@ func Test_GenerateRandomIntTransformerWithNoLength(t *testing.T) {
 
 	assert.Equal(t, int64(6), transformer_utils.GetIntLength(res.(int64)*-1))
 	assert.Equal(t, IsNegativeInt(res.(int64)), true, "The value return should be negative")
-	assert.IsType(t, res, int64(2))
+	assert.IsType(t, res, int64(2), "The actual value type should be an int64")
 }
 
 func Test_GenerateRandomIntTransformerWithLength(t *testing.T) {

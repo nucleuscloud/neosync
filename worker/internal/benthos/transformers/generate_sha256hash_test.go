@@ -12,7 +12,7 @@ func Test_GenerateSHA256Hash(t *testing.T) {
 	res, err := GenerateRandomSHA256Hash()
 	assert.NoError(t, err)
 
-	assert.IsType(t, "", res)
+	assert.IsType(t, "", res, "The actual value should be a string")
 }
 
 func Test_GenerateSHA256HashTransformer(t *testing.T) {
@@ -23,5 +23,5 @@ func Test_GenerateSHA256HashTransformer(t *testing.T) {
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
-	assert.IsType(t, "", res)
+	assert.IsType(t, "", res, "The actual value should be a string")
 }

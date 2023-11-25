@@ -8,24 +8,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateSSN(t *testing.T) {
+func Test_GenerateSSN(t *testing.T) {
 
 	res, err := GenerateRandomSSN()
 
 	assert.NoError(t, err)
-	assert.IsType(t, "", res)
+	assert.IsType(t, "", res, "The actual value type should be a string")
 	assert.True(t, isValidSSN(res), `The returned ssn should follow this regex = ^\d{3}-\d{2}-\d{4}$)`)
 }
 
-func TestSSNTransformer(t *testing.T) {
-	mapping := `root = ssntransformer()`
+func Test_SSNTransformer(t *testing.T) {
+	mapping := `root = generate_ssn()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the ssn transformer")
 
 	res, err := ex.Query(nil)
 
 	assert.NoError(t, err)
-	assert.IsType(t, "", res)
+	assert.IsType(t, "", res, "The actual value type should be a string")
 	assert.True(t, isValidSSN(res.(string)), `The returned ssn should follow this regex = ^\d{3}-\d{2}-\d{4}$)`)
 }
 

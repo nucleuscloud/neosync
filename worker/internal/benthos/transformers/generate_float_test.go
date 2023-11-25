@@ -56,7 +56,7 @@ func Test_GenerateRandomFloatPositive(t *testing.T) {
 	actual := GetFloatLength(res).DigitsBeforeDecimalLength + GetFloatLength(res).DigitsAfterDecimalLength
 
 	assert.NoError(t, err)
-	assert.Equal(t, IsNegativeInt(int64(dbd)), IsNegativeFloat(res), "The expected value should be positive")
+	assert.Equal(t, IsNegativeInt(int64(dbd)), IsNegativeFloat(res), "The actual value should be positive")
 	assert.Equal(t, dbd+dad, actual, "The output float needs to be the same length as the input Float")
 
 }
@@ -72,9 +72,9 @@ func Test_GenerateRandomFloatRandom(t *testing.T) {
 	assert.NoError(t, err)
 
 	if res < 0 {
-		assert.Equal(t, IsNegativeInt(int64(dbd*-1)), IsNegativeFloat(res), "The expected value should be negative")
+		assert.Equal(t, IsNegativeInt(int64(dbd*-1)), IsNegativeFloat(res), "The actual value should be negative")
 	} else {
-		assert.Equal(t, IsNegativeFloat(float64(dbd+dad)), IsNegativeFloat(res), "The expected value should be positive and 8 digits in length")
+		assert.Equal(t, IsNegativeFloat(float64(dbd+dad)), IsNegativeFloat(res), "The actual value should be positive and 8 digits in length")
 	}
 
 	if res < 0 {
@@ -97,7 +97,7 @@ func Test_GenerateRandomFloatNegative(t *testing.T) {
 	actual := GetFloatLength(res).DigitsBeforeDecimalLength + GetFloatLength(res).DigitsAfterDecimalLength
 
 	assert.NoError(t, err)
-	assert.Equal(t, IsNegativeInt(int64(dbd*-1)), IsNegativeFloat(res), "The expected value should be negative")
+	assert.Equal(t, IsNegativeInt(int64(dbd*-1)), IsNegativeFloat(res), "The actual value should be negative")
 
 	// + 1 to account for the negative signal
 	assert.Equal(t, dbd+dad+1, actual, "The output float should be 9 digits long")
@@ -129,8 +129,8 @@ func Test_GenerateRandomFloatTransformer(t *testing.T) {
 
 	actual := GetFloatLength(res.(float64)).DigitsAfterDecimalLength + GetFloatLength(res.(float64)).DigitsBeforeDecimalLength
 	assert.Equal(t, dbd+dad, actual, "The length of the output float needs to match the digits before + the digits after")
-	assert.Equal(t, IsNegativeInt(int64(dbd)), IsNegativeFloat(res.(float64)), "The expected value should be positive")
-	assert.IsType(t, res, float64(1), "The expected value should be a float64")
+	assert.Equal(t, IsNegativeInt(int64(dbd)), IsNegativeFloat(res.(float64)), "The actual value should be positive")
+	assert.IsType(t, res, float64(1), "The actual value should be a float64")
 }
 
 func Test_IsNegativeFloatTrue(t *testing.T) {

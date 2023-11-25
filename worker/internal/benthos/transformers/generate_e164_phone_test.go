@@ -15,7 +15,7 @@ func Test_GenerateE164FormatPhoneNumber(t *testing.T) {
 	res, err := GenerateRandomE164Phone(int64(expectedLength))
 
 	assert.NoError(t, err)
-	assert.Equal(t, ValidateE164(res), true)
+	assert.Equal(t, ValidateE164(res), true, "The actual value should be a valid e164 number")
 	assert.Equal(t, len(res), expectedLength+1, "The length of the output phone number should be the same as the input phone number")
 
 }
@@ -27,20 +27,20 @@ func Test_GeneratePhoneNumberE164FormatPreserveLength(t *testing.T) {
 	res, err := GenerateRandomE164Phone(int64(expectedLength))
 
 	assert.NoError(t, err)
-	assert.Equal(t, ValidateE164(res), true)
+	assert.Equal(t, ValidateE164(res), true, "The actual value should be a valid e164 number")
 	assert.Equal(t, len(res), expectedLength+1, "The length of the output phone number should be the same as the input phone number")
 
 }
 
 func Test_GenerateE164PhoneNumberTransformer(t *testing.T) {
 	testVal := int64(12)
-	mapping := fmt.Sprintf(`root = generate_e164_phone(%d)`, testVal)
+	mapping := fmt.Sprintf(`root = generate_e164_numbere(%d)`, testVal)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
-	assert.Equal(t, ValidateE164(res.(string)), true)
+	assert.Equal(t, ValidateE164(res.(string)), true, "The actual value should be a valid e164 number")
 	assert.Equal(t, int64(len(res.(string))), testVal+int64(1), "Generated phone number must be the same length as the input phone number")
 }
 

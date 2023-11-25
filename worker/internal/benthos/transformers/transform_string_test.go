@@ -36,5 +36,5 @@ func Test_TransformStringTransformer(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, len(testStringValue), len(res.(string)), "Generated string must be the same length as the input string")
-	assert.IsType(t, res, "")
+	assert.IsType(t, res, "", "The actual value type should be a string")
 }

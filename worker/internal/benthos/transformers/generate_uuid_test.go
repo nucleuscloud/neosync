@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessUuidPreserveHyphhensTrue(t *testing.T) {
+func Test_GenerateUuidPreserveHyphhensTrue(t *testing.T) {
 
 	res, err := GenerateUuid(true)
 
 	assert.NoError(t, err)
-	assert.True(t, strings.Contains(res, "-"))
+	assert.True(t, strings.Contains(res, "-"), "The actual value should contain hyphens")
 	assert.True(t, isValidUuid(res), "The UUID should have the right format and be valid")
 
 }
@@ -25,7 +25,7 @@ func TestProcessUuidPreserveHyphhensFalse(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.True(t, isValidUuid(res), "The UUID should have the right format and be valid")
-	assert.False(t, strings.Contains(res, "-"))
+	assert.False(t, strings.Contains(res, "-"), "The actual value should contain hyphens")
 
 }
 

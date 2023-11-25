@@ -19,7 +19,7 @@ func Test_GenerateRandomStringWithLength(t *testing.T) {
 
 }
 
-func TestRandomStringTransformerWithValue(t *testing.T) {
+func Test_GenerateRandomStringTransformerWithValue(t *testing.T) {
 	length := 6
 	mapping := fmt.Sprintf(`root = generate_random_string(%d)`, length)
 	ex, err := bloblang.Parse(mapping)
@@ -29,5 +29,5 @@ func TestRandomStringTransformerWithValue(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, length, len(res.(string)), "Generated string must be the same length as the input string")
-	assert.IsType(t, res, "")
+	assert.IsType(t, res, "", "The actual value type should be a string")
 }

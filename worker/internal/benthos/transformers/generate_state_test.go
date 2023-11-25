@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateState(t *testing.T) {
+func Test_GenerateState(t *testing.T) {
 
 	res := GenerateRandomState()
 
@@ -25,7 +25,7 @@ func TestGenerateState(t *testing.T) {
 	assert.True(t, stateExists, "The generated state should exist in the addresses.go file")
 }
 
-func TestStateTransformer(t *testing.T) {
+func Test_StateTransformer(t *testing.T) {
 	mapping := `root = generate_random_state()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the state transformer")

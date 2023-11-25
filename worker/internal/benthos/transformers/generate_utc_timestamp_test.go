@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcessUTCTimestamp(t *testing.T) {
+func Test_ProcessUTCTimestamp(t *testing.T) {
 
 	timestamp, err := GenerateRandomUTCTimestamp()
 	assert.NoError(t, err, "Error generating random UTC timestamp")
@@ -18,7 +18,7 @@ func TestProcessUTCTimestamp(t *testing.T) {
 	assert.Equal(t, location, time.UTC, "Generated timestamp is not in UTC")
 }
 
-func TestUTCTimestampTransformer(t *testing.T) {
+func Test_UTCTimestampTransformer(t *testing.T) {
 	mapping := `root = generate_utctimestamp()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random utc timestamp transformer")

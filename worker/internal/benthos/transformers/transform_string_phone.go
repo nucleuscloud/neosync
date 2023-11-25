@@ -13,13 +13,13 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("phone")).
+		Param(bloblang.NewStringParam("value")).
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("include_hyphens"))
 
 	err := bloblang.RegisterFunctionV2("transform_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		value, err := args.GetString("phone")
+		value, err := args.GetString("value")
 		if err != nil {
 			return nil, err
 		}
