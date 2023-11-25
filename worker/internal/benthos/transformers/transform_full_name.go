@@ -9,7 +9,9 @@ import (
 
 func init() {
 
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam(("value"))).Param(bloblang.NewBoolParam("preserve_length"))
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewStringParam(("value"))).
+		Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_full_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 

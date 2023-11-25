@@ -557,9 +557,6 @@ func buildPlainInsertArgs(cols []string) string {
 }
 
 /*
-method transformers
-root.{destination_col} = this.{source_col}.transformermethod(args)
-
 function transformers
 root.{destination_col} = transformerfunction(args)
 */
@@ -567,75 +564,108 @@ root.{destination_col} = transformerfunction(args)
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 
 	switch col.Transformer.Value {
-	case "email":
+	case "generate_random_email":
+		return "emailtransformer()", nil
+	case "generate_realistic_email":
+		return "generate_realistic_email()", nil
+	case "generate_e164_number":
+		length := col.Transformer.Config.GetGenerateE164NumberConfig().Length
+		return fmt.Sprintf("generate_e164_number(%d)", length), nil
+	case "generate_random_first_name":
+		return "generate_random_first_name()", nil
+	case "generate_random_float":
+		sign := col.Transformer.Config.GetGenerateRandomFloatConfig().Sign
+		bd := col.Transformer.Config.GetGenerateRandomFloatConfig().DigitsBeforeDecimal
+		ad := col.Transformer.Config.GetGenerateRandomFloatConfig().DigitsAfterDecimal
+		return fmt.Sprintf(`generate_random_float(%s, %d, %d)`, sign, bd, ad), nil
+	case "generate_random_full_name":
+		return "generate_random_full_name()", nil
+	case "generate_int64_phone":
+		return "generate_int64_phone()", nil
+	case "generate_random_int":
+		sign := col.Transformer.Config.GetGenerateRandomIntConfig().Sign
+		length := col.Transformer.Config.GetGenerateRandomIntConfig().Length
+		return fmt.Sprintf(`generate_random_int(%d, %s)`, length, sign), nil
+	case "generate_random_last_name":
+		return "generate_random_last_name()", nil
+	case "generate_string_phone":
+		ef := col.Transformer.Config.GetStringPhoneNumberConfig().E164Format
+		ih := col.Transformer.Config.GetStringPhoneNumberConfig().IncludeHyphens
+		return fmt.Sprintf("generate_string_phone(%t, %t, %t)", ef, ih), nil
+	case "generate_random_string":
+		length := col.Transformer.Config.GetGenerateRandomStringConfig().Length
+		return fmt.Sprintf(`generate_random_string(%d)`, length), nil
+	case "generate_username":
+		return "generate_username()", nil
+	case "transform_e164_phone":
+		pl := col.Transformer.Config.GetTransformE164PhoneConfig().PreserveLength
+		return fmt.Sprintf("transform_e164_phone(this.%s,%t)", col.Column, pl), nil
+	case "transform_email":
 		pd := col.Transformer.Config.GetEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetEmailConfig().PreserveLength
-		return fmt.Sprintf("emailtransformer(this.%s,%t, %t)", col.Column, pd, pl), nil
+		return fmt.Sprintf("transform_email(this.%s,%t, %t)", col.Column, pd, pl), nil
 	case "first_name":
 		pl := col.Transformer.Config.GetFirstNameConfig().PreserveLength
-		return fmt.Sprintf("firstnametransformer(this.%s,%t)", col.Column, pl), nil
+		return fmt.Sprintf("transform_first_name(this.%s,%t)", col.Column, pl), nil
 	case "last_name":
 		pl := col.Transformer.Config.GetLastNameConfig().PreserveLength
-		return fmt.Sprintf("lastnametransformer(this.%s, %t)", col.Column, pl), nil
+		return fmt.Sprintf("transform_last_name(this.%s, %t)", col.Column, pl), nil
 	case "full_name":
 		pl := col.Transformer.Config.GetFullNameConfig().PreserveLength
-		return fmt.Sprintf("fullnametransformer(this.%s,%t)", col.Column, pl), nil
+		return fmt.Sprintf("transform_full_name(this.%s,%t)", col.Column, pl), nil
 	case "phone_number":
 		pl := col.Transformer.Config.GetPhoneNumberConfig().PreserveLength
-		ef := col.Transformer.Config.GetPhoneNumberConfig().E164Format
 		ih := col.Transformer.Config.GetPhoneNumberConfig().IncludeHyphens
-		return fmt.Sprintf("phonetransformer(this.%s,%t, %t, %t)", col.Column, pl, ef, ih), nil
+		return fmt.Sprintf("transform_phone(this.%s,%t, %t)", col.Column, pl, ih), nil
 	case "int_phone_number":
 		pl := col.Transformer.Config.GetIntPhoneNumberConfig().PreserveLength
-		return fmt.Sprintf("intphonetransformer(this.%s, %t)", col.Column, pl), nil
+		return fmt.Sprintf("transform_int_phone(this.%s, %t)", col.Column, pl), nil
 	case "uuid":
 		ih := col.Transformer.Config.GetUuidConfig().IncludeHyphen
-		return fmt.Sprintf("uuidtransformer(%t)", ih), nil
+		return fmt.Sprintf("generate_uuid(%t)", ih), nil
 	case "null":
 		return "null", nil
 	case "random_bool":
-		return "randombooltransformer()", nil
+		return "generate_random_bool()", nil
 	case "random_string":
 		pl := col.Transformer.Config.GetRandomStringConfig().PreserveLength
-		sl := col.Transformer.Config.GetRandomStringConfig().StrLength
-		return fmt.Sprintf(`randomstringtransformer(this.%s,%t, %d)`, col.Column, pl, sl), nil
+		return fmt.Sprintf(`transform_string(this.%s,%t)`, col.Column, pl), nil
 	case "random_int":
-		pl := col.Transformer.Config.GetRandomIntConfig().PreserveLength
-		sl := col.Transformer.Config.GetRandomIntConfig().IntLength
-		return fmt.Sprintf(`randominttransformer(this.%s,%t, %d)`, col.Column, pl, sl), nil
-	case "random_float":
-		pl := col.Transformer.Config.GetRandomFloatConfig().PreserveLength
-		bd := col.Transformer.Config.GetRandomFloatConfig().DigitsBeforeDecimal
-		ad := col.Transformer.Config.GetRandomFloatConfig().DigitsAfterDecimal
-		return fmt.Sprintf(`randomfloattransformer(this.%s, %t, %d, %d)`, col.Column, pl, bd, ad), nil
-	case "gender":
+		pl := col.Transformer.Config.GetTransformIntConfig().PreserveLength
+		sign := col.Transformer.Config.GetTransformIntConfig().PreserveSign
+		return fmt.Sprintf(`transform_int(this.%s,%t, %t)`, col.Column, pl, sign), nil
+	case "transform_float":
+		pl := col.Transformer.Config.GetTransformloatConfig().PreserveLength
+		sign := col.Transformer.Config.GetTransformFloatConfig().PreserveSign
+		return fmt.Sprintf(`transform_float(this.%s, %t, %t)`, col.Column, pl, sign), nil
+	case "generate_random_gender":
 		ab := col.Transformer.Config.GetGenderConfig().Abbreviate
-		return fmt.Sprintf(`gendertransformer(%t)`, ab), nil
+		return fmt.Sprintf(`generate_random_gender(%t)`, ab), nil
 	case "utc_timestamp":
-		return "utctimestamptransformer()", nil
+		return "generate_utctimestamp()", nil
 	case "unix_timestamp":
-		return "unixtimestamptransformer()", nil
+		return "generate_unixtimestamp()", nil
 	case "street_address":
-		return "streetaddresstransformer()", nil
+		return "generates_random_street_address()", nil
 	case "city":
-		return "citytransformer()", nil
+		return "generate_random_city()", nil
 	case "zipcode":
-		return "zipcodetransformer()", nil
+		return "generate_random_zipcode()", nil
 	case "state":
-		return "statetransformer()", nil
-	case "full_address":
-		return "fulladdresstransformer()", nil
+		return "generate_random_state()", nil
+	case "generate_random_full_address":
+		return "generate_random_full_address()", nil
 	case "card_number":
 		luhn := col.Transformer.Config.GetCardNumberConfig().ValidLuhn
-		return fmt.Sprintf(`cardnumbertransformer(%t)`, luhn), nil
-	case "sha256":
+		return fmt.Sprintf(`generate_random_cardnumber(%t)`, luhn), nil
+	case "generate_sha256hash":
 		if col.Column != "" {
 			return fmt.Sprintf(`root = this.%s.bytes().hash("sha256").encode("hex")`, col.Column), nil
 		} else {
-			return `sha256hash()`, nil
+			return `generate_sha256hash()`, nil
 		}
-	case "social_security_number":
-		return "ssntransformer()", nil
+	case "generate_ssn":
+		return "generate_ssn()", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

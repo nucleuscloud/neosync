@@ -15,7 +15,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("length"))
 
-	err := bloblang.RegisterFunctionV2("generate_e164_numbere", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_e164_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		length, err := args.GetInt64("length")
 		if err != nil {
 			return nil, err

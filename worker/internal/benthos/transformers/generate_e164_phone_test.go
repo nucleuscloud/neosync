@@ -34,7 +34,7 @@ func Test_GeneratePhoneNumberE164FormatPreserveLength(t *testing.T) {
 
 func Test_GenerateE164PhoneNumberTransformer(t *testing.T) {
 	testVal := int64(12)
-	mapping := fmt.Sprintf(`root = generate_e164_numbere(%d)`, testVal)
+	mapping := fmt.Sprintf(`root = generate_e164_number(%d)`, testVal)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
