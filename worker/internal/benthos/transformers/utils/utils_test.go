@@ -8,7 +8,7 @@ import (
 )
 
 // returns a random index from a one-dimensional slice
-func TestGetRandomValueFromSliceEmptySlice(t *testing.T) {
+func Test_GetRandomValueFromSliceEmptySlice(t *testing.T) {
 
 	arr := []string{}
 	_, err := GetRandomValueFromSlice(arr)
@@ -16,7 +16,7 @@ func TestGetRandomValueFromSliceEmptySlice(t *testing.T) {
 
 }
 
-func TestGetRandomValueFromSliceNonEmptySlice(t *testing.T) {
+func Test_GetRandomValueFromSliceNonEmptySlice(t *testing.T) {
 
 	arr := []string{"a", "b", "c"}
 	res, err := GetRandomValueFromSlice(arr)
@@ -25,36 +25,36 @@ func TestGetRandomValueFromSliceNonEmptySlice(t *testing.T) {
 
 }
 
-func TestGenerateRandomNumberWithBoundsMinError(t *testing.T) {
+func Test_GenerateRandomNumberWithBoundsMinError(t *testing.T) {
 
 	_, err := GenerateRandomIntWithInclusiveBounds(10, 1)
 	assert.Error(t, err, "Expected an error such that the min is greated than the max")
 }
 
-func TestGenerateRandomNumberWithBoundsMinEqualMax(t *testing.T) {
+func Test_GenerateRandomNumberWithBoundsMinEqualMax(t *testing.T) {
 
 	const minMax = 5
 	val, err := GenerateRandomIntWithInclusiveBounds(minMax, minMax)
 	assert.NoError(t, err, "Did not expect an error when min == max")
-	assert.Equal(t, minMax, val, "Expected value to be equal to min/max")
+	assert.Equal(t, minMax, val, "actual value to be equal to min/max")
 
 }
 
-func TestGenerateRandomNumberWithBoundsValid(t *testing.T) {
+func Test_GenerateRandomNumberWithBoundsValid(t *testing.T) {
 
 	min, max := 2, 9
 	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
 	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val >= min && val <= max, "Expected value to be within the range")
+	assert.True(t, val >= min && val <= max, "actual value to be within the range")
 }
 
-func TestSliceStringEmptyString(t *testing.T) {
+func Test_SliceStringEmptyString(t *testing.T) {
 
 	res := SliceString("", 10)
 	assert.Empty(t, res, "Expected result to be an empty string")
 }
 
-func TestSliceStringShortString(t *testing.T) {
+func Test_SliceStringShortString(t *testing.T) {
 
 	s := "short"
 	res := SliceString(s, 10)
@@ -62,7 +62,7 @@ func TestSliceStringShortString(t *testing.T) {
 
 }
 
-func TestSliceStringValidSlice(t *testing.T) {
+func Test_SliceStringValidSlice(t *testing.T) {
 
 	s := "hello, world"
 	length := 5
@@ -71,28 +71,28 @@ func TestSliceStringValidSlice(t *testing.T) {
 	assert.Equal(t, expected, res, "Expected result to be a substring of the input string with the specified length")
 }
 
-func TestIntArryToStringArr(t *testing.T) {
+func Test_IntArryToStringArr(t *testing.T) {
 
 	val := []int64{1, 2, 3, 4}
 
 	res := IntSliceToStringSlice(val)
 
 	assert.IsType(t, res, []string{})
-	assert.Equal(t, len(res), len(val))
+	assert.Equal(t, len(res), len(val), "The slices should be the same length")
 
 }
 
-func TestIntArryToStringArrEmptySlice(t *testing.T) {
+func Test_IntArryToStringArrEmptySlice(t *testing.T) {
 
 	val := []int64{}
 
 	res := IntSliceToStringSlice(val)
 
 	assert.IsType(t, res, []string{})
-	assert.Equal(t, len(res), len(val))
+	assert.Equal(t, len(res), len(val), "The slices should be the same length")
 }
 
-func TestGenerateRandomInt(t *testing.T) {
+func Test_GenerateRandomInt(t *testing.T) {
 
 	expectedLength := 9
 
@@ -104,7 +104,7 @@ func TestGenerateRandomInt(t *testing.T) {
 
 }
 
-func TestFirstDigitIsNineTrue(t *testing.T) {
+func Test_FirstDigitIsNineTrue(t *testing.T) {
 
 	value := int64(9546789)
 
@@ -112,7 +112,7 @@ func TestFirstDigitIsNineTrue(t *testing.T) {
 	assert.Equal(t, res, true, "The first digit is nine.")
 }
 
-func TestFirstDigitIsNineFalse(t *testing.T) {
+func Test_FirstDigitIsNineFalse(t *testing.T) {
 
 	value := int64(23546789)
 
@@ -120,7 +120,7 @@ func TestFirstDigitIsNineFalse(t *testing.T) {
 	assert.Equal(t, res, false, "The first digit is not nine.")
 }
 
-func TestGetIntLegth(t *testing.T) {
+func Test_GetIntLegth(t *testing.T) {
 
 	expected := 3
 
@@ -129,7 +129,7 @@ func TestGetIntLegth(t *testing.T) {
 	assert.Equal(t, int64(expected), val, "The calculated length should match the expected length.")
 }
 
-func TestIsLastDigitZeroTrue(t *testing.T) {
+func Test_IsLastDigitZeroTrue(t *testing.T) {
 
 	value := int64(954670)
 
@@ -137,7 +137,7 @@ func TestIsLastDigitZeroTrue(t *testing.T) {
 	assert.Equal(t, res, true, "The last digit is zero.")
 }
 
-func TestIsLastDigitZeroFalse(t *testing.T) {
+func Test_IsLastDigitZeroFalse(t *testing.T) {
 
 	value := int64(23546789)
 
@@ -145,7 +145,7 @@ func TestIsLastDigitZeroFalse(t *testing.T) {
 	assert.Equal(t, res, false, "The last digit is not zero.")
 }
 
-func TestRandomStringGeneration(t *testing.T) {
+func Test_RandomStringGeneration(t *testing.T) {
 
 	expectedLength := 5
 	res, err := GenerateRandomStringWithLength(int64(expectedLength))

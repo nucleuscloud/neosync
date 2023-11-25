@@ -9,11 +9,11 @@ import (
 
 func init() {
 
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam(("name"))).Param(bloblang.NewBoolParam("preserve_length"))
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam(("value"))).Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_full_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		name, err := args.GetString("name")
+		value, err := args.GetString("value")
 		if err != nil {
 			return nil, err
 		}
@@ -23,7 +23,7 @@ func init() {
 			return nil, err
 		}
 		return func() (any, error) {
-			res, err := GenerateFullName(name, preserveLength)
+			res, err := GenerateFullName(value, preserveLength)
 			return res, err
 		}, nil
 	})

@@ -26,7 +26,7 @@ func Test_GenerateullNamePreserveLengthFalse(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(strings.Split(res, " ")), 2, "The full name should be more than 0 characters")
-	assert.IsType(t, "", res, "The full name should be a string") // Check if the result is a string
+	assert.IsType(t, "", res, "The full name should be a string")
 }
 
 func Test_FullNameTransformerWithValue(t *testing.T) {

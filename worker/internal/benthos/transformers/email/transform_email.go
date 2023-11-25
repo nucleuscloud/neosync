@@ -13,13 +13,13 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("email")).
+		Param(bloblang.NewStringParam("value")).
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("preserve_domain"))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		email, err := args.GetString("email")
+		value, err := args.GetString("value")
 		if err != nil {
 			return nil, err
 		}
@@ -36,7 +36,7 @@ func init() {
 
 		return func() (any, error) {
 
-			res, err := TransformEmail(email, preserveLength, preserveDomain)
+			res, err := TransformEmail(value, preserveLength, preserveDomain)
 			return res, err
 		}, nil
 
