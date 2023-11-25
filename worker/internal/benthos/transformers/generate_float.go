@@ -48,19 +48,22 @@ func init() {
 
 }
 
+var random = "random"
+var negative = "negative"
+
 func GenerateRandomFloat(sign string, digitsBeforeDecimal, digitsAfterDecimal int64) (float64, error) {
 
 	var returnValue float64
 
-	if sign != "positive" && sign != "negative" && sign != "random" {
+	if sign != "positive" && sign != negative && sign != random {
 		return 0, errors.New("sign can only be 'positive', 'negative', or 'random'")
 	}
 
-	if digitsAfterDecimal < 1 && digitsAfterDecimal > 9 {
+	if digitsAfterDecimal < 1 || digitsAfterDecimal > 9 {
 		return 0, errors.New("the length of the digits after the decimal cannot be less than one or greater than 9")
 	}
 
-	if digitsBeforeDecimal < 0 && digitsBeforeDecimal > 9 {
+	if digitsBeforeDecimal < 0 || digitsBeforeDecimal > 9 {
 		return 0, errors.New("the length of the digits after the decimal cannot be less than one or greater than 9")
 	}
 
@@ -71,8 +74,8 @@ func GenerateRandomFloat(sign string, digitsBeforeDecimal, digitsAfterDecimal in
 
 	returnValue = res
 
-	if sign == "random" {
-
+	if sign == random {
+		//nolint:all
 		randInt := rand.Intn(2)
 		if randInt == 1 {
 			// return the positive value
@@ -82,7 +85,7 @@ func GenerateRandomFloat(sign string, digitsBeforeDecimal, digitsAfterDecimal in
 			return returnValue * -1, nil
 		}
 
-	} else if sign == "negative" {
+	} else if sign == negative {
 		return returnValue * -1, nil
 	} else {
 		return returnValue, nil

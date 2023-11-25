@@ -12,7 +12,7 @@ func Test_GenerateRandomIntDefualtLength(t *testing.T) {
 
 	val := int64(67543543)
 
-	_, err := GenerateRandomInt(val, "postive")
+	_, err := GenerateRandomInt(val, "positive")
 
 	assert.Error(t, err, "The sign should be either positive, negative or random")
 
@@ -103,5 +103,5 @@ func Test_IsNegativeIntFalse(t *testing.T) {
 
 	val := IsNegativeInt(1)
 
-	assert.False(t, val, "The value should be postive")
+	assert.False(t, val, "The value should be positive")
 }

@@ -36,8 +36,8 @@ func Test_TransformIntPreserveLengthTrue(t *testing.T) {
 	res, err := TransformInt(val, true, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, transformer_utils.GetIntLength(res), int64(transformer_utils.GetIntLength((val))), "The output int needs to be the same length as the input int")
-	assert.Equal(t, IsNegativeInt(res), false, "The value return should be postive")
+	assert.Equal(t, transformer_utils.GetIntLength(res), (transformer_utils.GetIntLength((val))), "The output int needs to be the same length as the input int")
+	assert.Equal(t, IsNegativeInt(res), false, "The value return should be positive")
 
 }
 
@@ -50,7 +50,7 @@ func Test_TransformIntPreserveSignTrue(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, IsNegativeInt(res), true, "The value return should be negative")
 
-	assert.Equal(t, transformer_utils.GetIntLength(res), int64(transformer_utils.GetIntLength((val))), "The output int needs to be the same length as the input int")
+	assert.Equal(t, transformer_utils.GetIntLength(res), transformer_utils.GetIntLength((val)), "The output int needs to be the same length as the input int")
 
 }
 
@@ -62,7 +62,7 @@ func Test_TransformIntTransformerWithPreserveLengthFalse(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, int64(4), transformer_utils.GetIntLength(res.(int64)), "The expected value shoudl be 4 digits long")
+	assert.Equal(t, int64(4), transformer_utils.GetIntLength(res.(int64)), "The expected value should be 4 digits long")
 	assert.IsType(t, res, int64(2), "The expected value should be an int64")
 }
 
@@ -74,6 +74,6 @@ func Test_TransformIntTransformerWithPreserveLength(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, int64(5), transformer_utils.GetIntLength(res.(int64)), "The expected value shoudl be 5 digits long")
+	assert.Equal(t, int64(5), transformer_utils.GetIntLength(res.(int64)), "The expected value should be 5 digits long")
 	assert.IsType(t, res, int64(2), "The expected value should be an int64")
 }

@@ -37,6 +37,7 @@ func init() {
 // generates a randomly selected gender
 func GenerateRandomGender(ab bool) (string, error) {
 
+	//nolint:all
 	randomInt := rand.Intn(4)
 
 	var gender string

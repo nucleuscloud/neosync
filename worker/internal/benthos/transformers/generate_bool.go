@@ -25,6 +25,7 @@ func init() {
 // Generates a random bool value
 func GenerateRandomBool() bool {
 
+	//nolint:all
 	randInt := rand.Intn(2)
 
 	return randInt == 1

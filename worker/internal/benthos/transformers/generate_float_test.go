@@ -10,7 +10,7 @@ import (
 
 func Test_GenerateRandomFloatDigitsAfterDecimalErrorTooShort(t *testing.T) {
 
-	_, err := GenerateRandomFloat("postive", 1, 0)
+	_, err := GenerateRandomFloat("positive", 1, 0)
 
 	assert.Error(t, err, "The digits after decimal cannot be less than 1")
 
@@ -18,7 +18,7 @@ func Test_GenerateRandomFloatDigitsAfterDecimalErrorTooShort(t *testing.T) {
 
 func Test_GenerateRandomFloatDigitsAfterDecimalErrorTooLong(t *testing.T) {
 
-	_, err := GenerateRandomFloat("postive", 1, 11)
+	_, err := GenerateRandomFloat("positive", 1, 11)
 
 	assert.Error(t, err, "The digits after decimal cannot be greater than 9")
 
@@ -26,7 +26,7 @@ func Test_GenerateRandomFloatDigitsAfterDecimalErrorTooLong(t *testing.T) {
 
 func Test_GenerateRandomFloatDigitsBeforeDecimalErrorTooShort(t *testing.T) {
 
-	_, err := GenerateRandomFloat("postive", -1, 4)
+	_, err := GenerateRandomFloat("positive", -1, 4)
 
 	assert.Error(t, err, "The digits after decimal cannot be less than 1")
 
@@ -34,7 +34,7 @@ func Test_GenerateRandomFloatDigitsBeforeDecimalErrorTooShort(t *testing.T) {
 
 func Test_GenerateRandomFloatDigitsBeforeDecimalErrorTooLong(t *testing.T) {
 
-	_, err := GenerateRandomFloat("postive", 12, 5)
+	_, err := GenerateRandomFloat("positive", 12, 5)
 
 	assert.Error(t, err, "The digits after decimal cannot be greater than 9")
 
@@ -144,5 +144,5 @@ func Test_IsNegativeFloatFalse(t *testing.T) {
 
 	val := IsNegativeFloat(324.435)
 
-	assert.False(t, val, "The value should be postive")
+	assert.False(t, val, "The value should be positive")
 }

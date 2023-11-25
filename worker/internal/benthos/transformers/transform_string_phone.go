@@ -87,8 +87,6 @@ func TransformPhoneNumber(value string, preserveLength, includeHyphens bool) (st
 		}
 
 		returnValue = res
-	} else {
-
 	}
 
 	return returnValue, nil

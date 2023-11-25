@@ -58,7 +58,7 @@ func TransformInt(value int64, preserveLength, preserveSign bool) (int64, error)
 	if preserveLength {
 
 		if value < 0 {
-			// if negative, substract one from the legnth since GetLength will count the sign in the count
+			// if negative, subtract one from the legnth since GetLength will count the sign in the count
 			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value) - 1))
 
 			if err != nil {

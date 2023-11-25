@@ -69,7 +69,7 @@ func GenerateRandomInt(intLength int64, sign string) (int64, error) {
 	returnValue = int64(val)
 
 	if sign == "random" {
-
+		//nolint:all
 		randInt := rand.Intn(2)
 		if randInt == 1 {
 			// return the positive value
