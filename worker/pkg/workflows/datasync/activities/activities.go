@@ -561,6 +561,12 @@ function transformers
 root.{destination_col} = transformerfunction(args)
 */
 
+/*TODO
+1. update the protos, json models, DTOs and transformer APIs to finally wrap up the backend
+2. clean up names
+3. add in named params in this giant switch
+*/
+
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 
 	switch col.Transformer.Value {

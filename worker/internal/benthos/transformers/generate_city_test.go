@@ -26,7 +26,7 @@ func Test_GenerateCity(t *testing.T) {
 }
 
 func Test_CityTransformer(t *testing.T) {
-	mapping := `root = generate_random_city()`
+	mapping := `root = generate_city()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the city transformer")
 

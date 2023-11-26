@@ -49,7 +49,7 @@ func Test_GenerateRandomIntLengthTooLong(t *testing.T) {
 }
 
 func Test_GenerateRandomIntRandomSign(t *testing.T) {
-	mapping := `root = generate_random_int(6, "random")`
+	mapping := `root = generate_int(6, "random")`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 
@@ -67,7 +67,7 @@ func Test_GenerateRandomIntRandomSign(t *testing.T) {
 
 func Test_GenerateRandomIntTransformerWithNoLength(t *testing.T) {
 
-	mapping := `root = generate_random_int(6,"negative")`
+	mapping := `root = generate_int(6,"negative")`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 
@@ -80,7 +80,7 @@ func Test_GenerateRandomIntTransformerWithNoLength(t *testing.T) {
 }
 
 func Test_GenerateRandomIntTransformerWithLength(t *testing.T) {
-	mapping := `root = generate_random_int(5, "positive")`
+	mapping := `root = generate_int(5, "positive")`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 

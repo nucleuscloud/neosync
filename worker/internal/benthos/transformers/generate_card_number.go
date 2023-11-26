@@ -17,7 +17,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("luhn_check"))
 
-	err := bloblang.RegisterFunctionV2("generate_random_cardnumber", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_card_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		luhn, err := args.GetBool("luhn_check")
 		if err != nil {

@@ -18,7 +18,7 @@ func Test_GeneratRandomFullName(t *testing.T) {
 }
 
 func Test_GenerateFullNameTransformer(t *testing.T) {
-	mapping := `root = generate_random_full_name()`
+	mapping := `root = generate_full_name()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the full name transformer")
 

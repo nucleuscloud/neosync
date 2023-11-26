@@ -35,7 +35,7 @@ func Test_GenerateRandomUsername(t *testing.T) {
 }
 
 func Test_RandomEmailTransformer(t *testing.T) {
-	mapping := `root = generate_random_email()`
+	mapping := `root = generate_email()`
 	ex, err := bloblang.Parse(mapping)
 
 	assert.NoError(t, err, "failed to parse the email transformer")

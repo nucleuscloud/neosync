@@ -12,7 +12,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("abbreviate"))
 
-	err := bloblang.RegisterFunctionV2("generate_random_gender", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_gender", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		ab, err := args.GetBool("abbreviate")
 		if err != nil {
