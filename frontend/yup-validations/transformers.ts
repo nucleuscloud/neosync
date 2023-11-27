@@ -1,146 +1,214 @@
 import {
-  CardNumber,
-  City,
   CustomTransformer,
-  EmailConfig,
-  FirstName,
-  FullAddress,
-  FullName,
-  Gender,
-  IntPhoneNumber,
-  LastName,
+  GenerateBool,
+  GenerateCardNumber,
+  GenerateCity,
+  GenerateE164Number,
+  GenerateEmail,
+  GenerateFirstName,
+  GenerateFloat,
+  GenerateFullAddress,
+  GenerateFullName,
+  GenerateGender,
+  GenerateInt,
+  GenerateInt64Phone,
+  GenerateLastName,
+  GenerateRealisticEmail,
+  GenerateSSN,
+  GenerateSha256Hash,
+  GenerateState,
+  GenerateStreetAddress,
+  GenerateString,
+  GenerateStringPhone,
+  GenerateUnixTimestamp,
+  GenerateUsername,
+  GenerateUtcTimestamp,
+  GenerateUuid,
+  GenerateZipcode,
   Null,
   Passthrough,
-  PhoneNumber,
-  RandomBool,
-  RandomFloat,
-  RandomInt,
-  RandomString,
-  SHA256Hash,
-  SocialSecurityNumber,
-  State,
-  StreetAddress,
+  TransformE164Phone,
+  TransformEmail,
+  TransformFirstName,
+  TransformFloat,
+  TransformFullName,
+  TransformInt,
+  TransformIntPhone,
+  TransformLastName,
+  TransformPhone,
+  TransformString,
   Transformer,
   TransformerConfig,
-  UTCTimestamp,
-  UnixTimestamp,
-  Uuid,
-  Zipcode,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 
-interface EmailTransformer {
+interface TransformEmailTransformer {
   case?: string | undefined;
-  value: EmailTransformerConfigs;
+  value: TransformEmailConfigs;
 }
 
-interface EmailTransformerConfigs {
+interface TransformEmailConfigs {
   preserveDomain: boolean;
   preserveLength: boolean;
 }
 
-interface UuidTransformer {
+interface GenerateCardNumberTransformer {
   case?: string | undefined;
-  value: UuidTransformerConfigs;
+  value: GenerateCardNumberConfig;
 }
 
-interface UuidTransformerConfigs {
-  includeHyphen: boolean;
+interface GenerateCardNumberConfig {
+  validLuhn: boolean;
 }
 
-interface FirstNameTransformer {
+interface GenerateE164NumberTransformer {
   case?: string | undefined;
-  value: FirstNameTransformerConfigs;
+  value: GenerateE164NumberConfig;
 }
 
-interface FirstNameTransformerConfigs {
-  preserveLength: boolean;
+interface GenerateE164NumberConfig {
+  length: number;
 }
 
-interface LastNameTransformer {
+interface GenerateFloatTransformer {
   case?: string | undefined;
-  value: LastNameTransformerConfigs;
+  value: GenerateFloatTransformerConfig;
 }
 
-interface LastNameTransformerConfigs {
-  preserveLength: boolean;
+interface GenerateFloatTransformerConfig {
+  sign: string;
+  digitsBeforeDecimal: number;
+  digitsAfterDecimal: number;
 }
 
-interface FullNameTransformer {
+interface GenerateGenderTransformer {
   case?: string | undefined;
-  value: FullNameTransformerConfigs;
+  value: GenerateGenderConfig;
 }
 
-interface FullNameTransformerConfigs {
-  preserveLength: boolean;
+interface GenerateGenderConfig {
+  abbreviate: boolean;
 }
 
-interface PhoneNumberTransformer {
+interface GenerateIntTransformer {
   case?: string | undefined;
-  value: PhoneNumberTransformerConfigs;
+  value: GenerateIntConfig;
 }
 
-interface PhoneNumberTransformerConfigs {
-  preserveLength: boolean;
+interface GenerateIntConfig {
+  length: number;
+  sign: string;
+}
+
+interface GenerateStringPhoneTransformer {
+  case?: string | undefined;
+  value: GenerateStringPhoneConfig;
+}
+
+interface GenerateStringPhoneConfig {
   e164Format: boolean;
   includeHyphens: boolean;
 }
 
-interface IntPhoneNumberTransformer {
+interface GenerateStringTransformer {
   case?: string | undefined;
-  value: IntPhoneNumberTransformerConfigs;
+  value: GenerateStringConfig;
 }
 
-interface IntPhoneNumberTransformerConfigs {
+interface GenerateStringConfig {
+  length: number;
+}
+
+interface GenerateUuidTransformer {
+  case?: string | undefined;
+  value: GenerateUuidConfig;
+}
+
+interface GenerateUuidConfig {
+  includeHyphens: boolean;
+}
+
+interface TransformE164PhoneTransformer {
+  case?: string | undefined;
+  value: TransformE164PhoneConfig;
+}
+
+interface TransformE164PhoneConfig {
   preserveLength: boolean;
 }
 
-interface RandomStringTransformer {
+interface TransformFirstNameTransformer {
   case?: string | undefined;
-  value: RandomStringTransformerConfigs;
+  value: TransformFirstNameConfig;
 }
 
-interface RandomStringTransformerConfigs {
+interface TransformFirstNameConfig {
   preserveLength: boolean;
-  strLength: number;
 }
 
-interface RandomIntTransformer {
+interface TransformFloatTransformer {
   case?: string | undefined;
-  value: RandomIntTransformerConfigs;
+  value: TransformFloatConfig;
 }
 
-interface RandomIntTransformerConfigs {
+interface TransformFloatConfig {
   preserveLength: boolean;
-  intLength: number;
+  preserveSign: boolean;
 }
 
-interface RandomFloatTransformer {
+interface TransformFullNameTransformer {
   case?: string | undefined;
-  value: RandomFloatTransformerConfigs;
+  value: TransformFullNameConfig;
 }
 
-interface RandomFloatTransformerConfigs {
+interface TransformFullNameConfig {
   preserveLength: boolean;
-  digitsBeforeDecimal: number;
-  digitsAftereDecimal: number;
 }
 
-interface GenderTransformer {
+interface TransformIntPhoneTransformer {
   case?: string | undefined;
-  value: GenderTransformerConfigs;
+  value: TransformerIntPhoneConfig;
 }
 
-interface GenderTransformerConfigs {
-  abbreviate: boolean;
+interface TransformerIntPhoneConfig {
+  preserveLength: boolean;
 }
 
-interface CardNumberTransformer {
+interface TransformIntTransformer {
   case?: string | undefined;
-  value: CardNumberTransformerConfigs;
+  value: TransformIntConfig;
 }
 
-interface CardNumberTransformerConfigs {
-  validLuhn: boolean;
+interface TransformIntConfig {
+  preserveLength: boolean;
+  preserveSign: boolean;
+}
+
+interface TransformLastNameTransformer {
+  case?: string | undefined;
+  value: TransformerLastNameConfig;
+}
+
+interface TransformerLastNameConfig {
+  preserveLength: boolean;
+}
+
+interface TransformPhoneTransformer {
+  case?: string | undefined;
+  value: TransformPhoneConfig;
+}
+
+interface TransformPhoneConfig {
+  preserveLength: boolean;
+  IncludeHyphens: boolean;
+}
+
+interface TransformStringTransformer {
+  case?: string | undefined;
+  value: TransformStringConfig;
+}
+
+interface TransformStringConfig {
+  preserveLength: boolean;
 }
 
 export function ToTransformerConfigOptions(
@@ -157,17 +225,460 @@ export function ToTransformerConfigOptions(
   }
 
   switch (val?.source) {
-    case 'email': {
-      const et = t.config.config as EmailTransformer; //cast to email transformer to access fields in config object
+    case 'generate_email': {
       return new Transformer({
         value: val.source,
         config: new TransformerConfig({
           config: {
-            case: 'emailConfig',
-            value: new EmailConfig({
-              preserveDomain: et.value.preserveDomain,
-              preserveLength: et.value.preserveLength,
+            case: 'generateEmailConfig',
+            value: new GenerateEmail({}),
+          },
+        }),
+      });
+    }
+    case 'generate_realistic_email': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateRealisticEmailConfig',
+            value: new GenerateRealisticEmail({}),
+          },
+        }),
+      });
+    }
+    case 'transform_email': {
+      const te = t.config.config as TransformEmailTransformer; //cast to email transformer to access fields in config object
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateEmailConfig',
+            value: new TransformEmail({
+              preserveDomain: te.value.preserveDomain,
+              preserveLength: te.value.preserveLength,
             }),
+          },
+        }),
+      });
+    }
+    case 'generate_bool': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateBoolConfig',
+            value: new GenerateBool({}),
+          },
+        }),
+      });
+    }
+    case 'generate_card_number': {
+      const gcn = t.config.config as GenerateCardNumberTransformer; //cast to email transformer to access fields in config object
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateCardNumberConfig',
+            value: new GenerateCardNumber({
+              validLuhn: gcn.value.validLuhn,
+            }),
+          },
+        }),
+      });
+    }
+    case 'generate_city': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateCityConfig',
+            value: new GenerateCity({}),
+          },
+        }),
+      });
+    }
+    case 'generate_e164_number': {
+      const gen = t.config.config as GenerateE164NumberTransformer; //cast to email transformer to access fields in config object
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateE164NumberConfig',
+            value: new GenerateE164Number({
+              length: BigInt(gen.value.length),
+            }),
+          },
+        }),
+      });
+    }
+    case 'generate_first_name': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateFirstNameConfig',
+            value: new GenerateFirstName({}),
+          },
+        }),
+      });
+    }
+    case 'generate_float': {
+      const gt = t.config.config as GenerateFloatTransformer; //cast to email transformer to access fields in config object
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateFloatConfig',
+            value: new GenerateFloat({
+              sign: gt.value.sign,
+              digitsBeforeDecimal: BigInt(gt.value.digitsBeforeDecimal),
+              digitsAfterDecimal: BigInt(gt.value.digitsAfterDecimal),
+            }),
+          },
+        }),
+      });
+    }
+    case 'generate_full_address': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateFullAddressConfig',
+            value: new GenerateFullAddress({}),
+          },
+        }),
+      });
+    }
+    case 'generate_full_name': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateFullNameConfig',
+            value: new GenerateFullName({}),
+          },
+        }),
+      });
+    }
+    case 'generate_gender': {
+      const gg = t.config.config as GenerateGenderTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateGenderConfig',
+            value: new GenerateGender({
+              abbreviate: gg.value.abbreviate,
+            }),
+          },
+        }),
+      });
+    }
+    case 'generate_int64_phone': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateInt64PhoneConfig',
+            value: new GenerateInt64Phone({}),
+          },
+        }),
+      });
+    }
+    case 'generate_int': {
+      const gi = t.config.config as GenerateIntTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateIntConfig',
+            value: new GenerateInt({
+              length: BigInt(gi.value.length),
+              sign: gi.value.sign,
+            }),
+          },
+        }),
+      });
+    }
+    case 'generate_last_name': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateLastNameConfig',
+            value: new GenerateLastName({}),
+          },
+        }),
+      });
+    }
+    case 'generate_sha256hash': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateSha256hashConfig',
+            value: new GenerateSha256Hash({}),
+          },
+        }),
+      });
+    }
+    case 'generate_ssn': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateSsnConfig',
+            value: new GenerateSSN({}),
+          },
+        }),
+      });
+    }
+    case 'generate_state': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateStateConfig',
+            value: new GenerateState({}),
+          },
+        }),
+      });
+    }
+    case 'generate_street_address': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateStreetAddressConfig',
+            value: new GenerateStreetAddress({}),
+          },
+        }),
+      });
+    }
+    case 'generate_string_phone': {
+      const gsp = t.config.config as GenerateStringPhoneTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateStringPhoneConfig',
+            value: new GenerateStringPhone({
+              e164Format: gsp.value.e164Format,
+              includeHyphens: gsp.value.includeHyphens,
+            }),
+          },
+        }),
+      });
+    }
+    case 'generate_string': {
+      const gs = t.config.config as GenerateStringTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateStringConfig',
+            value: new GenerateString({
+              length: BigInt(gs.value.length),
+            }),
+          },
+        }),
+      });
+    }
+    case 'generate_unixtimestamp': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateUnixtimestampConfig',
+            value: new GenerateUnixTimestamp({}),
+          },
+        }),
+      });
+    }
+    case 'generate_username': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateUsernameConfig',
+            value: new GenerateUsername({}),
+          },
+        }),
+      });
+    }
+    case 'generate_utctimestamp': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateUtctimestampConfig',
+            value: new GenerateUtcTimestamp({}),
+          },
+        }),
+      });
+    }
+    case 'generate_uuid': {
+      const gu = t.config.config as GenerateUuidTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateUuidConfig',
+            value: new GenerateUuid({
+              includeHyphens: gu.value.includeHyphens,
+            }),
+          },
+        }),
+      });
+    }
+    case 'generate_zipcode': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'generateZipcodeConfig',
+            value: new GenerateZipcode({}),
+          },
+        }),
+      });
+    }
+    case 'transform_e164_phone': {
+      const te = t.config.config as TransformE164PhoneTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'transformE164PhoneConfig',
+            value: new TransformE164Phone({
+              preserveLength: te.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'transform_first_name': {
+      const tf = t.config.config as TransformFirstNameTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'transformFirstNameConfig',
+            value: new TransformFirstName({
+              preserveLength: tf.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'transform_float': {
+      const tf = t.config.config as TransformFloatTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'transformFloatConfig',
+            value: new TransformFloat({
+              preserveSign: tf.value.preserveSign,
+              preserveLength: tf.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'transform_full_name': {
+      const tf = t.config.config as TransformFullNameTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'transformFullNameConfig',
+            value: new TransformFullName({
+              preserveLength: tf.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'transform_int_phone': {
+      const ti = t.config.config as TransformIntPhoneTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'transformIntPhoneConfig',
+            value: new TransformIntPhone({
+              preserveLength: ti.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'transform_int': {
+      const ti = t.config.config as TransformIntTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'transformIntConfig',
+            value: new TransformInt({
+              preserveLength: ti.value.preserveLength,
+              preserveSign: ti.value.preserveSign,
+            }),
+          },
+        }),
+      });
+    }
+    case 'transform_last_name': {
+      const tl = t.config.config as TransformLastNameTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'transformLastNameConfig',
+            value: new TransformLastName({
+              preserveLength: tl.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'transform_phone': {
+      const tp = t.config.config as TransformPhoneTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'transformPhoneConfig',
+            value: new TransformPhone({
+              preserveLength: tp.value.preserveLength,
+              includeHyphens: tp.value.IncludeHyphens,
+            }),
+          },
+        }),
+      });
+    }
+    case 'transform_string': {
+      const ts = t.config.config as TransformStringTransformer;
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'transformStringConfig',
+            value: new TransformString({
+              preserveLength: ts.value.preserveLength,
+            }),
+          },
+        }),
+      });
+    }
+    case 'null': {
+      return new Transformer({
+        value: val.source,
+        config: new TransformerConfig({
+          config: {
+            case: 'nullconfig',
+            value: new Null({}),
           },
         }),
       });
@@ -179,287 +690,6 @@ export function ToTransformerConfigOptions(
           config: {
             case: 'passthroughConfig',
             value: new Passthrough({}),
-          },
-        }),
-      });
-    }
-    case 'uuid': {
-      const ut = t.config.config as UuidTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'uuidConfig',
-            value: new Uuid({
-              includeHyphen: ut.value.includeHyphen,
-            }),
-          },
-        }),
-      });
-    }
-    case 'first_name': {
-      const ft = t.config.config as FirstNameTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'firstNameConfig',
-            value: new FirstName({
-              preserveLength: ft.value.preserveLength,
-            }),
-          },
-        }),
-      });
-    }
-    case 'last_name': {
-      const ft = t.config.config as LastNameTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'lastNameConfig',
-            value: new LastName({
-              preserveLength: ft.value.preserveLength,
-            }),
-          },
-        }),
-      });
-    }
-    case 'full_name': {
-      const ft = t.config.config as FullNameTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'fullNameConfig',
-            value: new FullName({
-              preserveLength: ft.value.preserveLength,
-            }),
-          },
-        }),
-      });
-    }
-    case 'phone_number': {
-      const pt = t.config.config as PhoneNumberTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'phoneNumberConfig',
-            value: new PhoneNumber({
-              preserveLength: pt.value.preserveLength,
-              e164Format: pt.value.e164Format,
-              includeHyphens: pt.value.includeHyphens,
-            }),
-          },
-        }),
-      });
-    }
-    case 'int_phone_number': {
-      const pt = t.config.config as IntPhoneNumberTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'intPhoneNumberConfig',
-            value: new IntPhoneNumber({
-              preserveLength: pt.value.preserveLength,
-            }),
-          },
-        }),
-      });
-    }
-    case 'null': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'nullConfig',
-            value: new Null({}),
-          },
-        }),
-      });
-    }
-    case 'random_string': {
-      const rs = t.config.config as RandomStringTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'randomStringConfig',
-            value: new RandomString({
-              preserveLength: rs.value.preserveLength,
-              strLength: BigInt(rs.value.strLength ?? 10),
-            }),
-          },
-        }),
-      });
-    }
-    case 'random_bool': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'randomBoolConfig',
-            value: new RandomBool({}),
-          },
-        }),
-      });
-    }
-    case 'random_int': {
-      const ri = t.config.config as RandomIntTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'randomIntConfig',
-            value: new RandomInt({
-              preserveLength: ri.value.preserveLength,
-              intLength: BigInt(ri.value.intLength ?? 4),
-            }),
-          },
-        }),
-      });
-    }
-    case 'random_float': {
-      const rf = t.config.config as RandomFloatTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'randomFloatConfig',
-            value: new RandomFloat({
-              preserveLength: rf.value.preserveLength,
-              digitsBeforeDecimal: BigInt(rf.value.digitsBeforeDecimal ?? 2),
-              digitsAfterDecimal: BigInt(rf.value.digitsAftereDecimal ?? 3),
-            }),
-          },
-        }),
-      });
-    }
-    case 'gender': {
-      const g = t.config.config as GenderTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'genderConfig',
-            value: new Gender({
-              abbreviate: g.value.abbreviate,
-            }),
-          },
-        }),
-      });
-    }
-    case 'utc_timestamp': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'utcTimestampConfig',
-            value: new UTCTimestamp({}),
-          },
-        }),
-      });
-    }
-    case 'unix_timestamp': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'unixTimestampConfig',
-            value: new UnixTimestamp({}),
-          },
-        }),
-      });
-    }
-    case 'street_address': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'streetAddressConfig',
-            value: new StreetAddress({}),
-          },
-        }),
-      });
-    }
-    case 'city': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'cityConfig',
-            value: new City({}),
-          },
-        }),
-      });
-    }
-    case 'zipcode': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'zipcodeConfig',
-            value: new Zipcode({}),
-          },
-        }),
-      });
-    }
-    case 'state': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'stateConfig',
-            value: new State({}),
-          },
-        }),
-      });
-    }
-    case 'full_address': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'fullAddressConfig',
-            value: new FullAddress({}),
-          },
-        }),
-      });
-    }
-    case 'card_number': {
-      const g = t.config.config as CardNumberTransformer;
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'cardNumberConfig',
-            value: new CardNumber({
-              validLuhn: g.value.validLuhn,
-            }),
-          },
-        }),
-      });
-    }
-    case 'sha256_hash': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'sha256hashConfig',
-            value: new SHA256Hash({}),
-          },
-        }),
-      });
-    }
-    case 'social_security_number': {
-      return new Transformer({
-        value: val.source,
-        config: new TransformerConfig({
-          config: {
-            case: 'ssnConfig',
-            value: new SocialSecurityNumber({}),
           },
         }),
       });
