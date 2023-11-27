@@ -76,11 +76,6 @@ export default function PostgresForm(props: Props) {
 
   async function onSubmit(values: PostgresFormValues) {
     try {
-      const checkResp = await checkPostgresConnection(values.db);
-
-      if (!checkResp.isConnected) {
-        return;
-      }
       const connectionResp = await updatePostgresConnection(
         connectionId,
         values.connectionName,

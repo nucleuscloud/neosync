@@ -77,12 +77,6 @@ export default function MysqlForm(props: Props) {
 
   async function onSubmit(values: MysqlFormValues) {
     try {
-      const checkResp = await checkMysqlConnection(values.db);
-
-      if (!checkResp.isConnected) {
-        return;
-      }
-
       const connectionResp = await updateMysqlConnection(
         connectionId,
         values.connectionName,
