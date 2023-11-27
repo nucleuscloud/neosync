@@ -85,7 +85,7 @@ func Test_GenerateUsername(t *testing.T) {
 }
 
 func Test_EmailTransformerWithValue(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_email(%q,true,true)`, email)
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true)`, email)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 

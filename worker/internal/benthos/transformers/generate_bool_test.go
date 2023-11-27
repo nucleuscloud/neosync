@@ -15,7 +15,7 @@ func Test_GenerateRandomBool(t *testing.T) {
 }
 
 func Test_GenerateRandomBoolTransformer(t *testing.T) {
-	mapping := `root = generate_random_bool()`
+	mapping := `root = generate_bool()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random bool transformer")
 

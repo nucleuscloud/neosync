@@ -15,11 +15,11 @@ const defaultIIN = 400000
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("luhn_check"))
+		Param(bloblang.NewBoolParam("valid_luhn"))
 
 	err := bloblang.RegisterFunctionV2("generate_card_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		luhn, err := args.GetBool("luhn_check")
+		luhn, err := args.GetBool("valid_luhn")
 		if err != nil {
 			return nil, err
 		}

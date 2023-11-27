@@ -87,109 +87,163 @@ message TransformerConfig {
   oneof config {
     option (buf.validate.oneof).required = true;
 
-    EmailConfig email_config = 1;
-    Passthrough passthrough_config = 2;
-    Uuid uuid_config = 3;
-    FirstName first_name_config = 4;
-    LastName last_name_config = 5;
-    FullName full_name_config = 6;
-    PhoneNumber phone_number_config = 7;
-    IntPhoneNumber int_phone_number_config = 8;
-    RandomString random_string_config = 9;
-    RandomBool random_bool_config = 10;
-    RandomInt random_int_config = 11;
-    RandomFloat random_float_config = 12;
-    Gender gender_config = 13;
-    Null null_config = 14;
-    UTCTimestamp utc_timestamp_config = 15;
-    UnixTimestamp unix_timestamp_config = 16;
-    StreetAddress street_address_config = 17;
-    City city_config = 18;
-    Zipcode zipcode_config = 19;
-    State state_config = 20;
-    FullAddress full_address_config = 21;
-    CardNumber card_number_config = 22;
-    SHA256Hash sha256hash_config = 23;
-    SocialSecurityNumber ssn_config = 24;
+    GenerateEmail generate_email_config = 1;
+    GenerateRealisticEmail generate_realistic_email_config = 2;
+    TransformEmail transform_email_config = 3;
+    GenerateBool generate_bool_config = 4;
+    GenerateCardNumber generate_card_number_config = 5;
+    GenerateCity generate_city_config = 6;
+    GenerateE164Number generate_e164_number_config = 7;
+    GenerateFirstName generate_first_name_config = 8;
+    GenerateFloat generate_float_config = 9;
+    GenerateFullAddress generate_full_address_config = 10;
+    GenerateFullName generate_full_name_config = 11;
+    GenerateGender generate_gender_config = 12;
+    GenerateInt64Phone generate_int64_phone_config = 13;
+    GenerateInt generate_int_config = 14;
+    GenerateLastName generate_last_name_config = 15;
+    GenerateSha256Hash generate_sha256hash_config = 16;
+    GenerateSSN generate_ssn_config = 17;
+    GenerateState generate_state_config = 18;
+    GenerateStreetAddress generate_street_address_config = 19;
+    GenerateStringPhone generate_string_phone_config = 20;
+    GenerateString generate_string_config = 21;
+    GenerateUnixTimestamp generate_unixtimestamp_config = 22;
+    GenerateUsername generate_username_config = 23;
+    GenerateUtcTimestamp generate_utctimestamp_config = 24;
+    GenerateUuid generate_uuid_config = 25;
+    GenerateZipcode generate_zipcode_config = 26;
+    TransformE164Phone transform_e164_phone_config = 27;
+    TransformFirstName transform_first_name_config = 28;
+    TransformFloat transform_float_config = 29;
+    TransformFullName transform_full_name_config = 30;
+    TransformIntPhone transform_int_phone_config = 31;
+    TransformInt transform_int_config = 32;
+    TransformLastName transform_last_name_config = 33;
+    TransformPhone transform_phone_config = 34;
+    TransformString transform_string_config = 35;
+    Passthrough passthrough_config = 36;
+    Null nullconfig = 37;
   }
 }
 
-message EmailConfig {
+message GenerateEmail {}
+
+message GenerateRealisticEmail {}
+
+message TransformEmail {
   bool preserve_domain = 1;
   bool preserve_length = 2;
 }
 
-message Passthrough {}
+message GenerateBool {}
 
-message Uuid {
-  bool include_hyphen = 1;
-}
-
-message FirstName {
-  bool preserve_length = 1;
-}
-
-message LastName {
-  bool preserve_length = 1;
-}
-
-message FullName {
-  bool preserve_length = 1;
-}
-
-message PhoneNumber {
-  bool preserve_length = 1;
-  bool e164_format = 2;
-  bool include_hyphens = 3;
-}
-
-message IntPhoneNumber {
-  bool preserve_length = 1;
-}
-message RandomString {
-  bool preserve_length = 1;
-  int64 str_length = 2;
-}
-
-message Null {}
-
-message RandomBool {}
-
-message RandomInt {
-  bool preserve_length = 1;
-  int64 int_length = 2;
-}
-
-message RandomFloat {
-  bool preserve_length = 1;
-  int64 digits_before_decimal = 2;
-  int64 digits_after_decimal = 3;
-}
-message Gender {
-  bool abbreviate = 1;
-}
-
-message UTCTimestamp {}
-
-message UnixTimestamp {}
-
-message StreetAddress {}
-
-message Zipcode {}
-
-message City {}
-
-message State {}
-
-message FullAddress {}
-
-message CardNumber {
+message GenerateCardNumber {
   bool valid_luhn = 1;
 }
 
-message SHA256Hash {}
+message GenerateCity {}
 
-message SocialSecurityNumber {}
+message GenerateE164Number {
+  int64 length = 1;
+}
+
+message GenerateFirstName {}
+
+message GenerateFloat {
+  string sign = 1;
+  int64 digits_before_decimal = 2;
+  int64 digits_after_decimal = 3;
+}
+
+message GenerateFullAddress {}
+
+message GenerateFullName {}
+
+message GenerateGender {
+  bool abbreviate = 1;
+}
+
+message GenerateInt64Phone {}
+
+message GenerateInt {
+  int64 length = 1;
+  string sign = 2;
+}
+
+message GenerateLastName {}
+
+message GenerateSha256Hash {}
+
+message GenerateSSN {}
+
+message GenerateState {}
+
+message GenerateStreetAddress {}
+
+message GenerateStringPhone {
+  bool e164_format = 1;
+  bool include_hyphens = 2;
+}
+
+message GenerateString {
+  int64 length = 1;
+}
+
+message GenerateUnixTimestamp {}
+
+message GenerateUsername {}
+
+message GenerateUtcTimestamp {}
+
+message GenerateUuid {
+  bool include_hyphens = 1;
+}
+
+message GenerateZipcode {}
+
+message TransformE164Phone {
+  bool preserve_length = 1;
+}
+
+message TransformFirstName {
+  bool preserve_length = 1;
+}
+
+message TransformFloat {
+  bool preserve_length = 1;
+  bool preserve_sign = 2;
+}
+
+message TransformFullName {
+  bool preserve_length = 1;
+}
+
+message TransformIntPhone {
+  bool preserve_length = 1;
+}
+
+message TransformInt {
+  bool preserve_length = 1;
+  bool preserve_sign = 2;
+}
+
+message TransformLastName {
+  bool preserve_length = 1;
+}
+
+message TransformPhone {
+  bool preserve_length = 1;
+  bool include_hyphens = 2;
+}
+
+message TransformString {
+  bool preserve_length = 1;
+}
+
+message Passthrough {}
+
+message Null {}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}

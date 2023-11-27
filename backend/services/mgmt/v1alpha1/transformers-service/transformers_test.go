@@ -492,11 +492,8 @@ func createServiceMock(t *testing.T) *serviceMocks {
 
 func getTransformerConfigMock() *mgmtv1alpha1.TransformerConfig {
 	return &mgmtv1alpha1.TransformerConfig{
-		Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
-			EmailConfig: &mgmtv1alpha1.EmailConfig{
-				PreserveDomain: false,
-				PreserveLength: false,
-			},
+		Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+			GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
 		},
 	}
 }
