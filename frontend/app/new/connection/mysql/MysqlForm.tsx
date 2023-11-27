@@ -77,13 +77,6 @@ export default function MysqlForm() {
       return;
     }
     try {
-      const checkResp = await checkMysqlConnection(values.db);
-      setCheckResp(checkResp);
-
-      if (!checkResp.isConnected) {
-        return;
-      }
-
       const connection = await createMysqlConnection(
         values.db,
         values.connectionName,
