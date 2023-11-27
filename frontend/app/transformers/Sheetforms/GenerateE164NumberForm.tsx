@@ -7,36 +7,43 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
-import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   CustomTransformer,
-  IntPhoneNumber,
+  GenerateE164Number,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  setIsSheetOpen?: (val: boolean) => void;
   transformer: CustomTransformer;
+  setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function IntPhoneNumberTransformerForm(
-  props: Props
-): ReactElement {
+export default function GenerateE164NumberForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as IntPhoneNumber;
+  const config = transformer?.config?.config.value as GenerateE164Number;
 
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
+  const digitLength = Array.from({ length: 15 }, (_, index) => index + 1);
+
+  const [length, setLength] = useState<number>(
+    config?.length ? Number(config?.length) : 0
   );
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.preserveLength`,
-      pl,
+      `mappings.${index}.transformer.config.config.value.length`,
+      length,
       {
         shouldValidate: false,
       }
@@ -47,7 +54,7 @@ export default function IntPhoneNumberTransformerForm(
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.preserveLength`}
+        name={`mappings.${index}.transformer.config.config.value.length`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -58,7 +65,23 @@ export default function IntPhoneNumberTransformerForm(
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={pl} onCheckedChange={() => setPl(!pl)} />
+              <Select
+                onValueChange={(val: string) => setLength(Number(val))}
+                value={String(length)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="12" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {digitLength.map((item) => (
+                      <SelectItem value={String(item)} key={item}>
+                        {item}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </FormControl>
           </FormItem>
         )}

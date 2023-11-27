@@ -10,8 +10,8 @@ import {
 
 import { Switch } from '@/components/ui/switch';
 import {
-  CardNumber,
   CustomTransformer,
+  GenerateCardNumber,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -21,12 +21,12 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function CardNumberTransformerForm(props: Props): ReactElement {
+export default function GenerateCardNumberForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as CardNumber;
+  const config = transformer?.config?.config.value as GenerateCardNumber;
 
   const [vl, setVl] = useState<boolean>(
     config?.validLuhn ? config?.validLuhn : false

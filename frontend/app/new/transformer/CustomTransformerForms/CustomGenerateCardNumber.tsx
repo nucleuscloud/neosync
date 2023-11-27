@@ -15,7 +15,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomGenderTransformerForm(
+export default function CustomGenerateCardNumberForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext();
@@ -25,15 +25,14 @@ export default function CustomGenderTransformerForm(
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`config.config.value.abbreviate`}
+        name={`config.config.value.validLuhn`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
-              <FormLabel>Abbreviate</FormLabel>
+              <FormLabel>Valid Luhn</FormLabel>
               <FormDescription>
-                Abbreviate the gender to a single character. For example, female
-                would be returned as f.
+                Generate a 16 digit card number that passes a luhn check.
               </FormDescription>
             </div>
             <FormControl>

@@ -13,9 +13,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomPhoneNumberTransformerForm(
-  props: Props
-): ReactElement {
+export default function CustomTransformPhoneForm(props: Props): ReactElement {
   const fc = useFormContext();
 
   const { isDisabled } = props;
@@ -38,9 +36,7 @@ export default function CustomPhoneNumberTransformerForm(
               <Switch
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                disabled={
-                  fc.watch('config.config.value.includeHyphens') || isDisabled
-                }
+                disabled={isDisabled}
               />
             </FormControl>
           </FormItem>
@@ -62,33 +58,7 @@ export default function CustomPhoneNumberTransformerForm(
               <Switch
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                disabled={
-                  fc.watch('config.config.value.preserveLength') || isDisabled
-                }
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <FormField
-        name={`config.config.value.e164Format`}
-        control={fc.control}
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Format in E164 Format</FormLabel>
-              <FormDescription>
-                Format the output phone number in the E164 Format. For ex.
-                +1892393573894
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                disabled={
-                  fc.watch('config.config.value.includeHyphens') || isDisabled
-                }
+                disabled={isDisabled}
               />
             </FormControl>
           </FormItem>

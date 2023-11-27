@@ -9,10 +9,17 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   CustomTransformer,
-  RandomFloat,
+  GenerateFloat,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -22,15 +29,15 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function RandomFloatTransformerForm(props: Props): ReactElement {
+export default function GenerateFloatForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as RandomFloat;
+  const config = transformer?.config?.config.value as GenerateFloat;
 
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
+  const [sign, setSign] = useState<string>(
+    config?.sign ? config?.sign : 'positive'
   );
 
   const [bd, setBd] = useState<number>(
@@ -43,8 +50,8 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.preserveLength`,
-      pl,
+      `mappings.${index}.transformer.config.config.value.sign`,
+      sign,
       {
         shouldValidate: false,
       }
@@ -66,25 +73,39 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
     setIsSheetOpen!(false);
   };
 
+  const signs = ['positive', 'negative', 'random'];
+
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.preserveLength`}
+        name={`mappings.${index}.transformer.config.config.value.sign`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
-              <FormLabel>Preserve Length</FormLabel>
+              <FormLabel>Sign</FormLabel>
               <FormDescription>
-                Set the length of the output string to be the same as the input
+                Set the sign of the generated float value. You can select Random
+                in order to randomize the sign.
               </FormDescription>
             </div>
             <FormControl>
-              <Switch
-                checked={pl}
-                onCheckedChange={() => {
-                  pl ? setPl(false) : setPl(true);
-                }}
-              />
+              <Select
+                onValueChange={(val: string) => setSign(val)}
+                value={sign}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="3" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {signs.map((item) => (
+                      <SelectItem value={item} key={item}>
+                        {item}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </FormControl>
           </FormItem>
         )}
@@ -104,9 +125,8 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
             <FormControl>
               <Input
                 className="max-w-[180px]"
-                placeholder="10"
+                placeholder="3"
                 max={9}
-                disabled={pl}
                 value={bd}
                 onChange={(event) => {
                   const inputValue = Math.min(
@@ -137,7 +157,6 @@ export default function RandomFloatTransformerForm(props: Props): ReactElement {
               <Input
                 className="max-w-[180px]"
                 placeholder="10"
-                disabled={pl}
                 max={9}
                 value={ad}
                 onChange={(event) => {

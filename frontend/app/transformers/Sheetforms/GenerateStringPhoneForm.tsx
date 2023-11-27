@@ -10,7 +10,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import {
   CustomTransformer,
-  PhoneNumber,
+  GenerateStringPhone,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -20,12 +20,12 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function PhoneNumberTransformerForm(props: Props): ReactElement {
+export default function GenerateStringPhoneForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as PhoneNumber;
+  const config = transformer?.config?.config.value as GenerateStringPhone;
 
   const [ih, setIh] = useState<boolean>(
     config?.includeHyphens ? config?.includeHyphens : false
@@ -33,18 +33,8 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
   const [e164, setE164] = useState<boolean>(
     config?.e164Format ? config?.e164Format : false
   );
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
-  );
 
   const handleSubmit = () => {
-    fc.setValue(
-      `mappings.${index}.transformer.config.config.value.preserveLength`,
-      pl,
-      {
-        shouldValidate: false,
-      }
-    );
     fc.setValue(
       `mappings.${index}.transformer.config.config.value.e164Format`,
       e164,
@@ -65,27 +55,6 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.preserveLength`}
-        render={() => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Preserve Length</FormLabel>
-              <FormDescription>
-                Set the length of the output phone number to be the same as the
-                input
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={pl}
-                disabled={ih}
-                onCheckedChange={() => setPl(!pl)}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <FormField
         name={`mappings.${index}.transformer.config.config.value.includeHyphens`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -99,7 +68,7 @@ export default function PhoneNumberTransformerForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={ih}
-                disabled={e164 || pl}
+                disabled={e164}
                 onCheckedChange={() => setIh(!ih)}
               />
             </FormControl>

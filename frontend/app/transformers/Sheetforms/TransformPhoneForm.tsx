@@ -7,12 +7,10 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-
 import { Switch } from '@/components/ui/switch';
 import {
   CustomTransformer,
-  RandomString,
+  TransformPhone,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -22,21 +20,18 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function RandomStringTransformerForm(
-  props: Props
-): ReactElement {
+export default function TransformPhoneForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as RandomString;
+  const config = transformer?.config?.config.value as TransformPhone;
 
+  const [ih, setIh] = useState<boolean>(
+    config?.includeHyphens ? config?.includeHyphens : false
+  );
   const [pl, setPl] = useState<boolean>(
     config?.preserveLength ? config?.preserveLength : false
-  );
-
-  const [sl, setSl] = useState<number>(
-    config?.strLength ? Number(config.strLength) : 0
   );
 
   const handleSubmit = () => {
@@ -48,8 +43,8 @@ export default function RandomStringTransformerForm(
       }
     );
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.strLength`,
-      sl,
+      `mappings.${index}.transformer.config.config.value.includeHyphens`,
+      ih,
       {
         shouldValidate: false,
       }
@@ -66,39 +61,36 @@ export default function RandomStringTransformerForm(
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription>
-                Set the length of the output string to be the same as the input
+                Set the length of the output phone number to be the same as the
+                input
               </FormDescription>
             </div>
             <FormControl>
               <Switch
                 checked={pl}
-                onCheckedChange={() => {
-                  pl ? setPl(false) : setPl(true);
-                }}
+                disabled={ih}
+                onCheckedChange={() => setPl(!pl)}
               />
             </FormControl>
           </FormItem>
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.strLength`}
+        name={`mappings.${index}.transformer.config.config.value.includeHyphens`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
-              <FormLabel>String Length</FormLabel>
+              <FormLabel>Include Hyphens</FormLabel>
               <FormDescription>
-                Set the length of the output string. The default length is 10.
+                Include hyphens in the output phone number. Note: this only
+                works with 10 digit phone numbers.
               </FormDescription>
             </div>
             <FormControl>
-              <Input
-                type="number"
-                className="max-w-[180px]"
-                placeholder="10"
+              <Switch
+                checked={ih}
                 disabled={pl}
-                onChange={(event) => {
-                  setSl(Number(event.target.value));
-                }}
+                onCheckedChange={() => setIh(!ih)}
               />
             </FormControl>
           </FormItem>

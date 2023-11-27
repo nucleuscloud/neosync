@@ -21,18 +21,24 @@ import {
   Pencil1Icon,
 } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useRef, useState } from 'react';
-import CardNumberTransformerForm from './Sheetforms/CardNumberTransformerForm';
-import EmailTransformerForm from './Sheetforms/EmailTransformerForm';
-import FirstNameTransformerForm from './Sheetforms/FirstnameTransformerForm';
-import FullNameTransformerForm from './Sheetforms/FullnameTransformerForm';
-import GenderTransformerForm from './Sheetforms/GenderTransformerForm';
-import IntPhoneNumberTransformerForm from './Sheetforms/IntPhoneNumberTransformerForm';
-import LastNameTransformerForm from './Sheetforms/LastnameTransformerForm';
-import PhoneNumberTransformerForm from './Sheetforms/PhoneNumberTransformerForm';
-import RandomFloatTransformerForm from './Sheetforms/RandomFloatTransformerForm';
-import RandomIntTransformerForm from './Sheetforms/RandomIntTransformerForm';
-import RandomStringTransformerForm from './Sheetforms/RandomStringTransformerForm';
-import UuidTransformerForm from './Sheetforms/UuidTransformerForm';
+import GenerateCardNumberForm from './Sheetforms/GenerateCardNumberForm';
+import GenerateE164NumberForm from './Sheetforms/GenerateE164NumberForm';
+import GenerateFloatForm from './Sheetforms/GenerateFloatForm';
+import GenerateGenderForm from './Sheetforms/GenerateGenderForm';
+import GenerateIntForm from './Sheetforms/GenerateIntForm';
+import GenerateStringForm from './Sheetforms/GenerateStringForm';
+import GenerateStringPhoneForm from './Sheetforms/GenerateStringPhoneForm';
+import GenerateUuidForm from './Sheetforms/GenerateUuidForm';
+import TransformE164NumberForm from './Sheetforms/TransformE164NumberForm';
+import TransformEmailForm from './Sheetforms/TransformEmailForm';
+import TransformFirstNameForm from './Sheetforms/TransformFirstNameForm';
+import TransformFloatForm from './Sheetforms/TransformFloatForm';
+import TransformFullNameForm from './Sheetforms/TransformFullNameForm';
+import TransformIntForm from './Sheetforms/TransformIntForm';
+import TransformIntPhoneNumberForm from './Sheetforms/TransformIntphoneFOrm';
+import TransformLastNameForm from './Sheetforms/TransformLastNameForm';
+import TransformPhoneForm from './Sheetforms/TransformPhoneForm';
+import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
   transformer: CustomTransformer | undefined;
@@ -123,97 +129,145 @@ function handleTransformerForm(
   setIsSheetOpen?: (val: boolean) => void
 ): ReactElement {
   switch (transformer.source) {
-    case 'email':
+    case 'generate_card_number':
       return (
-        <EmailTransformerForm
+        <GenerateCardNumberForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'uuid':
+    case 'generate_e164_number':
       return (
-        <UuidTransformerForm
+        <GenerateE164NumberForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'first_name':
+    case 'generate_float':
       return (
-        <FirstNameTransformerForm
+        <GenerateFloatForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'last_name':
+    case 'generate_gender':
       return (
-        <LastNameTransformerForm
+        <GenerateGenderForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'full_name':
+    case 'generate_int':
       return (
-        <FullNameTransformerForm
+        <GenerateIntForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'phone_number':
+    case 'generate_string':
       return (
-        <PhoneNumberTransformerForm
+        <GenerateStringForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'int_phone_number':
+    case 'generate_string_phone':
       return (
-        <IntPhoneNumberTransformerForm
+        <GenerateStringPhoneForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'random_string':
+    case 'generate_uuid':
       return (
-        <RandomStringTransformerForm
+        <GenerateUuidForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'random_int':
+    case 'tranform_e164_number':
       return (
-        <RandomIntTransformerForm
+        <TransformE164NumberForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'random_float':
+    case 'transform_email':
       return (
-        <RandomFloatTransformerForm
-          index={index}
-          transformer={transformer}
-          setIsSheetOpen={setIsSheetOpen}
-        />
-      );
-    case 'gender':
-      return (
-        <GenderTransformerForm
+        <TransformEmailForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'card_number':
+    case 'transform_first_name':
       return (
-        <CardNumberTransformerForm
+        <TransformFirstNameForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
+    case 'transform_float':
+      return (
+        <TransformFloatForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
+    case 'tranform_full_name':
+      return (
+        <TransformFullNameForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
+    case 'transform_int':
+      return (
+        <TransformIntForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
+    case 'transform_int_phone':
+      return (
+        <TransformIntPhoneNumberForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
+    case 'transform_last_name':
+      return (
+        <TransformLastNameForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
+    case 'transform_phone':
+      return (
+        <TransformPhoneForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
+    case 'transform_string':
+      return (
+        <TransformStringForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
@@ -248,55 +302,263 @@ export function handleTransformerMetadata(
 ): TransformerMetadata {
   const tEntries: Record<string, TransformerMetadata>[] = [
     {
-      email: {
-        name: 'Email',
-        description: 'Anonymizes or generates a new email.',
+      generate_email: {
+        name: 'Synthetic Email',
+        description: 'Generates a new synthetic email address.',
         type: 'string',
       },
     },
     {
-      phone_number: {
-        name: 'Phone Number',
-        description:
-          'Anonymizes or generates a new phone number. The default format is <XXX-XXX-XXXX>.',
+      generate_realistic_email: {
+        name: 'Realistic Synthetic Email',
+        description: 'Generates a new synthetic realistic email address.',
         type: 'string',
       },
     },
     {
-      int_phone_number: {
-        name: 'Int64 Phone Number',
+      transform_email: {
+        name: 'Anonymize Email',
+        description: 'Anonymizes an existing email address.',
+        type: 'string',
+      },
+    },
+    {
+      generate_bool: {
+        name: 'Synthetic Boolean',
+        description: 'Generates a boolean value at random.',
+        type: 'bool',
+      },
+    },
+    {
+      generate_card_number: {
+        name: 'Synthetic Card Number',
+        description: 'Generates a synthetic card number.',
+        type: 'bool',
+      },
+    },
+    {
+      generate_city: {
+        name: 'Synthetic City',
         description:
-          'Anonymizes or generates a new phone number of type int64 with a default length of 10.',
+          'Randomly selects a city from a list of predefined US cities.',
+        type: 'string',
+      },
+    },
+    {
+      generate_e164_number: {
+        name: 'Synthetic E164 Phone Number',
+        description: 'Generates a synthetic phone number in e164 format.',
+        type: 'string',
+      },
+    },
+    {
+      generate_first_name: {
+        name: 'Synthetic First Name',
+        description: 'Generates a synthetic first name.',
+        type: 'string',
+      },
+    },
+    {
+      generate_float: {
+        name: 'Synthetic Float',
+        description: 'Generates a synthetic float value.',
+        type: 'string',
+      },
+    },
+    {
+      generate_full_address: {
+        name: 'Synthetic Full Address',
+        description:
+          'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169.',
+        type: 'string',
+      },
+    },
+    {
+      generate_full_name: {
+        name: 'Synthetic Full Name',
+        description:
+          'Generates a new full name consisting of a first and last name.',
+        type: 'string',
+      },
+    },
+    {
+      generate_gender: {
+        name: 'Gender',
+        description:
+          'Randomly generates one of the following genders: female, male, undefined, nonbinary.',
+        type: 'string',
+      },
+    },
+    {
+      generate_int64_phone: {
+        name: 'Synthetic Int64 Phone Number',
+        description:
+          'Generates a new phone number of type int64 with a default length of 10.',
         type: 'int64',
       },
     },
     {
-      first_name: {
-        name: 'First Name',
-        description: 'Anonymizes or generates a new first name.',
-        type: 'string',
-      },
-    },
-    {
-      last_name: {
-        name: 'Last Name',
-        description: 'Anonymizes or generates a new last name.',
-        type: 'string',
-      },
-    },
-    {
-      full_name: {
-        name: 'Full Name',
+      generate_int: {
+        name: 'Synthetic Integer',
         description:
-          'Anonymizes or generates a new full name consisting of a first and last name.',
+          'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramters are defined. .',
+        type: 'int64',
+      },
+    },
+    {
+      generate_last_name: {
+        name: 'Synthetic Last Name',
+        description: 'Generates a new last name.',
         type: 'string',
       },
     },
     {
-      uuid: {
+      generate_sha256hash: {
+        name: 'SHA256 Hash',
+        description: 'SHA256 hashes a randomly generated value.',
+        type: 'string',
+      },
+    },
+    {
+      generate_ssn: {
+        name: 'Social Security Number',
+        description:
+          'Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>',
+        type: 'string',
+      },
+    },
+    {
+      generate_state: {
+        name: 'State',
+        description:
+          'Randomly selects a US state and returns the two-character state code.',
+        type: 'string',
+      },
+    },
+    {
+      generate_street_address: {
+        name: 'Street Address',
+        description:
+          'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}. For example, 123 Main Street.',
+        type: 'string',
+      },
+    },
+    {
+      generate_string_phone: {
+        name: 'String Phone',
+        description:
+          'Generates a synthetic phone number and returns it as a string',
+        type: 'string',
+      },
+    },
+    {
+      generate_string: {
+        name: 'Synthetic String',
+        description:
+          'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.',
+        type: 'string',
+      },
+    },
+    {
+      generate_unix_timestamp: {
+        name: 'Unix Timestamp',
+        description: 'Randomly generates a Unix timestamp.',
+        type: 'int64',
+      },
+    },
+    {
+      generate_username: {
+        name: 'Username',
+        description:
+          'Randomly generates a username in the format<first_initial><last_name>.',
+        type: 'int64',
+      },
+    },
+    {
+      generate_utc_timestamp: {
+        name: 'UTC Timestamp',
+        description: 'Randomly generates a UTC timestamp.',
+        type: 'time',
+      },
+    },
+    {
+      generate_uuid: {
         name: 'UUID',
         description: 'Generates a new UUIDv4 id.',
         type: 'uuid',
+      },
+    },
+    {
+      generate_zipcode: {
+        name: 'Zip Code',
+        description:
+          'Randomly selects a zip code from a list of predefined US cities.',
+        type: 'string',
+      },
+    },
+    {
+      transform_e164_phone: {
+        name: 'Transform E164 Phone',
+        description: 'Anonymizes an existing E164 formatted phone number.',
+        type: 'string',
+      },
+    },
+    {
+      transform_first_name: {
+        name: 'Transform First Name',
+        description: 'Anonymizes an existing first name.',
+        type: 'string',
+      },
+    },
+    {
+      transform_float: {
+        name: 'Transform Float',
+        description: 'Anonymizes an existing float value.',
+        type: 'string',
+      },
+    },
+    {
+      transform_full_name: {
+        name: 'Transform Full Name',
+        description: 'Anonymizes an existing full name.',
+        type: 'string',
+      },
+    },
+    {
+      transform_int_phone: {
+        name: 'Transform Integer Phone Number',
+        description:
+          'Anonymizes an existing phone number that is typed as an integer.',
+        type: 'string',
+      },
+    },
+    {
+      transform_int: {
+        name: 'Transform Integer ',
+        description: 'Anonymizes an existing integer value.',
+        type: 'string',
+      },
+    },
+    {
+      transform_last_name: {
+        name: 'Transform Last Name ',
+        description: 'Anonymizes an existing last name.',
+        type: 'string',
+      },
+    },
+    {
+      transform_phone: {
+        name: 'Transform String Phone Number ',
+        description:
+          'Anonymizes an existing phone number that is typed as a string.',
+        type: 'string',
+      },
+    },
+    {
+      transform_string: {
+        name: 'Transform String',
+        description: 'Anonymizes an existing string value.',
+        type: 'string',
       },
     },
     {
@@ -315,120 +577,10 @@ export function handleTransformerMetadata(
       },
     },
     {
-      random_string: {
-        name: 'Random String',
-        description:
-          'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length or Preserve Length parameters are defined.',
-        type: 'string',
-      },
-    },
-    {
-      random_bool: {
-        name: 'Random Bool',
-        description: 'Generates a boolean value at random.',
-        type: 'bool',
-      },
-    },
-    {
-      random_int: {
-        name: 'Random Integer',
-        description:
-          'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramters are defined. .',
-        type: 'int64',
-      },
-    },
-    {
-      random_float: {
-        name: 'Random Float',
-        description:
-          'Generates a random float value with a default length of <XX.XXX>.',
-        type: 'float',
-      },
-    },
-    {
-      gender: {
-        name: 'Gender',
-        description:
-          'Randomly generates one of the following genders: female, male, undefined, nonbinary.',
-        type: 'string',
-      },
-    },
-    {
-      utc_timestamp: {
-        name: 'UTC Timestamp',
-        description: 'Randomly generates a UTC timestamp.',
-        type: 'time',
-      },
-    },
-    {
-      unix_timestamp: {
-        name: 'Unix Timestamp',
-        description: 'Randomly generates a Unix timestamp.',
-        type: 'int64',
-      },
-    },
-    {
-      street_address: {
-        name: 'Street Address',
-        description:
-          'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}. For example, 123 Main Street.',
-        type: 'string',
-      },
-    },
-    {
-      city: {
-        name: 'City',
-        description:
-          'Randomly selects a city from a list of predefined US cities.',
-        type: 'string',
-      },
-    },
-    {
-      zipcode: {
-        name: 'Zip Code',
-        description:
-          'Randomly selects a zip code from a list of predefined US cities.',
-        type: 'string',
-      },
-    },
-    {
-      state: {
-        name: 'State',
-        description:
-          'Randomly selects a US state and returns the two-character state code.',
-        type: 'string',
-      },
-    },
-    {
-      full_address: {
-        name: 'Full Address',
-        description:
-          'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169. ',
-        type: 'string',
-      },
-    },
-    {
-      card_number: {
-        name: 'Card Number',
-        description:
-          'Randomly generates a 16 digit card number with an option to generate a luhn valid card number.',
-        type: 'int64',
-      },
-    },
-    {
-      sha256_hash: {
-        name: 'SHA256 Hash',
-        description:
-          'SHA256 hashes the input value and returns back a string representation of the hash.',
-        type: 'string',
-      },
-    },
-    {
-      social_security_number: {
-        name: 'Social Security Number',
-        description:
-          'Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>',
-        type: 'string',
+      invalid: {
+        name: 'Invalid',
+        description: 'Invalid transformer.',
+        type: 'null',
       },
     },
   ];
