@@ -663,7 +663,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "transform_phone":
 		pl := col.Transformer.Config.GetTransformPhoneConfig().PreserveLength
 		ih := col.Transformer.Config.GetTransformPhoneConfig().IncludeHyphens
-		return fmt.Sprintf("transform_phone(value:this.%s,preserve_ength:%t,include_hyphens:%t)", col.Column, pl, ih), nil
+		return fmt.Sprintf("transform_phone(value:this.%s,preserve_length:%t,include_hyphens:%t)", col.Column, pl, ih), nil
 	case "transform_string":
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
 		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t)`, col.Column, pl), nil
