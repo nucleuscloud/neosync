@@ -14,7 +14,7 @@ func init() {
 		Param(bloblang.NewInt64Param("value")).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
-	err := bloblang.RegisterFunctionV2("transform_int64_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_int_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		value, err := args.GetInt64("value")
 		if err != nil {

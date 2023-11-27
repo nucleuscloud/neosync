@@ -14,7 +14,7 @@ func init() {
 
 	spec := bloblang.NewPluginSpec()
 
-	err := bloblang.RegisterFunctionV2("generate_random_full_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_full_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
 			return GenerateRandomFullAddress(), nil

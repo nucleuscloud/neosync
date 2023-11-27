@@ -14,7 +14,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomUuidTransformerForm(props: Props): ReactElement {
+export default function CustomGenerateUuidForm(props: Props): ReactElement {
   const fc = useFormContext();
 
   const { isDisabled } = props;
@@ -22,7 +22,7 @@ export default function CustomUuidTransformerForm(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`config.config.value.includeHyphen`}
+        name={`config.config.value.includeHyphens`}
         control={fc.control}
         disabled={isDisabled}
         render={({ field }) => (
@@ -32,7 +32,7 @@ export default function CustomUuidTransformerForm(props: Props): ReactElement {
               <FormDescription>
                 Set to true to include hyphens in the generated UUID. Note: some
                 databases such as Postgres automatically convert UUIDs with no
-                hyphens to have hypthens when they store the data.
+                hyphens to have hyphens when they store the data.
               </FormDescription>
             </div>
             <FormControl>

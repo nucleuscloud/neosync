@@ -10,38 +10,28 @@ import {
 import { Switch } from '@/components/ui/switch';
 import {
   CustomTransformer,
-  EmailConfig,
+  TransformFirstName,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: CustomTransformer;
   setIsSheetOpen?: (val: boolean) => void;
+  transformer: CustomTransformer;
 }
 
-export default function EmailTransformerForm(props: Props): ReactElement {
+export default function TransformFirstNameForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as EmailConfig;
+  const config = transformer?.config?.config.value as TransformFirstName;
 
-  const [pd, setPd] = useState<boolean>(
-    config?.preserveDomain ? config?.preserveDomain : false
-  );
   const [pl, setPl] = useState<boolean>(
     config?.preserveLength ? config?.preserveLength : false
   );
 
   const handleSubmit = () => {
-    fc.setValue(
-      `mappings.${index}.transformer.config.config.value.preserveDomain`,
-      pd,
-      {
-        shouldValidate: false,
-      }
-    );
     fc.setValue(
       `mappings.${index}.transformer.config.config.value.preserveLength`,
       pl,
@@ -61,7 +51,8 @@ export default function EmailTransformerForm(props: Props): ReactElement {
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription>
-                Set the length of the output email to be the same as the input
+                Set the length of the output first name to be the same as the
+                input
               </FormDescription>
             </div>
             <FormControl>
@@ -69,28 +60,6 @@ export default function EmailTransformerForm(props: Props): ReactElement {
                 checked={pl}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
-                }}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <FormField
-        name={`mappings.${index}.transformer.config.config.value.preserveDomain`}
-        render={() => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Preserve Domain</FormLabel>
-              <FormDescription>
-                Preserve the input domain including top level domain to the
-                output value
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={pd}
-                onCheckedChange={() => {
-                  pd ? setPd(false) : setPd(true);
                 }}
               />
             </FormControl>

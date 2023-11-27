@@ -10,7 +10,7 @@ func init() {
 
 	spec := bloblang.NewPluginSpec()
 
-	err := bloblang.RegisterFunctionV2("generate_random_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
 

@@ -14,12 +14,12 @@ var defaultE164Length = 12
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("phone")).
+		Param(bloblang.NewStringParam("value")).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_e164_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		phone, err := args.GetString("phone")
+		value, err := args.GetString("value")
 		if err != nil {
 			return nil, err
 		}
@@ -30,7 +30,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := TransformE164Number(phone, preserveLength)
+			res, err := TransformE164Number(value, preserveLength)
 			return res, err
 		}, nil
 	})

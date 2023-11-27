@@ -26,7 +26,7 @@ func Test_GenerateState(t *testing.T) {
 }
 
 func Test_StateTransformer(t *testing.T) {
-	mapping := `root = generate_random_state()`
+	mapping := `root = generate_state()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the state transformer")
 

@@ -10,7 +10,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import {
   CustomTransformer,
-  Uuid,
+  GenerateUuid,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -20,20 +20,20 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function UuidTransformerForm(props: Props): ReactElement {
+export default function GenerateUuidForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as Uuid;
+  const config = transformer?.config?.config.value as GenerateUuid;
 
   const [ih, setIh] = useState<boolean>(
-    config?.includeHyphen ? config?.includeHyphen : false
+    config?.includeHyphens ? config?.includeHyphens : false
   );
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.includeHyphen`,
+      `mappings.${index}.transformer.config.config.value.includeHyphens`,
       ih,
       {
         shouldValidate: false,
@@ -45,7 +45,7 @@ export default function UuidTransformerForm(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.includeHyphen`}
+        name={`mappings.${index}.transformer.config.config.value.includeHyphens`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -53,7 +53,7 @@ export default function UuidTransformerForm(props: Props): ReactElement {
               <FormDescription>
                 Set to true to include hyphens in the generated UUID. Note: some
                 databases such as Postgres automatically convert UUIDs with no
-                hyphens to have hypthens when they store the data.
+                hyphens to have hyphens when they store the data.
               </FormDescription>
             </div>
             <FormControl>

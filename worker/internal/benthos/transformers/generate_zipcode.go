@@ -13,7 +13,7 @@ func init() {
 
 	spec := bloblang.NewPluginSpec()
 
-	err := bloblang.RegisterFunctionV2("generate_random_zipcode", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_zipcode", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		return func() (any, error) {
 

@@ -13,7 +13,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("length"))
 
-	err := bloblang.RegisterFunctionV2("generate_random_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		strLength, err := args.GetInt64("length")
 		if err != nil {

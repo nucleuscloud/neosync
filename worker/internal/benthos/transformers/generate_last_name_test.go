@@ -16,7 +16,7 @@ func Test_GenerateRandomLastName(t *testing.T) {
 }
 
 func Test_GenerateRandomLastNameTransformer(t *testing.T) {
-	mapping := `root = generate_random_last_name()`
+	mapping := `root = generate_last_name()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the last name transformer")
 

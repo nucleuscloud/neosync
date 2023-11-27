@@ -18,7 +18,7 @@ func init() {
 		Param(bloblang.NewInt64Param("digits_before_decimal")).
 		Param(bloblang.NewInt64Param("digits_after_decimal"))
 
-	err := bloblang.RegisterFunctionV2("generate_random_float", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_float", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		sign, err := args.GetString("sign")
 		if err != nil {

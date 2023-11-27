@@ -13,25 +13,26 @@ import { useFormContext } from 'react-hook-form';
 interface Props {
   isDisabled?: boolean;
 }
-
-export default function CustomLastNameTransformerForm(
+export default function CustomTransformE164NumberForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext();
 
   const { isDisabled } = props;
+
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
         name={`config.config.value.preserveLength`}
         control={fc.control}
+        disabled={isDisabled}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription>
-                Set the length of the output last name to be the same as the
-                input
+                Set the length of the output e164 phone number to be the same as
+                the input e164 phone number.
               </FormDescription>
             </div>
             <FormControl>

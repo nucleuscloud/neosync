@@ -26,7 +26,7 @@ func Test_GenerateZipcode(t *testing.T) {
 }
 
 func Test_ZipcodeTransformer(t *testing.T) {
-	mapping := `root = generate_random_zipcode()`
+	mapping := `root = generate_zipcode()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the zipcode transformer")
 

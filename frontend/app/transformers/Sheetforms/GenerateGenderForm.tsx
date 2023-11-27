@@ -7,10 +7,11 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+
 import { Switch } from '@/components/ui/switch';
 import {
   CustomTransformer,
-  FullName,
+  GenerateGender,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -20,21 +21,21 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function FullNameTransformerForm(props: Props): ReactElement {
+export default function GenerateGenderForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as FullName;
+  const config = transformer?.config?.config.value as GenerateGender;
 
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
+  const [ab, setAb] = useState<boolean>(
+    config?.abbreviate ? config?.abbreviate : false
   );
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.preserveLength`,
-      pl,
+      `mappings.${index}.transformer.config.config.value.abbreviate`,
+      ab,
       {
         shouldValidate: false,
       }
@@ -45,21 +46,22 @@ export default function FullNameTransformerForm(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.preserveLength`}
+        name={`mappings.${index}.transformer.config.config.value.abbreviate`}
+        defaultValue={ab}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
-              <FormLabel>Preserve Length</FormLabel>
+              <FormLabel>Abbreviate</FormLabel>
               <FormDescription>
-                Generates a full name which has the same first name and last
-                name length as the input first and last names
+                Abbreviate the gender to a single character. For example, female
+                would be returned as f.
               </FormDescription>
             </div>
             <FormControl>
               <Switch
-                checked={pl}
+                checked={ab}
                 onCheckedChange={() => {
-                  pl ? setPl(false) : setPl(true);
+                  ab ? setAb(false) : setAb(true);
                 }}
               />
             </FormControl>

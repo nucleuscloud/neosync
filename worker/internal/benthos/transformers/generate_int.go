@@ -16,7 +16,7 @@ func init() {
 		Param(bloblang.NewInt64Param("length")).
 		Param(bloblang.NewStringParam("sign"))
 
-	err := bloblang.RegisterFunctionV2("generate_random_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		length, err := args.GetInt64("length")
 		if err != nil {

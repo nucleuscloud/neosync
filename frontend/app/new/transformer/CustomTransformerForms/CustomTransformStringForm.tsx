@@ -6,6 +6,7 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+
 import { Switch } from '@/components/ui/switch';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -14,11 +15,11 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomFirstNameTransformerForm(
-  props: Props
-): ReactElement {
+export default function CustomTransformStringForm(props: Props): ReactElement {
   const fc = useFormContext();
+
   const { isDisabled } = props;
+
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
@@ -29,15 +30,16 @@ export default function CustomFirstNameTransformerForm(
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription>
-                Set the length of the output first name to be the same as the
-                input
+                Set the length of the output string to be the same as the input
               </FormDescription>
             </div>
             <FormControl>
               <Switch
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                disabled={isDisabled}
+                disabled={
+                  fc.watch('config.config.value.strLength') || isDisabled
+                }
               />
             </FormControl>
           </FormItem>

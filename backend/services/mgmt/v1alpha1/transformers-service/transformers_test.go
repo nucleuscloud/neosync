@@ -39,7 +39,7 @@ func Test_GetSystemTransformers(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t, 24, len(resp.Msg.GetTransformers())) // the number of system transformers
+	assert.Equal(t, 37, len(resp.Msg.GetTransformers())) // the number of system transformers
 }
 
 func Test_GetCustomTransformers(t *testing.T) {
@@ -492,11 +492,8 @@ func createServiceMock(t *testing.T) *serviceMocks {
 
 func getTransformerConfigMock() *mgmtv1alpha1.TransformerConfig {
 	return &mgmtv1alpha1.TransformerConfig{
-		Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
-			EmailConfig: &mgmtv1alpha1.EmailConfig{
-				PreserveDomain: false,
-				PreserveLength: false,
-			},
+		Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+			GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
 		},
 	}
 }

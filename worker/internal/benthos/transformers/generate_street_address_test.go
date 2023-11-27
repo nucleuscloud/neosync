@@ -26,7 +26,7 @@ func Test_GenerateStreetAddress(t *testing.T) {
 }
 
 func Test_StreetAddressTransformer(t *testing.T) {
-	mapping := `root = generates_random_street_address()`
+	mapping := `root = generate_street_address()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the street address transformer")
 

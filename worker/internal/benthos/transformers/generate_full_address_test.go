@@ -15,7 +15,7 @@ func Test_GenerateFullAddress(t *testing.T) {
 }
 
 func Test_FullAddressTransformer(t *testing.T) {
-	mapping := `root = generate_random_full_address()`
+	mapping := `root = generate_full_address()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the full address transformer")
 
