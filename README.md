@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/neosyncreadmelight.png">
+  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/readme_header_new_logo.png">
     <!-- <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/neosync_readme_banner.svg"> -->
 </p>
 
