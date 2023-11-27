@@ -365,6 +365,8 @@ jobs:
               yq -i '.appVersion = strenv(CHART_VERSION)' "$filepath"
             done
 
+            # the top level helm chart references local copies which are set to version: 0
+            # as such, we don't want to set their versions because then helm will error saying it can't find them when we run a "helm dep up"
             # for filepath in $(find charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
             #   has_deps=$(yq -r '.dependencies[0].version' "$filepath")
             #   if [ $has_deps != null ]; then
