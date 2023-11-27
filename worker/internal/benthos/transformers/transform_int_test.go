@@ -55,7 +55,7 @@ func Test_TransformIntPreserveSignTrue(t *testing.T) {
 }
 
 func Test_TransformIntTransformerWithPreserveLengthFalse(t *testing.T) {
-	mapping := `root = transform_int(5, false, false)`
+	mapping := `root = transform_int(value:5, preserve_length:false,preserve_sign: false)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 
@@ -67,7 +67,7 @@ func Test_TransformIntTransformerWithPreserveLengthFalse(t *testing.T) {
 }
 
 func Test_TransformIntTransformerWithPreserveLength(t *testing.T) {
-	mapping := `root = transform_int(58323, true, true)`
+	mapping := `root = transform_int(value:58323, preserve_length:true,preserve_sign: true)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 

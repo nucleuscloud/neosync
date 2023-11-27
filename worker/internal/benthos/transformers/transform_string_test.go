@@ -28,7 +28,7 @@ func Test_TransformStringPreserveLengthFalse(t *testing.T) {
 
 func Test_TransformStringTransformer(t *testing.T) {
 
-	mapping := fmt.Sprintf(`root = transform_string(%q,true)`, testStringValue)
+	mapping := fmt.Sprintf(`root = transform_string(value:%q,preserve_length:true)`, testStringValue)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random string transformer")
 

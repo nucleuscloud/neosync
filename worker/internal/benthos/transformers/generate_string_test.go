@@ -21,7 +21,7 @@ func Test_GenerateRandomStringWithLength(t *testing.T) {
 
 func Test_GenerateRandomStringTransformerWithValue(t *testing.T) {
 	length := 6
-	mapping := fmt.Sprintf(`root = generate_string(%d)`, length)
+	mapping := fmt.Sprintf(`root = generate_string(length:%d)`, length)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the generate random string transformer")
 
