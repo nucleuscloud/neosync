@@ -63,7 +63,7 @@ func Test_TransformFloatPreserveSignTrueNegative(t *testing.T) {
 }
 
 func Test_TransformFloatTransformer(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_float(%f, true, true)`, testFloatValue)
+	mapping := fmt.Sprintf(`root = transform_float(value:%f,preserve_length: true,preserve_sign: true)`, testFloatValue)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random float transformer")
 

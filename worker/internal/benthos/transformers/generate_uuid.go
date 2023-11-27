@@ -13,11 +13,11 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("include_hyphen"))
+		Param(bloblang.NewBoolParam("include_hyphens"))
 
 	err := bloblang.RegisterFunctionV2("generate_uuid", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		include_hyphen, err := args.GetBool("include_hyphen")
+		include_hyphen, err := args.GetBool("include_hyphens")
 		if err != nil {
 			return nil, err
 		}

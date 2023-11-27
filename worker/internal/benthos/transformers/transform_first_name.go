@@ -14,12 +14,12 @@ var firstNames = transformers_dataset.FirstNames.Names
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("name")).
+		Param(bloblang.NewStringParam("value")).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_first_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		name, err := args.GetString("name")
+		name, err := args.GetString("value")
 		if err != nil {
 			return nil, err
 		}

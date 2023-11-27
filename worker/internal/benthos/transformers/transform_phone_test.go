@@ -62,7 +62,7 @@ func Test_GeneratePhoneNumberPreserveLengthFalseHyphensFalse(t *testing.T) {
 }
 
 func Test_PhoneNumberTransformerWithValue(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_phone(%q, true, false,)`, testPhoneNumberNoHyphens)
+	mapping := fmt.Sprintf(`root = transform_phone(value:%q, preserve_length:true, include_hyphens:false,)`, testPhoneNumberNoHyphens)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 

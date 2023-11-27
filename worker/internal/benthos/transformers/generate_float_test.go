@@ -120,7 +120,7 @@ func Test_GenerateRandomFloatTransformer(t *testing.T) {
 
 	dbd := 4
 	dad := 4
-	mapping := fmt.Sprintf(`root = generate_float("positive", %d, %d)`, dbd, dad)
+	mapping := fmt.Sprintf(`root = generate_float(sign:"positive", digits_before_decimal:%d, digits_after_decimal:%d)`, dbd, dad)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random float transformer")
 

@@ -43,7 +43,7 @@ func Test_GenerateIntPhoneNumberPreserveLengthFunction(t *testing.T) {
 }
 
 func Test_IntPhoneNumberTransformer(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_int_phone(%d,true)`, testValue)
+	mapping := fmt.Sprintf(`root = transform_int_phone(value:%d,preserve_length:true)`, testValue)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the int64 phone transformer")
 

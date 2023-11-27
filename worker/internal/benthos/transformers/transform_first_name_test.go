@@ -51,7 +51,7 @@ func Test_GenerateFirstNamePreserveLengthTrue(t *testing.T) {
 
 func Test_FirstNameTransformer(t *testing.T) {
 	testVal := "bill"
-	mapping := fmt.Sprintf(`root = transform_first_name(%q,true)`, testVal)
+	mapping := fmt.Sprintf(`root = transform_first_name(value:%q,preserve_length:true)`, testVal)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the first name transformer")
 
