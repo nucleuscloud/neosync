@@ -35,7 +35,7 @@ import TransformFirstNameForm from './Sheetforms/TransformFirstNameForm';
 import TransformFloatForm from './Sheetforms/TransformFloatForm';
 import TransformFullNameForm from './Sheetforms/TransformFullNameForm';
 import TransformIntForm from './Sheetforms/TransformIntForm';
-import TransformIntPhoneNumberForm from './Sheetforms/TransformIntphoneFOrm';
+import TransformIntPhoneForm from './Sheetforms/TransformIntPhoneForm';
 import TransformLastNameForm from './Sheetforms/TransformLastNameForm';
 import TransformPhoneForm from './Sheetforms/TransformPhoneForm';
 import TransformStringForm from './Sheetforms/TransformStringForm';
@@ -243,7 +243,7 @@ function handleTransformerForm(
       );
     case 'transform_int_phone':
       return (
-        <TransformIntPhoneNumberForm
+        <TransformIntPhoneForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}

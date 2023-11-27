@@ -20,9 +20,7 @@ interface Props {
   transformer: CustomTransformer;
 }
 
-export default function TransformIntPhoneNumberForm(
-  props: Props
-): ReactElement {
+export default function TransformIntPhoneForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();

@@ -5,6 +5,7 @@ import CustomGenerateFloatForm from './CustomGenerateFloatForm';
 import CustomGenerateGenderForm from './CustomGenerateGenderForm';
 import CustomGenerateIntForm from './CustomGenerateIntForm';
 import CustomGenerateStringForm from './CustomGenerateStringForm';
+import CustomGenerateStringPhoneNumberForm from './CustomGenerateStringPhoneForm';
 import CustomGenerateUuidForm from './CustomGenerateUuidForm';
 import CustomTransformE164NumberForm from './CustomTransformE164PhoneForm';
 import CustomTransformEmailForm from './CustomTransformEmailForm';
@@ -35,6 +36,8 @@ export function handleCustomTransformerForm(
       return <CustomGenerateIntForm isDisabled={disabled} />;
     case 'generate_string':
       return <CustomGenerateStringForm isDisabled={disabled} />;
+    case 'generate_string_phone':
+      return <CustomGenerateStringPhoneNumberForm isDisabled={disabled} />;
     case 'generate_uuid':
       return <CustomGenerateUuidForm isDisabled={disabled} />;
     case 'transform_e164_phone':
