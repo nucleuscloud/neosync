@@ -365,12 +365,15 @@ jobs:
               yq -i '.appVersion = strenv(CHART_VERSION)' "$filepath"
             done
 
-            for filepath in $(find charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
-              has_deps=$(yq -r '.dependencies[0].version' "$filepath")
-              if [ $has_deps != null ]; then
-                yq -i '.dependencies[].version = strenv(CHART_VERSION)' "$filepath"
-              fi
-            done
+            # the top level helm chart references local copies which are set to version: 0
+            # as such, we don't want to set their versions because then helm will error saying it can't find them when we run a "helm dep up"
+            # in the future we can uncomment this if we want the top level chart to reference the real oci artifacts instead of local
+            # for filepath in $(find charts/*/Chart.yaml -type f -name 'Chart.yaml') ; do
+            #   has_deps=$(yq -r '.dependencies[0].version' "$filepath")
+            #   if [ $has_deps != null ]; then
+            #     yq -i '.dependencies[].version = strenv(CHART_VERSION)' "$filepath"
+            #   fi
+            # done
 
       - name: Install Helm
         uses: azure/setup-helm@v3
