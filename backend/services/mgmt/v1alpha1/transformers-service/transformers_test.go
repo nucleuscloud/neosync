@@ -39,7 +39,7 @@ func Test_GetSystemTransformers(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t, 24, len(resp.Msg.GetTransformers())) // the number of system transformers
+	assert.Equal(t, 37, len(resp.Msg.GetTransformers())) // the number of system transformers
 }
 
 func Test_GetCustomTransformers(t *testing.T) {
