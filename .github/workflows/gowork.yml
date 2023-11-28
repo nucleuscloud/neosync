@@ -58,5 +58,6 @@ jobs:
 
             echo ":red_circle: Go Work identified that at least one go.mod is out of sync." >> $GITHUB_STEP_SUMMARY
             echo "Please run go work sync locally and commit those changes." >> $GITHUB_STEP_SUMMARY
+            git status
             exit 1
           fi
