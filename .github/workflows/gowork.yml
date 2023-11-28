@@ -1,0 +1,31 @@
+on:
+  pull_request:
+    paths:
+      - "**/go.mod"
+      - "**/go.sum"
+
+name: Go Work
+jobs:
+  go-work:
+    name: Go Work Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+
+      - name: sync
+        run: go work sync
+
+      - name: check
+        run: |
+          AGAINST=HEAD
+          RESULT=$(git diff --name-only $AGAINST | wc -l)
+
+          if [ $RESULT -eq 0 ]; then
+            exit 0
+          else
+            exit 1
+          fi
