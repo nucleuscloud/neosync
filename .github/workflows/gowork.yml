@@ -15,6 +15,9 @@ jobs:
 
       - name: Set up Go
         uses: actions/setup-go@v4
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
 
       - name: sync
         run: go work sync
