@@ -40,10 +40,7 @@ message JobDestination {
 
 message GenerateSourceOptions {
   repeated GenerateSourceSchemaOption schemas = 1 [(buf.validate.field).repeated.min_items = 1];
-  oneof foreign_key_constraint_config {
-    bool ignore_foreign_keys = 2;
-    string fk_source_connection_id = 3 [(buf.validate.field).string.uuid = true];
-  }
+  optional string fk_source_connection_id = 3 [(buf.validate.field).string.uuid = true];
 }
 message GenerateSourceSchemaOption {
   string schema = 1 [(buf.validate.field).string.min_len = 1];

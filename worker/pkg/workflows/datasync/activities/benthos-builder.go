@@ -71,8 +71,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		// get constraints from FK connection id (if any)
-		// build benthos config based on constraint ordering
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
 		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(groupedMappings, sourceTableOpts)
 		if err != nil {
@@ -80,7 +78,76 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		responses = append(responses, sourceResponses...)
 
-		// compute dependsOn based on FK connection ID
+		if jobSourceConfig.Generate.FkSourceConnectionId != nil {
+			fkConnectionResp, err := b.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: *jobSourceConfig.Generate.FkSourceConnectionId}))
+			if err != nil {
+				return nil, err
+			}
+			connection := fkConnectionResp.Msg.Connection
+
+			var td map[string][]string
+			switch fkconnconfig := connection.ConnectionConfig.Config.(type) {
+			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+				pgconfig := fkconnconfig.PgConfig
+				if pgconfig == nil {
+					return nil, errors.New("source connection is not a postgres config")
+				}
+				dsn, err := getPgDsn(pgconfig)
+				if err != nil {
+					return nil, err
+				}
+
+				if _, ok := b.pgpool[dsn]; !ok {
+					pool, err := pgxpool.New(ctx, dsn)
+					if err != nil {
+						return nil, err
+					}
+					defer pool.Close()
+					b.pgpool[dsn] = pool
+				}
+				pool := b.pgpool[dsn]
+
+				allConstraints, err := b.getAllPostgresFkConstraintsFromMappings(ctx, pool, job.Mappings)
+				if err != nil {
+					return nil, err
+				}
+				td = dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+				mysqlconfig := fkconnconfig.MysqlConfig
+				if mysqlconfig == nil {
+					return nil, errors.New("source connection is not a mysql config")
+				}
+				dsn, err := getMysqlDsn(mysqlconfig)
+				if err != nil {
+					return nil, err
+				}
+				if _, ok := b.mysqlpool[dsn]; !ok {
+					pool, err := sql.Open("mysql", dsn)
+					if err != nil {
+						return nil, err
+					}
+					defer pool.Close()
+					b.mysqlpool[dsn] = pool
+				}
+				pool := b.mysqlpool[dsn]
+
+				allConstraints, err := b.getAllMysqlFkConstraintsFromMappings(ctx, pool, job.Mappings)
+				if err != nil {
+					return nil, err
+				}
+				td = dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
+			default:
+				return nil, errors.New("unsupported fk connection")
+			}
+
+			for _, resp := range responses {
+				dependsOn, ok := td[resp.Name]
+				if ok {
+					resp.DependsOn = dependsOn
+				}
+			}
+		}
+
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
 		if err != nil {
