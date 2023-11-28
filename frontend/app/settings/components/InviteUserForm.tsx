@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
-import { useGetInviteLink } from '@/libs/hooks/useGetInviteLink';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import {
   InviteUserToTeamAccountRequest,
   InviteUserToTeamAccountResponse,
@@ -151,7 +151,8 @@ interface InviteCreatedDialogProps {
 
 function InviteCreatedDialog(props: InviteCreatedDialogProps): ReactElement {
   const { open, setOpen, token } = props;
-  const link = useGetInviteLink(token);
+  const { data: systemAppData } = useGetSystemAppConfig();
+  const link = buildInviteLink(systemAppData?.publicAppBaseUrl ?? '', token);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -206,4 +207,8 @@ async function inviteUserToTeamAccount(
     throw new Error(body.message);
   }
   return InviteUserToTeamAccountResponse.fromJson(await res.json());
+}
+
+export function buildInviteLink(baseUrl: string, token: string): string {
+  return `${baseUrl}/invite?token=${token}`;
 }
