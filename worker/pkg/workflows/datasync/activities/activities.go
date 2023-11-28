@@ -43,6 +43,9 @@ type BenthosConfigResponse struct {
 	Name      string
 	DependsOn []string
 	Config    *neosync_benthos.BenthosConfig
+
+	tableSchema string
+	tableName   string
 }
 
 type Activities struct{}
@@ -170,6 +173,9 @@ func buildBenthosSqlSourceConfigReponses(
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
 			DependsOn: []string{},
+
+			tableSchema: tableMapping.Schema,
+			tableName:   tableMapping.Table,
 		})
 	}
 
@@ -645,7 +651,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "generate_utctimestamp()", nil
 	case "generate_uuid":
 		ih := col.Transformer.Config.GetGenerateUuidConfig().IncludeHyphens
-		return fmt.Sprintf("generate_uuid(include_hyphen%t)", ih), nil
+		return fmt.Sprintf("generate_uuid(include_hyphens:%t)", ih), nil
 	case "generate_zipcode":
 		return "generate_zipcode()", nil
 	case "transform_e164_phone":
