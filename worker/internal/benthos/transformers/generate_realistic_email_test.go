@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -13,8 +14,7 @@ func Test_GenerateRealisticEmail(t *testing.T) {
 	res, err := GenerateRealisticEmail()
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email format")
-
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
 }
 
 func Test_GenerateRealisticDomain(t *testing.T) {

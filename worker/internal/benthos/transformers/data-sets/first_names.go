@@ -1466,7 +1466,7 @@ var FirstNames = Names{
 				"Crawford",
 				"Cristian",
 				"Cristina",
-				"D'angelo",
+				"Dangelo",
 				"Deangelo",
 				"Demarcus",
 				"Domenick",
