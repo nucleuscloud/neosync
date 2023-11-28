@@ -1,11 +1,10 @@
-package transformers_email
+package transformers
 
 import (
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	"github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 )
 
 var emailDomains = []string{
@@ -75,18 +74,18 @@ func GenerateRealisticUsername() (string, error) {
 	randValue := rand.Intn(2)
 
 	if randValue == 1 {
-		val, err := transformers.GenerateUsername()
+		val, err := GenerateUsername()
 		if err != nil {
 			return "", err
 		}
 
 		return val, nil
 	} else {
-		fn, err := transformers.GenerateRandomFirstName()
+		fn, err := GenerateRandomFirstName()
 		if err != nil {
 			return "", err
 		}
-		ln, err := transformers.GenerateRandomLastName()
+		ln, err := GenerateRandomLastName()
 		if err != nil {
 			return "", err
 		}

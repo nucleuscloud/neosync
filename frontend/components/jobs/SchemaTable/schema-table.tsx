@@ -46,7 +46,6 @@ export function SchemaTable(props: JobTableProps): ReactElement {
     <div>
       <VirtualizedSchemaTable
         data={tableData}
-        // transformers={systemTransformers?.transformers}
         transformers={mergedTransformers}
       />
     </div>

@@ -35,7 +35,7 @@ export function DataTableRowActions<TData>({
       await removeConnection(connection.id);
       toast({
         title: 'Connection removed successfully!',
-        variant: 'destructive',
+        variant: 'success',
       });
       onDeleted();
     } catch (err) {

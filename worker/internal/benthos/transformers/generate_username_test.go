@@ -15,7 +15,7 @@ func Test_GenerateUsername(t *testing.T) {
 	assert.IsType(t, "", res, "The expected username should have a valid username")
 }
 
-func Test_RealisticmailTransformer(t *testing.T) {
+func Test_UsernamelTransformer(t *testing.T) {
 	mapping := `root = generate_username()`
 	ex, err := bloblang.Parse(mapping)
 
