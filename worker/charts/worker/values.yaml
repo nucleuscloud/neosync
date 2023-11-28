@@ -46,7 +46,7 @@ temporal:
 
 host: 0.0.0.0
 servicePort: 80
-containerPort: 80
+containerPort: 8080
 
 volumes: []
 volumeMounts: []
