@@ -16,31 +16,44 @@ import (
 type Transformation string
 
 const (
-	Invalid              Transformation = "invalid"
-	Passthrough          Transformation = "passthrough"
-	Uuid                 Transformation = "uuid"
-	FirstName            Transformation = "first_name"
-	LastName             Transformation = "last_name"
-	FullName             Transformation = "full_name"
-	PhoneNumber          Transformation = "phone_number"
-	IntPhoneNumber       Transformation = "int_phone_number"
-	Email                Transformation = "email"
-	Null                 Transformation = "null"
-	RandomString         Transformation = "random_string"
-	RandomBool           Transformation = "random_bool"
-	RandomInt            Transformation = "random_int"
-	RandomFloat          Transformation = "random_float"
-	Gender               Transformation = "gender"
-	UTCTimestamp         Transformation = "utc_timestamp"
-	UnixTimestamp        Transformation = "unix_timestamp"
-	StreetAddress        Transformation = "street_address"
-	City                 Transformation = "city"
-	Zipcode              Transformation = "zipcode"
-	State                Transformation = "state"
-	FullAddress          Transformation = "full_address"
-	CardNumber           Transformation = "card_number"
-	SHA256               Transformation = "sha256_hash"
-	SocialSecurityNumber Transformation = "social_security_number"
+	GenerateEmail          Transformation = "generate_email"
+	GenerateRealisticEmail Transformation = "generate_realistic_email"
+	TransformEmail         Transformation = "transform_email"
+	GenerateBool           Transformation = "generate_bool"
+	GenerateCardNumber     Transformation = "generate_card_number"
+	GenerateCity           Transformation = "generate_city"
+	GenerateE164Number     Transformation = "generate_e164_number"
+	GenerateFirstName      Transformation = "generate_first_name"
+	GenerateFloat          Transformation = "generate_float"
+	GenerateFullAddress    Transformation = "generate_full_address"
+	GenerateFullName       Transformation = "generate_full_name"
+	GenerateGender         Transformation = "generate_gender"
+	GenerateInt64Phone     Transformation = "generate_int64_phone"
+	GenerateInt            Transformation = "generate_int"
+	GenerateLastName       Transformation = "generate_last_name"
+	GenerateShaHash256     Transformation = "generate_sha256hash"
+	GenerateSSN            Transformation = "generate_ssn"
+	GenerateState          Transformation = "generate_state"
+	GenerateStreetAddress  Transformation = "generate_street_address"
+	GenerateStringPhone    Transformation = "generate_string_phone"
+	GenerateString         Transformation = "generate_string"
+	GenerateUnixTimestamp  Transformation = "generate_unixtimestamp"
+	GenerateUsername       Transformation = "generate_username"
+	GenerateUtcTimestamp   Transformation = "generate_utctimestamp"
+	GenerateUuid           Transformation = "generate_uuid"
+	GenerateZipcode        Transformation = "generate_zipcode"
+	TransformE164Phone     Transformation = "transform_e164_phone"
+	TransformFirstName     Transformation = "transform_first_name"
+	TransformFloat         Transformation = "transform_float"
+	TransformFullName      Transformation = "transform_full_name"
+	TransformIntPhone      Transformation = "transform_int_phone"
+	TransformInt           Transformation = "transform_int"
+	TransformLastName      Transformation = "transform_last_name"
+	TransformPhone         Transformation = "transform_phone"
+	TransformString        Transformation = "transform_string"
+	Passthrough            Transformation = "passthrough"
+	Null                   Transformation = "null"
+	Invalid                Transformation = "invalid"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -49,162 +62,229 @@ func (s *Service) GetSystemTransformers(
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
 	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
 		Transformers: []*mgmtv1alpha1.Transformer{
-			{Value: string(Passthrough), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(Uuid), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_UuidConfig{
-					UuidConfig: &mgmtv1alpha1.Uuid{
-						IncludeHyphen: true,
-					},
+			{Value: string(GenerateEmail), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
 				},
-			},
-			},
-			{Value: string(FirstName), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_FirstNameConfig{
-					FirstNameConfig: &mgmtv1alpha1.FirstName{
+			}},
+			{Value: string(GenerateRealisticEmail), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateRealisticEmailConfig{
+					GenerateRealisticEmailConfig: &mgmtv1alpha1.GenerateRealisticEmail{},
+				},
+			}},
+			{Value: string(TransformEmail), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
+					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
+						PreserveDomain: false,
 						PreserveLength: false,
 					},
 				},
 			}},
-			{Value: string(LastName), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_LastNameConfig{
-					LastNameConfig: &mgmtv1alpha1.LastName{
-						PreserveLength: false,
+			{Value: string(GenerateBool), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
+					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
+				},
+			}},
+			{Value: string(GenerateCardNumber), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
+					GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
+						ValidLuhn: true,
 					},
 				},
 			}},
-			{Value: string(FullName), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_FullNameConfig{
-					FullNameConfig: &mgmtv1alpha1.FullName{
-						PreserveLength: false,
+			{Value: string(GenerateCity), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+					GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+				},
+			}},
+			{Value: string(GenerateE164Number), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig{
+					GenerateE164NumberConfig: &mgmtv1alpha1.GenerateE164Number{
+						Length: 12,
 					},
 				},
 			}},
-			{Value: string(PhoneNumber), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_PhoneNumberConfig{
-					PhoneNumberConfig: &mgmtv1alpha1.PhoneNumber{
-						PreserveLength: false,
+			{Value: string(GenerateFirstName), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
+					GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
+				},
+			}},
+			{Value: string(GenerateFloat), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloatConfig{
+					GenerateFloatConfig: &mgmtv1alpha1.GenerateFloat{
+						Sign:                "postiive",
+						DigitsBeforeDecimal: 3,
+						DigitsAfterDecimal:  3,
+					},
+				},
+			}},
+			{Value: string(GenerateFullAddress), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
+					GenerateFullAddressConfig: &mgmtv1alpha1.GenerateFullAddress{},
+				},
+			}},
+			{Value: string(GenerateFullName), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
+					GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+				},
+			}},
+			{Value: string(GenerateGender), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
+					GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
+						Abbreviate: false,
+					},
+				},
+			}},
+			{Value: string(GenerateInt64Phone), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig{
+					GenerateInt64PhoneConfig: &mgmtv1alpha1.GenerateInt64Phone{},
+				},
+			}},
+			{Value: string(GenerateInt), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{
+					GenerateIntConfig: &mgmtv1alpha1.GenerateInt{
+						Length: 4,
+						Sign:   "positive",
+					},
+				},
+			}},
+			{Value: string(GenerateLastName), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
+					GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
+				},
+			}},
+			{Value: string(GenerateShaHash256), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
+					GenerateSha256HashConfig: &mgmtv1alpha1.GenerateSha256Hash{},
+				},
+			}},
+			{Value: string(GenerateSSN), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
+					GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
+				},
+			}},
+			{Value: string(GenerateState), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
+					GenerateStateConfig: &mgmtv1alpha1.GenerateState{},
+				},
+			}},
+			{Value: string(GenerateStreetAddress), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
+					GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
+				},
+			}},
+			{Value: string(GenerateStringPhone), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
+					GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
 						E164Format:     false,
 						IncludeHyphens: false,
 					},
 				},
 			}},
-			{Value: string(IntPhoneNumber), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_IntPhoneNumberConfig{
-					IntPhoneNumberConfig: &mgmtv1alpha1.IntPhoneNumber{
+			{Value: string(GenerateString), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+						Length: 6,
+					},
+				},
+			}},
+			{Value: string(GenerateUnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
+					GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
+				},
+			}},
+			{Value: string(GenerateUsername), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{
+					GenerateUsernameConfig: &mgmtv1alpha1.GenerateUsername{},
+				},
+			}},
+			{Value: string(GenerateUtcTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{
+					GenerateUtctimestampConfig: &mgmtv1alpha1.GenerateUtcTimestamp{},
+				},
+			}},
+			{Value: string(GenerateUuid), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
+						IncludeHyphens: true,
+					},
+				},
+			}},
+			{Value: string(GenerateZipcode), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
+					GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
+				},
+			}},
+			{Value: string(TransformE164Phone), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneConfig{
+					TransformE164PhoneConfig: &mgmtv1alpha1.TransformE164Phone{
 						PreserveLength: false,
 					},
 				},
 			}},
+			{Value: string(TransformFirstName), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
+						PreserveLength: false,
+					},
+				},
+			}},
+			{Value: string(TransformFloat), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFloatConfig{
+					TransformFloatConfig: &mgmtv1alpha1.TransformFloat{
+						PreserveLength: false,
+						PreserveSign:   true,
+					},
+				},
+			}},
+			{Value: string(TransformFullName), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
+					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
+						PreserveLength: false,
+					},
+				},
+			}},
+			{Value: string(TransformIntPhone), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformIntPhoneConfig{
+					TransformIntPhoneConfig: &mgmtv1alpha1.TransformIntPhone{
+						PreserveLength: false,
+					},
+				},
+			}},
+			{Value: string(TransformInt), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformIntConfig{
+					TransformIntConfig: &mgmtv1alpha1.TransformInt{
+						PreserveLength: false,
+						PreserveSign:   true,
+					},
+				},
+			}},
+			{Value: string(TransformLastName), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
+					TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
+						PreserveLength: false,
+					},
+				},
+			}},
+			{Value: string(TransformPhone), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneConfig{
+					TransformPhoneConfig: &mgmtv1alpha1.TransformPhone{
+						PreserveLength: false,
+						IncludeHyphens: false,
+					},
+				},
+			}},
+			{Value: string(TransformString), Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+					TransformStringConfig: &mgmtv1alpha1.TransformString{
+						PreserveLength: false,
+					},
+				},
+			}},
+			{Value: string(Passthrough), Config: &mgmtv1alpha1.TransformerConfig{}},
 			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_NullConfig{
-					NullConfig: &mgmtv1alpha1.Null{},
-				},
-			}},
-			{
-				Value: string(Email),
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_EmailConfig{
-						EmailConfig: &mgmtv1alpha1.EmailConfig{
-							PreserveDomain: false,
-							PreserveLength: false,
-						},
-					},
-				}},
-			{
-				Value: string(RandomString),
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_RandomStringConfig{
-						RandomStringConfig: &mgmtv1alpha1.RandomString{
-							PreserveLength: false,
-							StrLength:      0,
-						},
-					},
-				}},
-			{Value: string(RandomBool), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_RandomBoolConfig{
-					RandomBoolConfig: &mgmtv1alpha1.RandomBool{},
-				},
-			}},
-			{
-				Value: string(RandomInt),
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_RandomIntConfig{
-						RandomIntConfig: &mgmtv1alpha1.RandomInt{
-							PreserveLength: false,
-							IntLength:      0,
-						},
-					},
-				}},
-			{
-				Value: string(RandomFloat),
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_RandomFloatConfig{
-						RandomFloatConfig: &mgmtv1alpha1.RandomFloat{
-							PreserveLength:      false,
-							DigitsBeforeDecimal: 2,
-							DigitsAfterDecimal:  3,
-						},
-					},
-				}},
-			{
-				Value: string(Gender),
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenderConfig{
-						GenderConfig: &mgmtv1alpha1.Gender{
-							Abbreviate: false,
-						},
-					},
-				}},
-			{Value: string(UTCTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_UtcTimestampConfig{
-					UtcTimestampConfig: &mgmtv1alpha1.UTCTimestamp{},
-				},
-			}},
-			{Value: string(UnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_UnixTimestampConfig{
-					UnixTimestampConfig: &mgmtv1alpha1.UnixTimestamp{},
-				},
-			}},
-			{Value: string(StreetAddress), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_StreetAddressConfig{
-					StreetAddressConfig: &mgmtv1alpha1.StreetAddress{},
-				},
-			}},
-			{Value: string(City), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_CityConfig{
-					CityConfig: &mgmtv1alpha1.City{},
-				},
-			}},
-			{Value: string(Zipcode), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_ZipcodeConfig{
-					ZipcodeConfig: &mgmtv1alpha1.Zipcode{},
-				},
-			}},
-			{Value: string(State), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_StateConfig{
-					StateConfig: &mgmtv1alpha1.State{},
-				},
-			}},
-			{Value: string(FullAddress), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_FullAddressConfig{
-					FullAddressConfig: &mgmtv1alpha1.FullAddress{},
-				},
-			}},
-			{Value: string(CardNumber), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_CardNumberConfig{
-					CardNumberConfig: &mgmtv1alpha1.CardNumber{
-						ValidLuhn: true,
-					},
-				},
-			}},
-			{Value: string(SHA256), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_Sha256HashConfig{
-					Sha256HashConfig: &mgmtv1alpha1.SHA256Hash{},
-				},
-			}},
-			{Value: string(SocialSecurityNumber), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_SsnConfig{
-					SsnConfig: &mgmtv1alpha1.SocialSecurityNumber{},
+				Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
+					Nullconfig: &mgmtv1alpha1.Null{},
 				},
 			}},
 		},

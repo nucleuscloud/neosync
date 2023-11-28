@@ -1,16 +1,22 @@
 import { ReactElement } from 'react';
-import CustomCardNumberTransformerForm from './CustomCardNumberTransformerForm';
-import CustomEmailTransformerForm from './CustomEmailTransformerForm';
-import CustomFirstNameTransformerForm from './CustomFirstnameTransformerForm';
-import CustomFullNameTransformerForm from './CustomFullnameTransformerForm';
-import CustomGenderTransformerForm from './CustomGenderTransformerForm';
-import CustomIntPhoneNumberTransformerForm from './CustomIntPhoneNumberTransformerForm';
-import CustomLastNameTransformerForm from './CustomLastnameTransformerForm';
-import CustomPhoneNumberTransformerForm from './CustomPhoneNumberTransformerForm';
-import CustomRandomFloatTransformerForm from './CustomRandomFloatTransformerForm';
-import CustomRandomIntTransformerForm from './CustomRandomIntTransformerForm';
-import CustomRandomStringTransformerForm from './CustomRandomStringTransformerForm';
-import CustomUuidTransformerForm from './CustomUuidTransformerForm';
+import CustomGenerateCardNumberForm from './CustomGenerateCardNumber';
+import CustomGenerateE164NumberForm from './CustomGenerateE164NumberForm';
+import CustomGenerateFloatForm from './CustomGenerateFloatForm';
+import CustomGenerateGenderForm from './CustomGenerateGenderForm';
+import CustomGenerateIntForm from './CustomGenerateIntForm';
+import CustomGenerateStringForm from './CustomGenerateStringForm';
+import CustomGenerateStringPhoneNumberForm from './CustomGenerateStringPhoneForm';
+import CustomGenerateUuidForm from './CustomGenerateUuidForm';
+import CustomTransformE164NumberForm from './CustomTransformE164PhoneForm';
+import CustomTransformEmailForm from './CustomTransformEmailForm';
+import CustomTransformFirstNameForm from './CustomTransformFirstNameForm';
+import CustomTransformFloatForm from './CustomTransformFloatForm';
+import CustomTransformFullNameForm from './CustomTransformFullNameForm';
+import CustomTransformIntForm from './CustomTransformIntForm';
+import CustomTransformIntPhoneNumberForm from './CustomTransformIntPhoneForm';
+import CustomTransformLastNameForm from './CustomTransformLastNameForm';
+import CustomTransformPhoneForm from './CustomTransformPhoneForm';
+import CustomTransformStringForm from './CustomTransformStringForm';
 
 // handles rendering custom tranformer configs
 export function handleCustomTransformerForm(
@@ -18,30 +24,42 @@ export function handleCustomTransformerForm(
   disabled?: boolean
 ): ReactElement {
   switch (value) {
-    case 'email':
-      return <CustomEmailTransformerForm isDisabled={disabled} />;
-    case 'uuid':
-      return <CustomUuidTransformerForm isDisabled={disabled} />;
-    case 'first_name':
-      return <CustomFirstNameTransformerForm isDisabled={disabled} />;
-    case 'last_name':
-      return <CustomLastNameTransformerForm isDisabled={disabled} />;
-    case 'full_name':
-      return <CustomFullNameTransformerForm isDisabled={disabled} />;
-    case 'phone_number':
-      return <CustomPhoneNumberTransformerForm isDisabled={disabled} />;
-    case 'int_phone_number':
-      return <CustomIntPhoneNumberTransformerForm isDisabled={disabled} />;
-    case 'random_string':
-      return <CustomRandomStringTransformerForm isDisabled={disabled} />;
-    case 'random_int':
-      return <CustomRandomIntTransformerForm isDisabled={disabled} />;
-    case 'random_float':
-      return <CustomRandomFloatTransformerForm isDisabled={disabled} />;
-    case 'gender':
-      return <CustomGenderTransformerForm isDisabled={disabled} />;
-    case 'card_number':
-      return <CustomCardNumberTransformerForm isDisabled={disabled} />;
+    case 'generate_card_number':
+      <CustomGenerateCardNumberForm isDisabled={disabled} />;
+    case 'generate_e164_number':
+      return <CustomGenerateE164NumberForm isDisabled={disabled} />;
+    case 'generate_float':
+      return <CustomGenerateFloatForm isDisabled={disabled} />;
+    case 'generate_gender':
+      return <CustomGenerateGenderForm isDisabled={disabled} />;
+    case 'generate_int':
+      return <CustomGenerateIntForm isDisabled={disabled} />;
+    case 'generate_string':
+      return <CustomGenerateStringForm isDisabled={disabled} />;
+    case 'generate_string_phone':
+      return <CustomGenerateStringPhoneNumberForm isDisabled={disabled} />;
+    case 'generate_uuid':
+      return <CustomGenerateUuidForm isDisabled={disabled} />;
+    case 'transform_e164_phone':
+      return <CustomTransformE164NumberForm isDisabled={disabled} />;
+    case 'transform_email_form':
+      return <CustomTransformEmailForm isDisabled={disabled} />;
+    case 'transform_first_name_form':
+      return <CustomTransformFirstNameForm isDisabled={disabled} />;
+    case 'transform_float_form':
+      return <CustomTransformFloatForm isDisabled={disabled} />;
+    case 'transform_full_name_form':
+      return <CustomTransformFullNameForm isDisabled={disabled} />;
+    case 'transform_int_form':
+      return <CustomTransformIntForm isDisabled={disabled} />;
+    case 'transform_int_phone_form':
+      return <CustomTransformIntPhoneNumberForm isDisabled={disabled} />;
+    case 'transform_last_name_form':
+      return <CustomTransformLastNameForm isDisabled={disabled} />;
+    case 'transform_phone_form':
+      return <CustomTransformPhoneForm isDisabled={disabled} />;
+    case 'transform_string_form':
+      return <CustomTransformStringForm isDisabled={disabled} />;
     default:
       <div>No transformer component found</div>;
   }

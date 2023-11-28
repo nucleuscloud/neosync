@@ -2,112 +2,164 @@ import { getAccount } from '@/components/providers/account-provider';
 import { IsTransformerNameAvailableResponse } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import * as Yup from 'yup';
 
-const emailConfig = Yup.object().shape({
+const transformEmailConfig = Yup.object().shape({
   preserveDomain: Yup.boolean().notRequired(),
   preserveLength: Yup.boolean().notRequired(),
 });
 
-const uuidConfig = Yup.object().shape({
-  includeHyphens: Yup.boolean().notRequired(),
+const generateCardNumberConfig = Yup.object().shape({
+  validLuhn: Yup.boolean().notRequired(),
 });
 
-const firstNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-});
-
-const lastNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-});
-
-const fullNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-});
-
-const phoneNumberConfig = Yup.object().shape({
+const generateE164NumberConfig = Yup.object().shape({
   preserveLength: Yup.boolean().notRequired(),
   e164Format: Yup.boolean().notRequired(),
   includeHyphens: Yup.boolean().notRequired(),
 });
 
-const intPhoneNumberConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-});
-
-const randomStringConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-  strLength: Yup.number().notRequired(),
-});
-const randomInt = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-  intLength: Yup.number().notRequired(),
-});
-const genderConfig = Yup.object().shape({
-  abbreviate: Yup.boolean().notRequired(),
-});
-
-const randomFloatConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
+const generateFloatConfig = Yup.object().shape({
+  sign: Yup.string().notRequired(),
   digitsAfterDecimal: Yup.number().notRequired(),
   digitsBeforeDecimal: Yup.number().notRequired(),
 });
 
-const cardNumberConfig = Yup.object().shape({
-  validLuhn: Yup.boolean().notRequired(),
+const generateGenderConfig = Yup.object().shape({
+  abbreviate: Yup.boolean().notRequired(),
 });
 
+const generateIntConfig = Yup.object().shape({
+  sign: Yup.string().notRequired(),
+  length: Yup.number().notRequired(),
+});
+
+const generateStringPhoneConfig = Yup.object().shape({
+  e164Format: Yup.boolean().notRequired(),
+  includeHyphens: Yup.boolean().notRequired(),
+});
+
+const generateStringConfig = Yup.object().shape({
+  length: Yup.number().notRequired(),
+});
+
+const generateUuidConfig = Yup.object().shape({
+  includeHyphens: Yup.boolean().notRequired(),
+});
+
+const transformE164Phone = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const transformFirstNameConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const transformFloatConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+  preserveSign: Yup.string().notRequired(),
+});
+
+const transformFullNameConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const transformIntPhoneConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const transformIntConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+  preserveSign: Yup.boolean().notRequired(),
+});
+
+const transformLastNameConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
+
+const transformPhoneConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+  includeHyphens: Yup.boolean().notRequired(),
+});
+
+const transformStringConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().notRequired(),
+});
 export const transformerConfig = Yup.object().shape({
   config: Yup.object().shape({
     value: Yup.lazy((value) => {
       switch (value?.case) {
-        case 'emailConfig':
-          return emailConfig;
-        case 'passthroughConfig':
+        case 'generate_email':
           return Yup.object().shape({});
-        case 'uuidConfig':
-          return uuidConfig;
-        case 'firstNameConfig':
-          return firstNameConfig;
-        case 'lastNameConfig':
-          return lastNameConfig;
-        case 'fullNameConfig':
-          return fullNameConfig;
-        case 'phoneNumberConfig':
-          return phoneNumberConfig;
-        case 'intPhoneNumberConfig':
-          return intPhoneNumberConfig;
-        case 'nullConfig':
+        case 'generate_realistic_email':
           return Yup.object().shape({});
-        case 'randomStringConfig':
-          return randomStringConfig;
-        case 'randomBoolConfig':
+        case 'transform_email':
+          return transformEmailConfig;
+        case 'generate_bool':
           return Yup.object().shape({});
-        case 'nullConfig':
+        case 'generate_card_number':
+          return generateCardNumberConfig;
+        case 'generate_city':
           return Yup.object().shape({});
-        case 'randomInt':
-          return randomInt;
-        case 'gender':
-          return genderConfig;
-        case 'randomFloatConfig':
-          return randomFloatConfig;
-        case 'utcTimestampConfig':
+        case 'generate_e164_number':
+          return generateE164NumberConfig;
+        case 'generate_first_name':
           return Yup.object().shape({});
-        case 'unix_timestamp':
+        case 'generate_float':
+          return generateFloatConfig;
+        case 'generate_full_address':
           return Yup.object().shape({});
-        case 'cityConfig':
+        case 'generate_full_name':
           return Yup.object().shape({});
-        case 'zipcodeConfig':
+        case 'generate_gender':
+          return generateGenderConfig;
+        case 'generate_int64_phone':
           return Yup.object().shape({});
-        case 'stateConfig':
+        case 'generate_int':
+          return generateIntConfig;
+        case 'generate_last_name':
           return Yup.object().shape({});
-        case 'fullAddressConfig':
+        case 'generate_sha256hash':
           return Yup.object().shape({});
-        case 'streetAddressConfig':
+        case 'generate_ssn':
           return Yup.object().shape({});
-        case 'cardNumberConfig':
-          return cardNumberConfig;
-        case 'sha256hashConfig':
+        case 'generate_state':
           return Yup.object().shape({});
-        case 'ssnConfig':
+        case 'generate_street_address':
+          return Yup.object().shape({});
+        case 'generate_string_phone':
+          return generateStringPhoneConfig;
+        case 'generate_string':
+          return generateStringConfig;
+        case 'generate_unixtimestamp':
+          return Yup.object().shape({});
+        case 'generate_username':
+          return Yup.object().shape({});
+        case 'generate_utctimestamp':
+          return Yup.object().shape({});
+        case 'generate_uuid':
+          return generateUuidConfig;
+        case 'generate_zipcode':
+          return Yup.object().shape({});
+        case 'transform_e164_phone':
+          return transformE164Phone;
+        case 'transform_first_name':
+          return transformFirstNameConfig;
+        case 'transform_float':
+          return transformFloatConfig;
+        case 'transform_full_name':
+          return transformFullNameConfig;
+        case 'transform_int_phone':
+          return transformIntPhoneConfig;
+        case 'transform_int':
+          return transformIntConfig;
+        case 'transform_last_name':
+          return transformLastNameConfig;
+        case 'transform_phone':
+          return transformPhoneConfig;
+        case 'transform_string':
+          return transformStringConfig;
+        case 'passthrough':
+          return Yup.object().shape({});
+        case 'null':
           return Yup.object().shape({});
         default:
           return Yup.object().shape({});

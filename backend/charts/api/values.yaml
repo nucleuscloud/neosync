@@ -35,7 +35,7 @@ migrations:
     username:
     password:
     disableSsl: false
-    schemaDir: /app/migrations
+    schemaDir: /migrations
     migrationsTableName: neosync_api_schema_migrations
     migrationsTableQuoted: false
 
@@ -48,7 +48,7 @@ datadog:
 host: 0.0.0.0
 
 servicePort: 80
-containerPort: 80
+containerPort: 8080
 
 terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:

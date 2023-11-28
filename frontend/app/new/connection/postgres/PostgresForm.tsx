@@ -78,13 +78,6 @@ export default function PostgresForm() {
     }
 
     try {
-      const checkResp = await checkPostgresConnection(values.db);
-      setCheckResp(checkResp);
-
-      if (!checkResp.isConnected) {
-        return;
-      }
-
       const connection = await createPostgresConnection(
         values.db,
         values.connectionName,

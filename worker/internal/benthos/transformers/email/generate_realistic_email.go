@@ -71,7 +71,7 @@ func GenerateRealisticEmail() (string, error) {
 func GenerateRealisticUsername() (string, error) {
 
 	//nolint
-	// randomly generate a 0 or 1 in order to pick an email format
+	// randomly generate a 0 or 1 in order to pick an email username format
 	randValue := rand.Intn(2)
 
 	if randValue == 1 {
@@ -82,11 +82,11 @@ func GenerateRealisticUsername() (string, error) {
 
 		return val, nil
 	} else {
-		fn, err := transformers.GenerateFirstNameWithRandomLength()
+		fn, err := transformers.GenerateRandomFirstName()
 		if err != nil {
 			return "", err
 		}
-		ln, err := transformers.GenerateLastNameWithRandomLength()
+		ln, err := transformers.GenerateRandomLastName()
 		if err != nil {
 			return "", err
 		}

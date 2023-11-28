@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/neosyncreadmelight.png">
+  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/readme_header_new_logo.png">
     <!-- <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/neosync_readme_banner.svg"> -->
 </p>
 
@@ -16,11 +16,14 @@ Neosync is a developer-first way to create anonymized, secure test data and sync
     <img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/>
   </a>
   <img src="https://img.shields.io/github/license/lightdash/lightdash" />
-  <a href="https://x.com/neosynccloud">
-    <img alt="Follow X" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
-  </a>
-  <a href="https://codecov.io/gh/nucleuscloud/neosync">
+  <!-- <a href="https://codecov.io/gh/nucleuscloud/neosync">
     <img alt="CodeCov" src="https://codecov.io/gh/nucleuscloud/neosync/graph/badge.svg?token=A35QDLRU04"/>
+    </a> -->
+     <a href="https://github.com/nucleuscloud/neosync/actions/workflows/main-tests.yml/">
+    <img alt="main tests" src="https://github.com/nucleuscloud/neosync/actions/workflows/main-tests.yml/badge.svg"/>
+    </a>
+      <a href="https://x.com/neosynccloud">
+    <img alt="Follow X" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
   </a>
 </p>
 
