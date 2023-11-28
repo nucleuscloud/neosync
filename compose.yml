@@ -11,6 +11,7 @@ services:
       - NUCLEUS_ENV=dev
       - NEXTAUTH_SECRET=foo
       - NEOSYNC_API_BASE_URL=http://api:8082
+      - NEXT_PUBLIC_APP_BASE_URL=http://localhost:3000
 
       - AUTH_ENABLED=false
 
