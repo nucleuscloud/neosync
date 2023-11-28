@@ -34,7 +34,9 @@ jobs:
         run: |
           AGAINST=HEAD
           RESULT=$(git diff --name-only $AGAINST | wc -l)
-          if [ $RESULT -gt 0 ]; then
+          if [ $RESULT -eq 0 ]; then
+            echo "Found no changes after running go work sync"
+          else
             echo "Auto-commiting go work sync changes"
 
             git config --global user.name 'dependabot'
@@ -43,8 +45,6 @@ jobs:
             git add */go.mod */go.sum
             git commit -m "Updates go.mod and go.sum files after running go work sync"
             git push
-          else
-            echo "Found no changes after running go work sync"
           fi
 
       - name: sync
