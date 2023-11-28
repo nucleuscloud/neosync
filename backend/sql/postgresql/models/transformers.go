@@ -163,8 +163,7 @@ type TransformStringConfig struct {
 	PreserveLength bool `json:"preserveLength"`
 }
 
-type PassthroughConfig struct {
-}
+type PassthroughConfig struct{}
 
 type NullConfig struct{}
 

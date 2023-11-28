@@ -253,7 +253,7 @@ export function ToTransformerConfigOptions(
         value: val.source,
         config: new TransformerConfig({
           config: {
-            case: 'generateEmailConfig',
+            case: 'transformEmailConfig',
             value: new TransformEmail({
               preserveDomain: te.value.preserveDomain,
               preserveLength: te.value.preserveLength,

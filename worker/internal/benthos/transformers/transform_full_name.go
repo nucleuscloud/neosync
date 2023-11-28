@@ -10,14 +10,19 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam(("value"))).
+		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_full_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		value, err := args.GetString("value")
+		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
+		}
+
+		var value string
+		if valuePtr != nil {
+			value = *valuePtr
 		}
 
 		preserveLength, err := args.GetBool("preserve_length")
@@ -36,20 +41,25 @@ func init() {
 
 }
 
-func GenerateFullName(name string, pl bool) (string, error) {
+func GenerateFullName(name string, pl bool) (*string, error) {
 
-	if name != "" {
-		if pl {
-			res, err := GenerateFullNameWithLength(name)
-			return res, err
+	if name == "" {
+		return nil, nil
+	}
 
-		} else {
-			res, err := GenerateFullNameWithRandomLength()
-			return res, err
+	if pl {
+		res, err := GenerateFullNameWithLength(name)
+		if err != nil {
+			return nil, err
 		}
+		return &res, nil
+
 	} else {
 		res, err := GenerateFullNameWithRandomLength()
-		return res, err
+		if err != nil {
+			return nil, err
+		}
+		return &res, nil
 	}
 
 }

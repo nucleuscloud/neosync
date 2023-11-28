@@ -1,9 +1,11 @@
-package transformers_email
+package transformers
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,8 +14,7 @@ func Test_GenerateRealisticEmail(t *testing.T) {
 	res, err := GenerateRealisticEmail()
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, IsValidEmail(res), "The expected email should be have a valid email format")
-
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
 }
 
 func Test_GenerateRealisticDomain(t *testing.T) {
@@ -21,7 +22,7 @@ func Test_GenerateRealisticDomain(t *testing.T) {
 	res, err := GenerateRealisticDomain()
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidDomain(res), "The expected email should have a valid domain")
+	assert.Equal(t, true, transformer_utils.IsValidDomain(res), "The expected email should have a valid domain")
 
 }
 
@@ -30,11 +31,11 @@ func Test_GenerateRealisticUsername(t *testing.T) {
 	res, err := GenerateRealisticUsername()
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidUsername(res), "The expected email should have a valid username")
+	assert.Equal(t, true, transformer_utils.IsValidUsername(res), "The expected email should have a valid username")
 
 }
 
-func Test_RealisticmailTransformer(t *testing.T) {
+func Test_RealisticEmailTransformer(t *testing.T) {
 	mapping := `root = generate_realistic_email()`
 	ex, err := bloblang.Parse(mapping)
 
@@ -43,5 +44,5 @@ func Test_RealisticmailTransformer(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidEmail(res.(string)), "The expected email should have a valid email format")
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res.(string)), "The expected email should have a valid email format")
 }

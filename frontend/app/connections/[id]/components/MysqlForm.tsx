@@ -254,7 +254,17 @@ export default function MysqlForm(props: Props) {
             onClick={async () => {
               setIsTesting(true);
               try {
-                const resp = await checkMysqlConnection(form.getValues().db);
+                const val = {
+                  host: form.getValues().db.host,
+                  name: form.getValues().db.name,
+                  user: form.getValues().db.user,
+                  pass: form.getValues().db.pass,
+                  port: form.getValues().db.port,
+                  protocol: form.getValues().db.protocol // this is a little hacky but the sslMode doesn't get set in the form for some reason
+                    ? form.getValues().db.protocol
+                    : defaultValues.db.protocol,
+                };
+                const resp = await checkMysqlConnection(val);
                 setCheckResp(resp);
                 setIsTesting(false);
               } catch (err) {

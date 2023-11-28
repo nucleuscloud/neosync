@@ -13,14 +13,19 @@ const defaultStrLength = 10
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("value")).
+		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		value, err := args.GetString("value")
+		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
+		}
+
+		var value string
+		if valuePtr != nil {
+			value = *valuePtr
 		}
 
 		preserveLength, err := args.GetBool("preserve_length")
@@ -41,16 +46,20 @@ func init() {
 }
 
 // main transformer logic goes here
-func TransformString(value string, preserveLength bool) (string, error) {
+func TransformString(value string, preserveLength bool) (*string, error) {
 
 	var returnValue string
+
+	if value == "" {
+		return nil, nil
+	}
 
 	if preserveLength {
 
 		val, err := transformer_utils.GenerateRandomStringWithLength(int64(len(value)))
 
 		if err != nil {
-			return "", fmt.Errorf("unable to generate a random string with length")
+			return nil, fmt.Errorf("unable to generate a random string with length")
 		}
 
 		returnValue = val
@@ -60,12 +69,12 @@ func TransformString(value string, preserveLength bool) (string, error) {
 		val, err := transformer_utils.GenerateRandomStringWithLength(defaultStrLength)
 
 		if err != nil {
-			return "", fmt.Errorf("unable to generate a random string with length")
+			return nil, fmt.Errorf("unable to generate a random string with length")
 		}
 
 		returnValue = val
 
 	}
 
-	return returnValue, nil
+	return &returnValue, nil
 }

@@ -13,15 +13,20 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("value")).
+		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("include_hyphens"))
 
 	err := bloblang.RegisterFunctionV2("transform_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		value, err := args.GetString("value")
+		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
+		}
+
+		var value string
+		if valuePtr != nil {
+			value = *valuePtr
 		}
 
 		preserveLength, err := args.GetBool("preserve_length")
@@ -47,17 +52,21 @@ func init() {
 }
 
 // Generates a random phone number and returns it as a string
-func TransformPhoneNumber(value string, preserveLength, includeHyphens bool) (string, error) {
+func TransformPhoneNumber(value string, preserveLength, includeHyphens bool) (*string, error) {
 
 	var returnValue string
 
+	if value == "" {
+		return nil, nil
+	}
+
 	if preserveLength && includeHyphens && len(value) != 10 {
-		return "", fmt.Errorf("can only preserve the length of the input phone number and include hyphens if the length of the phone number is 10")
+		return nil, fmt.Errorf("can only preserve the length of the input phone number and include hyphens if the length of the phone number is 10")
 	} else {
 		// only works with 10 digit-based phone numbers like in the US
 		res, err := GenerateRandomPhoneNumberWithHyphens()
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		returnValue = res
 	}
@@ -65,7 +74,7 @@ func TransformPhoneNumber(value string, preserveLength, includeHyphens bool) (st
 	if preserveLength && !includeHyphens {
 		res, err := GeneratePhoneNumberPreserveLengthNoHyphensNotE164(value)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		returnValue = res
@@ -74,7 +83,7 @@ func TransformPhoneNumber(value string, preserveLength, includeHyphens bool) (st
 		// only works with 10 digit-based phone numbers like in the US
 		res, err := GenerateRandomPhoneNumberWithHyphens()
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		returnValue = res
@@ -83,13 +92,13 @@ func TransformPhoneNumber(value string, preserveLength, includeHyphens bool) (st
 
 		res, err := GenerateRandomPhoneNumberWithNoHyphens()
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 		returnValue = res
 	}
 
-	return returnValue, nil
+	return &returnValue, nil
 
 }
 
