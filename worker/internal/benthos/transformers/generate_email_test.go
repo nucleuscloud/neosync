@@ -1,9 +1,10 @@
-package transformers_email
+package transformers
 
 import (
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,8 +13,7 @@ func Test_GenerateRandomEmail(t *testing.T) {
 	res, err := GenerateRandomEmail()
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, IsValidEmail(res), "The expected email should be have a valid email format")
-
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email format")
 }
 
 func Test_GenerateRandomDomain(t *testing.T) {
@@ -21,7 +21,7 @@ func Test_GenerateRandomDomain(t *testing.T) {
 	res, err := GenerateRandomDomain()
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidDomain(res), "The expected email should have a valid domain")
+	assert.Equal(t, true, transformer_utils.IsValidDomain(res), "The expected email should have a valid domain")
 
 }
 
@@ -30,7 +30,7 @@ func Test_GenerateRandomUsername(t *testing.T) {
 	res, err := GenerateRandomUsername()
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidUsername(res), "The expected email should have a valid username")
+	assert.Equal(t, true, transformer_utils.IsValidUsername(res), "The expected email should have a valid username")
 
 }
 
@@ -43,5 +43,5 @@ func Test_RandomEmailTransformer(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidEmail(res.(string)), " The expected email should have a valid format")
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res.(string)), " The expected email should have a valid format")
 }

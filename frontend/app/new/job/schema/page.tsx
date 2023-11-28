@@ -98,6 +98,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const params = usePathname();
   const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
 
+  console.log('formvalues', form.getValues());
+
   return (
     <div className="flex flex-col gap-20">
       <div className="mt-10">

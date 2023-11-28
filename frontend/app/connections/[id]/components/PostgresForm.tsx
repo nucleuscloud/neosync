@@ -227,7 +227,7 @@ export default function PostgresForm(props: Props) {
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
-                    <SelectValue placeholder={defaultValues.db.sslMode ?? ''} />
+                    <SelectValue placeholder={defaultValues.db.sslMode} />
                   </SelectTrigger>
                   <SelectContent>
                     {SSL_MODES.map((mode) => (
@@ -254,7 +254,17 @@ export default function PostgresForm(props: Props) {
             onClick={async () => {
               setIsTesting(true);
               try {
-                const resp = await checkPostgresConnection(form.getValues().db);
+                const val = {
+                  host: form.getValues().db.host,
+                  name: form.getValues().db.name,
+                  user: form.getValues().db.user,
+                  pass: form.getValues().db.pass,
+                  port: form.getValues().db.port,
+                  sslMode: form.getValues().db.sslMode // this is a little hacky but the sslMode doesn't get set in the form for some reason
+                    ? form.getValues().db.sslMode
+                    : defaultValues.db.sslMode,
+                };
+                const resp = await checkPostgresConnection(val);
                 setCheckResp(resp);
                 setIsTesting(false);
               } catch (err) {

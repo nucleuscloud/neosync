@@ -1,4 +1,4 @@
-package transformers_email
+package transformers
 
 import (
 	"errors"
@@ -23,6 +23,8 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Println("email valueparam", value)
 
 		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
@@ -52,6 +54,8 @@ func TransformEmail(email string, preserveLength, preserveDomain bool) (string, 
 
 	var returnValue string
 	var err error
+
+	fmt.Println("email value", email)
 
 	if email == "" {
 		return "", errors.New("email field cannot be blank")
@@ -93,7 +97,7 @@ func TransformEmail(email string, preserveLength, preserveDomain bool) (string, 
 // Generate a random email and preserve the input email's domain
 func TransformEmailPreserveDomain(e string, pd bool) (string, error) {
 
-	parsedEmail, err := parseEmail(e)
+	parsedEmail, err := transformer_utils.ParseEmail(e)
 	if err != nil {
 		return "", fmt.Errorf("invalid email: %s", e)
 	}
@@ -111,7 +115,7 @@ func TransformEmailPreserveLength(e string, pl bool) (string, error) {
 
 	var res string
 
-	parsedEmail, err := parseEmail(e)
+	parsedEmail, err := transformer_utils.ParseEmail(e)
 	if err != nil {
 		return "", fmt.Errorf("invalid email: %s", e)
 	}
@@ -145,7 +149,7 @@ func TransformEmailPreserveLength(e string, pl bool) (string, error) {
 // preserve domain and length of the email -> keep the domain the same but slice the username to be the same length as the input username
 func TransformEmailPreserveDomainAndLength(e string, pd, pl bool) (string, error) {
 
-	parsedEmail, err := parseEmail(e)
+	parsedEmail, err := transformer_utils.ParseEmail(e)
 	if err != nil {
 		return "", fmt.Errorf("invalid email: %s", e)
 	}

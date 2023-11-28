@@ -220,6 +220,9 @@ export function ToTransformerConfigOptions(
 ): Transformer {
   const val = merged.find((item) => item.name.toLowerCase() == t.value);
 
+  console.log('t', t);
+  console.log('val', val);
+
   if (!t) {
     return new Transformer();
   }

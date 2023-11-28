@@ -56,7 +56,7 @@ export default function TransformerSelect(props: Props): ReactElement {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[250px] p-0"
+        className="w-[300px] p-0"
         side="left"
         avoidCollisions={false}
       >

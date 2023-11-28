@@ -460,7 +460,7 @@ export function handleTransformerMetadata(
       },
     },
     {
-      generate_unix_timestamp: {
+      generate_unixtimestamp: {
         name: 'Unix Timestamp',
         description: 'Randomly generates a Unix timestamp.',
         type: 'int64',
@@ -475,7 +475,7 @@ export function handleTransformerMetadata(
       },
     },
     {
-      generate_utc_timestamp: {
+      generate_utctimestamp: {
         name: 'UTC Timestamp',
         description: 'Randomly generates a UTC timestamp.',
         type: 'time',

@@ -1,4 +1,4 @@
-package transformers_email
+package transformers
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +17,7 @@ func Test_GenerateEmailPreserveLengthFalsePreserveDomainTrue(t *testing.T) {
 	res, err := TransformEmail(email, false, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, IsValidEmail(res), "The expected email should be have a valid email structure")
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email structure")
 	assert.Equal(t, "gmail.com", strings.Split(res, "@")[1])
 
 }
@@ -26,7 +27,7 @@ func Test_GenerateEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
 	res, err := TransformEmail(email, false, false)
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, IsValidEmail(res), "The expected email should be have a valid email structure")
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email structure")
 
 }
 
@@ -47,7 +48,7 @@ func Test_GenerateEmail(t *testing.T) {
 	/* There is a very small chance that the randomly generated email address actually matches
 	the input email address which is why can't do an assert.NoEqual() but instead just have to check
 	that the email has the correct structrue */
-	assert.Equal(t, true, IsValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
 }
 
 func Test_GenerateEmailPreserveDomain(t *testing.T) {
@@ -55,7 +56,7 @@ func Test_GenerateEmailPreserveDomain(t *testing.T) {
 	res, err := TransformEmailPreserveDomain(email, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, IsValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
 }
 
 func Test_GenerateEmailPreserveLength(t *testing.T) {
@@ -71,16 +72,16 @@ func Test_GenerateEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
 	res, err := TransformEmailPreserveDomainAndLength(email, true, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, IsValidEmail(res), "The expected email should be have a valid email structure")
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email structure")
 
 }
 
-func Test_GenerateUsername(t *testing.T) {
+func Test_GenerateEmailUsername(t *testing.T) {
 
 	res, err := GenerateRandomUsername()
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, IsValidUsername(res), "The expected email should have a valid username")
+	assert.Equal(t, true, transformer_utils.IsValidUsername(res), "The expected email should have a valid username")
 
 }
 

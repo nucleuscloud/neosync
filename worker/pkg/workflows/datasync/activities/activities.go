@@ -373,6 +373,8 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		"benthos", "true",
 	))
 
+	fmt.Println("benthos config", req.BenthosConfig)
+
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -380,7 +382,6 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 
 	stream, err := streambldr.Build()
 	if err != nil {
-		return nil, fmt.Errorf("unable to build benthos stream: %w", err)
 	}
 	benthosStream = stream
 
@@ -561,16 +562,8 @@ function transformers
 root.{destination_col} = transformerfunction(args)
 */
 
-/*TODO
-1. json models, DTOs and transformer APIs to finally wrap up the backend
-2. clean up names
-3. add in named params in this giant switch
-*/
-
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
-
 	switch col.Transformer.Value {
-
 	case "generate_email":
 		return "generate_email()", nil
 	case "generate_realistic_email":
