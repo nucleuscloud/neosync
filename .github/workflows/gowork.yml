@@ -9,15 +9,39 @@ jobs:
   go-work:
     name: Go Work Sync
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
+
+      - name: dependabot sync
+        if: github.actor == 'dependabot[bot]'
+        run: go work sync
+
+      - name: auto-commit sync changes
+        if: github.actor == 'dependabot[bot]'
+        run: |
+          AGAINST=HEAD
+          RESULT=$(git diff --name-only $AGAINST | wc -l)
+          if [ $RESULT -eq 1 ]; then
+            git config --global user.name 'dependabot'
+            git config --global user.email 'dependabot@users.noreply.github.com'
+
+            git add */go.mod */go.sum
+            git commit -m "Updates go.mod and go.sum files after running go work sync"
+            git push
+          fi
 
       - name: sync
         run: go work sync
@@ -31,7 +55,9 @@ jobs:
             echo ":green_circle: Go Work Sync Success!" >> $GITHUB_STEP_SUMMARY
             exit 0
           else
+
             echo ":red_circle: Go Work identified that at least one go.mod is out of sync." >> $GITHUB_STEP_SUMMARY
             echo "Please run go work sync locally and commit those changes." >> $GITHUB_STEP_SUMMARY
+            git status
             exit 1
           fi
