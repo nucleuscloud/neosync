@@ -1,0 +1,37 @@
+on:
+  pull_request:
+    paths:
+      - "**/go.mod"
+      - "**/go.sum"
+
+name: Go Work
+jobs:
+  go-work:
+    name: Go Work Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: sync
+        run: go work sync
+
+      - name: check
+        run: |
+          AGAINST=HEAD
+          RESULT=$(git diff --name-only $AGAINST | wc -l)
+
+          if [ $RESULT -eq 0 ]; then
+            echo ":green_circle: Go Work Sync Success!" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          else
+            echo ":red_circle: Go Work identified that at least one go.mod is out of sync." >> $GITHUB_STEP_SUMMARY
+            echo "Please run go work sync locally and commit those changes." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
