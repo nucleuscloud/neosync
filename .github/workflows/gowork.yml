@@ -34,7 +34,11 @@ jobs:
         run: |
           AGAINST=HEAD
           RESULT=$(git diff --name-only $AGAINST | wc -l)
-          if [ $RESULT -eq 1 ]; then
+          if [ $RESULT -eq 0 ]; then
+            echo "Found no changes after running go work sync"
+          else
+            echo "Auto-commiting go work sync changes"
+
             git config --global user.name 'dependabot'
             git config --global user.email 'dependabot@users.noreply.github.com'
 
@@ -55,7 +59,6 @@ jobs:
             echo ":green_circle: Go Work Sync Success!" >> $GITHUB_STEP_SUMMARY
             exit 0
           else
-
             echo ":red_circle: Go Work identified that at least one go.mod is out of sync." >> $GITHUB_STEP_SUMMARY
             echo "Please run go work sync locally and commit those changes." >> $GITHUB_STEP_SUMMARY
             git status
