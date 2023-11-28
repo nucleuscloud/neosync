@@ -18,15 +18,20 @@ var (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewFloat64Param("value")).
+		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("preserve_sign"))
 
 	err := bloblang.RegisterFunctionV2("transform_float", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		value, err := args.GetFloat64("value")
+		valuePtr, err := args.GetOptionalFloat64("value")
 		if err != nil {
 			return nil, err
+		}
+
+		var value float64
+		if valuePtr != nil {
+			value = *valuePtr
 		}
 
 		preserveLength, err := args.GetBool("preserve_length")
@@ -52,23 +57,27 @@ func init() {
 
 }
 
-func TransformFloat(value float64, preserveLength, preserveSign bool) (float64, error) {
+func TransformFloat(value float64, preserveLength, preserveSign bool) (*float64, error) {
 
 	var returnValue float64
+
+	if value == 0 {
+		return nil, nil
+	}
 
 	if preserveLength {
 		fLen := GetFloatLength(value)
 		res, err := GenerateRandomFloatWithDefinedLength(fLen.DigitsBeforeDecimalLength, fLen.DigitsAfterDecimalLength)
 
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
 
 		returnValue = res
 	} else {
 		res, err := GenerateRandomFloatWithDefinedLength(defaultDigitsBeforeDecimal, defaultDigitsAfterDecimal)
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
 
 		returnValue = res
@@ -77,13 +86,14 @@ func TransformFloat(value float64, preserveLength, preserveSign bool) (float64, 
 	if preserveSign {
 
 		if value < 0 {
-			return returnValue * -1, nil
+			res := returnValue * -1
+			return &res, nil
 		} else {
-			return returnValue, nil
+			return &returnValue, nil
 		}
 
 	} else {
-		return returnValue, nil
+		return &returnValue, nil
 	}
 
 }

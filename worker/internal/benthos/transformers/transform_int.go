@@ -14,15 +14,20 @@ const defaultIntLength = 4
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("value")).
+		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("preserve_sign"))
 
 	err := bloblang.RegisterFunctionV2("transform_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		value, err := args.GetInt64("value")
+		valuePtr, err := args.GetOptionalInt64("value")
 		if err != nil {
 			return nil, err
+		}
+
+		var value int64
+		if valuePtr != nil {
+			value = *valuePtr
 		}
 
 		preserveLength, err := args.GetBool("preserve_length")
@@ -47,12 +52,16 @@ func init() {
 
 }
 
-func TransformInt(value int64, preserveLength, preserveSign bool) (int64, error) {
+func TransformInt(value int64, preserveLength, preserveSign bool) (*int64, error) {
 
 	var returnValue int64
 
+	if value == 0 {
+		return nil, nil
+	}
+
 	if transformer_utils.GetIntLength(value) > 10 {
-		return 0, errors.New("the length of the input integer cannot be greater than 18 digits")
+		return nil, errors.New("the length of the input integer cannot be greater than 18 digits")
 	}
 
 	if preserveLength {
@@ -62,7 +71,7 @@ func TransformInt(value int64, preserveLength, preserveSign bool) (int64, error)
 			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value) - 1))
 
 			if err != nil {
-				return 0, fmt.Errorf("unable to generate a random string with length")
+				return nil, fmt.Errorf("unable to generate a random string with length")
 			}
 			returnValue = int64(val)
 
@@ -71,7 +80,7 @@ func TransformInt(value int64, preserveLength, preserveSign bool) (int64, error)
 			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value)))
 
 			if err != nil {
-				return 0, fmt.Errorf("unable to generate a random string with length")
+				return nil, fmt.Errorf("unable to generate a random string with length")
 			}
 			returnValue = int64(val)
 		}
@@ -81,7 +90,7 @@ func TransformInt(value int64, preserveLength, preserveSign bool) (int64, error)
 		val, err := transformer_utils.GenerateRandomInt(defaultIntLength)
 
 		if err != nil {
-			return 0, fmt.Errorf("unable to generate a random string with length")
+			return nil, fmt.Errorf("unable to generate a random string with length")
 		}
 
 		returnValue = int64(val)
@@ -91,12 +100,14 @@ func TransformInt(value int64, preserveLength, preserveSign bool) (int64, error)
 	if preserveSign {
 
 		if value < 0 {
-			return returnValue * -1, nil
+
+			res := returnValue * -1
+			return &res, nil
 		} else {
-			return returnValue, nil
+			return &returnValue, nil
 		}
 	} else {
 		// return a positive integer by default
-		return returnValue, nil
+		return &returnValue, nil
 	}
 }

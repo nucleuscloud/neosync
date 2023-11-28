@@ -42,8 +42,6 @@ export function SchemaTable(props: JobTableProps): ReactElement {
     return <SkeletonTable />;
   }
 
-  console.log('merged', mergedTransformers);
-
   return (
     <div>
       <VirtualizedSchemaTable

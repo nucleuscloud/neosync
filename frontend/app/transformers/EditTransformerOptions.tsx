@@ -303,42 +303,42 @@ export function handleTransformerMetadata(
   const tEntries: Record<string, TransformerMetadata>[] = [
     {
       generate_email: {
-        name: 'Synthetic Email',
-        description: 'Generates a new synthetic email address.',
+        name: 'Generate Email',
+        description: 'Generates a new Generate email address.',
         type: 'string',
       },
     },
     {
       generate_realistic_email: {
-        name: 'Realistic Synthetic Email',
-        description: 'Generates a new synthetic realistic email address.',
+        name: 'Generate Realistic Email',
+        description: 'Generates a new realistic email address.',
         type: 'string',
       },
     },
     {
       transform_email: {
-        name: 'Anonymize Email',
-        description: 'Anonymizes an existing email address.',
+        name: 'Transform Email',
+        description: 'Transforms an existing email address.',
         type: 'string',
       },
     },
     {
       generate_bool: {
-        name: 'Synthetic Boolean',
+        name: 'Generate Boolean',
         description: 'Generates a boolean value at random.',
         type: 'bool',
       },
     },
     {
       generate_card_number: {
-        name: 'Synthetic Card Number',
-        description: 'Generates a synthetic card number.',
+        name: 'Generate Card Number',
+        description: 'Generates a card number.',
         type: 'bool',
       },
     },
     {
       generate_city: {
-        name: 'Synthetic City',
+        name: 'Generate City',
         description:
           'Randomly selects a city from a list of predefined US cities.',
         type: 'string',
@@ -346,28 +346,28 @@ export function handleTransformerMetadata(
     },
     {
       generate_e164_number: {
-        name: 'Synthetic E164 Phone Number',
-        description: 'Generates a synthetic phone number in e164 format.',
+        name: 'Generate E164 Phone Number',
+        description: 'Generates a Generate phone number in e164 format.',
         type: 'string',
       },
     },
     {
       generate_first_name: {
-        name: 'Synthetic First Name',
-        description: 'Generates a synthetic first name.',
+        name: 'Generate First Name',
+        description: 'Generates a Generate first name.',
         type: 'string',
       },
     },
     {
       generate_float: {
-        name: 'Synthetic Float',
-        description: 'Generates a synthetic float value.',
+        name: 'Generate Float',
+        description: 'Generates a Generate float value.',
         type: 'string',
       },
     },
     {
       generate_full_address: {
-        name: 'Synthetic Full Address',
+        name: 'Generate Full Address',
         description:
           'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169.',
         type: 'string',
@@ -375,7 +375,7 @@ export function handleTransformerMetadata(
     },
     {
       generate_full_name: {
-        name: 'Synthetic Full Name',
+        name: 'Generate Full Name',
         description:
           'Generates a new full name consisting of a first and last name.',
         type: 'string',
@@ -391,7 +391,7 @@ export function handleTransformerMetadata(
     },
     {
       generate_int64_phone: {
-        name: 'Synthetic Int64 Phone Number',
+        name: 'Generate Int64 Phone Number',
         description:
           'Generates a new phone number of type int64 with a default length of 10.',
         type: 'int64',
@@ -399,7 +399,7 @@ export function handleTransformerMetadata(
     },
     {
       generate_int: {
-        name: 'Synthetic Integer',
+        name: 'Generate Integer',
         description:
           'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramters are defined. .',
         type: 'int64',
@@ -407,7 +407,7 @@ export function handleTransformerMetadata(
     },
     {
       generate_last_name: {
-        name: 'Synthetic Last Name',
+        name: 'Generate Last Name',
         description: 'Generates a new last name.',
         type: 'string',
       },
@@ -447,13 +447,13 @@ export function handleTransformerMetadata(
       generate_string_phone: {
         name: 'String Phone',
         description:
-          'Generates a synthetic phone number and returns it as a string',
+          'Generates a Generate phone number and returns it as a string',
         type: 'string',
       },
     },
     {
       generate_string: {
-        name: 'Synthetic String',
+        name: 'Generate String',
         description:
           'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.',
         type: 'string',
@@ -499,28 +499,28 @@ export function handleTransformerMetadata(
     {
       transform_e164_phone: {
         name: 'Transform E164 Phone',
-        description: 'Anonymizes an existing E164 formatted phone number.',
+        description: 'Transforms an existing E164 formatted phone number.',
         type: 'string',
       },
     },
     {
       transform_first_name: {
         name: 'Transform First Name',
-        description: 'Anonymizes an existing first name.',
+        description: 'Transforms an existing first name.',
         type: 'string',
       },
     },
     {
       transform_float: {
         name: 'Transform Float',
-        description: 'Anonymizes an existing float value.',
+        description: 'Transforms an existing float value.',
         type: 'string',
       },
     },
     {
       transform_full_name: {
         name: 'Transform Full Name',
-        description: 'Anonymizes an existing full name.',
+        description: 'Transforms an existing full name.',
         type: 'string',
       },
     },
@@ -528,21 +528,21 @@ export function handleTransformerMetadata(
       transform_int_phone: {
         name: 'Transform Integer Phone Number',
         description:
-          'Anonymizes an existing phone number that is typed as an integer.',
+          'Transforms an existing phone number that is typed as an integer.',
         type: 'string',
       },
     },
     {
       transform_int: {
         name: 'Transform Integer ',
-        description: 'Anonymizes an existing integer value.',
+        description: 'Transforms an existing integer value.',
         type: 'string',
       },
     },
     {
       transform_last_name: {
         name: 'Transform Last Name ',
-        description: 'Anonymizes an existing last name.',
+        description: 'Transforms an existing last name.',
         type: 'string',
       },
     },
@@ -550,14 +550,14 @@ export function handleTransformerMetadata(
       transform_phone: {
         name: 'Transform String Phone Number ',
         description:
-          'Anonymizes an existing phone number that is typed as a string.',
+          'Transforms an existing phone number that is typed as a string.',
         type: 'string',
       },
     },
     {
       transform_string: {
         name: 'Transform String',
-        description: 'Anonymizes an existing string value.',
+        description: 'Transforms an existing string value.',
         type: 'string',
       },
     },

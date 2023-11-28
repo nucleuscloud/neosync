@@ -18,7 +18,7 @@ func Test_GenerateIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 	res, err := TransformIntPhoneNumber(testValue, true)
 	assert.NoError(t, err)
 
-	numStr := strconv.FormatInt(res, 10)
+	numStr := strconv.FormatInt(*res, 10)
 	assert.Equal(t, int64(len(numStr)), transformer_utils.GetIntLength(testValue), "The length of the output phone number should be the same as the input phone number")
 
 }
@@ -28,7 +28,7 @@ func Test_GenerateIntPhoneNumberPreserveLengthFalse(t *testing.T) {
 	res, err := TransformIntPhoneNumber(testValue, false)
 	assert.NoError(t, err)
 
-	numStr := strconv.FormatInt(res, 10)
+	numStr := strconv.FormatInt(*res, 10)
 	assert.Equal(t, int64(len(numStr)), transformer_utils.GetIntLength(testValue), "The length of the output phone number should be the same as the input phone number")
 }
 
@@ -50,9 +50,34 @@ func Test_IntPhoneNumberTransformer(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	numStr := strconv.FormatInt(testValue, 10)
-	resStr := strconv.FormatInt(res.(int64), 10)
+	assert.NotNil(t, res, "The response shouldn't be nil.")
 
-	assert.Equal(t, len(resStr), len(numStr), "Generated phone number must be the same length as the input phone number")
-	assert.IsType(t, res, testValue, "The phone number should be of type int64")
+	resInt, ok := res.(*int64)
+	if !ok {
+		t.Errorf("Expected *int64, got %T", res)
+		return
+	}
+
+	numStr := strconv.FormatInt(testValue, 10)
+
+	if resInt != nil {
+		resStr := strconv.FormatInt(*resInt, 10)
+		assert.Equal(t, len(resStr), len(numStr), "Generated phone number must be the same length as the input phone number")
+		assert.IsType(t, *resInt, testValue, "The phone number should be of type int64")
+
+	} else {
+		t.Error("Pointer is nil, expected a valid int64 pointer")
+	}
+
+}
+
+func Test_TransformIntPhoneTransformerWithEmptyValue(t *testing.T) {
+
+	nilNum := 0
+	mapping := fmt.Sprintf(`root = transform_int_phone(value:%d,preserve_length:true)`, nilNum)
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the email transformer")
+
+	_, err = ex.Query(nil)
+	assert.NoError(t, err)
 }

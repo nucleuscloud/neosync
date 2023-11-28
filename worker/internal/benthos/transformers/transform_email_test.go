@@ -17,8 +17,8 @@ func Test_GenerateEmailPreserveLengthFalsePreserveDomainTrue(t *testing.T) {
 	res, err := TransformEmail(email, false, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email structure")
-	assert.Equal(t, "gmail.com", strings.Split(res, "@")[1])
+	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
+	assert.Equal(t, "gmail.com", strings.Split(*res, "@")[1])
 
 }
 
@@ -27,7 +27,7 @@ func Test_GenerateEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
 	res, err := TransformEmail(email, false, false)
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email structure")
+	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 
 }
 
@@ -36,7 +36,7 @@ func Test_GenerateEmailPreserveLengthTruePreserveDomainFalse(t *testing.T) {
 	res, err := TransformEmail(email, true, false)
 
 	assert.NoError(t, err)
-	assert.Equal(t, len(email), len(res), "The expected email should be have a valid email structure")
+	assert.Equal(t, len(email), len(*res), "The expected email should be have a valid email structure")
 
 }
 
@@ -85,7 +85,7 @@ func Test_GenerateEmailUsername(t *testing.T) {
 
 }
 
-func Test_EmailTransformerWithValue(t *testing.T) {
+func Test_TransformEmailTransformerWithValue(t *testing.T) {
 	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true)`, email)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
@@ -93,6 +93,30 @@ func Test_EmailTransformerWithValue(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Len(t, res.(string), len(email), "Generated email must be the same length as the input email")
-	assert.Equal(t, strings.Split(res.(string), "@")[1], "gmail.com", "The actual value should be have gmail.com as the domain")
+	assert.NotNil(t, res, "The response shouldn't be nil.")
+
+	resStr, ok := res.(*string)
+	if !ok {
+		t.Errorf("Expected *string, got %T", res)
+		return
+	}
+
+	if resStr != nil {
+		assert.Equal(t, len(*resStr), len(email), "Generated email must be the same length as the input email")
+		assert.Equal(t, strings.Split(*resStr, "@")[1], "gmail.com", "The actual value should be have gmail.com as the domain")
+	} else {
+		t.Error("Pointer is nil, expected a valid string pointer")
+	}
+}
+
+// the case where the input value is null
+func Test_TransformEmailTransformerWithEmptyValue(t *testing.T) {
+
+	nilEmail := ""
+	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true)`, nilEmail)
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the email transformer")
+
+	_, err = ex.Query(nil)
+	assert.NoError(t, err)
 }

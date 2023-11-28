@@ -148,8 +148,6 @@ func GenerateRandomStringWithLength(l int64) (string, error) {
 	return strings.ToLower(string(result)), nil
 }
 
-var tld = []string{"com", "org", "net", "edu", "gov", "app", "dev"}
-
 func ParseEmail(email string) ([]string, error) {
 
 	inputEmail, err := mail.ParseAddress(email)

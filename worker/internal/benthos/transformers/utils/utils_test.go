@@ -158,7 +158,7 @@ func Test_RandomStringGeneration(t *testing.T) {
 func Test_ParseEmail(t *testing.T) {
 	test := "evis@gmail.com"
 
-	val, err := parseEmail(test)
+	val, err := ParseEmail(test)
 
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"evis", "gmail.com"}, val, "Email should have a username and a domain name and tld as entries in the slice")
@@ -167,7 +167,7 @@ func Test_ParseEmail(t *testing.T) {
 func Test_ParseEmailError(t *testing.T) {
 	test := "ehiu.com"
 
-	_, err := parseEmail(test)
+	_, err := ParseEmail(test)
 	assert.Error(t, err, "Email doesn't have a valid email format")
 }
 

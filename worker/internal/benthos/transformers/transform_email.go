@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -13,18 +12,21 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewStringParam("value")).
+		Param(bloblang.NewAnyParam("value").Optional()). // this needs to be an AnyParam or else if it's null, benthos will throw an error expecting a type
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("preserve_domain"))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		value, err := args.GetString("value")
+		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
 		}
 
-		fmt.Println("email valueparam", value)
+		var value string
+		if valuePtr != nil {
+			value = *valuePtr
+		}
 
 		preserveLength, err := args.GetBool("preserve_length")
 		if err != nil {
@@ -50,48 +52,47 @@ func init() {
 
 }
 
-func TransformEmail(email string, preserveLength, preserveDomain bool) (string, error) {
+// return a string pointer so if the email field is empty then it returns a null value
+func TransformEmail(email string, preserveLength, preserveDomain bool) (*string, error) {
 
 	var returnValue string
 	var err error
 
-	fmt.Println("email value", email)
-
 	if email == "" {
-		return "", errors.New("email field cannot be blank")
+		return nil, nil
 	}
 
 	if !preserveLength && preserveDomain {
 
 		returnValue, err = TransformEmailPreserveDomain(email, true)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 	} else if preserveLength && !preserveDomain {
 
 		returnValue, err = TransformEmailPreserveLength(email, true)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 	} else if preserveLength && preserveDomain {
 
 		returnValue, err = TransformEmailPreserveDomainAndLength(email, true, true)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
 	} else {
 		e, err := GenerateRandomEmail()
 		if err != nil {
-			return "", nil
+			return nil, nil
 		}
 
 		returnValue = e
 	}
 
-	return returnValue, nil
+	return &returnValue, nil
 }
 
 // Generate a random email and preserve the input email's domain

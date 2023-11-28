@@ -317,8 +317,6 @@ async function createNewJob(
     }),
   });
 
-  console.log('body', body);
-
   function toJobSourceOptions(
     values: FormValues,
     connection?: Connection

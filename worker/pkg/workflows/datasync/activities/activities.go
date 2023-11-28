@@ -373,8 +373,6 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		"benthos", "true",
 	))
 
-	fmt.Println("benthos config", req.BenthosConfig)
-
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -382,6 +380,7 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 
 	stream, err := streambldr.Build()
 	if err != nil {
+		return nil, err
 	}
 	benthosStream = stream
 

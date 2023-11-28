@@ -16,8 +16,8 @@ func Test_TransformLastNamePreserveLengthTrue(t *testing.T) {
 	res, err := TransformLastName(name, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedLength, len(res), "The last name output should be the same length as the input")
-	assert.IsType(t, "", res, "The last name should be a string")
+	assert.Equal(t, expectedLength, len(*res), "The last name output should be the same length as the input")
+	assert.IsType(t, "", *res, "The last name should be a string")
 }
 
 func Test_TransformLastNamePreserveLengthTrueOOBValue(t *testing.T) {
@@ -27,8 +27,8 @@ func Test_TransformLastNamePreserveLengthTrueOOBValue(t *testing.T) {
 	res, err := TransformLastName(name, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, 5, len(res), "The first name output should be the same length as the input")
-	assert.IsType(t, "", res, "The first name should be a string")
+	assert.Equal(t, 5, len(*res), "The first name output should be the same length as the input")
+	assert.IsType(t, "", *res, "The first name should be a string")
 }
 
 func Test_TransformLastNamePreserveLengthFalse(t *testing.T) {
@@ -38,7 +38,7 @@ func Test_TransformLastNamePreserveLengthFalse(t *testing.T) {
 	res, err := TransformLastName(name, false)
 
 	assert.NoError(t, err)
-	assert.IsType(t, "", res, "The last name should be a string")
+	assert.IsType(t, "", *res, "The last name should be a string")
 }
 
 func Test_GenerateLastNamePreserveLengthTrue(t *testing.T) {
@@ -62,5 +62,29 @@ func Test_LastNameTransformer(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Len(t, res.(string), len(testVal), "Generated last name must be as long as input last name")
+	assert.NotNil(t, res, "The response shouldn't be nil.")
+
+	resStr, ok := res.(*string)
+	if !ok {
+		t.Errorf("Expected *string, got %T", res)
+		return
+	}
+
+	if resStr != nil {
+		assert.Equal(t, len(*resStr), len(testVal), "Generated last name must be as long as input last name")
+	} else {
+		t.Error("Pointer is nil, expected a valid string pointer")
+	}
+
+}
+
+func Test_TransformLastNameTransformerWithEmptyValue(t *testing.T) {
+
+	nilName := ""
+	mapping := fmt.Sprintf(`root = transform_last_name(value:%q,preserve_length:true)`, nilName)
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the email transformer")
+
+	_, err = ex.Query(nil)
+	assert.NoError(t, err)
 }
