@@ -25,11 +25,12 @@ jobs:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
 
-      - name: sync
+      - name: dependabot sync
+        if: github.actor == 'dependabot[bot]'
         run: go work sync
 
       - name: auto-commit sync changes
-        # if: github.actor == 'dependabot[bot]'
+        if: github.actor == 'dependabot[bot]'
         run: |
           AGAINST=HEAD
           RESULT=$(git diff --name-only $AGAINST | wc -l)
@@ -41,6 +42,9 @@ jobs:
             git commit -m "Updates go.mod and go.sum files after running go work sync"
             git push
           fi
+
+      - name: sync
+        run: go work sync
 
       - name: check
         run: |
