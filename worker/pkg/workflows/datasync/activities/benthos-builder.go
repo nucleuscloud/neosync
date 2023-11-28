@@ -66,6 +66,17 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	groupedMappings := groupMappingsByTable(job.Mappings)
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		// get constraints from FK connection id (if any)
+		// build benthos config based on constraint ordering
+		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
+		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(groupedMappings, sourceTableOpts)
+		if err != nil {
+			return nil, err
+		}
+		responses = append(responses, sourceResponses...)
+
+		// compute dependsOn based on FK connection ID
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
 		if err != nil {
@@ -80,12 +91,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		sqlOpts := jobSourceConfig.Postgres
-		var sourceTableOpts map[string]*sourceTableOptions
+		var sourceTableOpts map[string]*sqlSourceTableOptions
 		if sqlOpts != nil {
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := buildBenthosSourceConfigReponses(groupedMappings, dsn, "postgres", sourceTableOpts)
+		sourceResponses, err := buildBenthosSqlSourceConfigReponses(groupedMappings, dsn, "postgres", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -144,12 +155,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 
 		sqlOpts := jobSourceConfig.Mysql
-		var sourceTableOpts map[string]*sourceTableOptions
+		var sourceTableOpts map[string]*sqlSourceTableOptions
 		if sqlOpts != nil {
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := buildBenthosSourceConfigReponses(groupedMappings, dsn, "mysql", sourceTableOpts)
+		sourceResponses, err := buildBenthosSqlSourceConfigReponses(groupedMappings, dsn, "mysql", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -356,6 +367,72 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+type generateSourceTableOptions struct {
+	Count int
+}
+
+func buildBenthosGenerateSourceConfigResponses(
+	mappings []*TableMapping,
+	sourceTableOpts map[string]*generateSourceTableOptions,
+) ([]*BenthosConfigResponse, error) {
+	responses := []*BenthosConfigResponse{}
+
+	for _, tableMapping := range mappings {
+		if areAllColsNull(tableMapping.Mappings) {
+			// skiping table as no columns are mapped
+			continue
+		}
+
+		var count = 0
+		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+		if tableOpt != nil {
+			count = tableOpt.Count
+		}
+
+		mapping, err := buildProcessorMutation(tableMapping.Mappings)
+		if err != nil {
+			return nil, err
+		}
+		if mapping == "" {
+			return nil, errors.New("unable to generate config mapping for table") // workshop this more
+		}
+
+		bc := &neosync_benthos.BenthosConfig{
+			StreamConfig: neosync_benthos.StreamConfig{
+				Input: &neosync_benthos.InputConfig{
+					Inputs: neosync_benthos.Inputs{
+						Generate: &neosync_benthos.Generate{
+							Mapping:  mapping,
+							Interval: "",
+							Count:    count,
+						},
+					},
+				},
+				Pipeline: &neosync_benthos.PipelineConfig{
+					Threads:    -1,
+					Processors: []neosync_benthos.ProcessorConfig{},
+				},
+				Output: &neosync_benthos.OutputConfig{
+					Outputs: neosync_benthos.Outputs{
+						Broker: &neosync_benthos.OutputBrokerConfig{
+							Pattern: "fan_out",
+							Outputs: []neosync_benthos.Outputs{},
+						},
+					},
+				},
+			},
+		}
+
+		responses = append(responses, &BenthosConfigResponse{
+			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
+			Config:    bc,
+			DependsOn: []string{},
+		})
+	}
+
+	return responses, nil
 }
 
 func (b *benthosBuilder) getJobById(
