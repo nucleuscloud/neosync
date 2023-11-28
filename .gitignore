@@ -21,3 +21,4 @@ go.work.sum
 .data
 
 /package-lock.json
+/package.json
