@@ -43,6 +43,9 @@ type BenthosConfigResponse struct {
 	Name      string
 	DependsOn []string
 	Config    *neosync_benthos.BenthosConfig
+
+	tableSchema string
+	tableName   string
 }
 
 type Activities struct{}
@@ -103,15 +106,15 @@ func (a *Activities) GenerateBenthosConfigs(
 	return bbuilder.GenerateBenthosConfigs(ctx, req, logger)
 }
 
-type sourceTableOptions struct {
+type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
-func buildBenthosSourceConfigReponses(
+func buildBenthosSqlSourceConfigReponses(
 	mappings []*TableMapping,
 	dsn string,
 	driver string,
-	sourceTableOpts map[string]*sourceTableOptions,
+	sourceTableOpts map[string]*sqlSourceTableOptions,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
@@ -170,6 +173,9 @@ func buildBenthosSourceConfigReponses(
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
 			DependsOn: []string{},
+
+			tableSchema: tableMapping.Schema,
+			tableName:   tableMapping.Table,
 		})
 	}
 
@@ -392,17 +398,36 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 	return &SyncResponse{}, nil
 }
 
-func groupPostgresSourceOptionsByTable(
-	schemaOptions []*mgmtv1alpha1.PostgresSourceSchemaOption,
-) map[string]*sourceTableOptions {
-	groupedMappings := map[string]*sourceTableOptions{}
+func groupGenerateSourceOptionsByTable(
+	schemaOptions []*mgmtv1alpha1.GenerateSourceSchemaOption,
+) map[string]*generateSourceTableOptions {
+	groupedMappings := map[string]*generateSourceTableOptions{}
 
 	for idx := range schemaOptions {
 		schemaOpt := schemaOptions[idx]
 		for tidx := range schemaOpt.Tables {
 			tableOpt := schemaOpt.Tables[tidx]
 			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
-			groupedMappings[key] = &sourceTableOptions{
+			groupedMappings[key] = &generateSourceTableOptions{
+				Count: int(tableOpt.RowCount), // todo: probably need to update rowcount int64 to int32
+			}
+		}
+	}
+
+	return groupedMappings
+}
+
+func groupPostgresSourceOptionsByTable(
+	schemaOptions []*mgmtv1alpha1.PostgresSourceSchemaOption,
+) map[string]*sqlSourceTableOptions {
+	groupedMappings := map[string]*sqlSourceTableOptions{}
+
+	for idx := range schemaOptions {
+		schemaOpt := schemaOptions[idx]
+		for tidx := range schemaOpt.Tables {
+			tableOpt := schemaOpt.Tables[tidx]
+			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
+			groupedMappings[key] = &sqlSourceTableOptions{
 				WhereClause: tableOpt.WhereClause,
 			}
 		}
@@ -413,15 +438,15 @@ func groupPostgresSourceOptionsByTable(
 
 func groupMysqlSourceOptionsByTable(
 	schemaOptions []*mgmtv1alpha1.MysqlSourceSchemaOption,
-) map[string]*sourceTableOptions {
-	groupedMappings := map[string]*sourceTableOptions{}
+) map[string]*sqlSourceTableOptions {
+	groupedMappings := map[string]*sqlSourceTableOptions{}
 
 	for idx := range schemaOptions {
 		schemaOpt := schemaOptions[idx]
 		for tidx := range schemaOpt.Tables {
 			tableOpt := schemaOpt.Tables[tidx]
 			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
-			groupedMappings[key] = &sourceTableOptions{
+			groupedMappings[key] = &sqlSourceTableOptions{
 				WhereClause: tableOpt.WhereClause,
 			}
 		}
@@ -626,7 +651,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "generate_utctimestamp()", nil
 	case "generate_uuid":
 		ih := col.Transformer.Config.GetGenerateUuidConfig().IncludeHyphens
-		return fmt.Sprintf("generate_uuid(include_hyphen%t)", ih), nil
+		return fmt.Sprintf("generate_uuid(include_hyphens:%t)", ih), nil
 	case "generate_zipcode":
 		return "generate_zipcode()", nil
 	case "transform_e164_phone":

@@ -410,21 +410,9 @@ export class GenerateSourceOptions extends Message<GenerateSourceOptions> {
   schemas: GenerateSourceSchemaOption[] = [];
 
   /**
-   * @generated from oneof mgmt.v1alpha1.GenerateSourceOptions.foreign_key_constraint_config
+   * @generated from field: optional string fk_source_connection_id = 3;
    */
-  foreignKeyConstraintConfig: {
-    /**
-     * @generated from field: bool ignore_foreign_keys = 2;
-     */
-    value: boolean;
-    case: "ignoreForeignKeys";
-  } | {
-    /**
-     * @generated from field: string fk_source_connection_id = 3;
-     */
-    value: string;
-    case: "fkSourceConnectionId";
-  } | { case: undefined; value?: undefined } = { case: undefined };
+  fkSourceConnectionId?: string;
 
   constructor(data?: PartialMessage<GenerateSourceOptions>) {
     super();
@@ -435,8 +423,7 @@ export class GenerateSourceOptions extends Message<GenerateSourceOptions> {
   static readonly typeName = "mgmt.v1alpha1.GenerateSourceOptions";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "schemas", kind: "message", T: GenerateSourceSchemaOption, repeated: true },
-    { no: 2, name: "ignore_foreign_keys", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "foreign_key_constraint_config" },
-    { no: 3, name: "fk_source_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "foreign_key_constraint_config" },
+    { no: 3, name: "fk_source_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateSourceOptions {
