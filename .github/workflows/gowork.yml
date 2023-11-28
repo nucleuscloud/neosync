@@ -26,7 +26,7 @@ jobs:
         run: go work sync
 
       - name: auto-commit sync changes
-        if: github.actor == 'dependabot[bot]'
+        # if: github.actor == 'dependabot[bot]'
         run: |
           AGAINST=HEAD
           RESULT=$(git diff --name-only $AGAINST | wc -l)
