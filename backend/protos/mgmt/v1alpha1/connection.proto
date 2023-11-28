@@ -164,6 +164,11 @@ message CheckSqlQueryResponse {
   optional string erorr_message = 2;
 }
 
+message GetConnectionDataStreamRequest {
+  string source_connection_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetConnectionDataStreamResponse {}
+
 service ConnectionService {
   rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
   rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {}
@@ -175,4 +180,7 @@ service ConnectionService {
   rpc CheckConnectionConfig(CheckConnectionConfigRequest) returns (CheckConnectionConfigResponse) {}
   rpc GetConnectionSchema(GetConnectionSchemaRequest) returns (GetConnectionSchemaResponse) {}
   rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}
+
+  rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns(stream GetConnectionDataStreamResponse) {}
+
 }

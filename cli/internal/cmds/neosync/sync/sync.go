@@ -51,3 +51,10 @@ func sync(ctx context.Context, apiKey *string) error {
 	fmt.Println("UserId:", resp.Msg.UserId) // nolint
 	return nil
 }
+
+// how does this work??
+// trigger one off temporal job
+// should it be a schedule or not?
+// does it show up in ui?
+// passthrough mappings
+// start with postgres

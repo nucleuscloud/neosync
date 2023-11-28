@@ -435,8 +435,6 @@ service JobService {
   rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse) {}
   rpc GetJobStatuses(GetJobStatusesRequest) returns (GetJobStatusesResponse) {}
   
-  rpc SyncJob(SyncJobRequest) return (stream SyncJobResponse) {}
-
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}

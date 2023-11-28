@@ -281,6 +281,44 @@ func (s *Service) CheckSqlQuery(
 	}), nil
 }
 
+func (s *Service) GetConnectionDataStream(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest],
+	stream *connect.ServerStream[mgmtv1alpha1.GetConnectionDataStreamRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionDataStreamResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("connectionId", req.Msg.SourceConnectionId)
+	sourceConn, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.SourceConnectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	accountUuid, err := s.verifyUserInAccount(ctx, sourceConn.Msg.Connection.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	connCfg := sourceConn.Msg.Connection.ConnectionConfig
+	connDetails, err := s.getConnectionDetails(connCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := s.sqlConnector.Open(connDetails.ConnectionDriver, connDetails.ConnectionString)
+	if err != nil {
+		logger.Error("unable to connect", err)
+		return nil, err
+	}
+	defer func() {
+		if err := conn.Close(); err != nil {
+			logger.Error(fmt.Errorf("failed to close sql connection: %w", err).Error())
+		}
+	}()
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionDataStreamResponse{}), nil
+}
+
 type connectionDetails struct {
 	ConnectionString string
 	ConnectionDriver string
