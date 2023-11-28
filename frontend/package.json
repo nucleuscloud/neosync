@@ -68,7 +68,7 @@
     "@types/react-dom": "18.2.17",
     "@types/react-window": "^1.8.8",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
-    "@typescript-eslint/parser": "^6.12.0",
+    "@typescript-eslint/parser": "^6.13.0",
     "autoprefixer": "^10.4.16",
     "eslint": "8.53.0",
     "eslint-config-next": "14.0.3",
