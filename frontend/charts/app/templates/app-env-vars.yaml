@@ -44,7 +44,7 @@ stringData:
     {{- end }}
 
     {{ if .Values.nextPublic.appBaseUrl }}
-    NEXT_PUBLIC_BASE_URL: {{ .Values.nextPublic.appBaseUrl }}
+    NEXT_PUBLIC_APP_BASE_URL: {{ .Values.nextPublic.appBaseUrl }}
     {{- end }}
 
     AUTH_ENABLED: {{ .Values.auth.enabled | default "false" | quote }}
