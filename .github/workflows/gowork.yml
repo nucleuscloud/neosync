@@ -25,7 +25,7 @@ jobs:
           RESULT=$(git diff --name-only $AGAINST | wc -l)
 
           if [ $RESULT -eq 0 ]; then
-            echo "There were changes after running go work sync!. Please run this locally and commit your changes."
+            echo "::error title=Go Mod Out of Sync::Go Work has identified that at least one go mod is out of sync. Please run go work sync locally and commit those changes."
             exit 0
           else
             exit 1
