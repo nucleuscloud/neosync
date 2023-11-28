@@ -405,43 +405,90 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 				}
 
-				pool := b.mysqlpool[resp.Config.Input.SqlSelect.Dsn]
-				// todo: make this more efficient to reduce amount of times we have to connect to the source database
-				schema, table := splitTableKey(resp.Config.Input.SqlSelect.Table)
-				initStmt, err := b.getInitStatementFromMysql(
-					ctx,
-					pool,
-					schema,
-					table,
-					&initStatementOpts{
-						TruncateBeforeInsert: truncateBeforeInsert,
-						InitSchema:           initSchema,
-					},
-				)
-				if err != nil {
-					return nil, err
-				}
-				logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
-				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver: "mysql",
-						Dsn:    dsn,
-
-						Table:         resp.Config.Input.SqlSelect.Table,
-						Columns:       resp.Config.Input.SqlSelect.Columns,
-						ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
-						InitStatement: initStmt,
-
-						ConnMaxIdle: 2,
-						ConnMaxOpen: 2,
-
-						Batching: &neosync_benthos.Batching{
-							Period: "1s",
-							// max allowed by postgres in a single batch
-							Count: computeMaxPgBatchCount(len(resp.Config.Input.SqlSelect.Columns)),
+				if resp.Config.Input.SqlSelect != nil {
+					pool := b.mysqlpool[resp.Config.Input.SqlSelect.Dsn]
+					// todo: make this more efficient to reduce amount of times we have to connect to the source database
+					schema, table := splitTableKey(resp.Config.Input.SqlSelect.Table)
+					initStmt, err := b.getInitStatementFromMysql(
+						ctx,
+						pool,
+						schema,
+						table,
+						&initStatementOpts{
+							TruncateBeforeInsert: truncateBeforeInsert,
+							InitSchema:           initSchema,
 						},
-					},
-				})
+					)
+					if err != nil {
+						return nil, err
+					}
+					logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
+					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+						SqlInsert: &neosync_benthos.SqlInsert{
+							Driver: "mysql",
+							Dsn:    dsn,
+
+							Table:         resp.Config.Input.SqlSelect.Table,
+							Columns:       resp.Config.Input.SqlSelect.Columns,
+							ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+							InitStatement: initStmt,
+
+							ConnMaxIdle: 2,
+							ConnMaxOpen: 2,
+
+							Batching: &neosync_benthos.Batching{
+								Period: "1s",
+								// max allowed by postgres in a single batch
+								Count: computeMaxPgBatchCount(len(resp.Config.Input.SqlSelect.Columns)),
+							},
+						},
+					})
+				} else if resp.Config.Input.Generate != nil {
+					tableKey := neosync_benthos.BuildBenthosTable(resp.tableSchema, resp.tableName)
+					tm := groupedTableMapping[tableKey]
+					if tm == nil {
+						return nil, errors.New("unable to find table mapping for key")
+					}
+
+					cols := buildPlainColumns(tm.Mappings)
+					initStmt, err := b.getInitStatementFromMysql(
+						ctx,
+						nil,
+						resp.tableSchema,
+						resp.tableName,
+						&initStatementOpts{
+							TruncateBeforeInsert: truncateBeforeInsert,
+							TruncateCascade:      false,
+							InitSchema:           false, // todo
+						},
+					)
+					if err != nil {
+						return nil, err
+					}
+
+					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+						SqlInsert: &neosync_benthos.SqlInsert{
+							Driver: "mysql",
+							Dsn:    dsn,
+
+							Table:         tableKey,
+							Columns:       cols,
+							ArgsMapping:   buildPlainInsertArgs(cols),
+							InitStatement: initStmt,
+
+							ConnMaxIdle: 2,
+							ConnMaxOpen: 2,
+
+							Batching: &neosync_benthos.Batching{
+								Period: "1s",
+								// max allowed by postgres in a single batch
+								Count: computeMaxPgBatchCount(len(cols)),
+							},
+						},
+					})
+				} else {
+					return nil, errors.New("unable to build destination connection due to unsupported source connection")
+				}
 
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 				s3pathpieces := []string{}
