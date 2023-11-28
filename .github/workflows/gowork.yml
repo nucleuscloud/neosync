@@ -45,8 +45,6 @@ jobs:
             git add */go.mod */go.sum
             git commit -m "Updates go.mod and go.sum files after running go work sync"
             git push
-          else
-            echo "Found no changes after running go work sync"
           fi
 
       - name: sync
