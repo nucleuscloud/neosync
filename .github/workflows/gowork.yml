@@ -31,6 +31,9 @@ jobs:
           AGAINST=HEAD
           RESULT=$(git diff --name-only $AGAINST | wc -l)
           if [ $RESULT -eq 1 ]; then
+            git config --global user.name 'dependabot'
+            git config --global user.email 'dependabot@users.noreply.github.com'
+
             git add */go.mod */go.sum
             git commit -m "Updates go.mod and go.sum files after running go work sync"
             git push
