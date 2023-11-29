@@ -124,6 +124,8 @@ message TransformerConfig {
     TransformString transform_string_config = 35;
     Passthrough passthrough_config = 36;
     Null nullconfig = 37;
+
+    CustomTransformerConfig custom_transformer_config = 38;
   }
 }
 
@@ -243,6 +245,10 @@ message TransformString {
 message Passthrough {}
 
 message Null {}
+
+message CustomTransformerConfig {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
