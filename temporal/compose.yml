@@ -76,7 +76,7 @@ services:
     networks:
       - temporal-network
     ports:
-      - 8080:8080
+      - 8233:8080
 networks:
   temporal-network:
     driver: bridge

@@ -10,7 +10,7 @@ services:
     environment:
       - NUCLEUS_ENV=dev
       - NEXTAUTH_SECRET=foo
-      - NEOSYNC_API_BASE_URL=http://api:8082
+      - NEOSYNC_API_BASE_URL=http://api:8080
       - NEXT_PUBLIC_APP_BASE_URL=http://localhost:3000
 
       - AUTH_ENABLED=false
@@ -53,11 +53,11 @@ services:
       context: ./backend
       dockerfile: ./dev/build/Dockerfile.dev
     ports:
-      - 8082:8082
+      - 8080:8080
     command: serve connect
     environment:
       - HOST=0.0.0.0
-      - PORT=8082
+      - PORT=8080
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
       - DB_AUTO_MIGRATE=true
@@ -98,7 +98,7 @@ services:
       - TEMPORAL_URL=temporal:7233
       - TEMPORAL_NAMESPACE=default
       - TEMPORAL_TASK_QUEUE=sync-job
-      - NEOSYNC_URL=http://api:8082
+      - NEOSYNC_URL=http://api:8080
     networks:
       - neosync-network
       - temporal-network
