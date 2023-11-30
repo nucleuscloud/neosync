@@ -434,7 +434,7 @@ service JobService {
   rpc GetJobNextRuns(GetJobNextRunsRequest) returns (GetJobNextRunsResponse) {}
   rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse) {}
   rpc GetJobStatuses(GetJobStatusesRequest) returns (GetJobStatusesResponse) {}
-  
+
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}

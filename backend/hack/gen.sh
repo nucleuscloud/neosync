@@ -11,10 +11,10 @@ BUF_VERSION=$(cat BUF_VERSION)
 SQLC_VERSION=$(cat SQLC_VERSION)
 
 # buf fmt
-docker run --rm -i \
-  --volume "./protos:/workspace" \
-  --workdir "/workspace" \
-  "bufbuild/buf:${BUF_VERSION}" format -d | patch --quiet
+# docker run --rm -i \
+#   --volume "./protos:/workspace" \
+#   --workdir "/workspace" \
+#   "bufbuild/buf:${BUF_VERSION}" format -d | patch --quiet
 
 # buf generate
 docker run --rm -i \

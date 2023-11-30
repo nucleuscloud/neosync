@@ -3,6 +3,7 @@ syntax = "proto3";
 package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
+// import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 
 message GetConnectionsRequest {
@@ -166,8 +167,12 @@ message CheckSqlQueryResponse {
 
 message GetConnectionDataStreamRequest {
   string source_connection_id = 1 [(buf.validate.field).string.uuid = true];
+  string schema = 2;
+  string table = 3;
 }
-message GetConnectionDataStreamResponse {}
+message GetConnectionDataStreamResponse {
+  repeated bytes data = 1;
+}
 
 service ConnectionService {
   rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
@@ -181,6 +186,5 @@ service ConnectionService {
   rpc GetConnectionSchema(GetConnectionSchemaRequest) returns (GetConnectionSchemaResponse) {}
   rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}
 
-  rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns(stream GetConnectionDataStreamResponse) {}
-
+  rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns (stream GetConnectionDataStreamResponse) {}
 }

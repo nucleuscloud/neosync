@@ -32,29 +32,53 @@ func NewCmd() *cobra.Command {
 }
 
 func sync(ctx context.Context, apiKey *string) error {
+	fmt.Println("CLI")
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
 		return err
 	}
-	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
+	// userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
+	// 	http.DefaultClient,
+	// 	serverconfig.GetApiBaseUrl(),
+	// 	connect.WithInterceptors(
+	// 		auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
+	// 	),
+	// )
+	// resp, err := userclient.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	// if err != nil {
+	// 	return err
+	// }
+
+	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(
 			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
 		),
 	)
-	resp, err := userclient.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	fmt.Println("connection client")
+
+	stream, err := connectionclient.GetConnectionDataStream(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionDataStreamRequest{
+		SourceConnectionId: "3b4db2af-ef33-4e26-b0b9-f6df7518e78b",
+		Schema:             "public",
+		Table:              "locations",
+	}))
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
-	// todo: layer in account data and access/id token information for even more goodness
-	fmt.Println("UserId:", resp.Msg.UserId) // nolint
-	return nil
-}
+	fmt.Println("get data stream")
 
-// how does this work??
-// trigger one off temporal job
-// should it be a schedule or not?
-// does it show up in ui?
-// passthrough mappings
-// start with postgres
+	for {
+		response := stream.Receive()
+		if response {
+			fmt.Println(stream.Msg().Data)
+		} else {
+			return nil
+		}
+
+		// response
+
+	}
+
+}

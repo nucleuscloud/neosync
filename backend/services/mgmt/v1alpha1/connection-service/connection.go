@@ -1,8 +1,10 @@
 package v1alpha1_connectionservice
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -284,31 +286,48 @@ func (s *Service) CheckSqlQuery(
 func (s *Service) GetConnectionDataStream(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest],
-	stream *connect.ServerStream[mgmtv1alpha1.GetConnectionDataStreamRequest],
-) (*connect.Response[mgmtv1alpha1.GetConnectionDataStreamResponse], error) {
+	stream *connect.ServerStream[mgmtv1alpha1.GetConnectionDataStreamResponse],
+) error {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("connectionId", req.Msg.SourceConnectionId)
 	sourceConn, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.SourceConnectionId,
 	}))
 	if err != nil {
-		return nil, err
+		return err
 	}
-	accountUuid, err := s.verifyUserInAccount(ctx, sourceConn.Msg.Connection.AccountId)
+	_, err = s.verifyUserInAccount(ctx, sourceConn.Msg.Connection.AccountId)
 	if err != nil {
-		return nil, err
+		return err
 	}
+
+	// schemaResp, err := s.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
+	// 	Id: req.Msg.SourceConnectionId,
+	// }))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// schemas := schemaResp.Msg.GetSchemas()
+	// if len(schemas) == 0 {
+	// 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionDataStreamResponse{}), nil
+	// }
+
+	// tables := map[string]string{}
+	// for _, col := range schemas {
+	// 	tableName := fmt.Sprintf("%s.%s", col.Schema, col.Table)
+	// 	tables[tableName] = tableName
+	// }
 
 	connCfg := sourceConn.Msg.Connection.ConnectionConfig
 	connDetails, err := s.getConnectionDetails(connCfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	conn, err := s.sqlConnector.Open(connDetails.ConnectionDriver, connDetails.ConnectionString)
 	if err != nil {
 		logger.Error("unable to connect", err)
-		return nil, err
+		return err
 	}
 	defer func() {
 		if err := conn.Close(); err != nil {
@@ -316,7 +335,43 @@ func (s *Service) GetConnectionDataStream(
 		}
 	}()
 
-	return connect.NewResponse(&mgmtv1alpha1.GetConnectionDataStreamResponse{}), nil
+	query := fmt.Sprintf("select * from %s.%s;", req.Msg.Schema, req.Msg.Table)
+	logger.Info(query)
+	rows, err := conn.QueryContext(ctx, query)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return err
+	}
+
+	columns, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+	c, _ := json.MarshalIndent(columns, "", " ")
+	if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Data: string(c)}); err != nil {
+		return err
+	}
+
+	row := make([][]byte, len(columns))
+	rowPtr := make([]any, len(columns))
+	for i := range row {
+		rowPtr[i] = &row[i]
+	}
+	for rows.Next() {
+		if err := rows.Scan(rowPtr...); err != nil {
+			return err
+		}
+
+		sep := []byte("\t")
+
+		x := bytes.Join(row, sep)
+		fmt.Printf("\n\n  %s \n\n", string(x))
+
+		if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Data: string(x)}); err != nil {
+			return err
+		}
+	}
+	return nil
+
 }
 
 type connectionDetails struct {
