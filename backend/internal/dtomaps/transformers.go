@@ -9,14 +9,15 @@ import (
 
 func ToCustomTransformerDto(
 	input *db_queries.NeosyncApiTransformer,
-) *mgmtv1alpha1.CustomTransformer {
-	return &mgmtv1alpha1.CustomTransformer{
+) *mgmtv1alpha1.Transformer {
+	return &mgmtv1alpha1.Transformer{
 		Id:          nucleusdb.UUIDString(input.ID),
 		Name:        input.Name,
-		Type:        input.Type,
-		Config:      input.TransformerConfig.ToTransformerConfigDto(input.TransformerConfig),
 		Description: input.Description,
+		Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_CUSTOM,
+		DataType:    input.Type,
 		Source:      input.Source,
+		Config:      input.TransformerConfig.ToTransformerConfigDto(input.TransformerConfig),
 		CreatedAt:   timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:   timestamppb.New(input.UpdatedAt.Time),
 		AccountId:   nucleusdb.UUIDString(input.AccountID),

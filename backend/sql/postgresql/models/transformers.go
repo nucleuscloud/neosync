@@ -5,7 +5,7 @@ import (
 )
 
 type Transformer struct {
-	Value  string              `json:"value"`
+	Name   string              `json:"name"`
 	Config *TransformerConfigs `json:"config,omitempty"`
 }
 
@@ -174,7 +174,7 @@ type CustomTransformerConfig struct {
 // from API -> DB
 func (t *Transformer) FromTransformerDto(tr *mgmtv1alpha1.Transformer) error {
 
-	t.Value = tr.Value
+	t.Name = tr.Name
 
 	config := &TransformerConfigs{}
 
@@ -325,7 +325,7 @@ func (t *Transformer) ToTransformerDto() *mgmtv1alpha1.Transformer {
 	config := &TransformerConfigs{}
 
 	return &mgmtv1alpha1.Transformer{
-		Value:  t.Value,
+		Name:   t.Name,
 		Config: config.ToTransformerConfigDto(t.Config),
 	}
 }
