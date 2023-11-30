@@ -356,6 +356,8 @@ async function createNewJob(
     }
   }
 
+  console.log('the boyd', body);
+
   const res = await fetch(`/api/jobs`, {
     method: 'POST',
     headers: {
@@ -367,5 +369,6 @@ async function createNewJob(
     const body = await res.json();
     throw new Error(body.message);
   }
+
   return CreateJobResponse.fromJson(await res.json());
 }

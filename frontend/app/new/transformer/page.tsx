@@ -1,6 +1,7 @@
 'use client';
 
 import { handleTransformerMetadata } from '@/app/transformers/EditTransformerOptions';
+import FormError from '@/components/FormError';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -37,7 +38,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { handleCustomTransformerForm } from './CustomTransformerForms/HandleCustomTransformersForm';
 import {
   CREATE_CUSTOM_TRANSFORMER_SCHEMA,
@@ -164,18 +165,28 @@ export default function NewTransformer(): ReactElement {
           />
           {base.value && (
             <div>
-              <FormField
+              <Controller
                 control={form.control}
                 name="name"
-                render={({ field }) => (
+                render={({ field: { onChange, ...field } }) => (
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormDescription>
                       The unique name of the transformer.
                     </FormDescription>
                     <FormControl>
-                      <Input placeholder="Transformer Name" {...field} />
+                      <Input
+                        placeholder="Transformer Name"
+                        {...field}
+                        onChange={async ({ target: { value } }) => {
+                          onChange(value);
+                          await form.trigger('name');
+                        }}
+                      />
                     </FormControl>
+                    <FormError
+                      errorMessage={form.formState.errors.name?.message ?? ''}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

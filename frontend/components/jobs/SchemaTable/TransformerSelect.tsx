@@ -19,8 +19,8 @@ import { ReactElement, useState } from 'react';
 
 interface Props {
   transformers: CustomTransformer[];
-  value: string;
-  onSelect: (value: string) => void;
+  value: CustomTransformer;
+  onSelect: (value: CustomTransformer) => void;
   placeholder: string;
   defaultValue?: string;
 }
@@ -40,6 +40,8 @@ export default function TransformerSelect(props: Props): ReactElement {
     }
   });
 
+  console.log('system', value);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -50,7 +52,9 @@ export default function TransformerSelect(props: Props): ReactElement {
           className="justify-between w-[175px]"
         >
           <div className="whitespace-nowrap truncate w-[175px]">
-            {toTitleCase(value) ? toTitleCase(value) : 'Select a transformer'}
+            {toTitleCase(value.name)
+              ? toTitleCase(value.name)
+              : 'Select a transformer'}
           </div>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -69,7 +73,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                 <CommandItem
                   key={`${t?.name}-${index}`}
                   onSelect={(currentValue) => {
-                    onSelect(currentValue);
+                    onSelect(FindTransformerByName(currentValue, transformers));
                     setOpen(false);
                   }}
                   value={t?.name}
@@ -79,7 +83,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                     <CheckIcon
                       className={cn(
                         'mr-2 h-4 w-4',
-                        value == t?.name ? 'opacity-100' : 'opacity-0'
+                        value.name == t?.name ? 'opacity-100' : 'opacity-0'
                       )}
                     />
                     {t?.name}
@@ -93,7 +97,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                 <CommandItem
                   key={`${t?.name}s-${index}`}
                   onSelect={(currentValue) => {
-                    onSelect(currentValue);
+                    onSelect(FindTransformerByName(currentValue, transformers));
                     setOpen(false);
                   }}
                   value={t?.name}
@@ -103,7 +107,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                     <CheckIcon
                       className={cn(
                         'mr-2 h-4 w-4',
-                        value == t?.name ? 'opacity-100' : 'opacity-0'
+                        value.name == t?.name ? 'opacity-100' : 'opacity-0'
                       )}
                     />
                     {t?.name}
@@ -116,5 +120,15 @@ export default function TransformerSelect(props: Props): ReactElement {
         </Command>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function FindTransformerByName(
+  name: string,
+  transformers: CustomTransformer[]
+): CustomTransformer {
+  return (
+    transformers?.find((item) => item.name.toLowerCase() == name) ??
+    new CustomTransformer()
   );
 }

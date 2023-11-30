@@ -48,6 +48,7 @@ export default function GenerateCardNumberForm(props: Props): ReactElement {
       <FormField
         name={`mappings.${index}.transformer.config.config.value.validLuhn`}
         defaultValue={vl}
+        disabled={transformer.id ? true : false} //disable if a custom transformer; custom transformers have an ID field since they're stoerd in the db
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">

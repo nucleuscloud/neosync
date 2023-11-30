@@ -28,7 +28,7 @@ import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 interface Props {
   currentTransformer: CustomTransformer | undefined;
@@ -59,6 +59,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
         },
       },
     },
+    context: { name: currentTransformer?.name },
   });
 
   const router = useRouter();
@@ -116,10 +117,10 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
           )}
         />
         <div>
-          <FormField
+          <Controller
             control={form.control}
             name="name"
-            render={({ field }) => (
+            render={({ field: { onChange, ...field } }) => (
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormDescription>
@@ -129,7 +130,10 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
                   <Input
                     placeholder="Transformer Name"
                     {...field}
-                    className="w-[1000px]"
+                    onChange={async ({ target: { value } }) => {
+                      onChange(value);
+                      await form.trigger('name');
+                    }}
                   />
                 </FormControl>
                 <FormMessage />

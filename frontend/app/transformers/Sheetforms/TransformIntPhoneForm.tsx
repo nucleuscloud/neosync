@@ -56,7 +56,11 @@ export default function TransformIntPhoneForm(props: Props): ReactElement {
               </FormDescription>
             </div>
             <FormControl>
-              <Switch checked={pl} onCheckedChange={() => setPl(!pl)} />
+              <Switch
+                checked={pl}
+                onCheckedChange={() => setPl(!pl)}
+                disabled={transformer.id ? true : false}
+              />
             </FormControl>
           </FormItem>
         )}

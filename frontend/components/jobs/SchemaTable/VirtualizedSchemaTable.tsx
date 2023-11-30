@@ -14,7 +14,6 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { useFormContext } from 'react-hook-form';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import { VirtualizedTree } from '../../VirtualizedTree';
@@ -24,7 +23,7 @@ import TransformerSelect from './TransformerSelect';
 interface Row {
   table: string;
   transformer: {
-    value: string;
+    name: string;
     config: {};
   };
   schema: string;
@@ -45,10 +44,10 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   transformers,
 }: VirtualizedSchemaTableProps) {
   const [rows, setRows] = useState(data);
-  const [transformer, setTransformer] = useState<string>('');
+  // const [transformer, setTransformer] = useState<string>('');
   const [bulkSelect, setBulkSelect] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
-  const form = useFormContext();
+  //const form = useFormContext();
 
   useEffect(() => {
     setRows(data);
@@ -130,9 +129,10 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
       <div className={`space-y-2 pl-8 basis-5/6`}>
         <div className="flex items-center justify-between">
           <div className="w-[250px]">
-            <TransformerSelect
+            {/* <TransformerSelect
               transformers={transformers || []}
-              value={transformer}
+              // value={transformer}
+              value={'passthrough'}
               onSelect={(value) => {
                 rows.forEach((r, index) => {
                   if (r.isSelected) {
@@ -150,7 +150,7 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
                 setTransformer('');
               }}
               placeholder="Bulk update transformers..."
-            />
+            /> */}
           </div>
           <Button
             variant="outline"
@@ -217,7 +217,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
         <Cell value={row.dataType} />
         <div>
           <FormField
-            name={`mappings.${index}.transformer.value`}
+            name={`mappings.${index}.transformer`}
             render={({ field }) => (
               <FormItem>
                 <FormControl>
@@ -233,7 +233,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                     </div>
                     <EditTransformerOptions
                       transformer={transformers?.find(
-                        (item) => item.name.toLowerCase() == field.value
+                        (item) => item.source == field.value.source
                       )}
                       index={index}
                     />
@@ -409,7 +409,7 @@ function shouldFilterRow(
     }
     const value =
       key == 'transformer'
-        ? (row[key as 'transformer'].value as string)
+        ? (row[key as 'transformer'].name as string)
         : (row[key as keyof Row] as string);
 
     if (!filters.includes(value)) {
@@ -485,7 +485,7 @@ function getUniqueFiltersByColumn(
   filteredRows.forEach((r) => {
     const value =
       columnId == 'transformer'
-        ? (r[columnId as 'transformer'].value as string)
+        ? (r[columnId as 'transformer'].name as string)
         : (r[columnId as keyof Row] as string);
     uniqueColFilters[value] = value;
   });

@@ -1,5 +1,6 @@
 import {
   CustomTransformer,
+  CustomTransformerConfig,
   GenerateBool,
   GenerateCardNumber,
   GenerateCity,
@@ -27,29 +28,9 @@ import {
   GenerateZipcode,
   Null,
   Passthrough,
-  TransformE164Phone,
-  TransformEmail,
-  TransformFirstName,
-  TransformFloat,
-  TransformFullName,
-  TransformInt,
-  TransformIntPhone,
-  TransformLastName,
-  TransformPhone,
-  TransformString,
   Transformer,
   TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-
-interface TransformEmailTransformer {
-  case?: string | undefined;
-  value: TransformEmailConfigs;
-}
-
-interface TransformEmailConfigs {
-  preserveDomain: boolean;
-  preserveLength: boolean;
-}
 
 interface GenerateCardNumberTransformer {
   case?: string | undefined;
@@ -126,98 +107,15 @@ interface GenerateUuidConfig {
   includeHyphens: boolean;
 }
 
-interface TransformE164PhoneTransformer {
-  case?: string | undefined;
-  value: TransformE164PhoneConfig;
-}
-
-interface TransformE164PhoneConfig {
-  preserveLength: boolean;
-}
-
-interface TransformFirstNameTransformer {
-  case?: string | undefined;
-  value: TransformFirstNameConfig;
-}
-
-interface TransformFirstNameConfig {
-  preserveLength: boolean;
-}
-
-interface TransformFloatTransformer {
-  case?: string | undefined;
-  value: TransformFloatConfig;
-}
-
-interface TransformFloatConfig {
-  preserveLength: boolean;
-  preserveSign: boolean;
-}
-
-interface TransformFullNameTransformer {
-  case?: string | undefined;
-  value: TransformFullNameConfig;
-}
-
-interface TransformFullNameConfig {
-  preserveLength: boolean;
-}
-
-interface TransformIntPhoneTransformer {
-  case?: string | undefined;
-  value: TransformerIntPhoneConfig;
-}
-
-interface TransformerIntPhoneConfig {
-  preserveLength: boolean;
-}
-
-interface TransformIntTransformer {
-  case?: string | undefined;
-  value: TransformIntConfig;
-}
-
-interface TransformIntConfig {
-  preserveLength: boolean;
-  preserveSign: boolean;
-}
-
-interface TransformLastNameTransformer {
-  case?: string | undefined;
-  value: TransformerLastNameConfig;
-}
-
-interface TransformerLastNameConfig {
-  preserveLength: boolean;
-}
-
-interface TransformPhoneTransformer {
-  case?: string | undefined;
-  value: TransformPhoneConfig;
-}
-
-interface TransformPhoneConfig {
-  preserveLength: boolean;
-  IncludeHyphens: boolean;
-}
-
-interface TransformStringTransformer {
-  case?: string | undefined;
-  value: TransformStringConfig;
-}
-
-interface TransformStringConfig {
-  preserveLength: boolean;
-}
-
 export function ToTransformerConfigOptions(
   t: {
-    value: string;
+    name: string;
     config: { config: { case?: string | undefined; value: {} } };
   },
   merged: CustomTransformer[]
 ): Transformer {
-  const val = merged.find((item) => item.name.toLowerCase() == t.value);
+  // find the transformer by the name
+  const val = merged.find((item) => item.name.toLowerCase() == t.name);
 
   if (!t) {
     return new Transformer();
@@ -703,5 +601,17 @@ export function ToTransformerConfigOptions(
         }),
       });
     }
+  } else {
+    return new Transformer({
+      value: val?.source,
+      config: new TransformerConfig({
+        config: {
+          case: 'customTransformerConfig',
+          value: new CustomTransformerConfig({
+            id: val?.id,
+          }),
+        },
+      }),
+    });
   }
 }

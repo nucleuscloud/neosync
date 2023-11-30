@@ -68,7 +68,7 @@ export default function TransformPhoneForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
-                disabled={ih}
+                disabled={ih || transformer.id ? true : false}
                 onCheckedChange={() => setPl(!pl)}
               />
             </FormControl>
@@ -89,7 +89,7 @@ export default function TransformPhoneForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={ih}
-                disabled={pl}
+                disabled={pl || transformer.id ? true : false}
                 onCheckedChange={() => setIh(!ih)}
               />
             </FormControl>

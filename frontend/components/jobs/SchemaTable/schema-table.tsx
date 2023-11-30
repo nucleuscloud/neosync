@@ -35,7 +35,12 @@ export function SchemaTable(props: Props): ReactElement {
     customTransformers?.transformers ?? []
   );
 
+  console.log('table data', data);
+
   const tableData = data?.map((d) => {
+    // if(d.transformer.config.config.value)
+
+    // const updatedValue =
     return {
       ...d,
       isSelected: false,

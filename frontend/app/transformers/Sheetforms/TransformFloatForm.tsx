@@ -70,6 +70,7 @@ export default function TransformFloatForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
                 }}
@@ -92,7 +93,8 @@ export default function TransformFloatForm(props: Props): ReactElement {
             </div>
             <FormControl>
               <Switch
-                checked={pl}
+                checked={ps}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   ps ? setPs(false) : setPs(true);
                 }}

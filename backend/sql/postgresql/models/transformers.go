@@ -47,6 +47,7 @@ type TransformerConfigs struct {
 	TransformString        *TransformStringConfig        `json:"transformString,omitempty"`
 	Passthrough            *PassthroughConfig            `json:"passthrough,omitempty"`
 	Null                   *NullConfig                   `json:"null,omitempty"`
+	CustomTransformer      *CustomTransformerConfig      `json:"customTransformer,omitempty"`
 }
 
 type GenerateEmailConfig struct{}
@@ -165,6 +166,10 @@ type TransformStringConfig struct {
 type PassthroughConfig struct{}
 
 type NullConfig struct{}
+
+type CustomTransformerConfig struct {
+	Id string `json:"id"`
+}
 
 // from API -> DB
 func (t *Transformer) FromTransformerDto(tr *mgmtv1alpha1.Transformer) error {
@@ -302,6 +307,10 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.Passthrough = &PassthroughConfig{}
 	case *mgmtv1alpha1.TransformerConfig_Nullconfig:
 		t.Null = &NullConfig{}
+	case *mgmtv1alpha1.TransformerConfig_CustomTransformerConfig:
+		t.CustomTransformer = &CustomTransformerConfig{
+			Id: tr.GetCustomTransformerConfig().Id,
+		}
 	default:
 		t = &TransformerConfigs{}
 	}
@@ -586,6 +595,14 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
+			},
+		}
+	case tr.CustomTransformer != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_CustomTransformerConfig{
+				CustomTransformerConfig: &mgmtv1alpha1.CustomTransformerConfig{
+					Id: tr.CustomTransformer.Id,
+				},
 			},
 		}
 	default:

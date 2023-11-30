@@ -13,7 +13,7 @@ import {
 import * as Yup from 'yup';
 
 const TRANSFORMER_SCHEMA = Yup.object().shape({
-  value: Yup.string().required(),
+  name: Yup.string().required(),
   config: transformerConfig,
 });
 

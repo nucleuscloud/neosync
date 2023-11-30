@@ -67,6 +67,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
                 }}
@@ -90,6 +91,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pd}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   pd ? setPd(false) : setPd(true);
                 }}

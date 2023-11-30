@@ -50,10 +50,12 @@ const connectionNameSchema = Yup.string()
 
       const account = getAccount();
       if (!account) {
-        return false;
+        return context.createError({
+          message: 'Account is not valid.',
+        });
       }
 
-      // this handles the case in the update flow wehre teh connection already exists
+      // this handles the case in the update flow where the connection already exists
       // we return true otherwise the isConnectionName func below will fail since it already exists
       if (value == context?.options?.context?.originalConnectionName) {
         return true;

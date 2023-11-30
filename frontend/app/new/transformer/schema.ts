@@ -83,6 +83,11 @@ const transformPhoneConfig = Yup.object().shape({
 const transformStringConfig = Yup.object().shape({
   preserveLength: Yup.boolean().notRequired(),
 });
+
+const customTransformerConfig = Yup.object().shape({
+  id: Yup.string().required(),
+});
+
 export const transformerConfig = Yup.object().shape({
   config: Yup.object().shape({
     value: Yup.lazy((value) => {
@@ -159,6 +164,8 @@ export const transformerConfig = Yup.object().shape({
           return transformStringConfig;
         case 'passthrough':
           return Yup.object().shape({});
+        case 'custom_transformer_config':
+          return customTransformerConfig;
         case 'null':
           return Yup.object().shape({});
         default:
@@ -168,24 +175,56 @@ export const transformerConfig = Yup.object().shape({
     case: Yup.string(),
   }),
 });
-
-export const CREATE_CUSTOM_TRANSFORMER_SCHEMA = Yup.object({
-  name: Yup.string()
-    .trim()
-    .required('Name is a required field')
-    .min(3)
-    .max(30)
-    .test('checkNameUnique', 'This name is already taken.', async (value) => {
-      if (!value || value.length == 0) {
-        return false;
+const customTransformerNameSchema = Yup.string()
+  .required()
+  .test(
+    'checkNameUnique',
+    'Transformer Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
+    async (value, context) => {
+      if (!value || value.length < 3) {
+        return context.createError({
+          message:
+            'Transformer is too short. Must be at least 3 characters long.',
+        });
       }
+
+      const regex = /^[a-z0-9-]+$/;
+      if (!regex.test(value)) {
+        return context.createError({
+          message:
+            'Transformer name Name can only include lowercase letters, numbers, and hyphens.',
+        });
+      }
+
       const account = getAccount();
       if (!account) {
-        return false;
+        return context.createError({
+          message: 'Account is not valid.',
+        });
       }
-      const res = await isTransformerNameAvailable(value, account.id);
-      return res.isAvailable;
-    }),
+
+      if (value == context?.options?.context?.name) {
+        return true;
+      }
+
+      try {
+        const res = await isTransformerNameAvailable(value, account.id);
+        if (!res.isAvailable) {
+          return context.createError({
+            message: 'This Transformer Name is already taken.',
+          });
+        }
+        return true;
+      } catch (error) {
+        return context.createError({
+          message: 'Error validating name availability.',
+        });
+      }
+    }
+  );
+
+export const CREATE_CUSTOM_TRANSFORMER_SCHEMA = Yup.object({
+  name: customTransformerNameSchema,
   source: Yup.string(),
   description: Yup.string().required(),
   config: transformerConfig,
@@ -196,22 +235,7 @@ export type CreateCustomTransformerSchema = Yup.InferType<
 >;
 
 export const UPDATE_CUSTOM_TRANSFORMER = Yup.object({
-  name: Yup.string()
-    .trim()
-    .required('Name is a required field')
-    .min(3)
-    .max(30)
-    .test('checkNameUnique', 'This name is already taken.', async (value) => {
-      if (!value || value.length == 0) {
-        return false;
-      }
-      const account = getAccount();
-      if (!account) {
-        return false;
-      }
-      const res = await isTransformerNameAvailable(value, account.id);
-      return res.isAvailable;
-    }),
+  name: customTransformerNameSchema,
   id: Yup.string(),
   source: Yup.string(),
   description: Yup.string().required(),

@@ -34,6 +34,7 @@ export function DataTableRowActions<TData>({
       await removeTransformer(transformer.id);
       toast({
         title: 'Transformer removed successfully!',
+        variant: 'success',
       });
       onDeleted();
     } catch (err) {

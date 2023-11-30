@@ -59,6 +59,7 @@ export default function TransformStringForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
                 }}

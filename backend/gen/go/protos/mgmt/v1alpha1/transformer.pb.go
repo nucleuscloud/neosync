@@ -22,6 +22,55 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type TransformerType int32
+
+const (
+	TransformerType_TRANSFORMER_TYPE_UNSPECIFIED TransformerType = 0
+	TransformerType_TRANSFORMER_TYPE_CUSTOM      TransformerType = 1
+	TransformerType_TRANSFORMER_TYPE_SYSTEM      TransformerType = 2
+)
+
+// Enum value maps for TransformerType.
+var (
+	TransformerType_name = map[int32]string{
+		0: "TRANSFORMER_TYPE_UNSPECIFIED",
+		1: "TRANSFORMER_TYPE_CUSTOM",
+		2: "TRANSFORMER_TYPE_SYSTEM",
+	}
+	TransformerType_value = map[string]int32{
+		"TRANSFORMER_TYPE_UNSPECIFIED": 0,
+		"TRANSFORMER_TYPE_CUSTOM":      1,
+		"TRANSFORMER_TYPE_SYSTEM":      2,
+	}
+)
+
+func (x TransformerType) Enum() *TransformerType {
+	p := new(TransformerType)
+	*p = x
+	return p
+}
+
+func (x TransformerType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TransformerType) Descriptor() protoreflect.EnumDescriptor {
+	return file_mgmt_v1alpha1_transformer_proto_enumTypes[0].Descriptor()
+}
+
+func (TransformerType) Type() protoreflect.EnumType {
+	return &file_mgmt_v1alpha1_transformer_proto_enumTypes[0]
+}
+
+func (x TransformerType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TransformerType.Descriptor instead.
+func (TransformerType) EnumDescriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{0}
+}
+
 type GetSystemTransformersRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -159,7 +208,7 @@ type GetCustomTransformersResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Transformers []*CustomTransformer `protobuf:"bytes,1,rep,name=transformers,proto3" json:"transformers,omitempty"`
+	Transformers []*Transformer `protobuf:"bytes,1,rep,name=transformers,proto3" json:"transformers,omitempty"`
 }
 
 func (x *GetCustomTransformersResponse) Reset() {
@@ -194,7 +243,7 @@ func (*GetCustomTransformersResponse) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *GetCustomTransformersResponse) GetTransformers() []*CustomTransformer {
+func (x *GetCustomTransformersResponse) GetTransformers() []*Transformer {
 	if x != nil {
 		return x.Transformers
 	}
@@ -253,7 +302,7 @@ type GetCustomTransformerByIdResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Transformer *CustomTransformer `protobuf:"bytes,1,opt,name=transformer,proto3" json:"transformer,omitempty"`
+	Transformer *Transformer `protobuf:"bytes,1,opt,name=transformer,proto3" json:"transformer,omitempty"`
 }
 
 func (x *GetCustomTransformerByIdResponse) Reset() {
@@ -288,7 +337,7 @@ func (*GetCustomTransformerByIdResponse) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetCustomTransformerByIdResponse) GetTransformer() *CustomTransformer {
+func (x *GetCustomTransformerByIdResponse) GetTransformer() *Transformer {
 	if x != nil {
 		return x.Transformer
 	}
@@ -387,7 +436,7 @@ type CreateCustomTransformerResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Transformer *CustomTransformer `protobuf:"bytes,1,opt,name=transformer,proto3" json:"transformer,omitempty"`
+	Transformer *Transformer `protobuf:"bytes,1,opt,name=transformer,proto3" json:"transformer,omitempty"`
 }
 
 func (x *CreateCustomTransformerResponse) Reset() {
@@ -422,7 +471,7 @@ func (*CreateCustomTransformerResponse) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *CreateCustomTransformerResponse) GetTransformer() *CustomTransformer {
+func (x *CreateCustomTransformerResponse) GetTransformer() *Transformer {
 	if x != nil {
 		return x.Transformer
 	}
@@ -590,7 +639,7 @@ type UpdateCustomTransformerResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Transformer *CustomTransformer `protobuf:"bytes,1,opt,name=transformer,proto3" json:"transformer,omitempty"`
+	Transformer *Transformer `protobuf:"bytes,1,opt,name=transformer,proto3" json:"transformer,omitempty"`
 }
 
 func (x *UpdateCustomTransformerResponse) Reset() {
@@ -625,7 +674,7 @@ func (*UpdateCustomTransformerResponse) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *UpdateCustomTransformerResponse) GetTransformer() *CustomTransformer {
+func (x *UpdateCustomTransformerResponse) GetTransformer() *Transformer {
 	if x != nil {
 		return x.Transformer
 	}
@@ -734,7 +783,7 @@ func (x *IsTransformerNameAvailableResponse) GetIsAvailable() bool {
 	return false
 }
 
-type CustomTransformer struct {
+type Transformer struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -742,122 +791,19 @@ type CustomTransformer struct {
 	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Type        string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
-	Source      string                 `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`
-	Config      *TransformerConfig     `protobuf:"bytes,6,opt,name=config,proto3" json:"config,omitempty"`
-	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	AccountId   string                 `protobuf:"bytes,9,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-}
-
-func (x *CustomTransformer) Reset() {
-	*x = CustomTransformer{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[14]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *CustomTransformer) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CustomTransformer) ProtoMessage() {}
-
-func (x *CustomTransformer) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[14]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CustomTransformer.ProtoReflect.Descriptor instead.
-func (*CustomTransformer) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *CustomTransformer) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *CustomTransformer) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *CustomTransformer) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *CustomTransformer) GetType() string {
-	if x != nil {
-		return x.Type
-	}
-	return ""
-}
-
-func (x *CustomTransformer) GetSource() string {
-	if x != nil {
-		return x.Source
-	}
-	return ""
-}
-
-func (x *CustomTransformer) GetConfig() *TransformerConfig {
-	if x != nil {
-		return x.Config
-	}
-	return nil
-}
-
-func (x *CustomTransformer) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
-func (x *CustomTransformer) GetUpdatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return nil
-}
-
-func (x *CustomTransformer) GetAccountId() string {
-	if x != nil {
-		return x.AccountId
-	}
-	return ""
-}
-
-type Transformer struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Value  string             `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	Config *TransformerConfig `protobuf:"bytes,2,opt,name=config,proto3" json:"config,omitempty"`
+	Type        TransformerType        `protobuf:"varint,4,opt,name=type,proto3,enum=mgmt.v1alpha1.TransformerType" json:"type,omitempty"`
+	DataType    string                 `protobuf:"bytes,5,opt,name=data_type,json=dataType,proto3" json:"data_type,omitempty"`
+	Source      string                 `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`
+	Config      *TransformerConfig     `protobuf:"bytes,7,opt,name=config,proto3" json:"config,omitempty"`
+	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	AccountId   string                 `protobuf:"bytes,10,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 }
 
 func (x *Transformer) Reset() {
 	*x = Transformer{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[15]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -870,7 +816,7 @@ func (x *Transformer) String() string {
 func (*Transformer) ProtoMessage() {}
 
 func (x *Transformer) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[15]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -883,12 +829,47 @@ func (x *Transformer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Transformer.ProtoReflect.Descriptor instead.
 func (*Transformer) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{15}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *Transformer) GetValue() string {
+func (x *Transformer) GetId() string {
 	if x != nil {
-		return x.Value
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Transformer) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Transformer) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Transformer) GetType() TransformerType {
+	if x != nil {
+		return x.Type
+	}
+	return TransformerType_TRANSFORMER_TYPE_UNSPECIFIED
+}
+
+func (x *Transformer) GetDataType() string {
+	if x != nil {
+		return x.DataType
+	}
+	return ""
+}
+
+func (x *Transformer) GetSource() string {
+	if x != nil {
+		return x.Source
 	}
 	return ""
 }
@@ -898,6 +879,27 @@ func (x *Transformer) GetConfig() *TransformerConfig {
 		return x.Config
 	}
 	return nil
+}
+
+func (x *Transformer) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *Transformer) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *Transformer) GetAccountId() string {
+	if x != nil {
+		return x.AccountId
+	}
+	return ""
 }
 
 type TransformerConfig struct {
@@ -950,7 +952,7 @@ type TransformerConfig struct {
 func (x *TransformerConfig) Reset() {
 	*x = TransformerConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[16]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -963,7 +965,7 @@ func (x *TransformerConfig) String() string {
 func (*TransformerConfig) ProtoMessage() {}
 
 func (x *TransformerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[16]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +978,7 @@ func (x *TransformerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformerConfig.ProtoReflect.Descriptor instead.
 func (*TransformerConfig) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{16}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{15}
 }
 
 func (m *TransformerConfig) GetConfig() isTransformerConfig_Config {
@@ -1480,7 +1482,7 @@ type GenerateEmail struct {
 func (x *GenerateEmail) Reset() {
 	*x = GenerateEmail{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[17]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1493,7 +1495,7 @@ func (x *GenerateEmail) String() string {
 func (*GenerateEmail) ProtoMessage() {}
 
 func (x *GenerateEmail) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[17]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1506,7 +1508,7 @@ func (x *GenerateEmail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateEmail.ProtoReflect.Descriptor instead.
 func (*GenerateEmail) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{17}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{16}
 }
 
 type GenerateRealisticEmail struct {
@@ -1518,7 +1520,7 @@ type GenerateRealisticEmail struct {
 func (x *GenerateRealisticEmail) Reset() {
 	*x = GenerateRealisticEmail{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[18]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1531,7 +1533,7 @@ func (x *GenerateRealisticEmail) String() string {
 func (*GenerateRealisticEmail) ProtoMessage() {}
 
 func (x *GenerateRealisticEmail) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[18]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1544,7 +1546,7 @@ func (x *GenerateRealisticEmail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateRealisticEmail.ProtoReflect.Descriptor instead.
 func (*GenerateRealisticEmail) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{18}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{17}
 }
 
 type TransformEmail struct {
@@ -1559,7 +1561,7 @@ type TransformEmail struct {
 func (x *TransformEmail) Reset() {
 	*x = TransformEmail{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[19]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1572,7 +1574,7 @@ func (x *TransformEmail) String() string {
 func (*TransformEmail) ProtoMessage() {}
 
 func (x *TransformEmail) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[19]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1585,7 +1587,7 @@ func (x *TransformEmail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformEmail.ProtoReflect.Descriptor instead.
 func (*TransformEmail) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{19}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *TransformEmail) GetPreserveDomain() bool {
@@ -1611,7 +1613,7 @@ type GenerateBool struct {
 func (x *GenerateBool) Reset() {
 	*x = GenerateBool{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[20]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1624,7 +1626,7 @@ func (x *GenerateBool) String() string {
 func (*GenerateBool) ProtoMessage() {}
 
 func (x *GenerateBool) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[20]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1637,7 +1639,7 @@ func (x *GenerateBool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateBool.ProtoReflect.Descriptor instead.
 func (*GenerateBool) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{20}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{19}
 }
 
 type GenerateCardNumber struct {
@@ -1651,7 +1653,7 @@ type GenerateCardNumber struct {
 func (x *GenerateCardNumber) Reset() {
 	*x = GenerateCardNumber{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[21]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1664,7 +1666,7 @@ func (x *GenerateCardNumber) String() string {
 func (*GenerateCardNumber) ProtoMessage() {}
 
 func (x *GenerateCardNumber) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[21]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1677,7 +1679,7 @@ func (x *GenerateCardNumber) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateCardNumber.ProtoReflect.Descriptor instead.
 func (*GenerateCardNumber) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{21}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GenerateCardNumber) GetValidLuhn() bool {
@@ -1696,7 +1698,7 @@ type GenerateCity struct {
 func (x *GenerateCity) Reset() {
 	*x = GenerateCity{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[22]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1709,7 +1711,7 @@ func (x *GenerateCity) String() string {
 func (*GenerateCity) ProtoMessage() {}
 
 func (x *GenerateCity) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[22]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1722,7 +1724,7 @@ func (x *GenerateCity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateCity.ProtoReflect.Descriptor instead.
 func (*GenerateCity) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{22}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{21}
 }
 
 type GenerateE164Number struct {
@@ -1736,7 +1738,7 @@ type GenerateE164Number struct {
 func (x *GenerateE164Number) Reset() {
 	*x = GenerateE164Number{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[23]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1749,7 +1751,7 @@ func (x *GenerateE164Number) String() string {
 func (*GenerateE164Number) ProtoMessage() {}
 
 func (x *GenerateE164Number) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[23]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1762,7 +1764,7 @@ func (x *GenerateE164Number) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateE164Number.ProtoReflect.Descriptor instead.
 func (*GenerateE164Number) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{23}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GenerateE164Number) GetLength() int64 {
@@ -1781,7 +1783,7 @@ type GenerateFirstName struct {
 func (x *GenerateFirstName) Reset() {
 	*x = GenerateFirstName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[24]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1794,7 +1796,7 @@ func (x *GenerateFirstName) String() string {
 func (*GenerateFirstName) ProtoMessage() {}
 
 func (x *GenerateFirstName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[24]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1807,7 +1809,7 @@ func (x *GenerateFirstName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateFirstName.ProtoReflect.Descriptor instead.
 func (*GenerateFirstName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{24}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{23}
 }
 
 type GenerateFloat struct {
@@ -1823,7 +1825,7 @@ type GenerateFloat struct {
 func (x *GenerateFloat) Reset() {
 	*x = GenerateFloat{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[25]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[24]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1836,7 +1838,7 @@ func (x *GenerateFloat) String() string {
 func (*GenerateFloat) ProtoMessage() {}
 
 func (x *GenerateFloat) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[25]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[24]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1849,7 +1851,7 @@ func (x *GenerateFloat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateFloat.ProtoReflect.Descriptor instead.
 func (*GenerateFloat) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{25}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GenerateFloat) GetSign() string {
@@ -1882,7 +1884,7 @@ type GenerateFullAddress struct {
 func (x *GenerateFullAddress) Reset() {
 	*x = GenerateFullAddress{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[26]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[25]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1895,7 +1897,7 @@ func (x *GenerateFullAddress) String() string {
 func (*GenerateFullAddress) ProtoMessage() {}
 
 func (x *GenerateFullAddress) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[26]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[25]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1908,7 +1910,7 @@ func (x *GenerateFullAddress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateFullAddress.ProtoReflect.Descriptor instead.
 func (*GenerateFullAddress) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{26}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{25}
 }
 
 type GenerateFullName struct {
@@ -1920,7 +1922,7 @@ type GenerateFullName struct {
 func (x *GenerateFullName) Reset() {
 	*x = GenerateFullName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[27]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1933,7 +1935,7 @@ func (x *GenerateFullName) String() string {
 func (*GenerateFullName) ProtoMessage() {}
 
 func (x *GenerateFullName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[27]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1946,7 +1948,7 @@ func (x *GenerateFullName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateFullName.ProtoReflect.Descriptor instead.
 func (*GenerateFullName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{27}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{26}
 }
 
 type GenerateGender struct {
@@ -1960,7 +1962,7 @@ type GenerateGender struct {
 func (x *GenerateGender) Reset() {
 	*x = GenerateGender{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[28]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -1973,7 +1975,7 @@ func (x *GenerateGender) String() string {
 func (*GenerateGender) ProtoMessage() {}
 
 func (x *GenerateGender) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[28]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1986,7 +1988,7 @@ func (x *GenerateGender) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateGender.ProtoReflect.Descriptor instead.
 func (*GenerateGender) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{28}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GenerateGender) GetAbbreviate() bool {
@@ -2005,7 +2007,7 @@ type GenerateInt64Phone struct {
 func (x *GenerateInt64Phone) Reset() {
 	*x = GenerateInt64Phone{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[29]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2018,7 +2020,7 @@ func (x *GenerateInt64Phone) String() string {
 func (*GenerateInt64Phone) ProtoMessage() {}
 
 func (x *GenerateInt64Phone) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[29]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2031,7 +2033,7 @@ func (x *GenerateInt64Phone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateInt64Phone.ProtoReflect.Descriptor instead.
 func (*GenerateInt64Phone) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{29}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{28}
 }
 
 type GenerateInt struct {
@@ -2046,7 +2048,7 @@ type GenerateInt struct {
 func (x *GenerateInt) Reset() {
 	*x = GenerateInt{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[30]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2059,7 +2061,7 @@ func (x *GenerateInt) String() string {
 func (*GenerateInt) ProtoMessage() {}
 
 func (x *GenerateInt) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[30]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2072,7 +2074,7 @@ func (x *GenerateInt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateInt.ProtoReflect.Descriptor instead.
 func (*GenerateInt) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{30}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GenerateInt) GetLength() int64 {
@@ -2098,7 +2100,7 @@ type GenerateLastName struct {
 func (x *GenerateLastName) Reset() {
 	*x = GenerateLastName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[31]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2111,7 +2113,7 @@ func (x *GenerateLastName) String() string {
 func (*GenerateLastName) ProtoMessage() {}
 
 func (x *GenerateLastName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[31]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2124,7 +2126,7 @@ func (x *GenerateLastName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateLastName.ProtoReflect.Descriptor instead.
 func (*GenerateLastName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{31}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{30}
 }
 
 type GenerateSha256Hash struct {
@@ -2136,7 +2138,7 @@ type GenerateSha256Hash struct {
 func (x *GenerateSha256Hash) Reset() {
 	*x = GenerateSha256Hash{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[32]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2149,7 +2151,7 @@ func (x *GenerateSha256Hash) String() string {
 func (*GenerateSha256Hash) ProtoMessage() {}
 
 func (x *GenerateSha256Hash) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[32]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2162,7 +2164,7 @@ func (x *GenerateSha256Hash) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateSha256Hash.ProtoReflect.Descriptor instead.
 func (*GenerateSha256Hash) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{32}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{31}
 }
 
 type GenerateSSN struct {
@@ -2174,7 +2176,7 @@ type GenerateSSN struct {
 func (x *GenerateSSN) Reset() {
 	*x = GenerateSSN{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[33]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2187,7 +2189,7 @@ func (x *GenerateSSN) String() string {
 func (*GenerateSSN) ProtoMessage() {}
 
 func (x *GenerateSSN) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[33]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2200,7 +2202,7 @@ func (x *GenerateSSN) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateSSN.ProtoReflect.Descriptor instead.
 func (*GenerateSSN) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{33}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{32}
 }
 
 type GenerateState struct {
@@ -2212,7 +2214,7 @@ type GenerateState struct {
 func (x *GenerateState) Reset() {
 	*x = GenerateState{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[34]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[33]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2225,7 +2227,7 @@ func (x *GenerateState) String() string {
 func (*GenerateState) ProtoMessage() {}
 
 func (x *GenerateState) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[34]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[33]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2238,7 +2240,7 @@ func (x *GenerateState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateState.ProtoReflect.Descriptor instead.
 func (*GenerateState) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{34}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{33}
 }
 
 type GenerateStreetAddress struct {
@@ -2250,7 +2252,7 @@ type GenerateStreetAddress struct {
 func (x *GenerateStreetAddress) Reset() {
 	*x = GenerateStreetAddress{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[35]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[34]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2263,7 +2265,7 @@ func (x *GenerateStreetAddress) String() string {
 func (*GenerateStreetAddress) ProtoMessage() {}
 
 func (x *GenerateStreetAddress) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[35]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[34]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2276,7 +2278,7 @@ func (x *GenerateStreetAddress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateStreetAddress.ProtoReflect.Descriptor instead.
 func (*GenerateStreetAddress) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{35}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{34}
 }
 
 type GenerateStringPhone struct {
@@ -2290,7 +2292,7 @@ type GenerateStringPhone struct {
 func (x *GenerateStringPhone) Reset() {
 	*x = GenerateStringPhone{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[36]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[35]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2303,7 +2305,7 @@ func (x *GenerateStringPhone) String() string {
 func (*GenerateStringPhone) ProtoMessage() {}
 
 func (x *GenerateStringPhone) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[36]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[35]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2316,7 +2318,7 @@ func (x *GenerateStringPhone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateStringPhone.ProtoReflect.Descriptor instead.
 func (*GenerateStringPhone) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{36}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GenerateStringPhone) GetIncludeHyphens() bool {
@@ -2337,7 +2339,7 @@ type GenerateString struct {
 func (x *GenerateString) Reset() {
 	*x = GenerateString{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[37]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2350,7 +2352,7 @@ func (x *GenerateString) String() string {
 func (*GenerateString) ProtoMessage() {}
 
 func (x *GenerateString) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[37]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2363,7 +2365,7 @@ func (x *GenerateString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateString.ProtoReflect.Descriptor instead.
 func (*GenerateString) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{37}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GenerateString) GetLength() int64 {
@@ -2382,7 +2384,7 @@ type GenerateUnixTimestamp struct {
 func (x *GenerateUnixTimestamp) Reset() {
 	*x = GenerateUnixTimestamp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2395,7 +2397,7 @@ func (x *GenerateUnixTimestamp) String() string {
 func (*GenerateUnixTimestamp) ProtoMessage() {}
 
 func (x *GenerateUnixTimestamp) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2408,7 +2410,7 @@ func (x *GenerateUnixTimestamp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateUnixTimestamp.ProtoReflect.Descriptor instead.
 func (*GenerateUnixTimestamp) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{38}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{37}
 }
 
 type GenerateUsername struct {
@@ -2420,7 +2422,7 @@ type GenerateUsername struct {
 func (x *GenerateUsername) Reset() {
 	*x = GenerateUsername{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[39]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2433,7 +2435,7 @@ func (x *GenerateUsername) String() string {
 func (*GenerateUsername) ProtoMessage() {}
 
 func (x *GenerateUsername) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[39]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[38]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2446,7 +2448,7 @@ func (x *GenerateUsername) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateUsername.ProtoReflect.Descriptor instead.
 func (*GenerateUsername) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{39}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{38}
 }
 
 type GenerateUtcTimestamp struct {
@@ -2458,7 +2460,7 @@ type GenerateUtcTimestamp struct {
 func (x *GenerateUtcTimestamp) Reset() {
 	*x = GenerateUtcTimestamp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[40]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[39]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2471,7 +2473,7 @@ func (x *GenerateUtcTimestamp) String() string {
 func (*GenerateUtcTimestamp) ProtoMessage() {}
 
 func (x *GenerateUtcTimestamp) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[40]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[39]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2484,7 +2486,7 @@ func (x *GenerateUtcTimestamp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateUtcTimestamp.ProtoReflect.Descriptor instead.
 func (*GenerateUtcTimestamp) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{40}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{39}
 }
 
 type GenerateUuid struct {
@@ -2498,7 +2500,7 @@ type GenerateUuid struct {
 func (x *GenerateUuid) Reset() {
 	*x = GenerateUuid{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[41]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[40]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2511,7 +2513,7 @@ func (x *GenerateUuid) String() string {
 func (*GenerateUuid) ProtoMessage() {}
 
 func (x *GenerateUuid) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[41]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[40]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2524,7 +2526,7 @@ func (x *GenerateUuid) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateUuid.ProtoReflect.Descriptor instead.
 func (*GenerateUuid) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{41}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GenerateUuid) GetIncludeHyphens() bool {
@@ -2543,7 +2545,7 @@ type GenerateZipcode struct {
 func (x *GenerateZipcode) Reset() {
 	*x = GenerateZipcode{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[42]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[41]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2556,7 +2558,7 @@ func (x *GenerateZipcode) String() string {
 func (*GenerateZipcode) ProtoMessage() {}
 
 func (x *GenerateZipcode) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[42]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[41]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2569,7 +2571,7 @@ func (x *GenerateZipcode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GenerateZipcode.ProtoReflect.Descriptor instead.
 func (*GenerateZipcode) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{42}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{41}
 }
 
 type TransformE164Phone struct {
@@ -2583,7 +2585,7 @@ type TransformE164Phone struct {
 func (x *TransformE164Phone) Reset() {
 	*x = TransformE164Phone{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[43]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[42]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2596,7 +2598,7 @@ func (x *TransformE164Phone) String() string {
 func (*TransformE164Phone) ProtoMessage() {}
 
 func (x *TransformE164Phone) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[43]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[42]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2609,7 +2611,7 @@ func (x *TransformE164Phone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformE164Phone.ProtoReflect.Descriptor instead.
 func (*TransformE164Phone) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{43}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *TransformE164Phone) GetPreserveLength() bool {
@@ -2630,7 +2632,7 @@ type TransformFirstName struct {
 func (x *TransformFirstName) Reset() {
 	*x = TransformFirstName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[44]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2643,7 +2645,7 @@ func (x *TransformFirstName) String() string {
 func (*TransformFirstName) ProtoMessage() {}
 
 func (x *TransformFirstName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[44]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2656,7 +2658,7 @@ func (x *TransformFirstName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformFirstName.ProtoReflect.Descriptor instead.
 func (*TransformFirstName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{44}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *TransformFirstName) GetPreserveLength() bool {
@@ -2678,7 +2680,7 @@ type TransformFloat struct {
 func (x *TransformFloat) Reset() {
 	*x = TransformFloat{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[45]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[44]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2691,7 +2693,7 @@ func (x *TransformFloat) String() string {
 func (*TransformFloat) ProtoMessage() {}
 
 func (x *TransformFloat) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[45]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[44]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2704,7 +2706,7 @@ func (x *TransformFloat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformFloat.ProtoReflect.Descriptor instead.
 func (*TransformFloat) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{45}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *TransformFloat) GetPreserveLength() bool {
@@ -2732,7 +2734,7 @@ type TransformFullName struct {
 func (x *TransformFullName) Reset() {
 	*x = TransformFullName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[46]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[45]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2745,7 +2747,7 @@ func (x *TransformFullName) String() string {
 func (*TransformFullName) ProtoMessage() {}
 
 func (x *TransformFullName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[46]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[45]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2758,7 +2760,7 @@ func (x *TransformFullName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformFullName.ProtoReflect.Descriptor instead.
 func (*TransformFullName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{46}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *TransformFullName) GetPreserveLength() bool {
@@ -2779,7 +2781,7 @@ type TransformIntPhone struct {
 func (x *TransformIntPhone) Reset() {
 	*x = TransformIntPhone{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[47]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[46]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2792,7 +2794,7 @@ func (x *TransformIntPhone) String() string {
 func (*TransformIntPhone) ProtoMessage() {}
 
 func (x *TransformIntPhone) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[47]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[46]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2805,7 +2807,7 @@ func (x *TransformIntPhone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformIntPhone.ProtoReflect.Descriptor instead.
 func (*TransformIntPhone) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{47}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *TransformIntPhone) GetPreserveLength() bool {
@@ -2827,7 +2829,7 @@ type TransformInt struct {
 func (x *TransformInt) Reset() {
 	*x = TransformInt{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[48]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[47]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2840,7 +2842,7 @@ func (x *TransformInt) String() string {
 func (*TransformInt) ProtoMessage() {}
 
 func (x *TransformInt) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[48]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[47]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2853,7 +2855,7 @@ func (x *TransformInt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformInt.ProtoReflect.Descriptor instead.
 func (*TransformInt) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{48}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *TransformInt) GetPreserveLength() bool {
@@ -2881,7 +2883,7 @@ type TransformLastName struct {
 func (x *TransformLastName) Reset() {
 	*x = TransformLastName{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[49]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[48]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2894,7 +2896,7 @@ func (x *TransformLastName) String() string {
 func (*TransformLastName) ProtoMessage() {}
 
 func (x *TransformLastName) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[49]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[48]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2907,7 +2909,7 @@ func (x *TransformLastName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformLastName.ProtoReflect.Descriptor instead.
 func (*TransformLastName) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{49}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *TransformLastName) GetPreserveLength() bool {
@@ -2929,7 +2931,7 @@ type TransformPhone struct {
 func (x *TransformPhone) Reset() {
 	*x = TransformPhone{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[50]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[49]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2942,7 +2944,7 @@ func (x *TransformPhone) String() string {
 func (*TransformPhone) ProtoMessage() {}
 
 func (x *TransformPhone) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[50]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[49]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2955,7 +2957,7 @@ func (x *TransformPhone) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformPhone.ProtoReflect.Descriptor instead.
 func (*TransformPhone) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{50}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *TransformPhone) GetPreserveLength() bool {
@@ -2983,7 +2985,7 @@ type TransformString struct {
 func (x *TransformString) Reset() {
 	*x = TransformString{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[51]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[50]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2996,7 +2998,7 @@ func (x *TransformString) String() string {
 func (*TransformString) ProtoMessage() {}
 
 func (x *TransformString) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[51]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[50]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3009,7 +3011,7 @@ func (x *TransformString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransformString.ProtoReflect.Descriptor instead.
 func (*TransformString) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{51}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *TransformString) GetPreserveLength() bool {
@@ -3028,7 +3030,7 @@ type Passthrough struct {
 func (x *Passthrough) Reset() {
 	*x = Passthrough{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[52]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[51]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3041,7 +3043,7 @@ func (x *Passthrough) String() string {
 func (*Passthrough) ProtoMessage() {}
 
 func (x *Passthrough) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[52]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[51]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3054,7 +3056,7 @@ func (x *Passthrough) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Passthrough.ProtoReflect.Descriptor instead.
 func (*Passthrough) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{52}
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{51}
 }
 
 type Null struct {
@@ -3066,7 +3068,7 @@ type Null struct {
 func (x *Null) Reset() {
 	*x = Null{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[53]
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[52]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3079,7 +3081,7 @@ func (x *Null) String() string {
 func (*Null) ProtoMessage() {}
 
 func (x *Null) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[53]
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[52]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3092,9 +3094,59 @@ func (x *Null) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Null.ProtoReflect.Descriptor instead.
 func (*Null) Descriptor() ([]byte, []int) {
+	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{52}
+}
+
+<<<<<<< HEAD
+=======
+type CustomTransformerConfig struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (x *CustomTransformerConfig) Reset() {
+	*x = CustomTransformerConfig{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[53]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CustomTransformerConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CustomTransformerConfig) ProtoMessage() {}
+
+func (x *CustomTransformerConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_mgmt_v1alpha1_transformer_proto_msgTypes[53]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CustomTransformerConfig.ProtoReflect.Descriptor instead.
+func (*CustomTransformerConfig) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_transformer_proto_rawDescGZIP(), []int{53}
 }
 
+func (x *CustomTransformerConfig) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+>>>>>>> b865aa52 (updated protos to just have a single transformer type)
 var File_mgmt_v1alpha1_transformer_proto protoreflect.FileDescriptor
 
 var file_mgmt_v1alpha1_transformer_proto_rawDesc = []byte{
@@ -3117,117 +3169,118 @@ var file_mgmt_v1alpha1_transformer_proto_rawDesc = []byte{
 	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
 	0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61,
-	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x22, 0x65, 0x0a, 0x1d, 0x47, 0x65, 0x74, 0x43,
+	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x22, 0x5f, 0x0a, 0x1d, 0x47, 0x65, 0x74, 0x43,
 	0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72,
-	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x44, 0x0a, 0x0c, 0x74, 0x72, 0x61,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3e, 0x0a, 0x0c, 0x74, 0x72, 0x61,
 	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32,
-	0x20, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e,
+	0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e,
+	0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x0c, 0x74, 0x72, 0x61,
+	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x22, 0x52, 0x0a, 0x1f, 0x47, 0x65, 0x74,
 	0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
-	0x72, 0x52, 0x0c, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x22,
-	0x52, 0x0a, 0x1f, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e,
-	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x42, 0x79, 0x49, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x12, 0x2f, 0x0a, 0x0e, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
-	0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72,
-	0x03, 0xb0, 0x01, 0x01, 0x52, 0x0d, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
-	0x72, 0x49, 0x64, 0x22, 0x66, 0x0a, 0x20, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d,
-	0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x42, 0x79, 0x49, 0x64, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x42, 0x0a, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73,
-	0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d,
-	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x75, 0x73,
-	0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x0b,
-	0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x22, 0xfc, 0x01, 0x0a, 0x1e,
-	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e,
-	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x27,
-	0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61, 0x63,
-	0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64,
-	0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a,
-	0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70,
-	0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x4f, 0x0a, 0x12, 0x74, 0x72, 0x61,
-	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18,
-	0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
-	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
-	0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x11, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f,
-	0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x65, 0x0a, 0x1f, 0x43, 0x72,
-	0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
-	0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x42, 0x0a,
-	0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
-	0x61, 0x31, 0x2e, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f,
-	0x72, 0x6d, 0x65, 0x72, 0x52, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
-	0x72, 0x22, 0x51, 0x0a, 0x1e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f,
-	0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x2f, 0x0a, 0x0e, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
-	0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05,
-	0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x0d, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
-	0x65, 0x72, 0x49, 0x64, 0x22, 0x21, 0x0a, 0x1f, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75,
-	0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0xd8, 0x01, 0x0a, 0x1e, 0x55, 0x70, 0x64, 0x61,
-	0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72,
-	0x6d, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2f, 0x0a, 0x0e, 0x74, 0x72,
-	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x0d, 0x74, 0x72,
-	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e,
+	0x72, 0x42, 0x79, 0x49, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2f, 0x0a, 0x0e,
+	0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x0d,
+	0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x49, 0x64, 0x22, 0x60, 0x0a,
+	0x20, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
+	0x6f, 0x72, 0x6d, 0x65, 0x72, 0x42, 0x79, 0x49, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x3c, 0x0a, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31,
+	0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
+	0x65, 0x72, 0x52, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x22,
+	0xfc, 0x01, 0x0a, 0x1e, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d,
+	0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01,
+	0x52, 0x09, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e,
 	0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12,
 	0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f,
-	0x6e, 0x12, 0x4f, 0x0a, 0x12, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72,
-	0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e,
-	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72,
-	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52,
-	0x11, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x22, 0x65, 0x0a, 0x1f, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74,
+	0x6e, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x4f, 0x0a,
+	0x12, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x67, 0x6d, 0x74,
+	0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
+	0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x11, 0x74, 0x72, 0x61,
+	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0x5f,
+	0x0a, 0x1f, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72,
+	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x12, 0x3c, 0x0a, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31,
+	0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
+	0x65, 0x72, 0x52, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x22,
+	0x51, 0x0a, 0x1e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54,
+	0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x2f, 0x0a, 0x0e, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72,
+	0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03,
+	0xb0, 0x01, 0x01, 0x52, 0x0d, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72,
+	0x49, 0x64, 0x22, 0x21, 0x0a, 0x1f, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74,
 	0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x42, 0x0a, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f,
-	0x72, 0x6d, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x67, 0x6d,
-	0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x75, 0x73, 0x74, 0x6f,
-	0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x0b, 0x74, 0x72,
-	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x22, 0x91, 0x01, 0x0a, 0x21, 0x49, 0x73,
-	0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x41,
-	0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
-	0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61,
-	0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x12, 0x43, 0x0a, 0x10, 0x74, 0x72, 0x61, 0x6e,
-	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x09, 0x42, 0x18, 0xba, 0x48, 0x15, 0x72, 0x13, 0x32, 0x11, 0x5e, 0x5b, 0x61, 0x2d, 0x7a,
-	0x30, 0x2d, 0x39, 0x2d, 0x5d, 0x7b, 0x33, 0x2c, 0x33, 0x30, 0x7d, 0x24, 0x52, 0x0f, 0x74, 0x72,
-	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x47, 0x0a,
-	0x22, 0x49, 0x73, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x4e, 0x61,
-	0x6d, 0x65, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x21, 0x0a, 0x0c, 0x69, 0x73, 0x5f, 0x61, 0x76, 0x61, 0x69, 0x6c, 0x61,
-	0x62, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x69, 0x73, 0x41, 0x76, 0x61,
-	0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x22, 0xde, 0x02, 0x0a, 0x11, 0x43, 0x75, 0x73, 0x74, 0x6f,
-	0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x12, 0x18, 0x0a, 0x02,
-	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0,
-	0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65,
-	0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04,
-	0x74, 0x79, 0x70, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65,
-	0x12, 0x16, 0x0a, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x38, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0xd8, 0x01, 0x0a, 0x1e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
+	0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2f, 0x0a, 0x0e, 0x74, 0x72, 0x61, 0x6e,
+	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x0d, 0x74, 0x72, 0x61, 0x6e,
+	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x20, 0x0a,
+	0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12,
+	0x4f, 0x0a, 0x12, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x5f, 0x63,
+	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x67,
+	0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e,
+	0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x11, 0x74,
+	0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
+	0x22, 0x5f, 0x0a, 0x1f, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d,
+	0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x3c, 0x0a, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
+	0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
 	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f,
-	0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x12, 0x39, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74,
-	0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
-	0x6d, 0x70, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x39, 0x0a,
-	0x0a, 0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x08, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x75,
-	0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x1d, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f,
-	0x75, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x09, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x61, 0x63,
-	0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x22, 0x5d, 0x0a, 0x0b, 0x54, 0x72, 0x61, 0x6e, 0x73,
-	0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x38, 0x0a, 0x06,
-	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d,
+	0x72, 0x6d, 0x65, 0x72, 0x52, 0x0b, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
+	0x72, 0x22, 0x91, 0x01, 0x0a, 0x21, 0x49, 0x73, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72,
+	0x6d, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x27, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75,
+	0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05,
+	0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x09, 0x61, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64,
+	0x12, 0x43, 0x0a, 0x10, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x5f,
+	0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x42, 0x18, 0xba, 0x48, 0x15, 0x72,
+	0x13, 0x32, 0x11, 0x5e, 0x5b, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x2d, 0x5d, 0x7b, 0x33, 0x2c,
+	0x33, 0x30, 0x7d, 0x24, 0x52, 0x0f, 0x74, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
+	0x72, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x47, 0x0a, 0x22, 0x49, 0x73, 0x54, 0x72, 0x61, 0x6e, 0x73,
+	0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61,
+	0x62, 0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x21, 0x0a, 0x0c, 0x69,
+	0x73, 0x5f, 0x61, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x08, 0x52, 0x0b, 0x69, 0x73, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x22, 0x95,
+	0x03, 0x0a, 0x0b, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x12, 0x18,
+	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72,
+	0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x20, 0x0a, 0x0b,
+	0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x32,
+	0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1e, 0x2e, 0x6d,
 	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61,
+<<<<<<< HEAD
 	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06,
 	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x22, 0xdf, 0x1a, 0x0a, 0x11, 0x54, 0x72, 0x61, 0x6e, 0x73,
+=======
+	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x54, 0x79, 0x70, 0x65, 0x52, 0x04, 0x74, 0x79,
+	0x70, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x64, 0x61, 0x74, 0x61, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x64, 0x61, 0x74, 0x61, 0x54, 0x79, 0x70, 0x65, 0x12,
+	0x16, 0x0a, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x12, 0x38, 0x0a, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76,
+	0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72,
+	0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x12, 0x39, 0x0a, 0x0a, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18,
+	0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
+	0x70, 0x52, 0x09, 0x63, 0x72, 0x65, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x39, 0x0a, 0x0a,
+	0x75, 0x70, 0x64, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x75, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x64, 0x41, 0x74, 0x12, 0x1d, 0x0a, 0x0a, 0x61, 0x63, 0x63, 0x6f, 0x75,
+	0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x61, 0x63, 0x63,
+	0x6f, 0x75, 0x6e, 0x74, 0x49, 0x64, 0x22, 0xc5, 0x1b, 0x0a, 0x11, 0x54, 0x72, 0x61, 0x6e, 0x73,
+>>>>>>> b865aa52 (updated protos to just have a single transformer type)
 	0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x52, 0x0a, 0x15,
 	0x67, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x5f, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x5f, 0x63,
 	0x6f, 0x6e, 0x66, 0x69, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x6d, 0x67,
@@ -3557,6 +3610,7 @@ var file_mgmt_v1alpha1_transformer_proto_rawDesc = []byte{
 	0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x12, 0x2b, 0x2e, 0x6d, 0x67,
 	0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43,
 	0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72,
+<<<<<<< HEAD
 	0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
 	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74,
 	0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x52, 0x65,
@@ -3614,6 +3668,87 @@ var file_mgmt_v1alpha1_transformer_proto_rawDesc = []byte{
 	0x68, 0x61, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea,
 	0x02, 0x0e, 0x4d, 0x67, 0x6d, 0x74, 0x3a, 0x3a, 0x56, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
 	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+=======
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x18, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x02, 0x69, 0x64,
+	0x2a, 0x6d, 0x0a, 0x0f, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x54,
+	0x79, 0x70, 0x65, 0x12, 0x20, 0x0a, 0x1c, 0x54, 0x52, 0x41, 0x4e, 0x53, 0x46, 0x4f, 0x52, 0x4d,
+	0x45, 0x52, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46,
+	0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x1b, 0x0a, 0x17, 0x54, 0x52, 0x41, 0x4e, 0x53, 0x46, 0x4f,
+	0x52, 0x4d, 0x45, 0x52, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x43, 0x55, 0x53, 0x54, 0x4f, 0x4d,
+	0x10, 0x01, 0x12, 0x1b, 0x0a, 0x17, 0x54, 0x52, 0x41, 0x4e, 0x53, 0x46, 0x4f, 0x52, 0x4d, 0x45,
+	0x52, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x5f, 0x53, 0x59, 0x53, 0x54, 0x45, 0x4d, 0x10, 0x02, 0x32,
+	0xfa, 0x06, 0x0a, 0x13, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73,
+	0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x74, 0x0a, 0x15, 0x47, 0x65, 0x74, 0x53, 0x79,
+	0x73, 0x74, 0x65, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73,
+	0x12, 0x2b, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
+	0x2e, 0x47, 0x65, 0x74, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
+	0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e,
+	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x47, 0x65,
+	0x74, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d,
+	0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x74, 0x0a,
+	0x15, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
+	0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x12, 0x2b, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31,
+	0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d,
+	0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70,
+	0x68, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61,
+	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x00, 0x12, 0x7d, 0x0a, 0x18, 0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d,
+	0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x42, 0x79, 0x49, 0x64, 0x12,
+	0x2e, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e,
+	0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f,
+	0x72, 0x6d, 0x65, 0x72, 0x42, 0x79, 0x49, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x2f, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e,
+	0x47, 0x65, 0x74, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f,
+	0x72, 0x6d, 0x65, 0x72, 0x42, 0x79, 0x49, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x22, 0x00, 0x12, 0x7a, 0x0a, 0x17, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x12, 0x2d, 0x2e,
+	0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x72,
+	0x65, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
+	0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x6d,
+	0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x43, 0x72, 0x65,
+	0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f,
+	0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7a,
+	0x0a, 0x17, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72,
+	0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x12, 0x2d, 0x2e, 0x6d, 0x67, 0x6d, 0x74,
+	0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65,
+	0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65,
+	0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
+	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x43,
+	0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x7a, 0x0a, 0x17, 0x55, 0x70,
+	0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
+	0x6f, 0x72, 0x6d, 0x65, 0x72, 0x12, 0x2d, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74,
+	0x6f, 0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c,
+	0x70, 0x68, 0x61, 0x31, 0x2e, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x43, 0x75, 0x73, 0x74, 0x6f,
+	0x6d, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x12, 0x83, 0x01, 0x0a, 0x1a, 0x49, 0x73, 0x54, 0x72, 0x61,
+	0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x41, 0x76, 0x61, 0x69,
+	0x6c, 0x61, 0x62, 0x6c, 0x65, 0x12, 0x30, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
+	0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x49, 0x73, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72,
+	0x6d, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x31, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76,
+	0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x49, 0x73, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66,
+	0x6f, 0x72, 0x6d, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62,
+	0x6c, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0xcc, 0x01, 0x0a,
+	0x11, 0x63, 0x6f, 0x6d, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
+	0x61, 0x31, 0x42, 0x10, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x66, 0x6f, 0x72, 0x6d, 0x65, 0x72, 0x50,
+	0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x50, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63,
+	0x6f, 0x6d, 0x2f, 0x6e, 0x75, 0x63, 0x6c, 0x65, 0x75, 0x73, 0x63, 0x6c, 0x6f, 0x75, 0x64, 0x2f,
+	0x6e, 0x65, 0x6f, 0x73, 0x79, 0x6e, 0x63, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f,
+	0x67, 0x65, 0x6e, 0x2f, 0x67, 0x6f, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x73, 0x2f, 0x6d, 0x67,
+	0x6d, 0x74, 0x2f, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x3b, 0x6d, 0x67, 0x6d, 0x74,
+	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0xa2, 0x02, 0x03, 0x4d, 0x58, 0x58, 0xaa, 0x02,
+	0x0d, 0x4d, 0x67, 0x6d, 0x74, 0x2e, 0x56, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0xca, 0x02,
+	0x0d, 0x4d, 0x67, 0x6d, 0x74, 0x5c, 0x56, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0xe2, 0x02,
+	0x19, 0x4d, 0x67, 0x6d, 0x74, 0x5c, 0x56, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x5c, 0x47,
+	0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x0e, 0x4d, 0x67, 0x6d,
+	0x74, 0x3a, 0x3a, 0x56, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
+>>>>>>> b865aa52 (updated protos to just have a single transformer type)
 }
 
 var (
@@ -3628,23 +3763,27 @@ func file_mgmt_v1alpha1_transformer_proto_rawDescGZIP() []byte {
 	return file_mgmt_v1alpha1_transformer_proto_rawDescData
 }
 
+<<<<<<< HEAD
+=======
+var file_mgmt_v1alpha1_transformer_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+>>>>>>> b865aa52 (updated protos to just have a single transformer type)
 var file_mgmt_v1alpha1_transformer_proto_msgTypes = make([]protoimpl.MessageInfo, 54)
 var file_mgmt_v1alpha1_transformer_proto_goTypes = []interface{}{
-	(*GetSystemTransformersRequest)(nil),       // 0: mgmt.v1alpha1.GetSystemTransformersRequest
-	(*GetSystemTransformersResponse)(nil),      // 1: mgmt.v1alpha1.GetSystemTransformersResponse
-	(*GetCustomTransformersRequest)(nil),       // 2: mgmt.v1alpha1.GetCustomTransformersRequest
-	(*GetCustomTransformersResponse)(nil),      // 3: mgmt.v1alpha1.GetCustomTransformersResponse
-	(*GetCustomTransformerByIdRequest)(nil),    // 4: mgmt.v1alpha1.GetCustomTransformerByIdRequest
-	(*GetCustomTransformerByIdResponse)(nil),   // 5: mgmt.v1alpha1.GetCustomTransformerByIdResponse
-	(*CreateCustomTransformerRequest)(nil),     // 6: mgmt.v1alpha1.CreateCustomTransformerRequest
-	(*CreateCustomTransformerResponse)(nil),    // 7: mgmt.v1alpha1.CreateCustomTransformerResponse
-	(*DeleteCustomTransformerRequest)(nil),     // 8: mgmt.v1alpha1.DeleteCustomTransformerRequest
-	(*DeleteCustomTransformerResponse)(nil),    // 9: mgmt.v1alpha1.DeleteCustomTransformerResponse
-	(*UpdateCustomTransformerRequest)(nil),     // 10: mgmt.v1alpha1.UpdateCustomTransformerRequest
-	(*UpdateCustomTransformerResponse)(nil),    // 11: mgmt.v1alpha1.UpdateCustomTransformerResponse
-	(*IsTransformerNameAvailableRequest)(nil),  // 12: mgmt.v1alpha1.IsTransformerNameAvailableRequest
-	(*IsTransformerNameAvailableResponse)(nil), // 13: mgmt.v1alpha1.IsTransformerNameAvailableResponse
-	(*CustomTransformer)(nil),                  // 14: mgmt.v1alpha1.CustomTransformer
+	(TransformerType)(0),                       // 0: mgmt.v1alpha1.TransformerType
+	(*GetSystemTransformersRequest)(nil),       // 1: mgmt.v1alpha1.GetSystemTransformersRequest
+	(*GetSystemTransformersResponse)(nil),      // 2: mgmt.v1alpha1.GetSystemTransformersResponse
+	(*GetCustomTransformersRequest)(nil),       // 3: mgmt.v1alpha1.GetCustomTransformersRequest
+	(*GetCustomTransformersResponse)(nil),      // 4: mgmt.v1alpha1.GetCustomTransformersResponse
+	(*GetCustomTransformerByIdRequest)(nil),    // 5: mgmt.v1alpha1.GetCustomTransformerByIdRequest
+	(*GetCustomTransformerByIdResponse)(nil),   // 6: mgmt.v1alpha1.GetCustomTransformerByIdResponse
+	(*CreateCustomTransformerRequest)(nil),     // 7: mgmt.v1alpha1.CreateCustomTransformerRequest
+	(*CreateCustomTransformerResponse)(nil),    // 8: mgmt.v1alpha1.CreateCustomTransformerResponse
+	(*DeleteCustomTransformerRequest)(nil),     // 9: mgmt.v1alpha1.DeleteCustomTransformerRequest
+	(*DeleteCustomTransformerResponse)(nil),    // 10: mgmt.v1alpha1.DeleteCustomTransformerResponse
+	(*UpdateCustomTransformerRequest)(nil),     // 11: mgmt.v1alpha1.UpdateCustomTransformerRequest
+	(*UpdateCustomTransformerResponse)(nil),    // 12: mgmt.v1alpha1.UpdateCustomTransformerResponse
+	(*IsTransformerNameAvailableRequest)(nil),  // 13: mgmt.v1alpha1.IsTransformerNameAvailableRequest
+	(*IsTransformerNameAvailableResponse)(nil), // 14: mgmt.v1alpha1.IsTransformerNameAvailableResponse
 	(*Transformer)(nil),                        // 15: mgmt.v1alpha1.Transformer
 	(*TransformerConfig)(nil),                  // 16: mgmt.v1alpha1.TransformerConfig
 	(*GenerateEmail)(nil),                      // 17: mgmt.v1alpha1.GenerateEmail
@@ -3688,16 +3827,24 @@ var file_mgmt_v1alpha1_transformer_proto_goTypes = []interface{}{
 }
 var file_mgmt_v1alpha1_transformer_proto_depIdxs = []int32{
 	15, // 0: mgmt.v1alpha1.GetSystemTransformersResponse.transformers:type_name -> mgmt.v1alpha1.Transformer
-	14, // 1: mgmt.v1alpha1.GetCustomTransformersResponse.transformers:type_name -> mgmt.v1alpha1.CustomTransformer
-	14, // 2: mgmt.v1alpha1.GetCustomTransformerByIdResponse.transformer:type_name -> mgmt.v1alpha1.CustomTransformer
+	15, // 1: mgmt.v1alpha1.GetCustomTransformersResponse.transformers:type_name -> mgmt.v1alpha1.Transformer
+	15, // 2: mgmt.v1alpha1.GetCustomTransformerByIdResponse.transformer:type_name -> mgmt.v1alpha1.Transformer
 	16, // 3: mgmt.v1alpha1.CreateCustomTransformerRequest.transformer_config:type_name -> mgmt.v1alpha1.TransformerConfig
-	14, // 4: mgmt.v1alpha1.CreateCustomTransformerResponse.transformer:type_name -> mgmt.v1alpha1.CustomTransformer
+	15, // 4: mgmt.v1alpha1.CreateCustomTransformerResponse.transformer:type_name -> mgmt.v1alpha1.Transformer
 	16, // 5: mgmt.v1alpha1.UpdateCustomTransformerRequest.transformer_config:type_name -> mgmt.v1alpha1.TransformerConfig
+<<<<<<< HEAD
 	14, // 6: mgmt.v1alpha1.UpdateCustomTransformerResponse.transformer:type_name -> mgmt.v1alpha1.CustomTransformer
 	16, // 7: mgmt.v1alpha1.CustomTransformer.config:type_name -> mgmt.v1alpha1.TransformerConfig
 	54, // 8: mgmt.v1alpha1.CustomTransformer.created_at:type_name -> google.protobuf.Timestamp
 	54, // 9: mgmt.v1alpha1.CustomTransformer.updated_at:type_name -> google.protobuf.Timestamp
 	16, // 10: mgmt.v1alpha1.Transformer.config:type_name -> mgmt.v1alpha1.TransformerConfig
+=======
+	15, // 6: mgmt.v1alpha1.UpdateCustomTransformerResponse.transformer:type_name -> mgmt.v1alpha1.Transformer
+	0,  // 7: mgmt.v1alpha1.Transformer.type:type_name -> mgmt.v1alpha1.TransformerType
+	16, // 8: mgmt.v1alpha1.Transformer.config:type_name -> mgmt.v1alpha1.TransformerConfig
+	55, // 9: mgmt.v1alpha1.Transformer.created_at:type_name -> google.protobuf.Timestamp
+	55, // 10: mgmt.v1alpha1.Transformer.updated_at:type_name -> google.protobuf.Timestamp
+>>>>>>> b865aa52 (updated protos to just have a single transformer type)
 	17, // 11: mgmt.v1alpha1.TransformerConfig.generate_email_config:type_name -> mgmt.v1alpha1.GenerateEmail
 	18, // 12: mgmt.v1alpha1.TransformerConfig.generate_realistic_email_config:type_name -> mgmt.v1alpha1.GenerateRealisticEmail
 	19, // 13: mgmt.v1alpha1.TransformerConfig.transform_email_config:type_name -> mgmt.v1alpha1.TransformEmail
@@ -3735,6 +3882,7 @@ var file_mgmt_v1alpha1_transformer_proto_depIdxs = []int32{
 	51, // 45: mgmt.v1alpha1.TransformerConfig.transform_string_config:type_name -> mgmt.v1alpha1.TransformString
 	52, // 46: mgmt.v1alpha1.TransformerConfig.passthrough_config:type_name -> mgmt.v1alpha1.Passthrough
 	53, // 47: mgmt.v1alpha1.TransformerConfig.nullconfig:type_name -> mgmt.v1alpha1.Null
+<<<<<<< HEAD
 	0,  // 48: mgmt.v1alpha1.TransformersService.GetSystemTransformers:input_type -> mgmt.v1alpha1.GetSystemTransformersRequest
 	2,  // 49: mgmt.v1alpha1.TransformersService.GetCustomTransformers:input_type -> mgmt.v1alpha1.GetCustomTransformersRequest
 	4,  // 50: mgmt.v1alpha1.TransformersService.GetCustomTransformerById:input_type -> mgmt.v1alpha1.GetCustomTransformerByIdRequest
@@ -3754,6 +3902,28 @@ var file_mgmt_v1alpha1_transformer_proto_depIdxs = []int32{
 	48, // [48:48] is the sub-list for extension type_name
 	48, // [48:48] is the sub-list for extension extendee
 	0,  // [0:48] is the sub-list for field type_name
+=======
+	54, // 48: mgmt.v1alpha1.TransformerConfig.custom_transformer_config:type_name -> mgmt.v1alpha1.CustomTransformerConfig
+	1,  // 49: mgmt.v1alpha1.TransformersService.GetSystemTransformers:input_type -> mgmt.v1alpha1.GetSystemTransformersRequest
+	3,  // 50: mgmt.v1alpha1.TransformersService.GetCustomTransformers:input_type -> mgmt.v1alpha1.GetCustomTransformersRequest
+	5,  // 51: mgmt.v1alpha1.TransformersService.GetCustomTransformerById:input_type -> mgmt.v1alpha1.GetCustomTransformerByIdRequest
+	7,  // 52: mgmt.v1alpha1.TransformersService.CreateCustomTransformer:input_type -> mgmt.v1alpha1.CreateCustomTransformerRequest
+	9,  // 53: mgmt.v1alpha1.TransformersService.DeleteCustomTransformer:input_type -> mgmt.v1alpha1.DeleteCustomTransformerRequest
+	11, // 54: mgmt.v1alpha1.TransformersService.UpdateCustomTransformer:input_type -> mgmt.v1alpha1.UpdateCustomTransformerRequest
+	13, // 55: mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable:input_type -> mgmt.v1alpha1.IsTransformerNameAvailableRequest
+	2,  // 56: mgmt.v1alpha1.TransformersService.GetSystemTransformers:output_type -> mgmt.v1alpha1.GetSystemTransformersResponse
+	4,  // 57: mgmt.v1alpha1.TransformersService.GetCustomTransformers:output_type -> mgmt.v1alpha1.GetCustomTransformersResponse
+	6,  // 58: mgmt.v1alpha1.TransformersService.GetCustomTransformerById:output_type -> mgmt.v1alpha1.GetCustomTransformerByIdResponse
+	8,  // 59: mgmt.v1alpha1.TransformersService.CreateCustomTransformer:output_type -> mgmt.v1alpha1.CreateCustomTransformerResponse
+	10, // 60: mgmt.v1alpha1.TransformersService.DeleteCustomTransformer:output_type -> mgmt.v1alpha1.DeleteCustomTransformerResponse
+	12, // 61: mgmt.v1alpha1.TransformersService.UpdateCustomTransformer:output_type -> mgmt.v1alpha1.UpdateCustomTransformerResponse
+	14, // 62: mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable:output_type -> mgmt.v1alpha1.IsTransformerNameAvailableResponse
+	56, // [56:63] is the sub-list for method output_type
+	49, // [49:56] is the sub-list for method input_type
+	49, // [49:49] is the sub-list for extension type_name
+	49, // [49:49] is the sub-list for extension extendee
+	0,  // [0:49] is the sub-list for field type_name
+>>>>>>> b865aa52 (updated protos to just have a single transformer type)
 }
 
 func init() { file_mgmt_v1alpha1_transformer_proto_init() }
@@ -3931,18 +4101,6 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_transformer_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CustomTransformer); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Transformer); i {
 			case 0:
 				return &v.state
@@ -3954,7 +4112,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformerConfig); i {
 			case 0:
 				return &v.state
@@ -3966,7 +4124,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateEmail); i {
 			case 0:
 				return &v.state
@@ -3978,7 +4136,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateRealisticEmail); i {
 			case 0:
 				return &v.state
@@ -3990,7 +4148,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformEmail); i {
 			case 0:
 				return &v.state
@@ -4002,7 +4160,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateBool); i {
 			case 0:
 				return &v.state
@@ -4014,7 +4172,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateCardNumber); i {
 			case 0:
 				return &v.state
@@ -4026,7 +4184,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateCity); i {
 			case 0:
 				return &v.state
@@ -4038,7 +4196,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateE164Number); i {
 			case 0:
 				return &v.state
@@ -4050,7 +4208,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateFirstName); i {
 			case 0:
 				return &v.state
@@ -4062,7 +4220,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[24].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateFloat); i {
 			case 0:
 				return &v.state
@@ -4074,7 +4232,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateFullAddress); i {
 			case 0:
 				return &v.state
@@ -4086,7 +4244,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateFullName); i {
 			case 0:
 				return &v.state
@@ -4098,7 +4256,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateGender); i {
 			case 0:
 				return &v.state
@@ -4110,7 +4268,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateInt64Phone); i {
 			case 0:
 				return &v.state
@@ -4122,7 +4280,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateInt); i {
 			case 0:
 				return &v.state
@@ -4134,7 +4292,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateLastName); i {
 			case 0:
 				return &v.state
@@ -4146,7 +4304,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateSha256Hash); i {
 			case 0:
 				return &v.state
@@ -4158,7 +4316,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateSSN); i {
 			case 0:
 				return &v.state
@@ -4170,7 +4328,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateState); i {
 			case 0:
 				return &v.state
@@ -4182,7 +4340,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateStreetAddress); i {
 			case 0:
 				return &v.state
@@ -4194,7 +4352,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateStringPhone); i {
 			case 0:
 				return &v.state
@@ -4206,7 +4364,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateString); i {
 			case 0:
 				return &v.state
@@ -4218,7 +4376,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateUnixTimestamp); i {
 			case 0:
 				return &v.state
@@ -4230,7 +4388,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateUsername); i {
 			case 0:
 				return &v.state
@@ -4242,7 +4400,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateUtcTimestamp); i {
 			case 0:
 				return &v.state
@@ -4254,7 +4412,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateUuid); i {
 			case 0:
 				return &v.state
@@ -4266,7 +4424,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GenerateZipcode); i {
 			case 0:
 				return &v.state
@@ -4278,7 +4436,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformE164Phone); i {
 			case 0:
 				return &v.state
@@ -4290,7 +4448,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformFirstName); i {
 			case 0:
 				return &v.state
@@ -4302,7 +4460,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[44].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformFloat); i {
 			case 0:
 				return &v.state
@@ -4314,7 +4472,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformFullName); i {
 			case 0:
 				return &v.state
@@ -4326,7 +4484,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[46].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformIntPhone); i {
 			case 0:
 				return &v.state
@@ -4338,7 +4496,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformInt); i {
 			case 0:
 				return &v.state
@@ -4350,7 +4508,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformLastName); i {
 			case 0:
 				return &v.state
@@ -4362,7 +4520,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformPhone); i {
 			case 0:
 				return &v.state
@@ -4374,7 +4532,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[50].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*TransformString); i {
 			case 0:
 				return &v.state
@@ -4386,7 +4544,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Passthrough); i {
 			case 0:
 				return &v.state
@@ -4398,7 +4556,7 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_transformer_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Null); i {
 			case 0:
 				return &v.state
@@ -4410,8 +4568,23 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 				return nil
 			}
 		}
+<<<<<<< HEAD
+=======
+		file_mgmt_v1alpha1_transformer_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CustomTransformerConfig); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+>>>>>>> b865aa52 (updated protos to just have a single transformer type)
 	}
-	file_mgmt_v1alpha1_transformer_proto_msgTypes[16].OneofWrappers = []interface{}{
+	file_mgmt_v1alpha1_transformer_proto_msgTypes[15].OneofWrappers = []interface{}{
 		(*TransformerConfig_GenerateEmailConfig)(nil),
 		(*TransformerConfig_GenerateRealisticEmailConfig)(nil),
 		(*TransformerConfig_TransformEmailConfig)(nil),
@@ -4455,13 +4628,18 @@ func file_mgmt_v1alpha1_transformer_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_mgmt_v1alpha1_transformer_proto_rawDesc,
+<<<<<<< HEAD
 			NumEnums:      0,
+=======
+			NumEnums:      1,
+>>>>>>> b865aa52 (updated protos to just have a single transformer type)
 			NumMessages:   54,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_mgmt_v1alpha1_transformer_proto_goTypes,
 		DependencyIndexes: file_mgmt_v1alpha1_transformer_proto_depIdxs,
+		EnumInfos:         file_mgmt_v1alpha1_transformer_proto_enumTypes,
 		MessageInfos:      file_mgmt_v1alpha1_transformer_proto_msgTypes,
 	}.Build()
 	File_mgmt_v1alpha1_transformer_proto = out.File
