@@ -44,7 +44,11 @@ export default function CustomGenerateStringForm(props: Props): ReactElement {
               </FormDescription>
             </div>
             <FormControl>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={String(field.value)}
+                disabled={isDisabled}
+              >
                 <SelectTrigger className="w-[180px]" disabled={isDisabled}>
                   <SelectValue placeholder="6" />
                 </SelectTrigger>

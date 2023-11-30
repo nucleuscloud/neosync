@@ -1752,8 +1752,6 @@ func (m *Transformer) validate(all bool) error {
 
 	// no validation rules for Description
 
-	// no validation rules for Type
-
 	// no validation rules for DataType
 
 	// no validation rules for Source

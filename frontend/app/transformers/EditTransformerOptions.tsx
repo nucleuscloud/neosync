@@ -10,11 +10,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-  CustomTransformer,
-  Transformer,
-  TransformerConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import {
   Cross2Icon,
   MixerHorizontalIcon,
@@ -41,7 +37,7 @@ import TransformPhoneForm from './Sheetforms/TransformPhoneForm';
 import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
-  transformer: CustomTransformer | undefined;
+  transformer: Transformer | undefined;
   index: number;
 }
 
@@ -104,7 +100,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
             <div className="flex flex-col space-y-2">
               <div className="flex flex-row gap-2">
                 <SheetTitle>{transformer?.name}</SheetTitle>
-                <Badge variant="outline">{transformer?.type}</Badge>
+                <Badge variant="outline">{transformer?.dataType}</Badge>
               </div>
               <SheetDescription>{transformer?.description}</SheetDescription>
             </div>
@@ -124,7 +120,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
 }
 
 function handleTransformerForm(
-  transformer: CustomTransformer,
+  transformer: Transformer,
   index?: number,
   setIsSheetOpen?: (val: boolean) => void
 ): ReactElement {

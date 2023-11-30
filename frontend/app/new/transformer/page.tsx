@@ -1,6 +1,5 @@
 'use client';
 
-import { handleTransformerMetadata } from '@/app/transformers/EditTransformerOptions';
 import FormError from '@/components/FormError';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
@@ -54,8 +53,9 @@ export default function NewTransformer(): ReactElement {
     defaultValues: {
       name: '',
       source: '',
+      type: '',
+      config: {},
       description: '',
-      config: { config: { case: '', value: {} } },
     },
   });
 
@@ -92,6 +92,9 @@ export default function NewTransformer(): ReactElement {
   const { data } = useGetSystemTransformers();
   const transformers = data?.transformers ?? [];
 
+  console.log('form', form.getValues());
+  console.log('errors', form.formState.errors);
+
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a new Transformer" />}
@@ -114,7 +117,7 @@ export default function NewTransformer(): ReactElement {
                     onOpenChange={setOpenBaseSelect}
                   >
                     <SelectTrigger>
-                      {base.value ? base.value : 'Select a transformer'}
+                      {base.name ? base.name : 'Select a transformer'}
                     </SelectTrigger>
                     <SelectContent>
                       <Command className="overflow-auto">
@@ -123,35 +126,43 @@ export default function NewTransformer(): ReactElement {
                         <CommandGroup className="overflow-auto h-[200px]">
                           {transformers.map((t, index) => (
                             <CommandItem
-                              key={`${t.value}-${index}`}
+                              key={`${t.source}-${index}`}
                               onSelect={(value: string) => {
-                                field.onChange;
-                                setBase(
-                                  transformers.find(
-                                    (item) => item.value == value
-                                  ) ?? new Transformer()
+                                const selectedTransformer = transformers.find(
+                                  (item) => item.source == value
                                 );
+
+                                field.onChange(selectedTransformer?.source);
+                                const selectedValues = {
+                                  config: {
+                                    case: selectedTransformer?.config?.config
+                                      .case,
+                                    value:
+                                      selectedTransformer?.config?.config
+                                        .value || {},
+                                  },
+                                };
+                                form.setValue('config', selectedValues);
                                 form.setValue(
-                                  'config.config.case',
-                                  transformers.find(
-                                    (item) => item.value == value
-                                  )?.config?.config.case ?? ''
+                                  'type',
+                                  selectedTransformer?.dataType ?? ''
                                 );
-                                form.setValue('source', value);
+                                setBase(
+                                  selectedTransformer ?? new Transformer({})
+                                );
                                 setOpenBaseSelect(false);
                               }}
-                              value={t.value}
-                              defaultValue={'passthrough'}
+                              value={t.source}
                             >
                               <CheckIcon
                                 className={cn(
                                   'mr-2 h-4 w-4',
-                                  base.value == t.value
+                                  base.name == t.name
                                     ? 'opacity-100'
                                     : 'opacity-0'
                                 )}
                               />
-                              {t.value}
+                              {t.name}
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -163,7 +174,7 @@ export default function NewTransformer(): ReactElement {
               </FormItem>
             )}
           />
-          {base.value && (
+          {form.getValues('source') && (
             <div>
               <Controller
                 control={form.control}
@@ -214,7 +225,7 @@ export default function NewTransformer(): ReactElement {
               </div>
             </div>
           )}
-          <div>{handleCustomTransformerForm(base.value)}</div>
+          <div>{handleCustomTransformerForm(form.getValues('source'))}</div>
           <div className="flex flex-row justify-end">
             <Button type="submit" disabled={!form.formState.isValid}>
               Next
@@ -234,7 +245,7 @@ async function createNewTransformer(
     accountId: accountId,
     name: formData.name,
     description: formData.description,
-    type: handleTransformerMetadata(formData.source).type,
+    type: formData.type,
     source: formData.source,
     transformerConfig: formData.config as TransformerConfig,
   });

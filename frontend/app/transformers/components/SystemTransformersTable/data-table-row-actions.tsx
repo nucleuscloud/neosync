@@ -38,7 +38,9 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem
           className="cursor-pointer"
           onClick={() =>
-            router.push(`/transformers/systemTransformers/${transformer.value}`)
+            router.push(
+              `/transformers/systemTransformers/${transformer.source}`
+            )
           }
         >
           View

@@ -25,7 +25,7 @@ export function handleCustomTransformerForm(
 ): ReactElement {
   switch (value) {
     case 'generate_card_number':
-      <CustomGenerateCardNumberForm isDisabled={disabled} />;
+      return <CustomGenerateCardNumberForm isDisabled={disabled} />;
     case 'generate_e164_number':
       return <CustomGenerateE164NumberForm isDisabled={disabled} />;
     case 'generate_float':

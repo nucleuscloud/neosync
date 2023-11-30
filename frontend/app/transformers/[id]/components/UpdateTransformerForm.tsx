@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import {
-  CustomTransformer,
+  Transformer,
   TransformerConfig,
   UpdateCustomTransformerRequest,
   UpdateCustomTransformerResponse,
@@ -31,7 +31,7 @@ import { ReactElement } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 interface Props {
-  currentTransformer: CustomTransformer | undefined;
+  currentTransformer: Transformer | undefined;
 }
 
 export default function UpdateTransformerForm(props: Props): ReactElement {
@@ -50,7 +50,7 @@ export default function UpdateTransformerForm(props: Props): ReactElement {
       name: currentTransformer?.name ?? '',
       source: currentTransformer?.source ?? '',
       description: currentTransformer?.description ?? '',
-      type: currentTransformer?.type ?? '',
+      type: currentTransformer?.dataType ?? '',
       id: currentTransformer?.id ?? '',
       config: {
         config: {

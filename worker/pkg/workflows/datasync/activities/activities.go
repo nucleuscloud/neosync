@@ -316,7 +316,7 @@ func shouldHaltOnSchemaAddition(
 
 func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
 	for _, col := range mappings {
-		if col.Transformer.Value != nullString {
+		if col.Transformer.Name != nullString {
 			return false
 		}
 	}
@@ -559,7 +559,7 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
 
 	for _, col := range cols {
-		if col.Transformer != nil && col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
+		if col.Transformer != nil && col.Transformer.Name != "" && col.Transformer.Name != "passthrough" {
 			mutation, err := computeMutationFunction(col)
 			if err != nil {
 				return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
@@ -587,7 +587,7 @@ root.{destination_col} = transformerfunction(args)
 */
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
-	switch col.Transformer.Value {
+	switch col.Transformer.Name {
 	case "generate_email":
 		return "generate_email()", nil
 	case "generate_realistic_email":

@@ -45,7 +45,11 @@ export default function CustomGenerateIntForm(props: Props): ReactElement {
               </FormDescription>
             </div>
             <FormControl>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={String(field.value)}
+                disabled={isDisabled}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="positive" />
                 </SelectTrigger>
@@ -79,7 +83,7 @@ export default function CustomGenerateIntForm(props: Props): ReactElement {
               <Select
                 disabled={isDisabled}
                 onValueChange={field.onChange}
-                value={field.value}
+                value={String(field.value)}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="4" />

@@ -14,7 +14,6 @@ func ToCustomTransformerDto(
 		Id:          nucleusdb.UUIDString(input.ID),
 		Name:        input.Name,
 		Description: input.Description,
-		Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_CUSTOM,
 		DataType:    input.Type,
 		Source:      input.Source,
 		Config:      input.TransformerConfig.ToTransformerConfigDto(input.TransformerConfig),

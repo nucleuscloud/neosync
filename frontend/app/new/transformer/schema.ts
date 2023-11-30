@@ -227,6 +227,7 @@ export const CREATE_CUSTOM_TRANSFORMER_SCHEMA = Yup.object({
   name: customTransformerNameSchema,
   source: Yup.string(),
   description: Yup.string().required(),
+  type: Yup.string().required(),
   config: transformerConfig,
 });
 
@@ -239,7 +240,7 @@ export const UPDATE_CUSTOM_TRANSFORMER = Yup.object({
   id: Yup.string(),
   source: Yup.string(),
   description: Yup.string().required(),
-  type: Yup.string().required(),
+  type: Yup.string(),
   config: transformerConfig,
 });
 

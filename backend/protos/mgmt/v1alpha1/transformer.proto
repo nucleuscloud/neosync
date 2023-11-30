@@ -66,17 +66,10 @@ message IsTransformerNameAvailableResponse {
   bool is_available = 1;
 }
 
-enum TransformerType {
-  TRANSFORMER_TYPE_UNSPECIFIED = 0;
-  TRANSFORMER_TYPE_CUSTOM = 1;
-  TRANSFORMER_TYPE_SYSTEM = 2;
-}
-
 message Transformer {
   string id = 1 [(buf.validate.field).string.uuid = true];
   string name = 2;
   string description = 3;
-  TransformerType type = 4;
   string data_type = 5;
   string source = 6;
   TransformerConfig config = 7;

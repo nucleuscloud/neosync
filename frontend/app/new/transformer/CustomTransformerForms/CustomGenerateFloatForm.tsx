@@ -25,7 +25,10 @@ interface Props {
 export default function CustomGenerateFloatForm(props: Props): ReactElement {
   const fc = useFormContext();
 
-  const digitLength = Array.from({ length: 9 }, (_, index) => index + 1);
+  // const digitLength = Array.from({ length: 9 }, (_, index) => index + 1);
+  const digitLength = Array.from({ length: 9 }, (_, index) =>
+    (index + 1).toString()
+  );
 
   const signs = ['positive', 'negative', 'random'];
 
@@ -46,7 +49,12 @@ export default function CustomGenerateFloatForm(props: Props): ReactElement {
               </FormDescription>
             </div>
             <FormControl>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isDisabled}
+                defaultValue={field.value}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="positive" />
                 </SelectTrigger>
@@ -79,12 +87,12 @@ export default function CustomGenerateFloatForm(props: Props): ReactElement {
             </div>
             <FormControl>
               <Select
-                disabled={isDisabled}
                 onValueChange={field.onChange}
-                value={field.value}
+                value={String(field.value)}
+                disabled={isDisabled}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="3" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -116,9 +124,9 @@ export default function CustomGenerateFloatForm(props: Props): ReactElement {
             </div>
             <FormControl>
               <Select
-                disabled={isDisabled}
                 onValueChange={field.onChange}
-                value={field.value}
+                value={String(field.value)}
+                disabled={isDisabled}
               >
                 <SelectTrigger className="w-[190px]">
                   <SelectValue placeholder="3" />

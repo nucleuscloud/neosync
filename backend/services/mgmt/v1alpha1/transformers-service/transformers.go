@@ -69,9 +69,8 @@ func (s *Service) GetSystemTransformers(
 		Transformers: []*mgmtv1alpha1.Transformer{
 			{
 				Id:          "",
-				Name:        string(GenerateEmail),
-				Description: "Generates a new Generate email address.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
+				Name:        "Generate Email",
+				Description: "Generates a new randomized email address.",
 				DataType:    "string",
 				Source:      string(GenerateEmail),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -84,9 +83,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateRealisticEmail),
+				Name:        "Generate Realistic Email",
 				Description: "Generates a new realistic email address.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateRealisticEmail),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -99,9 +97,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(TransformEmail),
+				Name:        "Transform Email",
 				Description: "Transforms an existing email address..",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(TransformEmail),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -117,9 +114,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateBool),
+				Name:        "Generate Boolean",
 				Description: "Generates a boolean value at random.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "boolean",
 				Source:      string(GenerateBool),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -132,9 +128,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateCardNumber),
+				Name:        "Generate Card Number",
 				Description: "Generates a card number.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "int64",
 				Source:      string(GenerateCardNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -149,9 +144,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateCity),
+				Name:        "Generate City",
 				Description: "Randomly selects a city from a list of predfined US cities.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateCity),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -164,9 +158,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateE164Number),
+				Name:        "Generate E164 Phone Number",
 				Description: "Generates a Generate phone number in e164 format.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateE164Number),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -181,9 +174,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateFirstName),
+				Name:        "Generate First Name",
 				Description: "Generates a random first name. ",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateFirstName),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -196,15 +188,14 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateFloat),
+				Name:        "Generate Float64",
 				Description: "Generates a random float64 value.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "float64",
 				Source:      string(GenerateFloat),
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateFloatConfig{
 						GenerateFloatConfig: &mgmtv1alpha1.GenerateFloat{
-							Sign:                "postiive",
+							Sign:                "positive",
 							DigitsBeforeDecimal: 3,
 							DigitsAfterDecimal:  3,
 						},
@@ -215,9 +206,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateFullAddress),
+				Name:        "Generate Full Address",
 				Description: "Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateFullAddress),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -230,9 +220,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateFullName),
+				Name:        "Generate Full Name",
 				Description: "Generates a new full name consisting of a first and last name",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateFullName),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -245,9 +234,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateGender),
+				Name:        "Generate Gender",
 				Description: "Randomly generates one of the following genders: female, male, undefined, nonbinary.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateGender),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -262,9 +250,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateInt64Phone),
+				Name:        "Generate int64 Phone Number",
 				Description: "Generates a new phone number of type int64 with a default length of 10.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "int64",
 				Source:      string(GenerateInt64Phone),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -277,11 +264,9 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateInt),
-				Description: "Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramters are defined.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
-				DataType:    "int64",
-				Source:      string(GenerateInt),
+				Name:        "Generate Random Int64",
+				Description: "Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramters are defined.", DataType: "int64",
+				Source: string(GenerateInt),
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{
 						GenerateIntConfig: &mgmtv1alpha1.GenerateInt{
@@ -295,11 +280,9 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateLastName),
-				Description: "Generates a random last name.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
-				DataType:    "int64",
-				Source:      string(GenerateLastName),
+				Name:        "Generate Last Name",
+				Description: "Generates a random last name.", DataType: "int64",
+				Source: string(GenerateLastName),
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
 						GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
@@ -310,9 +293,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateShaHash256),
+				Name:        "Generate SHA256 Hash",
 				Description: "SHA256 hashes a randomly generated value.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateShaHash256),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -325,9 +307,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateSSN),
+				Name:        "Generate SSN",
 				Description: "Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateSSN),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -340,9 +321,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateState),
+				Name:        "Generate State",
 				Description: "Randomly selects a US state and returns the two-character state code.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateState),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -355,9 +335,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateStreetAddress),
+				Name:        "Generate Street Address",
 				Description: "Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}. For example, 123 Main Street.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateStreetAddress),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -370,9 +349,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateStringPhone),
+				Name:        "Generate String Phone Number",
 				Description: "Generates a Generate phone number and returns it as a string.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateStringPhone),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -388,9 +366,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateString),
+				Name:        "Generate Random String",
 				Description: "Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateString),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -405,9 +382,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateUnixTimestamp),
+				Name:        "Generate Unix Timestamp",
 				Description: "Randomly generates a Unix timestamp",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "int64",
 				Source:      string(GenerateUnixTimestamp),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -420,9 +396,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateUsername),
+				Name:        "Generate Username",
 				Description: "Randomly generates a username in the format<first_initial><last_name>.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateUsername),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -435,9 +410,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateUtcTimestamp),
+				Name:        "Generate UTC Timestamp",
 				Description: "Randomly generates a UTC timestamp.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "time",
 				Source:      string(GenerateUtcTimestamp),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -450,9 +424,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateUuid),
+				Name:        "Generate UUID",
 				Description: "Generates a new UUIDv4 id.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "uuid",
 				Source:      string(GenerateUuid),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -467,9 +440,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(GenerateZipcode),
+				Name:        "Generate Zipcode",
 				Description: "Randomly selects a zip code from a list of predefined US zipcodes.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(GenerateZipcode),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -481,9 +453,8 @@ func (s *Service) GetSystemTransformers(
 				UpdatedAt: timestampNow},
 			{
 				Id:          "",
-				Name:        string(TransformE164Phone),
+				Name:        "Transform E164 Phone Number",
 				Description: "Transforms an existing E164 formatted phone number.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(TransformE164Phone),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -498,9 +469,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(TransformFirstName),
+				Name:        "Transform First Name",
 				Description: "Transforms an existing first name",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(TransformFirstName),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -515,9 +485,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(TransformFloat),
+				Name:        "Transform Float64",
 				Description: "Transforms an existing float value.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "float64",
 				Source:      string(TransformFloat),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -533,9 +502,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(TransformFullName),
+				Name:        "Transform Full Name",
 				Description: "Transforms an existing full name.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(TransformFullName),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -550,9 +518,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(TransformIntPhone),
+				Name:        "Transform Int64 Phone Number",
 				Description: "Transforms an existing phone number that is typed as an integer",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "int64",
 				Source:      string(TransformIntPhone),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -567,9 +534,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(TransformInt),
+				Name:        "Transform Int64",
 				Description: "Transforms an existing integer value.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "int64",
 				Source:      string(TransformInt),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -585,9 +551,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(TransformLastName),
+				Name:        "Transform Last Name",
 				Description: "Transforms an existing last name.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(TransformLastName),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -602,9 +567,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(TransformPhone),
+				Name:        "Transform Phone Number",
 				Description: "Transforms an existing phone number that is typed as a string.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(TransformPhone),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -620,9 +584,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(TransformString),
+				Name:        "Transform String",
 				Description: "Transforms an existing string value.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(TransformString),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -637,9 +600,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(Passthrough),
+				Name:        "Passthrough",
 				Description: "Passes the input value through to the desination with no changes.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(Passthrough),
 				Config:      &mgmtv1alpha1.TransformerConfig{},
@@ -648,9 +610,8 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Id:          "",
-				Name:        string(Null),
+				Name:        "Null",
 				Description: "Inserts a <null> string instead of the source value.",
-				Type:        mgmtv1alpha1.TransformerType_TRANSFORMER_TYPE_SYSTEM,
 				DataType:    "string",
 				Source:      string(Null),
 				Config: &mgmtv1alpha1.TransformerConfig{

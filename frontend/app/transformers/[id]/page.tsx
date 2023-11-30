@@ -25,7 +25,7 @@ export default function NewCustomTransformerPage({ params }: PageProps) {
       Header={
         <PageHeader
           header={data?.transformer?.name ?? 'Custom Transformer'}
-          leftBadgeValue={data?.transformer?.type}
+          leftBadgeValue={data?.transformer?.dataType}
           extraHeading={
             <RemoveTransformerButton
               transformerID={data?.transformer?.id ?? ''}
