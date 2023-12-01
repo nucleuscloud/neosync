@@ -27,7 +27,7 @@ import { toPostgresSourceSchemaOptions } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { getConnectionIdFromSource } from '../../source/components/SourceConnectionCard';
+import { getConnectionIdFromSource } from '../../source/components/util';
 
 interface Props {
   jobId: string;

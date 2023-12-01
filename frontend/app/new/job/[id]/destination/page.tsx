@@ -1,5 +1,5 @@
 'use client';
-import { getConnectionIdFromSource } from '@/app/jobs/[id]/source/components/SourceConnectionCard';
+import { getConnectionIdFromSource } from '@/app/jobs/[id]/source/components/util';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';

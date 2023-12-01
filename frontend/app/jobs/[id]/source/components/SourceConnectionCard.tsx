@@ -2,26 +2,12 @@
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetJob } from '@/libs/hooks/useGetJob';
-import { JobSource } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { ReactElement } from 'react';
 import { isDataGenJob } from '../../util';
 import DataSyncConnectionCard from './DataSyncConnectionCard';
 
 interface Props {
   jobId: string;
-}
-
-export function getConnectionIdFromSource(
-  js: JobSource | undefined
-): string | undefined {
-  if (
-    js?.options?.config.case === 'postgres' ||
-    js?.options?.config.case === 'mysql' ||
-    js?.options?.config.case === 'awsS3'
-  ) {
-    return js.options.config.value.connectionId;
-  }
-  return undefined;
 }
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {

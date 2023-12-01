@@ -10,7 +10,7 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
-import { getConnectionIdFromSource } from '../source/components/SourceConnectionCard';
+import { getConnectionIdFromSource } from '../source/components/util';
 import { isDataGenJob } from '../util';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
 

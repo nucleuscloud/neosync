@@ -57,6 +57,7 @@ import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { getConnection } from '../../util';
+import { getConnectionIdFromSource } from './util';
 
 interface Props {
   jobId: string;
@@ -76,19 +77,6 @@ interface SchemaMap {
       };
     };
   };
-}
-
-export function getConnectionIdFromSource(
-  js: JobSource | undefined
-): string | undefined {
-  if (
-    js?.options?.config.case === 'postgres' ||
-    js?.options?.config.case === 'mysql' ||
-    js?.options?.config.case === 'awsS3'
-  ) {
-    return js.options.config.value.connectionId;
-  }
-  return undefined;
 }
 
 export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
