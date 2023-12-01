@@ -9,6 +9,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
+var defaultPhoneLength = 10
+
 func init() {
 
 	spec := bloblang.NewPluginSpec().
@@ -36,10 +38,8 @@ func init() {
 // generates a random phone number and returns it as a string
 func GenerateRandomPhoneNumber(includeHyphens bool) (string, error) {
 
-	defaultPhoneLength := 10
-
 	if !includeHyphens {
-		res, err := GenerateRandomPhoneNumberNoHyphens(defaultPhoneLength)
+		res, err := GenerateRandomPhoneNumberNoHyphens()
 		if err != nil {
 			return "", err
 		}
@@ -76,10 +76,10 @@ func GenerateRandomPhoneNumberHyphens() (string, error) {
 }
 
 // generates a random phone number of length 10 and returns it as a string
-func GenerateRandomPhoneNumberNoHyphens(length int) (string, error) {
+func GenerateRandomPhoneNumberNoHyphens() (string, error) {
 
 	// returns a phone number with no hyphens
-	val, err := transformer_utils.GenerateRandomInt(length)
+	val, err := transformer_utils.GenerateRandomInt(defaultPhoneLength)
 	if err != nil {
 		return "", err
 	}

@@ -26,6 +26,23 @@ func Test_GeneratePhoneNumberNoHyphens(t *testing.T) {
 	assert.Equal(t, len(testStringPhone), len(res), "The length of the output phone number should be the same as the input phone number")
 }
 
+func Test_GenerateRandomPhoneNumberHyphens(t *testing.T) {
+
+	res, err := GenerateRandomPhoneNumberHyphens()
+
+	assert.NoError(t, err)
+	assert.Equal(t, len(testStringPhoneHyphens), len(res), "The length of the output phone number should be the same as the input phone number")
+
+}
+
+func Test_GenerateRandomPhoneNumberNoHyphens(t *testing.T) {
+
+	res, err := GenerateRandomPhoneNumberNoHyphens()
+
+	assert.NoError(t, err)
+	assert.Equal(t, len(testStringPhone), len(res), "The length of the output phone number should be the same as the input phone number")
+}
+
 func Test_PhoneNumberTransformer(t *testing.T) {
 	mapping := `root = generate_string_phone(include_hyphens:false)`
 	ex, err := bloblang.Parse(mapping)
