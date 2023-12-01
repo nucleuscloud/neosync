@@ -14,6 +14,11 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+<<<<<<< HEAD
+=======
+import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
+import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
+>>>>>>> a58c0be3 (checkin)
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
@@ -25,7 +30,10 @@ import {
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  Transformer,
+  TransformerConfig,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import {
   SchemaFormValues,
@@ -120,7 +128,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         },
         account.id,
         connections,
-        customTransformers?.transformers ?? []
+        merged
       );
       window.sessionStorage.removeItem(defineFormKey);
       window.sessionStorage.removeItem(connectFormKey);
@@ -268,11 +276,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 }
 
+/* eslint-disable */
+type GenericObject<T = any> = {
+  [key: string]: T;
+};
+
 async function createNewJob(
   formData: FormValues,
   accountId: string,
   connections: Connection[],
-  customTransformers: Transformer[]
+  merged: Transformer[]
 ): Promise<CreateJobResponse> {
   const connectionIdMap = new Map(
     connections.map((connection) => [connection.id, connection])
@@ -297,10 +310,6 @@ async function createNewJob(
       //   name: m.transformer.name,
       //   config: m.transformer.config ?? new TransformerConfig({}),
       // });
-
-      console.log('class instance', Transformer.fromJson(m.transformer));
-
-      console.log('custom transfomrer', customTransformers);
 
       // const tNew = new Transformer({
       //   name: m.transformer.name,
@@ -328,22 +337,90 @@ async function createNewJob(
       //   )
       // });
 
-      console.log('m.tranformer.config', m.transformer.config);
+      // console.log('m.tranformer.config', m.transformer.config);
+
+      // let caseValue = '';
+
+      // for (const key in m.transformer.config) {
+      //   if (m.transformer.config.hasOwnProperty(key)) {
+      //     caseValue = key;
+      //   }
+      // }
+
+      // console.log('case:', caseValue);
 
       // const t = new Transformer({
       //   name: m.transformer.name,
-      //   config: {
-      //     config:
-      //     case: m.transformer.config
-      //     value:
-      //   }
+      //   config: new TransformerConfig({
+      //     config: {
+      //       case: caseValue,
+      //       value: m.transformer.config.config.value,
+      //     },
+      //   }),
+      // });
+
+      //console.log('class instance', Transformer.fromJson(m.transformer));
+
+      const tc = Transformer.fromJson(m.transformer);
+
+      // Use the generated fromBinary method to create a Transformer instance
+      const tt = TransformerConfig.fromJson(m.transformer.config);
+
+      console.log('tt', tt);
+
+      console.log('tc', tc);
+
+      // const newt = new Transformer({
+      //   name: m.transformer.name,
+      //   config: tc.config,
+      // });
+
+      const gen = m.transformer.config as GenericObject;
+
+      const caseValue = Object.keys(gen)[0];
+
+      const values = gen[caseValue];
+
+      const a = new TransformerConfig({});
+      const cn = getConfigByCase(a, caseValue);
+
+      console.log('cn', cn);
+
+      const obj = new Transformer({
+        name: m.transformer.name,
+        config: new TransformerConfig({
+          config: {
+            case:
+              (caseValue as TransformerConfig['config']['case']) ??
+              'passthroughConfig',
+            value: values,
+          },
+        }),
+      });
+
+      console.log('case', caseValue);
+      console.log('gen', gen);
+      console.log('values', values);
+
+      // const config = TransformerConfig.fromJson(m.transformer.config)
+
+      // const val = customTransformers.map((item) => item.id == m.transformer.config.config.value.id ?? '')
+
+      // const newt = new Transformer({
+      //   name: m.transformer.name,
+      //   config: new TransformerConfig({
+      //     config: {
+      //       case: caseValue,
+      //       value: values,
+      //     },
+      //   }),
       // });
 
       return new JobMapping({
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: new Transformer({}),
+        transformer: obj,
       });
     }),
     source: new JobSource({
@@ -410,4 +487,16 @@ async function createNewJob(
   }
 
   return CreateJobResponse.fromJson(await res.json());
+}
+
+function getConfigByCase<T>(
+  message: TransformerConfig,
+  inputCase: string
+): TransformerConfig {
+  console.log('mess', message);
+  console.log('input case', inputCase);
+  if (message.config.case === inputCase) {
+    return message as TransformerConfig;
+  }
+  return new TransformerConfig({});
 }
