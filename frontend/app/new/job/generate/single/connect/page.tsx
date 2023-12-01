@@ -105,7 +105,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     Destination
                   </h2>
                   <p className="text-muted-foreground text-sm">
-                    The location of the generated data will be synced to.
+                    The location the generated data will be synced to.
                   </p>
                 </div>
               </div>
