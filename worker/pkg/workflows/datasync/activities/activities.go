@@ -637,9 +637,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "street_address":
 		return "generates_street_address()", nil
 	case "generate_string_phone":
-		ef := col.Transformer.Config.GetGenerateStringPhoneConfig().E164Format
 		ih := col.Transformer.Config.GetGenerateStringPhoneConfig().IncludeHyphens
-		return fmt.Sprintf("generate_string_phone(e164_format:%t,include_hyphens:%t)", ef, ih), nil
+		return fmt.Sprintf("generate_string_phone(include_hyphens:%t)", ih), nil
 	case "generate_string":
 		length := col.Transformer.Config.GetGenerateStringConfig().Length
 		return fmt.Sprintf(`generate_string(length:%d)`, length), nil

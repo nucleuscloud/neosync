@@ -182,7 +182,6 @@ message GenerateState {}
 message GenerateStreetAddress {}
 
 message GenerateStringPhone {
-  bool e164_format = 1;
   bool include_hyphens = 2;
 }
 
