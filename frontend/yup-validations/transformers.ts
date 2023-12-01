@@ -105,7 +105,6 @@ interface GenerateStringPhoneTransformer {
 }
 
 interface GenerateStringPhoneConfig {
-  e164Format: boolean;
   includeHyphens: boolean;
 }
 
@@ -464,7 +463,6 @@ export function ToTransformerConfigOptions(
           config: {
             case: 'generateStringPhoneConfig',
             value: new GenerateStringPhone({
-              e164Format: gsp.value.e164Format,
               includeHyphens: gsp.value.includeHyphens,
             }),
           },
