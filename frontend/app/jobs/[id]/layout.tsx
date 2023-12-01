@@ -11,15 +11,16 @@ import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { cn } from '@/libs/utils';
+import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import JobPauseButton from './components/JobPauseButton';
+import { isDataGenJob } from './util';
 
 export default function JobIdLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
-  const basePath = `/jobs/${params?.id}`;
   const { data, isLoading, mutate } = useGetJob(id);
   const router = useRouter();
   const { data: jobStatus } = useGetJobStatus(id);
@@ -61,25 +62,6 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
     }
   }
 
-  const sidebarNavItems = [
-    {
-      title: 'Overview',
-      href: `${basePath}`,
-    },
-    {
-      title: 'Source',
-      href: `${basePath}/source`,
-    },
-    {
-      title: 'Destinations',
-      href: `${basePath}/destinations`,
-    },
-    {
-      title: 'Subsets',
-      href: `${basePath}/subsets`,
-    },
-  ];
-
   if (isLoading) {
     return (
       <div>
@@ -97,6 +79,8 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       </div>
     );
   }
+
+  const sidebarNavItems = getSidebarNavItems(data?.job);
 
   return (
     <div>
@@ -146,6 +130,53 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       </OverviewContainer>
     </div>
   );
+}
+
+interface SidebarNav {
+  title: string;
+  href: string;
+}
+function getSidebarNavItems(job?: Job): SidebarNav[] {
+  if (!job) {
+    return [];
+  }
+  const basePath = `/jobs/${job.id}`;
+
+  if (isDataGenJob(job)) {
+    return [
+      {
+        title: 'Overview',
+        href: `${basePath}`,
+      },
+      {
+        title: 'Source',
+        href: `${basePath}/source`,
+      },
+      {
+        title: 'Destinations',
+        href: `${basePath}/destinations`,
+      },
+    ];
+  }
+
+  return [
+    {
+      title: 'Overview',
+      href: `${basePath}`,
+    },
+    {
+      title: 'Source',
+      href: `${basePath}/source`,
+    },
+    {
+      title: 'Destinations',
+      href: `${basePath}/destinations`,
+    },
+    {
+      title: 'Subsets',
+      href: `${basePath}/subsets`,
+    },
+  ];
 }
 
 async function removeJob(jobId: string): Promise<void> {

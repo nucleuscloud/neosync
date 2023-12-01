@@ -277,7 +277,7 @@ export default function AwsS3Form(props: Props) {
           <Button type="submit">
             <ButtonText
               leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
-              text="submit"
+              text="Submit"
             />
           </Button>
         </div>

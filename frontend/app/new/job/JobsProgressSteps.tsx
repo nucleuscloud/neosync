@@ -1,55 +1,42 @@
 import { Step } from '@/components/progress-steps/Step';
-import { useStep } from '@/components/progress-steps/useStep';
-import { ReactElement, useEffect } from 'react';
-
-interface OnboardStep {
-  name: string;
-}
+import { ReactElement } from 'react';
 
 interface Props {
-  stepName: string;
+  steps: JobProgressStep[];
+  stepName: JobProgressStep;
 }
 
+export const DATA_SYNC_STEPS: JobProgressStep[] = [
+  'define',
+  'connect',
+  'schema',
+  'subset',
+];
+export const DATA_GEN_STEPS: JobProgressStep[] = [
+  'define',
+  'connect',
+  'schema',
+];
+
+export type JobProgressStep = 'define' | 'connect' | 'schema' | 'subset';
+
 export default function JobsProgressSteps(props: Props): ReactElement {
-  const { stepName } = props;
+  const { steps, stepName } = props;
 
-  //maxStep must match the steps.length below
-  const [currentStep, { setStep }] = useStep({
-    maxStep: 4,
-    initialStep: 0,
-  });
-
-  const steps: OnboardStep[] = [
-    {
-      name: 'define',
-    },
-    {
-      name: 'connect',
-    },
-    {
-      name: 'schema',
-    },
-    {
-      name: 'subset',
-    },
-  ];
-
-  useEffect(() => {
-    const ind = steps?.findIndex((item) => item.name == stepName);
-    setStep(ind);
-  }, [stepName]);
+  const lastStep = steps[steps.length - 1];
+  const isCompleted = stepName === lastStep;
 
   return (
     <div>
       <div className="flex flex-row items-center justify-center mt-5">
-        {steps.map((step, idx) => {
+        {steps.map((step) => {
           return (
             <Step
-              isCompleted={currentStep > idx}
-              key={step.name}
-              isActive={currentStep === idx}
-              isLastStep={steps.length === idx + 1}
-              name={step.name}
+              key={step}
+              name={step}
+              isCompleted={isCompleted}
+              isActive={step === stepName}
+              isLastStep={step === lastStep}
             />
           );
         })}

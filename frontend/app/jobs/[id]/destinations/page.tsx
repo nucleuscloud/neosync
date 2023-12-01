@@ -11,6 +11,7 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { getConnectionIdFromSource } from '../source/components/SourceConnectionCard';
+import { isDataGenJob } from '../util';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
 
 export default function Page({ params }: PageProps): ReactElement {
@@ -30,7 +31,9 @@ export default function Page({ params }: PageProps): ReactElement {
       <SubPageHeader
         header="Destination Connections"
         description={`Manage a job's destination connections`}
-        extraHeading={<NewDestinationButton jobId={id} />}
+        extraHeading={
+          isDataGenJob(data?.job) ? null : <NewDestinationButton jobId={id} />
+        }
       />
 
       {isLoading || isConnectionsLoading ? (

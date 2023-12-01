@@ -54,19 +54,8 @@ export default function PostgresForm(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const form = useForm<PostgresFormValues>({
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
-    defaultValues: {
-      connectionName: '',
-      db: {
-        host: '',
-        name: '',
-        user: '',
-        pass: '',
-        port: 0,
-        sslMode: '',
-      },
-    },
     values: defaultValues,
-    context: { originalConnectionName: defaultValues.connectionName },
+    context: { originalConnectionName: defaultValues.connectionName }, // used when validating a new connection name
   });
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
@@ -227,7 +216,7 @@ export default function PostgresForm(props: Props) {
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
-                    <SelectValue placeholder={defaultValues.db.sslMode} />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {SSL_MODES.map((mode) => (
@@ -254,19 +243,10 @@ export default function PostgresForm(props: Props) {
             onClick={async () => {
               setIsTesting(true);
               try {
-                const val = {
-                  host: form.getValues().db.host,
-                  name: form.getValues().db.name,
-                  user: form.getValues().db.user,
-                  pass: form.getValues().db.pass,
-                  port: form.getValues().db.port,
-                  sslMode: form.getValues().db.sslMode // this is a little hacky but the sslMode doesn't get set in the form for some reason
-                    ? form.getValues().db.sslMode
-                    : defaultValues.db.sslMode,
-                };
-                const resp = await checkPostgresConnection(val);
+                const resp = await checkPostgresConnection(
+                  form.getValues('db')
+                );
                 setCheckResp(resp);
-                setIsTesting(false);
               } catch (err) {
                 setCheckResp(
                   new CheckConnectionConfigResponse({
@@ -275,6 +255,7 @@ export default function PostgresForm(props: Props) {
                       err instanceof Error ? err.message : 'unknown error',
                   })
                 );
+              } finally {
                 setIsTesting(false);
               }
             }}
@@ -291,7 +272,7 @@ export default function PostgresForm(props: Props) {
           <Button type="submit" disabled={!form.formState.isValid}>
             <ButtonText
               leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
-              text="submit"
+              text="Submit"
             />
           </Button>
         </div>

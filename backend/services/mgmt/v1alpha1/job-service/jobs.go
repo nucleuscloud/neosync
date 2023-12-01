@@ -363,6 +363,7 @@ func (s *Service) CreateJob(
 		connectionIds = append(connectionIds, config.Postgres.ConnectionId)
 	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
 		connectionIds = append(connectionIds, config.AwsS3.ConnectionId)
+	default:
 	}
 
 	if !verifyConnectionIdsUnique(connectionIds) {
@@ -382,6 +383,8 @@ func (s *Service) CreateJob(
 		if fkConnId != "" {
 			connectionIdToVerify = &fkConnId
 		}
+	default:
+		return nil, errors.New("unsupported source option config type")
 	}
 	if connectionIdToVerify != nil {
 		if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, req.Msg.AccountId); err != nil {
@@ -453,16 +456,16 @@ func (s *Service) CreateJob(
 		UpdatedByID:       *userUuid,
 	}, connDestParams)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to create job: %w", err)
 	}
 
 	tScheduleClient, err := s.temporalWfManager.GetScheduleClientByAccount(ctx, req.Msg.AccountId, logger)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to build temporal schedule client by account: %w", err)
 	}
 	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, *accountUuid)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to retrieve temporal config by account: %w", err)
 	}
 
 	jobUuid := nucleusdb.UUIDString(cj.ID)
