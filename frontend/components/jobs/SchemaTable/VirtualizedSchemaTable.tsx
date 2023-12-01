@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { cn } from '@/libs/utils';
-import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {
@@ -14,11 +14,13 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { useFormContext } from 'react-hook-form';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List, areEqual } from 'react-window';
 import { VirtualizedTree } from '../../VirtualizedTree';
 import ColumnFilterSelect from './ColumnFilterSelect';
 import TransformerSelect from './TransformerSelect';
+import { TransformerWithType } from './schema-table';
 
 interface Row {
   table: string;
@@ -36,7 +38,7 @@ type ColumnFilters = Record<string, string[]>;
 
 interface VirtualizedSchemaTableProps {
   data: Row[];
-  transformers?: CustomTransformer[];
+  transformers?: TransformerWithType[];
 }
 
 export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
@@ -44,10 +46,12 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   transformers,
 }: VirtualizedSchemaTableProps) {
   const [rows, setRows] = useState(data);
-  // const [transformer, setTransformer] = useState<string>('');
+  const [transformer, setTransformer] = useState<Transformer>(
+    new Transformer({})
+  );
   const [bulkSelect, setBulkSelect] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
-  //const form = useFormContext();
+  const form = useFormContext();
 
   useEffect(() => {
     setRows(data);
@@ -129,28 +133,23 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
       <div className={`space-y-2 pl-8 basis-5/6`}>
         <div className="flex items-center justify-between">
           <div className="w-[250px]">
-            {/* <TransformerSelect
+            <TransformerSelect
               transformers={transformers || []}
-              // value={transformer}
-              value={'passthrough'}
+              value={transformer}
               onSelect={(value) => {
                 rows.forEach((r, index) => {
                   if (r.isSelected) {
-                    form.setValue(
-                      `mappings.${index}.transformer.value`,
-                      value,
-                      {
-                        shouldDirty: true,
-                      }
-                    );
+                    form.setValue(`mappings.${index}.transformer`, value, {
+                      shouldDirty: true,
+                    });
                   }
                 });
                 onSelectAll(false);
                 setBulkSelect(false);
-                setTransformer('');
+                setTransformer(value);
               }}
-              placeholder="Bulk update transformers..."
-            /> */}
+              placeholder="Bulk update Transformers..."
+            />
           </div>
           <Button
             variant="outline"
@@ -187,7 +186,7 @@ interface RowProps {
     rows: Row[];
     onSelect: (index: number) => void;
     onSelectAll: (value: boolean) => void;
-    transformers?: CustomTransformer[];
+    transformers?: TransformerWithType[];
   };
 }
 
@@ -228,7 +227,6 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                         value={field.value}
                         onSelect={field.onChange}
                         placeholder="Search transformers..."
-                        defaultValue="passthrough"
                       />
                     </div>
                     <EditTransformerOptions
@@ -268,7 +266,7 @@ const createRowData = memoize(
     rows: Row[],
     onSelect: (index: number) => void,
     onSelectAll: (value: boolean) => void,
-    transformers?: CustomTransformer[]
+    transformers?: TransformerWithType[]
   ) => ({
     rows,
     onSelect,
@@ -286,7 +284,7 @@ interface VirtualizedSchemaListProps {
   setBulkSelect: (value: boolean) => void;
   columnFilters: ColumnFilters;
   onFilterSelect: (columnId: string, newValues: string[]) => void;
-  transformers?: CustomTransformer[];
+  transformers?: TransformerWithType[];
 }
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.

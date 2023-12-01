@@ -92,9 +92,6 @@ export default function NewTransformer(): ReactElement {
   const { data } = useGetSystemTransformers();
   const transformers = data?.transformers ?? [];
 
-  console.log('form', form.getValues());
-  console.log('errors', form.formState.errors);
-
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a new Transformer" />}

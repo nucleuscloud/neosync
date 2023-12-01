@@ -7,6 +7,7 @@ import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { ReactElement } from 'react';
 import { VirtualizedSchemaTable } from './VirtualizedSchemaTable';
@@ -38,9 +39,6 @@ export function SchemaTable(props: Props): ReactElement {
   console.log('table data', data);
 
   const tableData = data?.map((d) => {
-    // if(d.transformer.config.config.value)
-
-    // const updatedValue =
     return {
       ...d,
       isSelected: false,
@@ -82,4 +80,27 @@ export async function getConnectionSchema(
     throw new Error(body.message);
   }
   return GetConnectionSchemaResponse.fromJson(await res.json());
+}
+
+export interface TransformerWithType extends Transformer {
+  transformerType: 'system' | 'custom';
+}
+
+export function MergeSystemAndCustomTransformers(
+  system: Transformer[],
+  custom: Transformer[]
+): TransformerWithType[] {
+  const newSystem = system.map((item) => ({
+    ...item,
+    transformerType: 'system',
+  }));
+
+  const newCustom = custom.map((item) => ({
+    ...item,
+    transformerType: 'custom',
+  }));
+
+  const combinedArray = [...newSystem, ...newCustom];
+
+  return combinedArray as TransformerWithType[];
 }

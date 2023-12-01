@@ -57,7 +57,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "generate_uuid",
+							Name: "generate_uuid",
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
@@ -72,7 +72,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "generate_full_name",
+							Name: "generate_full_name",
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -196,7 +196,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+							Name: "passthrough",
 						},
 					},
 					{
@@ -204,7 +204,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+							Name: "passthrough",
 						},
 					},
 				},
@@ -621,7 +621,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "generate_uuid",
+							Name: "generate_uuid",
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
@@ -636,7 +636,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "generate_full_name",
+							Name: "generate_full_name",
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -762,7 +762,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+							Name: "passthrough",
 						},
 					},
 					{
@@ -770,7 +770,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+							Name: "passthrough",
 						},
 					},
 				},

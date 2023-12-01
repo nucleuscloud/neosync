@@ -12,35 +12,26 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
-import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  CustomTransformerConfig,
+  Transformer,
+  TransformerConfig,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { toTitleCase } from '@/util/util';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
+import { TransformerWithType } from './schema-table';
 
 interface Props {
-  transformers: CustomTransformer[];
-  value: CustomTransformer;
-  onSelect: (value: CustomTransformer) => void;
+  transformers: TransformerWithType[];
+  value: Transformer;
+  onSelect: (value: Transformer) => void;
   placeholder: string;
-  defaultValue?: string;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
-  const { transformers, value, onSelect, placeholder, defaultValue } = props;
+  const { transformers, value, onSelect, placeholder } = props;
   const [open, setOpen] = useState(false);
-
-  let custom: CustomTransformer[] = [];
-  let system: CustomTransformer[] = [];
-
-  transformers.forEach((t) => {
-    if (t.id) {
-      custom.push(t);
-    } else {
-      system.push(t);
-    }
-  });
-
-  console.log('system', value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -49,12 +40,18 @@ export default function TransformerSelect(props: Props): ReactElement {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between w-[175px]"
+          className={cn(
+            placeholder.startsWith('Bulk')
+              ? 'justify-between w-[275px]'
+              : 'justify-between w-[175px]'
+          )}
         >
           <div className="whitespace-nowrap truncate w-[175px]">
             {toTitleCase(value.name)
               ? toTitleCase(value.name)
-              : 'Select a transformer'}
+              : placeholder
+                ? placeholder
+                : 'Select a transformer'}
           </div>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -69,52 +66,82 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[400px] overflow-y-scroll">
             <CommandGroup heading="Custom">
-              {custom.map((t, index) => (
-                <CommandItem
-                  key={`${t?.name}-${index}`}
-                  onSelect={(currentValue) => {
-                    onSelect(FindTransformerByName(currentValue, transformers));
-                    setOpen(false);
-                  }}
-                  value={t?.name}
-                  defaultValue={defaultValue}
-                >
-                  <div className="flex flex-row items-center">
-                    <CheckIcon
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        value.name == t?.name ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    {t?.name}
-                    <div className="ml-2 text-gray-400 text-xs">{t.type}</div>
-                  </div>
-                </CommandItem>
-              ))}
+              {transformers
+                .filter((item) => item.transformerType == 'custom')
+                .map((t, index) => (
+                  <CommandItem
+                    key={`${t?.name}-${index}`}
+                    onSelect={(currentValue) => {
+                      const selectedTransformer = FindTransformerByName(
+                        currentValue,
+                        transformers
+                      );
+                      const customTransformer = new Transformer({
+                        ...selectedTransformer,
+                        config: new TransformerConfig({
+                          config: {
+                            case: 'customTransformerConfig',
+                            value: new CustomTransformerConfig({
+                              id: selectedTransformer?.id,
+                            }),
+                          },
+                        }),
+                      });
+                      onSelect(customTransformer);
+                      setOpen(false);
+                    }}
+                    value={t.name}
+                  >
+                    <div className="flex flex-row items-center">
+                      <CheckIcon
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          value.name == t?.name ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
+                      {t?.name}
+                      <div className="ml-2 text-gray-400 text-xs">
+                        {t.dataType}
+                      </div>
+                    </div>
+                  </CommandItem>
+                ))}
             </CommandGroup>
             <CommandGroup heading="System">
-              {system.map((t, index) => (
-                <CommandItem
-                  key={`${t?.name}s-${index}`}
-                  onSelect={(currentValue) => {
-                    onSelect(FindTransformerByName(currentValue, transformers));
-                    setOpen(false);
-                  }}
-                  value={t?.name}
-                  defaultValue={defaultValue}
-                >
-                  <div className="flex flex-row items-center">
-                    <CheckIcon
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        value.name == t?.name ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    {t?.name}
-                    <div className="ml-2 text-gray-400 text-xs">{t.type}</div>
-                  </div>
-                </CommandItem>
-              ))}
+              {transformers
+                .filter((item) => item.transformerType == 'system')
+                .map((t, index) => (
+                  <CommandItem
+                    key={`${t?.name}-${index}`}
+                    onSelect={(currentValue) => {
+                      const selectedTransformer = FindTransformerByName(
+                        currentValue,
+                        transformers
+                      );
+                      const systemTransformer = new Transformer({
+                        name: selectedTransformer.name,
+                        source: selectedTransformer.source,
+                        config: selectedTransformer.config,
+                      });
+                      onSelect(systemTransformer);
+                      setOpen(false);
+                    }}
+                    value={t.name}
+                  >
+                    <div className="flex flex-row items-center">
+                      <CheckIcon
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          value.name == t?.name ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
+                      {t?.name}
+                      <div className="ml-2 text-gray-400 text-xs">
+                        {t.dataType}
+                      </div>
+                    </div>
+                  </CommandItem>
+                ))}
             </CommandGroup>
           </div>
         </Command>
@@ -125,10 +152,10 @@ export default function TransformerSelect(props: Props): ReactElement {
 
 function FindTransformerByName(
   name: string,
-  transformers: CustomTransformer[]
-): CustomTransformer {
+  transformers: Transformer[]
+): Transformer {
   return (
     transformers?.find((item) => item.name.toLowerCase() == name) ??
-    new CustomTransformer()
+    new Transformer()
   );
 }

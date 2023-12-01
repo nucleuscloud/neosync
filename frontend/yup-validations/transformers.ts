@@ -1,5 +1,5 @@
+import { TransformerWithType } from '@/components/jobs/SchemaTable/schema-table';
 import {
-  CustomTransformer,
   CustomTransformerConfig,
   GenerateBool,
   GenerateCardNumber,
@@ -34,7 +34,7 @@ import {
 
 interface GenerateCardNumberTransformer {
   case?: string | undefined;
-  value: GenerateCardNumberConfig;
+  name: GenerateCardNumberConfig;
 }
 
 interface GenerateCardNumberConfig {
@@ -43,7 +43,7 @@ interface GenerateCardNumberConfig {
 
 interface GenerateE164NumberTransformer {
   case?: string | undefined;
-  value: GenerateE164NumberConfig;
+  name: GenerateE164NumberConfig;
 }
 
 interface GenerateE164NumberConfig {
@@ -52,7 +52,7 @@ interface GenerateE164NumberConfig {
 
 interface GenerateFloatTransformer {
   case?: string | undefined;
-  value: GenerateFloatTransformerConfig;
+  name: GenerateFloatTransformerConfig;
 }
 
 interface GenerateFloatTransformerConfig {
@@ -63,7 +63,7 @@ interface GenerateFloatTransformerConfig {
 
 interface GenerateGenderTransformer {
   case?: string | undefined;
-  value: GenerateGenderConfig;
+  name: GenerateGenderConfig;
 }
 
 interface GenerateGenderConfig {
@@ -72,7 +72,7 @@ interface GenerateGenderConfig {
 
 interface GenerateIntTransformer {
   case?: string | undefined;
-  value: GenerateIntConfig;
+  name: GenerateIntConfig;
 }
 
 interface GenerateIntConfig {
@@ -82,7 +82,7 @@ interface GenerateIntConfig {
 
 interface GenerateStringPhoneTransformer {
   case?: string | undefined;
-  value: GenerateStringPhoneConfig;
+  name: GenerateStringPhoneConfig;
 }
 
 interface GenerateStringPhoneConfig {
@@ -91,7 +91,7 @@ interface GenerateStringPhoneConfig {
 
 interface GenerateStringTransformer {
   case?: string | undefined;
-  value: GenerateStringConfig;
+  name: GenerateStringConfig;
 }
 
 interface GenerateStringConfig {
@@ -100,7 +100,7 @@ interface GenerateStringConfig {
 
 interface GenerateUuidTransformer {
   case?: string | undefined;
-  value: GenerateUuidConfig;
+  name: GenerateUuidConfig;
 }
 
 interface GenerateUuidConfig {
@@ -110,9 +110,9 @@ interface GenerateUuidConfig {
 export function ToTransformerConfigOptions(
   t: {
     name: string;
-    config: { config: { case?: string | undefined; value: {} } };
+    config: { config: { case?: string | undefined; name: {} } };
   },
-  merged: CustomTransformer[]
+  merged: TransformerWithType[]
 ): Transformer {
   // find the transformer by the name
   const val = merged.find((item) => item.name.toLowerCase() == t.name);
@@ -603,7 +603,7 @@ export function ToTransformerConfigOptions(
     }
   } else {
     return new Transformer({
-      value: val?.source,
+      name: val?.source,
       config: new TransformerConfig({
         config: {
           case: 'customTransformerConfig',

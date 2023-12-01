@@ -220,20 +220,20 @@ func Test_buildProcessorMutation(t *testing.T) {
 	assert.Empty(t, output)
 
 	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Value: "passthrough"}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Name: "passthrough"}},
 	})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Value: "null"}},
-		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.Transformer{Value: "null"}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Name: "null"}},
+		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.Transformer{Name: "null"}},
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, output, "root.id = null\nroot.name = null")
 
 	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Value: "i_do_not_exist"}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Name: "i_do_not_exist"}},
 	})
 	assert.Error(t, err)
 	assert.Empty(t, output)
@@ -450,7 +450,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 	val, err := computeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
 			Transformer: &mgmtv1alpha1.Transformer{
-				Value: "null",
+				Name: "null",
 			},
 		})
 	assert.NoError(t, err)

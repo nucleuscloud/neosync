@@ -1,6 +1,5 @@
 'use client';
 
-import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
@@ -15,8 +14,6 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
@@ -28,13 +25,12 @@ import {
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import {
   SchemaFormValues,
   toJobDestinationOptions,
 } from '@/yup-validations/jobs';
-import { ToTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
@@ -109,20 +105,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
 
-  const { data: customTransformers } = useGetCustomTransformers(
-    account?.id ?? ''
-  );
-  const { data: systemTransformers } = useGetSystemTransformers();
-
-  const merged = MergeSystemAndCustomTransformers(
-    systemTransformers?.transformers ?? [],
-    customTransformers?.transformers ?? []
-  );
-
   async function onSubmit(values: SubsetFormValues): Promise<void> {
     if (!account) {
       return;
     }
+
     try {
       const job = await createNewJob(
         {
@@ -133,7 +120,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         },
         account.id,
         connections,
-        merged // lets us get the entire transformer object from the tranformer form value later on
+        customTransformers?.transformers ?? []
       );
       window.sessionStorage.removeItem(defineFormKey);
       window.sessionStorage.removeItem(connectFormKey);
@@ -285,7 +272,7 @@ async function createNewJob(
   formData: FormValues,
   accountId: string,
   connections: Connection[],
-  merged: CustomTransformer[]
+  customTransformers: Transformer[]
 ): Promise<CreateJobResponse> {
   const connectionIdMap = new Map(
     connections.map((connection) => [connection.id, connection])
@@ -294,17 +281,69 @@ async function createNewJob(
     (c) => c.id == formData.connect.sourceId
   );
 
+  console.log('formData', formData.schema.mappings);
+
   const body = new CreateJobRequest({
     accountId,
     jobName: formData.define.jobName,
     cronSchedule: formData.define.cronSchedule,
     initiateJobRun: formData.define.initiateJobRun,
     mappings: formData.schema.mappings.map((m) => {
+      console.log('mappings', m.transformer);
+      // TODO: figure how they transformer config case and value aren'y being ste correctly and update it
+      // the table data is set fine but the mappings jobect isn't set correctly
+
+      // const t = new Transformer({
+      //   name: m.transformer.name,
+      //   config: m.transformer.config ?? new TransformerConfig({}),
+      // });
+
+      console.log('class instance', Transformer.fromJson(m.transformer));
+
+      console.log('custom transfomrer', customTransformers);
+
+      // const tNew = new Transformer({
+      //   name: m.transformer.name,
+      //   config: {
+      //     config: {
+      //       case: m.transformer.config.config.case,
+      //       value: m.transformer.config.config.value,
+      //     },
+      //   },
+      // });
+
+      // console.log('t', t);
+
+      // console.log('tNew', tNew);
+
+      // const tData =
+      //   m.transformer instanceof Transformer
+      //     ? m.transformer
+      //     : Transformer.fromJson(m.transformer);
+
+      // const t = new Transformer({
+      //   name: m.transformer.name,
+      //   config: TransformerConfig.fromJson(
+      //     m.transformer.config
+      //   )
+      // });
+
+      console.log('m.tranformer.config', m.transformer.config);
+
+      // const t = new Transformer({
+      //   name: m.transformer.name,
+      //   config: {
+      //     config:
+      //     case: m.transformer.config
+      //     value:
+      //   }
+      // });
+
       return new JobMapping({
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: ToTransformerConfigOptions(m.transformer, merged),
+        transformer: new Transformer({}),
       });
     }),
     source: new JobSource({

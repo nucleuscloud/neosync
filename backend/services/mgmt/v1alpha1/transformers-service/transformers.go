@@ -98,7 +98,7 @@ func (s *Service) GetSystemTransformers(
 			{
 				Id:          "",
 				Name:        "Transform Email",
-				Description: "Transforms an existing email address..",
+				Description: "Transforms an existing email address.",
 				DataType:    "string",
 				Source:      string(TransformEmail),
 				Config: &mgmtv1alpha1.TransformerConfig{
