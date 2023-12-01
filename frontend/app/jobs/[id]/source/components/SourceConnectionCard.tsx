@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { ReactElement } from 'react';
 import { isDataGenJob } from '../../util';
+import DataGenConnectionCard from './DataGenConnectionCard';
 import DataSyncConnectionCard from './DataSyncConnectionCard';
 
 interface Props {
@@ -23,7 +24,7 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
     );
   }
   if (isDataGenJob(data?.job)) {
-    return <div>todo</div>;
+    return <DataGenConnectionCard jobId={jobId} />;
   }
   return <DataSyncConnectionCard jobId={jobId} />;
 }
