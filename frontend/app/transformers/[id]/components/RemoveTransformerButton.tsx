@@ -1,3 +1,5 @@
+import ButtonText from '@/components/ButtonText';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
@@ -13,32 +15,35 @@ export default function RemoveTransformerButton(props: Props): ReactElement {
   const { transformerID } = props;
   const router = useRouter();
   const { toast } = useToast();
+
+  async function deleteTransformer(): Promise<void> {
+    try {
+      await removeTransformer(transformerID);
+      toast({
+        title: 'Successfully removed transformer!',
+        variant: 'success',
+      });
+      router.push(`/transformers`);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to remove transformer',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
+  }
   return (
-    <Button
-      variant="destructive"
-      onClick={async () => {
-        try {
-          await removeTransformer(transformerID);
-          toast({
-            title: 'Successfully removed transformer!',
-            variant: 'success',
-          });
-          router.push(`/transformers`);
-        } catch (err) {
-          console.error(err);
-          toast({
-            title: 'Unable to remove transformer',
-            description: getErrorMessage(err),
-            variant: 'destructive',
-          });
-        }
-      }}
-    >
-      <div className="flex flex-row gap-1 items-center">
-        <TrashIcon />
-        <p>Delete Transformer</p>
-      </div>
-    </Button>
+    <DeleteConfirmationDialog
+      trigger={
+        <Button variant="destructive">
+          <ButtonText leftIcon={<TrashIcon />} text="Delete Transformer" />
+        </Button>
+      }
+      headerText="Are you sure you want to delete this Transformer?"
+      description="Deleting this Transformer may impact Jobs that rely on it."
+      onConfirm={async () => deleteTransformer()}
+    />
   );
 }
 
