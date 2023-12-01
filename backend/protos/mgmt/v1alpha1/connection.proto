@@ -171,7 +171,7 @@ message GetConnectionDataStreamRequest {
   string table = 3;
 }
 message GetConnectionDataStreamResponse {
-  repeated bytes data = 1;
+  bytes data = 1;
 }
 
 service ConnectionService {

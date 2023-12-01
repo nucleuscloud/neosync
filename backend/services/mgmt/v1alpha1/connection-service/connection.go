@@ -347,7 +347,7 @@ func (s *Service) GetConnectionDataStream(
 		return err
 	}
 	c, _ := json.MarshalIndent(columns, "", " ")
-	if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Data: string(c)}); err != nil {
+	if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Data: c}); err != nil {
 		return err
 	}
 
@@ -364,9 +364,8 @@ func (s *Service) GetConnectionDataStream(
 		sep := []byte("\t")
 
 		x := bytes.Join(row, sep)
-		fmt.Printf("\n\n  %s \n\n", string(x))
 
-		if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Data: string(x)}); err != nil {
+		if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Data: x}); err != nil {
 			return err
 		}
 	}
