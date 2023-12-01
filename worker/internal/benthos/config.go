@@ -30,6 +30,14 @@ type InputConfig struct {
 
 type Inputs struct {
 	SqlSelect *SqlSelect `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
+	Generate  *Generate  `json:"generate,omitempty" yaml:"generate,omitempty"`
+}
+
+type Generate struct {
+	Mapping   string `json:"mapping" yaml:"mapping"`
+	Interval  string `json:"interval" yaml:"interval"`
+	Count     int    `json:"count" yaml:"count"`
+	BatchSize int    `json:"batch_size" yaml:"batch_size"`
 }
 
 type SqlSelect struct {

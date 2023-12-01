@@ -28,7 +28,7 @@ services:
     expose:
       - 5432
     volumes:
-      - /var/lib/postgresql/data
+      - ./.data/temporal-postgres/pgdata:/var/lib/postgresql/data
   temporal:
     container_name: temporal
     depends_on:
@@ -76,7 +76,7 @@ services:
     networks:
       - temporal-network
     ports:
-      - 8080:8080
+      - 8233:8080
 networks:
   temporal-network:
     driver: bridge
