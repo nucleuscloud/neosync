@@ -5633,8 +5633,6 @@ func (m *GenerateStringPhone) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for E164Format
-
 	// no validation rules for IncludeHyphens
 
 	if len(errors) > 0 {

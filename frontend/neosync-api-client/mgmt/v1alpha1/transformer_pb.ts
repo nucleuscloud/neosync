@@ -1643,11 +1643,6 @@ export class GenerateStreetAddress extends Message<GenerateStreetAddress> {
  */
 export class GenerateStringPhone extends Message<GenerateStringPhone> {
   /**
-   * @generated from field: bool e164_format = 1;
-   */
-  e164Format = false;
-
-  /**
    * @generated from field: bool include_hyphens = 2;
    */
   includeHyphens = false;
@@ -1660,7 +1655,6 @@ export class GenerateStringPhone extends Message<GenerateStringPhone> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateStringPhone";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "e164_format", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 

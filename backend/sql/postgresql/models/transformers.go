@@ -104,7 +104,6 @@ type GenerateStateConfig struct{}
 type GenerateStreetAddressConfig struct{}
 
 type GenerateStringPhoneConfig struct {
-	E164Format     bool `json:"e164Format"`
 	IncludeHyphens bool `json:"includeHyphens"`
 }
 
@@ -242,7 +241,6 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateStreetAddress = &GenerateStreetAddressConfig{}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig:
 		t.GenerateStringPhone = &GenerateStringPhoneConfig{
-			E164Format:     tr.GetGenerateStringPhoneConfig().E164Format,
 			IncludeHyphens: tr.GetGenerateStringPhoneConfig().IncludeHyphens,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
@@ -459,7 +457,6 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
 				GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
-					E164Format:     tr.GenerateStringPhone.E164Format,
 					IncludeHyphens: tr.GenerateStringPhone.IncludeHyphens,
 				},
 			},

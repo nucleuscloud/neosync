@@ -30,18 +30,7 @@ export default function GenerateStringPhoneForm(props: Props): ReactElement {
   const [ih, setIh] = useState<boolean>(
     config?.includeHyphens ? config?.includeHyphens : false
   );
-  const [e164, setE164] = useState<boolean>(
-    config?.e164Format ? config?.e164Format : false
-  );
-
   const handleSubmit = () => {
-    fc.setValue(
-      `mappings.${index}.transformer.config.config.value.e164Format`,
-      e164,
-      {
-        shouldValidate: false,
-      }
-    );
     fc.setValue(
       `mappings.${index}.transformer.config.config.value.includeHyphens`,
       ih,
@@ -66,32 +55,7 @@ export default function GenerateStringPhoneForm(props: Props): ReactElement {
               </FormDescription>
             </div>
             <FormControl>
-              <Switch
-                checked={ih}
-                disabled={e164}
-                onCheckedChange={() => setIh(!ih)}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <FormField
-        name={`mappings.${index}.transformer.config.config.value.e164Format`}
-        render={() => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Format in E164 Format</FormLabel>
-              <FormDescription>
-                Format the output phone number in the E164 Format. For ex.
-                +1892393573894
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={e164}
-                disabled={ih}
-                onCheckedChange={() => setE164(!e164)}
-              />
+              <Switch checked={ih} onCheckedChange={() => setIh(!ih)} />
             </FormControl>
           </FormItem>
         )}

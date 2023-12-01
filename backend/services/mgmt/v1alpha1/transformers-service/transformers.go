@@ -176,7 +176,6 @@ func (s *Service) GetSystemTransformers(
 			{Value: string(GenerateStringPhone), Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
 					GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
-						E164Format:     false,
 						IncludeHyphens: false,
 					},
 				},
