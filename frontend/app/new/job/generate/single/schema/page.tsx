@@ -237,7 +237,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     value={field.value}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="select a schema..." />
+                      <SelectValue placeholder="Select a schema..." />
                     </SelectTrigger>
                     <SelectContent>
                       {uniqueSchemas.map((schema) => (
@@ -270,7 +270,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     value={field.value}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="select a table..." />
+                      <SelectValue placeholder="Select a table..." />
                     </SelectTrigger>
                     <SelectContent>
                       {selectedSchemaTables.map((table) => (
