@@ -3,7 +3,6 @@ package datasync_activities
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -529,9 +528,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			}
 		}
 	}
-
-	jsonF, _ := json.MarshalIndent(responses, "", " ")
-	fmt.Printf("\n\n  %s \n\n", string(jsonF))
 
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,

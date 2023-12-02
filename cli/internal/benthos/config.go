@@ -18,8 +18,8 @@ type HTTPConfig struct {
 
 type StreamConfig struct {
 	Input    *InputConfig    `json:"input" yaml:"input"`
-	Buffer   *BufferConfig   `json:"buffer" yaml:"buffer"`
-	Pipeline *PipelineConfig `json:"pipeline" yaml:"pipeline"`
+	Buffer   *BufferConfig   `json:"buffer,omitempty" yaml:"buffer,omitempty"`
+	Pipeline *PipelineConfig `json:"pipeline,omitempty" yaml:"pipeline,omitempty"`
 	Output   *OutputConfig   `json:"output" yaml:"output"`
 }
 
@@ -29,7 +29,29 @@ type InputConfig struct {
 }
 
 type Inputs struct {
-	SqlSelect *SqlSelect `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
+	SqlSelect  *SqlSelect  `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
+	HttpClient *HttpClient `json:"http_client,omitempty" yaml:"http_client,omitempty"`
+}
+
+type HttpClient struct {
+	Url       string   `json:"url" yaml:"url"`
+	Verb      string   `json:"verb" yaml:"verb"`
+	Headers   *Headers `json:"headers,omitempty" yaml:"headers,omitempty"`
+	RateLimit *string  `json:"rate_limit,omitempty" yaml:"rate_limit,omitempty"`
+	Timeout   string   `json:"timeout" yaml:"timeout"`
+	Payload   *string  `json:"payload,omitempty" yaml:"payload,omitempty"`
+	Stream    *Stream  `json:"stream,omitempty" yaml:"stream,omitempty"`
+}
+
+type Headers struct {
+	Authorization *string `json:"Authorization,omitempty" yaml:"Authorization,omitempty"`
+	ContentType   *string `json:"Content-Type,omitempty" yaml:"Content-Type,omitempty"`
+}
+
+type Stream struct {
+	Enabled   bool   `json:"enabled,omitempty" yaml:"enabled,omitempty"`
+	Reconnect bool   `json:"reconnect,omitempty" yaml:"reconnect,omitempty"`
+	Codec     string `json:"codec" yaml:"codec"`
 }
 
 type SqlSelect struct {

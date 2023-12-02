@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -301,23 +300,6 @@ func (s *Service) GetConnectionDataStream(
 		return err
 	}
 
-	// schemaResp, err := s.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
-	// 	Id: req.Msg.SourceConnectionId,
-	// }))
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// schemas := schemaResp.Msg.GetSchemas()
-	// if len(schemas) == 0 {
-	// 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionDataStreamResponse{}), nil
-	// }
-
-	// tables := map[string]string{}
-	// for _, col := range schemas {
-	// 	tableName := fmt.Sprintf("%s.%s", col.Schema, col.Table)
-	// 	tables[tableName] = tableName
-	// }
-
 	connCfg := sourceConn.Msg.Connection.ConnectionConfig
 	connDetails, err := s.getConnectionDetails(connCfg)
 	if err != nil {
@@ -344,10 +326,6 @@ func (s *Service) GetConnectionDataStream(
 
 	columns, err := rows.Columns()
 	if err != nil {
-		return err
-	}
-	c, _ := json.MarshalIndent(columns, "", " ")
-	if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Data: c}); err != nil {
 		return err
 	}
 
