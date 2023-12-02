@@ -486,7 +486,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 2)
 
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+	assert.NotNil(t, bc)
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
@@ -533,7 +534,7 @@ output:
 `),
 	)
 
-	bc2 := resp.BenthosConfigs[1]
+	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
 	assert.Equal(t, bc2.Name, "public.user_account_associations")
 	assert.Equal(t, bc2.DependsOn, []string{"public.users"})
 	out2, err := yaml.Marshal(bc2.Config)
@@ -1052,7 +1053,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 2)
 
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
@@ -1099,7 +1100,7 @@ output:
 `),
 	)
 
-	bc2 := resp.BenthosConfigs[1]
+	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
 	assert.Equal(t, bc2.Name, "public.user_account_associations")
 	assert.Equal(t, bc2.DependsOn, []string{"public.users"})
 	out2, err := yaml.Marshal(bc2.Config)
@@ -1145,6 +1146,15 @@ output:
                     processors: []
 `),
 	)
+}
+
+func getBenthosConfigByName(resps []*BenthosConfigResponse, name string) *BenthosConfigResponse {
+	for _, cfg := range resps {
+		if cfg.Name == name {
+			return cfg
+		}
+	}
+	return nil
 }
 
 // Generate -> S3
