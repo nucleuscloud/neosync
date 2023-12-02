@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { cn } from '@/libs/utils';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {
@@ -25,7 +25,7 @@ import { TransformerWithType } from './schema-table';
 interface Row {
   table: string;
   transformer: {
-    name: string;
+    source: string;
     config: {};
   };
   schema: string;
@@ -46,8 +46,8 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   transformers,
 }: VirtualizedSchemaTableProps) {
   const [rows, setRows] = useState(data);
-  const [transformer, setTransformer] = useState<Transformer>(
-    new Transformer({})
+  const [transformer, setTransformer] = useState<UserDefinedTransformer>(
+    new UserDefinedTransformer({})
   );
   const [bulkSelect, setBulkSelect] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
@@ -231,7 +231,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                     </div>
                     <EditTransformerOptions
                       transformer={transformers?.find(
-                        (item) => item.source == field.value.source
+                        (item) => item.source == field.value
                       )}
                       index={index}
                     />
@@ -407,7 +407,7 @@ function shouldFilterRow(
     }
     const value =
       key == 'transformer'
-        ? (row[key as 'transformer'].name as string)
+        ? (row[key as 'transformer'].source as string)
         : (row[key as keyof Row] as string);
 
     if (!filters.includes(value)) {
@@ -483,7 +483,7 @@ function getUniqueFiltersByColumn(
   filteredRows.forEach((r) => {
     const value =
       columnId == 'transformer'
-        ? (r[columnId as 'transformer'].name as string)
+        ? (r[columnId as 'transformer'].source as string)
         : (r[columnId as keyof Row] as string);
     uniqueColFilters[value] = value;
   });

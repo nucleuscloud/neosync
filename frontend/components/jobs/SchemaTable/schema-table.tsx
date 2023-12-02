@@ -5,9 +5,12 @@ import {
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
-import { useGetCustomTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
+import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
 import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  SystemTransformer,
+  UserDefinedTransformer,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { ReactElement } from 'react';
 import { VirtualizedSchemaTable } from './VirtualizedSchemaTable';
@@ -25,7 +28,7 @@ export function SchemaTable(props: Props): ReactElement {
     useGetSystemTransformers();
 
   const { data: customTransformers, isLoading: customTransformersIsLoading } =
-    useGetCustomTransformers(account?.id ?? '');
+    useGetUserDefinedTransformers(account?.id ?? '');
 
   const filteredSystemTransformers = excludeTransformers
     ? filterDataTransformers(systemTransformers?.transformers ?? [])
@@ -82,13 +85,12 @@ export async function getConnectionSchema(
   return GetConnectionSchemaResponse.fromJson(await res.json());
 }
 
-export interface TransformerWithType extends Transformer {
-  transformerType: 'system' | 'custom';
-}
+export type TransformerWithType = SystemTransformer &
+  UserDefinedTransformer & { transformerType: 'system' | 'custom' };
 
 export function MergeSystemAndCustomTransformers(
-  system: Transformer[],
-  custom: Transformer[]
+  system: SystemTransformer[],
+  custom: UserDefinedTransformer[]
 ): TransformerWithType[] {
   const newSystem = system.map((item) => ({
     ...item,

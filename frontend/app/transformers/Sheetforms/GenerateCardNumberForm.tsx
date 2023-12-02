@@ -11,13 +11,13 @@ import {
 import { Switch } from '@/components/ui/switch';
 import {
   GenerateCardNumber,
-  Transformer,
+  UserDefinedTransformer,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: Transformer;
+  transformer: UserDefinedTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 

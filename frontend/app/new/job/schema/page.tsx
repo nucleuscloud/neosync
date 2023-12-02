@@ -9,9 +9,9 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
+import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import {
   Passthrough,
-  Transformer,
   TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
@@ -59,25 +59,27 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
 
       const mappings = res.schemas.map((r) => {
+        var pt = new JobMappingTransformer({
+          source: 'passthrough',
+          config: new TransformerConfig({
+            config: {
+              case: 'passthroughConfig',
+              value: new Passthrough({}),
+            },
+          }),
+        }) as {
+          source: string;
+          config: {
+            config: {
+              case?: string | undefined;
+              value: {};
+            };
+          };
+        };
+
         return {
           ...r,
-          transformer: new Transformer({
-            name: 'passthrough',
-            config: new TransformerConfig({
-              config: {
-                case: 'passthroughConfig',
-                value: new Passthrough({}),
-              },
-            }),
-          }) as {
-            name: string;
-            config: {
-              config: {
-                case?: string | undefined;
-                value: {};
-              };
-            };
-          },
+          transformer: pt,
         };
       });
       return { mappings };

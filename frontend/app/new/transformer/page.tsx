@@ -27,9 +27,9 @@ import { toast } from '@/components/ui/use-toast';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { cn } from '@/libs/utils';
 import {
-  CreateCustomTransformerRequest,
-  CreateCustomTransformerResponse,
-  Transformer,
+  CreateUserDefinedTransformerRequest,
+  CreateUserDefinedTransformerResponse,
+  SystemTransformer,
   TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
@@ -38,18 +38,20 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { handleCustomTransformerForm } from './CustomTransformerForms/HandleCustomTransformersForm';
+import { handleCustomTransformerForm } from './UserDefinedTransformerForms/HandleCustomTransformersForm';
 import {
-  CREATE_CUSTOM_TRANSFORMER_SCHEMA,
-  CreateCustomTransformerSchema,
+  CREATE_USER_DEFINED_TRANSFORMER_SCHEMA,
+  CreateUserDefinedTransformerSchema,
 } from './schema';
 
 export default function NewTransformer(): ReactElement {
-  const [base, setBase] = useState<Transformer>(new Transformer());
+  const [base, setBase] = useState<SystemTransformer>(
+    new SystemTransformer({})
+  );
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
 
-  const form = useForm<CreateCustomTransformerSchema>({
-    resolver: yupResolver(CREATE_CUSTOM_TRANSFORMER_SCHEMA),
+  const form = useForm<CreateUserDefinedTransformerSchema>({
+    resolver: yupResolver(CREATE_USER_DEFINED_TRANSFORMER_SCHEMA),
     defaultValues: {
       name: '',
       source: '',
@@ -62,8 +64,10 @@ export default function NewTransformer(): ReactElement {
   const router = useRouter();
   const { account } = useAccount();
 
+  console.log('form', form.getValues());
+
   async function onSubmit(
-    values: CreateCustomTransformerSchema
+    values: CreateUserDefinedTransformerSchema
   ): Promise<void> {
     if (!account) {
       return;
@@ -145,7 +149,8 @@ export default function NewTransformer(): ReactElement {
                                   selectedTransformer?.dataType ?? ''
                                 );
                                 setBase(
-                                  selectedTransformer ?? new Transformer({})
+                                  selectedTransformer ??
+                                    new SystemTransformer({})
                                 );
                                 setOpenBaseSelect(false);
                               }}
@@ -236,9 +241,9 @@ export default function NewTransformer(): ReactElement {
 
 async function createNewTransformer(
   accountId: string,
-  formData: CreateCustomTransformerSchema
-): Promise<CreateCustomTransformerResponse> {
-  const body = new CreateCustomTransformerRequest({
+  formData: CreateUserDefinedTransformerSchema
+): Promise<CreateUserDefinedTransformerResponse> {
+  const body = new CreateUserDefinedTransformerRequest({
     accountId: accountId,
     name: formData.name,
     description: formData.description,
@@ -247,7 +252,7 @@ async function createNewTransformer(
     transformerConfig: formData.config as TransformerConfig,
   });
 
-  const res = await fetch(`/api/transformers/custom`, {
+  const res = await fetch(`/api/transformers/user-defined`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -258,5 +263,5 @@ async function createNewTransformer(
     const body = await res.json();
     throw new Error(body.message);
   }
-  return CreateCustomTransformerResponse.fromJson(await res.json());
+  return CreateUserDefinedTransformerResponse.fromJson(await res.json());
 }

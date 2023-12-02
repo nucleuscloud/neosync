@@ -5,7 +5,7 @@ import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useGetUserDefinedTransformersById } from '@/libs/hooks/useGetUserDefinedTransformerById';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
-import UpdateTransformerForm from './components/UpdateTransformerForm';
+import UpdateUserDefinedTransformerForm from './components/UpdateUserDefinedTransformerForm';
 
 export default function NewUserDefinedTransformerPage({ params }: PageProps) {
   const id = params?.id ?? '';
@@ -39,7 +39,9 @@ export default function NewUserDefinedTransformerPage({ params }: PageProps) {
         <div>
           <div className="flex flex-col">
             <div>
-              <UpdateTransformerForm currentTransformer={data?.transformer} />
+              <UpdateUserDefinedTransformerForm
+                currentTransformer={data?.transformer}
+              />
             </div>
           </div>
         </div>

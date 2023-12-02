@@ -3,6 +3,7 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -65,9 +66,19 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => onDelete()}>
-          Delete
-        </DropdownMenuItem>
+        <DeleteConfirmationDialog
+          trigger={
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => e.preventDefault()} // needed for the delete modal to not automatically close
+            >
+              Delete
+            </DropdownMenuItem>
+          }
+          headerText="Are you sure you want to delete this Transformer?"
+          description="Deleting this Transformer may impact running Jobs. "
+          onConfirm={() => onDelete()}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );

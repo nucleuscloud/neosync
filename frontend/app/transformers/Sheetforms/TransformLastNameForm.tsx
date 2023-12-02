@@ -9,14 +9,14 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import {
-  CustomTransformer,
   TransformLastName,
+  UserDefinedTransformer,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: CustomTransformer;
+  transformer: UserDefinedTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 

@@ -14,7 +14,7 @@ import * as Yup from 'yup';
 
 // TODO: update this to match new
 const TRANSFORMER_SCHEMA = Yup.object().shape({
-  name: Yup.string().required(),
+  source: Yup.string().required(),
   config: transformerConfig,
 });
 

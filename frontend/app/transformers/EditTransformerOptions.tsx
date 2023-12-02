@@ -1,3 +1,4 @@
+import { TransformerWithType } from '@/components/jobs/SchemaTable/schema-table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import {
   Cross2Icon,
   MixerHorizontalIcon,
@@ -37,7 +38,7 @@ import TransformPhoneForm from './Sheetforms/TransformPhoneForm';
 import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
-  transformer: Transformer | undefined;
+  transformer: TransformerWithType | undefined;
   index: number;
 }
 
@@ -120,7 +121,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
 }
 
 function handleTransformerForm(
-  transformer: Transformer,
+  transformer: UserDefinedTransformer,
   index?: number,
   setIsSheetOpen?: (val: boolean) => void
 ): ReactElement {

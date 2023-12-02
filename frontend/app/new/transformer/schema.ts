@@ -84,7 +84,7 @@ const transformStringConfig = Yup.object().shape({
   preserveLength: Yup.boolean().notRequired(),
 });
 
-const customTransformerConfig = Yup.object().shape({
+const userDefinedTransformerConfig = Yup.object().shape({
   id: Yup.string().required(),
 });
 
@@ -92,81 +92,81 @@ export const transformerConfig = Yup.object().shape({
   config: Yup.object().shape({
     value: Yup.lazy((value) => {
       switch (value?.case) {
-        case 'generate_email':
+        case 'generateEmailConfig':
           return Yup.object().shape({});
-        case 'generate_realistic_email':
+        case 'generateRealisticEmailConfig':
           return Yup.object().shape({});
-        case 'transform_email':
+        case 'transformEmailConfig':
           return transformEmailConfig;
-        case 'generate_bool':
+        case 'generateBoolConfig':
           return Yup.object().shape({});
-        case 'generate_card_number':
+        case 'generateCardNumberConfig':
           return generateCardNumberConfig;
-        case 'generate_city':
+        case 'generateCityConfig':
           return Yup.object().shape({});
-        case 'generate_e164_number':
+        case 'generateE164NumberConfig':
           return generateE164NumberConfig;
-        case 'generate_first_name':
+        case 'generateFirstNameConfig':
           return Yup.object().shape({});
-        case 'generate_float':
+        case 'generateFloatConfig':
           return generateFloatConfig;
-        case 'generate_full_address':
+        case 'generateFullAddressConfig':
           return Yup.object().shape({});
-        case 'generate_full_name':
+        case 'generateFullNameConfig':
           return Yup.object().shape({});
-        case 'generate_gender':
+        case 'generateGenderConfig':
           return generateGenderConfig;
-        case 'generate_int64_phone':
+        case 'generateInt64PhoneConfig':
           return Yup.object().shape({});
-        case 'generate_int':
+        case 'generateIntConfig':
           return generateIntConfig;
-        case 'generate_last_name':
+        case 'generateLastNameConfig':
           return Yup.object().shape({});
-        case 'generate_sha256hash':
+        case 'generateSha256hashConfig':
           return Yup.object().shape({});
-        case 'generate_ssn':
+        case 'generateSsnConfig':
           return Yup.object().shape({});
-        case 'generate_state':
+        case 'generateStateConfig':
           return Yup.object().shape({});
-        case 'generate_street_address':
+        case 'generateStreetAddressConfig':
           return Yup.object().shape({});
-        case 'generate_string_phone':
+        case 'generateStringPhoneConfig':
           return generateStringPhoneConfig;
-        case 'generate_string':
+        case 'generateStringConfig':
           return generateStringConfig;
-        case 'generate_unixtimestamp':
+        case 'generateUnixtimestampConfig':
           return Yup.object().shape({});
-        case 'generate_username':
+        case 'generateUsernameConfig':
           return Yup.object().shape({});
-        case 'generate_utctimestamp':
+        case 'generateUtctimestampConfig':
           return Yup.object().shape({});
-        case 'generate_uuid':
+        case 'generateUuidConfig':
           return generateUuidConfig;
-        case 'generate_zipcode':
+        case 'generateZipcodeConfig':
           return Yup.object().shape({});
-        case 'transform_e164_phone':
+        case 'transformE164PhoneConfig':
           return transformE164Phone;
-        case 'transform_first_name':
+        case 'transformFirstNameConfig':
           return transformFirstNameConfig;
-        case 'transform_float':
+        case 'transformFloatConfig':
           return transformFloatConfig;
-        case 'transform_full_name':
+        case 'transformFullNameConfig':
           return transformFullNameConfig;
-        case 'transform_int_phone':
+        case 'transformIntPhoneConfig':
           return transformIntPhoneConfig;
-        case 'transform_int':
+        case 'transformIntConfig':
           return transformIntConfig;
-        case 'transform_last_name':
+        case 'transformLastNameConfig':
           return transformLastNameConfig;
-        case 'transform_phone':
+        case 'transformPhoneConfig':
           return transformPhoneConfig;
-        case 'transform_string':
+        case 'transformStringConfig':
           return transformStringConfig;
-        case 'passthrough':
+        case 'passthroughConfig':
           return Yup.object().shape({});
-        case 'custom_transformer_config':
-          return customTransformerConfig;
-        case 'null':
+        case 'userDefinedTransformerConfig':
+          return userDefinedTransformerConfig;
+        case 'nullconfig':
           return Yup.object().shape({});
         default:
           return Yup.object().shape({});
@@ -175,7 +175,8 @@ export const transformerConfig = Yup.object().shape({
     case: Yup.string(),
   }),
 });
-const customTransformerNameSchema = Yup.string()
+
+const transformerNameSchema = Yup.string()
   .required()
   .test(
     'checkNameUnique',
@@ -223,20 +224,20 @@ const customTransformerNameSchema = Yup.string()
     }
   );
 
-export const CREATE_CUSTOM_TRANSFORMER_SCHEMA = Yup.object({
-  name: customTransformerNameSchema,
+export const CREATE_USER_DEFINED_TRANSFORMER_SCHEMA = Yup.object({
+  name: transformerNameSchema,
   source: Yup.string(),
   description: Yup.string().required(),
   type: Yup.string().required(),
   config: transformerConfig,
 });
 
-export type CreateCustomTransformerSchema = Yup.InferType<
-  typeof CREATE_CUSTOM_TRANSFORMER_SCHEMA
+export type CreateUserDefinedTransformerSchema = Yup.InferType<
+  typeof CREATE_USER_DEFINED_TRANSFORMER_SCHEMA
 >;
 
-export const UPDATE_CUSTOM_TRANSFORMER = Yup.object({
-  name: customTransformerNameSchema,
+export const UPDATE_USER_DEFINED_TRANSFORMER = Yup.object({
+  name: transformerNameSchema,
   id: Yup.string(),
   source: Yup.string(),
   description: Yup.string().required(),
@@ -244,8 +245,8 @@ export const UPDATE_CUSTOM_TRANSFORMER = Yup.object({
   config: transformerConfig,
 });
 
-export type UpdateCustomTransformer = Yup.InferType<
-  typeof UPDATE_CUSTOM_TRANSFORMER
+export type UpdateUserDefinedTransformer = Yup.InferType<
+  typeof UPDATE_USER_DEFINED_TRANSFORMER
 >;
 async function isTransformerNameAvailable(
   name: string,

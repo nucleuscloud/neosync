@@ -32,8 +32,8 @@ export default function PageHeader(props: Props) {
       <div className="flex flex-row justify-between">
         <div className="flex flex-row items-center gap-3">
           {leftIcon ? leftIcon : null}
-          <div className="flex flex-row gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">{header}</h1>
+          <div className="flex flex-row gap-2 items-center">
+            <h1 className="text-2xl font-bold tracking-tight ">{header}</h1>
             {leftBadgeValue && (
               <Badge variant="outline">{leftBadgeValue}</Badge>
             )}

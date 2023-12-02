@@ -12,26 +12,27 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
+import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import {
-  CustomTransformerConfig,
-  Transformer,
   TransformerConfig,
+  UserDefinedTransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-import { toTitleCase } from '@/util/util';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 import { TransformerWithType } from './schema-table';
 
 interface Props {
   transformers: TransformerWithType[];
-  value: Transformer;
-  onSelect: (value: Transformer) => void;
+  value: TransformerWithType;
+  onSelect: (value: JobMappingTransformer) => void;
   placeholder: string;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
   const { transformers, value, onSelect, placeholder } = props;
   const [open, setOpen] = useState(false);
+  useState<TransformerWithType>();
+  const [transformerName, setTransformerName] = useState<string>('');
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -47,8 +48,8 @@ export default function TransformerSelect(props: Props): ReactElement {
           )}
         >
           <div className="whitespace-nowrap truncate w-[175px]">
-            {toTitleCase(value.name)
-              ? toTitleCase(value.name)
+            {transformerName
+              ? transformerName
               : placeholder
                 ? placeholder
                 : 'Select a transformer'}
@@ -76,19 +77,21 @@ export default function TransformerSelect(props: Props): ReactElement {
                         currentValue,
                         transformers
                       );
-                      const customTransformer = new Transformer({
-                        name: selectedTransformer.name,
-                        source: selectedTransformer.source,
+                      setTransformerName(selectedTransformer?.name ?? '');
+                      const jobMappingTransformer = new JobMappingTransformer({
+                        source:
+                          FindTransformerByName(currentValue, transformers)
+                            ?.source ?? '',
                         config: new TransformerConfig({
                           config: {
-                            case: 'customTransformerConfig',
-                            value: new CustomTransformerConfig({
+                            case: 'userDefinedTransformerConfig',
+                            value: new UserDefinedTransformerConfig({
                               id: selectedTransformer?.id,
                             }),
                           },
                         }),
                       });
-                      onSelect(customTransformer);
+                      onSelect(jobMappingTransformer);
                       setOpen(false);
                     }}
                     value={t.name}
@@ -119,12 +122,16 @@ export default function TransformerSelect(props: Props): ReactElement {
                         currentValue,
                         transformers
                       );
-                      const systemTransformer = new Transformer({
-                        name: selectedTransformer.name,
-                        source: selectedTransformer.source,
-                        config: selectedTransformer.config,
+                      setTransformerName(selectedTransformer?.name ?? '');
+                      const jobMappingTransformer = new JobMappingTransformer({
+                        source:
+                          FindTransformerByName(currentValue, transformers)
+                            ?.source ?? '',
+                        config: new TransformerConfig({
+                          config: selectedTransformer?.config?.config,
+                        }),
                       });
-                      onSelect(systemTransformer);
+                      onSelect(jobMappingTransformer);
                       setOpen(false);
                     }}
                     value={t.name}
@@ -153,10 +160,9 @@ export default function TransformerSelect(props: Props): ReactElement {
 
 function FindTransformerByName(
   name: string,
-  transformers: Transformer[]
-): Transformer {
-  return (
-    transformers?.find((item) => item.name.toLowerCase() == name) ??
-    new Transformer()
-  );
+  transformers: TransformerWithType[]
+): TransformerWithType | undefined {
+  const t = transformers?.find((item) => item.name.toLowerCase() == name)!;
+
+  return t;
 }

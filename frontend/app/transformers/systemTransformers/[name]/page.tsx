@@ -1,5 +1,5 @@
 'use client';
-import { handleCustomTransformerForm } from '@/app/new/transformer/CustomTransformerForms/HandleCustomTransformersForm';
+import { handleCustomTransformerForm } from '@/app/new/transformer/UserDefinedTransformerForms/HandleCustomTransformersForm';
 import {
   SYSTEM_TRANSFORMER_SCHEMA,
   SystemTransformersSchema,
@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
+import { SystemTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -33,7 +34,7 @@ export default function ViewSystemTransformers({
   const tName = params?.name ?? '';
 
   const currentTransformer = systemTransformers?.transformers.find(
-    (item) => item.source == tName
+    (item: SystemTransformer) => item.source == tName
   );
 
   const router = useRouter();
