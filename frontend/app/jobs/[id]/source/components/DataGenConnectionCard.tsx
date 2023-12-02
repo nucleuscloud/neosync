@@ -78,6 +78,12 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
+    defaultValues: {
+      mappings: [],
+      numRows: 0,
+      schema: 'foo',
+      table: 'bar',
+    },
     values: getJobSource(data?.job, schema?.schemas),
   });
 
@@ -126,6 +132,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const schemaTableMap = getSchemaTableMap(schema?.schemas ?? []);
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
+  console.log('form values', formValues);
 
   return (
     <Form {...form}>
@@ -137,30 +144,34 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
             <FormItem>
               <FormLabel>Schema</FormLabel>
               <FormDescription>The name of the schema.</FormDescription>
-              <FormControl>
-                <Select
-                  onValueChange={(value: string) => {
-                    field.onChange(value);
-                    form.setValue('table', ''); // reset the table value because it may no longer apply
-                  }}
-                  value={field.value}
-                >
+              <Select
+                onValueChange={(value: string) => {
+                  console.log('on change triggered', value);
+                  if (!value) {
+                    return;
+                  }
+                  field.onChange(value);
+                  form.setValue('table', ''); // reset the table value because it may no longer apply
+                }}
+                value={field.value}
+              >
+                <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a schema..." />
                   </SelectTrigger>
-                  <SelectContent>
-                    {uniqueSchemas.map((schema) => (
-                      <SelectItem
-                        className="cursor-pointer"
-                        key={schema}
-                        value={schema}
-                      >
-                        {schema}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
+                </FormControl>
+                <SelectContent>
+                  {uniqueSchemas.map((schema) => (
+                    <SelectItem
+                      className="cursor-pointer"
+                      key={schema}
+                      value={schema}
+                    >
+                      {schema}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -172,28 +183,33 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
             <FormItem>
               <FormLabel>Table Name</FormLabel>
               <FormDescription>The name of the table.</FormDescription>
-              <FormControl>
-                <Select
-                  disabled={!formValues.schema}
-                  onValueChange={field.onChange}
-                  value={field.value}
-                >
+              <Select
+                disabled={!formValues.schema}
+                onValueChange={(value: string) => {
+                  if (!value) {
+                    return;
+                  }
+                  field.onChange(value);
+                }}
+                value={field.value}
+              >
+                <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a table..." />
                   </SelectTrigger>
-                  <SelectContent>
-                    {selectedSchemaTables.map((table) => (
-                      <SelectItem
-                        className="cursor-pointer"
-                        key={table}
-                        value={table}
-                      >
-                        {table}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
+                </FormControl>
+                <SelectContent>
+                  {selectedSchemaTables.map((table) => (
+                    <SelectItem
+                      className="cursor-pointer"
+                      key={table}
+                      value={table}
+                    >
+                      {table}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -234,9 +250,9 @@ function getJobSource(
   if (!job || !dbCols) {
     return {
       mappings: [],
-      numRows: 10,
-      schema: '',
-      table: '',
+      numRows: 0,
+      schema: 'foo2',
+      table: 'bar2',
     };
   }
   let schema = '';
@@ -298,7 +314,6 @@ function getJobSource(
       },
     };
   });
-
   return {
     mappings: mappings,
     numRows: numRows,
