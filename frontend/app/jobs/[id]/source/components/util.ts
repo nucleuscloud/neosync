@@ -12,3 +12,12 @@ export function getConnectionIdFromSource(
   }
   return undefined;
 }
+
+export function getFkIdFromGenerateSource(
+  js: JobSource | undefined
+): string | undefined {
+  if (js?.options?.config.case === 'generate') {
+    return js.options.config.value.fkSourceConnectionId;
+  }
+  return undefined;
+}

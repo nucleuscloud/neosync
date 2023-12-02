@@ -138,7 +138,7 @@ interface SidebarNav {
 }
 function getSidebarNavItems(job?: Job): SidebarNav[] {
   if (!job) {
-    return [];
+    return [{ title: 'Overview', href: `` }];
   }
   const basePath = `/jobs/${job.id}`;
 

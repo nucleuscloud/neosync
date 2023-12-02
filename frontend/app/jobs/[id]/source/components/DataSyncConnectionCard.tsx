@@ -69,7 +69,7 @@ const FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
   })
 ).concat(SCHEMA_FORM_SCHEMA);
 type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
-interface SchemaMap {
+export interface SchemaMap {
   [schema: string]: {
     [table: string]: {
       [column: string]: {
@@ -412,7 +412,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
   }
 }
 
-function getColumnMapping(
+export function getColumnMapping(
   schemaMap: SchemaMap,
   schema: string,
   table: string,
