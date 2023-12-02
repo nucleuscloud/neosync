@@ -33,8 +33,13 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
+  GenerateSourceOptions,
+  GenerateSourceSchemaOption,
+  GenerateSourceTableOption,
   Job,
   JobMapping,
+  JobSource,
+  JobSourceOptions,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
@@ -74,8 +79,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     customTransformer?.transformers ?? []
   );
 
-  console.log('values', getJobSource(data?.job, schema?.schemas));
-
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
     defaultValues: {
@@ -102,6 +105,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     if (!job) {
       return;
     }
+    console.log('submitted values', values);
     try {
       await updateJobConnection(job, values, merged);
       toast({
@@ -132,8 +136,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const schemaTableMap = getSchemaTableMap(schema?.schemas ?? []);
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
-  console.log('form values', formValues);
 
+  console.log('schema table data', schemaTableData);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -343,7 +347,27 @@ async function updateJobConnection(
             transformer: ToTransformerConfigOptions(m.transformer, merged),
           });
         }),
-        source: job.source,
+        source: new JobSource({
+          options: new JobSourceOptions({
+            config: {
+              case: 'generate',
+              value: new GenerateSourceOptions({
+                fkSourceConnectionId: getFkIdFromGenerateSource(job.source),
+                schemas: [
+                  new GenerateSourceSchemaOption({
+                    schema: values.schema,
+                    tables: [
+                      new GenerateSourceTableOption({
+                        table: values.table,
+                        rowCount: BigInt(values.numRows),
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            },
+          }),
+        }),
       })
     ),
   });
