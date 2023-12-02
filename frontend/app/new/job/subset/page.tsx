@@ -14,11 +14,6 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-<<<<<<< HEAD
-=======
-import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
->>>>>>> a58c0be3 (checkin)
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
@@ -302,125 +297,22 @@ async function createNewJob(
     cronSchedule: formData.define.cronSchedule,
     initiateJobRun: formData.define.initiateJobRun,
     mappings: formData.schema.mappings.map((m) => {
-      console.log('mappings', m.transformer);
-      // TODO: figure how they transformer config case and value aren'y being ste correctly and update it
-      // the table data is set fine but the mappings jobect isn't set correctly
+      console.log('transformer mappings before job', m.transformer);
 
-      // const t = new Transformer({
-      //   name: m.transformer.name,
-      //   config: m.transformer.config ?? new TransformerConfig({}),
-      // });
+      const tt = Transformer.fromJson(m.transformer);
 
-      // const tNew = new Transformer({
-      //   name: m.transformer.name,
-      //   config: {
-      //     config: {
-      //       case: m.transformer.config.config.case,
-      //       value: m.transformer.config.config.value,
-      //     },
-      //   },
-      // });
-
-      // console.log('t', t);
-
-      // console.log('tNew', tNew);
-
-      // const tData =
-      //   m.transformer instanceof Transformer
-      //     ? m.transformer
-      //     : Transformer.fromJson(m.transformer);
-
-      // const t = new Transformer({
-      //   name: m.transformer.name,
-      //   config: TransformerConfig.fromJson(
-      //     m.transformer.config
-      //   )
-      // });
-
-      // console.log('m.tranformer.config', m.transformer.config);
-
-      // let caseValue = '';
-
-      // for (const key in m.transformer.config) {
-      //   if (m.transformer.config.hasOwnProperty(key)) {
-      //     caseValue = key;
-      //   }
-      // }
-
-      // console.log('case:', caseValue);
-
-      // const t = new Transformer({
-      //   name: m.transformer.name,
-      //   config: new TransformerConfig({
-      //     config: {
-      //       case: caseValue,
-      //       value: m.transformer.config.config.value,
-      //     },
-      //   }),
-      // });
-
-      //console.log('class instance', Transformer.fromJson(m.transformer));
-
-      const tc = Transformer.fromJson(m.transformer);
-
-      // Use the generated fromBinary method to create a Transformer instance
-      const tt = TransformerConfig.fromJson(m.transformer.config);
+      //TODO: only store in the local storage the minimum needed for the transformer
+      // so the source and the config and maybe the name, if it's custom, thenjust the id in the transformer
+      // update the yup validation schema so that it matches
+      // update the default in the schema page so that it matches and you don't have to do the as type cating
 
       console.log('tt', tt);
-
-      console.log('tc', tc);
-
-      // const newt = new Transformer({
-      //   name: m.transformer.name,
-      //   config: tc.config,
-      // });
-
-      const gen = m.transformer.config as GenericObject;
-
-      const caseValue = Object.keys(gen)[0];
-
-      const values = gen[caseValue];
-
-      const a = new TransformerConfig({});
-      const cn = getConfigByCase(a, caseValue);
-
-      console.log('cn', cn);
-
-      const obj = new Transformer({
-        name: m.transformer.name,
-        config: new TransformerConfig({
-          config: {
-            case:
-              (caseValue as TransformerConfig['config']['case']) ??
-              'passthroughConfig',
-            value: values,
-          },
-        }),
-      });
-
-      console.log('case', caseValue);
-      console.log('gen', gen);
-      console.log('values', values);
-
-      // const config = TransformerConfig.fromJson(m.transformer.config)
-
-      // const val = customTransformers.map((item) => item.id == m.transformer.config.config.value.id ?? '')
-
-      // const newt = new Transformer({
-      //   name: m.transformer.name,
-      //   config: new TransformerConfig({
-      //     config: {
-      //       case: caseValue,
-      //       value: values,
-      //     },
-      //   }),
-      // });
 
       return new JobMapping({
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: obj,
+        transformer: tt,
       });
     }),
     source: new JobSource({

@@ -214,26 +214,26 @@ func Test_buildProcessorMutation(t *testing.T) {
 	assert.Empty(t, output)
 
 	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
 	})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Name: "passthrough"}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "passthrough"}},
 	})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Name: "null"}},
-		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.Transformer{Name: "null"}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "null"}},
+		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "null"}},
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, output, "root.id = null\nroot.name = null")
 
 	output, err = buildProcessorMutation([]*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.Transformer{Name: "i_do_not_exist"}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist"}},
 	})
 	assert.Error(t, err)
 	assert.Empty(t, output)
@@ -449,8 +449,8 @@ func boolPtr(val bool) *bool {
 func Test_computeMutationFunction_null(t *testing.T) {
 	val, err := computeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
-			Transformer: &mgmtv1alpha1.Transformer{
-				Name: "null",
+			Transformer: &mgmtv1alpha1.JobMappingTransformer{
+				Source: "null",
 			},
 		})
 	assert.NoError(t, err)

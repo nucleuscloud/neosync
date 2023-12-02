@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { useRouter } from 'next/navigation';
 
@@ -25,7 +25,7 @@ export function DataTableRowActions<TData>({
   row,
   onDeleted,
 }: DataTableRowActionsProps<TData>) {
-  const transformer = row.original as CustomTransformer;
+  const transformer = row.original as UserDefinedTransformer;
   const router = useRouter();
   const { toast } = useToast();
 
@@ -75,7 +75,7 @@ export function DataTableRowActions<TData>({
 
 async function removeTransformer(transformerId: string): Promise<void> {
   const res = await fetch(
-    `/api/transformers/custom?transformerId=${transformerId}`,
+    `/api/transformers/user-defined?transformerId=${transformerId}`,
     {
       method: 'DELETE',
     }

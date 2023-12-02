@@ -3,14 +3,14 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
-import { useGetCustomTransformersById } from '@/libs/hooks/useGetCustomTransformerById';
+import { useGetUserDefinedTransformersById } from '@/libs/hooks/useGetUserDefinedTransformerById';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import UpdateTransformerForm from './components/UpdateTransformerForm';
 
-export default function NewCustomTransformerPage({ params }: PageProps) {
+export default function NewUserDefinedTransformerPage({ params }: PageProps) {
   const id = params?.id ?? '';
 
-  const { data, isLoading } = useGetCustomTransformersById(id);
+  const { data, isLoading } = useGetUserDefinedTransformersById(id);
 
   if (isLoading) {
     return (

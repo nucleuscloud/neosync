@@ -77,7 +77,8 @@ export default function TransformerSelect(props: Props): ReactElement {
                         transformers
                       );
                       const customTransformer = new Transformer({
-                        ...selectedTransformer,
+                        name: selectedTransformer.name,
+                        source: selectedTransformer.source,
                         config: new TransformerConfig({
                           config: {
                             case: 'customTransformerConfig',

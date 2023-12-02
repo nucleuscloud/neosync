@@ -1,13 +1,13 @@
--- name: GetCustomTransformersByAccount :many
+-- name: GetUserDefinedTransformersByAccount :many
 SELECT t.* from neosync_api.transformers t
 INNER JOIN neosync_api.accounts a ON a.id = t.account_id
 WHERE a.id = sqlc.arg('accountId')
 ORDER BY t.created_at DESC;
 
--- name: GetCustomTransformerById :one
+-- name: GetUserDefinedTransformerById :one
 SELECT * from neosync_api.transformers WHERE id = $1;
 
--- name: CreateCustomTransformer :one
+-- name: CreateUserDefinedTransformer :one
 INSERT INTO neosync_api.transformers (
   name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id
 ) VALUES (
@@ -15,11 +15,11 @@ INSERT INTO neosync_api.transformers (
 )
 RETURNING *;
 
--- name: DeleteCustomTransformerById :exec
+-- name: DeleteUserDefinedTransformerById :exec
 DELETE FROM neosync_api.transformers WHERE id = $1;
 
 
--- name: UpdateCustomTransformer :one
+-- name: UpdateUserDefinedTransformer :one
 UPDATE neosync_api.transformers
 SET 
   name = $1,

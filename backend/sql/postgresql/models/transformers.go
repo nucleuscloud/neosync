@@ -4,8 +4,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-type Transformer struct {
-	Name   string              `json:"name"`
+type JobMappingTransformerModel struct {
+	Source string              `json:"source"`
 	Config *TransformerConfigs `json:"config,omitempty"`
 }
 
@@ -47,7 +47,7 @@ type TransformerConfigs struct {
 	TransformString        *TransformStringConfig        `json:"transformString,omitempty"`
 	Passthrough            *PassthroughConfig            `json:"passthrough,omitempty"`
 	Null                   *NullConfig                   `json:"null,omitempty"`
-	CustomTransformer      *CustomTransformerConfig      `json:"customTransformer,omitempty"`
+	UserDefinedTransformer *UserDefinedTransformerConfig `json:"userDefinedTransformer,omitempty"`
 }
 
 type GenerateEmailConfig struct{}
@@ -167,14 +167,14 @@ type PassthroughConfig struct{}
 
 type NullConfig struct{}
 
-type CustomTransformerConfig struct {
+type UserDefinedTransformerConfig struct {
 	Id string `json:"id"`
 }
 
 // from API -> DB
-func (t *Transformer) FromTransformerDto(tr *mgmtv1alpha1.Transformer) error {
+func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
 
-	t.Name = tr.Name
+	t.Source = tr.Source
 
 	config := &TransformerConfigs{}
 
@@ -307,9 +307,9 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.Passthrough = &PassthroughConfig{}
 	case *mgmtv1alpha1.TransformerConfig_Nullconfig:
 		t.Null = &NullConfig{}
-	case *mgmtv1alpha1.TransformerConfig_CustomTransformerConfig:
-		t.CustomTransformer = &CustomTransformerConfig{
-			Id: tr.GetCustomTransformerConfig().Id,
+	case *mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig:
+		t.UserDefinedTransformer = &UserDefinedTransformerConfig{
+			Id: tr.GetUserDefinedTransformerConfig().Id,
 		}
 	default:
 		t = &TransformerConfigs{}
@@ -320,12 +320,12 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 
 // DB -> API
 
-func (t *Transformer) ToTransformerDto() *mgmtv1alpha1.Transformer {
+func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMappingTransformer {
 
 	config := &TransformerConfigs{}
 
-	return &mgmtv1alpha1.Transformer{
-		Name:   t.Name,
+	return &mgmtv1alpha1.JobMappingTransformer{
+		Source: t.Source,
 		Config: config.ToTransformerConfigDto(t.Config),
 	}
 }
@@ -597,11 +597,11 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}
-	case tr.CustomTransformer != nil:
+	case tr.UserDefinedTransformer != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_CustomTransformerConfig{
-				CustomTransformerConfig: &mgmtv1alpha1.CustomTransformerConfig{
-					Id: tr.CustomTransformer.Id,
+			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
+				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
+					Id: tr.UserDefinedTransformer.Id,
 				},
 			},
 		}

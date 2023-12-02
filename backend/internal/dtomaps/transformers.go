@@ -7,10 +7,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ToCustomTransformerDto(
+func ToUserDefinedTransformerDto(
 	input *db_queries.NeosyncApiTransformer,
-) *mgmtv1alpha1.Transformer {
-	return &mgmtv1alpha1.Transformer{
+) *mgmtv1alpha1.UserDefinedTransformer {
+	return &mgmtv1alpha1.UserDefinedTransformer{
 		Id:          nucleusdb.UUIDString(input.ID),
 		Name:        input.Name,
 		Description: input.Description,
