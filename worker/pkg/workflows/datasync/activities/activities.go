@@ -570,6 +570,8 @@ func (b *benthosBuilder) buildProcessorMutation(ctx context.Context, cols []*mgm
 		if col.Transformer != nil && col.Transformer.Source != "" && col.Transformer.Source != "passthrough" {
 
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
+
+				fmt.Println("2")
 				// handle user defined transformer -> get the user defined transformer configs using the id
 				fmt.Println("this is a custom", col.Transformer.Source)
 
@@ -580,8 +582,6 @@ func (b *benthosBuilder) buildProcessorMutation(ctx context.Context, cols []*mgm
 				col.Transformer = val
 
 			}
-
-			fmt.Println("col", col)
 
 			mutation, err := computeMutationFunction(col)
 			if err != nil {
@@ -625,7 +625,6 @@ root.{destination_col} = transformerfunction(args)
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 
-	fmt.Println("computeMutationFunction", col.Transformer)
 	switch col.Transformer.Source {
 	case "generate_email":
 		return "generate_email()", nil

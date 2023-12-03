@@ -11,7 +11,7 @@ require (
 	github.com/benthosdev/benthos/v4 v4.24.0
 	github.com/google/uuid v1.4.0
 	github.com/jackc/pgx/v5 v5.5.0
-	github.com/nucleuscloud/neosync/backend v0.0.0-00010101000000-000000000000
+	github.com/nucleuscloud/neosync/backend v0.0.0-20231203015621-7d46ef5b9957
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.17.0
 	github.com/stretchr/testify v1.8.4
