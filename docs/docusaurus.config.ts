@@ -72,11 +72,10 @@ const config: Config = {
       respectPrefersColorScheme: false,
     },
     navbar: {
-      title: 'Neosync',
       logo: {
-        alt: 'My Site Logo',
-        srcDark: 'img/white-logo.png',
-        src: 'img/neosync_just_logo.png',
+        alt: 'Neosync',
+        srcDark: 'img/logo_and_text_dark_mode.png',
+        src: 'img/logo_and_text_light_mode.png',
       },
       items: [
         {
