@@ -128,8 +128,9 @@ message CreateJobResponse {
 }
 
 message JobMappingTransformer {
-  string source = 6;
-  TransformerConfig config = 7;
+  string source = 1;
+  string name = 2;
+  TransformerConfig config = 3;
 }
 
 message JobMapping {

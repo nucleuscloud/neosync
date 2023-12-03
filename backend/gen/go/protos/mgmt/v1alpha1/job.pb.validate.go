@@ -3377,6 +3377,8 @@ func (m *JobMappingTransformer) validate(all bool) error {
 
 	// no validation rules for Source
 
+	// no validation rules for Name
+
 	if all {
 		switch v := interface{}(m.GetConfig()).(type) {
 		case interface{ ValidateAll() error }:

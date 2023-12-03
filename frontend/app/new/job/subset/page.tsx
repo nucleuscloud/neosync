@@ -284,8 +284,6 @@ async function createNewJob(
     (c) => c.id == formData.connect.sourceId
   );
 
-  console.log('formData', formData.schema.mappings);
-
   const body = new CreateJobRequest({
     accountId,
     jobName: formData.define.jobName,

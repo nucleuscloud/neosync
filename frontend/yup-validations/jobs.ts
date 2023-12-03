@@ -12,9 +12,9 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import * as Yup from 'yup';
 
-// TODO: update this to match new
 const TRANSFORMER_SCHEMA = Yup.object().shape({
   source: Yup.string().required(),
+  name: Yup.string(),
   config: transformerConfig,
 });
 

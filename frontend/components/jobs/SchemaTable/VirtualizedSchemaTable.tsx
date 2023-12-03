@@ -25,9 +25,15 @@ import { TransformerWithType } from './schema-table';
 interface Row {
   table: string;
   transformer: {
+    name?: string | undefined;
     source: string;
-    config: {};
-  };
+    config: {
+      config: {
+        case?: string | undefined;
+        value: {};
+      };
+    };
+  }; //JobMappingTransformer a;
   schema: string;
   column: string;
   dataType: string;
@@ -126,11 +132,6 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   }, []);
 
   function getBulKTransformer(): TransformerWithType {
-    // if it's custom it'll have an ID and I can use that to look it up
-    // if it's not custom then just use the source adn transformer type is system
-
-    let t;
-
     if (
       bulkTransformer.config?.config.case?.toString() !=
       'userDefinedTransformerConfig'
@@ -176,12 +177,6 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
               }}
               placeholder="Bulk update Transformers..."
             />
-            {/* <EditTransformerOptions
-              transformer={transformers?.find(
-                (item) => item.source == field.value
-              )}
-              index={index}
-            /> */}
           </div>
           <Button
             variant="outline"
@@ -263,7 +258,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                     </div>
                     <EditTransformerOptions
                       transformer={transformers?.find(
-                        (item) => item.id == field.value.config.config.value.id
+                        (item) => item.name == field.value?.name
                       )}
                       index={index}
                     />
@@ -515,7 +510,7 @@ function getUniqueFiltersByColumn(
   filteredRows.forEach((r) => {
     const value =
       columnId == 'transformer'
-        ? (r[columnId as 'transformer'].source as string)
+        ? (r[columnId as 'transformer']?.name as string)
         : (r[columnId as keyof Row] as string);
     uniqueColFilters[value] = value;
   });

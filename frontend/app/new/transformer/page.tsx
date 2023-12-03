@@ -64,8 +64,6 @@ export default function NewTransformer(): ReactElement {
   const router = useRouter();
   const { account } = useAccount();
 
-  console.log('form', form.getValues());
-
   async function onSubmit(
     values: CreateUserDefinedTransformerSchema
   ): Promise<void> {

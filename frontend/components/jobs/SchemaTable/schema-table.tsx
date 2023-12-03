@@ -39,8 +39,6 @@ export function SchemaTable(props: Props): ReactElement {
     customTransformers?.transformers ?? []
   );
 
-  console.log('table data', data);
-
   const tableData = data?.map((d) => {
     return {
       ...d,
