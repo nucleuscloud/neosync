@@ -18,7 +18,7 @@ export const DATA_GEN_STEPS: JobProgressStep[] = [
   'schema',
 ];
 
-export type JobProgressStep = 'define' | 'connect' | 'schema' | 'subset';
+type JobProgressStep = 'define' | 'connect' | 'schema' | 'subset';
 
 export default function JobsProgressSteps(props: Props): ReactElement {
   const { steps, stepName } = props;
