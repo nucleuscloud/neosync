@@ -571,9 +571,7 @@ func (b *benthosBuilder) buildProcessorMutation(ctx context.Context, cols []*mgm
 
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 
-				fmt.Println("2")
 				// handle user defined transformer -> get the user defined transformer configs using the id
-				fmt.Println("this is a custom", col.Transformer.Source)
 
 				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
 				if err != nil {

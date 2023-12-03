@@ -222,7 +222,7 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Name:        "Generate Random Int64",
-				Description: "Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length paramters are defined.", DataType: "int64",
+				Description: "Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.", DataType: "int64",
 				Source: string(GenerateInt),
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{

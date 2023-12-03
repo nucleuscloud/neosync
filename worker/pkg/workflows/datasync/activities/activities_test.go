@@ -391,14 +391,6 @@ func MockJobMappingTransformer(source, transformerId string) db_queries.NeosyncA
 	}
 }
 
-func getTransformerConfigMock() *mgmtv1alpha1.TransformerConfig {
-	return &mgmtv1alpha1.TransformerConfig{
-		Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
-			GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
-		},
-	}
-}
-
 func Test_buildPlainInsertArgs(t *testing.T) {
 	assert.Empty(t, buildPlainInsertArgs(nil))
 	assert.Empty(t, buildPlainInsertArgs([]string{}))
