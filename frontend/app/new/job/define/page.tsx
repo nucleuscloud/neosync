@@ -20,7 +20,10 @@ import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
+import JobsProgressSteps, {
+  DATA_GEN_STEPS,
+  DATA_SYNC_STEPS,
+} from '../JobsProgressSteps';
 import { NewJobType } from '../page';
 import { DEFINE_FORM_SCHEMA, DefineFormValues } from '../schema';
 
@@ -55,10 +58,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     storage: isBrowser() ? window.sessionStorage : undefined,
   });
 
+  const newJobType = getNewJobType(getSingleOrUndefined(searchParams?.jobType));
+
   async function onSubmit(_values: DefineFormValues) {
-    const newJobType = getNewJobType(
-      getSingleOrUndefined(searchParams?.jobType)
-    );
     if (newJobType === 'generate-table') {
       router.push(
         `/new/job/generate/single/connect?sessionId=${sessionPrefix}`
@@ -80,7 +82,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       className="px-12 md:px-24 lg:px-32 flex flex-col gap-20"
     >
       <div className="mt-10">
-        <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'define'} />
+        <JobsProgressSteps
+          steps={newJobType === 'data-sync' ? DATA_SYNC_STEPS : DATA_GEN_STEPS}
+          stepName={'define'}
+        />
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
