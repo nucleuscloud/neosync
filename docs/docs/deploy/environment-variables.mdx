@@ -7,9 +7,7 @@ slug: /deploy/environment-variables
 
 import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
 
-<DocPageHeader
-  title="Environment Variables"
-/>
+<DocPageHeader title="Environment Variables" />
 
 ## Overview
 
@@ -79,7 +77,6 @@ These environment variables are loaded when running the `mgmt migrate up` comman
 | AUTH0_SCOPE              | The space separated list of scopes that will be requested when issuing an access token. Required if AUTH_ENABLED is true                                              | false       |               |
 | AUTH0_AUDIENCE           | The audience that will be used when requesting the access token. Required if AUTH_ENABLED is true                                                                     | false       |               |
 | NEXT_PUBLIC_APP_BASE_URL | The url of the app. This is typically the same as NEXTAUTH_URL. Used for generating invite urls, among other things. This is not baked into the HTML or the image.    | false       |               |
-
 
 ## Worker
 
