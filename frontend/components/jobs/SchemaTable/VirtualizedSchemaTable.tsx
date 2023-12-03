@@ -33,7 +33,7 @@ interface Row {
         value: {};
       };
     };
-  }; //JobMappingTransformer a;
+  };
   schema: string;
   column: string;
   dataType: string;
