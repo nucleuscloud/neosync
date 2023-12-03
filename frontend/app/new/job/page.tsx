@@ -38,7 +38,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
       href: `/new/job/define?${dataSyncParams.toString()}`,
     },
     {
-      name: 'Data Generation',
+      name: 'Single Table Data Generation',
       description: 'Generate data for a single table in a chosen data source',
       href: `/new/job/define?${dataGenParams.toString()}`,
     },
