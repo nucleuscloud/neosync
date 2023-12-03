@@ -422,14 +422,7 @@ export async function checkMysqlConnection(
             value: new MysqlConnectionConfig({
               connectionConfig: {
                 case: 'connection',
-                value: new MysqlConnection({
-                  host: db.host,
-                  name: db.name,
-                  user: db.user,
-                  pass: db.pass,
-                  port: db.port,
-                  protocol: db.protocol,
-                }),
+                value: new MysqlConnection(db),
               },
             }),
           },
