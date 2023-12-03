@@ -1,6 +1,5 @@
 'use client';
 
-import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
 import {
   SchemaTable,
   getConnectionSchema,
@@ -28,8 +27,6 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import {
   Connection,
   DatabaseColumn,
@@ -42,13 +39,16 @@ import {
   GenerateSourceTableOption,
   JobDestination,
   JobMapping,
+  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  Passthrough,
+  TransformerConfig,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { toJobDestinationOptions } from '@/yup-validations/jobs';
-import { ToTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
@@ -62,7 +62,6 @@ import {
   SingleTableConnectFormValues,
   SingleTableSchemaFormValues,
 } from '../../../schema';
-
 const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
@@ -78,15 +77,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { data: connectionsData } = useGetConnections(account?.id ?? '');
   const connections = connectionsData?.connections ?? [];
 
-  const { data: customTransformers } = useGetCustomTransformers(
-    account?.id ?? ''
-  );
-  const { data: systemTransformers } = useGetSystemTransformers();
+  // const { data: st } = useGetSystemTransformers();
+  // const { data: udt } = useGetUserDefinedTransformers(account?.id ?? '');
 
-  const merged = MergeSystemAndCustomTransformers(
-    systemTransformers?.transformers ?? [],
-    customTransformers?.transformers ?? []
-  );
+  // const udts = udt?.transformers ?? [];
+  // const sts = st?.transformers ?? [];
+
+  // const merged = MergeSystemAndCustomTransformers(sts, udts);
 
   const sessionPrefix = searchParams?.sessionId ?? '';
 
@@ -132,12 +129,28 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       return {
         ...defaultValues,
         mappings: res.schemas.map((r) => {
+          var pt = new JobMappingTransformer({
+            source: 'passthrough',
+            name: 'passthrough',
+            config: new TransformerConfig({
+              config: {
+                case: 'passthroughConfig',
+                value: new Passthrough({}),
+              },
+            }),
+          }) as {
+            source: string;
+            name: string;
+            config: {
+              config: {
+                case?: string;
+                value: {};
+              };
+            };
+          };
           return {
             ...r,
-            transformer: {
-              value: '',
-              config: { config: { case: '', value: {} } },
-            },
+            transformer: pt,
           };
         }),
       };
@@ -175,8 +188,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         connectFormValues,
         values,
         account.id,
-        connections,
-        merged
+        connections
       );
       toast({
         title: 'Successfully created job!',
@@ -329,8 +341,7 @@ async function createNewJob(
   connect: SingleTableConnectFormValues,
   schema: SingleTableSchemaFormValues,
   accountId: string,
-  connections: Connection[],
-  merged: CustomTransformer[]
+  connections: Connection[]
 ): Promise<CreateJobResponse> {
   const connectionIdMap = new Map(
     connections.map((connection) => [connection.id, connection])
@@ -345,7 +356,7 @@ async function createNewJob(
         schema: schema.schema,
         table: schema.table,
         column: m.column,
-        transformer: ToTransformerConfigOptions(m.transformer, merged),
+        transformer: JobMappingTransformer.fromJson(m.transformer),
       });
     }),
     source: new JobSource({

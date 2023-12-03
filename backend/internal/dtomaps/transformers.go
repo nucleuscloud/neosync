@@ -7,16 +7,16 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func ToCustomTransformerDto(
+func ToUserDefinedTransformerDto(
 	input *db_queries.NeosyncApiTransformer,
-) *mgmtv1alpha1.CustomTransformer {
-	return &mgmtv1alpha1.CustomTransformer{
+) *mgmtv1alpha1.UserDefinedTransformer {
+	return &mgmtv1alpha1.UserDefinedTransformer{
 		Id:          nucleusdb.UUIDString(input.ID),
 		Name:        input.Name,
-		Type:        input.Type,
-		Config:      input.TransformerConfig.ToTransformerConfigDto(input.TransformerConfig),
 		Description: input.Description,
+		DataType:    input.Type,
 		Source:      input.Source,
+		Config:      input.TransformerConfig.ToTransformerConfigDto(input.TransformerConfig),
 		CreatedAt:   timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:   timestamppb.New(input.UpdatedAt.Time),
 		AccountId:   nucleusdb.UUIDString(input.AccountID),

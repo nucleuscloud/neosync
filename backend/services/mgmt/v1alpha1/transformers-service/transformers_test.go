@@ -42,17 +42,17 @@ func Test_GetSystemTransformers(t *testing.T) {
 	assert.Equal(t, 37, len(resp.Msg.GetTransformers())) // the number of system transformers
 }
 
-func Test_GetCustomTransformers(t *testing.T) {
+func Test_GetUserDefinedTransformers(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	transformers := []db_queries.NeosyncApiTransformer{mockTransformer(mockAccountId, mockUserId, mockTransformerId)}
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	m.QuerierMock.On("GetCustomTransformersByAccount", context.Background(), mock.Anything, accountUuid).Return(transformers, nil)
+	m.QuerierMock.On("GetUserDefinedTransformersByAccount", context.Background(), mock.Anything, accountUuid).Return(transformers, nil)
 
-	resp, err := m.Service.GetCustomTransformers(context.Background(), &connect.Request[mgmtv1alpha1.GetCustomTransformersRequest]{
-		Msg: &mgmtv1alpha1.GetCustomTransformersRequest{
+	resp, err := m.Service.GetUserDefinedTransformers(context.Background(), &connect.Request[mgmtv1alpha1.GetUserDefinedTransformersRequest]{
+		Msg: &mgmtv1alpha1.GetUserDefinedTransformersRequest{
 			AccountId: mockAccountId,
 		},
 	})
@@ -63,17 +63,17 @@ func Test_GetCustomTransformers(t *testing.T) {
 	assert.Equal(t, mockTransformerId, resp.Msg.Transformers[0].Id)
 }
 
-func Test_GetCustomTransformersById(t *testing.T) {
+func Test_GetUserDefinedTransformersById(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
 	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
 	transformerId, _ := nucleusdb.ToUuid(mockTransformerId)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerId).Return(transformer, nil)
+	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerId).Return(transformer, nil)
 
-	resp, err := m.Service.GetCustomTransformerById(context.Background(), &connect.Request[mgmtv1alpha1.GetCustomTransformerByIdRequest]{
-		Msg: &mgmtv1alpha1.GetCustomTransformerByIdRequest{
+	resp, err := m.Service.GetUserDefinedTransformerById(context.Background(), &connect.Request[mgmtv1alpha1.GetUserDefinedTransformerByIdRequest]{
+		Msg: &mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
 			TransformerId: mockTransformerId,
 		},
 	})
@@ -84,7 +84,7 @@ func Test_GetCustomTransformersById(t *testing.T) {
 	assert.Equal(t, mockTransformerId, resp.Msg.Transformer.Id)
 }
 
-func Test_CreateCustomTransformer(t *testing.T) {
+func Test_CreateUserDefinedTransformer(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -95,7 +95,7 @@ func Test_CreateCustomTransformer(t *testing.T) {
 	mockTransformerConfig := &pg_models.TransformerConfigs{}
 	_ = mockTransformerConfig.FromTransformerConfigDto(mockMgmtTransformerConfig)
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
-	m.QuerierMock.On("CreateCustomTransformer", context.Background(), mock.Anything, db_queries.CreateCustomTransformerParams{
+	m.QuerierMock.On("CreateUserDefinedTransformer", context.Background(), mock.Anything, db_queries.CreateUserDefinedTransformerParams{
 		AccountID:         accountUuid,
 		Name:              mockTransformerName,
 		Description:       mockTransformerDescription,
@@ -106,8 +106,8 @@ func Test_CreateCustomTransformer(t *testing.T) {
 		UpdatedByID:       userUuid,
 	}).Return(transformer, nil)
 
-	resp, err := m.Service.CreateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.CreateCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.CreateCustomTransformerRequest{
+	resp, err := m.Service.CreateUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.CreateUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.CreateUserDefinedTransformerRequest{
 			AccountId:         mockAccountId,
 			Name:              mockTransformerName,
 			Description:       mockTransformerDescription,
@@ -123,7 +123,7 @@ func Test_CreateCustomTransformer(t *testing.T) {
 	assert.Equal(t, mockTransformerId, resp.Msg.Transformer.Id)
 }
 
-func Test_CreateCustomTransformer_Error(t *testing.T) {
+func Test_CreateUserDefinedTransformer_Error(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -140,8 +140,8 @@ func Test_CreateCustomTransformer_Error(t *testing.T) {
 		UserId: mockUserId,
 	}), nil)
 
-	m.QuerierMock.On("CreateCustomTransformer", context.Background(), mock.Anything, db_queries.
-		CreateCustomTransformerParams{
+	m.QuerierMock.On("CreateUserDefinedTransformer", context.Background(), mock.Anything, db_queries.
+		CreateUserDefinedTransformerParams{
 		AccountID:         accountUuid,
 		Name:              mockTransformerName,
 		Description:       mockTransformerDescription,
@@ -152,8 +152,8 @@ func Test_CreateCustomTransformer_Error(t *testing.T) {
 		UpdatedByID:       userUuid,
 	}).Return(nilConnection, errors.New("help"))
 
-	resp, err := m.Service.CreateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.CreateCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.CreateCustomTransformerRequest{
+	resp, err := m.Service.CreateUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.CreateUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.CreateUserDefinedTransformerRequest{
 			AccountId:         mockAccountId,
 			Name:              mockTransformerName,
 			Description:       mockTransformerDescription,
@@ -167,18 +167,18 @@ func Test_CreateCustomTransformer_Error(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
-func Test_DeleteCustomTransformer(t *testing.T) {
+func Test_DeleteUserDefinedTransformer(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
 	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
 	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
-	m.QuerierMock.On("DeleteCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(nil)
+	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+	m.QuerierMock.On("DeleteUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(nil)
 
-	resp, err := m.Service.DeleteCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.DeleteCustomTransformerRequest{
+	resp, err := m.Service.DeleteUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.DeleteUserDefinedTransformerRequest{
 			TransformerId: mockTransformerId,
 		},
 	})
@@ -193,10 +193,10 @@ func Test_DeleteConnection_NotFound(t *testing.T) {
 	transformerUuid, _ := nucleusdb.ToUuid(mockTransformerId)
 	var nilConnection db_queries.NeosyncApiTransformer
 
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(nilConnection, sql.ErrNoRows)
+	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(nilConnection, sql.ErrNoRows)
 
-	resp, err := m.Service.DeleteCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.DeleteCustomTransformerRequest{
+	resp, err := m.Service.DeleteUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.DeleteUserDefinedTransformerRequest{
 			TransformerId: mockTransformerId,
 		},
 	})
@@ -214,11 +214,11 @@ func Test_DeleteConnection_RemoveError(t *testing.T) {
 	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
-	m.QuerierMock.On("DeleteCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(errors.New("sad"))
+	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+	m.QuerierMock.On("DeleteUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(errors.New("sad"))
 
-	resp, err := m.Service.DeleteCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.DeleteCustomTransformerRequest{
+	resp, err := m.Service.DeleteUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.DeleteUserDefinedTransformerRequest{
 			TransformerId: mockTransformerId,
 		},
 	})
@@ -235,15 +235,15 @@ func Test_DeleteConnection_UnverifiedUserError(t *testing.T) {
 	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
 	mockIsUserInAccount(m.UserAccountServiceMock, false)
 
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
 
-	resp, err := m.Service.DeleteCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.DeleteCustomTransformerRequest{
+	resp, err := m.Service.DeleteUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.DeleteUserDefinedTransformerRequest{
 			TransformerId: mockTransformerId,
 		},
 	})
 
-	m.QuerierMock.AssertNotCalled(t, "DeleteCustomTransformerById")
+	m.QuerierMock.AssertNotCalled(t, "DeleteUserDefinedTransformerById")
 	assert.Error(t, err)
 	assert.Nil(t, resp)
 }
@@ -261,9 +261,9 @@ func Test_UpdateTransformer(t *testing.T) {
 	_ = mockTransformerConfig.FromTransformerConfigDto(mockMgmtTransformerConfig)
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
 
-	m.QuerierMock.On("UpdateCustomTransformer", context.Background(), mock.Anything, db_queries.UpdateCustomTransformerParams{
+	m.QuerierMock.On("UpdateUserDefinedTransformer", context.Background(), mock.Anything, db_queries.UpdateUserDefinedTransformerParams{
 		ID:                transformerUuid,
 		Name:              mockTransformerName,
 		TransformerConfig: mockTransformerConfig,
@@ -271,8 +271,8 @@ func Test_UpdateTransformer(t *testing.T) {
 		Description:       mockTransformerDescription,
 	}).Return(transformer, nil)
 
-	resp, err := m.Service.UpdateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.UpdateCustomTransformerRequest{
+	resp, err := m.Service.UpdateUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.UpdateUserDefinedTransformerRequest{
 			TransformerId:     mockTransformerId,
 			TransformerConfig: mockMgmtTransformerConfig,
 			Name:              mockTransformerName,
@@ -299,9 +299,9 @@ func Test_UpdateTransformer_UpdateError(t *testing.T) {
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	var nilTransformer db_queries.NeosyncApiTransformer
 
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
 
-	m.QuerierMock.On("UpdateCustomTransformer", context.Background(), mock.Anything, db_queries.UpdateCustomTransformerParams{
+	m.QuerierMock.On("UpdateUserDefinedTransformer", context.Background(), mock.Anything, db_queries.UpdateUserDefinedTransformerParams{
 		ID:                transformerUuid,
 		Name:              mockTransformerName,
 		TransformerConfig: mockTransformerConfig,
@@ -309,8 +309,8 @@ func Test_UpdateTransformer_UpdateError(t *testing.T) {
 		Description:       mockTransformerDescription,
 	}).Return(nilTransformer, errors.New("boo"))
 
-	resp, err := m.Service.UpdateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.UpdateCustomTransformerRequest{
+	resp, err := m.Service.UpdateUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.UpdateUserDefinedTransformerRequest{
 			TransformerId:     mockTransformerId,
 			TransformerConfig: mockMgmtTransformerConfig,
 			Name:              mockTransformerName,
@@ -331,17 +331,17 @@ func Test_UpdateTransformer_GetTransformerError(t *testing.T) {
 
 	var nilTransformer db_queries.NeosyncApiTransformer
 
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(nilTransformer, sql.ErrNoRows)
+	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(nilTransformer, sql.ErrNoRows)
 
-	resp, err := m.Service.UpdateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.UpdateCustomTransformerRequest{
+	resp, err := m.Service.UpdateUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.UpdateUserDefinedTransformerRequest{
 			TransformerId:     mockTransformerId,
 			TransformerConfig: mockMgmtTransformerConfig,
 			Name:              mockTransformerName,
 			Description:       mockTransformerDescription,
 		},
 	})
-	m.QuerierMock.AssertNotCalled(t, "UpdateCustomTransformer", mock.Anything, mock.Anything, mock.Anything)
+	m.QuerierMock.AssertNotCalled(t, "UpdateUserDefinedTransformer", mock.Anything, mock.Anything, mock.Anything)
 	assert.Error(t, err)
 	assert.Nil(t, resp)
 }
@@ -358,10 +358,10 @@ func Test_UpdateTransformer_UnverifiedUser(t *testing.T) {
 	_ = mockTransformerConfig.FromTransformerConfigDto(mockMgmtTransformerConfig)
 	mockIsUserInAccount(m.UserAccountServiceMock, false)
 
-	m.QuerierMock.On("GetCustomTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
+	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerUuid).Return(transformer, nil)
 
-	resp, err := m.Service.UpdateCustomTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]{
-		Msg: &mgmtv1alpha1.UpdateCustomTransformerRequest{
+	resp, err := m.Service.UpdateUserDefinedTransformer(context.Background(), &connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest]{
+		Msg: &mgmtv1alpha1.UpdateUserDefinedTransformerRequest{
 			TransformerId:     mockTransformerId,
 			TransformerConfig: mockMgmtTransformerConfig,
 			Name:              mockTransformerName,
@@ -369,7 +369,7 @@ func Test_UpdateTransformer_UnverifiedUser(t *testing.T) {
 		},
 	})
 
-	m.QuerierMock.AssertNotCalled(t, "UpdateCustomTransformer", mock.Anything, mock.Anything, mock.Anything)
+	m.QuerierMock.AssertNotCalled(t, "UpdateUserDefinedTransformer", mock.Anything, mock.Anything, mock.Anything)
 	assert.Error(t, err)
 	assert.Nil(t, resp)
 }

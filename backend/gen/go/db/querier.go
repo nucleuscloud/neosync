@@ -17,7 +17,6 @@ type Querier interface {
 	CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)
 	CreateAuth0IdentityProviderAssociation(ctx context.Context, db DBTX, arg CreateAuth0IdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error)
 	CreateConnection(ctx context.Context, db DBTX, arg CreateConnectionParams) (NeosyncApiConnection, error)
-	CreateCustomTransformer(ctx context.Context, db DBTX, arg CreateCustomTransformerParams) (NeosyncApiTransformer, error)
 	CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error)
 	CreateJobConnectionDestination(ctx context.Context, db DBTX, arg CreateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error)
 	CreateJobConnectionDestinations(ctx context.Context, db DBTX, arg []CreateJobConnectionDestinationsParams) (int64, error)
@@ -25,8 +24,9 @@ type Querier interface {
 	CreateNonMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error)
 	CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error)
 	CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error)
-	DeleteCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error
+	CreateUserDefinedTransformer(ctx context.Context, db DBTX, arg CreateUserDefinedTransformerParams) (NeosyncApiTransformer, error)
 	DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error
+	DeleteUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error
 	GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error)
 	GetAccountApiKeyById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountApiKey, error)
 	GetAccountApiKeyByKeyValue(ctx context.Context, db DBTX, keyValue string) (NeosyncApiAccountApiKey, error)
@@ -41,8 +41,6 @@ type Querier interface {
 	GetConnectionByNameAndAccount(ctx context.Context, db DBTX, arg GetConnectionByNameAndAccountParams) (NeosyncApiConnection, error)
 	GetConnectionsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiConnection, error)
 	GetConnectionsByIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiConnection, error)
-	GetCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error)
-	GetCustomTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error)
 	GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJob, error)
 	GetJobByNameAndAccount(ctx context.Context, db DBTX, arg GetJobByNameAndAccountParams) (NeosyncApiJob, error)
 	GetJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJobDestinationConnectionAssociation, error)
@@ -56,6 +54,8 @@ type Querier interface {
 	GetUser(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiUser, error)
 	GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUserIdentityProviderAssociation, error)
 	GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error)
+	GetUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error)
+	GetUserDefinedTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error)
 	GetUserIdentitiesByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)
 	GetUserIdentityAssociationsByUserIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)
 	GetUserIdentityByUserId(ctx context.Context, db DBTX, userID pgtype.UUID) (NeosyncApiUserIdentityProviderAssociation, error)
@@ -77,12 +77,12 @@ type Querier interface {
 	UpdateAccountInviteToAccepted(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error)
 	UpdateActiveAccountInvitesToExpired(ctx context.Context, db DBTX, arg UpdateActiveAccountInvitesToExpiredParams) (NeosyncApiAccountInvite, error)
 	UpdateConnection(ctx context.Context, db DBTX, arg UpdateConnectionParams) (NeosyncApiConnection, error)
-	UpdateCustomTransformer(ctx context.Context, db DBTX, arg UpdateCustomTransformerParams) (NeosyncApiTransformer, error)
 	UpdateJobConnectionDestination(ctx context.Context, db DBTX, arg UpdateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error)
 	UpdateJobMappings(ctx context.Context, db DBTX, arg UpdateJobMappingsParams) (NeosyncApiJob, error)
 	UpdateJobSchedule(ctx context.Context, db DBTX, arg UpdateJobScheduleParams) (NeosyncApiJob, error)
 	UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSourceParams) (NeosyncApiJob, error)
 	UpdateTemporalConfigByAccount(ctx context.Context, db DBTX, arg UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error)
+	UpdateUserDefinedTransformer(ctx context.Context, db DBTX, arg UpdateUserDefinedTransformerParams) (NeosyncApiTransformer, error)
 }
 
 var _ Querier = (*Queries)(nil)

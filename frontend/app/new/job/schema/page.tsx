@@ -9,6 +9,11 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
+import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import {
+  Passthrough,
+  TransformerConfig,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -46,7 +51,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     mappings: [],
   });
 
-  async function getSchema() {
+  async function getSchema(): Promise<SchemaFormValues> {
     try {
       const res = await getConnectionSchema(connectFormValues.sourceId);
       if (!res) {
@@ -54,12 +59,29 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       }
 
       const mappings = res.schemas.map((r) => {
+        var pt = new JobMappingTransformer({
+          source: 'passthrough',
+          name: 'passthrough',
+          config: new TransformerConfig({
+            config: {
+              case: 'passthroughConfig',
+              value: new Passthrough({}),
+            },
+          }),
+        }) as {
+          source: string;
+          name: string;
+          config: {
+            config: {
+              case?: string;
+              value: {};
+            };
+          };
+        };
+
         return {
           ...r,
-          transformer: {
-            value: 'passthrough',
-            config: { config: { case: '', value: {} } },
-          },
+          transformer: pt,
         };
       });
       return { mappings };

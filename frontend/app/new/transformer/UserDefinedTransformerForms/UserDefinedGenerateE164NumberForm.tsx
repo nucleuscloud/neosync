@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
@@ -22,12 +21,14 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomGenerateStringForm(props: Props): ReactElement {
+export default function CustomGenerateE164NumberForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
 
   const { isDisabled } = props;
 
-  const digitLength = Array.from({ length: 12 }, (_, index) => index + 1);
+  const digitLength = Array.from({ length: 15 }, (_, index) => index + 1);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -39,14 +40,18 @@ export default function CustomGenerateStringForm(props: Props): ReactElement {
             <div className="space-y-0.5">
               <FormLabel>Length</FormLabel>
               <FormDescription>
-                Set the length of the output string. The default length is 4.
-                The max length is 18.
+                Set the length of the output e164 compliant phone number. The
+                default length is 12. The max length is 15.
               </FormDescription>
             </div>
             <FormControl>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-[180px]" disabled={isDisabled}>
-                  <SelectValue placeholder="6" />
+              <Select
+                onValueChange={field.onChange}
+                value={String(field.value)}
+                disabled={isDisabled}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="12" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>

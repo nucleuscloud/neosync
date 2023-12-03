@@ -9,14 +9,14 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import {
-  CustomTransformer,
   TransformEmail,
+  UserDefinedTransformer,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: CustomTransformer;
+  transformer: UserDefinedTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
@@ -67,6 +67,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
                 }}
@@ -90,6 +91,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pd}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   pd ? setPd(false) : setPd(true);
                 }}

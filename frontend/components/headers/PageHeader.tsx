@@ -1,11 +1,12 @@
 import { cn } from '@/libs/utils';
 import { ReactNode } from 'react';
+import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 
 interface Props {
   header: string;
   description?: string;
-
+  leftBadgeValue?: string;
   extraHeading?: ReactNode;
   leftIcon?: ReactNode;
 
@@ -19,6 +20,7 @@ export default function PageHeader(props: Props) {
     extraHeading,
     leftIcon,
     pageHeaderContainerClassName,
+    leftBadgeValue,
   } = props;
   return (
     <div
@@ -30,7 +32,12 @@ export default function PageHeader(props: Props) {
       <div className="flex flex-row justify-between">
         <div className="flex flex-row items-center gap-3">
           {leftIcon ? leftIcon : null}
-          <h1 className="text-2xl font-bold tracking-tight">{header}</h1>
+          <div className="flex flex-row gap-2 items-center">
+            <h1 className="text-2xl font-bold tracking-tight ">{header}</h1>
+            {leftBadgeValue && (
+              <Badge variant="outline">{leftBadgeValue}</Badge>
+            )}
+          </div>
         </div>
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>

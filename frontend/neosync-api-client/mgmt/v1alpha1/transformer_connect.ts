@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateCustomTransformerRequest, CreateCustomTransformerResponse, DeleteCustomTransformerRequest, DeleteCustomTransformerResponse, GetCustomTransformerByIdRequest, GetCustomTransformerByIdResponse, GetCustomTransformersRequest, GetCustomTransformersResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateCustomTransformerRequest, UpdateCustomTransformerResponse } from "./transformer_pb";
+import { CreateUserDefinedTransformerRequest, CreateUserDefinedTransformerResponse, DeleteUserDefinedTransformerRequest, DeleteUserDefinedTransformerResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, GetUserDefinedTransformerByIdRequest, GetUserDefinedTransformerByIdResponse, GetUserDefinedTransformersRequest, GetUserDefinedTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateUserDefinedTransformerRequest, UpdateUserDefinedTransformerResponse } from "./transformer_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -22,48 +22,48 @@ export const TransformersService = {
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc mgmt.v1alpha1.TransformersService.GetCustomTransformers
+     * @generated from rpc mgmt.v1alpha1.TransformersService.GetUserDefinedTransformers
      */
-    getCustomTransformers: {
-      name: "GetCustomTransformers",
-      I: GetCustomTransformersRequest,
-      O: GetCustomTransformersResponse,
+    getUserDefinedTransformers: {
+      name: "GetUserDefinedTransformers",
+      I: GetUserDefinedTransformersRequest,
+      O: GetUserDefinedTransformersResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc mgmt.v1alpha1.TransformersService.GetCustomTransformerById
+     * @generated from rpc mgmt.v1alpha1.TransformersService.GetUserDefinedTransformerById
      */
-    getCustomTransformerById: {
-      name: "GetCustomTransformerById",
-      I: GetCustomTransformerByIdRequest,
-      O: GetCustomTransformerByIdResponse,
+    getUserDefinedTransformerById: {
+      name: "GetUserDefinedTransformerById",
+      I: GetUserDefinedTransformerByIdRequest,
+      O: GetUserDefinedTransformerByIdResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc mgmt.v1alpha1.TransformersService.CreateCustomTransformer
+     * @generated from rpc mgmt.v1alpha1.TransformersService.CreateUserDefinedTransformer
      */
-    createCustomTransformer: {
-      name: "CreateCustomTransformer",
-      I: CreateCustomTransformerRequest,
-      O: CreateCustomTransformerResponse,
+    createUserDefinedTransformer: {
+      name: "CreateUserDefinedTransformer",
+      I: CreateUserDefinedTransformerRequest,
+      O: CreateUserDefinedTransformerResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc mgmt.v1alpha1.TransformersService.DeleteCustomTransformer
+     * @generated from rpc mgmt.v1alpha1.TransformersService.DeleteUserDefinedTransformer
      */
-    deleteCustomTransformer: {
-      name: "DeleteCustomTransformer",
-      I: DeleteCustomTransformerRequest,
-      O: DeleteCustomTransformerResponse,
+    deleteUserDefinedTransformer: {
+      name: "DeleteUserDefinedTransformer",
+      I: DeleteUserDefinedTransformerRequest,
+      O: DeleteUserDefinedTransformerResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc mgmt.v1alpha1.TransformersService.UpdateCustomTransformer
+     * @generated from rpc mgmt.v1alpha1.TransformersService.UpdateUserDefinedTransformer
      */
-    updateCustomTransformer: {
-      name: "UpdateCustomTransformer",
-      I: UpdateCustomTransformerRequest,
-      O: UpdateCustomTransformerResponse,
+    updateUserDefinedTransformer: {
+      name: "UpdateUserDefinedTransformer",
+      I: UpdateUserDefinedTransformerRequest,
+      O: UpdateUserDefinedTransformerResponse,
       kind: MethodKind.Unary,
     },
     /**

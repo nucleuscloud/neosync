@@ -219,10 +219,10 @@ func (a *AwsS3ConnectionConfig) FromDto(dto *mgmtv1alpha1.AwsS3ConnectionConfig)
 }
 
 type JobMapping struct {
-	Schema      string       `json:"schema"`
-	Table       string       `json:"table"`
-	Column      string       `json:"column"`
-	Transformer *Transformer `json:"transformer,omitempty"`
+	Schema                string                      `json:"schema"`
+	Table                 string                      `json:"table"`
+	Column                string                      `json:"column"`
+	JobMappingTransformer *JobMappingTransformerModel `json:"jobMappingTransformerModel,omitempty"`
 }
 
 func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
@@ -231,19 +231,19 @@ func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
 		Schema:      jm.Schema,
 		Table:       jm.Table,
 		Column:      jm.Column,
-		Transformer: jm.Transformer.ToTransformerDto(),
+		Transformer: jm.JobMappingTransformer.ToTransformerDto(),
 	}
 }
 
 func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
-	t := &Transformer{}
+	t := &JobMappingTransformerModel{}
 	if err := t.FromTransformerDto(dto.Transformer); err != nil {
 		return err
 	}
 	jm.Schema = dto.Schema
 	jm.Table = dto.Table
 	jm.Column = dto.Column
-	jm.Transformer = t
+	jm.JobMappingTransformer = t
 	return nil
 }
 

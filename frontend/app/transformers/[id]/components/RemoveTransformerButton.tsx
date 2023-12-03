@@ -49,7 +49,7 @@ export default function RemoveTransformerButton(props: Props): ReactElement {
 
 async function removeTransformer(transformerId: string): Promise<void> {
   const res = await fetch(
-    `/api/transformers/custom?transformerId=${transformerId}`,
+    `/api/transformers/user-defined?transformerId=${transformerId}`,
     {
       method: 'DELETE',
     }

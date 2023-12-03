@@ -1,6 +1,5 @@
 'use client';
 
-import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
@@ -15,26 +14,23 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
   CreateJobResponse,
   JobDestination,
   JobMapping,
+  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import {
   SchemaFormValues,
   toJobDestinationOptions,
 } from '@/yup-validations/jobs';
-import { ToTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
@@ -109,20 +105,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
 
-  const { data: customTransformers } = useGetCustomTransformers(
-    account?.id ?? ''
-  );
-  const { data: systemTransformers } = useGetSystemTransformers();
-
-  const merged = MergeSystemAndCustomTransformers(
-    systemTransformers?.transformers ?? [],
-    customTransformers?.transformers ?? []
-  );
-
   async function onSubmit(values: SubsetFormValues): Promise<void> {
     if (!account) {
       return;
     }
+
     try {
       const job = await createNewJob(
         {
@@ -132,8 +119,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           subset: values,
         },
         account.id,
-        connections,
-        merged // lets us get the entire transformer object from the tranformer form value later on
+        connections
       );
       window.sessionStorage.removeItem(defineFormKey);
       window.sessionStorage.removeItem(connectFormKey);
@@ -284,8 +270,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 async function createNewJob(
   formData: FormValues,
   accountId: string,
-  connections: Connection[],
-  merged: CustomTransformer[]
+  connections: Connection[]
 ): Promise<CreateJobResponse> {
   const connectionIdMap = new Map(
     connections.map((connection) => [connection.id, connection])
@@ -304,7 +289,7 @@ async function createNewJob(
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: ToTransformerConfigOptions(m.transformer, merged),
+        transformer: JobMappingTransformer.fromJson(m.transformer),
       });
     }),
     source: new JobSource({
@@ -367,5 +352,6 @@ async function createNewJob(
     const body = await res.json();
     throw new Error(body.message);
   }
+
   return CreateJobResponse.fromJson(await res.json());
 }

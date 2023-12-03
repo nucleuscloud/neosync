@@ -32,7 +32,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
-export function CustomTransformersDataTable<TData, TValue>({
+export function UserDefinedTransformersDataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {

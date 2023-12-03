@@ -275,22 +275,23 @@ var _ interface {
 	ErrorName() string
 } = GetSystemTransformersResponseValidationError{}
 
-// Validate checks the field values on GetCustomTransformersRequest with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetCustomTransformersRequest) Validate() error {
+// Validate checks the field values on GetUserDefinedTransformersRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetUserDefinedTransformersRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetCustomTransformersRequest with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// GetCustomTransformersRequestMultiError, or nil if none found.
-func (m *GetCustomTransformersRequest) ValidateAll() error {
+// ValidateAll checks the field values on GetUserDefinedTransformersRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetUserDefinedTransformersRequestMultiError, or nil if none found.
+func (m *GetUserDefinedTransformersRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetCustomTransformersRequest) validate(all bool) error {
+func (m *GetUserDefinedTransformersRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -300,19 +301,20 @@ func (m *GetCustomTransformersRequest) validate(all bool) error {
 	// no validation rules for AccountId
 
 	if len(errors) > 0 {
-		return GetCustomTransformersRequestMultiError(errors)
+		return GetUserDefinedTransformersRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetCustomTransformersRequestMultiError is an error wrapping multiple
-// validation errors returned by GetCustomTransformersRequest.ValidateAll() if
-// the designated constraints aren't met.
-type GetCustomTransformersRequestMultiError []error
+// GetUserDefinedTransformersRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// GetUserDefinedTransformersRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetUserDefinedTransformersRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetCustomTransformersRequestMultiError) Error() string {
+func (m GetUserDefinedTransformersRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -321,12 +323,12 @@ func (m GetCustomTransformersRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetCustomTransformersRequestMultiError) AllErrors() []error { return m }
+func (m GetUserDefinedTransformersRequestMultiError) AllErrors() []error { return m }
 
-// GetCustomTransformersRequestValidationError is the validation error returned
-// by GetCustomTransformersRequest.Validate if the designated constraints
-// aren't met.
-type GetCustomTransformersRequestValidationError struct {
+// GetUserDefinedTransformersRequestValidationError is the validation error
+// returned by GetUserDefinedTransformersRequest.Validate if the designated
+// constraints aren't met.
+type GetUserDefinedTransformersRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -334,24 +336,24 @@ type GetCustomTransformersRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetCustomTransformersRequestValidationError) Field() string { return e.field }
+func (e GetUserDefinedTransformersRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetCustomTransformersRequestValidationError) Reason() string { return e.reason }
+func (e GetUserDefinedTransformersRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetCustomTransformersRequestValidationError) Cause() error { return e.cause }
+func (e GetUserDefinedTransformersRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetCustomTransformersRequestValidationError) Key() bool { return e.key }
+func (e GetUserDefinedTransformersRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetCustomTransformersRequestValidationError) ErrorName() string {
-	return "GetCustomTransformersRequestValidationError"
+func (e GetUserDefinedTransformersRequestValidationError) ErrorName() string {
+	return "GetUserDefinedTransformersRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GetCustomTransformersRequestValidationError) Error() string {
+func (e GetUserDefinedTransformersRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -363,14 +365,14 @@ func (e GetCustomTransformersRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetCustomTransformersRequest.%s: %s%s",
+		"invalid %sGetUserDefinedTransformersRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetCustomTransformersRequestValidationError{}
+var _ error = GetUserDefinedTransformersRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -378,24 +380,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetCustomTransformersRequestValidationError{}
+} = GetUserDefinedTransformersRequestValidationError{}
 
-// Validate checks the field values on GetCustomTransformersResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetCustomTransformersResponse) Validate() error {
+// Validate checks the field values on GetUserDefinedTransformersResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetUserDefinedTransformersResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetCustomTransformersResponse with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// GetCustomTransformersResponseMultiError, or nil if none found.
-func (m *GetCustomTransformersResponse) ValidateAll() error {
+// ValidateAll checks the field values on GetUserDefinedTransformersResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetUserDefinedTransformersResponseMultiError, or nil if none found.
+func (m *GetUserDefinedTransformersResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetCustomTransformersResponse) validate(all bool) error {
+func (m *GetUserDefinedTransformersResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -409,7 +412,7 @@ func (m *GetCustomTransformersResponse) validate(all bool) error {
 			switch v := interface{}(item).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, GetCustomTransformersResponseValidationError{
+					errors = append(errors, GetUserDefinedTransformersResponseValidationError{
 						field:  fmt.Sprintf("Transformers[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -417,7 +420,7 @@ func (m *GetCustomTransformersResponse) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, GetCustomTransformersResponseValidationError{
+					errors = append(errors, GetUserDefinedTransformersResponseValidationError{
 						field:  fmt.Sprintf("Transformers[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -426,7 +429,7 @@ func (m *GetCustomTransformersResponse) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return GetCustomTransformersResponseValidationError{
+				return GetUserDefinedTransformersResponseValidationError{
 					field:  fmt.Sprintf("Transformers[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -437,19 +440,20 @@ func (m *GetCustomTransformersResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return GetCustomTransformersResponseMultiError(errors)
+		return GetUserDefinedTransformersResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetCustomTransformersResponseMultiError is an error wrapping multiple
-// validation errors returned by GetCustomTransformersResponse.ValidateAll()
-// if the designated constraints aren't met.
-type GetCustomTransformersResponseMultiError []error
+// GetUserDefinedTransformersResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// GetUserDefinedTransformersResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetUserDefinedTransformersResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetCustomTransformersResponseMultiError) Error() string {
+func (m GetUserDefinedTransformersResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -458,12 +462,12 @@ func (m GetCustomTransformersResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetCustomTransformersResponseMultiError) AllErrors() []error { return m }
+func (m GetUserDefinedTransformersResponseMultiError) AllErrors() []error { return m }
 
-// GetCustomTransformersResponseValidationError is the validation error
-// returned by GetCustomTransformersResponse.Validate if the designated
+// GetUserDefinedTransformersResponseValidationError is the validation error
+// returned by GetUserDefinedTransformersResponse.Validate if the designated
 // constraints aren't met.
-type GetCustomTransformersResponseValidationError struct {
+type GetUserDefinedTransformersResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -471,24 +475,24 @@ type GetCustomTransformersResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetCustomTransformersResponseValidationError) Field() string { return e.field }
+func (e GetUserDefinedTransformersResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetCustomTransformersResponseValidationError) Reason() string { return e.reason }
+func (e GetUserDefinedTransformersResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetCustomTransformersResponseValidationError) Cause() error { return e.cause }
+func (e GetUserDefinedTransformersResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetCustomTransformersResponseValidationError) Key() bool { return e.key }
+func (e GetUserDefinedTransformersResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetCustomTransformersResponseValidationError) ErrorName() string {
-	return "GetCustomTransformersResponseValidationError"
+func (e GetUserDefinedTransformersResponseValidationError) ErrorName() string {
+	return "GetUserDefinedTransformersResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GetCustomTransformersResponseValidationError) Error() string {
+func (e GetUserDefinedTransformersResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -500,14 +504,14 @@ func (e GetCustomTransformersResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetCustomTransformersResponse.%s: %s%s",
+		"invalid %sGetUserDefinedTransformersResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetCustomTransformersResponseValidationError{}
+var _ error = GetUserDefinedTransformersResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -515,24 +519,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetCustomTransformersResponseValidationError{}
+} = GetUserDefinedTransformersResponseValidationError{}
 
-// Validate checks the field values on GetCustomTransformerByIdRequest with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetCustomTransformerByIdRequest) Validate() error {
+// Validate checks the field values on GetUserDefinedTransformerByIdRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetUserDefinedTransformerByIdRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetCustomTransformerByIdRequest with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// GetCustomTransformerByIdRequestMultiError, or nil if none found.
-func (m *GetCustomTransformerByIdRequest) ValidateAll() error {
+// ValidateAll checks the field values on GetUserDefinedTransformerByIdRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetUserDefinedTransformerByIdRequestMultiError, or nil if none found.
+func (m *GetUserDefinedTransformerByIdRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetCustomTransformerByIdRequest) validate(all bool) error {
+func (m *GetUserDefinedTransformerByIdRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -542,19 +547,20 @@ func (m *GetCustomTransformerByIdRequest) validate(all bool) error {
 	// no validation rules for TransformerId
 
 	if len(errors) > 0 {
-		return GetCustomTransformerByIdRequestMultiError(errors)
+		return GetUserDefinedTransformerByIdRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetCustomTransformerByIdRequestMultiError is an error wrapping multiple
-// validation errors returned by GetCustomTransformerByIdRequest.ValidateAll()
-// if the designated constraints aren't met.
-type GetCustomTransformerByIdRequestMultiError []error
+// GetUserDefinedTransformerByIdRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// GetUserDefinedTransformerByIdRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetUserDefinedTransformerByIdRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetCustomTransformerByIdRequestMultiError) Error() string {
+func (m GetUserDefinedTransformerByIdRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -563,12 +569,12 @@ func (m GetCustomTransformerByIdRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetCustomTransformerByIdRequestMultiError) AllErrors() []error { return m }
+func (m GetUserDefinedTransformerByIdRequestMultiError) AllErrors() []error { return m }
 
-// GetCustomTransformerByIdRequestValidationError is the validation error
-// returned by GetCustomTransformerByIdRequest.Validate if the designated
+// GetUserDefinedTransformerByIdRequestValidationError is the validation error
+// returned by GetUserDefinedTransformerByIdRequest.Validate if the designated
 // constraints aren't met.
-type GetCustomTransformerByIdRequestValidationError struct {
+type GetUserDefinedTransformerByIdRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -576,24 +582,24 @@ type GetCustomTransformerByIdRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetCustomTransformerByIdRequestValidationError) Field() string { return e.field }
+func (e GetUserDefinedTransformerByIdRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetCustomTransformerByIdRequestValidationError) Reason() string { return e.reason }
+func (e GetUserDefinedTransformerByIdRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetCustomTransformerByIdRequestValidationError) Cause() error { return e.cause }
+func (e GetUserDefinedTransformerByIdRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetCustomTransformerByIdRequestValidationError) Key() bool { return e.key }
+func (e GetUserDefinedTransformerByIdRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetCustomTransformerByIdRequestValidationError) ErrorName() string {
-	return "GetCustomTransformerByIdRequestValidationError"
+func (e GetUserDefinedTransformerByIdRequestValidationError) ErrorName() string {
+	return "GetUserDefinedTransformerByIdRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GetCustomTransformerByIdRequestValidationError) Error() string {
+func (e GetUserDefinedTransformerByIdRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -605,14 +611,14 @@ func (e GetCustomTransformerByIdRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetCustomTransformerByIdRequest.%s: %s%s",
+		"invalid %sGetUserDefinedTransformerByIdRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetCustomTransformerByIdRequestValidationError{}
+var _ error = GetUserDefinedTransformerByIdRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -620,25 +626,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetCustomTransformerByIdRequestValidationError{}
+} = GetUserDefinedTransformerByIdRequestValidationError{}
 
-// Validate checks the field values on GetCustomTransformerByIdResponse with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the first error encountered is returned, or nil if there are
-// no violations.
-func (m *GetCustomTransformerByIdResponse) Validate() error {
+// Validate checks the field values on GetUserDefinedTransformerByIdResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetUserDefinedTransformerByIdResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetCustomTransformerByIdResponse with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// GetCustomTransformerByIdResponseMultiError, or nil if none found.
-func (m *GetCustomTransformerByIdResponse) ValidateAll() error {
+// ValidateAll checks the field values on GetUserDefinedTransformerByIdResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetUserDefinedTransformerByIdResponseMultiError, or nil if none found.
+func (m *GetUserDefinedTransformerByIdResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetCustomTransformerByIdResponse) validate(all bool) error {
+func (m *GetUserDefinedTransformerByIdResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -649,7 +655,7 @@ func (m *GetCustomTransformerByIdResponse) validate(all bool) error {
 		switch v := interface{}(m.GetTransformer()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetCustomTransformerByIdResponseValidationError{
+				errors = append(errors, GetUserDefinedTransformerByIdResponseValidationError{
 					field:  "Transformer",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -657,7 +663,7 @@ func (m *GetCustomTransformerByIdResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, GetCustomTransformerByIdResponseValidationError{
+				errors = append(errors, GetUserDefinedTransformerByIdResponseValidationError{
 					field:  "Transformer",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -666,7 +672,7 @@ func (m *GetCustomTransformerByIdResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetTransformer()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return GetCustomTransformerByIdResponseValidationError{
+			return GetUserDefinedTransformerByIdResponseValidationError{
 				field:  "Transformer",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -675,20 +681,20 @@ func (m *GetCustomTransformerByIdResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return GetCustomTransformerByIdResponseMultiError(errors)
+		return GetUserDefinedTransformerByIdResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetCustomTransformerByIdResponseMultiError is an error wrapping multiple
-// validation errors returned by
-// GetCustomTransformerByIdResponse.ValidateAll() if the designated
+// GetUserDefinedTransformerByIdResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// GetUserDefinedTransformerByIdResponse.ValidateAll() if the designated
 // constraints aren't met.
-type GetCustomTransformerByIdResponseMultiError []error
+type GetUserDefinedTransformerByIdResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetCustomTransformerByIdResponseMultiError) Error() string {
+func (m GetUserDefinedTransformerByIdResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -697,12 +703,12 @@ func (m GetCustomTransformerByIdResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetCustomTransformerByIdResponseMultiError) AllErrors() []error { return m }
+func (m GetUserDefinedTransformerByIdResponseMultiError) AllErrors() []error { return m }
 
-// GetCustomTransformerByIdResponseValidationError is the validation error
-// returned by GetCustomTransformerByIdResponse.Validate if the designated
-// constraints aren't met.
-type GetCustomTransformerByIdResponseValidationError struct {
+// GetUserDefinedTransformerByIdResponseValidationError is the validation error
+// returned by GetUserDefinedTransformerByIdResponse.Validate if the
+// designated constraints aren't met.
+type GetUserDefinedTransformerByIdResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -710,24 +716,24 @@ type GetCustomTransformerByIdResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetCustomTransformerByIdResponseValidationError) Field() string { return e.field }
+func (e GetUserDefinedTransformerByIdResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetCustomTransformerByIdResponseValidationError) Reason() string { return e.reason }
+func (e GetUserDefinedTransformerByIdResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetCustomTransformerByIdResponseValidationError) Cause() error { return e.cause }
+func (e GetUserDefinedTransformerByIdResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetCustomTransformerByIdResponseValidationError) Key() bool { return e.key }
+func (e GetUserDefinedTransformerByIdResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetCustomTransformerByIdResponseValidationError) ErrorName() string {
-	return "GetCustomTransformerByIdResponseValidationError"
+func (e GetUserDefinedTransformerByIdResponseValidationError) ErrorName() string {
+	return "GetUserDefinedTransformerByIdResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GetCustomTransformerByIdResponseValidationError) Error() string {
+func (e GetUserDefinedTransformerByIdResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -739,14 +745,14 @@ func (e GetCustomTransformerByIdResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetCustomTransformerByIdResponse.%s: %s%s",
+		"invalid %sGetUserDefinedTransformerByIdResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetCustomTransformerByIdResponseValidationError{}
+var _ error = GetUserDefinedTransformerByIdResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -754,24 +760,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetCustomTransformerByIdResponseValidationError{}
+} = GetUserDefinedTransformerByIdResponseValidationError{}
 
-// Validate checks the field values on CreateCustomTransformerRequest with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *CreateCustomTransformerRequest) Validate() error {
+// Validate checks the field values on CreateUserDefinedTransformerRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *CreateUserDefinedTransformerRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CreateCustomTransformerRequest with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// CreateCustomTransformerRequestMultiError, or nil if none found.
-func (m *CreateCustomTransformerRequest) ValidateAll() error {
+// ValidateAll checks the field values on CreateUserDefinedTransformerRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CreateUserDefinedTransformerRequestMultiError, or nil if none found.
+func (m *CreateUserDefinedTransformerRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CreateCustomTransformerRequest) validate(all bool) error {
+func (m *CreateUserDefinedTransformerRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -792,7 +799,7 @@ func (m *CreateCustomTransformerRequest) validate(all bool) error {
 		switch v := interface{}(m.GetTransformerConfig()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateCustomTransformerRequestValidationError{
+				errors = append(errors, CreateUserDefinedTransformerRequestValidationError{
 					field:  "TransformerConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -800,7 +807,7 @@ func (m *CreateCustomTransformerRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateCustomTransformerRequestValidationError{
+				errors = append(errors, CreateUserDefinedTransformerRequestValidationError{
 					field:  "TransformerConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -809,7 +816,7 @@ func (m *CreateCustomTransformerRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetTransformerConfig()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CreateCustomTransformerRequestValidationError{
+			return CreateUserDefinedTransformerRequestValidationError{
 				field:  "TransformerConfig",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -818,19 +825,20 @@ func (m *CreateCustomTransformerRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return CreateCustomTransformerRequestMultiError(errors)
+		return CreateUserDefinedTransformerRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// CreateCustomTransformerRequestMultiError is an error wrapping multiple
-// validation errors returned by CreateCustomTransformerRequest.ValidateAll()
-// if the designated constraints aren't met.
-type CreateCustomTransformerRequestMultiError []error
+// CreateUserDefinedTransformerRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// CreateUserDefinedTransformerRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateUserDefinedTransformerRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CreateCustomTransformerRequestMultiError) Error() string {
+func (m CreateUserDefinedTransformerRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -839,12 +847,12 @@ func (m CreateCustomTransformerRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CreateCustomTransformerRequestMultiError) AllErrors() []error { return m }
+func (m CreateUserDefinedTransformerRequestMultiError) AllErrors() []error { return m }
 
-// CreateCustomTransformerRequestValidationError is the validation error
-// returned by CreateCustomTransformerRequest.Validate if the designated
+// CreateUserDefinedTransformerRequestValidationError is the validation error
+// returned by CreateUserDefinedTransformerRequest.Validate if the designated
 // constraints aren't met.
-type CreateCustomTransformerRequestValidationError struct {
+type CreateUserDefinedTransformerRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -852,24 +860,24 @@ type CreateCustomTransformerRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e CreateCustomTransformerRequestValidationError) Field() string { return e.field }
+func (e CreateUserDefinedTransformerRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CreateCustomTransformerRequestValidationError) Reason() string { return e.reason }
+func (e CreateUserDefinedTransformerRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CreateCustomTransformerRequestValidationError) Cause() error { return e.cause }
+func (e CreateUserDefinedTransformerRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CreateCustomTransformerRequestValidationError) Key() bool { return e.key }
+func (e CreateUserDefinedTransformerRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CreateCustomTransformerRequestValidationError) ErrorName() string {
-	return "CreateCustomTransformerRequestValidationError"
+func (e CreateUserDefinedTransformerRequestValidationError) ErrorName() string {
+	return "CreateUserDefinedTransformerRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e CreateCustomTransformerRequestValidationError) Error() string {
+func (e CreateUserDefinedTransformerRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -881,14 +889,14 @@ func (e CreateCustomTransformerRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCreateCustomTransformerRequest.%s: %s%s",
+		"invalid %sCreateUserDefinedTransformerRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CreateCustomTransformerRequestValidationError{}
+var _ error = CreateUserDefinedTransformerRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -896,24 +904,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CreateCustomTransformerRequestValidationError{}
+} = CreateUserDefinedTransformerRequestValidationError{}
 
-// Validate checks the field values on CreateCustomTransformerResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *CreateCustomTransformerResponse) Validate() error {
+// Validate checks the field values on CreateUserDefinedTransformerResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *CreateUserDefinedTransformerResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CreateCustomTransformerResponse with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// CreateCustomTransformerResponseMultiError, or nil if none found.
-func (m *CreateCustomTransformerResponse) ValidateAll() error {
+// ValidateAll checks the field values on CreateUserDefinedTransformerResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CreateUserDefinedTransformerResponseMultiError, or nil if none found.
+func (m *CreateUserDefinedTransformerResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CreateCustomTransformerResponse) validate(all bool) error {
+func (m *CreateUserDefinedTransformerResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -924,7 +933,7 @@ func (m *CreateCustomTransformerResponse) validate(all bool) error {
 		switch v := interface{}(m.GetTransformer()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateCustomTransformerResponseValidationError{
+				errors = append(errors, CreateUserDefinedTransformerResponseValidationError{
 					field:  "Transformer",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -932,7 +941,7 @@ func (m *CreateCustomTransformerResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateCustomTransformerResponseValidationError{
+				errors = append(errors, CreateUserDefinedTransformerResponseValidationError{
 					field:  "Transformer",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -941,7 +950,7 @@ func (m *CreateCustomTransformerResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetTransformer()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CreateCustomTransformerResponseValidationError{
+			return CreateUserDefinedTransformerResponseValidationError{
 				field:  "Transformer",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -950,19 +959,20 @@ func (m *CreateCustomTransformerResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return CreateCustomTransformerResponseMultiError(errors)
+		return CreateUserDefinedTransformerResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// CreateCustomTransformerResponseMultiError is an error wrapping multiple
-// validation errors returned by CreateCustomTransformerResponse.ValidateAll()
-// if the designated constraints aren't met.
-type CreateCustomTransformerResponseMultiError []error
+// CreateUserDefinedTransformerResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// CreateUserDefinedTransformerResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateUserDefinedTransformerResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CreateCustomTransformerResponseMultiError) Error() string {
+func (m CreateUserDefinedTransformerResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -971,12 +981,12 @@ func (m CreateCustomTransformerResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CreateCustomTransformerResponseMultiError) AllErrors() []error { return m }
+func (m CreateUserDefinedTransformerResponseMultiError) AllErrors() []error { return m }
 
-// CreateCustomTransformerResponseValidationError is the validation error
-// returned by CreateCustomTransformerResponse.Validate if the designated
+// CreateUserDefinedTransformerResponseValidationError is the validation error
+// returned by CreateUserDefinedTransformerResponse.Validate if the designated
 // constraints aren't met.
-type CreateCustomTransformerResponseValidationError struct {
+type CreateUserDefinedTransformerResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -984,24 +994,24 @@ type CreateCustomTransformerResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e CreateCustomTransformerResponseValidationError) Field() string { return e.field }
+func (e CreateUserDefinedTransformerResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CreateCustomTransformerResponseValidationError) Reason() string { return e.reason }
+func (e CreateUserDefinedTransformerResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CreateCustomTransformerResponseValidationError) Cause() error { return e.cause }
+func (e CreateUserDefinedTransformerResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CreateCustomTransformerResponseValidationError) Key() bool { return e.key }
+func (e CreateUserDefinedTransformerResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CreateCustomTransformerResponseValidationError) ErrorName() string {
-	return "CreateCustomTransformerResponseValidationError"
+func (e CreateUserDefinedTransformerResponseValidationError) ErrorName() string {
+	return "CreateUserDefinedTransformerResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e CreateCustomTransformerResponseValidationError) Error() string {
+func (e CreateUserDefinedTransformerResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1013,14 +1023,14 @@ func (e CreateCustomTransformerResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCreateCustomTransformerResponse.%s: %s%s",
+		"invalid %sCreateUserDefinedTransformerResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CreateCustomTransformerResponseValidationError{}
+var _ error = CreateUserDefinedTransformerResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -1028,24 +1038,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CreateCustomTransformerResponseValidationError{}
+} = CreateUserDefinedTransformerResponseValidationError{}
 
-// Validate checks the field values on DeleteCustomTransformerRequest with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *DeleteCustomTransformerRequest) Validate() error {
+// Validate checks the field values on DeleteUserDefinedTransformerRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *DeleteUserDefinedTransformerRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on DeleteCustomTransformerRequest with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// DeleteCustomTransformerRequestMultiError, or nil if none found.
-func (m *DeleteCustomTransformerRequest) ValidateAll() error {
+// ValidateAll checks the field values on DeleteUserDefinedTransformerRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// DeleteUserDefinedTransformerRequestMultiError, or nil if none found.
+func (m *DeleteUserDefinedTransformerRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *DeleteCustomTransformerRequest) validate(all bool) error {
+func (m *DeleteUserDefinedTransformerRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1055,19 +1066,20 @@ func (m *DeleteCustomTransformerRequest) validate(all bool) error {
 	// no validation rules for TransformerId
 
 	if len(errors) > 0 {
-		return DeleteCustomTransformerRequestMultiError(errors)
+		return DeleteUserDefinedTransformerRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// DeleteCustomTransformerRequestMultiError is an error wrapping multiple
-// validation errors returned by DeleteCustomTransformerRequest.ValidateAll()
-// if the designated constraints aren't met.
-type DeleteCustomTransformerRequestMultiError []error
+// DeleteUserDefinedTransformerRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// DeleteUserDefinedTransformerRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteUserDefinedTransformerRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m DeleteCustomTransformerRequestMultiError) Error() string {
+func (m DeleteUserDefinedTransformerRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1076,12 +1088,12 @@ func (m DeleteCustomTransformerRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m DeleteCustomTransformerRequestMultiError) AllErrors() []error { return m }
+func (m DeleteUserDefinedTransformerRequestMultiError) AllErrors() []error { return m }
 
-// DeleteCustomTransformerRequestValidationError is the validation error
-// returned by DeleteCustomTransformerRequest.Validate if the designated
+// DeleteUserDefinedTransformerRequestValidationError is the validation error
+// returned by DeleteUserDefinedTransformerRequest.Validate if the designated
 // constraints aren't met.
-type DeleteCustomTransformerRequestValidationError struct {
+type DeleteUserDefinedTransformerRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1089,24 +1101,24 @@ type DeleteCustomTransformerRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e DeleteCustomTransformerRequestValidationError) Field() string { return e.field }
+func (e DeleteUserDefinedTransformerRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e DeleteCustomTransformerRequestValidationError) Reason() string { return e.reason }
+func (e DeleteUserDefinedTransformerRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e DeleteCustomTransformerRequestValidationError) Cause() error { return e.cause }
+func (e DeleteUserDefinedTransformerRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e DeleteCustomTransformerRequestValidationError) Key() bool { return e.key }
+func (e DeleteUserDefinedTransformerRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e DeleteCustomTransformerRequestValidationError) ErrorName() string {
-	return "DeleteCustomTransformerRequestValidationError"
+func (e DeleteUserDefinedTransformerRequestValidationError) ErrorName() string {
+	return "DeleteUserDefinedTransformerRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e DeleteCustomTransformerRequestValidationError) Error() string {
+func (e DeleteUserDefinedTransformerRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1118,14 +1130,14 @@ func (e DeleteCustomTransformerRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sDeleteCustomTransformerRequest.%s: %s%s",
+		"invalid %sDeleteUserDefinedTransformerRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = DeleteCustomTransformerRequestValidationError{}
+var _ error = DeleteUserDefinedTransformerRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -1133,24 +1145,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = DeleteCustomTransformerRequestValidationError{}
+} = DeleteUserDefinedTransformerRequestValidationError{}
 
-// Validate checks the field values on DeleteCustomTransformerResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *DeleteCustomTransformerResponse) Validate() error {
+// Validate checks the field values on DeleteUserDefinedTransformerResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *DeleteUserDefinedTransformerResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on DeleteCustomTransformerResponse with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// DeleteCustomTransformerResponseMultiError, or nil if none found.
-func (m *DeleteCustomTransformerResponse) ValidateAll() error {
+// ValidateAll checks the field values on DeleteUserDefinedTransformerResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// DeleteUserDefinedTransformerResponseMultiError, or nil if none found.
+func (m *DeleteUserDefinedTransformerResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *DeleteCustomTransformerResponse) validate(all bool) error {
+func (m *DeleteUserDefinedTransformerResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1158,19 +1171,20 @@ func (m *DeleteCustomTransformerResponse) validate(all bool) error {
 	var errors []error
 
 	if len(errors) > 0 {
-		return DeleteCustomTransformerResponseMultiError(errors)
+		return DeleteUserDefinedTransformerResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// DeleteCustomTransformerResponseMultiError is an error wrapping multiple
-// validation errors returned by DeleteCustomTransformerResponse.ValidateAll()
-// if the designated constraints aren't met.
-type DeleteCustomTransformerResponseMultiError []error
+// DeleteUserDefinedTransformerResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// DeleteUserDefinedTransformerResponse.ValidateAll() if the designated
+// constraints aren't met.
+type DeleteUserDefinedTransformerResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m DeleteCustomTransformerResponseMultiError) Error() string {
+func (m DeleteUserDefinedTransformerResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1179,12 +1193,12 @@ func (m DeleteCustomTransformerResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m DeleteCustomTransformerResponseMultiError) AllErrors() []error { return m }
+func (m DeleteUserDefinedTransformerResponseMultiError) AllErrors() []error { return m }
 
-// DeleteCustomTransformerResponseValidationError is the validation error
-// returned by DeleteCustomTransformerResponse.Validate if the designated
+// DeleteUserDefinedTransformerResponseValidationError is the validation error
+// returned by DeleteUserDefinedTransformerResponse.Validate if the designated
 // constraints aren't met.
-type DeleteCustomTransformerResponseValidationError struct {
+type DeleteUserDefinedTransformerResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1192,24 +1206,24 @@ type DeleteCustomTransformerResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e DeleteCustomTransformerResponseValidationError) Field() string { return e.field }
+func (e DeleteUserDefinedTransformerResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e DeleteCustomTransformerResponseValidationError) Reason() string { return e.reason }
+func (e DeleteUserDefinedTransformerResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e DeleteCustomTransformerResponseValidationError) Cause() error { return e.cause }
+func (e DeleteUserDefinedTransformerResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e DeleteCustomTransformerResponseValidationError) Key() bool { return e.key }
+func (e DeleteUserDefinedTransformerResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e DeleteCustomTransformerResponseValidationError) ErrorName() string {
-	return "DeleteCustomTransformerResponseValidationError"
+func (e DeleteUserDefinedTransformerResponseValidationError) ErrorName() string {
+	return "DeleteUserDefinedTransformerResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e DeleteCustomTransformerResponseValidationError) Error() string {
+func (e DeleteUserDefinedTransformerResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1221,14 +1235,14 @@ func (e DeleteCustomTransformerResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sDeleteCustomTransformerResponse.%s: %s%s",
+		"invalid %sDeleteUserDefinedTransformerResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = DeleteCustomTransformerResponseValidationError{}
+var _ error = DeleteUserDefinedTransformerResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -1236,24 +1250,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = DeleteCustomTransformerResponseValidationError{}
+} = DeleteUserDefinedTransformerResponseValidationError{}
 
-// Validate checks the field values on UpdateCustomTransformerRequest with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateCustomTransformerRequest) Validate() error {
+// Validate checks the field values on UpdateUserDefinedTransformerRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *UpdateUserDefinedTransformerRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateCustomTransformerRequest with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// UpdateCustomTransformerRequestMultiError, or nil if none found.
-func (m *UpdateCustomTransformerRequest) ValidateAll() error {
+// ValidateAll checks the field values on UpdateUserDefinedTransformerRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// UpdateUserDefinedTransformerRequestMultiError, or nil if none found.
+func (m *UpdateUserDefinedTransformerRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateCustomTransformerRequest) validate(all bool) error {
+func (m *UpdateUserDefinedTransformerRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1270,7 +1285,7 @@ func (m *UpdateCustomTransformerRequest) validate(all bool) error {
 		switch v := interface{}(m.GetTransformerConfig()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateCustomTransformerRequestValidationError{
+				errors = append(errors, UpdateUserDefinedTransformerRequestValidationError{
 					field:  "TransformerConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1278,7 +1293,7 @@ func (m *UpdateCustomTransformerRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateCustomTransformerRequestValidationError{
+				errors = append(errors, UpdateUserDefinedTransformerRequestValidationError{
 					field:  "TransformerConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1287,7 +1302,7 @@ func (m *UpdateCustomTransformerRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetTransformerConfig()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return UpdateCustomTransformerRequestValidationError{
+			return UpdateUserDefinedTransformerRequestValidationError{
 				field:  "TransformerConfig",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1296,19 +1311,20 @@ func (m *UpdateCustomTransformerRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return UpdateCustomTransformerRequestMultiError(errors)
+		return UpdateUserDefinedTransformerRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateCustomTransformerRequestMultiError is an error wrapping multiple
-// validation errors returned by UpdateCustomTransformerRequest.ValidateAll()
-// if the designated constraints aren't met.
-type UpdateCustomTransformerRequestMultiError []error
+// UpdateUserDefinedTransformerRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// UpdateUserDefinedTransformerRequest.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateUserDefinedTransformerRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateCustomTransformerRequestMultiError) Error() string {
+func (m UpdateUserDefinedTransformerRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1317,12 +1333,12 @@ func (m UpdateCustomTransformerRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateCustomTransformerRequestMultiError) AllErrors() []error { return m }
+func (m UpdateUserDefinedTransformerRequestMultiError) AllErrors() []error { return m }
 
-// UpdateCustomTransformerRequestValidationError is the validation error
-// returned by UpdateCustomTransformerRequest.Validate if the designated
+// UpdateUserDefinedTransformerRequestValidationError is the validation error
+// returned by UpdateUserDefinedTransformerRequest.Validate if the designated
 // constraints aren't met.
-type UpdateCustomTransformerRequestValidationError struct {
+type UpdateUserDefinedTransformerRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1330,24 +1346,24 @@ type UpdateCustomTransformerRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateCustomTransformerRequestValidationError) Field() string { return e.field }
+func (e UpdateUserDefinedTransformerRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateCustomTransformerRequestValidationError) Reason() string { return e.reason }
+func (e UpdateUserDefinedTransformerRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateCustomTransformerRequestValidationError) Cause() error { return e.cause }
+func (e UpdateUserDefinedTransformerRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateCustomTransformerRequestValidationError) Key() bool { return e.key }
+func (e UpdateUserDefinedTransformerRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateCustomTransformerRequestValidationError) ErrorName() string {
-	return "UpdateCustomTransformerRequestValidationError"
+func (e UpdateUserDefinedTransformerRequestValidationError) ErrorName() string {
+	return "UpdateUserDefinedTransformerRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateCustomTransformerRequestValidationError) Error() string {
+func (e UpdateUserDefinedTransformerRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1359,14 +1375,14 @@ func (e UpdateCustomTransformerRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateCustomTransformerRequest.%s: %s%s",
+		"invalid %sUpdateUserDefinedTransformerRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateCustomTransformerRequestValidationError{}
+var _ error = UpdateUserDefinedTransformerRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -1374,24 +1390,25 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateCustomTransformerRequestValidationError{}
+} = UpdateUserDefinedTransformerRequestValidationError{}
 
-// Validate checks the field values on UpdateCustomTransformerResponse with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateCustomTransformerResponse) Validate() error {
+// Validate checks the field values on UpdateUserDefinedTransformerResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *UpdateUserDefinedTransformerResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateCustomTransformerResponse with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// UpdateCustomTransformerResponseMultiError, or nil if none found.
-func (m *UpdateCustomTransformerResponse) ValidateAll() error {
+// ValidateAll checks the field values on UpdateUserDefinedTransformerResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// UpdateUserDefinedTransformerResponseMultiError, or nil if none found.
+func (m *UpdateUserDefinedTransformerResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateCustomTransformerResponse) validate(all bool) error {
+func (m *UpdateUserDefinedTransformerResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1402,7 +1419,7 @@ func (m *UpdateCustomTransformerResponse) validate(all bool) error {
 		switch v := interface{}(m.GetTransformer()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateCustomTransformerResponseValidationError{
+				errors = append(errors, UpdateUserDefinedTransformerResponseValidationError{
 					field:  "Transformer",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1410,7 +1427,7 @@ func (m *UpdateCustomTransformerResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateCustomTransformerResponseValidationError{
+				errors = append(errors, UpdateUserDefinedTransformerResponseValidationError{
 					field:  "Transformer",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1419,7 +1436,7 @@ func (m *UpdateCustomTransformerResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetTransformer()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return UpdateCustomTransformerResponseValidationError{
+			return UpdateUserDefinedTransformerResponseValidationError{
 				field:  "Transformer",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1428,19 +1445,20 @@ func (m *UpdateCustomTransformerResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return UpdateCustomTransformerResponseMultiError(errors)
+		return UpdateUserDefinedTransformerResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateCustomTransformerResponseMultiError is an error wrapping multiple
-// validation errors returned by UpdateCustomTransformerResponse.ValidateAll()
-// if the designated constraints aren't met.
-type UpdateCustomTransformerResponseMultiError []error
+// UpdateUserDefinedTransformerResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// UpdateUserDefinedTransformerResponse.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateUserDefinedTransformerResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateCustomTransformerResponseMultiError) Error() string {
+func (m UpdateUserDefinedTransformerResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1449,12 +1467,12 @@ func (m UpdateCustomTransformerResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateCustomTransformerResponseMultiError) AllErrors() []error { return m }
+func (m UpdateUserDefinedTransformerResponseMultiError) AllErrors() []error { return m }
 
-// UpdateCustomTransformerResponseValidationError is the validation error
-// returned by UpdateCustomTransformerResponse.Validate if the designated
+// UpdateUserDefinedTransformerResponseValidationError is the validation error
+// returned by UpdateUserDefinedTransformerResponse.Validate if the designated
 // constraints aren't met.
-type UpdateCustomTransformerResponseValidationError struct {
+type UpdateUserDefinedTransformerResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1462,24 +1480,24 @@ type UpdateCustomTransformerResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateCustomTransformerResponseValidationError) Field() string { return e.field }
+func (e UpdateUserDefinedTransformerResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateCustomTransformerResponseValidationError) Reason() string { return e.reason }
+func (e UpdateUserDefinedTransformerResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateCustomTransformerResponseValidationError) Cause() error { return e.cause }
+func (e UpdateUserDefinedTransformerResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateCustomTransformerResponseValidationError) Key() bool { return e.key }
+func (e UpdateUserDefinedTransformerResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateCustomTransformerResponseValidationError) ErrorName() string {
-	return "UpdateCustomTransformerResponseValidationError"
+func (e UpdateUserDefinedTransformerResponseValidationError) ErrorName() string {
+	return "UpdateUserDefinedTransformerResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateCustomTransformerResponseValidationError) Error() string {
+func (e UpdateUserDefinedTransformerResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1491,14 +1509,14 @@ func (e UpdateCustomTransformerResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateCustomTransformerResponse.%s: %s%s",
+		"invalid %sUpdateUserDefinedTransformerResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateCustomTransformerResponseValidationError{}
+var _ error = UpdateUserDefinedTransformerResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -1506,7 +1524,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateCustomTransformerResponseValidationError{}
+} = UpdateUserDefinedTransformerResponseValidationError{}
 
 // Validate checks the field values on IsTransformerNameAvailableRequest with
 // the rules defined in the proto definition for this message. If any rules
@@ -1724,22 +1742,22 @@ var _ interface {
 	ErrorName() string
 } = IsTransformerNameAvailableResponseValidationError{}
 
-// Validate checks the field values on CustomTransformer with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *CustomTransformer) Validate() error {
+// Validate checks the field values on UserDefinedTransformer with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UserDefinedTransformer) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CustomTransformer with the rules
+// ValidateAll checks the field values on UserDefinedTransformer with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// CustomTransformerMultiError, or nil if none found.
-func (m *CustomTransformer) ValidateAll() error {
+// UserDefinedTransformerMultiError, or nil if none found.
+func (m *UserDefinedTransformer) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CustomTransformer) validate(all bool) error {
+func (m *UserDefinedTransformer) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1752,7 +1770,7 @@ func (m *CustomTransformer) validate(all bool) error {
 
 	// no validation rules for Description
 
-	// no validation rules for Type
+	// no validation rules for DataType
 
 	// no validation rules for Source
 
@@ -1760,7 +1778,7 @@ func (m *CustomTransformer) validate(all bool) error {
 		switch v := interface{}(m.GetConfig()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CustomTransformerValidationError{
+				errors = append(errors, UserDefinedTransformerValidationError{
 					field:  "Config",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1768,7 +1786,7 @@ func (m *CustomTransformer) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CustomTransformerValidationError{
+				errors = append(errors, UserDefinedTransformerValidationError{
 					field:  "Config",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1777,7 +1795,7 @@ func (m *CustomTransformer) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CustomTransformerValidationError{
+			return UserDefinedTransformerValidationError{
 				field:  "Config",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1789,7 +1807,7 @@ func (m *CustomTransformer) validate(all bool) error {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CustomTransformerValidationError{
+				errors = append(errors, UserDefinedTransformerValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1797,7 +1815,7 @@ func (m *CustomTransformer) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CustomTransformerValidationError{
+				errors = append(errors, UserDefinedTransformerValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1806,7 +1824,7 @@ func (m *CustomTransformer) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CustomTransformerValidationError{
+			return UserDefinedTransformerValidationError{
 				field:  "CreatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1818,7 +1836,7 @@ func (m *CustomTransformer) validate(all bool) error {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CustomTransformerValidationError{
+				errors = append(errors, UserDefinedTransformerValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1826,7 +1844,7 @@ func (m *CustomTransformer) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CustomTransformerValidationError{
+				errors = append(errors, UserDefinedTransformerValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1835,7 +1853,7 @@ func (m *CustomTransformer) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CustomTransformerValidationError{
+			return UserDefinedTransformerValidationError{
 				field:  "UpdatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1846,19 +1864,19 @@ func (m *CustomTransformer) validate(all bool) error {
 	// no validation rules for AccountId
 
 	if len(errors) > 0 {
-		return CustomTransformerMultiError(errors)
+		return UserDefinedTransformerMultiError(errors)
 	}
 
 	return nil
 }
 
-// CustomTransformerMultiError is an error wrapping multiple validation errors
-// returned by CustomTransformer.ValidateAll() if the designated constraints
-// aren't met.
-type CustomTransformerMultiError []error
+// UserDefinedTransformerMultiError is an error wrapping multiple validation
+// errors returned by UserDefinedTransformer.ValidateAll() if the designated
+// constraints aren't met.
+type UserDefinedTransformerMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CustomTransformerMultiError) Error() string {
+func (m UserDefinedTransformerMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1867,11 +1885,11 @@ func (m CustomTransformerMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CustomTransformerMultiError) AllErrors() []error { return m }
+func (m UserDefinedTransformerMultiError) AllErrors() []error { return m }
 
-// CustomTransformerValidationError is the validation error returned by
-// CustomTransformer.Validate if the designated constraints aren't met.
-type CustomTransformerValidationError struct {
+// UserDefinedTransformerValidationError is the validation error returned by
+// UserDefinedTransformer.Validate if the designated constraints aren't met.
+type UserDefinedTransformerValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1879,24 +1897,24 @@ type CustomTransformerValidationError struct {
 }
 
 // Field function returns field value.
-func (e CustomTransformerValidationError) Field() string { return e.field }
+func (e UserDefinedTransformerValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CustomTransformerValidationError) Reason() string { return e.reason }
+func (e UserDefinedTransformerValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CustomTransformerValidationError) Cause() error { return e.cause }
+func (e UserDefinedTransformerValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CustomTransformerValidationError) Key() bool { return e.key }
+func (e UserDefinedTransformerValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CustomTransformerValidationError) ErrorName() string {
-	return "CustomTransformerValidationError"
+func (e UserDefinedTransformerValidationError) ErrorName() string {
+	return "UserDefinedTransformerValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e CustomTransformerValidationError) Error() string {
+func (e UserDefinedTransformerValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1908,14 +1926,14 @@ func (e CustomTransformerValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCustomTransformer.%s: %s%s",
+		"invalid %sUserDefinedTransformer.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CustomTransformerValidationError{}
+var _ error = UserDefinedTransformerValidationError{}
 
 var _ interface {
 	Field() string
@@ -1923,37 +1941,43 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CustomTransformerValidationError{}
+} = UserDefinedTransformerValidationError{}
 
-// Validate checks the field values on Transformer with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *Transformer) Validate() error {
+// Validate checks the field values on SystemTransformer with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *SystemTransformer) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on Transformer with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in TransformerMultiError, or
-// nil if none found.
-func (m *Transformer) ValidateAll() error {
+// ValidateAll checks the field values on SystemTransformer with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SystemTransformerMultiError, or nil if none found.
+func (m *SystemTransformer) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *Transformer) validate(all bool) error {
+func (m *SystemTransformer) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Value
+	// no validation rules for Name
+
+	// no validation rules for Description
+
+	// no validation rules for DataType
+
+	// no validation rules for Source
 
 	if all {
 		switch v := interface{}(m.GetConfig()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, TransformerValidationError{
+				errors = append(errors, SystemTransformerValidationError{
 					field:  "Config",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1961,7 +1985,7 @@ func (m *Transformer) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, TransformerValidationError{
+				errors = append(errors, SystemTransformerValidationError{
 					field:  "Config",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -1970,7 +1994,7 @@ func (m *Transformer) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return TransformerValidationError{
+			return SystemTransformerValidationError{
 				field:  "Config",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -1979,18 +2003,19 @@ func (m *Transformer) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return TransformerMultiError(errors)
+		return SystemTransformerMultiError(errors)
 	}
 
 	return nil
 }
 
-// TransformerMultiError is an error wrapping multiple validation errors
-// returned by Transformer.ValidateAll() if the designated constraints aren't met.
-type TransformerMultiError []error
+// SystemTransformerMultiError is an error wrapping multiple validation errors
+// returned by SystemTransformer.ValidateAll() if the designated constraints
+// aren't met.
+type SystemTransformerMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TransformerMultiError) Error() string {
+func (m SystemTransformerMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1999,11 +2024,11 @@ func (m TransformerMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TransformerMultiError) AllErrors() []error { return m }
+func (m SystemTransformerMultiError) AllErrors() []error { return m }
 
-// TransformerValidationError is the validation error returned by
-// Transformer.Validate if the designated constraints aren't met.
-type TransformerValidationError struct {
+// SystemTransformerValidationError is the validation error returned by
+// SystemTransformer.Validate if the designated constraints aren't met.
+type SystemTransformerValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -2011,22 +2036,24 @@ type TransformerValidationError struct {
 }
 
 // Field function returns field value.
-func (e TransformerValidationError) Field() string { return e.field }
+func (e SystemTransformerValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TransformerValidationError) Reason() string { return e.reason }
+func (e SystemTransformerValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TransformerValidationError) Cause() error { return e.cause }
+func (e SystemTransformerValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TransformerValidationError) Key() bool { return e.key }
+func (e SystemTransformerValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TransformerValidationError) ErrorName() string { return "TransformerValidationError" }
+func (e SystemTransformerValidationError) ErrorName() string {
+	return "SystemTransformerValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e TransformerValidationError) Error() string {
+func (e SystemTransformerValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -2038,14 +2065,14 @@ func (e TransformerValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTransformer.%s: %s%s",
+		"invalid %sSystemTransformer.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TransformerValidationError{}
+var _ error = SystemTransformerValidationError{}
 
 var _ interface {
 	Field() string
@@ -2053,7 +2080,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TransformerValidationError{}
+} = SystemTransformerValidationError{}
 
 // Validate checks the field values on TransformerConfig with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -3589,6 +3616,47 @@ func (m *TransformerConfig) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
 					field:  "Nullconfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *TransformerConfig_UserDefinedTransformerConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetUserDefinedTransformerConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "UserDefinedTransformerConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "UserDefinedTransformerConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetUserDefinedTransformerConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "UserDefinedTransformerConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -7451,3 +7519,108 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = NullValidationError{}
+
+// Validate checks the field values on UserDefinedTransformerConfig with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UserDefinedTransformerConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UserDefinedTransformerConfig with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UserDefinedTransformerConfigMultiError, or nil if none found.
+func (m *UserDefinedTransformerConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UserDefinedTransformerConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return UserDefinedTransformerConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// UserDefinedTransformerConfigMultiError is an error wrapping multiple
+// validation errors returned by UserDefinedTransformerConfig.ValidateAll() if
+// the designated constraints aren't met.
+type UserDefinedTransformerConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UserDefinedTransformerConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UserDefinedTransformerConfigMultiError) AllErrors() []error { return m }
+
+// UserDefinedTransformerConfigValidationError is the validation error returned
+// by UserDefinedTransformerConfig.Validate if the designated constraints
+// aren't met.
+type UserDefinedTransformerConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UserDefinedTransformerConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UserDefinedTransformerConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UserDefinedTransformerConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UserDefinedTransformerConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UserDefinedTransformerConfigValidationError) ErrorName() string {
+	return "UserDefinedTransformerConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UserDefinedTransformerConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUserDefinedTransformerConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UserDefinedTransformerConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UserDefinedTransformerConfigValidationError{}

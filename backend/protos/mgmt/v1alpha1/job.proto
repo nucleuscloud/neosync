@@ -127,11 +127,17 @@ message CreateJobResponse {
   Job job = 1;
 }
 
+message JobMappingTransformer {
+  string source = 1;
+  string name = 2;
+  TransformerConfig config = 3;
+}
+
 message JobMapping {
   string schema = 1;
   string table = 2;
   string column = 3;
-  mgmt.v1alpha1.Transformer transformer = 5;
+  JobMappingTransformer transformer = 5;
 }
 
 enum JobStatus {

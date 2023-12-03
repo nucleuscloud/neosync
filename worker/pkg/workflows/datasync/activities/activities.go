@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"connectrpc.com/connect"
 	"go.temporal.io/sdk/activity"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
@@ -91,6 +92,11 @@ func (a *Activities) GenerateBenthosConfigs(
 		neosyncUrl,
 	)
 
+	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(
+		httpClient,
+		neosyncUrl,
+	)
+
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
 		httpClient,
 		neosyncUrl,
@@ -102,6 +108,7 @@ func (a *Activities) GenerateBenthosConfigs(
 		mysqlquerier,
 		jobclient,
 		connclient,
+		transformerclient,
 	)
 	return bbuilder.GenerateBenthosConfigs(ctx, req, logger)
 }
@@ -110,7 +117,8 @@ type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
-func buildBenthosSqlSourceConfigReponses(
+func (b *benthosBuilder) buildBenthosSqlSourceConfigReponses(
+	ctx context.Context,
 	mappings []*TableMapping,
 	dsn string,
 	driver string,
@@ -160,7 +168,7 @@ func buildBenthosSqlSourceConfigReponses(
 				},
 			},
 		}
-		mutation, err := buildProcessorMutation(tableMapping.Mappings)
+		mutation, err := b.buildProcessorMutation(ctx, tableMapping.Mappings)
 		if err != nil {
 			return nil, err
 		}
@@ -316,7 +324,7 @@ func shouldHaltOnSchemaAddition(
 
 func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
 	for _, col := range mappings {
-		if col.Transformer.Value != nullString {
+		if col.Transformer.Source != nullString {
 			return false
 		}
 	}
@@ -555,11 +563,24 @@ func getMysqlDsn(
 	}
 }
 
-func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
+func (b *benthosBuilder) buildProcessorMutation(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
 
 	for _, col := range cols {
-		if col.Transformer != nil && col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
+		if col.Transformer != nil && col.Transformer.Source != "" && col.Transformer.Source != "passthrough" {
+
+			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
+
+				// handle user defined transformer -> get the user defined transformer configs using the id
+
+				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
+				if err != nil {
+					return "", errors.New("unable to look up user defined transformer config by id")
+				}
+				col.Transformer = val
+
+			}
+
 			mutation, err := computeMutationFunction(col)
 			if err != nil {
 				return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
@@ -568,6 +589,20 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 		}
 	}
 	return strings.Join(pieces, "\n"), nil
+}
+
+// takes in an user defined config with just an id field and return the right transformer config for that user defined function id
+func (b *benthosBuilder) convertUserDefinedFunctionConfig(ctx context.Context, t *mgmtv1alpha1.JobMappingTransformer) (*mgmtv1alpha1.JobMappingTransformer, error) {
+
+	transformer, err := b.transformerclient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{TransformerId: t.Config.GetUserDefinedTransformerConfig().Id}))
+	if err != nil {
+		return nil, err
+	}
+
+	return &mgmtv1alpha1.JobMappingTransformer{
+		Source: t.Source,
+		Config: transformer.Msg.Transformer.Config,
+	}, nil
 }
 
 func buildPlainInsertArgs(cols []string) string {
@@ -587,7 +622,8 @@ root.{destination_col} = transformerfunction(args)
 */
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
-	switch col.Transformer.Value {
+
+	switch col.Transformer.Source {
 	case "generate_email":
 		return "generate_email()", nil
 	case "generate_realistic_email":

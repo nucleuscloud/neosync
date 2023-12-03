@@ -5,14 +5,14 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
+import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
-import { getCustomTransformerColumns } from './components/CustomTransformersTable/columns';
-import { CustomTransformersDataTable } from './components/CustomTransformersTable/data-table';
 import { getSystemTransformerColumns } from './components/SystemTransformersTable/columns';
 import { SystemTransformersDataTable } from './components/SystemTransformersTable/data-table';
+import { getUserDefinedTransformerColumns } from './components/UserDefinedTransformersTable/columns';
+import { UserDefinedTransformersDataTable } from './components/UserDefinedTransformersTable/data-table';
 
 export default function Transformers(): ReactElement {
   return (
@@ -34,36 +34,38 @@ function TransformersTable(): ReactElement {
   const { data, isLoading: transformersIsLoading } = useGetSystemTransformers();
   const { account } = useAccount();
   const {
-    data: cTransformers,
-    isLoading: customTransformersLoading,
-    mutate: customTransformerMutate,
-  } = useGetCustomTransformers(account?.id ?? '');
+    data: udTransformers,
+    isLoading: userDefinedTransformersLoading,
+    mutate: userDefinedTransformerMutate,
+  } = useGetUserDefinedTransformers(account?.id ?? '');
 
   const systemTransformers = data?.transformers ?? [];
-  const customTransformers = cTransformers?.transformers ?? [];
+  const userDefinedTransformers = udTransformers?.transformers ?? [];
 
-  if (transformersIsLoading || customTransformersLoading) {
+  if (transformersIsLoading || userDefinedTransformersLoading) {
     return <SkeletonTable />;
   }
 
   const systemTransformerColumns = getSystemTransformerColumns();
-  const customTransformerColumns = getCustomTransformerColumns({
+  const userDefinedTransformerColumns = getUserDefinedTransformerColumns({
     onTransformerDeleted() {
-      customTransformerMutate();
+      userDefinedTransformerMutate();
     },
   });
 
   return (
     <div>
-      <Tabs defaultValue="custom" className="">
+      <Tabs defaultValue="udtransformers" className="">
         <TabsList>
-          <TabsTrigger value="custom">Custom Transformers</TabsTrigger>
+          <TabsTrigger value="udtransformers">
+            User Defined Transformers
+          </TabsTrigger>
           <TabsTrigger value="system">System Transformers</TabsTrigger>
         </TabsList>
-        <TabsContent value="custom">
-          <CustomTransformersDataTable
-            columns={customTransformerColumns}
-            data={customTransformers}
+        <TabsContent value="udtransformers">
+          <UserDefinedTransformersDataTable
+            columns={userDefinedTransformerColumns}
+            data={userDefinedTransformers}
           />
         </TabsContent>
         <TabsContent value="system">

@@ -3,6 +3,7 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { useRouter } from 'next/navigation';
 
@@ -25,7 +26,7 @@ export function DataTableRowActions<TData>({
   row,
   onDeleted,
 }: DataTableRowActionsProps<TData>) {
-  const transformer = row.original as CustomTransformer;
+  const transformer = row.original as UserDefinedTransformer;
   const router = useRouter();
   const { toast } = useToast();
 
@@ -34,6 +35,7 @@ export function DataTableRowActions<TData>({
       await removeTransformer(transformer.id);
       toast({
         title: 'Transformer removed successfully!',
+        variant: 'success',
       });
       onDeleted();
     } catch (err) {
@@ -64,9 +66,19 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => onDelete()}>
-          Delete
-        </DropdownMenuItem>
+        <DeleteConfirmationDialog
+          trigger={
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => e.preventDefault()} // needed for the delete modal to not automatically close
+            >
+              Delete
+            </DropdownMenuItem>
+          }
+          headerText="Are you sure you want to delete this Transformer?"
+          description="Deleting this Transformer may impact running Jobs. "
+          onConfirm={() => onDelete()}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -74,7 +86,7 @@ export function DataTableRowActions<TData>({
 
 async function removeTransformer(transformerId: string): Promise<void> {
   const res = await fetch(
-    `/api/transformers/custom?transformerId=${transformerId}`,
+    `/api/transformers/user-defined?transformerId=${transformerId}`,
     {
       method: 'DELETE',
     }

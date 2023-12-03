@@ -5,7 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { Badge } from '@/components/ui/badge';
-import { CustomTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -15,9 +15,9 @@ interface Props {
   onTransformerDeleted(id: string): void;
 }
 
-export function getCustomTransformerColumns(
+export function getUserDefinedTransformerColumns(
   props: Props
-): ColumnDef<PlainMessage<CustomTransformer>>[] {
+): ColumnDef<PlainMessage<UserDefinedTransformer>>[] {
   const { onTransformerDeleted } = props;
 
   return [
@@ -62,12 +62,12 @@ export function getCustomTransformerColumns(
       id: 'type',
       accessorKey: 'type',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Type" />
+        <DataTableColumnHeader column={column} title="Data Type" />
       ),
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <Badge variant="outline">{row.original.type}</Badge>
+            <Badge variant="outline">{row.original.dataType}</Badge>
           </div>
         );
       },

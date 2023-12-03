@@ -294,60 +294,6 @@ func (_c *MockQuerier_CreateConnection_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
-// CreateCustomTransformer provides a mock function with given fields: ctx, db, arg
-func (_m *MockQuerier) CreateCustomTransformer(ctx context.Context, db DBTX, arg CreateCustomTransformerParams) (NeosyncApiTransformer, error) {
-	ret := _m.Called(ctx, db, arg)
-
-	var r0 NeosyncApiTransformer
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateCustomTransformerParams) (NeosyncApiTransformer, error)); ok {
-		return rf(ctx, db, arg)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateCustomTransformerParams) NeosyncApiTransformer); ok {
-		r0 = rf(ctx, db, arg)
-	} else {
-		r0 = ret.Get(0).(NeosyncApiTransformer)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateCustomTransformerParams) error); ok {
-		r1 = rf(ctx, db, arg)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_CreateCustomTransformer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateCustomTransformer'
-type MockQuerier_CreateCustomTransformer_Call struct {
-	*mock.Call
-}
-
-// CreateCustomTransformer is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-//   - arg CreateCustomTransformerParams
-func (_e *MockQuerier_Expecter) CreateCustomTransformer(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreateCustomTransformer_Call {
-	return &MockQuerier_CreateCustomTransformer_Call{Call: _e.mock.On("CreateCustomTransformer", ctx, db, arg)}
-}
-
-func (_c *MockQuerier_CreateCustomTransformer_Call) Run(run func(ctx context.Context, db DBTX, arg CreateCustomTransformerParams)) *MockQuerier_CreateCustomTransformer_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreateCustomTransformerParams))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_CreateCustomTransformer_Call) Return(_a0 NeosyncApiTransformer, _a1 error) *MockQuerier_CreateCustomTransformer_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_CreateCustomTransformer_Call) RunAndReturn(run func(context.Context, DBTX, CreateCustomTransformerParams) (NeosyncApiTransformer, error)) *MockQuerier_CreateCustomTransformer_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CreateJob provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -724,46 +670,56 @@ func (_c *MockQuerier_CreateTeamAccount_Call) RunAndReturn(run func(context.Cont
 	return _c
 }
 
-// DeleteCustomTransformerById provides a mock function with given fields: ctx, db, id
-func (_m *MockQuerier) DeleteCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error {
-	ret := _m.Called(ctx, db, id)
+// CreateUserDefinedTransformer provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) CreateUserDefinedTransformer(ctx context.Context, db DBTX, arg CreateUserDefinedTransformerParams) (NeosyncApiTransformer, error) {
+	ret := _m.Called(ctx, db, arg)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
-		r0 = rf(ctx, db, id)
+	var r0 NeosyncApiTransformer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateUserDefinedTransformerParams) (NeosyncApiTransformer, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateUserDefinedTransformerParams) NeosyncApiTransformer); ok {
+		r0 = rf(ctx, db, arg)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(NeosyncApiTransformer)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateUserDefinedTransformerParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
-// MockQuerier_DeleteCustomTransformerById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteCustomTransformerById'
-type MockQuerier_DeleteCustomTransformerById_Call struct {
+// MockQuerier_CreateUserDefinedTransformer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateUserDefinedTransformer'
+type MockQuerier_CreateUserDefinedTransformer_Call struct {
 	*mock.Call
 }
 
-// DeleteCustomTransformerById is a helper method to define mock.On call
+// CreateUserDefinedTransformer is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - id pgtype.UUID
-func (_e *MockQuerier_Expecter) DeleteCustomTransformerById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_DeleteCustomTransformerById_Call {
-	return &MockQuerier_DeleteCustomTransformerById_Call{Call: _e.mock.On("DeleteCustomTransformerById", ctx, db, id)}
+//   - arg CreateUserDefinedTransformerParams
+func (_e *MockQuerier_Expecter) CreateUserDefinedTransformer(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreateUserDefinedTransformer_Call {
+	return &MockQuerier_CreateUserDefinedTransformer_Call{Call: _e.mock.On("CreateUserDefinedTransformer", ctx, db, arg)}
 }
 
-func (_c *MockQuerier_DeleteCustomTransformerById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_DeleteCustomTransformerById_Call {
+func (_c *MockQuerier_CreateUserDefinedTransformer_Call) Run(run func(ctx context.Context, db DBTX, arg CreateUserDefinedTransformerParams)) *MockQuerier_CreateUserDefinedTransformer_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreateUserDefinedTransformerParams))
 	})
 	return _c
 }
 
-func (_c *MockQuerier_DeleteCustomTransformerById_Call) Return(_a0 error) *MockQuerier_DeleteCustomTransformerById_Call {
-	_c.Call.Return(_a0)
+func (_c *MockQuerier_CreateUserDefinedTransformer_Call) Return(_a0 NeosyncApiTransformer, _a1 error) *MockQuerier_CreateUserDefinedTransformer_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_DeleteCustomTransformerById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_DeleteCustomTransformerById_Call {
+func (_c *MockQuerier_CreateUserDefinedTransformer_Call) RunAndReturn(run func(context.Context, DBTX, CreateUserDefinedTransformerParams) (NeosyncApiTransformer, error)) *MockQuerier_CreateUserDefinedTransformer_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -808,6 +764,50 @@ func (_c *MockQuerier_DeleteJob_Call) Return(_a0 error) *MockQuerier_DeleteJob_C
 }
 
 func (_c *MockQuerier_DeleteJob_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_DeleteJob_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteUserDefinedTransformerById provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) DeleteUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	ret := _m.Called(ctx, db, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockQuerier_DeleteUserDefinedTransformerById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUserDefinedTransformerById'
+type MockQuerier_DeleteUserDefinedTransformerById_Call struct {
+	*mock.Call
+}
+
+// DeleteUserDefinedTransformerById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) DeleteUserDefinedTransformerById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_DeleteUserDefinedTransformerById_Call {
+	return &MockQuerier_DeleteUserDefinedTransformerById_Call{Call: _e.mock.On("DeleteUserDefinedTransformerById", ctx, db, id)}
+}
+
+func (_c *MockQuerier_DeleteUserDefinedTransformerById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_DeleteUserDefinedTransformerById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_DeleteUserDefinedTransformerById_Call) Return(_a0 error) *MockQuerier_DeleteUserDefinedTransformerById_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockQuerier_DeleteUserDefinedTransformerById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) error) *MockQuerier_DeleteUserDefinedTransformerById_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1577,116 +1577,6 @@ func (_c *MockQuerier_GetConnectionsByIds_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
-// GetCustomTransformerById provides a mock function with given fields: ctx, db, id
-func (_m *MockQuerier) GetCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
-	ret := _m.Called(ctx, db, id)
-
-	var r0 NeosyncApiTransformer
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiTransformer, error)); ok {
-		return rf(ctx, db, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) NeosyncApiTransformer); ok {
-		r0 = rf(ctx, db, id)
-	} else {
-		r0 = ret.Get(0).(NeosyncApiTransformer)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
-		r1 = rf(ctx, db, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_GetCustomTransformerById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCustomTransformerById'
-type MockQuerier_GetCustomTransformerById_Call struct {
-	*mock.Call
-}
-
-// GetCustomTransformerById is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-//   - id pgtype.UUID
-func (_e *MockQuerier_Expecter) GetCustomTransformerById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetCustomTransformerById_Call {
-	return &MockQuerier_GetCustomTransformerById_Call{Call: _e.mock.On("GetCustomTransformerById", ctx, db, id)}
-}
-
-func (_c *MockQuerier_GetCustomTransformerById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetCustomTransformerById_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_GetCustomTransformerById_Call) Return(_a0 NeosyncApiTransformer, _a1 error) *MockQuerier_GetCustomTransformerById_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_GetCustomTransformerById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiTransformer, error)) *MockQuerier_GetCustomTransformerById_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetCustomTransformersByAccount provides a mock function with given fields: ctx, db, accountid
-func (_m *MockQuerier) GetCustomTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
-	ret := _m.Called(ctx, db, accountid)
-
-	var r0 []NeosyncApiTransformer
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiTransformer, error)); ok {
-		return rf(ctx, db, accountid)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiTransformer); ok {
-		r0 = rf(ctx, db, accountid)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]NeosyncApiTransformer)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
-		r1 = rf(ctx, db, accountid)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_GetCustomTransformersByAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCustomTransformersByAccount'
-type MockQuerier_GetCustomTransformersByAccount_Call struct {
-	*mock.Call
-}
-
-// GetCustomTransformersByAccount is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-//   - accountid pgtype.UUID
-func (_e *MockQuerier_Expecter) GetCustomTransformersByAccount(ctx interface{}, db interface{}, accountid interface{}) *MockQuerier_GetCustomTransformersByAccount_Call {
-	return &MockQuerier_GetCustomTransformersByAccount_Call{Call: _e.mock.On("GetCustomTransformersByAccount", ctx, db, accountid)}
-}
-
-func (_c *MockQuerier_GetCustomTransformersByAccount_Call) Run(run func(ctx context.Context, db DBTX, accountid pgtype.UUID)) *MockQuerier_GetCustomTransformersByAccount_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_GetCustomTransformersByAccount_Call) Return(_a0 []NeosyncApiTransformer, _a1 error) *MockQuerier_GetCustomTransformersByAccount_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_GetCustomTransformersByAccount_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiTransformer, error)) *MockQuerier_GetCustomTransformersByAccount_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetJobById provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, id)
@@ -2397,6 +2287,116 @@ func (_c *MockQuerier_GetUserByAuth0Id_Call) Return(_a0 NeosyncApiUser, _a1 erro
 }
 
 func (_c *MockQuerier_GetUserByAuth0Id_Call) RunAndReturn(run func(context.Context, DBTX, string) (NeosyncApiUser, error)) *MockQuerier_GetUserByAuth0Id_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetUserDefinedTransformerById provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) GetUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
+	ret := _m.Called(ctx, db, id)
+
+	var r0 NeosyncApiTransformer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiTransformer, error)); ok {
+		return rf(ctx, db, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) NeosyncApiTransformer); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiTransformer)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetUserDefinedTransformerById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserDefinedTransformerById'
+type MockQuerier_GetUserDefinedTransformerById_Call struct {
+	*mock.Call
+}
+
+// GetUserDefinedTransformerById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) GetUserDefinedTransformerById(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetUserDefinedTransformerById_Call {
+	return &MockQuerier_GetUserDefinedTransformerById_Call{Call: _e.mock.On("GetUserDefinedTransformerById", ctx, db, id)}
+}
+
+func (_c *MockQuerier_GetUserDefinedTransformerById_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetUserDefinedTransformerById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetUserDefinedTransformerById_Call) Return(_a0 NeosyncApiTransformer, _a1 error) *MockQuerier_GetUserDefinedTransformerById_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetUserDefinedTransformerById_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiTransformer, error)) *MockQuerier_GetUserDefinedTransformerById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetUserDefinedTransformersByAccount provides a mock function with given fields: ctx, db, accountid
+func (_m *MockQuerier) GetUserDefinedTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
+	ret := _m.Called(ctx, db, accountid)
+
+	var r0 []NeosyncApiTransformer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiTransformer, error)); ok {
+		return rf(ctx, db, accountid)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiTransformer); ok {
+		r0 = rf(ctx, db, accountid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]NeosyncApiTransformer)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, accountid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetUserDefinedTransformersByAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserDefinedTransformersByAccount'
+type MockQuerier_GetUserDefinedTransformersByAccount_Call struct {
+	*mock.Call
+}
+
+// GetUserDefinedTransformersByAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - accountid pgtype.UUID
+func (_e *MockQuerier_Expecter) GetUserDefinedTransformersByAccount(ctx interface{}, db interface{}, accountid interface{}) *MockQuerier_GetUserDefinedTransformersByAccount_Call {
+	return &MockQuerier_GetUserDefinedTransformersByAccount_Call{Call: _e.mock.On("GetUserDefinedTransformersByAccount", ctx, db, accountid)}
+}
+
+func (_c *MockQuerier_GetUserDefinedTransformersByAccount_Call) Run(run func(ctx context.Context, db DBTX, accountid pgtype.UUID)) *MockQuerier_GetUserDefinedTransformersByAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetUserDefinedTransformersByAccount_Call) Return(_a0 []NeosyncApiTransformer, _a1 error) *MockQuerier_GetUserDefinedTransformersByAccount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetUserDefinedTransformersByAccount_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiTransformer, error)) *MockQuerier_GetUserDefinedTransformersByAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3458,60 +3458,6 @@ func (_c *MockQuerier_UpdateConnection_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
-// UpdateCustomTransformer provides a mock function with given fields: ctx, db, arg
-func (_m *MockQuerier) UpdateCustomTransformer(ctx context.Context, db DBTX, arg UpdateCustomTransformerParams) (NeosyncApiTransformer, error) {
-	ret := _m.Called(ctx, db, arg)
-
-	var r0 NeosyncApiTransformer
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateCustomTransformerParams) (NeosyncApiTransformer, error)); ok {
-		return rf(ctx, db, arg)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateCustomTransformerParams) NeosyncApiTransformer); ok {
-		r0 = rf(ctx, db, arg)
-	} else {
-		r0 = ret.Get(0).(NeosyncApiTransformer)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateCustomTransformerParams) error); ok {
-		r1 = rf(ctx, db, arg)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_UpdateCustomTransformer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCustomTransformer'
-type MockQuerier_UpdateCustomTransformer_Call struct {
-	*mock.Call
-}
-
-// UpdateCustomTransformer is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-//   - arg UpdateCustomTransformerParams
-func (_e *MockQuerier_Expecter) UpdateCustomTransformer(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateCustomTransformer_Call {
-	return &MockQuerier_UpdateCustomTransformer_Call{Call: _e.mock.On("UpdateCustomTransformer", ctx, db, arg)}
-}
-
-func (_c *MockQuerier_UpdateCustomTransformer_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateCustomTransformerParams)) *MockQuerier_UpdateCustomTransformer_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateCustomTransformerParams))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_UpdateCustomTransformer_Call) Return(_a0 NeosyncApiTransformer, _a1 error) *MockQuerier_UpdateCustomTransformer_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_UpdateCustomTransformer_Call) RunAndReturn(run func(context.Context, DBTX, UpdateCustomTransformerParams) (NeosyncApiTransformer, error)) *MockQuerier_UpdateCustomTransformer_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // UpdateJobConnectionDestination provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateJobConnectionDestination(ctx context.Context, db DBTX, arg UpdateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -3778,6 +3724,60 @@ func (_c *MockQuerier_UpdateTemporalConfigByAccount_Call) Return(_a0 NeosyncApiA
 }
 
 func (_c *MockQuerier_UpdateTemporalConfigByAccount_Call) RunAndReturn(run func(context.Context, DBTX, UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error)) *MockQuerier_UpdateTemporalConfigByAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateUserDefinedTransformer provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) UpdateUserDefinedTransformer(ctx context.Context, db DBTX, arg UpdateUserDefinedTransformerParams) (NeosyncApiTransformer, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	var r0 NeosyncApiTransformer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateUserDefinedTransformerParams) (NeosyncApiTransformer, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateUserDefinedTransformerParams) NeosyncApiTransformer); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiTransformer)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateUserDefinedTransformerParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateUserDefinedTransformer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateUserDefinedTransformer'
+type MockQuerier_UpdateUserDefinedTransformer_Call struct {
+	*mock.Call
+}
+
+// UpdateUserDefinedTransformer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg UpdateUserDefinedTransformerParams
+func (_e *MockQuerier_Expecter) UpdateUserDefinedTransformer(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateUserDefinedTransformer_Call {
+	return &MockQuerier_UpdateUserDefinedTransformer_Call{Call: _e.mock.On("UpdateUserDefinedTransformer", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_UpdateUserDefinedTransformer_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateUserDefinedTransformerParams)) *MockQuerier_UpdateUserDefinedTransformer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateUserDefinedTransformerParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateUserDefinedTransformer_Call) Return(_a0 NeosyncApiTransformer, _a1 error) *MockQuerier_UpdateUserDefinedTransformer_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateUserDefinedTransformer_Call) RunAndReturn(run func(context.Context, DBTX, UpdateUserDefinedTransformerParams) (NeosyncApiTransformer, error)) *MockQuerier_UpdateUserDefinedTransformer_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -3,14 +3,14 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
-import { useGetCustomTransformersById } from '@/libs/hooks/useGetCustomTransformerById';
+import { useGetUserDefinedTransformersById } from '@/libs/hooks/useGetUserDefinedTransformerById';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
-import UpdateTransformerForm from './components/UpdateTransformerForm';
+import UpdateUserDefinedTransformerForm from './components/UpdateUserDefinedTransformerForm';
 
-export default function NewCustomTransformerPage({ params }: PageProps) {
+export default function NewUserDefinedTransformerPage({ params }: PageProps) {
   const id = params?.id ?? '';
 
-  const { data, isLoading } = useGetCustomTransformersById(id);
+  const { data, isLoading } = useGetUserDefinedTransformersById(id);
 
   if (isLoading) {
     return (
@@ -25,6 +25,7 @@ export default function NewCustomTransformerPage({ params }: PageProps) {
       Header={
         <PageHeader
           header={data?.transformer?.name ?? 'Custom Transformer'}
+          leftBadgeValue={data?.transformer?.dataType}
           extraHeading={
             <RemoveTransformerButton
               transformerID={data?.transformer?.id ?? ''}
@@ -38,7 +39,9 @@ export default function NewCustomTransformerPage({ params }: PageProps) {
         <div>
           <div className="flex flex-col">
             <div>
-              <UpdateTransformerForm currentTransformer={data?.transformer} />
+              <UpdateUserDefinedTransformerForm
+                currentTransformer={data?.transformer}
+              />
             </div>
           </div>
         </div>
