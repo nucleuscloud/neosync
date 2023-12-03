@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { SystemTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { useRouter } from 'next/navigation';
 
 interface DataTableRowActionsProps<TData> {
@@ -20,7 +20,7 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  const transformer = row.original as Transformer;
+  const transformer = row.original as SystemTransformer;
   const router = useRouter();
 
   return (

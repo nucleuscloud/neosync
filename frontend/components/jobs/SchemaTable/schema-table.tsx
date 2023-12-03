@@ -1,7 +1,5 @@
-import {
-  MergeSystemAndCustomTransformers,
-  filterDataTransformers,
-} from '@/app/transformers/EditTransformerOptions';
+'use client';
+import { filterDataTransformers } from '@/app/transformers/EditTransformerOptions';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';

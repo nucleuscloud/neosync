@@ -295,7 +295,6 @@ func (s *Service) GetSystemTransformers(
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
 						GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
-							E164Format:     false,
 							IncludeHyphens: false,
 						},
 					},
@@ -496,7 +495,11 @@ func (s *Service) GetSystemTransformers(
 				Description: "Passes the input value through to the desination with no changes.",
 				DataType:    "string",
 				Source:      string(Passthrough),
-				Config:      &mgmtv1alpha1.TransformerConfig{},
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
 			},
 			{
 				Name:        "Null",

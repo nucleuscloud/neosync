@@ -11,7 +11,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  SystemTransformer,
+  UserDefinedTransformer,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import {
   Cross2Icon,
   MixerHorizontalIcon,
@@ -288,91 +291,10 @@ function handleTransformerForm(
   );
 }
 
-interface TransformerMetadata {
-  name: string;
-  description: string;
-  type: string;
-}
-
-export function handleTransformerMetadata(
-  value: string | undefined
-): TransformerMetadata {
-  const tEntries: Record<string, TransformerMetadata>[] = [
-    {
-      passthrough: {
-        name: 'Passthrough',
-        description:
-          'Passes the input value through to the desination with no changes.',
-        type: 'passthrough',
-      },
-    },
-    {
-      null: {
-        name: 'Null',
-        description: 'Inserts a <null> string instead of the source value.',
-        type: 'null',
-      },
-    },
-    {
-      invalid: {
-        name: 'Invalid',
-        description: 'Invalid transformer.',
-        type: 'null',
-      },
-    },
-  ];
-
-  const def = {
-    default: {
-      name: 'Passthrough',
-      description: 'Passthrough',
-      type: 'passthrough',
-    },
-  };
-
-  if (!value) {
-    return def.default;
-  }
-  const res = tEntries.find((item) => item[value]);
-
-  return res ? res[value] : def.default;
-}
-
-// merge system transformers into custom tranformers and add in additional metadata fields for system transformers to fit into the custom transformers interface
-export function MergeSystemAndCustomTransformers(
-  system: Transformer[],
-  custom: CustomTransformer[]
-): CustomTransformer[] {
-  let merged: CustomTransformer[] = [...custom];
-
-  system.map((st) => {
-    const cf = {
-      config: {
-        case: st.config?.config.case,
-        value: st.config?.config.value,
-      },
-    };
-    const newCt = new CustomTransformer({
-      name: handleTransformerMetadata(st.value).name,
-      description: handleTransformerMetadata(st.value).description,
-      type: handleTransformerMetadata(st.value).type,
-      source: st.value,
-      config: cf as TransformerConfig,
-    });
-
-    merged.push(newCt);
-  });
-
-  return merged;
-}
-
-/**
- * Returns only transformers that generate data with 0 input
- */
 export function filterDataTransformers(
-  transformers: Transformer[]
-): Transformer[] {
+  transformers: SystemTransformer[]
+): SystemTransformer[] {
   return transformers.filter(
-    (t) => t.value !== 'passthrough' && t.value.startsWith('generate_')
+    (t) => t.source !== 'passthrough' && t.source.startsWith('generate_')
   );
 }

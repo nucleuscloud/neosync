@@ -3,9 +3,7 @@ import {
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableSchemaFormValues,
 } from '@/app/new/job/schema';
-import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
 import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
-import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,9 +26,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
-import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
 import { useGetJob } from '@/libs/hooks/useGetJob';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   GenerateSourceOptions,
@@ -38,24 +34,22 @@ import {
   GenerateSourceTableOption,
   Job,
   JobMapping,
+  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import {
-  CustomTransformer,
-  Transformer,
+  Passthrough,
+  TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
-import { ToTransformerConfigOptions } from '@/yup-validations/transformers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { SchemaMap, getColumnMapping } from './DataSyncConnectionCard';
 import { getFkIdFromGenerateSource } from './util';
-
-const isBrowser = () => typeof window !== 'undefined';
 
 interface Props {
   jobId: string;
@@ -63,21 +57,19 @@ interface Props {
 
 export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
-  const { account } = useAccount();
+  // const { account } = useAccount();
   const { data, mutate, isLoading: isJobLoading } = useGetJob(jobId);
   const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
   const { data: schema, isLoading: isGetConnectionsSchemaLoading } =
     useGetConnectionSchema(fkSourceConnectionId);
 
-  const { data: systemTransformer } = useGetSystemTransformers();
-  const { data: customTransformer } = useGetCustomTransformers(
-    account?.id ?? ''
-  );
+  // const { data: st } = useGetSystemTransformers();
+  // const { data: udt } = useGetUserDefinedTransformers(account?.id ?? '');
 
-  const merged = MergeSystemAndCustomTransformers(
-    systemTransformer?.transformers ?? [],
-    customTransformer?.transformers ?? []
-  );
+  // const udts = udt?.transformers ?? [];
+  // const sts = st?.transformers ?? [];
+
+  // const merged = MergeSystemAndCustomTransformers(sts, udts);
 
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
@@ -106,7 +98,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       return;
     }
     try {
-      await updateJobConnection(job, values, merged);
+      await updateJobConnection(job, values);
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'default',
@@ -278,9 +270,16 @@ function getJobSource(
         [c.table]: {
           [c.column]: {
             transformer:
-              c.transformer ??
-              new Transformer({
-                value: 'passthrough',
+              c?.transformer ??
+              new JobMappingTransformer({
+                source: 'passthrough',
+                name: 'Passthrough',
+                config: new TransformerConfig({
+                  config: {
+                    case: 'passthroughConfig',
+                    value: new Passthrough({}),
+                  },
+                }),
               }),
           },
         },
@@ -289,32 +288,64 @@ function getJobSource(
       schemaMap[c.schema][c.table] = {
         [c.column]: {
           transformer:
-            c.transformer ??
-            new Transformer({
-              value: 'passthrough',
+            c?.transformer ??
+            new JobMappingTransformer({
+              source: 'passthrough',
+              name: 'Passthrough',
+              config: new TransformerConfig({
+                config: {
+                  case: 'passthroughConfig',
+                  value: new Passthrough({}),
+                },
+              }),
             }),
         },
       };
     } else {
       schemaMap[c.schema][c.table][c.column] = {
-        transformer: c.transformer ?? new Transformer({ value: 'passthrough' }),
+        transformer:
+          c.transformer ??
+          new JobMappingTransformer({
+            source: 'passthrough',
+            name: 'Passthrough',
+            config: new TransformerConfig({
+              config: {
+                case: 'passthroughConfig',
+                value: new Passthrough({}),
+              },
+            }),
+          }),
       };
     }
   });
 
   const mappings: SingleTableSchemaFormValues['mappings'] = dbCols.map((c) => {
     const colMapping = getColumnMapping(schemaMap, c.schema, c.table, c.column);
+
     const transformer =
-      colMapping?.transformer ?? new Transformer({ value: 'passthrough' });
+      colMapping?.transformer ??
+      new JobMappingTransformer({
+        source: 'passthrough',
+        name: 'Passthrough',
+        config: new TransformerConfig({
+          config: {
+            case: 'passthroughConfig',
+            value: new Passthrough({}),
+          },
+        }),
+      });
+
     return {
       column: c.column,
       dataType: c.dataType,
-      transformer: {
-        value: transformer.value,
-        config: { config: { case: '', value: {} } },
+      transformer: transformer as {
+        name?: string | undefined;
+        source: string;
+        config: { config: { case?: string | undefined; value: {} } };
       },
     };
   });
+
   return {
     mappings: mappings,
     numRows: numRows,
@@ -325,8 +356,7 @@ function getJobSource(
 
 async function updateJobConnection(
   job: Job,
-  values: SingleTableSchemaFormValues,
-  merged: CustomTransformer[]
+  values: SingleTableSchemaFormValues
 ): Promise<UpdateJobSourceConnectionResponse> {
   const res = await fetch(`/api/jobs/${job.id}/source-connection`, {
     method: 'PUT',
@@ -337,11 +367,17 @@ async function updateJobConnection(
       new UpdateJobSourceConnectionRequest({
         id: job.id,
         mappings: values.mappings.map((m) => {
+          const jmt = new JobMappingTransformer({
+            source: m.transformer.source,
+            name: m.transformer.name,
+            config: m.transformer.config as TransformerConfig,
+          });
+
           return new JobMapping({
             schema: values.schema,
             table: values.table,
             column: m.column,
-            transformer: ToTransformerConfigOptions(m.transformer, merged),
+            transformer: jmt,
           });
         }),
         source: new JobSource({

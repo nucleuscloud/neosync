@@ -337,6 +337,7 @@ output:
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -363,32 +364,32 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 						Schema: "public",
 						Table:  "users",
 						Column: "id",
-						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
 						},
 					},
 					{
 						Schema: "public",
 						Table:  "users",
 						Column: "name",
-						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
 						},
 					},
 					{
 						Schema: "public",
 						Table:  "user_account_associations",
 						Column: "id",
-						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
 						},
 					},
 					{
 						Schema: "public",
 						Table:  "user_account_associations",
 						Column: "user_id",
-						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
 						},
 					},
 				},
@@ -477,7 +478,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 				ForeignColumnName: "id",
 			},
 		}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -905,6 +906,7 @@ output:
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constraints(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
@@ -931,32 +933,32 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 						Schema: "public",
 						Table:  "users",
 						Column: "id",
-						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
 						},
 					},
 					{
 						Schema: "public",
 						Table:  "users",
 						Column: "name",
-						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
 						},
 					},
 					{
 						Schema: "public",
 						Table:  "user_account_associations",
 						Column: "id",
-						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
 						},
 					},
 					{
 						Schema: "public",
 						Table:  "user_account_associations",
 						Column: "user_id",
-						Transformer: &mgmtv1alpha1.Transformer{
-							Value: "passthrough",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
 						},
 					},
 				},
@@ -1045,7 +1047,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 				ForeignColumnName: "id",
 			},
 		}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformersClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),

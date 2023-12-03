@@ -14,11 +14,6 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-<<<<<<< HEAD
-=======
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
-import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
->>>>>>> f11365ea (working job)
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
