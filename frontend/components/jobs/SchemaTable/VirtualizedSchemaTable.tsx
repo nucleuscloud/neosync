@@ -258,12 +258,12 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                         transformers={transformers || []}
                         value={field.value}
                         onSelect={field.onChange}
-                        placeholder="Search transformers..."
+                        placeholder="Passthrough"
                       />
                     </div>
                     <EditTransformerOptions
                       transformer={transformers?.find(
-                        (item) => item.source == field.value
+                        (item) => item.id == field.value.config.config.value.id
                       )}
                       index={index}
                     />
