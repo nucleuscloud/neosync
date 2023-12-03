@@ -297,7 +297,7 @@ export default function MysqlForm() {
           <Button type="submit" disabled={!form.formState.isValid}>
             <ButtonText
               leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
-              text="submit"
+              text="Submit"
             />
           </Button>
         </div>
@@ -422,14 +422,7 @@ export async function checkMysqlConnection(
             value: new MysqlConnectionConfig({
               connectionConfig: {
                 case: 'connection',
-                value: new MysqlConnection({
-                  host: db.host,
-                  name: db.name,
-                  user: db.user,
-                  pass: db.pass,
-                  port: db.port,
-                  protocol: db.protocol,
-                }),
+                value: new MysqlConnection(db),
               },
             }),
           },

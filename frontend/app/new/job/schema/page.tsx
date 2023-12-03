@@ -12,12 +12,12 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { usePathname, useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps from '../JobsProgressSteps';
+import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
@@ -95,13 +95,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
-  const params = usePathname();
-  const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
-
   return (
     <div className="flex flex-col gap-20">
       <div className="mt-10">
-        <JobsProgressSteps stepName={stepName} />
+        <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'schema'} />
       </div>
 
       <Form {...form}>

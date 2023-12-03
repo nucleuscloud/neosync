@@ -1,4 +1,7 @@
-import { MergeSystemAndCustomTransformers } from '@/app/transformers/EditTransformerOptions';
+import {
+  MergeSystemAndCustomTransformers,
+  filterDataTransformers,
+} from '@/app/transformers/EditTransformerOptions';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetCustomTransformers } from '@/libs/hooks/useGetCustomTransformers';
@@ -8,12 +11,13 @@ import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { ReactElement } from 'react';
 import { VirtualizedSchemaTable } from './VirtualizedSchemaTable';
 
-interface JobTableProps {
+interface Props {
   data?: JobMappingFormValues[];
+  excludeTransformers?: boolean; // will result in only generators (functions with no data input)
 }
 
-export function SchemaTable(props: JobTableProps): ReactElement {
-  const { data } = props;
+export function SchemaTable(props: Props): ReactElement {
+  const { data, excludeTransformers } = props;
 
   const { account } = useAccount();
   const { data: systemTransformers, isLoading: systemTransformersIsLoading } =
@@ -22,8 +26,12 @@ export function SchemaTable(props: JobTableProps): ReactElement {
   const { data: customTransformers, isLoading: customTransformersIsLoading } =
     useGetCustomTransformers(account?.id ?? '');
 
+  const filteredSystemTransformers = excludeTransformers
+    ? filterDataTransformers(systemTransformers?.transformers ?? [])
+    : systemTransformers?.transformers ?? [];
+
   const mergedTransformers = MergeSystemAndCustomTransformers(
-    systemTransformers?.transformers ?? [],
+    filteredSystemTransformers,
     customTransformers?.transformers ?? []
   );
 

@@ -124,7 +124,7 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 			return err
 		}
 	default:
-		return fmt.Errorf("invalid config")
+		return fmt.Errorf("invalid connection config")
 	}
 	return nil
 }
@@ -250,6 +250,7 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 type JobSourceOptions struct {
 	PostgresOptions *PostgresSourceOptions `json:"postgresOptions,omitempty"`
 	MysqlOptions    *MysqlSourceOptions    `json:"mysqlOptions,omitempty"`
+	GenerateOptions *GenerateSourceOptions `json:"generateOptions,omitempty"`
 }
 
 type MysqlSourceOptions struct {
@@ -261,6 +262,20 @@ type PostgresSourceOptions struct {
 	HaltOnNewColumnAddition bool                          `json:"haltOnNewColumnAddition"`
 	Schemas                 []*PostgresSourceSchemaOption `json:"schemas"`
 	ConnectionId            string                        `json:"connectionId"`
+}
+
+type GenerateSourceOptions struct {
+	Schemas              []*GenerateSourceSchemaOption `json:"schemas"`
+	FkSourceConnectionId *string                       `json:"fkSourceConnectionId,omitempty"`
+}
+
+type GenerateSourceSchemaOption struct {
+	Schema string                       `json:"schema"`
+	Tables []*GenerateSourceTableOption `json:"tables"`
+}
+type GenerateSourceTableOption struct {
+	Table    string `json:"table"`
+	RowCount int64  `json:"rowCount,omitempty"`
 }
 
 func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions {
@@ -365,6 +380,55 @@ func FromDtoMysqlSourceSchemaOptions(dtos []*mgmtv1alpha1.MysqlSourceSchemaOptio
 	return output
 }
 
+func (s *GenerateSourceOptions) ToDto() *mgmtv1alpha1.GenerateSourceOptions {
+	dto := &mgmtv1alpha1.GenerateSourceOptions{
+		FkSourceConnectionId: s.FkSourceConnectionId,
+	}
+	dto.Schemas = make([]*mgmtv1alpha1.GenerateSourceSchemaOption, len(s.Schemas))
+	for idx := range s.Schemas {
+		schema := s.Schemas[idx]
+		tables := make([]*mgmtv1alpha1.GenerateSourceTableOption, len(schema.Tables))
+		for tidx := range schema.Tables {
+			table := schema.Tables[tidx]
+			tables[tidx] = &mgmtv1alpha1.GenerateSourceTableOption{
+				Table:    table.Table,
+				RowCount: table.RowCount,
+			}
+		}
+		dto.Schemas[idx] = &mgmtv1alpha1.GenerateSourceSchemaOption{
+			Schema: schema.Schema,
+			Tables: tables,
+		}
+	}
+
+	return dto
+}
+func (s *GenerateSourceOptions) FromDto(dto *mgmtv1alpha1.GenerateSourceOptions) {
+	s.FkSourceConnectionId = dto.FkSourceConnectionId
+	s.Schemas = FromDtoGenerateSourceSchemaOptions(dto.Schemas)
+}
+
+func FromDtoGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.GenerateSourceSchemaOption) []*GenerateSourceSchemaOption {
+	output := make([]*GenerateSourceSchemaOption, len(dtos))
+	for idx := range dtos {
+		schema := dtos[idx]
+		tables := make([]*GenerateSourceTableOption, len(schema.Tables))
+		for tidx := range schema.Tables {
+			table := schema.Tables[tidx]
+			tables[tidx] = &GenerateSourceTableOption{
+				Table:    table.Table,
+				RowCount: table.RowCount,
+			}
+		}
+		output[idx] = &GenerateSourceSchemaOption{
+			Schema: schema.Schema,
+			Tables: tables,
+		}
+	}
+
+	return output
+}
+
 type PostgresSourceSchemaOption struct {
 	Schema string                       `json:"schema"`
 	Tables []*PostgresSourceTableOption `json:"tables"`
@@ -398,6 +462,13 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 			},
 		}
 	}
+	if j.GenerateOptions != nil {
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_Generate{
+				Generate: j.GenerateOptions.ToDto(),
+			},
+		}
+	}
 	return nil
 }
 
@@ -411,8 +482,12 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 		sqlOpts := &MysqlSourceOptions{}
 		sqlOpts.FromDto(config.Mysql)
 		j.MysqlOptions = sqlOpts
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		genOpts := &GenerateSourceOptions{}
+		genOpts.FromDto(config.Generate)
+		j.GenerateOptions = genOpts
 	default:
-		return fmt.Errorf("invalid config")
+		return fmt.Errorf("invalid job source options config")
 	}
 	return nil
 }
@@ -519,7 +594,7 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
 		j.AwsS3Options = &AwsS3DestinationOptions{}
 	default:
-		return fmt.Errorf("invalid config")
+		return fmt.Errorf("invalid job destination options config")
 	}
 	return nil
 }

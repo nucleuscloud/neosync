@@ -630,3 +630,14 @@ export function MergeSystemAndCustomTransformers(
 
   return merged;
 }
+
+/**
+ * Returns only transformers that generate data with 0 input
+ */
+export function filterDataTransformers(
+  transformers: Transformer[]
+): Transformer[] {
+  return transformers.filter(
+    (t) => t.value !== 'passthrough' && t.value.startsWith('generate_')
+  );
+}

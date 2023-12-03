@@ -136,7 +136,6 @@ input:
             root.name = generate_full_name()
         interval: ""
         count: 10
-        batch_size: 0
 buffer: null
 pipeline:
     threads: -1
@@ -703,7 +702,6 @@ input:
             root.name = generate_full_name()
         interval: ""
         count: 10
-        batch_size: 0
 buffer: null
 pipeline:
     threads: -1

@@ -237,7 +237,6 @@ export default function PostgresForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {' '}
                 <RequiredLabel />
                 SSL Mode
               </FormLabel>
@@ -301,7 +300,7 @@ export default function PostgresForm() {
           <Button type="submit" disabled={!form.formState.isValid}>
             <ButtonText
               leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
-              text="submit"
+              text="Submit"
             />
           </Button>
         </div>

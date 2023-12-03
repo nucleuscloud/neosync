@@ -1,4 +1,5 @@
 import { GetConnectionResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 
 export async function getConnection(
   connectionId?: string
@@ -17,4 +18,8 @@ export async function getConnection(
     throw new Error(body.message);
   }
   return GetConnectionResponse.fromJson(await res.json());
+}
+
+export function isDataGenJob(job?: Job): boolean {
+  return job?.source?.options?.config.case === 'generate';
 }
