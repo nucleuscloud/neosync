@@ -46,6 +46,7 @@ type HttpClient struct {
 type Headers struct {
 	Authorization *string `json:"Authorization,omitempty" yaml:"Authorization,omitempty"`
 	ContentType   *string `json:"Content-Type,omitempty" yaml:"Content-Type,omitempty"`
+	Accept        *string `json:"Accept,omitempty" yaml:"Accept,omitempty"`
 }
 
 type Stream struct {
@@ -72,7 +73,17 @@ type PipelineConfig struct {
 }
 
 type ProcessorConfig struct {
-	Mutation string `json:"mutation" yaml:"mutation"`
+	Mutation   string      `json:"mutation,omitempty" yaml:"mutation,omitempty"`
+	Protobuf   *Protobuf   `json:"protobuf,omitempty" yaml:"protobuf,omitempty"`
+	DataStream *DataStream `json:"datastream,omitempty" yaml:"datastream,omitempty"`
+}
+
+type DataStream struct{}
+
+type Protobuf struct {
+	Operator    string   `json:"operator" yaml:"operator"`
+	Message     string   `json:"message" yaml:"message"`
+	ImportPaths []string `json:"import_paths" yaml:"import_paths"`
 }
 
 type OutputConfig struct {

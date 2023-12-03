@@ -10,11 +10,11 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	"github.com/benthosdev/benthos/v4/public/service"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
+	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/processors"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/spf13/cobra"
@@ -25,6 +25,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
+	"github.com/benthosdev/benthos/v4/public/service"
 )
 
 func NewCmd() *cobra.Command {
@@ -71,8 +72,15 @@ func sync(ctx context.Context, apiKey *string) error {
 
 	// for {
 	// 	response := stream.Receive()
+	// 	fmt.Println("stream")
 	// 	if response {
-	// 		fmt.Println(stream.Msg().Data)
+	// 		// for _, v := range stream.Msg().Row {
+	// 		// 	fmt.Println(string(v))
+	// 		// }
+	// 		jsonF, _ := json.MarshalIndent(stream.Msg().Row, "", " ")
+	// 		fmt.Printf("\n\n  %s \n\n", string(jsonF))
+	// 		// fmt.Println(string(stream.Msg().Data))
+
 	// 	} else {
 	// 		return nil
 	// 	}
@@ -93,11 +101,9 @@ func sync(ctx context.Context, apiKey *string) error {
 
 	tablesTest := []*SqlTable{{
 		Schema: "public",
-		Table:  "jobs",
-		Columns: []string{"job_id",
-			"job_title",
-			"min_salary",
-			"max_salary"},
+		Table:  "regions",
+		Columns: []string{"region_id",
+			"region_name"},
 	}}
 
 	for _, table := range tablesTest {
@@ -235,7 +241,8 @@ func generateBenthosConfig(schema, table, sourceConnectionId, sourceDataStreamUr
 	payload := fmt.Sprintf(`{"source_connection_id": %q, "schema": %q, "table": %q}`, sourceConnectionId, table, schema)
 	tableName := fmt.Sprintf("%s.%s", schema, table)
 
-	contentType := "application/json"
+	contentType := "application/connect+json"
+	acceptHeader := "application/grpc-web+json"
 	bc := &neosync_benthos.BenthosConfig{
 		StreamConfig: neosync_benthos.StreamConfig{
 			Input: &neosync_benthos.InputConfig{
@@ -246,19 +253,24 @@ func generateBenthosConfig(schema, table, sourceConnectionId, sourceDataStreamUr
 						Headers: &neosync_benthos.Headers{
 							Authorization: authToken,
 							ContentType:   &contentType,
+							Accept:        &acceptHeader,
 						},
 						Payload: &payload,
 						Timeout: "5s",
 						Stream: &neosync_benthos.Stream{
 							Enabled: true,
-							Codec:   "lines",
+							Codec:   "all-bytes",
 						},
 					},
 				},
 			},
 			Pipeline: &neosync_benthos.PipelineConfig{
-				Threads:    -1,
-				Processors: []neosync_benthos.ProcessorConfig{},
+				Threads: -1,
+				Processors: []neosync_benthos.ProcessorConfig{
+					{
+						DataStream: &neosync_benthos.DataStream{},
+					},
+				},
 			},
 			Output: &neosync_benthos.OutputConfig{
 				Outputs: neosync_benthos.Outputs{

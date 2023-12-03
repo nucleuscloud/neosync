@@ -1,10 +1,10 @@
 package v1alpha1_connectionservice
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -317,39 +317,89 @@ func (s *Service) GetConnectionDataStream(
 		}
 	}()
 
-	query := fmt.Sprintf("select * from %s.%s;", req.Msg.Schema, req.Msg.Table)
+	// update this
+	query := fmt.Sprintf("select region_id, region_name from %s.%s;", req.Msg.Schema, req.Msg.Table)
 	logger.Info(query)
 	rows, err := conn.QueryContext(ctx, query)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return err
 	}
 
-	columns, err := rows.Columns()
+	columnNames, err := rows.Columns()
+	if err != nil {
+		return err
+	}
+	columnTypes, err := rows.ColumnTypes()
 	if err != nil {
 		return err
 	}
 
-	row := make([][]byte, len(columns))
-	rowPtr := make([]any, len(columns))
-	for i := range row {
-		rowPtr[i] = &row[i]
-	}
 	for rows.Next() {
-		if err := rows.Scan(rowPtr...); err != nil {
+
+		columnPointers := make([]interface{}, len(columnNames))
+		for i := range columnNames {
+			columnPointers[i] = new(interface{})
+		}
+
+		if err := rows.Scan(columnPointers...); err != nil {
 			return err
 		}
 
-		sep := []byte("\t")
+		row := map[string]*mgmtv1alpha1.Value{}
 
-		x := bytes.Join(row, sep)
+		for i, name := range columnNames {
+			val := *columnPointers[i].(*interface{})
+			value := &mgmtv1alpha1.Value{}
 
-		if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Data: x}); err != nil {
+			// Get the PostgreSQL data type of the current column
+			dbType := columnTypes[i].DatabaseTypeName()
+			fmt.Println(dbType)
+
+			switch strings.ToLower(dbType) {
+			case "text", "varchar", "char", "citext", "json", "jsonb", "uuid":
+				value.Kind = &mgmtv1alpha1.Value_StringValue{StringValue: fmt.Sprintf("%v", val)}
+			case "int", "int2", "int4", "int8", "serial", "serial2", "serial4", "serial8":
+				value.Kind = &mgmtv1alpha1.Value_NumberValue{NumberValue: float64(val.(int64))}
+			case "float4", "float8", "numeric", "decimal":
+				value.Kind = &mgmtv1alpha1.Value_NumberValue{NumberValue: float64(val.(int64))}
+			case "bool":
+				value.Kind = &mgmtv1alpha1.Value_BoolValue{BoolValue: val.(bool)}
+			default:
+				fmt.Println("default")
+				// return mgmtv1alpha1.Value_NULL_VALUE
+			}
+			row[name] = value
+		}
+
+		// Append the Value message to the list
+		// values = append(values, value)
+
+		if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
 			return err
 		}
 	}
 	return nil
 
 }
+
+// func mapDatabaseTypeToValueFieldType(dbType string) mgmtv1alpha1.isValue_Kind {
+// 	// Map PostgreSQL types to corresponding Value field types
+// 	switch dbType {
+// 	case "text", "varchar", "char", "citext", "json", "jsonb", "uuid":
+// 		return &mgmtv1alpha1.Value_StringValue{}
+// 	case "int", "int2", "int4", "int8", "serial", "serial2", "serial4", "serial8":
+// 		return mgmtv1alpha1.Value_NUMBER_VALUE
+// 	case "float4", "float8", "numeric", "decimal":
+// 		return mgmtv1alpha1.Value_NUMBER_VALUE
+// 	case "bool":
+// 		return mgmtv1alpha1.Value_BOOL_VALUE
+// 	case "struct", "hstore":
+// 		return mgmtv1alpha1.Value_STRUCT_VALUE
+// 	// Add more cases for other PostgreSQL types as needed
+// 	default:
+// 		return mgmtv1alpha1.Value_NULL_VALUE
+// 	}
+// }
 
 type connectionDetails struct {
 	ConnectionString string
