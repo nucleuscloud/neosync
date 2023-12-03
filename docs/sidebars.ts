@@ -69,6 +69,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'deploy/env-vars',
+      label: 'Environment Variables',
+    },
+    {
+      type: 'doc',
       id: 'deploy/kubernetes',
       label: 'Kubernetes',
     },

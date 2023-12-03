@@ -8,8 +8,13 @@ slug: /deploy/intro
 import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
 
 <DocPageHeader
-  title="Deploy Neosync"
-  subtitle="Neosync is an open-source, developer-first product that allows you to create anonymized, secure test data that you can sync across all of your environments for high quality local, stage and CI testing."
+  title="Self-host Neosync"
 />
 
-## More coming soon!
+## Overview
+
+Neosync can be deployed in a variety of ways, and it's ultimately up to each user how they are going to determine to do so.
+Neosync is deployable on bare metal, or in dockerized environments. The latter of which is what will be covered in the following sections in greater detail.
+
+The reader will find that the Github repository is set up primarily for dockerized environments and that we do not generally run services bare metal.
+The two main supported development environments are docker compose, and Tilt.
