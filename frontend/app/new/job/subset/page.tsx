@@ -14,21 +14,23 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+<<<<<<< HEAD
+=======
+import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
+import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
+>>>>>>> f11365ea (working job)
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   CreateJobRequest,
   CreateJobResponse,
   JobDestination,
   JobMapping,
+  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import {
-  Transformer,
-  TransformerConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import {
   SchemaFormValues,
@@ -122,8 +124,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           subset: values,
         },
         account.id,
-        connections,
-        merged
+        connections
       );
       window.sessionStorage.removeItem(defineFormKey);
       window.sessionStorage.removeItem(connectFormKey);
@@ -271,16 +272,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 }
 
-/* eslint-disable */
-type GenericObject<T = any> = {
-  [key: string]: T;
-};
-
 async function createNewJob(
   formData: FormValues,
   accountId: string,
-  connections: Connection[],
-  merged: Transformer[]
+  connections: Connection[]
 ): Promise<CreateJobResponse> {
   const connectionIdMap = new Map(
     connections.map((connection) => [connection.id, connection])
@@ -297,22 +292,11 @@ async function createNewJob(
     cronSchedule: formData.define.cronSchedule,
     initiateJobRun: formData.define.initiateJobRun,
     mappings: formData.schema.mappings.map((m) => {
-      console.log('transformer mappings before job', m.transformer);
-
-      const tt = Transformer.fromJson(m.transformer);
-
-      //TODO: only store in the local storage the minimum needed for the transformer
-      // so the source and the config and maybe the name, if it's custom, thenjust the id in the transformer
-      // update the yup validation schema so that it matches
-      // update the default in the schema page so that it matches and you don't have to do the as type cating
-
-      console.log('tt', tt);
-
       return new JobMapping({
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: tt,
+        transformer: JobMappingTransformer.fromJson(m.transformer),
       });
     }),
     source: new JobSource({
@@ -364,8 +348,6 @@ async function createNewJob(
     }
   }
 
-  console.log('the boyd', body);
-
   const res = await fetch(`/api/jobs`, {
     method: 'POST',
     headers: {
@@ -379,16 +361,4 @@ async function createNewJob(
   }
 
   return CreateJobResponse.fromJson(await res.json());
-}
-
-function getConfigByCase<T>(
-  message: TransformerConfig,
-  inputCase: string
-): TransformerConfig {
-  console.log('mess', message);
-  console.log('input case', inputCase);
-  if (message.config.case === inputCase) {
-    return message as TransformerConfig;
-  }
-  return new TransformerConfig({});
 }

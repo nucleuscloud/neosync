@@ -100,7 +100,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                       <CheckIcon
                         className={cn(
                           'mr-2 h-4 w-4',
-                          value.name == t?.name ? 'opacity-100' : 'opacity-0'
+                          value?.name == t?.name ? 'opacity-100' : 'opacity-0'
                         )}
                       />
                       {t?.name}
@@ -140,7 +140,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                       <CheckIcon
                         className={cn(
                           'mr-2 h-4 w-4',
-                          value.name == t?.name ? 'opacity-100' : 'opacity-0'
+                          value?.name == t?.name ? 'opacity-100' : 'opacity-0'
                         )}
                       />
                       {t?.name}
@@ -158,7 +158,7 @@ export default function TransformerSelect(props: Props): ReactElement {
   );
 }
 
-function FindTransformerByName(
+export function FindTransformerByName(
   name: string,
   transformers: TransformerWithType[]
 ): TransformerWithType | undefined {

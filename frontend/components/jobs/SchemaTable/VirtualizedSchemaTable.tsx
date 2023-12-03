@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { cn } from '@/libs/utils';
-import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {
@@ -46,8 +46,8 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   transformers,
 }: VirtualizedSchemaTableProps) {
   const [rows, setRows] = useState(data);
-  const [transformer, setTransformer] = useState<UserDefinedTransformer>(
-    new UserDefinedTransformer({})
+  const [bulkTransformer, setBulkTransformer] = useState<JobMappingTransformer>(
+    new JobMappingTransformer({})
   );
   const [bulkSelect, setBulkSelect] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
@@ -125,6 +125,32 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
     });
   }, []);
 
+  function getBulKTransformer(): TransformerWithType {
+    // if it's custom it'll have an ID and I can use that to look it up
+    // if it's not custom then just use the source adn transformer type is system
+
+    let t;
+
+    if (
+      bulkTransformer.config?.config.case?.toString() !=
+      'userDefinedTransformerConfig'
+    ) {
+      // Searching for non-custom transformers
+      return transformers?.find(
+        (item) =>
+          item.transformerType != 'custom' &&
+          item.source == bulkTransformer.source
+      )!;
+    } else {
+      // Searching for system transformers
+      return transformers?.find(
+        (item) =>
+          item.transformerType == 'system' &&
+          item.source == bulkTransformer.source
+      )!;
+    }
+  }
+
   return (
     <div className="flex flex-row w-full">
       <div className="basis-1/6  pt-[45px] ">
@@ -135,7 +161,7 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
           <div className="w-[250px]">
             <TransformerSelect
               transformers={transformers || []}
-              value={transformer}
+              value={getBulKTransformer()}
               onSelect={(value) => {
                 rows.forEach((r, index) => {
                   if (r.isSelected) {
@@ -146,10 +172,16 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
                 });
                 onSelectAll(false);
                 setBulkSelect(false);
-                setTransformer(value);
+                setBulkTransformer(value);
               }}
               placeholder="Bulk update Transformers..."
             />
+            {/* <EditTransformerOptions
+              transformer={transformers?.find(
+                (item) => item.source == field.value
+              )}
+              index={index}
+            /> */}
           </div>
           <Button
             variant="outline"
