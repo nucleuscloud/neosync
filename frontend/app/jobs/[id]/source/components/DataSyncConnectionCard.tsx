@@ -179,6 +179,9 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                   <Select
                     value={field.value}
                     onValueChange={async (value) => {
+                      if (!value) {
+                        return;
+                      }
                       field.onChange(value);
                       await onSourceChange(value);
                     }}

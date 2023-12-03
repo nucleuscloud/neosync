@@ -105,7 +105,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     if (!job) {
       return;
     }
-    console.log('submitted values', values);
     try {
       await updateJobConnection(job, values, merged);
       toast({
@@ -137,7 +136,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
 
-  console.log('schema table data', schemaTableData);
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -150,7 +148,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
               <FormDescription>The name of the schema.</FormDescription>
               <Select
                 onValueChange={(value: string) => {
-                  console.log('on change triggered', value);
                   if (!value) {
                     return;
                   }
