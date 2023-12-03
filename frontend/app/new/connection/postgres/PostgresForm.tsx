@@ -237,7 +237,6 @@ export default function PostgresForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {' '}
                 <RequiredLabel />
                 SSL Mode
               </FormLabel>
