@@ -45,10 +45,7 @@ import {
   JobSource,
   JobSourceOptions,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import {
-  Passthrough,
-  TransformerConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { TransformerConfig } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { toJobDestinationOptions } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -120,34 +117,47 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         return defaultValues;
       }
 
-      return {
-        ...defaultValues,
-        mappings: res.schemas.map((r) => {
-          var pt = new JobMappingTransformer({
-            source: 'passthrough',
-            name: 'passthrough',
-            config: new TransformerConfig({
+      if (defaultValues.mappings.length > 0) {
+        //pull values from default values for transformers if already set
+        return {
+          ...defaultValues,
+          mappings: res.schemas.map((r) => {
+            const mappingTransformer = defaultValues.mappings.find(
+              (item) => item.column == r.column
+            );
+
+            var pt = mappingTransformer?.transformer as {
+              source: string;
+              name: string;
               config: {
-                case: 'passthroughConfig',
-                value: new Passthrough({}),
-              },
-            }),
-          }) as {
-            source: string;
-            name: string;
-            config: {
-              config: {
-                case?: string;
-                value: {};
+                config: {
+                  case?: string;
+                  value: {};
+                };
               };
             };
-          };
-          return {
-            ...r,
-            transformer: pt,
-          };
-        }),
-      };
+            return {
+              ...r,
+              transformer: pt,
+            };
+          }),
+        };
+      } else {
+        //return empty transformers because they haven't been set yet
+        return {
+          ...defaultValues,
+          mappings: res.schemas.map((r) => {
+            return {
+              ...r,
+              transformer: {
+                name: 'Select a Transformer', // revisit this in the future, we should be rendering the form errors instead, since a user can't set passthrough as an option here
+                source: '',
+                config: { config: { case: '', value: {} } },
+              },
+            };
+          }),
+        };
+      }
     } catch (err) {
       console.error(err);
       toast({
