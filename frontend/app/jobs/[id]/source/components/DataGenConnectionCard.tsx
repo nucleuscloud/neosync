@@ -106,6 +106,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
+  // changed to getValues() from watch because watch would listen for a change and then trigger a render which would overwrite the values that were changed (which we wanted to keep)
+
   const formValues = form.getValues();
   const schemaTableData = formValues.mappings?.map((mapping) => ({
     ...mapping,
