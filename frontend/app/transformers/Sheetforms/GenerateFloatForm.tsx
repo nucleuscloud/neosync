@@ -63,8 +63,6 @@ export default function GenerateFloatForm(props: Props): ReactElement {
 
   const signs = ['positive', 'negative', 'random'];
 
-  console.log('bd', bdValue, adValue, sign);
-
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <Controller

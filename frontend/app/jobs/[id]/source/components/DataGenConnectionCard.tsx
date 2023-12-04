@@ -258,6 +258,7 @@ function getJobSource(
   }
 
   const schemaMap: SchemaMap = {};
+  console.log('job', job.mappings);
   job?.mappings.forEach((c) => {
     if (!schemaMap[c.schema]) {
       schemaMap[c.schema] = {
@@ -315,7 +316,7 @@ function getJobSource(
 
   const mappings: SingleTableSchemaFormValues['mappings'] = dbCols.map((c) => {
     const colMapping = getColumnMapping(schemaMap, c.schema, c.table, c.column);
-
+    console.log('c', colMapping);
     const transformer =
       colMapping?.transformer ??
       new JobMappingTransformer({
@@ -340,6 +341,8 @@ function getJobSource(
     };
   });
 
+  console.log('mappings', mappings);
+
   return {
     mappings: mappings,
     numRows: numRows,
@@ -361,6 +364,7 @@ async function updateJobConnection(
       new UpdateJobSourceConnectionRequest({
         id: job.id,
         mappings: values.mappings.map((m) => {
+          console.log('m', m.transformer);
           const jmt = new JobMappingTransformer({
             source: m.transformer.source,
             name: m.transformer.name,

@@ -174,6 +174,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const source = connections.find((item) => item.id == sourceConnectionId);
 
+  console.log('mappings', form.getValues());
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -404,6 +406,7 @@ function getJobSource(
       };
     }
   });
+
   const mappings = schema.map((c) => {
     const colMapping = getColumnMapping(schemaMap, c.schema, c.table, c.column);
 
@@ -438,10 +441,7 @@ function getJobSource(
     sourceId: getConnectionIdFromSource(job.source) || '',
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
-      transformer: FindTransformerByName(
-        mapping?.transformer.name ?? '',
-        merged
-      ) as {
+      transformer: mapping.transformer as {
         name: string;
         source: string;
         config: { config: { case: string; value: {} } };
