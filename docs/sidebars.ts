@@ -245,6 +245,52 @@ const sidebars: SidebarsConfig = {
       id: 'transformers/custom',
       label: 'Custom',
     },
+    {
+      type: 'category',
+      label: 'Neosync CLI',
+      collapsible: true,
+      collapsed: true,
+      items: [
+        {
+          type: 'doc',
+          id: 'cli/intro',
+          label: 'Introduction',
+        },
+        {
+          type: 'doc',
+          id: 'cli/login',
+          label: 'login',
+        },
+        {
+          type: 'doc',
+          id: 'cli/whoami',
+          label: 'whoami',
+        },
+        {
+          type: 'category',
+          label: 'jobs',
+          collapsible: true,
+          collapsed: false,
+          items: [
+            {
+              type: 'doc',
+              id: 'cli/jobs/list',
+              label: 'list',
+            },
+            {
+              type: 'doc',
+              id: 'cli/jobs/trigger',
+              label: 'trigger',
+            },
+          ],
+        },
+        {
+          type: 'doc',
+          id: 'cli/version',
+          label: 'version',
+        },
+      ],
+    },
   ],
 };
 
