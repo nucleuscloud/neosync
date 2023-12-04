@@ -101,7 +101,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       await updateJobConnection(job, values);
       toast({
         title: 'Successfully updated job source connection!',
-        variant: 'default',
+        variant: 'success',
       });
       mutate();
     } catch (err) {

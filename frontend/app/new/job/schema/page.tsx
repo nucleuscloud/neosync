@@ -104,6 +104,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       return getSchema();
     },
   });
+
   const isBrowser = () => typeof window !== 'undefined';
 
   useFormPersist(`${sessionPrefix}-new-job-schema`, {

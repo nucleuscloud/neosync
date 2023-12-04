@@ -53,8 +53,8 @@ import { getErrorMessage } from '@/util/util';
 import { toJobDestinationOptions } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { DATA_GEN_STEPS } from '../../../JobsProgressSteps';
@@ -78,14 +78,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [searchParams?.sessionId]);
   const { data: connectionsData } = useGetConnections(account?.id ?? '');
   const connections = connectionsData?.connections ?? [];
-
-  // const { data: st } = useGetSystemTransformers();
-  // const { data: udt } = useGetUserDefinedTransformers(account?.id ?? '');
-
-  // const udts = udt?.transformers ?? [];
-  // const sts = st?.transformers ?? [];
-
-  // const merged = MergeSystemAndCustomTransformers(sts, udts);
 
   const sessionPrefix = searchParams?.sessionId ?? '';
 
@@ -171,7 +163,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     resolver: yupResolver<SingleTableSchemaFormValues>(
       SINGLE_TABLE_SCHEMA_FORM_SCHEMA
     ),
-    defaultValues: async () => getSchema(),
+    defaultValues: async () => {
+      return getSchema();
+    },
   });
 
   useFormPersist(formKey, {
@@ -227,6 +221,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const schemaTableMap = getSchemaTableMap(connSchemaData?.schemas ?? []);
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
+
+  /* turning the input field into a controlled component due to console warning a component going from uncontrolled to controlled. The input at first receives an undefined value because the async getSchema() call hasn't returned yet then once it returns it sets the value which throws the error. Ideally, react hook form should just handle this but for some reason it's throwing an error. Revist this in the future.
+   */
+
+  const [rowNum, setRowNum] = useState<number>(
+    form.getValues('numRows')
+      ? form.getValues('numRows')
+      : defaultValues.numRows
+  );
+  useEffect(() => {
+    form.setValue(`numRows`, rowNum);
+  }, [rowNum]);
+
   return (
     <div className="flex flex-col gap-20">
       <OverviewContainer
@@ -314,17 +321,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             )}
           />
 
-          <FormField
+          <Controller
             control={form.control}
             name="numRows"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Number of Rows</FormLabel>
                 <FormDescription>
                   The number of rows to generate.
                 </FormDescription>
                 <FormControl>
-                  <Input value={field.value} />
+                  <Input
+                    value={rowNum}
+                    onChange={(e) => {
+                      setRowNum(Number(e.target.value));
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -364,11 +376,22 @@ async function createNewJob(
     cronSchedule: define.cronSchedule,
     initiateJobRun: define.initiateJobRun,
     mappings: schema.mappings.map((m) => {
+      const jmt = new JobMappingTransformer({
+        name: m.transformer.name,
+        source: m.transformer.source,
+        config: new TransformerConfig({
+          config: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            case: m.transformer.config.config.case as any,
+            value: m.transformer.config.config.value,
+          },
+        }),
+      });
       return new JobMapping({
         schema: schema.schema,
         table: schema.table,
         column: m.column,
-        transformer: JobMappingTransformer.fromJson(m.transformer),
+        transformer: jmt,
       });
     }),
     source: new JobSource({
@@ -402,6 +425,7 @@ async function createNewJob(
       }),
     ],
   });
+
   const res = await fetch(`/api/jobs`, {
     method: 'POST',
     headers: {
