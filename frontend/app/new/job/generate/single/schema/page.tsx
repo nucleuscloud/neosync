@@ -1,5 +1,6 @@
 'use client';
 
+import FormError from '@/components/FormError';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import {
@@ -240,8 +241,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       ? form.getValues('numRows')
       : defaultValues.numRows
   );
+  const [rowNumError, setRowNumError] = useState<boolean>(false);
   useEffect(() => {
-    form.setValue(`numRows`, rowNum);
+    if (rowNum > 10000) {
+      setRowNumError(true);
+    } else {
+      setRowNumError(false);
+      form.setValue(`numRows`, rowNum);
+    }
   }, [rowNum]);
 
   return (
@@ -348,6 +355,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     }}
                   />
                 </FormControl>
+                {rowNumError && (
+                  <FormError errorMessage="The number of rows must be less than 10,000" />
+                )}
                 <FormMessage />
               </FormItem>
             )}
