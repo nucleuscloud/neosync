@@ -139,60 +139,31 @@ function handleTransformerForm(
       );
     case 'generate_e164_number':
       return (
-        <GenerateE164NumberForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
-        />
+        <GenerateE164NumberForm index={index} setIsSheetOpen={setIsSheetOpen} />
       );
     case 'generate_float':
       return (
-        <GenerateFloatForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
-        />
+        <GenerateFloatForm index={index} setIsSheetOpen={setIsSheetOpen} />
       );
     case 'generate_gender':
       return (
-        <GenerateGenderForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
-        />
+        <GenerateGenderForm index={index} setIsSheetOpen={setIsSheetOpen} />
       );
     case 'generate_int':
-      return (
-        <GenerateIntForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
-        />
-      );
+      return <GenerateIntForm index={index} setIsSheetOpen={setIsSheetOpen} />;
     case 'generate_string':
       return (
-        <GenerateStringForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
-        />
+        <GenerateStringForm index={index} setIsSheetOpen={setIsSheetOpen} />
       );
     case 'generate_string_phone':
       return (
         <GenerateStringPhoneForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
         />
       );
     case 'generate_uuid':
-      return (
-        <GenerateUuidForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
-        />
-      );
+      return <GenerateUuidForm index={index} setIsSheetOpen={setIsSheetOpen} />;
     case 'transform_e164_phone':
       return (
         <TransformE164NumberForm
