@@ -66,6 +66,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     control: form.control,
     name: 'destinations',
   });
+
   useFormPersist(`${sessionPrefix}-new-job-connect`, {
     watch: form.watch,
     setValue: form.setValue,

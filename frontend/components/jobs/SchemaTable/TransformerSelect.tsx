@@ -131,9 +131,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                               FindTransformerByName(currentValue, transformers)
                                 ?.source ?? '',
                             name: selectedTransformer?.name,
-                            config: new TransformerConfig({
-                              config: selectedTransformer?.config?.config,
-                            }),
+                            config: selectedTransformer?.config,
                           }
                         );
                         onSelect(jobMappingTransformer);

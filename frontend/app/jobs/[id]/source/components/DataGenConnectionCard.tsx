@@ -57,19 +57,11 @@ interface Props {
 
 export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
-  // const { account } = useAccount();
+
   const { data, mutate, isLoading: isJobLoading } = useGetJob(jobId);
   const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
   const { data: schema, isLoading: isGetConnectionsSchemaLoading } =
     useGetConnectionSchema(fkSourceConnectionId);
-
-  // const { data: st } = useGetSystemTransformers();
-  // const { data: udt } = useGetUserDefinedTransformers(account?.id ?? '');
-
-  // const udts = udt?.transformers ?? [];
-  // const sts = st?.transformers ?? [];
-
-  // const merged = MergeSystemAndCustomTransformers(sts, udts);
 
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
@@ -127,6 +119,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const schemaTableMap = getSchemaTableMap(schema?.schemas ?? []);
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
+
+  console.log('form', form.getValues());
 
   return (
     <Form {...form}>

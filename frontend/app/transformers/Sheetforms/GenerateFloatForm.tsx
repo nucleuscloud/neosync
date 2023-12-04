@@ -63,6 +63,8 @@ export default function GenerateFloatForm(props: Props): ReactElement {
 
   const signs = ['positive', 'negative', 'random'];
 
+  console.log('bd', bdValue, adValue, sign);
+
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <Controller
@@ -117,8 +119,10 @@ export default function GenerateFloatForm(props: Props): ReactElement {
               <Input
                 className="max-w-[180px]"
                 placeholder="3"
+                type="number"
                 max={9}
-                value={bd}
+                min={1}
+                value={String(bd)}
                 onChange={(event) => {
                   const inputValue = Math.min(
                     9,
@@ -148,8 +152,10 @@ export default function GenerateFloatForm(props: Props): ReactElement {
               <Input
                 className="max-w-[180px]"
                 placeholder="3"
+                type="number"
                 max={9}
-                value={ad}
+                min={1}
+                value={String(ad)}
                 onChange={(event) => {
                   const inputValue = Math.min(
                     9,
