@@ -324,7 +324,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <Controller
             control={form.control}
             name="numRows"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Number of Rows</FormLabel>
                 <FormDescription>
@@ -381,6 +381,7 @@ async function createNewJob(
         source: m.transformer.source,
         config: new TransformerConfig({
           config: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             case: m.transformer.config.config.case as any,
             value: m.transformer.config.config.value,
           },
