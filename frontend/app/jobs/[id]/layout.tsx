@@ -92,6 +92,11 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
               pageHeaderContainerClassName="gap-2"
               header={data?.job?.name || ''}
               description={data?.job?.id || ''}
+              leftBadgeValue={
+                data.job.source?.options?.config.case == 'generate'
+                  ? 'Generate Job'
+                  : 'Sync Job'
+              }
               extraHeading={
                 <div className="flex flex-row space-x-4">
                   <DeleteConfirmationDialog
