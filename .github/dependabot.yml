@@ -1,33 +1,73 @@
 version: 2
 updates:
   # Enable version updates for go
-  - package-ecosystem: 'gomod'
-    directory: 'backend'
+  - package-ecosystem: "gomod"
+    directory: "backend"
     schedule:
-      interval: 'daily'
+      interval: "daily"
+    groups:
+      golang-minor:
+        update-types:
+          - minor
+          - patch
 
-  - package-ecosystem: 'gomod'
-    directory: 'worker'
+  - package-ecosystem: "gomod"
+    directory: "worker"
     schedule:
-      interval: 'daily'
+      interval: "daily"
+    groups:
+      golang-minor:
+        update-types:
+          - minor
+          - patch
 
-  - package-ecosystem: 'gomod'
-    directory: 'cli'
+  - package-ecosystem: "gomod"
+    directory: "cli"
     schedule:
-      interval: 'daily'
+      interval: "daily"
+    groups:
+      golang-minor:
+        update-types:
+          - minor
+          - patch
 
-  - package-ecosystem: 'npm'
-    directory: 'frontend'
+  - package-ecosystem: "npm"
+    directory: "frontend"
     schedule:
-      interval: 'daily'
+      interval: "weekly"
+    groups:
+      npm-development:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      npm-production:
+        dependency-type: production
+        update-types:
+          - patch
 
-  - package-ecosystem: 'npm'
-    directory: 'docs'
+  - package-ecosystem: "npm"
+    directory: "docs"
     schedule:
-      interval: 'daily'
+      interval: "weekly"
+    groups:
+      npm-development:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+      npm-production:
+        dependency-type: production
+        update-types:
+          - patch
 
   # Maintain dependencies for GitHub Actions
-  - package-ecosystem: 'github-actions'
-    directory: '/'
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
+    groups:
+      actions-minor:
+        update-types:
+          - minor
+          - patch
