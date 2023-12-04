@@ -19,16 +19,19 @@ import { DocsImage } from '@site/src/CustomComponents/DocsImage';
 
 ## Introduction
 
-Transformers are data-type specific modules that anonymize or generate data. Tranformers are defined in the job workflow and are applied to every piece of data in the column they are assigned. Neosync ships with a number of transformers that are already built to handle common data types such as email, addresses, ssn, strings, integers and more.
+Transformers are data-type specific modules that anonymize or generate data. For example, an email transformer can create a synthetic email address or anonymize an existing email address.
 
-<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/transformers-page.png" />
+Tranformers are defined in the job workflow and are applied to every piece of data in the column they are assigned. Neosync ships with over 40 pre-defined transformers that make it fast and easy to get started.
+
+<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/udt-home.png" />
 
 ## Transformer Types
 
 There are two types of transformers:
 
 1. **System Transformers** : Pre-built and configured transformers that automatically come with Neosync out of the box. These cannot be deleted but they can be cloned.
-2. **Custom Transformers** : System transformers that have been cloned, re-configured and renamed. These transformers can be edited and deleted.
+
+2. **User Defined Transformers** : These are system transformers that have been cloned, re-configured and renamed. These transformers can be edited and deleted.
 
 ## Transformers
 
@@ -43,9 +46,9 @@ You can browse our list of system transformers which come out of the box or you 
       icon: <IoBuildOutline />,
     },
     {
-      title: 'Custom Transformers',
+      title: 'User Defined Transformers',
       description: 'Define your own transformers',
-      link: '/transformers/custom',
+      link: '/transformers/user-defined',
       icon: <GoCode />,
     },
   ]}

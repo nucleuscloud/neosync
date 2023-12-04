@@ -288,8 +288,8 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
-      id: 'transformers/custom',
-      label: 'Custom',
+      id: 'transformers/user-defined',
+      label: 'User Defined',
     },
   ],
 };
