@@ -106,7 +106,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
-  const formValues = form.watch();
+  const formValues = form.getValues();
   const schemaTableData = formValues.mappings?.map((mapping) => ({
     ...mapping,
     schema: formValues.schema,
@@ -119,8 +119,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const schemaTableMap = getSchemaTableMap(schema?.schemas ?? []);
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
-
-  console.log('form', form.getValues());
 
   return (
     <Form {...form}>
@@ -258,7 +256,6 @@ function getJobSource(
   }
 
   const schemaMap: SchemaMap = {};
-  console.log('job', job.mappings);
   job?.mappings.forEach((c) => {
     if (!schemaMap[c.schema]) {
       schemaMap[c.schema] = {
@@ -316,7 +313,6 @@ function getJobSource(
 
   const mappings: SingleTableSchemaFormValues['mappings'] = dbCols.map((c) => {
     const colMapping = getColumnMapping(schemaMap, c.schema, c.table, c.column);
-    console.log('c', colMapping);
     const transformer =
       colMapping?.transformer ??
       new JobMappingTransformer({
@@ -341,8 +337,6 @@ function getJobSource(
     };
   });
 
-  console.log('mappings', mappings);
-
   return {
     mappings: mappings,
     numRows: numRows,
@@ -364,7 +358,6 @@ async function updateJobConnection(
       new UpdateJobSourceConnectionRequest({
         id: job.id,
         mappings: values.mappings.map((m) => {
-          console.log('m', m.transformer);
           const jmt = new JobMappingTransformer({
             source: m.transformer.source,
             name: m.transformer.name,

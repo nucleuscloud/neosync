@@ -1,10 +1,7 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
-import { FindTransformerByName } from '@/components/jobs/SchemaTable/TransformerSelect';
 import {
-  MergeSystemAndCustomTransformers,
   SchemaTable,
-  TransformerWithType,
   getConnectionSchema,
 } from '@/components/jobs/SchemaTable/schema-table';
 import { useAccount } from '@/components/providers/account-provider';
@@ -31,8 +28,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
-import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
 import {
   Connection,
   DatabaseColumn,
@@ -104,14 +99,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const connections = connectionsData?.connections ?? [];
 
-  const { data: st } = useGetSystemTransformers();
-  const { data: udt } = useGetUserDefinedTransformers(account?.id ?? '');
-
-  const udts = udt?.transformers ?? [];
-  const sts = st?.transformers ?? [];
-
-  const merged = MergeSystemAndCustomTransformers(sts, udts);
-
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
     defaultValues: {
@@ -122,12 +109,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       destinationIds: [],
       mappings: [],
     },
-    values: getJobSource(merged, data?.job, schema?.schemas),
+    values: getJobSource(data?.job, schema?.schemas),
   });
 
   async function onSourceChange(value: string): Promise<void> {
     try {
-      const newValues = await getUpdatedValues(value, form.getValues(), merged);
+      const newValues = await getUpdatedValues(value, form.getValues());
       form.reset(newValues);
     } catch (err) {
       form.reset({ ...form.getValues, mappings: [], sourceId: value });
@@ -173,8 +160,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   const source = connections.find((item) => item.id == sourceConnectionId);
-
-  console.log('mappings', form.getValues());
 
   return (
     <Form {...form}>
@@ -336,11 +321,7 @@ function getExistingMysqlSourceConnectionOptions(
     : undefined;
 }
 
-function getJobSource(
-  merged: TransformerWithType[],
-  job?: Job,
-  schema?: DatabaseColumn[]
-): SourceFormValues {
+function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
   if (!job || !schema) {
     return {
       sourceId: '',
@@ -491,8 +472,7 @@ export function getColumnMapping(
 
 async function getUpdatedValues(
   connectionId: string,
-  originalValues: SourceFormValues,
-  merged: TransformerWithType[]
+  originalValues: SourceFormValues
 ): Promise<SourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
     getConnectionSchema(connectionId),
@@ -521,10 +501,7 @@ async function getUpdatedValues(
     ...values,
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
-      transformer: FindTransformerByName(
-        mapping?.transformer.name ?? 'passthrough',
-        merged
-      ) as {
+      transformer: mapping.transformer as {
         name: string;
         source: string;
         config: { config: { case: string; value: {} } };

@@ -147,8 +147,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
-  console.log('form data', form.getValues());
-
   return (
     <div className="flex flex-col gap-20">
       <OverviewContainer
