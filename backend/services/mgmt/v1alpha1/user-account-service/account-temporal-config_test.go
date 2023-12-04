@@ -28,7 +28,11 @@ func Test_Service_GetAccountTemporalConfig(t *testing.T) {
 	mockQuerier.On("GetTemporalConfigByUserAccount", mock.Anything, mock.Anything, mock.Anything).
 		Return(&pg_models.TemporalConfig{Namespace: "foo", SyncJobQueueName: "foo-queue", Url: "localhost:1234"}, nil)
 
-	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
+	service := New(&Config{IsAuthEnabled: false, Temporal: &TemporalConfig{
+		DefaultTemporalNamespace:        "default-ns",
+		DefaultTemporalSyncJobQueueName: "default-sync",
+		DefaultTemporalUrl:              "default-url",
+	}}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
 
 	resp, err := service.GetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
 		AccountId: fakeAccountId,
