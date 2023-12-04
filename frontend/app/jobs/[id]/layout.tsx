@@ -30,6 +30,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       await triggerJobRun(id);
       toast({
         title: 'Job run triggered successfully!',
+        variant: 'success',
       });
       router.push(`/jobs/${id}`);
     } catch (err) {

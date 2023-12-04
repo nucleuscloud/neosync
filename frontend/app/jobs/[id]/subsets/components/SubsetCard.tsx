@@ -73,7 +73,7 @@ export default function SubsetCard(props: Props): ReactElement {
       const updatedJobRes = await setJobSubsets(jobId, values);
       toast({
         title: 'Successfully updated database subsets',
-        variant: 'default',
+        variant: 'success',
       });
       mutateJob(
         new GetJobResponse({

@@ -61,7 +61,7 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
       await updateJobSchedule(job.id, values.cronSchedule);
       toast({
         title: 'Successfully updated job schedule!',
-        variant: 'default',
+        variant: 'success',
       });
       mutate();
     } catch (err) {

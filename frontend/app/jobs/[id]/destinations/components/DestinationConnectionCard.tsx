@@ -69,7 +69,7 @@ export default function DestinationConnectionCard({
       mutate();
       toast({
         title: 'Successfully updated job destination!',
-        variant: 'default',
+        variant: 'success',
       });
     } catch (err) {
       console.error(err);
@@ -87,7 +87,7 @@ export default function DestinationConnectionCard({
       mutate();
       toast({
         title: 'Successfully deleted job destination!',
-        variant: 'default',
+        variant: 'success',
       });
     } catch (err) {
       console.error(err);
