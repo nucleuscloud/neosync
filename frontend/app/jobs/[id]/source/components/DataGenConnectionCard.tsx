@@ -57,19 +57,11 @@ interface Props {
 
 export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
-  // const { account } = useAccount();
+
   const { data, mutate, isLoading: isJobLoading } = useGetJob(jobId);
   const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
   const { data: schema, isLoading: isGetConnectionsSchemaLoading } =
     useGetConnectionSchema(fkSourceConnectionId);
-
-  // const { data: st } = useGetSystemTransformers();
-  // const { data: udt } = useGetUserDefinedTransformers(account?.id ?? '');
-
-  // const udts = udt?.transformers ?? [];
-  // const sts = st?.transformers ?? [];
-
-  // const merged = MergeSystemAndCustomTransformers(sts, udts);
 
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
@@ -114,7 +106,9 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
-  const formValues = form.watch();
+  // changed to getValues() from watch because watch would listen for a change and then trigger a render which would overwrite the values that were changed (which we wanted to keep)
+
+  const formValues = form.getValues();
   const schemaTableData = formValues.mappings?.map((mapping) => ({
     ...mapping,
     schema: formValues.schema,
@@ -226,7 +220,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         {formValues.schema && formValues.table && (
           <SchemaTable data={schemaTableData} excludeTransformers />
         )}
-        <div className="flex flex-row gap-1 justify-between">
+        <div className="flex flex-row gap-1 justify-end">
           <Button key="submit" type="submit">
             Submit
           </Button>
@@ -321,7 +315,6 @@ function getJobSource(
 
   const mappings: SingleTableSchemaFormValues['mappings'] = dbCols.map((c) => {
     const colMapping = getColumnMapping(schemaMap, c.schema, c.table, c.column);
-
     const transformer =
       colMapping?.transformer ??
       new JobMappingTransformer({

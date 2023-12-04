@@ -49,9 +49,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  useSessionStorage<SchemaFormValues>(`${sessionPrefix}-new-job-schema`, {
-    mappings: [],
-  });
+  const [schemaFormData] = useSessionStorage<SchemaFormValues>(
+    `${sessionPrefix}-new-job-schema`,
+    {
+      mappings: [],
+    }
+  );
 
   async function getSchema(): Promise<SchemaFormValues> {
     try {
@@ -60,33 +63,57 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         return { mappings: [] };
       }
 
-      const mappings = res.schemas.map((r) => {
-        var pt = new JobMappingTransformer({
-          source: 'passthrough',
-          name: 'passthrough',
-          config: new TransformerConfig({
+      // set values from the session data if they're available
+      // this helps retain data from page to page and across saves before the data is submitted
+      if (schemaFormData.mappings.length > 0) {
+        const mappings = schemaFormData.mappings.map((r) => {
+          var pt = JobMappingTransformer.fromJson(r.transformer) as {
+            source: string;
+            name: string;
             config: {
-              case: 'passthroughConfig',
-              value: new Passthrough({}),
-            },
-          }),
-        }) as {
-          source: string;
-          name: string;
-          config: {
-            config: {
-              case?: string;
-              value: {};
+              config: {
+                case?: string;
+                value: {};
+              };
             };
           };
-        };
 
-        return {
-          ...r,
-          transformer: pt,
-        };
-      });
-      return { mappings };
+          return {
+            ...r,
+            transformer: pt,
+          };
+        });
+
+        return { mappings };
+      } else {
+        const mappings = res.schemas.map((r) => {
+          var pt = new JobMappingTransformer({
+            source: 'passthrough',
+            name: 'passthrough',
+            config: new TransformerConfig({
+              config: {
+                case: 'passthroughConfig',
+                value: new Passthrough({}),
+              },
+            }),
+          }) as {
+            source: string;
+            name: string;
+            config: {
+              config: {
+                case?: string;
+                value: {};
+              };
+            };
+          };
+
+          return {
+            ...r,
+            transformer: pt,
+          };
+        });
+        return { mappings };
+      }
     } catch (err) {
       console.error(err);
       toast({

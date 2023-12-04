@@ -117,8 +117,10 @@ export default function GenerateFloatForm(props: Props): ReactElement {
               <Input
                 className="max-w-[180px]"
                 placeholder="3"
+                type="number"
                 max={9}
-                value={bd}
+                min={1}
+                value={String(bd)}
                 onChange={(event) => {
                   const inputValue = Math.min(
                     9,
@@ -148,8 +150,10 @@ export default function GenerateFloatForm(props: Props): ReactElement {
               <Input
                 className="max-w-[180px]"
                 placeholder="3"
+                type="number"
                 max={9}
-                value={ad}
+                min={1}
+                value={String(ad)}
                 onChange={(event) => {
                   const inputValue = Math.min(
                     9,
