@@ -218,7 +218,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         {formValues.schema && formValues.table && (
           <SchemaTable data={schemaTableData} excludeTransformers />
         )}
-        <div className="flex flex-row gap-1 justify-between">
+        <div className="flex flex-row gap-1 justify-end">
           <Button key="submit" type="submit">
             Submit
           </Button>

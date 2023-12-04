@@ -163,7 +163,7 @@ export default function TransformerSelect(props: Props): ReactElement {
   );
 }
 
-export function FindTransformerByName(
+function FindTransformerByName(
   name: string,
   transformers: TransformerWithType[]
 ): TransformerWithType | undefined {

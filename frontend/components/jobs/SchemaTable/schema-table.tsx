@@ -84,7 +84,7 @@ export async function getConnectionSchema(
 export type TransformerWithType = SystemTransformer &
   UserDefinedTransformer & { transformerType: 'system' | 'custom' };
 
-export function MergeSystemAndCustomTransformers(
+function MergeSystemAndCustomTransformers(
   system: SystemTransformer[],
   custom: UserDefinedTransformer[]
 ): TransformerWithType[] {
