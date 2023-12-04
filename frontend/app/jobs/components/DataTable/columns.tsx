@@ -68,7 +68,7 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
     {
       accessorKey: 'id',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Job" />
+        <DataTableColumnHeader column={column} title="Job Id" />
       ),
       cell: ({ row }) => {
         return (

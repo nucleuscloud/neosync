@@ -8,16 +8,23 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { SymbolIcon } from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
+import { AiOutlineExperiment } from 'react-icons/ai';
 
 export type NewJobType = 'data-sync' | 'generate-table';
 
 export default function NewJob({ params }: PageProps): ReactElement {
-  const [sessionToken] = useState(params?.sessionToken ?? nanoid());
+  const [sessionToken, setSessionToken] = useState<string>('');
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Generate the session token only on the client side
+    setSessionToken(params?.sessionToken ?? nanoid());
+  }, []);
 
   const dataSyncParams = new URLSearchParams(searchParams);
   dataSyncParams.set('jobType', 'data-sync');
@@ -34,13 +41,17 @@ export default function NewJob({ params }: PageProps): ReactElement {
   const jobData = [
     {
       name: 'Data Synchronization',
-      description: 'Synchronize data between two different data sources',
+      description:
+        'Synchronize and anonymize data between a source and destination. ',
       href: `/new/job/define?${dataSyncParams.toString()}`,
+      icon: <SymbolIcon />,
     },
     {
-      name: 'Single Table Data Generation',
-      description: 'Generate data for a single table in a chosen data source',
+      name: 'Data Generation',
+      description:
+        'Generate synthetic data from scratch for a chosen destination.',
       href: `/new/job/define?${dataGenParams.toString()}`,
+      icon: <AiOutlineExperiment />,
     },
   ] as const;
 
@@ -49,7 +60,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
       Header={
         <PageHeader
           header="Create a new job"
-          description="Create a new job that can be triggered or scheduled in the system"
+          description="Select a job type that can be triggered or scheduled in the system"
           pageHeaderContainerClassName="mx-24"
         />
       }
@@ -61,6 +72,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
             name={jd.name}
             description={jd.description}
             href={jd.href}
+            icon={jd.icon}
           />
         ))}
       </div>
@@ -72,20 +84,22 @@ interface JobCardProps {
   name: string;
   description: string;
   href: string;
+  icon: JSX.Element;
 }
 
 function JobCard(props: JobCardProps): ReactElement {
-  const { name, description, href } = props;
+  const { name, description, href, icon } = props;
   return (
     <Link href={href}>
       <Card className="cursor-pointer">
         <CardHeader>
           <CardTitle>
             <div className="flex flex-row items-center gap-2">
+              <div>{icon}</div>
               <p>{name}</p>
             </div>
           </CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <CardDescription className="pl-6">{description}</CardDescription>
         </CardHeader>
       </Card>
     </Link>

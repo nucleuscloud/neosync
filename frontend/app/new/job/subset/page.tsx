@@ -1,5 +1,7 @@
 'use client';
 
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
@@ -179,9 +181,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   return (
     <div className="px-12 md:px-24 lg:px-32 flex flex-col gap-20">
-      <div className="mt-10">
-        <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'subset'} />
-      </div>
+      <OverviewContainer
+        Header={
+          <PageHeader
+            header="Subset"
+            progressSteps={
+              <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'subset'} />
+            }
+          />
+        }
+        containerClassName="connect-page"
+      >
+        <div />
+      </OverviewContainer>
       <div className="flex flex-col gap-4">
         <div>
           <h2 className="text-1xl font-bold tracking-tight">
