@@ -123,6 +123,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         account.id,
         connections
       );
+      toast({
+        title: 'Successfully created the job!',
+        variant: 'success',
+      });
       window.sessionStorage.removeItem(defineFormKey);
       window.sessionStorage.removeItem(connectFormKey);
       window.sessionStorage.removeItem(schemaFormKey);

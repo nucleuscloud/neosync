@@ -101,6 +101,21 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
       },
     },
     {
+      accessorKey: 'type',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Type" />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              <Badge variant="outline">{row.getValue('type')}</Badge>
+            </span>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: 'createdAt',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Created At" />
