@@ -38,6 +38,16 @@ func (s *Service) GetAccountTemporalConfig(
 	} else if err != nil && nucleusdb.IsNoRows(err) {
 		tc = s.getDefaultTemporalConfig()
 	}
+	defaultConfig := s.getDefaultTemporalConfig()
+	if tc.Namespace == "" {
+		tc.Namespace = defaultConfig.Namespace
+	}
+	if tc.SyncJobQueueName == "" {
+		tc.SyncJobQueueName = defaultConfig.SyncJobQueueName
+	}
+	if tc.Url == "" {
+		tc.Url = defaultConfig.Url
+	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetAccountTemporalConfigResponse{
 		Config: tc.ToDto(),
