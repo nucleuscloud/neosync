@@ -53,7 +53,6 @@ func (r *dataSreamProcessor) Process(ctx context.Context, m *service.Message) (s
 	}
 	valuesMap := map[string]any{}
 	for col, value := range resp.Row {
-		fmt.Println(col)
 		switch value.Kind.(type) {
 		case *mgmtv1alpha1.Value_StringValue:
 			valuesMap[col] = value.GetStringValue()

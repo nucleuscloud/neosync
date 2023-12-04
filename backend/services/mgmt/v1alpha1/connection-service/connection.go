@@ -317,25 +317,30 @@ func (s *Service) GetConnectionDataStream(
 		}
 	}()
 
-	// update this
-	query := fmt.Sprintf("select region_id, region_name from %s.%s;", req.Msg.Schema, req.Msg.Table)
-	logger.Info(query)
-	rows, err := conn.QueryContext(ctx, query)
+	// used to get column names
+	query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table)
+	r, err := conn.QueryContext(ctx, query)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return err
 	}
 
-	columnNames, err := rows.Columns()
+	columnNames, err := r.Columns()
 	if err != nil {
 		return err
 	}
-	columnTypes, err := rows.ColumnTypes()
+
+	columnTypes, err := r.ColumnTypes()
 	if err != nil {
+		return err
+	}
+
+	selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table)
+	rows, err := conn.QueryContext(ctx, selectQuery)
+	if err != nil && !nucleusdb.IsNoRows(err) {
 		return err
 	}
 
 	for rows.Next() {
-
 		columnPointers := make([]interface{}, len(columnNames))
 		for i := range columnNames {
 			columnPointers[i] = new(interface{})
@@ -353,8 +358,6 @@ func (s *Service) GetConnectionDataStream(
 
 			// Get the PostgreSQL data type of the current column
 			dbType := columnTypes[i].DatabaseTypeName()
-			fmt.Println(dbType)
-
 			switch strings.ToLower(dbType) {
 			case "text", "varchar", "char", "citext", "json", "jsonb", "uuid":
 				value.Kind = &mgmtv1alpha1.Value_StringValue{StringValue: fmt.Sprintf("%v", val)}
@@ -365,14 +368,10 @@ func (s *Service) GetConnectionDataStream(
 			case "bool":
 				value.Kind = &mgmtv1alpha1.Value_BoolValue{BoolValue: val.(bool)}
 			default:
-				fmt.Println("default")
-				// return mgmtv1alpha1.Value_NULL_VALUE
+				value.Kind = &mgmtv1alpha1.Value_NullValue{}
 			}
 			row[name] = value
 		}
-
-		// Append the Value message to the list
-		// values = append(values, value)
 
 		if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
 			return err
