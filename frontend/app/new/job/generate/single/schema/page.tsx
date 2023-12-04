@@ -79,14 +79,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { data: connectionsData } = useGetConnections(account?.id ?? '');
   const connections = connectionsData?.connections ?? [];
 
-  // const { data: st } = useGetSystemTransformers();
-  // const { data: udt } = useGetUserDefinedTransformers(account?.id ?? '');
-
-  // const udts = udt?.transformers ?? [];
-  // const sts = st?.transformers ?? [];
-
-  // const merged = MergeSystemAndCustomTransformers(sts, udts);
-
   const sessionPrefix = searchParams?.sessionId ?? '';
 
   // Used to complete the whole form
@@ -242,9 +234,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     form.setValue(`numRows`, rowNum);
   }, [rowNum]);
 
-  // console.log('errors', form.formState.errors);
-  console.log('form', form.getValues());
-
   return (
     <div className="flex flex-col gap-20">
       <OverviewContainer
@@ -387,8 +376,6 @@ async function createNewJob(
     cronSchedule: define.cronSchedule,
     initiateJobRun: define.initiateJobRun,
     mappings: schema.mappings.map((m) => {
-      console.log('m', m.transformer);
-
       const jmt = new JobMappingTransformer({
         name: m.transformer.name,
         source: m.transformer.source,
@@ -438,7 +425,6 @@ async function createNewJob(
     ],
   });
 
-  console.log('body', body);
   const res = await fetch(`/api/jobs`, {
     method: 'POST',
     headers: {
