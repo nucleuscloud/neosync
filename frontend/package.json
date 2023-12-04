@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@types/node": "20.10.1",
-    "@types/react": "18.2.41",
+    "@types/react": "18.2.42",
     "@types/react-dom": "18.2.17",
     "@types/react-window": "^1.8.8",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
