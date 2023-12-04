@@ -150,7 +150,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             return {
               ...r,
               transformer: {
-                name: '',
+                name: 'Select a Transformer', // revisit this in the future, we should be rendering the form errors instead, since a user can't set passthrough as an option here
                 source: '',
                 config: { config: { case: '', value: {} } },
               },
@@ -217,8 +217,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       });
     }
   }
-
-  console.log('errors', form.formState.errors);
 
   const formValues = form.watch();
   const schemaTableData = formValues.mappings?.map((mapping) => ({
