@@ -6,7 +6,7 @@ replace github.com/nucleuscloud/neosync/backend => ../backend
 
 require (
 	connectrpc.com/connect v1.12.0
-	github.com/auth0/go-jwt-middleware/v2 v2.1.0
+	github.com/auth0/go-jwt-middleware/v2 v2.2.0
 	github.com/fatih/color v1.16.0
 	github.com/google/uuid v1.4.0
 	github.com/nucleuscloud/neosync/backend v0.0.0-00010101000000-000000000000
@@ -31,7 +31,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
@@ -50,6 +49,6 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/go-jose/go-jose.v2 v2.6.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 )
