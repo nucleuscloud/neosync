@@ -668,10 +668,10 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return `generate_sha256hash()`, nil
 	case "generate_ssn":
 		return "generate_ssn()", nil
-	case "state":
+	case "generate_state":
 		return "generate_state()", nil
-	case "street_address":
-		return "generates_street_address()", nil
+	case "generate_street_address":
+		return "generate_street_address()", nil
 	case "generate_string_phone":
 		ih := col.Transformer.Config.GetGenerateStringPhoneConfig().IncludeHyphens
 		return fmt.Sprintf("generate_string_phone(include_hyphens:%t)", ih), nil
