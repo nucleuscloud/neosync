@@ -58,6 +58,11 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
+      type: 'doc',
+      id: 'overview/arch',
+      label: 'Architecture',
+    },
+    {
       type: 'html',
       value: '<div>Deploy Neosync</div>',
       className: 'sidebarcategory',
