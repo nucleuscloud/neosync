@@ -57,7 +57,7 @@ export default function TransformerSelect(props: Props): ReactElement {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[300px] p-0"
+        className="w-[350px] p-0"
         side="left"
         avoidCollisions={false}
       >
@@ -97,14 +97,18 @@ export default function TransformerSelect(props: Props): ReactElement {
                       }}
                       value={t.name}
                     >
-                      <div className="flex flex-row items-center">
-                        <CheckIcon
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            value?.name == t?.name ? 'opacity-100' : 'opacity-0'
-                          )}
-                        />
-                        {t?.name}
+                      <div className="flex flex-row items-center justify-between w-full">
+                        <div className=" flex flex-row items-center">
+                          <CheckIcon
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              value?.name == t?.name
+                                ? 'opacity-100'
+                                : 'opacity-0'
+                            )}
+                          />
+                          <div className="items-center">{t?.name}</div>
+                        </div>
                         <div className="ml-2 text-gray-400 text-xs">
                           {t.dataType}
                         </div>
@@ -139,14 +143,18 @@ export default function TransformerSelect(props: Props): ReactElement {
                       }}
                       value={t.name}
                     >
-                      <div className="flex flex-row items-center">
-                        <CheckIcon
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            value?.name == t?.name ? 'opacity-100' : 'opacity-0'
-                          )}
-                        />
-                        {t?.name}
+                      <div className="flex flex-row items-center justify-between w-full">
+                        <div className=" flex flex-row items-center">
+                          <CheckIcon
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              value?.name == t?.name
+                                ? 'opacity-100'
+                                : 'opacity-0'
+                            )}
+                          />
+                          <div className="items-center">{t?.name}</div>
+                        </div>
                         <div className="ml-2 text-gray-400 text-xs">
                           {t.dataType}
                         </div>
