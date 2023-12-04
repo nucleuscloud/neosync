@@ -29,7 +29,7 @@ export default function CustomGenerateUuidForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Include hyphens</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set to true to include hyphens in the generated UUID. Note: some
                 databases such as Postgres automatically convert UUIDs with no
                 hyphens to have hyphens when they store the data.

@@ -26,7 +26,7 @@ export default function CustomTransformIntForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output first name to be the same as the
                 input
               </FormDescription>
@@ -49,7 +49,7 @@ export default function CustomTransformIntForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Sign</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Preserve the sign of the input float to the output float. For
                 example, if the input float is positive then the output float
                 will also be positive.

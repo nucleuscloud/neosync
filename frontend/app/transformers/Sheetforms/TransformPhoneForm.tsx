@@ -60,7 +60,7 @@ export default function TransformPhoneForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output phone number to be the same as the
                 input
               </FormDescription>
@@ -81,7 +81,7 @@ export default function TransformPhoneForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Include Hyphens</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Include hyphens in the output phone number. Note: this only
                 works with 10 digit phone numbers.
               </FormDescription>

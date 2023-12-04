@@ -278,7 +278,6 @@ function handleTransformerForm(
   }
   return (
     <div>
-      {' '}
       <Alert className="border-gray-200 shadow-sm">
         <div className="flex flex-row items-center gap-4">
           <MixerHorizontalIcon className="h-4 w-4" />

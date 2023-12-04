@@ -51,7 +51,7 @@ export default function GenerateGenderForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Abbreviate</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Abbreviate the gender to a single character. For example, female
                 would be returned as f.
               </FormDescription>

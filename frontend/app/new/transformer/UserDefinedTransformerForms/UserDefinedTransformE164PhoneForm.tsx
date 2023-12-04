@@ -30,7 +30,7 @@ export default function CustomTransformE164NumberForm(
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output e164 phone number to be the same as
                 the input e164 phone number.
               </FormDescription>
