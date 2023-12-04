@@ -43,7 +43,7 @@ export default function CustomGenerateFloatForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Sign</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the sign of the generated float value. You can select Random
                 in order to randomize the sign.
               </FormDescription>

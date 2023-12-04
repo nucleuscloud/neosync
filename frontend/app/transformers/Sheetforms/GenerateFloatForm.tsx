@@ -8,45 +8,33 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  GenerateFloat,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ReactElement, useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: UserDefinedTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
 export default function GenerateFloatForm(props: Props): ReactElement {
-  const { index, setIsSheetOpen, transformer } = props;
+  const { index, setIsSheetOpen } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateFloat;
-
-  const [sign, setSign] = useState<string>(
-    config?.sign ? config?.sign : 'positive'
+  const s = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.sign`
   );
+  const [sign, setSign] = useState<string>(s);
 
-  const [bd, setBd] = useState<number>(
-    config?.digitsBeforeDecimal ? Number(config.digitsBeforeDecimal) : 0
+  const bdValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.digitsBeforeDecimal`
   );
+  const [bd, setBd] = useState<number>(bdValue);
 
-  const [ad, setAd] = useState<number>(
-    config?.digitsAfterDecimal ? Number(config.digitsAfterDecimal) : 0
+  const adValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.digitsAfterDecimal`
   );
+  const [ad, setAd] = useState<number>(adValue);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -77,35 +65,38 @@ export default function GenerateFloatForm(props: Props): ReactElement {
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
-      <FormField
+      <Controller
         name={`mappings.${index}.transformer.config.config.value.sign`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
+            <div className="space-y-0 z-10">
               <FormLabel>Sign</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the sign of the generated float value. You can select Random
                 in order to randomize the sign.
               </FormDescription>
             </div>
             <FormControl>
-              <Select
-                onValueChange={(val: string) => setSign(val)}
+              <RadioGroup
+                onValueChange={(val: string) => {
+                  setSign(val);
+                }}
+                defaultValue={sign}
                 value={sign}
+                className="flex flex-col space-y-1 justify-left w-[25%]"
               >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="3" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {signs.map((item) => (
-                      <SelectItem value={item} key={item}>
-                        {item}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                {signs.map((item) => (
+                  <FormItem
+                    className="flex items-center space-x-3 space-y-0"
+                    key={item}
+                  >
+                    <FormControl>
+                      <RadioGroupItem value={item} />
+                    </FormControl>
+                    <FormLabel className="font-normal">{item}</FormLabel>
+                  </FormItem>
+                ))}
+              </RadioGroup>
             </FormControl>
           </FormItem>
         )}
@@ -116,7 +107,7 @@ export default function GenerateFloatForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Digits before decimal</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the number of digits you want the float to have before the
                 decimal place. For example, a value of 6 will result in a float
                 that is 6 digits long. This has a max of 8 digits.
@@ -146,7 +137,7 @@ export default function GenerateFloatForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Digits after decimal</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the number of digits you want the float to have after the
                 decimal place. For example, a value of 3 will result in a float
                 that has 3 digits in the decimals place. This has a max of 8
@@ -156,7 +147,7 @@ export default function GenerateFloatForm(props: Props): ReactElement {
             <FormControl>
               <Input
                 className="max-w-[180px]"
-                placeholder="10"
+                placeholder="3"
                 max={9}
                 value={ad}
                 onChange={(event) => {

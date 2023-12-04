@@ -28,7 +28,7 @@ export default function CustomTransformEmailForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output email to be the same as the input
               </FormDescription>
             </div>
@@ -49,7 +49,7 @@ export default function CustomTransformEmailForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Domain</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Preserve the input domain including top level domain to the
                 output value. For ex. if the input is john@gmail.com, the output
                 will be ij23o@gmail.com

@@ -648,7 +648,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		sign := col.Transformer.Config.GetGenerateFloatConfig().Sign
 		bd := col.Transformer.Config.GetGenerateFloatConfig().DigitsBeforeDecimal
 		ad := col.Transformer.Config.GetGenerateFloatConfig().DigitsAfterDecimal
-		return fmt.Sprintf(`generate_float(sign:%q, digits_before_decimal:%d, digits_after_decimal:%d)`, sign, bd, ad), nil
+		return fmt.Sprintf(`generate_float(sign:%q, digits_before__formdecimal:%d, digits_after_decimal:%d)`, sign, bd, ad), nil
 	case "generate_full_address":
 		return "generate_full_address()", nil
 	case "generate_full_name":

@@ -40,7 +40,7 @@ export default function CustomGenerateIntForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Sign</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the sign of the output integer.
               </FormDescription>
             </div>
@@ -74,7 +74,7 @@ export default function CustomGenerateIntForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output integer. The default length is 4.
                 The max length is 18.
               </FormDescription>

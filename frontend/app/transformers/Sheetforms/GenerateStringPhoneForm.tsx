@@ -8,28 +8,23 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  GenerateStringPhone,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: UserDefinedTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
 export default function GenerateStringPhoneForm(props: Props): ReactElement {
-  const { index, setIsSheetOpen, transformer } = props;
+  const { index, setIsSheetOpen } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateStringPhone;
-
-  const [ih, setIh] = useState<boolean>(
-    config?.includeHyphens ? config?.includeHyphens : false
+  const ihValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.includeHyphens`
   );
+
+  const [ih, setIh] = useState<boolean>(ihValue);
   const handleSubmit = () => {
     fc.setValue(
       `mappings.${index}.transformer.config.config.value.includeHyphens`,
@@ -49,7 +44,7 @@ export default function GenerateStringPhoneForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Include Hyphens</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Include hyphens in the output phone number. Note: this only
                 works with 10 digit phone numbers.
               </FormDescription>

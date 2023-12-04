@@ -39,7 +39,7 @@ export default function CustomGenerateE164NumberForm(
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output e164 compliant phone number. The
                 default length is 12. The max length is 15.
               </FormDescription>

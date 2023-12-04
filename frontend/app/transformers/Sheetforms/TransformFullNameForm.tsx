@@ -8,10 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  TransformFullName,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -25,11 +22,11 @@ export default function TransformFullNameForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as TransformFullName;
-
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
+  const plValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.preserveLength`
   );
+
+  const [pl, setPl] = useState<boolean>(plValue);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -50,7 +47,7 @@ export default function TransformFullNameForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Generates a full name which has the same first name and last
                 name length as the input first and last names
               </FormDescription>
