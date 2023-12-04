@@ -9,7 +9,7 @@ interface Props {
   leftBadgeValue?: string;
   extraHeading?: ReactNode;
   leftIcon?: ReactNode;
-
+  progressSteps?: JSX.Element;
   pageHeaderContainerClassName?: string;
 }
 
@@ -21,6 +21,7 @@ export default function PageHeader(props: Props) {
     leftIcon,
     pageHeaderContainerClassName,
     leftBadgeValue,
+    progressSteps,
   } = props;
   return (
     <div
@@ -29,25 +30,27 @@ export default function PageHeader(props: Props) {
         pageHeaderContainerClassName
       )}
     >
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center gap-3">
           {leftIcon ? leftIcon : null}
-          <div className="flex flex-row gap-2 items-center">
-            <h1 className="text-2xl font-bold tracking-tight ">{header}</h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{header}</h1>
             {leftBadgeValue && (
               <Badge variant="outline">{leftBadgeValue}</Badge>
             )}
           </div>
         </div>
+
+        <div className="flex-1 flex justify-center">{progressSteps}</div>
+
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
+
       {description ? (
         <h3 className="text-muted-foreground text-sm">{description}</h3>
       ) : null}
 
-      <div>
-        <Separator />
-      </div>
+      <Separator />
     </div>
   );
 }

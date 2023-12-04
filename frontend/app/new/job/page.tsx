@@ -12,14 +12,19 @@ import { SymbolIcon } from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { AiOutlineExperiment } from 'react-icons/ai';
 
 export type NewJobType = 'data-sync' | 'generate-table';
 
 export default function NewJob({ params }: PageProps): ReactElement {
-  const [sessionToken] = useState(params?.sessionToken ?? nanoid());
+  const [sessionToken, setSessionToken] = useState<string>('');
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Generate the session token only on the client side
+    setSessionToken(params?.sessionToken ?? nanoid());
+  }, []);
 
   const dataSyncParams = new URLSearchParams(searchParams);
   dataSyncParams.set('jobType', 'data-sync');

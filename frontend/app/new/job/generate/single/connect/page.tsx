@@ -1,4 +1,6 @@
 'use client';
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -90,9 +92,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       id="newjobflowcontainer"
       className="px-12 md:px-24 lg:px-32 flex flex-col gap-20"
     >
-      <div className="mt-10">
-        <JobsProgressSteps steps={DATA_GEN_STEPS} stepName={'connect'} />
-      </div>
+      <OverviewContainer
+        Header={
+          <PageHeader
+            header="Connect"
+            progressSteps={
+              <JobsProgressSteps steps={DATA_GEN_STEPS} stepName={'connect'} />
+            }
+          />
+        }
+        containerClassName="connect-page"
+      >
+        <div />
+      </OverviewContainer>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div

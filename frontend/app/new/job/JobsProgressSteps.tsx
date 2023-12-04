@@ -23,20 +23,21 @@ type JobProgressStep = 'define' | 'connect' | 'schema' | 'subset';
 export default function JobsProgressSteps(props: Props): ReactElement {
   const { steps, stepName } = props;
 
-  const lastStep = steps[steps.length - 1];
-  const isCompleted = stepName === lastStep;
+  const currentStepIndex = steps.indexOf(stepName);
 
   return (
     <div>
       <div className="flex flex-row items-center justify-center mt-5">
-        {steps.map((step) => {
+        {steps.map((step, index) => {
+          const isCompleted = index < currentStepIndex;
+          const isActive = step === stepName;
           return (
             <Step
               key={step}
               name={step}
               isCompleted={isCompleted}
-              isActive={step === stepName}
-              isLastStep={step === lastStep}
+              isActive={isActive}
+              isLastStep={index === steps.length - 1}
             />
           );
         })}

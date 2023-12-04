@@ -1,4 +1,6 @@
 'use client';
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
@@ -81,12 +83,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       id="newjobdefine"
       className="px-12 md:px-24 lg:px-32 flex flex-col gap-20"
     >
-      <div className="mt-10">
-        <JobsProgressSteps
-          steps={newJobType === 'data-sync' ? DATA_SYNC_STEPS : DATA_GEN_STEPS}
-          stepName={'define'}
-        />
-      </div>
+      <OverviewContainer
+        Header={
+          <PageHeader
+            header="Define"
+            progressSteps={
+              <JobsProgressSteps
+                steps={
+                  newJobType === 'data-sync' ? DATA_SYNC_STEPS : DATA_GEN_STEPS
+                }
+                stepName={'define'}
+              />
+            }
+          />
+        }
+        containerClassName="connect-page"
+      >
+        <div />
+      </OverviewContainer>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField

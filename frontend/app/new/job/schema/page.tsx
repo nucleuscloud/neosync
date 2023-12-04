@@ -1,5 +1,7 @@
 'use client';
 
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
 import {
   SchemaTable,
   getConnectionSchema,
@@ -119,9 +121,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   return (
     <div className="flex flex-col gap-20">
-      <div className="mt-10">
-        <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'schema'} />
-      </div>
+      <OverviewContainer
+        Header={
+          <PageHeader
+            header="Schema"
+            progressSteps={
+              <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'schema'} />
+            }
+          />
+        }
+        containerClassName="connect-page"
+      >
+        <div />
+      </OverviewContainer>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
