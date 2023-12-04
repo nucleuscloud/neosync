@@ -8,10 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  GenerateGender,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -25,11 +22,11 @@ export default function GenerateGenderForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateGender;
-
-  const [ab, setAb] = useState<boolean>(
-    config?.abbreviate ? config?.abbreviate : false
+  const aValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.abbreviate`
   );
+
+  const [ab, setAb] = useState<boolean>(aValue);
 
   const handleSubmit = () => {
     fc.setValue(

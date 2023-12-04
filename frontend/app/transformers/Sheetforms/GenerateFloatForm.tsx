@@ -9,10 +9,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  GenerateFloat,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 interface Props {
@@ -26,29 +23,20 @@ export default function GenerateFloatForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateFloat;
-
-  console.log('transformer config', config);
-
   const s = fc.getValues(
     `mappings.${index}.transformer.config.config.value.sign`
   );
-
-  const [sign, setSign] = useState<string>(s ? s : config?.sign);
+  const [sign, setSign] = useState<string>(s);
 
   const bdValue = fc.getValues(
     `mappings.${index}.transformer.config.config.value.digitsBeforeDecimal`
   );
-  const [bd, setBd] = useState<number>(
-    bdValue ? bdValue : Number(config.digitsBeforeDecimal)
-  );
+  const [bd, setBd] = useState<number>(bdValue);
 
   const adValue = fc.getValues(
     `mappings.${index}.transformer.config.config.value.digitsAfterDecimal`
   );
-  const [ad, setAd] = useState<number>(
-    adValue ? adValue : Number(config.digitsAfterDecimal)
-  );
+  const [ad, setAd] = useState<number>(adValue);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -76,8 +64,6 @@ export default function GenerateFloatForm(props: Props): ReactElement {
   };
 
   const signs = ['positive', 'negative', 'random'];
-
-  console.log('sign', sign);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -113,25 +99,6 @@ export default function GenerateFloatForm(props: Props): ReactElement {
                   </FormItem>
                 ))}
               </RadioGroup>
-              {/* <Select
-                onValueChange={(val: string) => {
-                  setSign(val);
-                }}
-                value={sign}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="3" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {signs.map((item) => (
-                      <SelectItem value={item} key={item}>
-                        {item}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select> */}
             </FormControl>
           </FormItem>
         )}
@@ -182,7 +149,7 @@ export default function GenerateFloatForm(props: Props): ReactElement {
             <FormControl>
               <Input
                 className="max-w-[180px]"
-                placeholder="10"
+                placeholder="3"
                 max={9}
                 value={ad}
                 onChange={(event) => {

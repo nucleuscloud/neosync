@@ -193,7 +193,7 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    case 'tranform_e164_number':
+    case 'transform_e164_phone':
       return (
         <TransformE164NumberForm
           index={index}
@@ -225,7 +225,7 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    case 'tranform_full_name':
+    case 'transform_full_name':
       return (
         <TransformFullNameForm
           index={index}

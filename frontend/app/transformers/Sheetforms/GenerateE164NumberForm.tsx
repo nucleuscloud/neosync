@@ -1,4 +1,5 @@
 'use client';
+import FormError from '@/components/FormError';
 import { Button } from '@/components/ui/button';
 import {
   FormControl,
@@ -7,19 +8,9 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  GenerateE164Number,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-import { ReactElement, useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { ReactElement, useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
@@ -32,13 +23,12 @@ export default function GenerateE164NumberForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateE164Number;
-
-  const digitLength = Array.from({ length: 15 }, (_, index) => index + 1);
-
-  const [length, setLength] = useState<number>(
-    config?.length ? Number(config?.length) : 0
+  const lValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.length`
   );
+  const [length, setLength] = useState<number>(lValue);
+  const [disableSave, setDisableSave] = useState<boolean>(false);
+  const [lengthError, setLengthError] = useState<string>('');
 
   const handleSubmit = () => {
     fc.setValue(
@@ -50,6 +40,16 @@ export default function GenerateE164NumberForm(props: Props): ReactElement {
     );
     setIsSheetOpen!(false);
   };
+
+  useEffect(() => {
+    if (length > 15 || length < 9) {
+      setDisableSave(true);
+      setLengthError('9 < length < 15.');
+    } else {
+      setDisableSave(false);
+      setLengthError('');
+    }
+  }, [setLength, length]);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -65,29 +65,21 @@ export default function GenerateE164NumberForm(props: Props): ReactElement {
               </FormDescription>
             </div>
             <FormControl>
-              <Select
-                onValueChange={(val: string) => setLength(Number(val))}
-                value={String(length)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="12" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {digitLength.map((item) => (
-                      <SelectItem value={String(item)} key={item}>
-                        {item}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+              <div className="max-w-[180px]">
+                <Input
+                  placeholder="3"
+                  max={9}
+                  value={String(length)}
+                  onChange={(e) => setLength(Number(e.target.value))}
+                />
+                <FormError errorMessage={lengthError} />
+              </div>
             </FormControl>
           </FormItem>
         )}
       />
       <div className="flex justify-end">
-        <Button type="button" onClick={handleSubmit}>
+        <Button type="button" onClick={handleSubmit} disabled={disableSave}>
           Save
         </Button>
       </div>

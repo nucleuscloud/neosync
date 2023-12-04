@@ -8,10 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  TransformPhone,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -24,15 +21,16 @@ export default function TransformPhoneForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
-
-  const config = transformer?.config?.config.value as TransformPhone;
-
-  const [ih, setIh] = useState<boolean>(
-    config?.includeHyphens ? config?.includeHyphens : false
+  const ihValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.includeHyphens`
   );
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
+
+  const [ih, setIh] = useState<boolean>(ihValue);
+  const plValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.preserveLength`
   );
+
+  const [pl, setPl] = useState<boolean>(plValue);
 
   const handleSubmit = () => {
     fc.setValue(

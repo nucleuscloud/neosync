@@ -8,10 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  TransformFloat,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
@@ -26,15 +23,17 @@ export default function TransformIntForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as TransformFloat;
-
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
+  const plValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.preserveLength`
   );
 
-  const [ps, setPs] = useState<boolean>(
-    config?.preserveSign ? config?.preserveSign : false
+  const [pl, setPl] = useState<boolean>(plValue);
+
+  const psValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.preserveSign`
   );
+
+  const [ps, setPs] = useState<boolean>(psValue);
 
   const handleSubmit = () => {
     fc.setValue(

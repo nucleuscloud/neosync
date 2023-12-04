@@ -8,10 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  GenerateUuid,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -25,11 +22,11 @@ export default function GenerateUuidForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateUuid;
-
-  const [ih, setIh] = useState<boolean>(
-    config?.includeHyphens ? config?.includeHyphens : false
+  const ihValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.includeHyphens`
   );
+
+  const [ih, setIh] = useState<boolean>(ihValue);
 
   const handleSubmit = () => {
     fc.setValue(

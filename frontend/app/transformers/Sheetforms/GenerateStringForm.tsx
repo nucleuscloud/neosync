@@ -8,10 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  GenerateString,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -25,11 +22,11 @@ export default function GenerateStringForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateString;
-
-  const [sl, setSl] = useState<number>(
-    config?.length ? Number(config.length) : 0
+  const sLength = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.length`
   );
+
+  const [sl, setSl] = useState<number>(sLength);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -59,6 +56,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
                 type="number"
                 className="max-w-[180px]"
                 placeholder="6"
+                value={String(sl)}
                 onChange={(event) => {
                   setSl(Number(event.target.value));
                 }}
