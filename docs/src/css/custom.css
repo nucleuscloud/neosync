@@ -141,8 +141,8 @@ this is the class for the sidebar categories that section headers
     @apply text-xs;
   }
 
-  .menu__link--sublist-caret {
-    @apply text-gray-900;
+  .menu__link--sublist {
+    @apply text-gray-900 font-[10px];
   }
 
   .docsImage {

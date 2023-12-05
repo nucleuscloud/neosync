@@ -11,7 +11,12 @@ import {
   AiOutlineMail,
   AiOutlinePhone,
 } from 'react-icons/ai';
-import { BiLogoPostgresql, BiSolidCity, BiTimeFive } from 'react-icons/bi';
+import {
+  BiLogoPostgresql,
+  BiSolidCity,
+  BiTerminal,
+  BiTimeFive,
+} from 'react-icons/bi';
 import {
   BsCalendarDate,
   BsFillKeyFill,
@@ -27,7 +32,7 @@ import {
   FaStreetView,
 } from 'react-icons/fa';
 import { GiTexas } from 'react-icons/gi';
-import { GoCode } from 'react-icons/go';
+import { GoCode, GoTable } from 'react-icons/go';
 import { GrMysql, GrSecure } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword } from 'react-icons/md';
@@ -38,7 +43,7 @@ import {
   RxLetterCaseCapitalize,
 } from 'react-icons/rx';
 import { SiKubernetes } from 'react-icons/si';
-import { TbDecimal } from 'react-icons/tb';
+import { TbDecimal, TbVariable } from 'react-icons/tb';
 import { TiSortNumerically } from 'react-icons/ti';
 
 export function IconHandler(name: string): ReactElement {
@@ -67,9 +72,9 @@ export function IconHandler(name: string): ReactElement {
       return <AiOutlinePhone />;
     case 'SSN':
       return <MdPassword />;
-    case 'Custom':
+    case 'User Defined':
       return <GoCode />;
-    case 'System':
+    case 'System Transformers':
       return <IoBuildOutline />;
     case 'Use cases':
       return <BsShieldCheck />;
@@ -117,6 +122,12 @@ export function IconHandler(name: string): ReactElement {
       return <BsPinMap />;
     case 'Hash':
       return <GrSecure />;
+    case 'Neosync CLI':
+      return <BiTerminal />;
+    case 'Environment Variables':
+      return <TbVariable />;
+    case 'Reference':
+      return <GoTable />;
     default:
       return <LayersIcon />;
   }

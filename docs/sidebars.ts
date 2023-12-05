@@ -165,7 +165,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'System',
+      label: 'System Transformers',
       collapsible: true,
       collapsed: true,
       items: [
