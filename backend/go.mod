@@ -12,7 +12,7 @@ require (
 	connectrpc.com/otelconnect v0.6.0
 	connectrpc.com/validate v0.1.0
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/auth0/go-auth0 v1.3.0
+	github.com/auth0/go-auth0 v1.3.1
 	github.com/auth0/go-jwt-middleware/v2 v2.2.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gogo/status v1.1.1
@@ -287,7 +287,7 @@ require (
 	golang.org/x/crypto v0.16.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/mod v0.13.0 // indirect
-	golang.org/x/oauth2 v0.14.0 // indirect
+	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/term v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
