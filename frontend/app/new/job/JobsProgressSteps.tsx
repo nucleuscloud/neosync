@@ -1,4 +1,4 @@
-import { Step } from '@/components/progress-steps/Step';
+import Step from '@/components/progress-steps/Step';
 import { ReactElement } from 'react';
 
 interface Props {
