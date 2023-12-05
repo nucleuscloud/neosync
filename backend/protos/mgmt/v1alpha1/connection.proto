@@ -181,8 +181,7 @@ message ForeignConstraintTables {
 }
 message GetConnectionForeignConstraintsResponse {
   map<string, ForeignConstraintTables> table_constraints = 1;
-} 
-
+}
 
 service ConnectionService {
   rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
@@ -197,6 +196,5 @@ service ConnectionService {
   rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}
 
   rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns (stream GetConnectionDataStreamResponse) {}
-  rpc GetConnectionForeignConstraints(GetConnectionForeignConstraintsRequest) returns (GetConnectionForeignConstraintsResponse){}
-
+  rpc GetConnectionForeignConstraints(GetConnectionForeignConstraintsRequest) returns (GetConnectionForeignConstraintsResponse) {}
 }
