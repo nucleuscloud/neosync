@@ -3,10 +3,12 @@ package sync_cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -14,7 +16,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
-	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/processors"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/spf13/cobra"
@@ -25,6 +26,8 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
+	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
+
 	"github.com/benthosdev/benthos/v4/public/service"
 )
 
@@ -33,12 +36,16 @@ func NewCmd() *cobra.Command {
 		Use:   "sync",
 		Short: "One off sync job to local resource",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			apiKey, err := cmd.Flags().GetString("api-key")
+			apiKeyStr, err := cmd.Flags().GetString("api-key")
 			if err != nil {
 				return err
 			}
 			cmd.SilenceUsage = true
-			return sync(cmd.Context(), &apiKey)
+			var apiKey *string
+			if apiKeyStr != "" {
+				apiKey = &apiKeyStr
+			}
+			return sync(cmd.Context(), apiKey)
 		},
 	}
 
@@ -59,35 +66,9 @@ func sync(ctx context.Context, apiKey *string) error {
 		),
 	)
 
-	// stream, err := connectionclient.GetConnectionDataStream(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionDataStreamRequest{
-	// 	SourceConnectionId: "3b4db2af-ef33-4e26-b0b9-f6df7518e78b",
-	// 	Schema:             "public",
-	// 	Table:              "regions",
-	// }))
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return err
-	// }
-	// fmt.Println("get data stream")
-
-	// for {
-	// 	response := stream.Receive()
-	// 	fmt.Println("stream")
-	// 	if response {
-	// 		// for _, v := range stream.Msg().Row {
-	// 		// 	fmt.Println(string(v))
-	// 		// }
-	// 		jsonF, _ := json.MarshalIndent(stream.Msg().Row, "", " ")
-	// 		fmt.Printf("\n\n  %s \n\n", string(jsonF))
-	// 		// fmt.Println(string(stream.Msg().Data))
-
-	// 	} else {
-	// 		return nil
-	// 	}
-
-	// }
-
 	sourceConnectionId := "3b4db2af-ef33-4e26-b0b9-f6df7518e78b"
+	driver := "postgres"
+
 	schemaResp, err := connectionclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 		Id: sourceConnectionId,
 	}))
@@ -96,21 +77,74 @@ func sync(ctx context.Context, apiKey *string) error {
 	}
 
 	tables := getSchemaTables(schemaResp.Msg.GetSchemas())
+	schemaMap := map[string]string{}
+	for _, t := range tables {
+		schemaMap[t.Schema] = t.Schema
+	}
+
+	schemas := make([]string, 0, len(schemaMap))
+
+	for schema := range schemaMap {
+		schemas = append(schemas, schema)
+	}
 	jsonF, _ := json.MarshalIndent(tables, "", " ")
 	fmt.Printf("\n\n  %s \n\n", string(jsonF))
 
-	tablesTest := []*SqlTable{{
-		Schema: "public",
-		Table:  "regions",
-		Columns: []string{"region_id",
-			"region_name"},
-	}}
+	fkConnectionResp, err := connectionclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: sourceConnectionId}))
+	if err != nil {
+		return err
+	}
+	tableConstraints := fkConnectionResp.Msg.GetTableConstraints()
 
-	for _, table := range tablesTest {
+	configs := []*benthosConfigResponse{}
+	for _, table := range tables {
+		name := fmt.Sprintf("%s.%s", table.Schema, table.Table)
+		dependsOn := tableConstraints[name].GetTables()
 
-		benthosConfig := generateBenthosConfig(table.Schema, table.Table, sourceConnectionId, "http://localhost:8080/mgmt.v1alpha1.ConnectionService/GetConnectionDataStream", table.Columns, apiKey)
+		for _, n := range dependsOn {
+			if name == n {
+				return errors.New("circluar dependency")
+			}
+		}
 
-		configbits, err := yaml.Marshal(benthosConfig.Config)
+		benthosConfig := generateBenthosConfig(table.Schema, table.Table, sourceConnectionId, serverconfig.GetApiBaseUrl(), driver, table.Columns, dependsOn, apiKey)
+		configs = append(configs, benthosConfig)
+	}
+
+	sortedConfigs := sortConfigs(configs)
+	for _, cfg := range sortedConfigs {
+		fmt.Println(cfg.Name)
+		x, _ := json.MarshalIndent(cfg.DependsOn, "", " ")
+		fmt.Printf("%s \n", string(x))
+		fmt.Println("--------------")
+	}
+
+	// order by dependency size
+	// create list of completed configs
+	// keep looping until completed configs list is of the table size
+
+	numConfigs := len(sortedConfigs)
+	completedConfigs := map[string]struct{}{}
+	index := 0
+	for len(completedConfigs) != numConfigs {
+		fmt.Println("--------")
+		jsonF, _ := json.MarshalIndent(completedConfigs, "", " ")
+		fmt.Printf("\n  %s \n", string(jsonF))
+		fmt.Println(index)
+
+		cfg := sortedConfigs[index]
+		fmt.Println(cfg.Name)
+		x, _ := json.MarshalIndent(cfg.DependsOn, "", " ")
+		fmt.Printf("\n  %s \n", string(x))
+		_, completed := completedConfigs[cfg.Name]
+		if completed || !isConfigReady(cfg, completedConfigs) {
+			fmt.Println(fmt.Sprintf("completed: %t", completed))
+			fmt.Println("either completed or not ready")
+			index = (index + 1) % numConfigs
+			continue
+		}
+
+		configbits, err := yaml.Marshal(cfg.Config)
 		if err != nil {
 			// logger.Error("unable to marshal benthos config", "err", err)
 			// settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
@@ -162,10 +196,28 @@ func sync(ctx context.Context, apiKey *string) error {
 			return fmt.Errorf("unable to run benthos stream: %w", err)
 		}
 		benthosStream = nil
+		completedConfigs[cfg.Name] = struct{}{}
+		index = (index + 1) % numConfigs
 	}
 
 	return nil
 
+}
+
+func isConfigReady(config *benthosConfigResponse, completed map[string]struct{}) bool {
+	if config == nil {
+		return false
+	}
+
+	if len(config.DependsOn) == 0 {
+		return true
+	}
+	for _, dep := range config.DependsOn {
+		if _, ok := completed[dep]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 type SqlTable struct {
@@ -196,6 +248,13 @@ func getSchemaTables(schemas []*mgmtv1alpha1.DatabaseColumn) []*SqlTable {
 		})
 	}
 	return tables
+}
+
+func sortConfigs(configs []*benthosConfigResponse) []*benthosConfigResponse {
+	sort.SliceStable(configs, func(i, j int) bool {
+		return len(configs[i].DependsOn) < len(configs[j].DependsOn)
+	})
+	return configs
 }
 
 const (
@@ -237,46 +296,33 @@ type benthosConfigResponse struct {
 	Config    *neosync_benthos.BenthosConfig
 }
 
-func generateBenthosConfig(schema, table, sourceConnectionId, sourceDataStreamUrl string, columns []string, authToken *string) *benthosConfigResponse {
-	payload := fmt.Sprintf(`{"source_connection_id": %q, "schema": %q, "table": %q}`, sourceConnectionId, table, schema)
+func generateBenthosConfig(
+	schema, table, sourceConnectionId, sourceDataStreamUrl, driver string,
+	columns, dependsOn []string,
+	authToken *string,
+) *benthosConfigResponse {
 	tableName := fmt.Sprintf("%s.%s", schema, table)
 
-	contentType := "application/connect+json"
-	acceptHeader := "application/grpc-web+json"
 	bc := &neosync_benthos.BenthosConfig{
 		StreamConfig: neosync_benthos.StreamConfig{
 			Input: &neosync_benthos.InputConfig{
 				Inputs: neosync_benthos.Inputs{
-					HttpClient: &neosync_benthos.HttpClient{
-						Url:  sourceDataStreamUrl,
-						Verb: "POST",
-						Headers: &neosync_benthos.Headers{
-							Authorization: authToken,
-							ContentType:   &contentType,
-							Accept:        &acceptHeader,
-						},
-						Payload: &payload,
-						Timeout: "5s",
-						Stream: &neosync_benthos.Stream{
-							Enabled: true,
-							Codec:   "all-bytes",
-						},
+					Neosync: &neosync_benthos.Neosync{
+						ApiKey:       authToken,
+						ApiUrl:       sourceDataStreamUrl,
+						ConnectionId: sourceConnectionId,
+						Schema:       schema,
+						Table:        table,
 					},
 				},
 			},
-			Pipeline: &neosync_benthos.PipelineConfig{
-				Threads: -1,
-				Processors: []neosync_benthos.ProcessorConfig{
-					{
-						DataStream: &neosync_benthos.DataStream{},
-					},
-				},
-			},
+			Pipeline: &neosync_benthos.PipelineConfig{},
 			Output: &neosync_benthos.OutputConfig{
 				Outputs: neosync_benthos.Outputs{
 					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver:      "postgres",
-						Dsn:         "postgresql://postgres:foofar@localhost:5434/nucleus?sslmode=disable",
+						Driver: driver,
+						Dsn:    "postgresql://postgres:foofar@localhost:5434/nucleus?sslmode=disable",
+						// InitStatement: initStmt,
 						Table:       tableName,
 						Columns:     columns,
 						ArgsMapping: buildPlainInsertArgs(columns),
@@ -296,6 +342,6 @@ func generateBenthosConfig(schema, table, sourceConnectionId, sourceDataStreamUr
 	return &benthosConfigResponse{
 		Name:      tableName,
 		Config:    bc,
-		DependsOn: []string{},
+		DependsOn: dependsOn,
 	}
 }

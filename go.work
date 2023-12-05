@@ -4,5 +4,4 @@ use (
 	./backend
 	./cli
 	./worker
-	./dbcore
 )

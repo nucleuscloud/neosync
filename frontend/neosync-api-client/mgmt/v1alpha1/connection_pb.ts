@@ -1563,3 +1563,114 @@ export class ListValue extends Message<ListValue> {
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionForeignConstraintsRequest
+ */
+export class GetConnectionForeignConstraintsRequest extends Message<GetConnectionForeignConstraintsRequest> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  constructor(data?: PartialMessage<GetConnectionForeignConstraintsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionForeignConstraintsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionForeignConstraintsRequest {
+    return new GetConnectionForeignConstraintsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionForeignConstraintsRequest {
+    return new GetConnectionForeignConstraintsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionForeignConstraintsRequest {
+    return new GetConnectionForeignConstraintsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionForeignConstraintsRequest | PlainMessage<GetConnectionForeignConstraintsRequest> | undefined, b: GetConnectionForeignConstraintsRequest | PlainMessage<GetConnectionForeignConstraintsRequest> | undefined): boolean {
+    return proto3.util.equals(GetConnectionForeignConstraintsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ForeignConstraintTables
+ */
+export class ForeignConstraintTables extends Message<ForeignConstraintTables> {
+  /**
+   * @generated from field: repeated string tables = 1;
+   */
+  tables: string[] = [];
+
+  constructor(data?: PartialMessage<ForeignConstraintTables>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ForeignConstraintTables";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "tables", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ForeignConstraintTables {
+    return new ForeignConstraintTables().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ForeignConstraintTables {
+    return new ForeignConstraintTables().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ForeignConstraintTables {
+    return new ForeignConstraintTables().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ForeignConstraintTables | PlainMessage<ForeignConstraintTables> | undefined, b: ForeignConstraintTables | PlainMessage<ForeignConstraintTables> | undefined): boolean {
+    return proto3.util.equals(ForeignConstraintTables, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionForeignConstraintsResponse
+ */
+export class GetConnectionForeignConstraintsResponse extends Message<GetConnectionForeignConstraintsResponse> {
+  /**
+   * @generated from field: map<string, mgmt.v1alpha1.ForeignConstraintTables> table_constraints = 1;
+   */
+  tableConstraints: { [key: string]: ForeignConstraintTables } = {};
+
+  constructor(data?: PartialMessage<GetConnectionForeignConstraintsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionForeignConstraintsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table_constraints", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ForeignConstraintTables} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionForeignConstraintsResponse {
+    return new GetConnectionForeignConstraintsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionForeignConstraintsResponse {
+    return new GetConnectionForeignConstraintsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionForeignConstraintsResponse {
+    return new GetConnectionForeignConstraintsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionForeignConstraintsResponse | PlainMessage<GetConnectionForeignConstraintsResponse> | undefined, b: GetConnectionForeignConstraintsResponse | PlainMessage<GetConnectionForeignConstraintsResponse> | undefined): boolean {
+    return proto3.util.equals(GetConnectionForeignConstraintsResponse, a, b);
+  }
+}
+

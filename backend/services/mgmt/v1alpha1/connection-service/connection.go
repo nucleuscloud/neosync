@@ -3,11 +3,14 @@ package v1alpha1_connectionservice
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -16,6 +19,12 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	conn_utils "github.com/nucleuscloud/neosync/backend/internal/utils/connections"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	"golang.org/x/sync/errgroup"
+
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/internal/dbschemas/mysql"
+	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/internal/dbschemas/postgres"
 )
 
 const (
@@ -356,15 +365,61 @@ func (s *Service) GetConnectionDataStream(
 			val := *columnPointers[i].(*interface{})
 			value := &mgmtv1alpha1.Value{}
 
+			if val == nil {
+				value.Kind = &mgmtv1alpha1.Value_NullValue{}
+				row[name] = value
+				continue
+			}
+
 			// Get the PostgreSQL data type of the current column
 			dbType := columnTypes[i].DatabaseTypeName()
+			fmt.Println(name)
+			fmt.Println(dbType)
+			fmt.Println(val)
+
 			switch strings.ToLower(dbType) {
 			case "text", "varchar", "char", "citext", "json", "jsonb", "uuid":
 				value.Kind = &mgmtv1alpha1.Value_StringValue{StringValue: fmt.Sprintf("%v", val)}
+			case "bpchar": // Handling BPCHAR separately
+				byteSlice, ok := val.([]uint8)
+				if !ok {
+					// Handle the error if val is not a byte slice
+					value.Kind = &mgmtv1alpha1.Value_NullValue{}
+					continue
+				}
+				strValue := string(byteSlice)
+				value.Kind = &mgmtv1alpha1.Value_StringValue{StringValue: strValue}
 			case "int", "int2", "int4", "int8", "serial", "serial2", "serial4", "serial8":
 				value.Kind = &mgmtv1alpha1.Value_NumberValue{NumberValue: float64(val.(int64))}
-			case "float4", "float8", "numeric", "decimal":
+			case "float4", "float8", "decimal":
 				value.Kind = &mgmtv1alpha1.Value_NumberValue{NumberValue: float64(val.(int64))}
+			case "numeric":
+				// Convert the byte slice to string first
+				byteSlice, ok := val.([]uint8)
+				if !ok {
+					// Handle the error if val is not a byte slice
+					// For example, set value.Kind to a null value or an error value
+					value.Kind = &mgmtv1alpha1.Value_NullValue{}
+					continue
+				}
+				// Parse the string to a float64
+				strValue := string(byteSlice)
+				floatValue, err := strconv.ParseFloat(strValue, 64)
+				if err != nil {
+					// Handle the error if the string cannot be parsed to float64
+					// For example, set value.Kind to a null value or an error value
+					value.Kind = &mgmtv1alpha1.Value_NullValue{}
+					continue
+				}
+				value.Kind = &mgmtv1alpha1.Value_NumberValue{NumberValue: floatValue}
+			case "date", "timestamp": // Handling date and timestamp types
+				timeVal, ok := val.(time.Time)
+				if !ok {
+					value.Kind = &mgmtv1alpha1.Value_NullValue{}
+					continue
+				}
+				strValue := timeVal.Format(time.RFC3339) // You can change the format as needed
+				value.Kind = &mgmtv1alpha1.Value_StringValue{StringValue: strValue}
 			case "bool":
 				value.Kind = &mgmtv1alpha1.Value_BoolValue{BoolValue: val.(bool)}
 			default:
@@ -379,6 +434,152 @@ func (s *Service) GetConnectionDataStream(
 	}
 	return nil
 
+}
+
+func (s *Service) GetConnectionForeignConstraints(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("connectionId", req.Msg.ConnectionId)
+	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.ConnectionId}))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	connDetails, err := s.getConnectionDetails(connection.Msg.Connection.ConnectionConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaResp, err := s.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{Id: req.Msg.ConnectionId}))
+	if err != nil {
+		return nil, err
+	}
+
+	schemaMap := map[string]struct{}{}
+	for _, s := range schemaResp.Msg.GetSchemas() {
+		schemaMap[s.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for s := range schemaMap {
+		schemas = append(schemas, s)
+	}
+
+	var td map[string][]string
+	switch connDetails.ConnectionDriver {
+	case "postgres":
+		pgquerier := pg_queries.New()
+		pool, err := pgxpool.New(ctx, connDetails.ConnectionString)
+		if err != nil {
+			return nil, err
+		}
+		allConstraints, err := getAllPostgresFkConstraints(pgquerier, ctx, pool, schemas)
+		if err != nil {
+			return nil, err
+		}
+		td = dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+	case "mysql":
+		mysqlquerier := mysql_queries.New()
+		conn, err := s.sqlConnector.Open(connDetails.ConnectionDriver, connDetails.ConnectionString)
+		if err != nil {
+			logger.Error("unable to connect", err)
+			return nil, err
+		}
+		defer func() {
+			if err := conn.Close(); err != nil {
+				logger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
+			}
+		}()
+		allConstraints, err := getAllMysqlFkConstraints(mysqlquerier, ctx, conn, schemas)
+		if err != nil {
+			return nil, err
+		}
+		td = dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
+	default:
+		return nil, errors.New("unsupported fk connection")
+	}
+
+	constraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
+	for key, tables := range td {
+		constraints[key] = &mgmtv1alpha1.ForeignConstraintTables{
+			Tables: tables,
+		}
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionForeignConstraintsResponse{
+		TableConstraints: constraints,
+	}), nil
+}
+
+func getAllPostgresFkConstraints(
+	pgquerier pg_queries.Querier,
+	ctx context.Context,
+	conn pg_queries.DBTX,
+	// conn *sql.DB,
+	uniqueSchemas []string,
+) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
+	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range uniqueSchemas {
+		idx := idx
+		schema := uniqueSchemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := pgquerier.GetForeignKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*pg_queries.GetForeignKeyConstraintsRow{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
+}
+
+func getAllMysqlFkConstraints(
+	mysqlquerier mysql_queries.Querier,
+	ctx context.Context,
+	conn *sql.DB,
+	schemas []string,
+) ([]*mysql_queries.GetForeignKeyConstraintsRow, error) {
+	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range schemas {
+		idx := idx
+		schema := schemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := mysqlquerier.GetForeignKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*mysql_queries.GetForeignKeyConstraintsRow{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
 }
 
 // func mapDatabaseTypeToValueFieldType(dbType string) mgmtv1alpha1.isValue_Kind {

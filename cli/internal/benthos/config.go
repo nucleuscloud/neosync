@@ -31,6 +31,15 @@ type InputConfig struct {
 type Inputs struct {
 	SqlSelect  *SqlSelect  `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
 	HttpClient *HttpClient `json:"http_client,omitempty" yaml:"http_client,omitempty"`
+	Neosync    *Neosync    `json:"neosync,omitempty" yaml:"neosync,omitempty"`
+}
+
+type Neosync struct {
+	ApiKey       *string `json:"api_key,omitempty" yaml:"api_key,omitempty"`
+	ApiUrl       string  `json:"api_url" yaml:"api_url"`
+	ConnectionId string  `json:"connection_id" yaml:"connection_id"`
+	Schema       string  `json:"schema" yaml:"schema"`
+	Table        string  `json:"table" yaml:"table"`
 }
 
 type HttpClient struct {

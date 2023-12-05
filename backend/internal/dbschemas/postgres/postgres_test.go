@@ -3,7 +3,7 @@ package dbschemas_postgres
 import (
 	"testing"
 
-	pg_queries "github.com/nucleuscloud/neosync/dbcore/pkg/gen/go/db/postgresql"
+	pg_queries "github.com/nucleuscloud/neosync/cli/gen/go/db/postgresql"
 	"github.com/stretchr/testify/assert"
 )
 

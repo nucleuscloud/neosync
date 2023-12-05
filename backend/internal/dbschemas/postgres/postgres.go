@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	dbschemas_utils "github.com/nucleuscloud/neosync/dbcore/pkg/dbschemas"
-	pg_queries "github.com/nucleuscloud/neosync/dbcore/pkg/gen/go/db/postgresql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/internal/dbschemas"
 
 	"golang.org/x/sync/errgroup"
 )

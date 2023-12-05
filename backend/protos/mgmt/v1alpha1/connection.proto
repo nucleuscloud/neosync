@@ -222,15 +222,15 @@ message ListValue {
 }
 
 
-// message GetConnectionDataStreamResponse {
-//   // bytes data = 1;
-//   string Schema = 1;
-//   string Table = 1;
-//   repeated string columns = 3;
-//   repeated bytes values = 4;
-//   // or
-//   // repeated ColVal records = 5
-// }
+message GetConnectionForeignConstraintsRequest {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message ForeignConstraintTables {
+  repeated string tables = 1;
+}
+message GetConnectionForeignConstraintsResponse {
+  map<string, ForeignConstraintTables> table_constraints = 1;
+} 
 
 
 service ConnectionService {
@@ -246,4 +246,6 @@ service ConnectionService {
   rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}
 
   rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns (stream GetConnectionDataStreamResponse) {}
+  rpc GetConnectionForeignConstraints(GetConnectionForeignConstraintsRequest) returns (GetConnectionForeignConstraintsResponse){}
+
 }

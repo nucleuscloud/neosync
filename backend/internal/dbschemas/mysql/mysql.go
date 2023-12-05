@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	dbschemas_utils "github.com/nucleuscloud/neosync/dbcore/pkg/dbschemas"
-	mysql_queries "github.com/nucleuscloud/neosync/dbcore/pkg/gen/go/db/mysql"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/internal/dbschemas"
 )
 
 type GetTableCreateStatementRequest struct {
