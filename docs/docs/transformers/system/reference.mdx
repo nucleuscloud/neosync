@@ -125,7 +125,7 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
         'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_gender.go',
     },
     {
-      title: 'Generate int64 Phone Number',
+      title: 'Generate Int64 Phone Number',
       type: 'int64',
       description:
         'Generates a new phone number of type int64 with a default length of 10.',
@@ -804,7 +804,7 @@ Here are some examples of what an output full name value may look like.
 
 ### Generate Gender{#generate-gender}
 
-The gender transformer randomly selects a gender value from a predefined list of genders. Here is the list:
+The generate gender transformer randomly selects a gender value from a predefined list of genders. Here is the list:
 
 <DocsTable
   headers={['Gender', 'Abbreviation']}
@@ -870,7 +870,7 @@ There are several ways you can mix-and-match configurations to get different ful
   ]}
 />
 
-### Generate int64 Phone Number{#generate-int64-phone-number}
+### Generate Int64 Phone Number{#generate-int64-phone-number}
 
 The generate int64 phone number generates a random 10 digit phone number and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system/reference#generate-string-phone-number).
 
@@ -908,7 +908,7 @@ By default, the generate random int64 transformer generates an integer of 4 digi
 
 **Configurations**
 
-Depending on your validations, you may want to configure the output integer. The random integer transformer has the following configurations:
+Depending on your validations, you may want to configure the output float. The random integer transformer has the following configurations:
 
 <DocsTable
   headers={[
@@ -1107,7 +1107,108 @@ Here are some examples of what an output street address value may look like.
 
 ### Generate String Phone Number{#generate-string-phone-number}
 
+The generate string phone transformer generates a random string phone number. By default, the string phone transformer generates a random 10 digit phone number with no hyphens.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output phone number. The generate string phone number transformer has the following configuration:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Include hyphens',
+        'Includes hyphens in the output phone numnber. Note that this config can only be used with default 10 digit phone numbers. ',
+        'false',
+        'N/A',
+        '290-374-8675',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
+
+<DocsTable
+  headers={[
+    'Include Hyphens',
+    'Example Input',
+    'Example Output',
+
+]}
+rowData={[{
+data: ['false', 'N/A', '5209273239'],
+},
+{
+data: ['true', , 'N/A', '520-927-3239'],
+},
+{
+data: ['false', 'N/A', '2927323921'],
+},
+]}
+/>
+
 ### Generate Random String{#generate-random-string}
+
+The generate random string transformer generates a random string of alphanumeric characters.
+
+For example:
+`h2983hf28h92`
+
+By default, the random string transformer generates a string of 10 characters long.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output string. The generate string transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'length',
+        'Specifies how many digits you want the string to be. ',
+        '6',
+        'N/A',
+        'noIB8a',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['Length', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['5', 'N/A', 'je7R6'],
+    },
+    {
+      data: ['10', 'N/A', '29h23rega9'],
+    },
+    {
+      data: ['2', 'N/A', 'h2'],
+    },
+  ]}
+/>
 
 ### Generate Unix Timestamp{#generate-unix-timestamp}
 
@@ -1161,7 +1262,7 @@ Here are some examples of what an output state value may look like.
 
 ### Generate UTC Timestamp{#generate-utc-timestamp}
 
-The utc timestamp transformer randomly generates a utc timestamp in UTC timezone and returns back an time.Time representation of that timestamp.
+The generate utc timestamp transformer randomly generates a utc timestamp in UTC timezone and returns back an time.Time representation of that timestamp.
 
 By default, the generated timestamp will always be in the **past**.
 
@@ -1195,7 +1296,7 @@ Here are some examples of what an output state value may look like.
 
 ### Generate UUID{#generate-uuid}
 
-The UUID transformer generates a new UUID v4.
+The generate UUID transformer generates a new UUID v4.
 
 For example:
 `6d871028b072442c9ad9e6e4e223adfa`
@@ -1269,23 +1370,19 @@ Here are some examples of what an output zipcode value may look like.
 
 ### Transform E164 Phone Number{#transform-e164-phone-number}
 
-The phone transformer can anonymize an existing phone number or completely generate a new one. There are two phone number transformers that differ by type and the configurations that are available to customize the transformer. This transformer specifically takes a string value and returns a string value. The [Phone (integer) transformer](/transformers/system/string-phone) takes in an integer value and returns an integer value.
-
-By default, the phone (string) transformer generates a random 10 digit phone number with no hyphens.
+The transform e164 phone transformer can anonymize an existing e164 phone number or completely generate a new one. It returns a string value with the format `+<number>`.
 
 For example, the following input value:
-`7829828714`
+`+7829828714`
 
-Would produce the following ouput value:
-`5698437232`
+Could produce the following ouput value:
+`+5698437232`
 
-You can see we generated a new phone string value that can be used as an string phone number.
+E164 Phone numbers vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to respect the length of the input value in order maintain the same shape as the input value.
 
-Phone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to respect the length of the input value if you're working with phone numbers longer than 10 digits in length. In fact, you can generate a specific international "looking" phone number by specifying the [e164 format](https://www.twilio.com/docs/glossary/what-e164) config.
+**Configurations**
 
-## Configurations
-
-Depending on your validations, you may want to configure the output phone number. As we discussed above, some phone numbers may be longer than the default 10 digits in length. The phone number (string) transformer has the following configurations:
+Depending on your validations, you may want to configure the output e164 phone number. The transform e164 phone number transformer has the following configurations:
 
 <DocsTable
   headers={[
@@ -1298,68 +1395,35 @@ Depending on your validations, you may want to configure the output phone number
   rowData={[
     {
       data: [
-        'Include hyphens',
-        'Includes hyphens in the output phone numnber. Note that this config can only be used with default 10 digit phone numbers. ',
+        'Preserve Length',
+        'Preserve Length will ensure that the output e164phone number is the same length as the input phone number. If set to false, it will generate a value between 9 and 15 characters long.',
         'false',
-        '9238724378',
-        '290-374-8675',
-      ],
-    },
-    {
-      data: [
-        'PreserveLength',
-        'Preserve Length will ensure that the output phone number is the same length as the input phone number.',
-        'false',
-        '892387243786243',
-        '290374867526392',
-      ],
-    },
-    {
-      data: [
-        'e164 Format',
-        'Will output the phone number in e164 format which includes a + sign at the beginning of the phone number.',
-        'false',
-        '89238724378',
-        '+29486752632',
+        '+8923786243',
+        '+290374867526',
       ],
     },
   ]}
 />
 
-## Examples
+**Examples**
 
-There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
+Here are some examples of what the transform e164 phone number tranformer can output:
 
 <DocsTable
-  headers={[
-    'PreserveLength',
-    'Include Hyphens',
-    'e164 Format',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['Preserve Length', 'Example Input', 'Example Output']}
   rowData={[
     {
-      data: ['false', 'false', 'false', '2890923784', '5209273239'],
+      data: ['false', '+2890923784', '+520927392'],
     },
     {
-      data: ['false', 'true', 'false', '2890923784', '520-927-3239'],
-    },
-    {
-      data: ['true', 'false', 'false', '289092378423', '520927323239'],
-    },
-    {
-      data: ['false', 'false', 'true', '2890923784', '+520922339'],
-    },
-    {
-      data: ['true', 'false', 'true', '+289092378423', '+520927323921'],
+      data: ['true', '+62890923784', '+52092732393'],
     },
   ]}
 />
 
 ### Transform First Name{#transform-first-name}
 
-The generate first name transformer generates a valid first name from a list of predefined first name values. You can see the entire list of first name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/first-names.json).
+The transform first name transformer generates a valid first name from a list of predefined first name values. You can see the entire list of first name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/first-names.json).
 
 By default, the first name transformer generates a first name of random length. To preserve the length of the input first name, you can set the `preserveLength` config.
 
@@ -1381,7 +1445,7 @@ Depending on your validations, you may want to configure the output first name. 
         'PreserveLength',
         'Preserve Length will ensure that the output first name is the same length as the input first name. The preserveLength config only preserves names up to 12 characters long.',
         'false',
-        'John',
+        'Johnathan',
         'Bill',
       ],
     },
@@ -1390,7 +1454,7 @@ Depending on your validations, you may want to configure the output first name. 
 
 **Examples**
 
-There are several ways you can mix-and-match configurations to get different first name formats. Here are some possible combinations:
+Here are some examples of what the transform first name tranformer can output:
 
 <DocsTable
   headers={['PreserveLength', 'Example Input', 'Example Output']}
@@ -1401,22 +1465,19 @@ There are several ways you can mix-and-match configurations to get different fir
     {
       data: ['true', 'Frank', 'Dante'],
     },
-    {
-      data: ['false', 'Aidan', 'Gregory'],
-    },
   ]}
 />
 
 ### Transform Float64{#transform-float64}
 
-The random float transformer generates a random floating point number.
+The transform float transformer can anonymize an existing float64 value or generate a compeletely random floating point number.
 
 For example:
 `32.2432`
 
-By default, the random float transformer generates a floating point number with 2 digits before the decimal point and 3 digits after the decimal point.
+By default, the random float transformer generates a floating point number with 3 digits before the decimal point and 3 digits after the decimal point.
 
-## Configurations
+**Configurations**
 
 Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
 
@@ -1440,53 +1501,43 @@ Depending on your validations, you may want to configure the output float. The r
     },
     {
       data: [
-        'Digits before Decimal',
-        'Specifies how many digits you want before the decimal place. This has a max of 9 digits. ',
-        '2',
-        '23.24',
-        '94.17',
-      ],
-    },
-    {
-      data: [
-        'Digits after Decimal',
-        'Specifies how many digits you want after the decimal place. This has a max of 9 digits. ',
-        '3',
-        '87923.4',
-        '34.8',
+        'PreserveSign',
+        'Preserves the sign of the value. If false, will always return a positive value. ',
+        'true',
+        '-67.2',
+        '-71.523',
       ],
     },
   ]}
 />
 
-## Examples
+**Examples**
 
 There are several ways you can mix-and-match configurations to get different potential random float formats. Here are some possible combinations:
 
 <DocsTable
   headers={[
     'PreserveLength',
-    'Digits before Decimal',
-    'Digits after Decimal',
+    'Preserve Sign',
     'Example Input',
     'Example Output',
   ]}
   rowData={[
     {
-      data: ['false', 'N/A', 'N/A', '89.232', '23.824'],
+      data: ['false', 'true', '89.232', '233.824'],
     },
     {
-      data: ['true', '4', '1', '2.344', '9.813'],
+      data: ['true', 'false', '2.344', '9.813'],
     },
     {
-      data: ['true', '2', '3', '678.23', '54.129'],
+      data: ['true', 'true', '-8.23', '-4.19'],
     },
   ]}
 />
 
 ### Transform Full Name{#transform-full-name}
 
-The full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/first-name) and [last](/transformers/system/last-name) names transformers.
+The transform full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/first-name) and [last](/transformers/system/last-name) names transformers.
 
 By default, the full name transformer generates a full name of random length. To preserve the length of the input full name, you can set the `preserveLength` config.
 
@@ -1536,9 +1587,7 @@ There are several ways you can mix-and-match configurations to get different ful
 
 ### Transform Int64 Phone Number{#transform-int64-phone-number}
 
-The phone transformer can anonymize an existing phone number or completely generate a new one. There are two phone number transformers that differ by type and the configurations that are available to customize the transformer. This transformer specifically takes an integer value and returns an integer value. The [Phone (string) transformer](/transformers/system/string-phone) takes in a string value, returns a string and has more configurations available.
-
-By default, the phone (integer) transformer generates a random 10 digit phone number.
+The transform int64 phone transformer can anonymize an existing phone number or completely generate a new one. By default, the transform int64 phone number transformer generates a random 10 digit phone number.
 
 For example, the following input value:
 `7829828714`
@@ -1548,11 +1597,9 @@ Would produce the following ouput value:
 
 You can see we generated a new phone integer value that can be used as an integer phone number. Also, note that we don't include hyphens in this transformer since the output type is an `integer`.
 
-Phone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to respect the length of the input value if you're working with phone numbers longer than 10 digits in length.
+**#Configurations**
 
-## Configurations
-
-Depending on your validations, you may want to configure the output phone number. As we discussed above, some phone numbers may be longer than the default 10 digits in length. The phone number (integer) transformer has the following configurations:
+Depending on your validations, you may want to configure the output phone number.
 
 <DocsTable
   headers={[
@@ -1568,16 +1615,16 @@ Depending on your validations, you may want to configure the output phone number
         'PreserveLength',
         'Preserve Length will ensure that the output phone number is the same length as the input phone number.',
         'false',
-        '892387243786243',
-        '290374867526392',
+        '892387786243',
+        '2903748675392',
       ],
     },
   ]}
 />
 
-## Examples
+**Examples**
 
-There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
+Here are some possible example output values:
 
 <DocsTable
   headers={['PreserveLength', 'Example Input', 'Example Output']}
@@ -1586,7 +1633,7 @@ There are several ways you can mix-and-match configurations to get different pot
       data: ['false', , '2890923784', '5209273239'],
     },
     {
-      data: ['true', '839304957362', '916395745371'],
+      data: ['true', '3839304957', '6395745371'],
     },
   ]}
 />
@@ -1600,7 +1647,7 @@ For example:
 
 By default, the random int transformer generates an integer of 4 digits long.
 
-## Configurations
+**Configurations**
 
 Depending on your validations, you may want to configure the output integer. The random integer transformer has the following configurations:
 
@@ -1616,55 +1663,55 @@ Depending on your validations, you may want to configure the output integer. The
     {
       data: [
         'Preserve Length',
-        'Preserves the length of the input integer to the output integer.',
+        'Preserves the length of the input float to the output float while maintaining the placement of the decimal.',
         'false',
-        '12334',
-        '78223',
+        '1.34',
+        '873.923',
       ],
     },
     {
       data: [
-        'Integer Length',
-        'Specifies how many digits you want the integer to be. This has a max of 18 digits. ',
-        '4',
-        '7',
-        '2782736',
+        'PreserveSign',
+        'Preserves the sign of the value. If false, will always return a positive value. ',
+        'true',
+        '-672',
+        '-71523',
       ],
     },
   ]}
 />
 
-## Examples
+**Examples**
 
-There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
+There are several ways you can mix-and-match configurations to get different potential random int64 values. Here are some possible combinations:
 
 <DocsTable
   headers={[
     'PreserveLength',
-    'Integer Length',
+    'Preserve Sign',
     'Example Input',
     'Example Output',
   ]}
   rowData={[
     {
-      data: ['false', '5', '87242', '23324'],
+      data: ['false', 'true', '89232', '233824'],
     },
     {
-      data: ['true', 'N/A', '9183', '6721'],
+      data: ['true', 'false', '2344', '9813'],
     },
     {
-      data: ['false', 'N/A', '51', '5419'],
+      data: ['true', 'true', '-823', '-439'],
     },
   ]}
 />
 
 ### Transform Last Name{#transform-last-name}
 
-The last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
+The transform last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
 
 By default, the last name transformer generates a last name of random length. To preserve the length of the input last name, you can set the `preserveLength` config.
 
-## Configurations
+**Configurations**
 
 Depending on your validations, you may want to configure the output last name. The last name transformer has the following configurations:
 
@@ -1689,7 +1736,7 @@ Depending on your validations, you may want to configure the output last name. T
   ]}
 />
 
-## Examples
+**Examples**
 
 There are several ways you can mix-and-match configurations to get different last name formats. Here are some possible combinations:
 
@@ -1710,9 +1757,9 @@ There are several ways you can mix-and-match configurations to get different las
 
 ### Transform Phone Number{#transform-phone-number}
 
-The phone transformer can anonymize an existing phone number or completely generate a new one. There are two phone number transformers that differ by type and the configurations that are available to customize the transformer. This transformer specifically takes a string value and returns a string value. The [Phone (integer) transformer](/transformers/system/string-phone) takes in an integer value and returns an integer value.
+The transform phone transformer can anonymize an existing phone number or completely generate a new one. This transformer specifically takes a string value and returns a string value.
 
-By default, the phone (string) transformer generates a random 10 digit phone number with no hyphens.
+By default, the transform phone transformer generates a random 10 string value phone number with no hyphens.
 
 For example, the following input value:
 `7829828714`
@@ -1720,13 +1767,9 @@ For example, the following input value:
 Would produce the following ouput value:
 `5698437232`
 
-You can see we generated a new phone string value that can be used as an string phone number.
+**Configurations**
 
-Phone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to respect the length of the input value if you're working with phone numbers longer than 10 digits in length. In fact, you can generate a specific international "looking" phone number by specifying the [e164 format](https://www.twilio.com/docs/glossary/what-e164) config.
-
-## Configurations
-
-Depending on your validations, you may want to configure the output phone number. As we discussed above, some phone numbers may be longer than the default 10 digits in length. The phone number (string) transformer has the following configurations:
+Depending on your validations, you may want to configure the output phone number. Here are the configurations for the transform string phone number transformer.
 
 <DocsTable
   headers={[
@@ -1755,19 +1798,10 @@ Depending on your validations, you may want to configure the output phone number
         '290374867526392',
       ],
     },
-    {
-      data: [
-        'e164 Format',
-        'Will output the phone number in e164 format which includes a + sign at the beginning of the phone number.',
-        'false',
-        '89238724378',
-        '+29486752632',
-      ],
-    },
   ]}
 />
 
-## Examples
+**Examples**
 
 There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
@@ -1775,42 +1809,88 @@ There are several ways you can mix-and-match configurations to get different pot
   headers={[
     'PreserveLength',
     'Include Hyphens',
-    'e164 Format',
     'Example Input',
     'Example Output',
   ]}
   rowData={[
     {
-      data: ['false', 'false', 'false', '2890923784', '5209273239'],
+      data: ['false', 'false', '2890923784', '5209273239'],
     },
     {
-      data: ['false', 'true', 'false', '2890923784', '520-927-3239'],
+      data: ['false', 'true', '2890923784', '520-927-3239'],
     },
     {
-      data: ['true', 'false', 'false', '289092378423', '520927323239'],
+      data: ['true', 'false', '289092378423', '520927323239'],
     },
     {
-      data: ['false', 'false', 'true', '2890923784', '+520922339'],
-    },
-    {
-      data: ['true', 'false', 'true', '+289092378423', '+520927323921'],
+      data: ['true', 'true', '2890923784', '520-922-3539'],
     },
   ]}
 />
 
 ### Transform String{#transform-string}
 
+The random string transformer generates a random string of alphanumeric characters.
+
+For example:
+`h2983hf28h92`
+
+By default, the random string transformer generates a string of 10 characters long.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output string. The random string transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Preserve Length',
+        'Preserves the length of the input integer to the output string.',
+        'false',
+        'hello',
+        '9Fau3',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['PreserveLength', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'bill', 'je7R6'],
+    },
+    {
+      data: ['true', 'lorem', 'i1NMe'],
+    },
+  ]}
+/>
+
 ### Passthrough{#passthrough}
+
+The passthrough tranformer simplfy passes the input data out to the output without making any modications to it. This is useful in many circumstances but cautious of accidently leaking sensitive data through this transformer.
 
 ### Null{#null}
 
 The null transformer simply returns a null value. This may be useful if you a column that can't be null but don't have a specific value that you want to insert.
 
-## Configurations
+**Configurations**
 
 There are no configurations for the null transformer.
 
-## Examples
+**Examples**
 
 Here are some examples of what an output null value may look like.
 
