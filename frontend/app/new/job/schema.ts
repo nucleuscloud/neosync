@@ -55,9 +55,9 @@ const SINGLE_SUBSET_FORM_SCSHEMA = Yup.object({
 
 // export type SingleSubset = Yup.InferType<typeof SINGLE_SUBSET_FORM_SCSHEMA>;
 
-export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({
-  destination: DESTINATION_FORM_SCHEMA,
-});
+export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({}).concat(
+  DESTINATION_FORM_SCHEMA
+);
 export type SingleTableConnectFormValues = Yup.InferType<
   typeof SINGLE_TABLE_CONNECT_FORM_SCHEMA
 >;

@@ -53,7 +53,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [defaultValues] = useSessionStorage<SingleTableConnectFormValues>(
     formKey,
     {
-      destination: { connectionId: '', destinationOptions: {} },
+      connectionId: '',
+      destinationOptions: {},
     }
   );
 
@@ -125,7 +126,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             <div className="space-y-4 col-span-2">
               <FormField
                 control={form.control}
-                name="destination.connectionId"
+                name="connectionId"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
@@ -143,7 +144,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               return;
                             }
                             field.onChange(value);
-                            form.setValue('destination.destinationOptions', {
+                            form.setValue('destinationOptions', {
                               initTableSchema: false,
                               truncateBeforeInsert: false,
                               truncateCascade: false,
@@ -204,9 +205,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               />
 
               <DestinationOptionsForm
-                index={0}
                 connection={connections.find(
-                  (c) => c.id == form.getValues().destination.connectionId
+                  (c) => c.id == form.getValues().connectionId
                 )}
                 maxColNum={2}
               />
@@ -220,7 +220,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             </Button>
             <Button
               type="submit"
-              disabled={(errors?.destination?.message?.length ?? 0) > 0}
+              disabled={(errors?.root?.message?.length ?? 0) > 0}
             >
               Next
             </Button>

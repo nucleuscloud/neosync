@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	"github.com/jackc/pgx/v5/pgtype"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
@@ -32,7 +31,6 @@ func (s *Service) GetJobRuns(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
 	var accountId string
-	var accountUuid pgtype.UUID
 	jobIds := []string{}
 	var workflows []*workflowpb.WorkflowExecutionInfo
 	switch id := req.Msg.Id.(type) {
@@ -45,7 +43,6 @@ func (s *Service) GetJobRuns(
 		if err != nil {
 			return nil, err
 		}
-		accountUuid = job.AccountID
 		accountId = nucleusdb.UUIDString(job.AccountID)
 		jobIds = append(jobIds, id.JobId)
 	case *mgmtv1alpha1.GetJobRunsRequest_AccountId:
@@ -54,8 +51,7 @@ func (s *Service) GetJobRuns(
 		if err != nil {
 			return nil, err
 		}
-		accountUuid = accountPgUuid
-		jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, accountUuid)
+		jobs, err := s.db.Q.GetJobsByAccount(ctx, s.db.Db, accountPgUuid)
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +66,7 @@ func (s *Service) GetJobRuns(
 	if err != nil {
 		return nil, err
 	}
-	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
+	tconfig, err := s.temporalWfManager.GetTemporalConfigByAccount(ctx, accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -389,11 +385,8 @@ func (s *Service) getVerifiedJobRun(
 	if err != nil {
 		return nil, err
 	}
-	accountUuid, err := nucleusdb.ToUuid(accountId)
-	if err != nil {
-		return nil, err
-	}
-	hasNs, err := s.doesAccountHaveTemporalNamespace(ctx, accountUuid, logger)
+
+	hasNs, err := s.temporalWfManager.DoesAccountHaveTemporalWorkspace(ctx, accountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -404,7 +397,7 @@ func (s *Service) getVerifiedJobRun(
 	if err != nil {
 		return nil, err
 	}
-	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
+	tconfig, err := s.temporalWfManager.GetTemporalConfigByAccount(ctx, accountId)
 	if err != nil {
 		return nil, err
 	}

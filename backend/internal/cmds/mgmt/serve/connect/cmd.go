@@ -206,10 +206,22 @@ func serve(ctx context.Context) error {
 		),
 	)
 
+	authcerts, err := getTemporalAuthCertificate()
+	if err != nil {
+		return err
+	}
+	tfwfmgr := clientmanager.New(&clientmanager.Config{
+		AuthCertificates: authcerts,
+		DefaultTemporalConfig: &clientmanager.DefaultTemporalConfig{
+			Url:              getDefaultTemporalUrl(),
+			Namespace:        getDefaultTemporalNamespace(),
+			SyncJobQueueName: getDefaultTemporalSyncJobQueue(),
+		},
+	}, db.Q, db.Db)
+
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled: isAuthEnabled,
-		Temporal:      getDefaultTemporalConfig(),
-	}, db, authService)
+	}, db, authService, tfwfmgr)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -237,13 +249,6 @@ func serve(ctx context.Context) error {
 			connect.WithInterceptors(stdAuthInterceptors...),
 		),
 	)
-	authcerts, err := getTemporalAuthCertificate()
-	if err != nil {
-		return err
-	}
-	tfwfmgr := clientmanager.New(&clientmanager.Config{
-		AuthCertificates: authcerts,
-	}, db.Q, db.Db)
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
 		IsAuthEnabled: isAuthEnabled,
@@ -407,14 +412,6 @@ func getTemporalAuthCertificate() ([]tls.Certificate, error) {
 		return []tls.Certificate{cert}, nil
 	}
 	return []tls.Certificate{}, nil
-}
-
-func getDefaultTemporalConfig() *v1alpha1_useraccountservice.TemporalConfig {
-	return &v1alpha1_useraccountservice.TemporalConfig{
-		DefaultTemporalNamespace:        getDefaultTemporalNamespace(),
-		DefaultTemporalSyncJobQueueName: getDefaultTemporalSyncJobQueue(),
-		DefaultTemporalUrl:              getDefaultTemporalUrl(),
-	}
 }
 
 func getDefaultTemporalUrl() string {

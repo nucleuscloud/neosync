@@ -16,7 +16,7 @@ func ToUserDefinedTransformerDto(
 		Description: input.Description,
 		DataType:    input.Type,
 		Source:      input.Source,
-		Config:      input.TransformerConfig.ToTransformerConfigDto(input.TransformerConfig),
+		Config:      input.TransformerConfig.ToTransformerConfigDto(),
 		CreatedAt:   timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:   timestamppb.New(input.UpdatedAt.Time),
 		AccountId:   nucleusdb.UUIDString(input.AccountID),

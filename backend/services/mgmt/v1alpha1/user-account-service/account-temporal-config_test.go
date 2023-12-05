@@ -2,14 +2,15 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"connectrpc.com/connect"
-	"github.com/jackc/pgx/v5"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -23,16 +24,14 @@ func Test_Service_GetAccountTemporalConfig(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
 
 	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
-	mockQuerier.On("GetTemporalConfigByUserAccount", mock.Anything, mock.Anything, mock.Anything).
+	mockQuerier.On("IsUserInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(1), nil)
+	mockTfWfMgr.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
 		Return(&pg_models.TemporalConfig{Namespace: "foo", SyncJobQueueName: "foo-queue", Url: "localhost:1234"}, nil)
 
-	service := New(&Config{IsAuthEnabled: false, Temporal: &TemporalConfig{
-		DefaultTemporalNamespace:        "default-ns",
-		DefaultTemporalSyncJobQueueName: "default-sync",
-		DefaultTemporalUrl:              "default-url",
-	}}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
+	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, mockTfWfMgr)
 
 	resp, err := service.GetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
 		AccountId: fakeAccountId,
@@ -45,62 +44,67 @@ func Test_Service_GetAccountTemporalConfig(t *testing.T) {
 	})
 }
 
-func Test_Service_GetAccountTemporalConfig_Defaults(t *testing.T) {
+func Test_Service_GetAccountTemporalConfig_GetConfig_Err(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
 
 	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
-	mockQuerier.On("GetTemporalConfigByUserAccount", mock.Anything, mock.Anything, mock.Anything).
-		Return(nil, pgx.ErrNoRows)
+	mockQuerier.On("IsUserInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(1), nil)
+	mockTfWfMgr.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything).
+		Return(nil, errors.New("test"))
 
-	service := New(&Config{IsAuthEnabled: false, Temporal: &TemporalConfig{
-		DefaultTemporalNamespace:        "default-ns",
-		DefaultTemporalSyncJobQueueName: "default-sync",
-		DefaultTemporalUrl:              "default-url",
-	}}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
+	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, mockTfWfMgr)
 
 	resp, err := service.GetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
 		AccountId: fakeAccountId,
 	}))
-	assert.Nil(t, err)
-	assert.Equal(t, resp.Msg.Config, &mgmtv1alpha1.AccountTemporalConfig{
-		Namespace:        "default-ns",
-		SyncJobQueueName: "default-sync",
-		Url:              "default-url",
-	})
+	assert.Error(t, err)
+	assert.Nil(t, resp)
 }
 
-func Test_Service_GetAccountTemporalConfig_EmptyObject(t *testing.T) {
+func Test_Service_GetAccountTemporalConfig_NotInAccount(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
 
 	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
-	mockQuerier.On("GetTemporalConfigByUserAccount", mock.Anything, mock.Anything, mock.Anything).
-		Return(&pg_models.TemporalConfig{}, nil)
+	mockQuerier.On("IsUserInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(0), nil)
 
-	service := New(&Config{IsAuthEnabled: false, Temporal: &TemporalConfig{
-		DefaultTemporalNamespace:        "default-ns",
-		DefaultTemporalSyncJobQueueName: "default-sync",
-		DefaultTemporalUrl:              "default-url",
-	}}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
+	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, mockTfWfMgr)
 
 	resp, err := service.GetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
 		AccountId: fakeAccountId,
 	}))
-	assert.Nil(t, err)
-	assert.Equal(t, resp.Msg.Config, &mgmtv1alpha1.AccountTemporalConfig{
-		Namespace:        "default-ns",
-		SyncJobQueueName: "default-sync",
-		Url:              "default-url",
-	})
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_Service_GetAccountTemporalConfig_NotInAccount_Err(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
+
+	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
+	mockQuerier.On("IsUserInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(-1), errors.New("test"))
+
+	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, mockTfWfMgr)
+
+	resp, err := service.GetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
+		AccountId: fakeAccountId,
+	}))
+	assert.Error(t, err)
+	assert.Nil(t, resp)
 }
 
 func Test_Service_SetAccountTemporalConfig(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
 
 	mgmtTc := &mgmtv1alpha1.AccountTemporalConfig{
 		Namespace:        "foo",
@@ -118,7 +122,7 @@ func Test_Service_SetAccountTemporalConfig(t *testing.T) {
 		},
 	}, nil)
 
-	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
+	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, mockTfWfMgr)
 
 	resp, err := service.SetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{
 		AccountId: fakeAccountId,
@@ -128,17 +132,65 @@ func Test_Service_SetAccountTemporalConfig(t *testing.T) {
 	assert.Equal(t, resp.Msg.Config, mgmtTc)
 }
 
+func Test_Service_SetAccountTemporalConfig_Update_Err(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
+
+	mgmtTc := &mgmtv1alpha1.AccountTemporalConfig{
+		Namespace:        "foo",
+		Url:              "foo-url",
+		SyncJobQueueName: "foo-queue",
+	}
+
+	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
+	mockQuerier.On("IsUserInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(1), nil)
+	mockQuerier.On("UpdateTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(db_queries.NeosyncApiAccount{}, errors.New("test"))
+
+	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, mockTfWfMgr)
+
+	resp, err := service.SetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{
+		AccountId: fakeAccountId,
+		Config:    mgmtTc,
+	}))
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
 func Test_Service_SetAccountTemporalConfig_NotInAccount(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
 
 	mgmtTc := &mgmtv1alpha1.AccountTemporalConfig{}
 
 	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
 	mockQuerier.On("IsUserInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(0), nil)
 
-	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
+	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, mockTfWfMgr)
+
+	resp, err := service.SetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{
+		AccountId: fakeAccountId,
+		Config:    mgmtTc,
+	}))
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_Service_SetAccountTemporalConfig_NotInAccount_Err(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
+
+	mgmtTc := &mgmtv1alpha1.AccountTemporalConfig{}
+
+	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
+	mockQuerier.On("IsUserInAccount", mock.Anything, mock.Anything, mock.Anything).Return(int64(0), errors.New("test"))
+
+	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, mockTfWfMgr)
 
 	resp, err := service.SetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{
 		AccountId: fakeAccountId,

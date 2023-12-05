@@ -2,6 +2,7 @@ package clientmanager
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"testing"
 
@@ -10,7 +11,17 @@ import (
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.temporal.io/api/serviceerror"
+	"go.temporal.io/api/workflowservice/v1"
 	"golang.org/x/sync/errgroup"
+)
+
+var (
+	defaultTemporalConfig = &DefaultTemporalConfig{
+		Url:              "localhost:7233",
+		Namespace:        "default",
+		SyncJobQueueName: "sync-job",
+	}
 )
 
 func Test_ManagerClient_New(t *testing.T) {
@@ -184,6 +195,32 @@ func Test_ManagerClient_GetNamespaceClientByAccount_NoNamespace(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func Test_ManagerClient_GetNamespaceClientByAccount_EmptyTemporalConfig(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+
+	accountUuid := uuid.New().String()
+	client, err := mgr.GetNamespaceClientByAccount(context.Background(), accountUuid, slog.Default())
+	assert.Nil(t, err)
+	assert.NotNil(t, client)
+}
+
+func Test_ManagerClient_GetNamespaceClientByAccount_EmptyTemporalConfig_EmptyDefaults(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: nil}, mockdb, mockdbtx)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+
+	accountUuid := uuid.New().String()
+	client, err := mgr.GetNamespaceClientByAccount(context.Background(), accountUuid, slog.Default())
+	assert.Error(t, err)
+	assert.Nil(t, client)
+}
+
 func Test_ManagerClient_GetNamespaceClientByAccount_CacheClient(t *testing.T) {
 	mockdb := NewMockDB(t)
 	mockdbtx := nucleusdb.NewMockDBTX(t)
@@ -231,4 +268,144 @@ func Test_ManagerClient_GetNamespaceClientByAccount_ConcurrentRequests(t *testin
 	err := errgrp.Wait()
 	assert.Nil(t, err)
 	assert.True(t, mockdb.AssertNumberOfCalls(t, "GetTemporalConfigByAccount", 1))
+}
+
+func Test_ManagerClient_GetTemporalConfigByAccount_Db(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{}, mockdb, mockdbtx)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{
+		Namespace:        "foo",
+		SyncJobQueueName: "foo-queue",
+		Url:              "localhost:7233",
+	}, nil)
+
+	accountUuid := uuid.New().String()
+	tc, err := mgr.GetTemporalConfigByAccount(context.Background(), accountUuid)
+	assert.NoError(t, err)
+	assert.NotNil(t, tc)
+	assert.Equal(t, tc, &pg_models.TemporalConfig{
+		Namespace:        "foo",
+		SyncJobQueueName: "foo-queue",
+		Url:              "localhost:7233",
+	})
+}
+
+func Test_ManagerClient_GetTemporalConfigByAccount_Default(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+
+	accountUuid := uuid.New().String()
+	tc, err := mgr.GetTemporalConfigByAccount(context.Background(), accountUuid)
+	assert.NoError(t, err)
+	assert.NotNil(t, tc)
+	assert.Equal(t, tc, &pg_models.TemporalConfig{
+		Namespace:        defaultTemporalConfig.Namespace,
+		SyncJobQueueName: defaultTemporalConfig.SyncJobQueueName,
+		Url:              defaultTemporalConfig.Url,
+	})
+}
+
+func Test_ManagerClient_GetTemporalConfigByAccount_Empty(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: nil}, mockdb, mockdbtx)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+
+	accountUuid := uuid.New().String()
+	tc, err := mgr.GetTemporalConfigByAccount(context.Background(), accountUuid)
+	assert.NoError(t, err)
+	assert.NotNil(t, tc)
+	assert.Equal(t, tc, &pg_models.TemporalConfig{
+		Namespace:        "",
+		SyncJobQueueName: "",
+		Url:              "",
+	})
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_TemporalConfig_Err(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("test"))
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.Error(t, err)
+	assert.False(t, ok)
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_TemporalConfig_Empty_Namespace(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: nil}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.NoError(t, err)
+	assert.False(t, ok)
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Temporal_Namespace(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockNsClient := new(MockNamespaceClient)
+	mgr.nsmap.Store(accountUuid, mockNsClient)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+	mockNsClient.On("Describe", mock.Anything, defaultTemporalConfig.Namespace).Return(&workflowservice.DescribeNamespaceResponse{}, nil)
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.NoError(t, err)
+	assert.True(t, ok)
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Not_Temporal_Namespace(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockNsClient := new(MockNamespaceClient)
+	mgr.nsmap.Store(accountUuid, mockNsClient)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+	mockNsClient.On("Describe", mock.Anything, defaultTemporalConfig.Namespace).Return(&workflowservice.DescribeNamespaceResponse{}, serviceerror.NewNamespaceNotFound(defaultTemporalConfig.Namespace))
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.NoError(t, err)
+	assert.False(t, ok)
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Describe_Error(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockNsClient := new(MockNamespaceClient)
+	mgr.nsmap.Store(accountUuid, mockNsClient)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+	mockNsClient.On("Describe", mock.Anything, defaultTemporalConfig.Namespace).Return(&workflowservice.DescribeNamespaceResponse{}, serviceerror.NewCanceled("test"))
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.Error(t, err)
+	assert.False(t, ok)
 }

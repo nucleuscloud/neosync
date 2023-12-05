@@ -9,6 +9,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+
 	slog "log/slog"
 )
 
@@ -93,9 +95,71 @@ func (_c *MockTemporalClientManagerClient_ClearWorkflowClientByAccount_Call) Run
 	return _c
 }
 
+// DoesAccountHaveTemporalWorkspace provides a mock function with given fields: ctx, accountId, logger
+func (_m *MockTemporalClientManagerClient) DoesAccountHaveTemporalWorkspace(ctx context.Context, accountId string, logger *slog.Logger) (bool, error) {
+	ret := _m.Called(ctx, accountId, logger)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DoesAccountHaveTemporalWorkspace")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, *slog.Logger) (bool, error)); ok {
+		return rf(ctx, accountId, logger)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, *slog.Logger) bool); ok {
+		r0 = rf(ctx, accountId, logger)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, *slog.Logger) error); ok {
+		r1 = rf(ctx, accountId, logger)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DoesAccountHaveTemporalWorkspace'
+type MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call struct {
+	*mock.Call
+}
+
+// DoesAccountHaveTemporalWorkspace is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountId string
+//   - logger *slog.Logger
+func (_e *MockTemporalClientManagerClient_Expecter) DoesAccountHaveTemporalWorkspace(ctx interface{}, accountId interface{}, logger interface{}) *MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call {
+	return &MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call{Call: _e.mock.On("DoesAccountHaveTemporalWorkspace", ctx, accountId, logger)}
+}
+
+func (_c *MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call) Run(run func(ctx context.Context, accountId string, logger *slog.Logger)) *MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(*slog.Logger))
+	})
+	return _c
+}
+
+func (_c *MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call) Return(_a0 bool, _a1 error) *MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call) RunAndReturn(run func(context.Context, string, *slog.Logger) (bool, error)) *MockTemporalClientManagerClient_DoesAccountHaveTemporalWorkspace_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetNamespaceClientByAccount provides a mock function with given fields: ctx, accountId, logger
 func (_m *MockTemporalClientManagerClient) GetNamespaceClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (client.NamespaceClient, error) {
 	ret := _m.Called(ctx, accountId, logger)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNamespaceClientByAccount")
+	}
 
 	var r0 client.NamespaceClient
 	var r1 error
@@ -153,6 +217,10 @@ func (_c *MockTemporalClientManagerClient_GetNamespaceClientByAccount_Call) RunA
 func (_m *MockTemporalClientManagerClient) GetScheduleClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (client.ScheduleClient, error) {
 	ret := _m.Called(ctx, accountId, logger)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetScheduleClientByAccount")
+	}
+
 	var r0 client.ScheduleClient
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, *slog.Logger) (client.ScheduleClient, error)); ok {
@@ -209,6 +277,10 @@ func (_c *MockTemporalClientManagerClient_GetScheduleClientByAccount_Call) RunAn
 func (_m *MockTemporalClientManagerClient) GetScheduleHandleClientByAccount(ctx context.Context, accountId string, scheduleId string, logger *slog.Logger) (client.ScheduleHandle, error) {
 	ret := _m.Called(ctx, accountId, scheduleId, logger)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetScheduleHandleClientByAccount")
+	}
+
 	var r0 client.ScheduleHandle
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string, *slog.Logger) (client.ScheduleHandle, error)); ok {
@@ -262,9 +334,72 @@ func (_c *MockTemporalClientManagerClient_GetScheduleHandleClientByAccount_Call)
 	return _c
 }
 
+// GetTemporalConfigByAccount provides a mock function with given fields: ctx, accountId
+func (_m *MockTemporalClientManagerClient) GetTemporalConfigByAccount(ctx context.Context, accountId string) (*pg_models.TemporalConfig, error) {
+	ret := _m.Called(ctx, accountId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTemporalConfigByAccount")
+	}
+
+	var r0 *pg_models.TemporalConfig
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*pg_models.TemporalConfig, error)); ok {
+		return rf(ctx, accountId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *pg_models.TemporalConfig); ok {
+		r0 = rf(ctx, accountId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*pg_models.TemporalConfig)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, accountId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTemporalConfigByAccount'
+type MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call struct {
+	*mock.Call
+}
+
+// GetTemporalConfigByAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - accountId string
+func (_e *MockTemporalClientManagerClient_Expecter) GetTemporalConfigByAccount(ctx interface{}, accountId interface{}) *MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call {
+	return &MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call{Call: _e.mock.On("GetTemporalConfigByAccount", ctx, accountId)}
+}
+
+func (_c *MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call) Run(run func(ctx context.Context, accountId string)) *MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call) Return(_a0 *pg_models.TemporalConfig, _a1 error) *MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call) RunAndReturn(run func(context.Context, string) (*pg_models.TemporalConfig, error)) *MockTemporalClientManagerClient_GetTemporalConfigByAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetWorkflowClientByAccount provides a mock function with given fields: ctx, accountId, logger
 func (_m *MockTemporalClientManagerClient) GetWorkflowClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (client.Client, error) {
 	ret := _m.Called(ctx, accountId, logger)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWorkflowClientByAccount")
+	}
 
 	var r0 client.Client
 	var r1 error

@@ -36,7 +36,11 @@ func Test_GetJobRuns_ByJobId(t *testing.T) {
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
 	m.TemporalWfManagerMock.On("GetWorkflowClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(temporalClientMock, nil)
-	m.QuerierMock.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, job.AccountID).Return(&pg_models.TemporalConfig{}, nil)
+	m.TemporalWfManagerMock.On("GetTemporalConfigByAccount", mock.Anything, mockAccountId).Return(&pg_models.TemporalConfig{
+		Namespace:        "default",
+		SyncJobQueueName: "sync-job",
+		Url:              "localhost:7233",
+	}, nil)
 
 	workflows := []*workflowpb.WorkflowExecutionInfo{{
 		Execution: &common.WorkflowExecution{
@@ -76,7 +80,7 @@ func Test_GetJobRuns_ByAccountId(t *testing.T) {
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetJobsByAccount", mock.Anything, mock.Anything, accountUuid).Return([]db_queries.NeosyncApiJob{job}, nil)
 	m.TemporalWfManagerMock.On("GetWorkflowClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(temporalClientMock, nil)
-	m.QuerierMock.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, job.AccountID).Return(&pg_models.TemporalConfig{}, nil)
+	m.TemporalWfManagerMock.On("GetTemporalConfigByAccount", mock.Anything, mockAccountId).Return(&pg_models.TemporalConfig{}, nil)
 
 	workflows := []*workflowpb.WorkflowExecutionInfo{{
 		Execution: &common.WorkflowExecution{
@@ -121,7 +125,7 @@ func Test_GetJobRun(t *testing.T) {
 	}}
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	mockGetVerifiedJobRun(m.QuerierMock, m.TemporalWfManagerMock, accountUuid, "default", temporalClientMock, workflows)
+	mockGetVerifiedJobRun(m.TemporalWfManagerMock, accountUuid, temporalClientMock, workflows)
 	temporalClientMock.On("DescribeWorkflowExecution", mock.Anything, workflowId, runId).Return(workflowExecutionMock, nil)
 
 	resp, err := m.Service.GetJobRun(context.Background(), &connect.Request[mgmtv1alpha1.GetJobRunRequest]{
@@ -172,7 +176,7 @@ func Test_CancelJobRun(t *testing.T) {
 		},
 	}}
 
-	mockGetVerifiedJobRun(m.QuerierMock, m.TemporalWfManagerMock, accountUuid, "default", temporalClientMock, workflows)
+	mockGetVerifiedJobRun(m.TemporalWfManagerMock, accountUuid, temporalClientMock, workflows)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	temporalClientMock.On("CancelWorkflow", mock.Anything, workflowId, runId).Return(nil)
 
@@ -188,30 +192,21 @@ func Test_CancelJobRun(t *testing.T) {
 }
 
 func mockGetVerifiedJobRun(
-	querierMock *db_queries.MockQuerier,
 	temporalWfManagerMock *clientmanager.MockTemporalClientManagerClient,
 	accountUuid pgtype.UUID,
-	namespace string,
 	temporalClientMock *MockTemporalClient,
 	workflowsMock []*workflowpb.WorkflowExecutionInfo,
 ) {
-	mockDoesAccountHaveTemporalNamespace(querierMock, temporalWfManagerMock, accountUuid, namespace)
+	temporalWfManagerMock.On("DoesAccountHaveTemporalWorkspace", mock.Anything, nucleusdb.UUIDString(accountUuid), mock.Anything).Return(true, nil)
+	temporalWfManagerMock.On("GetTemporalConfigByAccount", mock.Anything, nucleusdb.UUIDString(accountUuid)).Return(&pg_models.TemporalConfig{
+		Namespace:        "default",
+		SyncJobQueueName: "sync-job",
+		Url:              "localhost:7233",
+	}, nil)
 	temporalWfManagerMock.On("GetWorkflowClientByAccount", mock.Anything, nucleusdb.UUIDString(accountUuid), mock.Anything).Return(temporalClientMock, nil)
 	temporalClientMock.On("ListWorkflow", mock.Anything, mock.Anything).Return(&workflowservice.ListWorkflowExecutionsResponse{
 		Executions: workflowsMock,
 	}, nil)
-}
-
-func mockDoesAccountHaveTemporalNamespace(
-	querierMock *db_queries.MockQuerier,
-	temporalWfManagerMock *clientmanager.MockTemporalClientManagerClient,
-	accountUuid pgtype.UUID,
-	namespace string,
-) {
-	querierMock.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, accountUuid).Return(&pg_models.TemporalConfig{Namespace: namespace}, nil)
-	mockNamespaceClient := new(MockNamespaceClient)
-	temporalWfManagerMock.On("GetNamespaceClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(mockNamespaceClient, nil)
-	mockNamespaceClient.On("Describe", mock.Anything, namespace).Return(&workflowservice.DescribeNamespaceResponse{}, nil)
 }
 
 func getWorkflowExecutionMock(jobId, workflowId string) *workflowservice.DescribeWorkflowExecutionResponse {
