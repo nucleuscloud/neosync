@@ -1770,7 +1770,7 @@ type GetConnectionDataStreamResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Row map[string][]byte `protobuf:"bytes,1,rep,name=row,proto3" json:"row,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"` //  bytes
+	Row map[string][]byte `protobuf:"bytes,1,rep,name=row,proto3" json:"row,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GetConnectionDataStreamResponse) Reset() {

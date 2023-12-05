@@ -1327,8 +1327,6 @@ export class GetConnectionDataStreamRequest extends Message<GetConnectionDataStr
  */
 export class GetConnectionDataStreamResponse extends Message<GetConnectionDataStreamResponse> {
   /**
-   *  bytes
-   *
    * @generated from field: map<string, bytes> row = 1;
    */
   row: { [key: string]: Uint8Array } = {};

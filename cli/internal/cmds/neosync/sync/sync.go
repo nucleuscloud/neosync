@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"sort"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -17,6 +16,7 @@ import (
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
@@ -27,6 +27,10 @@ import (
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 
 	"github.com/benthosdev/benthos/v4/public/service"
+)
+
+const (
+	maxPgParamLimit = 65535
 )
 
 func NewCmd() *cobra.Command {
@@ -48,33 +52,27 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if connectionId == "" {
-				return fmt.Errorf("must provide connection id")
-			}
 
 			destConnUrl, err := cmd.Flags().GetString("destination-connection-url")
 			if err != nil {
 				return err
-			}
-			if destConnUrl == "" {
-				return fmt.Errorf("must provide destination connection url")
 			}
 
 			driver, err := cmd.Flags().GetString("destination-driver")
 			if err != nil {
 				return err
 			}
-			if destConnUrl == "" {
-				return fmt.Errorf("must provide destination driver")
-			}
 
 			return sync(cmd.Context(), apiKey, connectionId, destConnUrl, driver)
 		},
 	}
 
-	cmd.Flags().String("connection-id", "", "connection id for sync source")
-	cmd.Flags().String("destination-connection-url", "", "destination url for sync output")
-	cmd.Flags().String("destination-driver", "", "destination driver for sync output")
+	cmd.Flags().String("connection-id", "", "connection id for sync source (required)")
+	cmd.Flags().String("destination-connection-url", "", "destination url for sync output (required)")
+	cmd.Flags().String("destination-driver", "", "destination driver for sync output (required)")
+	cmd.MarkFlagRequired("connection-id")
+	cmd.MarkFlagRequired("destination-connection-url")
+	cmd.MarkFlagRequired("destination-driver")
 
 	return cmd
 }
@@ -134,95 +132,76 @@ func sync(
 		configs = append(configs, benthosConfig)
 	}
 
-	sortedConfigs := sortConfigs(configs)
-	numConfigs := len(sortedConfigs)
-	completedConfigs := map[string]struct{}{}
-	index := 0
-	for len(completedConfigs) != numConfigs {
-		cfg := sortedConfigs[index]
-		_, completed := completedConfigs[cfg.Name]
-		if completed {
-			index = (index + 1) % numConfigs
-			continue
-		}
-		if !isConfigReady(cfg, completedConfigs) {
-			index = (index + 1) % numConfigs
-			fmt.Printf("waiting for %s dependencies to be completed: %v \n", cfg.Name, cfg.DependsOn) // nolint
-			continue
-		}
+	groupedConfigs := groupConfigsByDependency(configs)
 
-		fmt.Printf("syncing data for %s \n", cfg.Name) // nolint
-		configbits, err := yaml.Marshal(cfg.Config)
-		if err != nil {
-			return err
-		}
+	for _, group := range groupedConfigs {
+		errgrp, errctx := errgroup.WithContext(ctx)
+		for _, cfg := range group {
+			cfg := cfg
+			errgrp.Go(func() error {
+				fmt.Printf("syncing data for %s \n", cfg.Name) // nolint
+				configbits, err := yaml.Marshal(cfg.Config)
+				if err != nil {
+					return err
+				}
 
-		var benthosStream *service.Stream
-		go func() {
-			for { // nolint
-				select {
-				// case <-time.After(1 * time.Second):
-				// 	activity.RecordHeartbeat(ctx)
-				case <-ctx.Done():
-					if benthosStream != nil {
-						// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
-						// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
-						err := benthosStream.Stop(ctx)
-						if err != nil {
-							fmt.Println(err.Error()) // nolint
+				var benthosStream *service.Stream
+				go func() {
+					for { // nolint
+						select {
+						// case <-time.After(1 * time.Second):
+						// 	activity.RecordHeartbeat(ctx)
+						case <-errctx.Done():
+							if benthosStream != nil {
+								// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
+								// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
+								err := benthosStream.Stop(errctx)
+								if err != nil {
+									fmt.Println(err.Error()) // nolint
+								}
+							}
+							return
 						}
 					}
-					return
+				}()
+
+				streambldr := service.NewStreamBuilder()
+				// would ideally use the activity logger here but can't convert it into a slog.
+				benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+				streambldr.SetLogger(benthoslogger.With(
+					"benthos", "true",
+				))
+
+				err = streambldr.SetYAML(string(configbits))
+				if err != nil {
+					return fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
 				}
-			}
-		}()
 
-		streambldr := service.NewStreamBuilder()
-		// would ideally use the activity logger here but can't convert it into a slog.
-		benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-		streambldr.SetLogger(benthoslogger.With(
-			"benthos", "true",
-		))
+				stream, err := streambldr.Build()
+				if err != nil {
+					return err
+				}
+				benthosStream = stream
 
-		err = streambldr.SetYAML(string(configbits))
-		if err != nil {
-			return fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
+				err = stream.Run(errctx)
+				if err != nil {
+					return fmt.Errorf("unable to run benthos stream: %w", err)
+				}
+				benthosStream = nil
+				return nil
+			})
+
 		}
 
-		stream, err := streambldr.Build()
-		if err != nil {
+		if err := errgrp.Wait(); err != nil {
 			return err
 		}
-		benthosStream = stream
 
-		err = stream.Run(ctx)
-		if err != nil {
-			return fmt.Errorf("unable to run benthos stream: %w", err)
-		}
-		benthosStream = nil
-		completedConfigs[cfg.Name] = struct{}{}
-		index = (index + 1) % numConfigs
 	}
 
 	fmt.Println("data sync complete") // nolint
 
 	return nil
-}
-
-func isConfigReady(config *benthosConfigResponse, completed map[string]struct{}) bool {
-	if config == nil {
-		return false
-	}
-
-	if len(config.DependsOn) == 0 {
-		return true
-	}
-	for _, dep := range config.DependsOn {
-		if _, ok := completed[dep]; !ok {
-			return false
-		}
-	}
-	return true
 }
 
 type SqlTable struct {
@@ -254,17 +233,6 @@ func getSchemaTables(schemas []*mgmtv1alpha1.DatabaseColumn) []*SqlTable {
 	}
 	return tables
 }
-
-func sortConfigs(configs []*benthosConfigResponse) []*benthosConfigResponse {
-	sort.SliceStable(configs, func(i, j int) bool {
-		return len(configs[i].DependsOn) < len(configs[j].DependsOn)
-	})
-	return configs
-}
-
-const (
-	maxPgParamLimit = 65535
-)
 
 func computeMaxPgBatchCount(numCols int) int {
 	if numCols < 1 {
@@ -349,4 +317,57 @@ func generateBenthosConfig(
 		Config:    bc,
 		DependsOn: dependsOn,
 	}
+}
+
+func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConfigResponse {
+	configMap := make(map[string]*benthosConfigResponse, len(configs))
+	for _, c := range configs {
+		configMap[c.Name] = c
+	}
+
+	depGraph := make(map[string][]*benthosConfigResponse)
+	indegree := make(map[string]int)
+
+	for _, cfg := range configs {
+		indegree[cfg.Name] = 0
+		depGraph[cfg.Name] = []*benthosConfigResponse{}
+	}
+
+	for _, cfg := range configs {
+		for _, dep := range cfg.DependsOn {
+			depGraph[dep] = append(depGraph[dep], cfg)
+			indegree[cfg.Name]++
+		}
+	}
+
+	var queue []string
+	for _, cfg := range configs {
+		if indegree[cfg.Name] == 0 {
+			queue = append(queue, cfg.Name)
+		}
+	}
+
+	var groupedConfigs [][]*benthosConfigResponse
+
+	for len(queue) > 0 {
+		var group []*benthosConfigResponse
+		var nextQueue []string
+
+		for _, cfgName := range queue {
+			cfg := configMap[cfgName]
+			group = append(group, cfg)
+
+			for _, nextCfg := range depGraph[cfgName] {
+				indegree[nextCfg.Name]--
+				if indegree[nextCfg.Name] == 0 {
+					nextQueue = append(nextQueue, nextCfg.Name)
+				}
+			}
+		}
+
+		groupedConfigs = append(groupedConfigs, group)
+		queue = nextQueue
+	}
+
+	return groupedConfigs
 }
