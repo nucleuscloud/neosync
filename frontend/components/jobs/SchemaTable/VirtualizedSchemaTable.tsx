@@ -1,9 +1,19 @@
+import { SingleTableSchemaFormValues } from '@/app/new/job/schema';
 import EditTransformerOptions from '@/app/transformers/EditTransformerOptions';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { cn } from '@/libs/utils';
 import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import {
+  Transformer,
+  isSystemTransformer,
+  isUserDefinedTransformer,
+} from '@/shared/transformers';
+import {
+  SchemaFormValues,
+  TransformerFormValues,
+} from '@/yup-validations/jobs';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {
@@ -20,20 +30,10 @@ import { FixedSizeList as List, areEqual } from 'react-window';
 import { VirtualizedTree } from '../../VirtualizedTree';
 import ColumnFilterSelect from './ColumnFilterSelect';
 import TransformerSelect from './TransformerSelect';
-import { TransformerWithType } from './schema-table';
 
 interface Row {
   table: string;
-  transformer: {
-    name?: string | undefined;
-    source: string;
-    config: {
-      config: {
-        case?: string | undefined;
-        value: {};
-      };
-    };
-  };
+  transformer: TransformerFormValues;
   schema: string;
   column: string;
   dataType: string;
@@ -44,7 +44,7 @@ type ColumnFilters = Record<string, string[]>;
 
 interface VirtualizedSchemaTableProps {
   data: Row[];
-  transformers?: TransformerWithType[];
+  transformers: Transformer[];
 }
 
 export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
@@ -57,7 +57,7 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   );
   const [bulkSelect, setBulkSelect] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
-  const form = useFormContext();
+  const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
 
   useEffect(() => {
     setRows(data);
@@ -131,26 +131,19 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
     });
   }, []);
 
-  function getBulKTransformer(): TransformerWithType {
-    if (
-      bulkTransformer.config?.config.case?.toString() !=
-      'userDefinedTransformerConfig'
-    ) {
-      // Searching for non-custom transformers
-      return transformers?.find(
-        (item) =>
-          item.transformerType != 'custom' &&
-          item.source == bulkTransformer.source
-      )!;
-    } else {
-      // Searching for system transformers
-      return transformers?.find(
-        (item) =>
-          item.transformerType == 'system' &&
-          item.source == bulkTransformer.source
-      )!;
-    }
-  }
+  // function getBulKTransformer(): JobMappingTransformer {
+  //   const tc = bulkTransformer.config?.config;
+  //   switch (tc?.case) {
+  //     case 'userDefinedTransformerConfig':
+  //       return transformers.find(
+  //         (t) => isUserDefinedTransformer(t) && t.id === tc.value.id
+  //       )!; // todo: remove bang
+  //     default:
+  //       return transformers.find(
+  //         (t) => isSystemTransformer(t) && t.source === bulkTransformer.source
+  //       )!; // todo: remove bang
+  //   }
+  // }
 
   return (
     <div className="flex flex-row w-full">
@@ -161,14 +154,26 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
         <div className="flex items-center justify-between">
           <div className="w-[250px]">
             <TransformerSelect
-              transformers={transformers || []}
-              value={getBulKTransformer()}
+              transformers={transformers}
+              value={bulkTransformer}
               onSelect={(value) => {
                 rows.forEach((r, index) => {
                   if (r.isSelected) {
-                    form.setValue(`mappings.${index}.transformer`, value, {
-                      shouldDirty: true,
-                    });
+                    form.setValue(
+                      `mappings.${index}.transformer`,
+                      {
+                        source: value.source,
+                        config: {
+                          config: {
+                            value: value.config?.config.value!,
+                            case: value.config?.config.case,
+                          },
+                        },
+                      },
+                      {
+                        shouldDirty: true,
+                      }
+                    );
                   }
                 });
                 onSelectAll(false);
@@ -213,7 +218,7 @@ interface RowProps {
     rows: Row[];
     onSelect: (index: number) => void;
     onSelectAll: (value: boolean) => void;
-    transformers?: TransformerWithType[];
+    transformers: Transformer[];
   };
 }
 
@@ -242,30 +247,45 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
         <Cell value={row.column} />
         <Cell value={row.dataType} />
         <div>
-          <FormField
+          <FormField<SchemaFormValues | SingleTableSchemaFormValues>
             name={`mappings.${index}.transformer`}
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <div className="flex flex-row space-x-2  ">
-                    <div className="w-[175px]">
-                      <TransformerSelect
-                        transformers={transformers || []}
-                        value={field.value}
-                        onSelect={field.onChange}
-                        placeholder="Passthrough"
+            render={({ field }) => {
+              // todo: we should really convert between the real field.value and the job mapping transformer
+              const fv = field.value as unknown as JobMappingTransformer;
+              return (
+                <FormItem>
+                  <FormControl>
+                    <div className="flex flex-row space-x-2  ">
+                      <div className="w-[175px]">
+                        <TransformerSelect
+                          transformers={transformers}
+                          value={fv}
+                          onSelect={field.onChange}
+                          placeholder="Passthrough"
+                        />
+                      </div>
+                      <EditTransformerOptions
+                        transformer={transformers.find((t) => {
+                          if (
+                            fv.source === 'custom' &&
+                            fv.config?.config.case ===
+                              'userDefinedTransformerConfig' &&
+                            isUserDefinedTransformer(t) &&
+                            t.id === fv.config?.config.value.id
+                          ) {
+                            return t;
+                          }
+                          return (
+                            isSystemTransformer(t) && t.source === fv.source
+                          );
+                        })}
+                        index={index}
                       />
                     </div>
-                    <EditTransformerOptions
-                      transformer={transformers?.find(
-                        (item) => item.name == field.value?.name
-                      )}
-                      index={index}
-                    />
-                  </div>
-                </FormControl>
-              </FormItem>
-            )}
+                  </FormControl>
+                </FormItem>
+              );
+            }}
           />
         </div>
       </div>
@@ -293,7 +313,7 @@ const createRowData = memoize(
     rows: Row[],
     onSelect: (index: number) => void,
     onSelectAll: (value: boolean) => void,
-    transformers?: TransformerWithType[]
+    transformers: Transformer[]
   ) => ({
     rows,
     onSelect,
@@ -311,7 +331,7 @@ interface VirtualizedSchemaListProps {
   setBulkSelect: (value: boolean) => void;
   columnFilters: ColumnFilters;
   onFilterSelect: (columnId: string, newValues: string[]) => void;
-  transformers?: TransformerWithType[];
+  transformers: Transformer[];
 }
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.
@@ -508,10 +528,11 @@ function getUniqueFiltersByColumn(
     shouldFilterRow(r, columnFilters, columnId)
   );
   filteredRows.forEach((r) => {
-    const value =
-      columnId == 'transformer'
-        ? (r[columnId as 'transformer']?.name as string)
-        : (r[columnId as keyof Row] as string);
+    const value = r[columnId as keyof Row] as string;
+    // const value =
+    //   columnId == 'transformer'
+    //     ? (r[columnId as 'transformer']?.name as string)
+    //     : (r[columnId as keyof Row] as string);
     uniqueColFilters[value] = value;
   });
 

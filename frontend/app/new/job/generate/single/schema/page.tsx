@@ -396,7 +396,6 @@ async function createNewJob(
     initiateJobRun: define.initiateJobRun,
     mappings: schema.mappings.map((m) => {
       const jmt = new JobMappingTransformer({
-        name: m.transformer.name,
         source: m.transformer.source,
         config: new TransformerConfig({
           config: {

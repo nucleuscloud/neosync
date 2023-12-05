@@ -1210,11 +1210,6 @@ export class JobMappingTransformer extends Message<JobMappingTransformer> {
   source = "";
 
   /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  /**
    * @generated from field: mgmt.v1alpha1.TransformerConfig config = 3;
    */
   config?: TransformerConfig;
@@ -1228,7 +1223,6 @@ export class JobMappingTransformer extends Message<JobMappingTransformer> {
   static readonly typeName = "mgmt.v1alpha1.JobMappingTransformer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "config", kind: "message", T: TransformerConfig },
   ]);
 

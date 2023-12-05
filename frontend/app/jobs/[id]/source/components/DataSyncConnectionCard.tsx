@@ -245,7 +245,6 @@ async function updateJobConnection(
         mappings: values.mappings.map((m) => {
           const jmt = new JobMappingTransformer({
             source: m.transformer.source,
-            name: m.transformer.name,
             config: m.transformer.config as TransformerConfig,
           });
 
@@ -342,7 +341,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
               c?.transformer ??
               new JobMappingTransformer({
                 source: 'passthrough',
-                name: 'Passthrough',
                 config: new TransformerConfig({
                   config: {
                     case: 'passthroughConfig',
@@ -360,7 +358,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
             c.transformer ??
             new JobMappingTransformer({
               source: 'passthrough',
-              name: 'Passthrough',
               config: new TransformerConfig({
                 config: {
                   case: 'passthroughConfig',
@@ -376,7 +373,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
           c.transformer ??
           new JobMappingTransformer({
             source: 'passthrough',
-            name: 'Passthrough',
             config: new TransformerConfig({
               config: {
                 case: 'passthroughConfig',
@@ -400,7 +396,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
         colMapping?.transformer ??
         new JobMappingTransformer({
           source: 'passthrough',
-          name: 'Passthrough',
           config: new TransformerConfig({
             config: {
               case: 'passthroughConfig',
@@ -423,7 +418,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
       transformer: mapping.transformer as {
-        name: string;
+        // name: string;
         source: string;
         config: { config: { case: string; value: {} } };
       },
@@ -502,7 +497,6 @@ async function getUpdatedValues(
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
       transformer: mapping.transformer as {
-        name: string;
         source: string;
         config: { config: { case: string; value: {} } };
       },

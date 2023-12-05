@@ -69,7 +69,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         const mappings = schemaFormData.mappings.map((r) => {
           var pt = JobMappingTransformer.fromJson(r.transformer) as {
             source: string;
-            name: string;
             config: {
               config: {
                 case?: string;
@@ -89,7 +88,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         const mappings = res.schemas.map((r) => {
           var pt = new JobMappingTransformer({
             source: 'passthrough',
-            name: 'passthrough',
             config: new TransformerConfig({
               config: {
                 case: 'passthroughConfig',
@@ -98,7 +96,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             }),
           }) as {
             source: string;
-            name: string;
             config: {
               config: {
                 case?: string;

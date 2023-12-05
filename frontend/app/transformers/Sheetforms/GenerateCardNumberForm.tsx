@@ -8,12 +8,12 @@ import {
 } from '@/components/ui/form';
 
 import { Switch } from '@/components/ui/switch';
-import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { ReactElement, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: UserDefinedTransformer;
+  transformer: Transformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
@@ -43,7 +43,7 @@ export default function GenerateCardNumberForm(props: Props): ReactElement {
       <Controller
         name={`mappings.${index}.transformer.config.config.value.validLuhn`}
         defaultValue={vl}
-        disabled={transformer.id ? true : false}
+        disabled={isUserDefinedTransformer(transformer)}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">

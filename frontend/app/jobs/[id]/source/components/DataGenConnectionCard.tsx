@@ -267,7 +267,6 @@ function getJobSource(
               c?.transformer ??
               new JobMappingTransformer({
                 source: 'passthrough',
-                name: 'Passthrough',
                 config: new TransformerConfig({
                   config: {
                     case: 'passthroughConfig',
@@ -285,7 +284,6 @@ function getJobSource(
             c?.transformer ??
             new JobMappingTransformer({
               source: 'passthrough',
-              name: 'Passthrough',
               config: new TransformerConfig({
                 config: {
                   case: 'passthroughConfig',
@@ -301,7 +299,6 @@ function getJobSource(
           c.transformer ??
           new JobMappingTransformer({
             source: 'passthrough',
-            name: 'Passthrough',
             config: new TransformerConfig({
               config: {
                 case: 'passthroughConfig',
@@ -319,7 +316,6 @@ function getJobSource(
       colMapping?.transformer ??
       new JobMappingTransformer({
         source: 'passthrough',
-        name: 'Passthrough',
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',
@@ -362,7 +358,6 @@ async function updateJobConnection(
         mappings: values.mappings.map((m) => {
           const jmt = new JobMappingTransformer({
             source: m.transformer.source,
-            name: m.transformer.name,
             config: m.transformer.config as TransformerConfig,
           });
 

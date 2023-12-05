@@ -8,13 +8,13 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
   setIsSheetOpen?: (val: boolean) => void;
-  transformer: UserDefinedTransformer;
+  transformer: Transformer;
 }
 
 export default function TransformIntPhoneForm(props: Props): ReactElement {
@@ -55,7 +55,7 @@ export default function TransformIntPhoneForm(props: Props): ReactElement {
               <Switch
                 checked={pl}
                 onCheckedChange={() => setPl(!pl)}
-                disabled={transformer.id ? true : false}
+                disabled={isUserDefinedTransformer(transformer)}
               />
             </FormControl>
           </FormItem>
