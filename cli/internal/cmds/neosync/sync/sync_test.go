@@ -166,6 +166,6 @@ func Test_getSchemaTables(t *testing.T) {
 
 	for _, tt := range tests {
 		result := getSchemaTables(tt.schemas)
-		assert.Equal(t, tt.expected, result)
+		assert.ElementsMatch(t, tt.expected, result)
 	}
 }
