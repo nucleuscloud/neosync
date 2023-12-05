@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"sync"
 
+	"go.temporal.io/api/serviceerror"
 	temporalclient "go.temporal.io/sdk/client"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -33,6 +34,12 @@ type TemporalClientManagerClient interface {
 	GetWorkflowClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (temporalclient.Client, error)
 	GetScheduleClientByAccount(ctx context.Context, accountId string, logger *slog.Logger) (temporalclient.ScheduleClient, error)
 	GetScheduleHandleClientByAccount(ctx context.Context, accountId string, scheduleId string, logger *slog.Logger) (temporalclient.ScheduleHandle, error)
+	GetTemporalConfigByAccount(ctx context.Context, accountId string) (*pg_models.TemporalConfig, error)
+	DoesAccountHaveTemporalWorkspace(
+		ctx context.Context,
+		accountId string,
+		logger *slog.Logger,
+	) (bool, error)
 }
 
 type DB interface {
@@ -199,7 +206,7 @@ func (t *TemporalClientManager) getNewNSClientByAccount(
 	accountId string,
 	logger *slog.Logger,
 ) (temporalclient.NamespaceClient, error) {
-	tc, err := t.getTemporalConfigByAccount(ctx, accountId)
+	tc, err := t.GetTemporalConfigByAccount(ctx, accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +222,7 @@ func (t *TemporalClientManager) getNewWFClientByAccount(
 	accountId string,
 	logger *slog.Logger,
 ) (temporalclient.Client, error) {
-	tc, err := t.getTemporalConfigByAccount(ctx, accountId)
+	tc, err := t.GetTemporalConfigByAccount(ctx, accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +232,7 @@ func (t *TemporalClientManager) getNewWFClientByAccount(
 	return temporalclient.NewLazyClient(*t.getClientOptions(accountId, tc, logger))
 }
 
-func (t *TemporalClientManager) getTemporalConfigByAccount(
+func (t *TemporalClientManager) GetTemporalConfigByAccount(
 	ctx context.Context,
 	accountId string,
 ) (*pg_models.TemporalConfig, error) {
@@ -253,6 +260,31 @@ func (t *TemporalClientManager) getTemporalConfigByAccount(
 		tc.Url = dbConfig.Url
 	}
 	return tc, nil
+}
+
+func (t *TemporalClientManager) DoesAccountHaveTemporalWorkspace(
+	ctx context.Context,
+	accountId string,
+	logger *slog.Logger,
+) (bool, error) {
+	tc, err := t.GetTemporalConfigByAccount(ctx, accountId)
+	if err != nil {
+		return false, err
+	}
+	if tc.Namespace == "" {
+		return false, nil
+	}
+	nsclient, err := t.GetNamespaceClientByAccount(ctx, accountId, logger)
+	if err != nil {
+		return false, err
+	}
+	_, err = nsclient.Describe(ctx, tc.Namespace)
+	if err != nil && !errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
+		return false, err
+	} else if err != nil && errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (t *TemporalClientManager) getClientOptions(

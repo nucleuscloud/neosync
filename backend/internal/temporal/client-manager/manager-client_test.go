@@ -267,7 +267,7 @@ func Test_ManagerClient_GetNamespaceClientByAccount_ConcurrentRequests(t *testin
 	assert.True(t, mockdb.AssertNumberOfCalls(t, "GetTemporalConfigByAccount", 1))
 }
 
-func Test_ManagerClient_getTemporalConfigByAccount_Db(t *testing.T) {
+func Test_ManagerClient_GetTemporalConfigByAccount_Db(t *testing.T) {
 	mockdb := NewMockDB(t)
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{}, mockdb, mockdbtx)
@@ -279,7 +279,7 @@ func Test_ManagerClient_getTemporalConfigByAccount_Db(t *testing.T) {
 	}, nil)
 
 	accountUuid := uuid.New().String()
-	tc, err := mgr.getTemporalConfigByAccount(context.Background(), accountUuid)
+	tc, err := mgr.GetTemporalConfigByAccount(context.Background(), accountUuid)
 	assert.NoError(t, err)
 	assert.NotNil(t, tc)
 	assert.Equal(t, tc, &pg_models.TemporalConfig{
@@ -289,7 +289,7 @@ func Test_ManagerClient_getTemporalConfigByAccount_Db(t *testing.T) {
 	})
 }
 
-func Test_ManagerClient_getTemporalConfigByAccount_Default(t *testing.T) {
+func Test_ManagerClient_GetTemporalConfigByAccount_Default(t *testing.T) {
 	mockdb := NewMockDB(t)
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
@@ -297,7 +297,7 @@ func Test_ManagerClient_getTemporalConfigByAccount_Default(t *testing.T) {
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
 
 	accountUuid := uuid.New().String()
-	tc, err := mgr.getTemporalConfigByAccount(context.Background(), accountUuid)
+	tc, err := mgr.GetTemporalConfigByAccount(context.Background(), accountUuid)
 	assert.NoError(t, err)
 	assert.NotNil(t, tc)
 	assert.Equal(t, tc, &pg_models.TemporalConfig{
@@ -307,7 +307,7 @@ func Test_ManagerClient_getTemporalConfigByAccount_Default(t *testing.T) {
 	})
 }
 
-func Test_ManagerClient_getTemporalConfigByAccount_Empty(t *testing.T) {
+func Test_ManagerClient_GetTemporalConfigByAccount_Empty(t *testing.T) {
 	mockdb := NewMockDB(t)
 	mockdbtx := nucleusdb.NewMockDBTX(t)
 	mgr := New(&Config{DefaultTemporalConfig: nil}, mockdb, mockdbtx)
@@ -315,7 +315,7 @@ func Test_ManagerClient_getTemporalConfigByAccount_Empty(t *testing.T) {
 	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
 
 	accountUuid := uuid.New().String()
-	tc, err := mgr.getTemporalConfigByAccount(context.Background(), accountUuid)
+	tc, err := mgr.GetTemporalConfigByAccount(context.Background(), accountUuid)
 	assert.NoError(t, err)
 	assert.NotNil(t, tc)
 	assert.Equal(t, tc, &pg_models.TemporalConfig{

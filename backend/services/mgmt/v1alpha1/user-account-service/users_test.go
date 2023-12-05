@@ -17,6 +17,7 @@ import (
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -584,24 +585,27 @@ func Test_AcceptTeamAccountInvite(t *testing.T) {
 }
 
 type serviceMocks struct {
-	Service         *Service
-	DbtxMock        *nucleusdb.MockDBTX
-	QuerierMock     *db_queries.MockQuerier
-	AuthServiceMock *mgmtv1alpha1connect.MockAuthServiceClient
+	Service                   *Service
+	DbtxMock                  *nucleusdb.MockDBTX
+	QuerierMock               *db_queries.MockQuerier
+	AuthServiceMock           *mgmtv1alpha1connect.MockAuthServiceClient
+	TemporalClientManagerMock *clientmanager.MockTemporalClientManagerClient
 }
 
 func createServiceMock(t *testing.T, config *Config) *serviceMocks {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	temporalClientManager := clientmanager.NewMockTemporalClientManagerClient(t)
 
-	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
+	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, temporalClientManager)
 
 	return &serviceMocks{
-		Service:         service,
-		DbtxMock:        mockDbtx,
-		QuerierMock:     mockQuerier,
-		AuthServiceMock: mockAuthService,
+		Service:                   service,
+		DbtxMock:                  mockDbtx,
+		QuerierMock:               mockQuerier,
+		AuthServiceMock:           mockAuthService,
+		TemporalClientManagerMock: temporalClientManager,
 	}
 }
 

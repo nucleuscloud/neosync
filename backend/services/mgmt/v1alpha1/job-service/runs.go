@@ -70,7 +70,7 @@ func (s *Service) GetJobRuns(
 	if err != nil {
 		return nil, err
 	}
-	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
+	tconfig, err := s.temporalWfManager.GetTemporalConfigByAccount(ctx, accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -389,11 +389,8 @@ func (s *Service) getVerifiedJobRun(
 	if err != nil {
 		return nil, err
 	}
-	accountUuid, err := nucleusdb.ToUuid(accountId)
-	if err != nil {
-		return nil, err
-	}
-	hasNs, err := s.doesAccountHaveTemporalNamespace(ctx, accountUuid, logger)
+
+	hasNs, err := s.temporalWfManager.DoesAccountHaveTemporalWorkspace(ctx, accountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -404,7 +401,7 @@ func (s *Service) getVerifiedJobRun(
 	if err != nil {
 		return nil, err
 	}
-	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
+	tconfig, err := s.temporalWfManager.GetTemporalConfigByAccount(ctx, accountId)
 	if err != nil {
 		return nil, err
 	}

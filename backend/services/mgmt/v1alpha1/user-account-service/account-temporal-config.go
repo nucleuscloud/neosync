@@ -23,30 +23,24 @@ func (s *Service) GetAccountTemporalConfig(
 	if err != nil {
 		return nil, err
 	}
-
 	accountUuid, err := nucleusdb.ToUuid(req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
-
-	tc, err := s.db.Q.GetTemporalConfigByUserAccount(ctx, s.db.Db, db_queries.GetTemporalConfigByUserAccountParams{
-		AccountId: accountUuid,
+	count, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
 		UserId:    userUuid,
+		AccountId: accountUuid,
 	})
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	if err != nil {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		tc = s.getDefaultTemporalConfig()
 	}
-	defaultConfig := s.getDefaultTemporalConfig()
-	if tc.Namespace == "" {
-		tc.Namespace = defaultConfig.Namespace
+	if count == 0 {
+		return nil, nucleuserrors.NewForbidden("user is not in account")
 	}
-	if tc.SyncJobQueueName == "" {
-		tc.SyncJobQueueName = defaultConfig.SyncJobQueueName
-	}
-	if tc.Url == "" {
-		tc.Url = defaultConfig.Url
+
+	tc, err := s.temporalClientManager.GetTemporalConfigByAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetAccountTemporalConfigResponse{
@@ -97,12 +91,4 @@ func (s *Service) SetAccountTemporalConfig(
 	return connect.NewResponse(&mgmtv1alpha1.SetAccountTemporalConfigResponse{
 		Config: account.TemporalConfig.ToDto(),
 	}), nil
-}
-
-func (s *Service) getDefaultTemporalConfig() *pg_models.TemporalConfig {
-	return &pg_models.TemporalConfig{
-		Namespace:        s.cfg.Temporal.DefaultTemporalNamespace,
-		SyncJobQueueName: s.cfg.Temporal.DefaultTemporalSyncJobQueueName,
-		Url:              s.cfg.Temporal.DefaultTemporalUrl,
-	}
 }

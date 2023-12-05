@@ -18,7 +18,6 @@ import (
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 
-	"go.temporal.io/api/serviceerror"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
@@ -128,36 +127,6 @@ func (s *Service) GetJob(
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
 		Job: dtomaps.ToJobDto(&job, destConnections),
 	}), nil
-}
-
-func (s *Service) doesAccountHaveTemporalNamespace(
-	ctx context.Context,
-	accountUuid pgtype.UUID,
-	logger *slog.Logger,
-) (bool, error) {
-	resp, err := s.useraccountService.GetAccountTemporalConfig(ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
-		AccountId: nucleusdb.UUIDString(accountUuid),
-	}))
-	if err != nil {
-		return false, err
-	}
-
-	tc := resp.Msg.Config
-
-	if resp.Msg.Config == nil || resp.Msg.Config.Namespace == "" {
-		return false, nil
-	}
-	nsclient, err := s.temporalWfManager.GetNamespaceClientByAccount(ctx, nucleusdb.UUIDString(accountUuid), logger)
-	if err != nil {
-		return false, err
-	}
-	_, err = nsclient.Describe(ctx, tc.Namespace)
-	if err != nil && !errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
-		return false, err
-	} else if err != nil && errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
-		return false, nil
-	}
-	return true, nil
 }
 
 func (s *Service) GetJobStatus(
@@ -442,7 +411,7 @@ func (s *Service) CreateJob(
 		})
 	}
 
-	hasNs, err := s.doesAccountHaveTemporalNamespace(ctx, *accountUuid, logger)
+	hasNs, err := s.temporalWfManager.DoesAccountHaveTemporalWorkspace(ctx, req.Msg.AccountId, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -468,7 +437,7 @@ func (s *Service) CreateJob(
 	if err != nil {
 		return nil, fmt.Errorf("unable to build temporal schedule client by account: %w", err)
 	}
-	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, *accountUuid)
+	tconfig, err := s.temporalWfManager.GetTemporalConfigByAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve temporal config by account: %w", err)
 	}
@@ -545,7 +514,7 @@ func (s *Service) DeleteJob(
 	if err != nil {
 		return nil, err
 	}
-	tconfig, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, job.AccountID)
+	tconfig, err := s.temporalWfManager.GetTemporalConfigByAccount(ctx, nucleusdb.UUIDString(job.AccountID))
 	if err != nil {
 		return nil, err
 	}

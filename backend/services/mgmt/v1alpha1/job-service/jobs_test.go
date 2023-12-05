@@ -18,7 +18,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.temporal.io/api/workflowservice/v1"
 	temporal "go.temporal.io/sdk/client"
 )
 
@@ -328,10 +327,12 @@ func Test_CreateJob(t *testing.T) {
 	}).Return(int64(1), nil)
 	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, srcConn.ID).Return(srcConn, nil)
 	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, destConn.ID).Return(destConn, nil)
-	m.QuerierMock.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, accountUuid).Return(&pg_models.TemporalConfig{Namespace: "namespace"}, nil)
-	mockNamespaceClient := new(MockNamespaceClient)
-	m.TemporalWfManagerMock.On("GetNamespaceClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(mockNamespaceClient, nil)
-	mockNamespaceClient.On("Describe", mock.Anything, "namespace").Return(&workflowservice.DescribeNamespaceResponse{}, nil)
+	m.TemporalWfManagerMock.On("DoesAccountHaveTemporalWorkspace", mock.Anything, mockAccountId, mock.Anything).Return(true, nil)
+	m.TemporalWfManagerMock.On("GetTemporalConfigByAccount", mock.Anything, mockAccountId).Return(&pg_models.TemporalConfig{
+		Namespace:        "default",
+		SyncJobQueueName: "sync-job",
+		Url:              "localhost:7233",
+	}, nil)
 	m.TemporalWfManagerMock.On("GetScheduleClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(mockScheduleClient, nil)
 	mockScheduleClient.On("Create", mock.Anything, mock.Anything).Return(mockHandle, nil)
 	mockHandle.On("Trigger", mock.Anything, mock.Anything).Return(nil)
