@@ -279,10 +279,12 @@ func (t *TemporalClientManager) DoesAccountHaveTemporalWorkspace(
 		return false, err
 	}
 	_, err = nsclient.Describe(ctx, tc.Namespace)
-	if err != nil && !errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
+	if err != nil {
+		_, ok := err.(*serviceerror.NamespaceNotFound)
+		if ok {
+			return false, nil
+		}
 		return false, err
-	} else if err != nil && errors.Is(err, serviceerror.NewNamespaceNotFound(tc.Namespace)) {
-		return false, nil
 	}
 	return true, nil
 }

@@ -2,6 +2,7 @@ package clientmanager
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"testing"
 
@@ -10,6 +11,8 @@ import (
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"go.temporal.io/api/serviceerror"
+	"go.temporal.io/api/workflowservice/v1"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -323,4 +326,86 @@ func Test_ManagerClient_GetTemporalConfigByAccount_Empty(t *testing.T) {
 		SyncJobQueueName: "",
 		Url:              "",
 	})
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_TemporalConfig_Err(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("test"))
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.Error(t, err)
+	assert.False(t, ok)
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_TemporalConfig_Empty_Namespace(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: nil}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.NoError(t, err)
+	assert.False(t, ok)
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Temporal_Namespace(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockNsClient := new(MockNamespaceClient)
+	mgr.nsmap.Store(accountUuid, mockNsClient)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+	mockNsClient.On("Describe", mock.Anything, defaultTemporalConfig.Namespace).Return(&workflowservice.DescribeNamespaceResponse{}, nil)
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.NoError(t, err)
+	assert.True(t, ok)
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Has_Not_Temporal_Namespace(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockNsClient := new(MockNamespaceClient)
+	mgr.nsmap.Store(accountUuid, mockNsClient)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+	mockNsClient.On("Describe", mock.Anything, defaultTemporalConfig.Namespace).Return(&workflowservice.DescribeNamespaceResponse{}, serviceerror.NewNamespaceNotFound(defaultTemporalConfig.Namespace))
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.NoError(t, err)
+	assert.False(t, ok)
+}
+
+func Test_ManagerClient_DoesAccountHaveTemporalWorkspace_Describe_Error(t *testing.T) {
+	mockdb := NewMockDB(t)
+	mockdbtx := nucleusdb.NewMockDBTX(t)
+	mgr := New(&Config{DefaultTemporalConfig: defaultTemporalConfig}, mockdb, mockdbtx)
+
+	accountUuid := uuid.New().String()
+
+	mockNsClient := new(MockNamespaceClient)
+	mgr.nsmap.Store(accountUuid, mockNsClient)
+
+	mockdb.On("GetTemporalConfigByAccount", mock.Anything, mock.Anything, mock.Anything).Return(&pg_models.TemporalConfig{}, nil)
+	mockNsClient.On("Describe", mock.Anything, defaultTemporalConfig.Namespace).Return(&workflowservice.DescribeNamespaceResponse{}, serviceerror.NewCanceled("test"))
+
+	ok, err := mgr.DoesAccountHaveTemporalWorkspace(context.Background(), accountUuid, slog.Default())
+	assert.Error(t, err)
+	assert.False(t, ok)
 }
