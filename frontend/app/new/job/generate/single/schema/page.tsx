@@ -90,11 +90,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [connectFormValues] = useSessionStorage<SingleTableConnectFormValues>(
     connectFormKey,
     {
-      destination: { connectionId: '', destinationOptions: {} },
+      connectionId: '',
+      destinationOptions: {},
     }
   );
   const { data: connSchemaData } = useGetConnectionSchema(
-    connectFormValues.destination.connectionId
+    connectFormValues.connectionId
   );
 
   const formKey = `${sessionPrefix}-new-job-single-table-schema`;
@@ -111,9 +112,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   async function getSchema(): Promise<SingleTableSchemaFormValues> {
     try {
-      const res = await getConnectionSchema(
-        connectFormValues.destination.connectionId
-      );
+      const res = await getConnectionSchema(connectFormValues.connectionId);
       if (!res) {
         return defaultValues;
       }
@@ -419,7 +418,7 @@ async function createNewJob(
         config: {
           case: 'generate',
           value: new GenerateSourceOptions({
-            fkSourceConnectionId: connect.destination.connectionId,
+            fkSourceConnectionId: connect.connectionId,
             schemas: [
               new GenerateSourceSchemaOption({
                 schema: schema.schema,
@@ -437,10 +436,10 @@ async function createNewJob(
     }),
     destinations: [
       new JobDestination({
-        connectionId: connect.destination.connectionId,
+        connectionId: connect.connectionId,
         options: toJobDestinationOptions(
-          connect.destination,
-          connectionIdMap.get(connect.destination.connectionId)
+          connect,
+          connectionIdMap.get(connect.connectionId)
         ),
       }),
     ],
