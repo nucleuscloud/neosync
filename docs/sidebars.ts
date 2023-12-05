@@ -106,6 +106,11 @@ const sidebars: SidebarsConfig = {
           id: 'cli/version',
           label: 'version',
         },
+        {
+          type: 'doc',
+          id: 'cli/sync',
+          label: 'sync',
+        },
       ],
     },
     {
