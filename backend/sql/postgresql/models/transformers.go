@@ -323,288 +323,285 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 // DB -> API
 
 func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMappingTransformer {
-
-	config := &TransformerConfigs{}
-
 	return &mgmtv1alpha1.JobMappingTransformer{
 		Source: t.Source,
 		Name:   t.Name,
-		Config: config.ToTransformerConfigDto(t.Config),
+		Config: t.Config.ToTransformerConfigDto(),
 	}
 }
 
-func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgmtv1alpha1.TransformerConfig {
+func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerConfig {
 	switch {
-	case tr.GenerateEmail != nil:
+	case t.GenerateEmail != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
 				GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
 			},
 		}
-	case tr.GenerateRealisticEmail != nil:
+	case t.GenerateRealisticEmail != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateRealisticEmailConfig{
 				GenerateRealisticEmailConfig: &mgmtv1alpha1.GenerateRealisticEmail{},
 			},
 		}
-	case tr.TransformEmail != nil:
+	case t.TransformEmail != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-					PreserveDomain: tr.TransformEmail.PreserveDomain,
-					PreserveLength: tr.TransformEmail.PreserveLength,
+					PreserveDomain: t.TransformEmail.PreserveDomain,
+					PreserveLength: t.TransformEmail.PreserveLength,
 				},
 			},
 		}
-	case tr.GenerateBool != nil:
+	case t.GenerateBool != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
 				GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
 			},
 		}
-	case tr.GenerateCardNumber != nil:
+	case t.GenerateCardNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
 				GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
-					ValidLuhn: tr.GenerateCardNumber.ValidLuhn,
+					ValidLuhn: t.GenerateCardNumber.ValidLuhn,
 				},
 			},
 		}
-	case tr.GenerateCity != nil:
+	case t.GenerateCity != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
 				GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
 			},
 		}
-	case tr.GenerateE164Number != nil:
+	case t.GenerateE164Number != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig{
 				GenerateE164NumberConfig: &mgmtv1alpha1.GenerateE164Number{
-					Length: tr.GenerateE164Number.Length,
+					Length: t.GenerateE164Number.Length,
 				},
 			},
 		}
-	case tr.GenerateFirstName != nil:
+	case t.GenerateFirstName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
 				GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
 			},
 		}
-	case tr.GenerateFloat != nil:
+	case t.GenerateFloat != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFloatConfig{
 				GenerateFloatConfig: &mgmtv1alpha1.GenerateFloat{
-					Sign:                tr.GenerateFloat.Sign,
-					DigitsBeforeDecimal: tr.GenerateFloat.DigitsBeforeDecimal,
-					DigitsAfterDecimal:  tr.GenerateFloat.DigitsAfterDecimal,
+					Sign:                t.GenerateFloat.Sign,
+					DigitsBeforeDecimal: t.GenerateFloat.DigitsBeforeDecimal,
+					DigitsAfterDecimal:  t.GenerateFloat.DigitsAfterDecimal,
 				},
 			},
 		}
-	case tr.GenerateFullAddress != nil:
+	case t.GenerateFullAddress != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
 				GenerateFullAddressConfig: &mgmtv1alpha1.GenerateFullAddress{},
 			},
 		}
-	case tr.GenerateFullName != nil:
+	case t.GenerateFullName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 				GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
 			},
 		}
-	case tr.GenerateGender != nil:
+	case t.GenerateGender != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
 				GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
-					Abbreviate: tr.GenerateGender.Abbreviate,
+					Abbreviate: t.GenerateGender.Abbreviate,
 				},
 			},
 		}
-	case tr.GenerateInt64Phone != nil:
+	case t.GenerateInt64Phone != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig{
 				GenerateInt64PhoneConfig: &mgmtv1alpha1.GenerateInt64Phone{},
 			},
 		}
-	case tr.GenerateInt != nil:
+	case t.GenerateInt != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{
 				GenerateIntConfig: &mgmtv1alpha1.GenerateInt{
-					Length: tr.GenerateInt.Length,
-					Sign:   tr.GenerateInt.Sign,
+					Length: t.GenerateInt.Length,
+					Sign:   t.GenerateInt.Sign,
 				},
 			},
 		}
-	case tr.GenerateLastName != nil:
+	case t.GenerateLastName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
 				GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
 			},
 		}
-	case tr.GenerateSha256Hash != nil:
+	case t.GenerateSha256Hash != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
 				GenerateSha256HashConfig: &mgmtv1alpha1.GenerateSha256Hash{},
 			},
 		}
-	case tr.GenerateSsn != nil:
+	case t.GenerateSsn != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
 				GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
 			},
 		}
-	case tr.GenerateState != nil:
+	case t.GenerateState != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
 				GenerateStateConfig: &mgmtv1alpha1.GenerateState{},
 			},
 		}
-	case tr.GenerateStreetAddress != nil:
+	case t.GenerateStreetAddress != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
 				GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
 			},
 		}
-	case tr.GenerateStringPhone != nil:
+	case t.GenerateStringPhone != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
 				GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
-					IncludeHyphens: tr.GenerateStringPhone.IncludeHyphens,
+					IncludeHyphens: t.GenerateStringPhone.IncludeHyphens,
 				},
 			},
 		}
-	case tr.GenerateString != nil:
+	case t.GenerateString != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 				GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-					Length: tr.GenerateString.Length,
+					Length: t.GenerateString.Length,
 				},
 			},
 		}
-	case tr.GenerateUnixTimestamp != nil:
+	case t.GenerateUnixTimestamp != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
 				GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
 			},
 		}
-	case tr.GenerateUsername != nil:
+	case t.GenerateUsername != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{
 				GenerateUsernameConfig: &mgmtv1alpha1.GenerateUsername{},
 			},
 		}
-	case tr.GenerateUtcTimestamp != nil:
+	case t.GenerateUtcTimestamp != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{
 				GenerateUtctimestampConfig: &mgmtv1alpha1.GenerateUtcTimestamp{},
 			},
 		}
-	case tr.GenerateUuid != nil:
+	case t.GenerateUuid != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 				GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-					IncludeHyphens: tr.GenerateUuid.IncludeHyphens,
+					IncludeHyphens: t.GenerateUuid.IncludeHyphens,
 				},
 			},
 		}
-	case tr.GenerateZipcode != nil:
+	case t.GenerateZipcode != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
 				GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
 			},
 		}
-	case tr.TransformE164Phone != nil:
+	case t.TransformE164Phone != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneConfig{
 				TransformE164PhoneConfig: &mgmtv1alpha1.TransformE164Phone{
-					PreserveLength: tr.TransformE164Phone.PreserveLength,
+					PreserveLength: t.TransformE164Phone.PreserveLength,
 				},
 			},
 		}
-	case tr.TransformFirstname != nil:
+	case t.TransformFirstname != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
 				TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
-					PreserveLength: tr.TransformFirstname.PreserveLength,
+					PreserveLength: t.TransformFirstname.PreserveLength,
 				},
 			},
 		}
-	case tr.TransformFloat != nil:
+	case t.TransformFloat != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFloatConfig{
 				TransformFloatConfig: &mgmtv1alpha1.TransformFloat{
-					PreserveLength: tr.TransformFloat.PreserveLength,
-					PreserveSign:   tr.TransformFloat.PreserveSign,
+					PreserveLength: t.TransformFloat.PreserveLength,
+					PreserveSign:   t.TransformFloat.PreserveSign,
 				},
 			},
 		}
-	case tr.TransformFullName != nil:
+	case t.TransformFullName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
 				TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
-					PreserveLength: tr.TransformFullName.PreserveLength,
+					PreserveLength: t.TransformFullName.PreserveLength,
 				},
 			},
 		}
-	case tr.TransformIntPhone != nil:
+	case t.TransformIntPhone != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformIntPhoneConfig{
 				TransformIntPhoneConfig: &mgmtv1alpha1.TransformIntPhone{
-					PreserveLength: tr.TransformInt.PreserveLength,
+					PreserveLength: t.TransformInt.PreserveLength,
 				},
 			},
 		}
-	case tr.TransformInt != nil:
+	case t.TransformInt != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformIntConfig{
 				TransformIntConfig: &mgmtv1alpha1.TransformInt{
-					PreserveLength: tr.TransformInt.PreserveLength,
-					PreserveSign:   tr.TransformInt.PreserveSign,
+					PreserveLength: t.TransformInt.PreserveLength,
+					PreserveSign:   t.TransformInt.PreserveSign,
 				},
 			},
 		}
-	case tr.TransformLastName != nil:
+	case t.TransformLastName != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
 				TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
-					PreserveLength: tr.TransformLastName.PreserveLength,
+					PreserveLength: t.TransformLastName.PreserveLength,
 				},
 			},
 		}
-	case tr.TransformPhone != nil:
+	case t.TransformPhone != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneConfig{
 				TransformPhoneConfig: &mgmtv1alpha1.TransformPhone{
-					PreserveLength: tr.TransformPhone.PreserveLength,
-					IncludeHyphens: tr.TransformPhone.IncludeHyphens,
+					PreserveLength: t.TransformPhone.PreserveLength,
+					IncludeHyphens: t.TransformPhone.IncludeHyphens,
 				},
 			},
 		}
-	case tr.TransformString != nil:
+	case t.TransformString != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 				TransformStringConfig: &mgmtv1alpha1.TransformString{
-					PreserveLength: tr.TransformString.PreserveLength,
+					PreserveLength: t.TransformString.PreserveLength,
 				},
 			},
 		}
-	case tr.Passthrough != nil:
+	case t.Passthrough != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
 			},
 		}
-	case tr.Null != nil:
+	case t.Null != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}
-	case tr.UserDefinedTransformer != nil:
+	case t.UserDefinedTransformer != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
 				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
-					Id: tr.UserDefinedTransformer.Id,
+					Id: t.UserDefinedTransformer.Id,
 				},
 			},
 		}
