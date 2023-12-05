@@ -577,25 +577,6 @@ func getAllMysqlFkConstraints(
 	return output, nil
 }
 
-// func mapDatabaseTypeToValueFieldType(dbType string) mgmtv1alpha1.isValue_Kind {
-// 	// Map PostgreSQL types to corresponding Value field types
-// 	switch dbType {
-// 	case "text", "varchar", "char", "citext", "json", "jsonb", "uuid":
-// 		return &mgmtv1alpha1.Value_StringValue{}
-// 	case "int", "int2", "int4", "int8", "serial", "serial2", "serial4", "serial8":
-// 		return mgmtv1alpha1.Value_NUMBER_VALUE
-// 	case "float4", "float8", "numeric", "decimal":
-// 		return mgmtv1alpha1.Value_NUMBER_VALUE
-// 	case "bool":
-// 		return mgmtv1alpha1.Value_BOOL_VALUE
-// 	case "struct", "hstore":
-// 		return mgmtv1alpha1.Value_STRUCT_VALUE
-// 	// Add more cases for other PostgreSQL types as needed
-// 	default:
-// 		return mgmtv1alpha1.Value_NULL_VALUE
-// 	}
-// }
-
 type connectionDetails struct {
 	ConnectionString string
 	ConnectionDriver string

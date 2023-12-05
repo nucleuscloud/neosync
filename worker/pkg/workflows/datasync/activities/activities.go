@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"connectrpc.com/connect"
 	"go.temporal.io/sdk/activity"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
@@ -91,6 +92,11 @@ func (a *Activities) GenerateBenthosConfigs(
 		neosyncUrl,
 	)
 
+	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(
+		httpClient,
+		neosyncUrl,
+	)
+
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
 		httpClient,
 		neosyncUrl,
@@ -102,6 +108,7 @@ func (a *Activities) GenerateBenthosConfigs(
 		mysqlquerier,
 		jobclient,
 		connclient,
+		transformerclient,
 	)
 	return bbuilder.GenerateBenthosConfigs(ctx, req, logger)
 }
@@ -110,7 +117,8 @@ type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
-func buildBenthosSqlSourceConfigReponses(
+func (b *benthosBuilder) buildBenthosSqlSourceConfigReponses(
+	ctx context.Context,
 	mappings []*TableMapping,
 	dsn string,
 	driver string,
@@ -160,7 +168,7 @@ func buildBenthosSqlSourceConfigReponses(
 				},
 			},
 		}
-		mutation, err := buildProcessorMutation(tableMapping.Mappings)
+		mutation, err := b.buildProcessorMutation(ctx, tableMapping.Mappings)
 		if err != nil {
 			return nil, err
 		}
@@ -169,7 +177,6 @@ func buildBenthosSqlSourceConfigReponses(
 				Mutation: mutation,
 			})
 		}
-
 		responses = append(responses, &BenthosConfigResponse{
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
@@ -317,7 +324,7 @@ func shouldHaltOnSchemaAddition(
 
 func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
 	for _, col := range mappings {
-		if col.Transformer.Value != nullString {
+		if col.Transformer.Source != nullString {
 			return false
 		}
 	}
@@ -380,7 +387,6 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		"benthos", "true",
 	))
 
-	fmt.Println(string(req.BenthosConfig))
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -557,11 +563,24 @@ func getMysqlDsn(
 	}
 }
 
-func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
+func (b *benthosBuilder) buildProcessorMutation(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	pieces := []string{}
 
 	for _, col := range cols {
-		if col.Transformer != nil && col.Transformer.Value != "" && col.Transformer.Value != "passthrough" {
+		if col.Transformer != nil && col.Transformer.Source != "" && col.Transformer.Source != "passthrough" {
+
+			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
+
+				// handle user defined transformer -> get the user defined transformer configs using the id
+
+				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
+				if err != nil {
+					return "", errors.New("unable to look up user defined transformer config by id")
+				}
+				col.Transformer = val
+
+			}
+
 			mutation, err := computeMutationFunction(col)
 			if err != nil {
 				return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
@@ -570,6 +589,20 @@ func buildProcessorMutation(cols []*mgmtv1alpha1.JobMapping) (string, error) {
 		}
 	}
 	return strings.Join(pieces, "\n"), nil
+}
+
+// takes in an user defined config with just an id field and return the right transformer config for that user defined function id
+func (b *benthosBuilder) convertUserDefinedFunctionConfig(ctx context.Context, t *mgmtv1alpha1.JobMappingTransformer) (*mgmtv1alpha1.JobMappingTransformer, error) {
+
+	transformer, err := b.transformerclient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{TransformerId: t.Config.GetUserDefinedTransformerConfig().Id}))
+	if err != nil {
+		return nil, err
+	}
+
+	return &mgmtv1alpha1.JobMappingTransformer{
+		Source: t.Source,
+		Config: transformer.Msg.Transformer.Config,
+	}, nil
 }
 
 func buildPlainInsertArgs(cols []string) string {
@@ -589,7 +622,8 @@ root.{destination_col} = transformerfunction(args)
 */
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
-	switch col.Transformer.Value {
+
+	switch col.Transformer.Source {
 	case "generate_email":
 		return "generate_email()", nil
 	case "generate_realistic_email":
@@ -602,7 +636,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "generate_bool()", nil
 	case "generate_card_number":
 		luhn := col.Transformer.Config.GetGenerateCardNumberConfig().ValidLuhn
-		return fmt.Sprintf(`generate_cardnumber(valid_luhn:%t)`, luhn), nil
+		return fmt.Sprintf(`generate_card_number(valid_luhn:%t)`, luhn), nil
 	case "generate_city":
 		return "generate_city()", nil
 	case "generate_e164_number":
@@ -614,7 +648,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		sign := col.Transformer.Config.GetGenerateFloatConfig().Sign
 		bd := col.Transformer.Config.GetGenerateFloatConfig().DigitsBeforeDecimal
 		ad := col.Transformer.Config.GetGenerateFloatConfig().DigitsAfterDecimal
-		return fmt.Sprintf(`generate_float(sign:%s, digits_before_decimal:%d, digits_after_decimal:%d)`, sign, bd, ad), nil
+		return fmt.Sprintf(`generate_float(sign:%q, digits_before_decimal:%d, digits_after_decimal:%d)`, sign, bd, ad), nil
 	case "generate_full_address":
 		return "generate_full_address()", nil
 	case "generate_full_name":
@@ -627,21 +661,20 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "generate_int":
 		sign := col.Transformer.Config.GetGenerateIntConfig().Sign
 		length := col.Transformer.Config.GetGenerateIntConfig().Length
-		return fmt.Sprintf(`generate_int(length:%d,sign:%s)`, length, sign), nil
+		return fmt.Sprintf(`generate_int(length:%d,sign:%q)`, length, sign), nil
 	case "generate_last_name":
 		return "generate_last_name()", nil
 	case "generate_sha256hash":
 		return `generate_sha256hash()`, nil
 	case "generate_ssn":
 		return "generate_ssn()", nil
-	case "state":
+	case "generate_state":
 		return "generate_state()", nil
-	case "street_address":
-		return "generates_street_address()", nil
+	case "generate_street_address":
+		return "generate_street_address()", nil
 	case "generate_string_phone":
-		ef := col.Transformer.Config.GetGenerateStringPhoneConfig().E164Format
 		ih := col.Transformer.Config.GetGenerateStringPhoneConfig().IncludeHyphens
-		return fmt.Sprintf("generate_string_phone(e164_format:%t,include_hyphens:%t)", ef, ih), nil
+		return fmt.Sprintf("generate_string_phone(include_hyphens:%t)", ih), nil
 	case "generate_string":
 		length := col.Transformer.Config.GetGenerateStringConfig().Length
 		return fmt.Sprintf(`generate_string(length:%d)`, length), nil
