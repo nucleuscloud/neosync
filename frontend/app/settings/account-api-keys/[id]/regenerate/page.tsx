@@ -41,7 +41,7 @@ import { getErrorMessage } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { addDays, addYears, endOfDay, format, startOfDay } from 'date-fns';
+import { addDays, endOfDay, format, startOfDay } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -228,7 +228,9 @@ export default function RegenerateAccountApiKey({
                         }}
                         disabled={(date) =>
                           date < endOfDay(new Date()) ||
-                          date > addYears(startOfDay(new Date()), 1)
+                          // must be days instead of years to account for leap year
+                          // backend constraints to within 365 days of the current time
+                          date > addDays(startOfDay(new Date()), 365)
                         }
                         initialFocus
                       />

@@ -2,7 +2,7 @@
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
-import { addYears, endOfDay, format, startOfDay } from 'date-fns';
+import { endOfDay, format, startOfDay } from 'date-fns';
 
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -223,7 +223,9 @@ export default function NewApiKeyForm(): ReactElement {
                       }}
                       disabled={(date) =>
                         date < endOfDay(new Date()) ||
-                        date > addYears(startOfDay(new Date()), 1)
+                        // must be days instead of years to account for leap year
+                        // backend constraints to within 365 days of the current time
+                        date > addDays(startOfDay(new Date()), 365)
                       }
                       initialFocus
                     />
