@@ -44,7 +44,7 @@ export default function JobPauseButton({
       await pauseJob(jobId, isPaused);
       toast({
         title: `Successfully ${isPaused ? 'paused' : 'unpaused'}  job!`,
-        variant: 'default',
+        variant: 'success',
       });
       mutate();
       setIsTrying(false);

@@ -4,8 +4,9 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
 
-type Transformer struct {
-	Value  string              `json:"value"`
+type JobMappingTransformerModel struct {
+	Source string              `json:"source"`
+	Name   string              `json:"name"`
 	Config *TransformerConfigs `json:"config,omitempty"`
 }
 
@@ -47,6 +48,7 @@ type TransformerConfigs struct {
 	TransformString        *TransformStringConfig        `json:"transformString,omitempty"`
 	Passthrough            *PassthroughConfig            `json:"passthrough,omitempty"`
 	Null                   *NullConfig                   `json:"null,omitempty"`
+	UserDefinedTransformer *UserDefinedTransformerConfig `json:"userDefinedTransformer,omitempty"`
 }
 
 type GenerateEmailConfig struct{}
@@ -104,7 +106,6 @@ type GenerateStateConfig struct{}
 type GenerateStreetAddressConfig struct{}
 
 type GenerateStringPhoneConfig struct {
-	E164Format     bool `json:"e164Format"`
 	IncludeHyphens bool `json:"includeHyphens"`
 }
 
@@ -167,10 +168,15 @@ type PassthroughConfig struct{}
 
 type NullConfig struct{}
 
-// from API -> DB
-func (t *Transformer) FromTransformerDto(tr *mgmtv1alpha1.Transformer) error {
+type UserDefinedTransformerConfig struct {
+	Id string `json:"id"`
+}
 
-	t.Value = tr.Value
+// from API -> DB
+func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
+
+	t.Source = tr.Source
+	t.Name = tr.Name
 
 	config := &TransformerConfigs{}
 
@@ -242,7 +248,6 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateStreetAddress = &GenerateStreetAddressConfig{}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig:
 		t.GenerateStringPhone = &GenerateStringPhoneConfig{
-			E164Format:     tr.GetGenerateStringPhoneConfig().E164Format,
 			IncludeHyphens: tr.GetGenerateStringPhoneConfig().IncludeHyphens,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
@@ -304,6 +309,10 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.Passthrough = &PassthroughConfig{}
 	case *mgmtv1alpha1.TransformerConfig_Nullconfig:
 		t.Null = &NullConfig{}
+	case *mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig:
+		t.UserDefinedTransformer = &UserDefinedTransformerConfig{
+			Id: tr.GetUserDefinedTransformerConfig().Id,
+		}
 	default:
 		t = &TransformerConfigs{}
 	}
@@ -313,12 +322,13 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 
 // DB -> API
 
-func (t *Transformer) ToTransformerDto() *mgmtv1alpha1.Transformer {
+func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMappingTransformer {
 
 	config := &TransformerConfigs{}
 
-	return &mgmtv1alpha1.Transformer{
-		Value:  t.Value,
+	return &mgmtv1alpha1.JobMappingTransformer{
+		Source: t.Source,
+		Name:   t.Name,
 		Config: config.ToTransformerConfigDto(t.Config),
 	}
 }
@@ -459,7 +469,6 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
 				GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
-					E164Format:     tr.GenerateStringPhone.E164Format,
 					IncludeHyphens: tr.GenerateStringPhone.IncludeHyphens,
 				},
 			},
@@ -589,6 +598,14 @@ func (t *TransformerConfigs) ToTransformerConfigDto(tr *TransformerConfigs) *mgm
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
+			},
+		}
+	case tr.UserDefinedTransformer != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
+				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
+					Id: tr.UserDefinedTransformer.Id,
+				},
 			},
 		}
 	default:

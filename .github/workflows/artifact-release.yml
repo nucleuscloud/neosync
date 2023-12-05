@@ -164,7 +164,7 @@ jobs:
           echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.40.3
+        uses: mikefarah/yq@v4.40.4
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -227,7 +227,7 @@ jobs:
           echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.40.3
+        uses: mikefarah/yq@v4.40.4
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -290,7 +290,7 @@ jobs:
           echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.40.3
+        uses: mikefarah/yq@v4.40.4
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -355,7 +355,7 @@ jobs:
           echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.40.3
+        uses: mikefarah/yq@v4.40.4
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref

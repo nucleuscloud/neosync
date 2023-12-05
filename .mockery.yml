@@ -31,6 +31,7 @@ packages:
       ConnectionServiceClient:
       ConnectionServiceHandler:
       AuthServiceClient:
+      TransformersServiceClient:
   github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
     interfaces:
       DB:

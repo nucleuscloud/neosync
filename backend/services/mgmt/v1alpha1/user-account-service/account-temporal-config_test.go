@@ -28,7 +28,11 @@ func Test_Service_GetAccountTemporalConfig(t *testing.T) {
 	mockQuerier.On("GetTemporalConfigByUserAccount", mock.Anything, mock.Anything, mock.Anything).
 		Return(&pg_models.TemporalConfig{Namespace: "foo", SyncJobQueueName: "foo-queue", Url: "localhost:1234"}, nil)
 
-	service := New(&Config{IsAuthEnabled: false}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
+	service := New(&Config{IsAuthEnabled: false, Temporal: &TemporalConfig{
+		DefaultTemporalNamespace:        "default-ns",
+		DefaultTemporalSyncJobQueueName: "default-sync",
+		DefaultTemporalUrl:              "default-url",
+	}}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
 
 	resp, err := service.GetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
 		AccountId: fakeAccountId,
@@ -49,6 +53,32 @@ func Test_Service_GetAccountTemporalConfig_Defaults(t *testing.T) {
 	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
 	mockQuerier.On("GetTemporalConfigByUserAccount", mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, pgx.ErrNoRows)
+
+	service := New(&Config{IsAuthEnabled: false, Temporal: &TemporalConfig{
+		DefaultTemporalNamespace:        "default-ns",
+		DefaultTemporalSyncJobQueueName: "default-sync",
+		DefaultTemporalUrl:              "default-url",
+	}}, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService)
+
+	resp, err := service.GetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
+		AccountId: fakeAccountId,
+	}))
+	assert.Nil(t, err)
+	assert.Equal(t, resp.Msg.Config, &mgmtv1alpha1.AccountTemporalConfig{
+		Namespace:        "default-ns",
+		SyncJobQueueName: "default-sync",
+		Url:              "default-url",
+	})
+}
+
+func Test_Service_GetAccountTemporalConfig_EmptyObject(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+
+	mockQuerier.On("GetAnonymousUser", mock.Anything, mock.Anything).Return(*getAnonTestApiUser(), nil)
+	mockQuerier.On("GetTemporalConfigByUserAccount", mock.Anything, mock.Anything, mock.Anything).
+		Return(&pg_models.TemporalConfig{}, nil)
 
 	service := New(&Config{IsAuthEnabled: false, Temporal: &TemporalConfig{
 		DefaultTemporalNamespace:        "default-ns",

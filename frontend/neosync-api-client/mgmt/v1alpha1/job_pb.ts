@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
-import { Transformer } from "./transformer_pb";
+import { TransformerConfig } from "./transformer_pb";
 
 /**
  * @generated from enum mgmt.v1alpha1.JobStatus
@@ -1201,6 +1201,55 @@ export class CreateJobResponse extends Message<CreateJobResponse> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.JobMappingTransformer
+ */
+export class JobMappingTransformer extends Message<JobMappingTransformer> {
+  /**
+   * @generated from field: string source = 1;
+   */
+  source = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 3;
+   */
+  config?: TransformerConfig;
+
+  constructor(data?: PartialMessage<JobMappingTransformer>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.JobMappingTransformer";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "config", kind: "message", T: TransformerConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobMappingTransformer {
+    return new JobMappingTransformer().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): JobMappingTransformer {
+    return new JobMappingTransformer().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): JobMappingTransformer {
+    return new JobMappingTransformer().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: JobMappingTransformer | PlainMessage<JobMappingTransformer> | undefined, b: JobMappingTransformer | PlainMessage<JobMappingTransformer> | undefined): boolean {
+    return proto3.util.equals(JobMappingTransformer, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.JobMapping
  */
 export class JobMapping extends Message<JobMapping> {
@@ -1220,9 +1269,9 @@ export class JobMapping extends Message<JobMapping> {
   column = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.Transformer transformer = 5;
+   * @generated from field: mgmt.v1alpha1.JobMappingTransformer transformer = 5;
    */
-  transformer?: Transformer;
+  transformer?: JobMappingTransformer;
 
   constructor(data?: PartialMessage<JobMapping>) {
     super();
@@ -1235,7 +1284,7 @@ export class JobMapping extends Message<JobMapping> {
     { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "transformer", kind: "message", T: Transformer },
+    { no: 5, name: "transformer", kind: "message", T: JobMappingTransformer },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobMapping {

@@ -27,7 +27,7 @@ import { toPostgresSourceSchemaOptions } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { getConnectionIdFromSource } from '../../source/components/SourceConnectionCard';
+import { getConnectionIdFromSource } from '../../source/components/util';
 
 interface Props {
   jobId: string;
@@ -73,7 +73,7 @@ export default function SubsetCard(props: Props): ReactElement {
       const updatedJobRes = await setJobSubsets(jobId, values);
       toast({
         title: 'Successfully updated database subsets',
-        variant: 'default',
+        variant: 'success',
       });
       mutateJob(
         new GetJobResponse({

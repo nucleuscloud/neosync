@@ -8,15 +8,12 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  CustomTransformer,
-  TransformEmail,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: CustomTransformer;
+  transformer: UserDefinedTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
@@ -25,14 +22,16 @@ export default function TransformEmailForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as TransformEmail;
+  const pdValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.preserveDomain`
+  );
 
-  const [pd, setPd] = useState<boolean>(
-    config?.preserveDomain ? config?.preserveDomain : false
+  const [pd, setPd] = useState<boolean>(pdValue);
+
+  const plValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.preserveLength`
   );
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
-  );
+  const [pl, setPl] = useState<boolean>(plValue);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -60,13 +59,14 @@ export default function TransformEmailForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output email to be the same as the input
               </FormDescription>
             </div>
             <FormControl>
               <Switch
                 checked={pl}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
                 }}
@@ -81,7 +81,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Domain</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Preserve the input domain including top level domain to the
                 output value. For ex. if the input is john@gmail.com, the output
                 will be ij23o@gmail.com
@@ -90,6 +90,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pd}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   pd ? setPd(false) : setPd(true);
                 }}

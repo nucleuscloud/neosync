@@ -9,15 +9,12 @@ import {
 } from '@/components/ui/form';
 
 import { Switch } from '@/components/ui/switch';
-import {
-  CustomTransformer,
-  TransformString,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: CustomTransformer;
+  transformer: UserDefinedTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
@@ -26,11 +23,11 @@ export default function TransformStringForm(props: Props): ReactElement {
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as TransformString;
-
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
+  const plValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.preserveLength`
   );
+
+  const [pl, setPl] = useState<boolean>(plValue);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -52,13 +49,14 @@ export default function TransformStringForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output string to be the same as the input
               </FormDescription>
             </div>
             <FormControl>
               <Switch
                 checked={pl}
+                disabled={transformer.id ? true : false}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
                 }}

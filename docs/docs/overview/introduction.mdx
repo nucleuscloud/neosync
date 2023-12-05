@@ -1,0 +1,116 @@
+---
+title: Introduction
+id: intro
+hide_title: true
+slug: /
+---
+
+import {
+  LayersIcon,
+  LightningBoltIcon,
+  LinkBreak1Icon,
+  StackIcon,
+} from '@radix-ui/react-icons';
+import { BsFunnel } from 'react-icons/bs';
+import {
+  PiPlugsLight,
+  PiArrowsSplitLight,
+  PiRocketLaunchLight,
+  PiFlaskLight,
+} from 'react-icons/pi';
+import { CustomCard } from '@site/src/CustomComponents/CustomCard.tsx';
+import { CustomCardList } from '@site/src/CustomComponents/CustomCardList.tsx';
+import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
+import { HeroImage } from '@site/src/CustomComponents/HeroImage.tsx';
+
+<DocPageHeader title="Welcome to the Neosync Docs" />
+
+Neosync is an open-source, developer-first way to create safe, anonymized test data from production data and sync it across all environments for high-quality local, stage and CI testing.
+
+<HeroImage />
+
+## Learn about Neosync
+
+The best way to learn Neosync is to check out our core concepts and familiarize yourself with Jobs, Runs, Connections and Transformers.
+
+<CustomCardList
+  cards={[
+    {
+      title: 'Jobs',
+      description:
+        'Jobs are async workflows that tranform data and sync it between connections.',
+      link: 'platform#jobs',
+      icon: <StackIcon />,
+    },
+    {
+      title: 'Runs',
+      description:
+        'Runs are instances of a job that can be started, paused and played back.',
+      link: 'platform#runs',
+      icon: <LayersIcon />,
+    },
+    {
+      title: 'Connections',
+      description:
+        'Connections are sources of data or destinations that you sync using Jobs such as databases.',
+      link: 'platform#connections',
+      icon: <PiPlugsLight />,
+    },
+    {
+      title: 'Transformers',
+      description:
+        'Transformers are data-type specific modules that anonymize or generate data.',
+      link: 'platform#transformers',
+      icon: <LightningBoltIcon />,
+    },
+  ]}
+/>
+
+## Deploying Neosync
+
+Once you're ready to deploy Neosync, check out our Deployment guide to see the available deployment options.
+
+<CustomCard
+  title="Deploy"
+  description="Learn how to deploy Neosync using Docker Compose or Kubernetes. "
+  link="/deploy/introduction"
+  icon={<PiRocketLaunchLight />}
+/>
+
+## Use cases
+
+Neosync can be used in many different ways to support different use-cases. Check out the most common use-cases below.
+
+<CustomCardList
+  cards={[
+    {
+      title: 'Anonymize Data',
+      description: 'Anonymize sensitive data for safe testing and development',
+      link: 'overview/use-cases/anonymization',
+      icon: <LinkBreak1Icon />,
+    },
+    {
+      title: 'Synthetic Data',
+      description:
+        'Generate high-quality synthetic data from existing data or from scratch.',
+      link: 'overview/use-cases/synthetic-data',
+      icon: <PiFlaskLight />,
+    },
+    {
+      title: 'Subset Data',
+      description: 'Subset your data to fit local and stage environments.',
+      link: 'overview/use-cases/subsetting',
+      icon: <BsFunnel />,
+    },
+    {
+      title: 'Replicate data',
+      description: 'Easily replicate source data to multiple environments.',
+      link: 'overview/use-cases/replication',
+      icon: <PiArrowsSplitLight />,
+    },
+  ]}
+/>
+
+## Contributing to Neosync
+
+We love contributors and are happy to accept PRs. The best way to contribute to Neosync is to go ahead and try out it. If you find something is not right, you can report an issue [here](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md).

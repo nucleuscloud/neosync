@@ -68,7 +68,7 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
     {
       accessorKey: 'id',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Job" />
+        <DataTableColumnHeader column={column} title="Job Id" />
       ),
       cell: ({ row }) => {
         return (
@@ -95,6 +95,21 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
               {row.getValue('name')}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'type',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Type" />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              <Badge variant="outline">{row.getValue('type')}</Badge>
             </span>
           </div>
         );

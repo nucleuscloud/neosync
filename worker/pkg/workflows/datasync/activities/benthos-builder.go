@@ -28,8 +28,9 @@ type benthosBuilder struct {
 	mysqlpool    map[string]mysql_queries.DBTX
 	mysqlquerier mysql_queries.Querier
 
-	jobclient  mgmtv1alpha1connect.JobServiceClient
-	connclient mgmtv1alpha1connect.ConnectionServiceClient
+	jobclient         mgmtv1alpha1connect.JobServiceClient
+	connclient        mgmtv1alpha1connect.ConnectionServiceClient
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient
 }
 
 func newBenthosBuilder(
@@ -41,14 +42,17 @@ func newBenthosBuilder(
 
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+
 ) *benthosBuilder {
 	return &benthosBuilder{
-		pgpool:       pgpool,
-		pgquerier:    pgquerier,
-		mysqlpool:    mysqlpool,
-		mysqlquerier: mysqlquerier,
-		jobclient:    jobclient,
-		connclient:   connclient,
+		pgpool:            pgpool,
+		pgquerier:         pgquerier,
+		mysqlpool:         mysqlpool,
+		mysqlquerier:      mysqlquerier,
+		jobclient:         jobclient,
+		connclient:        connclient,
+		transformerclient: transformerclient,
 	}
 }
 
@@ -72,7 +76,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
-		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(groupedMappings, sourceTableOpts)
+		sourceResponses, err := b.buildBenthosGenerateSourceConfigResponses(ctx, groupedMappings, sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +171,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := buildBenthosSqlSourceConfigReponses(groupedMappings, dsn, "postgres", sourceTableOpts)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigReponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -231,7 +235,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := buildBenthosSqlSourceConfigReponses(groupedMappings, dsn, "mysql", sourceTableOpts)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigReponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -538,7 +542,8 @@ type generateSourceTableOptions struct {
 	Count int
 }
 
-func buildBenthosGenerateSourceConfigResponses(
+func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
+	ctx context.Context,
 	mappings []*TableMapping,
 	sourceTableOpts map[string]*generateSourceTableOptions,
 ) ([]*BenthosConfigResponse, error) {
@@ -556,7 +561,7 @@ func buildBenthosGenerateSourceConfigResponses(
 			count = tableOpt.Count
 		}
 
-		mapping, err := buildProcessorMutation(tableMapping.Mappings)
+		mapping, err := b.buildProcessorMutation(ctx, tableMapping.Mappings)
 		if err != nil {
 			return nil, err
 		}

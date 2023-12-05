@@ -1,4 +1,6 @@
 'use client';
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -25,13 +27,13 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../components/jobs/Form/DestinationOptionsForm';
-import JobsProgressSteps from '../JobsProgressSteps';
+import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
 import { CONNECT_FORM_SCHEMA, ConnectFormValues } from '../schema';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
@@ -64,6 +66,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     control: form.control,
     name: 'destinations',
   });
+
   useFormPersist(`${sessionPrefix}-new-job-connect`, {
     watch: form.watch,
     setValue: form.setValue,
@@ -96,17 +99,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     (c) => c.connectionConfig?.config.case == 'awsS3Config'
   );
 
-  const params = usePathname();
-  const [stepName] = useState<string>(params.split('/').pop() ?? '');
-
   return (
     <div
       id="newjobflowcontainer"
       className="px-12 md:px-24 lg:px-32 flex flex-col gap-20"
     >
-      <div className="mt-10">
-        <JobsProgressSteps stepName={stepName} />
-      </div>
+      <OverviewContainer
+        Header={
+          <PageHeader
+            header="Connect"
+            progressSteps={
+              <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'connect'} />
+            }
+          />
+        }
+        containerClassName="connect-page"
+      >
+        <div />
+      </OverviewContainer>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div

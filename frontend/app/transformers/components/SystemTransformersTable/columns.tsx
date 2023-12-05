@@ -2,15 +2,14 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Transformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { SystemTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { ColumnDef } from '@tanstack/react-table';
-import { handleTransformerMetadata } from '../../EditTransformerOptions';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
 export function getSystemTransformerColumns(): ColumnDef<
-  PlainMessage<Transformer>
+  PlainMessage<SystemTransformer>
 >[] {
   return [
     {
@@ -41,11 +40,11 @@ export function getSystemTransformerColumns(): ColumnDef<
         <DataTableColumnHeader column={column} title="Name" />
       ),
       cell: ({ row }) => {
-        const t = handleTransformerMetadata(row.original.value);
-
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">{t.name}</span>
+            <span className="max-w-[500px] truncate font-medium">
+              {row.original.name}
+            </span>
           </div>
         );
       },
@@ -57,11 +56,9 @@ export function getSystemTransformerColumns(): ColumnDef<
         <DataTableColumnHeader column={column} title="Type" />
       ),
       cell: ({ row }) => {
-        const t = handleTransformerMetadata(row.original.value);
-
         return (
           <div className="flex space-x-2">
-            <Badge variant="outline">{t.type}</Badge>
+            <Badge variant="outline">{row.original.dataType}</Badge>
           </div>
         );
       },
@@ -73,12 +70,10 @@ export function getSystemTransformerColumns(): ColumnDef<
         <DataTableColumnHeader column={column} title="Description" />
       ),
       cell: ({ row }) => {
-        const t = handleTransformerMetadata(row.original.value);
-
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {t.description}
+              {row.original.description}
             </span>
           </div>
         );

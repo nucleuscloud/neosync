@@ -7,30 +7,24 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
-
 import { Switch } from '@/components/ui/switch';
-import {
-  CustomTransformer,
-  GenerateGender,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: CustomTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
 export default function GenerateGenderForm(props: Props): ReactElement {
-  const { index, setIsSheetOpen, transformer } = props;
+  const { index, setIsSheetOpen } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateGender;
-
-  const [ab, setAb] = useState<boolean>(
-    config?.abbreviate ? config?.abbreviate : false
+  const aValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.abbreviate`
   );
+
+  const [ab, setAb] = useState<boolean>(aValue);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -52,7 +46,7 @@ export default function GenerateGenderForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Abbreviate</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Abbreviate the gender to a single character. For example, female
                 would be returned as f.
               </FormDescription>

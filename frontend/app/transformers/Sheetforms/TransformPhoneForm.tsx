@@ -8,15 +8,12 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  CustomTransformer,
-  TransformPhone,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: CustomTransformer;
+  transformer: UserDefinedTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
@@ -24,15 +21,16 @@ export default function TransformPhoneForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
-
-  const config = transformer?.config?.config.value as TransformPhone;
-
-  const [ih, setIh] = useState<boolean>(
-    config?.includeHyphens ? config?.includeHyphens : false
+  const ihValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.includeHyphens`
   );
-  const [pl, setPl] = useState<boolean>(
-    config?.preserveLength ? config?.preserveLength : false
+
+  const [ih, setIh] = useState<boolean>(ihValue);
+  const plValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.preserveLength`
   );
+
+  const [pl, setPl] = useState<boolean>(plValue);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -60,7 +58,7 @@ export default function TransformPhoneForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output phone number to be the same as the
                 input
               </FormDescription>
@@ -68,7 +66,7 @@ export default function TransformPhoneForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
-                disabled={ih}
+                disabled={ih || transformer.id ? true : false}
                 onCheckedChange={() => setPl(!pl)}
               />
             </FormControl>
@@ -81,7 +79,7 @@ export default function TransformPhoneForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Include Hyphens</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Include hyphens in the output phone number. Note: this only
                 works with 10 digit phone numbers.
               </FormDescription>
@@ -89,7 +87,7 @@ export default function TransformPhoneForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={ih}
-                disabled={pl}
+                disabled={pl || transformer.id ? true : false}
                 onCheckedChange={() => setIh(!ih)}
               />
             </FormControl>

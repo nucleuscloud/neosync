@@ -60,278 +60,503 @@ func (s *Service) GetSystemTransformers(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetSystemTransformersRequest],
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
+
 	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
-		Transformers: []*mgmtv1alpha1.Transformer{
-			{Value: string(GenerateEmail), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
-					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
-				},
-			}},
-			{Value: string(GenerateRealisticEmail), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateRealisticEmailConfig{
-					GenerateRealisticEmailConfig: &mgmtv1alpha1.GenerateRealisticEmail{},
-				},
-			}},
-			{Value: string(TransformEmail), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
-					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-						PreserveDomain: false,
-						PreserveLength: false,
+		Transformers: []*mgmtv1alpha1.SystemTransformer{
+			{
+
+				Name:        "Generate Email",
+				Description: "Generates a new randomized email address.",
+				DataType:    "string",
+				Source:      string(GenerateEmail),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+						GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
 					},
 				},
-			}},
-			{Value: string(GenerateBool), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
-					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
-				},
-			}},
-			{Value: string(GenerateCardNumber), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
-					GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
-						ValidLuhn: true,
+			},
+			{
+				Name:        "Generate Realistic Email",
+				Description: "Generates a new realistic email address.",
+				DataType:    "string",
+				Source:      string(GenerateRealisticEmail),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateRealisticEmailConfig{
+						GenerateRealisticEmailConfig: &mgmtv1alpha1.GenerateRealisticEmail{},
 					},
 				},
-			}},
-			{Value: string(GenerateCity), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
-					GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
-				},
-			}},
-			{Value: string(GenerateE164Number), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig{
-					GenerateE164NumberConfig: &mgmtv1alpha1.GenerateE164Number{
-						Length: 12,
+			},
+			{
+				Name:        "Transform Email",
+				Description: "Transforms an existing email address.",
+				DataType:    "string",
+				Source:      string(TransformEmail),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
+						TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
+							PreserveDomain: false,
+							PreserveLength: false,
+						},
 					},
 				},
-			}},
-			{Value: string(GenerateFirstName), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
-					GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
-				},
-			}},
-			{Value: string(GenerateFloat), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloatConfig{
-					GenerateFloatConfig: &mgmtv1alpha1.GenerateFloat{
-						Sign:                "postiive",
-						DigitsBeforeDecimal: 3,
-						DigitsAfterDecimal:  3,
+			},
+			{
+				Name:        "Generate Boolean",
+				Description: "Generates a boolean value at random.",
+				DataType:    "boolean",
+				Source:      string(GenerateBool),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
+						GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
 					},
 				},
-			}},
-			{Value: string(GenerateFullAddress), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
-					GenerateFullAddressConfig: &mgmtv1alpha1.GenerateFullAddress{},
-				},
-			}},
-			{Value: string(GenerateFullName), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
-					GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
-				},
-			}},
-			{Value: string(GenerateGender), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
-					GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
-						Abbreviate: false,
+			},
+			{
+				Name:        "Generate Card Number",
+				Description: "Generates a card number.",
+				DataType:    "int64",
+				Source:      string(GenerateCardNumber),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
+						GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
+							ValidLuhn: true,
+						},
 					},
 				},
-			}},
-			{Value: string(GenerateInt64Phone), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig{
-					GenerateInt64PhoneConfig: &mgmtv1alpha1.GenerateInt64Phone{},
-				},
-			}},
-			{Value: string(GenerateInt), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{
-					GenerateIntConfig: &mgmtv1alpha1.GenerateInt{
-						Length: 4,
-						Sign:   "positive",
+			},
+			{
+				Name:        "Generate City",
+				Description: "Randomly selects a city from a list of predfined US cities.",
+				DataType:    "string",
+				Source:      string(GenerateCity),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+						GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
 					},
 				},
-			}},
-			{Value: string(GenerateLastName), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
-					GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
-				},
-			}},
-			{Value: string(GenerateShaHash256), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
-					GenerateSha256HashConfig: &mgmtv1alpha1.GenerateSha256Hash{},
-				},
-			}},
-			{Value: string(GenerateSSN), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
-					GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
-				},
-			}},
-			{Value: string(GenerateState), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
-					GenerateStateConfig: &mgmtv1alpha1.GenerateState{},
-				},
-			}},
-			{Value: string(GenerateStreetAddress), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
-					GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
-				},
-			}},
-			{Value: string(GenerateStringPhone), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
-					GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
-						E164Format:     false,
-						IncludeHyphens: false,
+			},
+			{
+				Name:        "Generate E164 Phone Number",
+				Description: "Generates a Generate phone number in e164 format.",
+				DataType:    "string",
+				Source:      string(GenerateE164Number),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig{
+						GenerateE164NumberConfig: &mgmtv1alpha1.GenerateE164Number{
+							Length: 12,
+						},
 					},
 				},
-			}},
-			{Value: string(GenerateString), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
-					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-						Length: 6,
+			},
+			{
+				Name:        "Generate First Name",
+				Description: "Generates a random first name. ",
+				DataType:    "string",
+				Source:      string(GenerateFirstName),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
+						GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
 					},
 				},
-			}},
-			{Value: string(GenerateUnixTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
-					GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
-				},
-			}},
-			{Value: string(GenerateUsername), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{
-					GenerateUsernameConfig: &mgmtv1alpha1.GenerateUsername{},
-				},
-			}},
-			{Value: string(GenerateUtcTimestamp), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{
-					GenerateUtctimestampConfig: &mgmtv1alpha1.GenerateUtcTimestamp{},
-				},
-			}},
-			{Value: string(GenerateUuid), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
-					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-						IncludeHyphens: true,
+			},
+			{
+				Name:        "Generate Float64",
+				Description: "Generates a random float64 value.",
+				DataType:    "float64",
+				Source:      string(GenerateFloat),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateFloatConfig{
+						GenerateFloatConfig: &mgmtv1alpha1.GenerateFloat{
+							Sign:                "positive",
+							DigitsBeforeDecimal: 3,
+							DigitsAfterDecimal:  3,
+						},
 					},
 				},
-			}},
-			{Value: string(GenerateZipcode), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
-					GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
-				},
-			}},
-			{Value: string(TransformE164Phone), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneConfig{
-					TransformE164PhoneConfig: &mgmtv1alpha1.TransformE164Phone{
-						PreserveLength: false,
+			},
+			{
+				Name:        "Generate Full Address",
+				Description: "Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169.",
+				DataType:    "string",
+				Source:      string(GenerateFullAddress),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
+						GenerateFullAddressConfig: &mgmtv1alpha1.GenerateFullAddress{},
 					},
 				},
-			}},
-			{Value: string(TransformFirstName), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
-					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
-						PreserveLength: false,
+			},
+			{
+				Name:        "Generate Full Name",
+				Description: "Generates a new full name consisting of a first and last name",
+				DataType:    "string",
+				Source:      string(GenerateFullName),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
+						GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
 					},
 				},
-			}},
-			{Value: string(TransformFloat), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformFloatConfig{
-					TransformFloatConfig: &mgmtv1alpha1.TransformFloat{
-						PreserveLength: false,
-						PreserveSign:   true,
+			},
+			{
+				Name:        "Generate Gender",
+				Description: "Randomly generates one of the following genders: female, male, undefined, nonbinary.",
+				DataType:    "string",
+				Source:      string(GenerateGender),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
+						GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
+							Abbreviate: false,
+						},
 					},
 				},
-			}},
-			{Value: string(TransformFullName), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
-					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
-						PreserveLength: false,
+			},
+			{
+				Name:        "Generate int64 Phone Number",
+				Description: "Generates a new phone number of type int64 with a default length of 10.",
+				DataType:    "int64",
+				Source:      string(GenerateInt64Phone),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig{
+						GenerateInt64PhoneConfig: &mgmtv1alpha1.GenerateInt64Phone{},
 					},
 				},
-			}},
-			{Value: string(TransformIntPhone), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformIntPhoneConfig{
-					TransformIntPhoneConfig: &mgmtv1alpha1.TransformIntPhone{
-						PreserveLength: false,
+			},
+			{
+				Name:        "Generate Random Int64",
+				Description: "Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.", DataType: "int64",
+				Source: string(GenerateInt),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{
+						GenerateIntConfig: &mgmtv1alpha1.GenerateInt{
+							Length: 4,
+							Sign:   "positive",
+						},
 					},
 				},
-			}},
-			{Value: string(TransformInt), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformIntConfig{
-					TransformIntConfig: &mgmtv1alpha1.TransformInt{
-						PreserveLength: false,
-						PreserveSign:   true,
+			},
+			{
+				Name:        "Generate Last Name",
+				Description: "Generates a random last name.", DataType: "int64",
+				Source: string(GenerateLastName),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
+						GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
 					},
 				},
-			}},
-			{Value: string(TransformLastName), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
-					TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
-						PreserveLength: false,
+			},
+			{
+				Name:        "Generate SHA256 Hash",
+				Description: "SHA256 hashes a randomly generated value.",
+				DataType:    "string",
+				Source:      string(GenerateShaHash256),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
+						GenerateSha256HashConfig: &mgmtv1alpha1.GenerateSha256Hash{},
 					},
 				},
-			}},
-			{Value: string(TransformPhone), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneConfig{
-					TransformPhoneConfig: &mgmtv1alpha1.TransformPhone{
-						PreserveLength: false,
-						IncludeHyphens: false,
+			},
+			{
+				Name:        "Generate SSN",
+				Description: "Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>",
+				DataType:    "string",
+				Source:      string(GenerateSSN),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
+						GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
 					},
 				},
-			}},
-			{Value: string(TransformString), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
-					TransformStringConfig: &mgmtv1alpha1.TransformString{
-						PreserveLength: false,
+			},
+			{
+				Name:        "Generate State",
+				Description: "Randomly selects a US state and returns the two-character state code.",
+				DataType:    "string",
+				Source:      string(GenerateState),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
+						GenerateStateConfig: &mgmtv1alpha1.GenerateState{},
 					},
 				},
-			}},
-			{Value: string(Passthrough), Config: &mgmtv1alpha1.TransformerConfig{}},
-			{Value: string(Null), Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
-					Nullconfig: &mgmtv1alpha1.Null{},
+			},
+			{
+				Name:        "Generate Street Address",
+				Description: "Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}. For example, 123 Main Street.",
+				DataType:    "string",
+				Source:      string(GenerateStreetAddress),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
+						GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
+					},
 				},
-			}},
+			},
+			{
+				Name:        "Generate String Phone Number",
+				Description: "Generates a Generate phone number and returns it as a string.",
+				DataType:    "string",
+				Source:      string(GenerateStringPhone),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
+						GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
+							IncludeHyphens: false,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Generate Random String",
+				Description: "Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.",
+				DataType:    "string",
+				Source:      string(GenerateString),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+						GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+							Length: 6,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Generate Unix Timestamp",
+				Description: "Randomly generates a Unix timestamp",
+				DataType:    "int64",
+				Source:      string(GenerateUnixTimestamp),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
+						GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
+					},
+				},
+			},
+			{
+				Name:        "Generate Username",
+				Description: "Randomly generates a username in the format<first_initial><last_name>.",
+				DataType:    "string",
+				Source:      string(GenerateUsername),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{
+						GenerateUsernameConfig: &mgmtv1alpha1.GenerateUsername{},
+					},
+				},
+			},
+			{
+				Name:        "Generate UTC Timestamp",
+				Description: "Randomly generates a UTC timestamp.",
+				DataType:    "time",
+				Source:      string(GenerateUtcTimestamp),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{
+						GenerateUtctimestampConfig: &mgmtv1alpha1.GenerateUtcTimestamp{},
+					},
+				},
+			},
+			{
+				Name:        "Generate UUID",
+				Description: "Generates a new UUIDv4 id.",
+				DataType:    "uuid",
+				Source:      string(GenerateUuid),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+						GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
+							IncludeHyphens: true,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Generate Zipcode",
+				Description: "Randomly selects a zip code from a list of predefined US zipcodes.",
+				DataType:    "string",
+				Source:      string(GenerateZipcode),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
+						GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
+					},
+				},
+			},
+			{
+				Name:        "Transform E164 Phone Number",
+				Description: "Transforms an existing E164 formatted phone number.",
+				DataType:    "string",
+				Source:      string(TransformE164Phone),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneConfig{
+						TransformE164PhoneConfig: &mgmtv1alpha1.TransformE164Phone{
+							PreserveLength: false,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Transform First Name",
+				Description: "Transforms an existing first name",
+				DataType:    "string",
+				Source:      string(TransformFirstName),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+						TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
+							PreserveLength: false,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Transform Float64",
+				Description: "Transforms an existing float value.",
+				DataType:    "float64",
+				Source:      string(TransformFloat),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformFloatConfig{
+						TransformFloatConfig: &mgmtv1alpha1.TransformFloat{
+							PreserveLength: false,
+							PreserveSign:   true,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Transform Full Name",
+				Description: "Transforms an existing full name.",
+				DataType:    "string",
+				Source:      string(TransformFullName),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
+						TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
+							PreserveLength: false,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Transform Int64 Phone Number",
+				Description: "Transforms an existing phone number that is typed as an integer",
+				DataType:    "int64",
+				Source:      string(TransformIntPhone),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformIntPhoneConfig{
+						TransformIntPhoneConfig: &mgmtv1alpha1.TransformIntPhone{
+							PreserveLength: false,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Transform Int64",
+				Description: "Transforms an existing integer value.",
+				DataType:    "int64",
+				Source:      string(TransformInt),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformIntConfig{
+						TransformIntConfig: &mgmtv1alpha1.TransformInt{
+							PreserveLength: false,
+							PreserveSign:   true,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Transform Last Name",
+				Description: "Transforms an existing last name.",
+				DataType:    "string",
+				Source:      string(TransformLastName),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
+						TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
+							PreserveLength: false,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Transform Phone Number",
+				Description: "Transforms an existing phone number that is typed as a string.",
+				DataType:    "string",
+				Source:      string(TransformPhone),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneConfig{
+						TransformPhoneConfig: &mgmtv1alpha1.TransformPhone{
+							PreserveLength: false,
+							IncludeHyphens: false,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Transform String",
+				Description: "Transforms an existing string value.",
+				DataType:    "string",
+				Source:      string(TransformString),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+						TransformStringConfig: &mgmtv1alpha1.TransformString{
+							PreserveLength: false,
+						},
+					},
+				},
+			},
+			{
+				Name:        "Passthrough",
+				Description: "Passes the input value through to the desination with no changes.",
+				DataType:    "string",
+				Source:      string(Passthrough),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+						PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+					},
+				},
+			},
+			{
+				Name:        "Null",
+				Description: "Inserts a <null> string instead of the source value.",
+				DataType:    "string",
+				Source:      string(Null),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
+						Nullconfig: &mgmtv1alpha1.Null{},
+					},
+				},
+			},
 		},
 	}), nil
 }
 
-func (s *Service) GetCustomTransformers(
+func (s *Service) GetUserDefinedTransformers(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetCustomTransformersRequest],
-) (*connect.Response[mgmtv1alpha1.GetCustomTransformersResponse], error) {
+	req *connect.Request[mgmtv1alpha1.GetUserDefinedTransformersRequest],
+) (*connect.Response[mgmtv1alpha1.GetUserDefinedTransformersResponse], error) {
 
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
 	}
 
-	transformers, err := s.db.Q.GetCustomTransformersByAccount(ctx, s.db.Db, *accountUuid)
+	transformers, err := s.db.Q.GetUserDefinedTransformersByAccount(ctx, s.db.Db, *accountUuid)
 	if err != nil {
 		return nil, err
 	}
 
-	dtoTransformers := []*mgmtv1alpha1.CustomTransformer{}
+	dtoTransformers := []*mgmtv1alpha1.UserDefinedTransformer{}
 	for idx := range transformers {
 		transformer := transformers[idx]
-		dtoTransformers = append(dtoTransformers, dtomaps.ToCustomTransformerDto(&transformer))
+		dtoTransformers = append(dtoTransformers, dtomaps.ToUserDefinedTransformerDto(&transformer))
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformersResponse{
+	return connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformersResponse{
 		Transformers: dtoTransformers,
 	}), nil
 }
 
-func (s *Service) GetCustomTransformerById(
+func (s *Service) GetUserDefinedTransformerById(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetCustomTransformerByIdRequest],
-) (*connect.Response[mgmtv1alpha1.GetCustomTransformerByIdResponse], error) {
+	req *connect.Request[mgmtv1alpha1.GetUserDefinedTransformerByIdRequest],
+) (*connect.Response[mgmtv1alpha1.GetUserDefinedTransformerByIdResponse], error) {
 
 	tId, err := nucleusdb.ToUuid(req.Msg.TransformerId)
 	if err != nil {
 		return nil, err
 	}
 
-	transformer, err := s.db.Q.GetCustomTransformerById(ctx, s.db.Db, tId)
+	transformer, err := s.db.Q.GetUserDefinedTransformerById(ctx, s.db.Db, tId)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformerByIdResponse{}), nil
+		return connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{}), nil
 	}
 
 	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(transformer.AccountID))
@@ -339,12 +564,12 @@ func (s *Service) GetCustomTransformerById(
 		return nil, err
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.GetCustomTransformerByIdResponse{
-		Transformer: dtomaps.ToCustomTransformerDto(&transformer),
+	return connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{
+		Transformer: dtomaps.ToUserDefinedTransformerDto(&transformer),
 	}), nil
 }
 
-func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.CreateCustomTransformerRequest]) (*connect.Response[mgmtv1alpha1.CreateCustomTransformerResponse], error) {
+func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.CreateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.CreateUserDefinedTransformerResponse], error) {
 
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
@@ -356,7 +581,7 @@ func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	customTransformer := &db_queries.CreateCustomTransformerParams{
+	UserDefinedTransformer := &db_queries.CreateUserDefinedTransformerParams{
 		AccountID:         *accountUuid,
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
@@ -367,23 +592,23 @@ func (s *Service) CreateCustomTransformer(ctx context.Context, req *connect.Requ
 		UpdatedByID:       *userUuid,
 	}
 
-	err = customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
+	err = UserDefinedTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	ct, err := s.db.Q.CreateCustomTransformer(ctx, s.db.Db, *customTransformer)
+	ct, err := s.db.Q.CreateUserDefinedTransformer(ctx, s.db.Db, *UserDefinedTransformer)
 	if err != nil {
 		return nil, err
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.CreateCustomTransformerResponse{
-		Transformer: dtomaps.ToCustomTransformerDto(&ct),
+	return connect.NewResponse(&mgmtv1alpha1.CreateUserDefinedTransformerResponse{
+		Transformer: dtomaps.ToUserDefinedTransformerDto(&ct),
 	}), nil
 
 }
 
-func (s *Service) DeleteCustomTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.DeleteCustomTransformerRequest]) (*connect.Response[mgmtv1alpha1.DeleteCustomTransformerResponse], error) {
+func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.DeleteUserDefinedTransformerResponse], error) {
 
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("transformer", req.Msg.TransformerId)
@@ -393,11 +618,11 @@ func (s *Service) DeleteCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	transformer, err := s.db.Q.GetCustomTransformerById(ctx, s.db.Db, tId)
+	transformer, err := s.db.Q.GetUserDefinedTransformerById(ctx, s.db.Db, tId)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return connect.NewResponse(&mgmtv1alpha1.DeleteCustomTransformerResponse{}), nil
+		return connect.NewResponse(&mgmtv1alpha1.DeleteUserDefinedTransformerResponse{}), nil
 	}
 
 	_, err = s.verifyUserInAccount(ctx, nucleusdb.UUIDString(transformer.AccountID))
@@ -405,24 +630,24 @@ func (s *Service) DeleteCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	err = s.db.Q.DeleteCustomTransformerById(ctx, s.db.Db, transformer.ID)
+	err = s.db.Q.DeleteUserDefinedTransformerById(ctx, s.db.Db, transformer.ID)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
 		logger.Info("destination not found")
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.DeleteCustomTransformerResponse{}), nil
+	return connect.NewResponse(&mgmtv1alpha1.DeleteUserDefinedTransformerResponse{}), nil
 
 }
 
-func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.UpdateCustomTransformerRequest]) (*connect.Response[mgmtv1alpha1.UpdateCustomTransformerResponse], error) {
+func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.UpdateUserDefinedTransformerResponse], error) {
 
 	tUuid, err := nucleusdb.ToUuid(req.Msg.TransformerId)
 	if err != nil {
 		return nil, err
 	}
-	transformer, err := s.db.Q.GetCustomTransformerById(ctx, s.db.Db, tUuid)
+	transformer, err := s.db.Q.GetUserDefinedTransformerById(ctx, s.db.Db, tUuid)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
 	} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -439,7 +664,7 @@ func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Requ
 		return nil, err
 	}
 
-	customTransformer := &db_queries.UpdateCustomTransformerParams{
+	UserDefinedTransformer := &db_queries.UpdateUserDefinedTransformerParams{
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
 		TransformerConfig: &pg_models.TransformerConfigs{},
@@ -447,18 +672,18 @@ func (s *Service) UpdateCustomTransformer(ctx context.Context, req *connect.Requ
 		ID:                tUuid,
 	}
 
-	err = customTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
+	err = UserDefinedTransformer.TransformerConfig.FromTransformerConfigDto(req.Msg.TransformerConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	t, err := s.db.Q.UpdateCustomTransformer(ctx, s.db.Db, *customTransformer)
+	t, err := s.db.Q.UpdateUserDefinedTransformer(ctx, s.db.Db, *UserDefinedTransformer)
 	if err != nil {
 		return nil, err
 	}
 
-	return connect.NewResponse(&mgmtv1alpha1.UpdateCustomTransformerResponse{
-		Transformer: dtomaps.ToCustomTransformerDto(&t),
+	return connect.NewResponse(&mgmtv1alpha1.UpdateUserDefinedTransformerResponse{
+		Transformer: dtomaps.ToUserDefinedTransformerDto(&t),
 	}), err
 }
 

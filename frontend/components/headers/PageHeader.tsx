@@ -1,14 +1,15 @@
 import { cn } from '@/libs/utils';
 import { ReactNode } from 'react';
+import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 
 interface Props {
   header: string;
   description?: string;
-
+  leftBadgeValue?: string;
   extraHeading?: ReactNode;
   leftIcon?: ReactNode;
-
+  progressSteps?: JSX.Element;
   pageHeaderContainerClassName?: string;
 }
 
@@ -19,6 +20,8 @@ export default function PageHeader(props: Props) {
     extraHeading,
     leftIcon,
     pageHeaderContainerClassName,
+    leftBadgeValue,
+    progressSteps,
   } = props;
   return (
     <div
@@ -27,20 +30,27 @@ export default function PageHeader(props: Props) {
         pageHeaderContainerClassName
       )}
     >
-      <div className="flex flex-row justify-between">
+      <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center gap-3">
           {leftIcon ? leftIcon : null}
-          <h1 className="text-2xl font-bold tracking-tight">{header}</h1>
+          <div className="flex flex-row items-center gap-4">
+            <h1 className="text-2xl font-bold tracking-tight">{header}</h1>
+            {leftBadgeValue && (
+              <Badge variant="outline">{leftBadgeValue}</Badge>
+            )}
+          </div>
         </div>
+
+        <div className="flex-1 flex justify-center">{progressSteps}</div>
+
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
+
       {description ? (
         <h3 className="text-muted-foreground text-sm">{description}</h3>
       ) : null}
 
-      <div>
-        <Separator />
-      </div>
+      <Separator />
     </div>
   );
 }

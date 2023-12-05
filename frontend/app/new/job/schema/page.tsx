@@ -1,5 +1,7 @@
 'use client';
 
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
 import {
   SchemaTable,
   getConnectionSchema,
@@ -9,15 +11,20 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
+import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import {
+  Passthrough,
+  TransformerConfig,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { usePathname, useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps from '../JobsProgressSteps';
+import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
@@ -42,27 +49,71 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  useSessionStorage<SchemaFormValues>(`${sessionPrefix}-new-job-schema`, {
-    mappings: [],
-  });
+  const [schemaFormData] = useSessionStorage<SchemaFormValues>(
+    `${sessionPrefix}-new-job-schema`,
+    {
+      mappings: [],
+    }
+  );
 
-  async function getSchema() {
+  async function getSchema(): Promise<SchemaFormValues> {
     try {
       const res = await getConnectionSchema(connectFormValues.sourceId);
       if (!res) {
         return { mappings: [] };
       }
 
-      const mappings = res.schemas.map((r) => {
-        return {
-          ...r,
-          transformer: {
-            value: 'passthrough',
-            config: { config: { case: '', value: {} } },
-          },
-        };
-      });
-      return { mappings };
+      // set values from the session data if they're available
+      // this helps retain data from page to page and across saves before the data is submitted
+      if (schemaFormData.mappings.length > 0) {
+        const mappings = schemaFormData.mappings.map((r) => {
+          var pt = JobMappingTransformer.fromJson(r.transformer) as {
+            source: string;
+            name: string;
+            config: {
+              config: {
+                case?: string;
+                value: {};
+              };
+            };
+          };
+
+          return {
+            ...r,
+            transformer: pt,
+          };
+        });
+
+        return { mappings };
+      } else {
+        const mappings = res.schemas.map((r) => {
+          var pt = new JobMappingTransformer({
+            source: 'passthrough',
+            name: 'passthrough',
+            config: new TransformerConfig({
+              config: {
+                case: 'passthroughConfig',
+                value: new Passthrough({}),
+              },
+            }),
+          }) as {
+            source: string;
+            name: string;
+            config: {
+              config: {
+                case?: string;
+                value: {};
+              };
+            };
+          };
+
+          return {
+            ...r,
+            transformer: pt,
+          };
+        });
+        return { mappings };
+      }
     } catch (err) {
       console.error(err);
       toast({
@@ -80,6 +131,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       return getSchema();
     },
   });
+
   const isBrowser = () => typeof window !== 'undefined';
 
   useFormPersist(`${sessionPrefix}-new-job-schema`, {
@@ -95,14 +147,21 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
-  const params = usePathname();
-  const [stepName, _] = useState<string>(params.split('/').pop() ?? '');
-
   return (
     <div className="flex flex-col gap-20">
-      <div className="mt-10">
-        <JobsProgressSteps stepName={stepName} />
-      </div>
+      <OverviewContainer
+        Header={
+          <PageHeader
+            header="Schema"
+            progressSteps={
+              <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'schema'} />
+            }
+          />
+        }
+        containerClassName="connect-page"
+      >
+        <div />
+      </OverviewContainer>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">

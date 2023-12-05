@@ -8,26 +8,26 @@ import "google/protobuf/timestamp.proto";
 message GetSystemTransformersRequest {}
 
 message GetSystemTransformersResponse {
-  repeated Transformer transformers = 1;
+  repeated SystemTransformer transformers = 1;
 }
 
-message GetCustomTransformersRequest {
+message GetUserDefinedTransformersRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
-message GetCustomTransformersResponse {
-  repeated CustomTransformer transformers = 1;
+message GetUserDefinedTransformersResponse {
+  repeated UserDefinedTransformer transformers = 1;
 }
 
-message GetCustomTransformerByIdRequest {
+message GetUserDefinedTransformerByIdRequest {
   string transformer_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
-message GetCustomTransformerByIdResponse {
-  CustomTransformer transformer = 1;
+message GetUserDefinedTransformerByIdResponse {
+  UserDefinedTransformer transformer = 1;
 }
 
-message CreateCustomTransformerRequest {
+message CreateUserDefinedTransformerRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   string name = 2;
   string description = 3;
@@ -36,25 +36,25 @@ message CreateCustomTransformerRequest {
   TransformerConfig transformer_config = 6;
 }
 
-message CreateCustomTransformerResponse {
-  CustomTransformer transformer = 1;
+message CreateUserDefinedTransformerResponse {
+  UserDefinedTransformer transformer = 1;
 }
 
-message DeleteCustomTransformerRequest {
+message DeleteUserDefinedTransformerRequest {
   string transformer_id = 1 [(buf.validate.field).string.uuid = true];
 }
 
-message DeleteCustomTransformerResponse {}
+message DeleteUserDefinedTransformerResponse {}
 
-message UpdateCustomTransformerRequest {
+message UpdateUserDefinedTransformerRequest {
   string transformer_id = 1 [(buf.validate.field).string.uuid = true];
   string name = 2;
   string description = 3;
   TransformerConfig transformer_config = 4;
 }
 
-message UpdateCustomTransformerResponse {
-  CustomTransformer transformer = 1;
+message UpdateUserDefinedTransformerResponse {
+  UserDefinedTransformer transformer = 1;
 }
 
 message IsTransformerNameAvailableRequest {
@@ -66,21 +66,24 @@ message IsTransformerNameAvailableResponse {
   bool is_available = 1;
 }
 
-message CustomTransformer {
+message UserDefinedTransformer {
   string id = 1 [(buf.validate.field).string.uuid = true];
   string name = 2;
   string description = 3;
-  string type = 4;
-  string source = 5;
-  TransformerConfig config = 6;
-  google.protobuf.Timestamp created_at = 7;
-  google.protobuf.Timestamp updated_at = 8;
-  string account_id = 9;
+  string data_type = 5;
+  string source = 6;
+  TransformerConfig config = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  string account_id = 10;
 }
 
-message Transformer {
-  string value = 1;
-  TransformerConfig config = 2;
+message SystemTransformer {
+  string name = 2;
+  string description = 3;
+  string data_type = 5;
+  string source = 6;
+  TransformerConfig config = 7;
 }
 
 message TransformerConfig {
@@ -124,6 +127,8 @@ message TransformerConfig {
     TransformString transform_string_config = 35;
     Passthrough passthrough_config = 36;
     Null nullconfig = 37;
+
+    UserDefinedTransformerConfig user_defined_transformer_config = 38;
   }
 }
 
@@ -182,7 +187,6 @@ message GenerateState {}
 message GenerateStreetAddress {}
 
 message GenerateStringPhone {
-  bool e164_format = 1;
   bool include_hyphens = 2;
 }
 
@@ -245,12 +249,16 @@ message Passthrough {}
 
 message Null {}
 
+message UserDefinedTransformerConfig {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
-  rpc GetCustomTransformers(GetCustomTransformersRequest) returns (GetCustomTransformersResponse) {}
-  rpc GetCustomTransformerById(GetCustomTransformerByIdRequest) returns (GetCustomTransformerByIdResponse) {}
-  rpc CreateCustomTransformer(CreateCustomTransformerRequest) returns (CreateCustomTransformerResponse) {}
-  rpc DeleteCustomTransformer(DeleteCustomTransformerRequest) returns (DeleteCustomTransformerResponse) {}
-  rpc UpdateCustomTransformer(UpdateCustomTransformerRequest) returns (UpdateCustomTransformerResponse) {}
+  rpc GetUserDefinedTransformers(GetUserDefinedTransformersRequest) returns (GetUserDefinedTransformersResponse) {}
+  rpc GetUserDefinedTransformerById(GetUserDefinedTransformerByIdRequest) returns (GetUserDefinedTransformerByIdResponse) {}
+  rpc CreateUserDefinedTransformer(CreateUserDefinedTransformerRequest) returns (CreateUserDefinedTransformerResponse) {}
+  rpc DeleteUserDefinedTransformer(DeleteUserDefinedTransformerRequest) returns (DeleteUserDefinedTransformerResponse) {}
+  rpc UpdateUserDefinedTransformer(UpdateUserDefinedTransformerRequest) returns (UpdateUserDefinedTransformerResponse) {}
   rpc IsTransformerNameAvailable(IsTransformerNameAvailableRequest) returns (IsTransformerNameAvailableResponse) {}
 }

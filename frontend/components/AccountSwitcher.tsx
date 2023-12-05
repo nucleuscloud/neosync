@@ -63,7 +63,6 @@ export default function AccountSwitcher(_: Props): ReactElement {
       mutate();
       toast({
         title: 'Successfully created team!',
-        variant: 'success',
       });
     } catch (err) {
       console.error(err);

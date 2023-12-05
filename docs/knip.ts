@@ -1,8 +1,8 @@
 const config = {
   ignore: [
     'babel.config.js',
-    'docusaurus.config.js',
-    'sidebars.js',
+    'docusaurus.config.ts',
+    'sidebars.ts',
     'static/sync-dark-mode.js',
     'src/**',
     'src/theme/**',

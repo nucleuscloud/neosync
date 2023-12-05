@@ -55,17 +55,6 @@ export default function MysqlForm(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const form = useForm<MysqlFormValues>({
     resolver: yupResolver(MYSQL_FORM_SCHEMA),
-    defaultValues: {
-      connectionName: '',
-      db: {
-        host: '',
-        name: '',
-        user: '',
-        pass: '',
-        port: 3306,
-        protocol: 'tcp',
-      },
-    },
     values: defaultValues,
     context: { originalConnectionName: defaultValues.connectionName },
   });
@@ -254,17 +243,7 @@ export default function MysqlForm(props: Props) {
             onClick={async () => {
               setIsTesting(true);
               try {
-                const val = {
-                  host: form.getValues().db.host,
-                  name: form.getValues().db.name,
-                  user: form.getValues().db.user,
-                  pass: form.getValues().db.pass,
-                  port: form.getValues().db.port,
-                  protocol: form.getValues().db.protocol // this is a little hacky but the sslMode doesn't get set in the form for some reason
-                    ? form.getValues().db.protocol
-                    : defaultValues.db.protocol,
-                };
-                const resp = await checkMysqlConnection(val);
+                const resp = await checkMysqlConnection(form.getValues('db'));
                 setCheckResp(resp);
                 setIsTesting(false);
               } catch (err) {
@@ -291,7 +270,7 @@ export default function MysqlForm(props: Props) {
           <Button type="submit" disabled={!form.formState.isValid}>
             <ButtonText
               leftIcon={form.formState.isSubmitting ? <Spinner /> : <div></div>}
-              text="submit"
+              text="Submit"
             />
           </Button>
         </div>

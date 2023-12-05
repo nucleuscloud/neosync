@@ -1,5 +1,5 @@
 'use client';
-import { handleCustomTransformerForm } from '@/app/new/transformer/CustomTransformerForms/HandleCustomTransformersForm';
+import { handleCustomTransformerForm } from '@/app/new/transformer/UserDefinedTransformerForms/HandleCustomTransformersForm';
 import {
   SYSTEM_TRANSFORMER_SCHEMA,
   SystemTransformersSchema,
@@ -19,12 +19,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
+import { SystemTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import { handleTransformerMetadata } from '../../EditTransformerOptions';
 
 export default function ViewSystemTransformers({
   params,
@@ -34,7 +34,7 @@ export default function ViewSystemTransformers({
   const tName = params?.name ?? '';
 
   const currentTransformer = systemTransformers?.transformers.find(
-    (item) => item.value == tName
+    (item: SystemTransformer) => item.source == tName
   );
 
   const router = useRouter();
@@ -48,10 +48,9 @@ export default function ViewSystemTransformers({
       config: { config: { case: '', value: {} } },
     },
     values: {
-      name: currentTransformer?.value ?? '',
-      description:
-        handleTransformerMetadata(currentTransformer?.value).description ?? '',
-      type: handleTransformerMetadata(currentTransformer?.value).type ?? '',
+      name: currentTransformer?.name ?? '',
+      description: currentTransformer?.description ?? '',
+      type: currentTransformer?.dataType ?? '',
       config: {
         config: {
           case: currentTransformer?.config?.config.case,
@@ -65,7 +64,7 @@ export default function ViewSystemTransformers({
     <OverviewContainer
       Header={
         <PageHeader
-          header={currentTransformer?.value ?? 'System Transformer'}
+          header={currentTransformer?.name ?? 'System Transformer'}
           extraHeading={<NewTransformerButton />}
         />
       }
@@ -83,11 +82,7 @@ export default function ViewSystemTransformers({
                   <FormLabel>Name</FormLabel>
                   <FormDescription>The Transformer name</FormDescription>
                   <FormControl>
-                    <Input
-                      placeholder="Transformer Name"
-                      {...field}
-                      className="w-[1000px]"
-                    />
+                    <Input placeholder="Transformer Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -105,11 +100,7 @@ export default function ViewSystemTransformers({
                       The Transformer decription.
                     </FormDescription>
                     <FormControl>
-                      <Input
-                        placeholder="Transformer Name"
-                        {...field}
-                        className="w-[1000px]"
-                      />
+                      <Input placeholder="Transformer Name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -126,11 +117,7 @@ export default function ViewSystemTransformers({
                     <FormLabel>Type</FormLabel>
                     <FormDescription>The Transformer type.</FormDescription>
                     <FormControl>
-                      <Input
-                        placeholder="Transformer type"
-                        {...field}
-                        className="w-[1000px]"
-                      />
+                      <Input placeholder="Transformer type" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -138,8 +125,8 @@ export default function ViewSystemTransformers({
               />
             </div>
           </div>
-          <div className="w-[1000px]">
-            {handleCustomTransformerForm(currentTransformer?.value, true)}
+          <div>
+            {handleCustomTransformerForm(currentTransformer?.source, true)}
           </div>
           <div className="flex flex-row justify-start">
             <Button type="button" onClick={() => router.push('/transformers')}>

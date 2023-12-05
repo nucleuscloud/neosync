@@ -12,7 +12,7 @@ import (
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
-const createCustomTransformer = `-- name: CreateCustomTransformer :one
+const createUserDefinedTransformer = `-- name: CreateUserDefinedTransformer :one
 INSERT INTO neosync_api.transformers (
   name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id
 ) VALUES (
@@ -21,7 +21,7 @@ INSERT INTO neosync_api.transformers (
 RETURNING id, created_at, updated_at, name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id
 `
 
-type CreateCustomTransformerParams struct {
+type CreateUserDefinedTransformerParams struct {
 	Name              string
 	Description       string
 	Type              string
@@ -32,8 +32,8 @@ type CreateCustomTransformerParams struct {
 	UpdatedByID       pgtype.UUID
 }
 
-func (q *Queries) CreateCustomTransformer(ctx context.Context, db DBTX, arg CreateCustomTransformerParams) (NeosyncApiTransformer, error) {
-	row := db.QueryRow(ctx, createCustomTransformer,
+func (q *Queries) CreateUserDefinedTransformer(ctx context.Context, db DBTX, arg CreateUserDefinedTransformerParams) (NeosyncApiTransformer, error) {
+	row := db.QueryRow(ctx, createUserDefinedTransformer,
 		arg.Name,
 		arg.Description,
 		arg.Type,
@@ -60,21 +60,21 @@ func (q *Queries) CreateCustomTransformer(ctx context.Context, db DBTX, arg Crea
 	return i, err
 }
 
-const deleteCustomTransformerById = `-- name: DeleteCustomTransformerById :exec
+const deleteUserDefinedTransformerById = `-- name: DeleteUserDefinedTransformerById :exec
 DELETE FROM neosync_api.transformers WHERE id = $1
 `
 
-func (q *Queries) DeleteCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error {
-	_, err := db.Exec(ctx, deleteCustomTransformerById, id)
+func (q *Queries) DeleteUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error {
+	_, err := db.Exec(ctx, deleteUserDefinedTransformerById, id)
 	return err
 }
 
-const getCustomTransformerById = `-- name: GetCustomTransformerById :one
+const getUserDefinedTransformerById = `-- name: GetUserDefinedTransformerById :one
 SELECT id, created_at, updated_at, name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id from neosync_api.transformers WHERE id = $1
 `
 
-func (q *Queries) GetCustomTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
-	row := db.QueryRow(ctx, getCustomTransformerById, id)
+func (q *Queries) GetUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
+	row := db.QueryRow(ctx, getUserDefinedTransformerById, id)
 	var i NeosyncApiTransformer
 	err := row.Scan(
 		&i.ID,
@@ -92,15 +92,15 @@ func (q *Queries) GetCustomTransformerById(ctx context.Context, db DBTX, id pgty
 	return i, err
 }
 
-const getCustomTransformersByAccount = `-- name: GetCustomTransformersByAccount :many
+const getUserDefinedTransformersByAccount = `-- name: GetUserDefinedTransformersByAccount :many
 SELECT t.id, t.created_at, t.updated_at, t.name, t.description, t.type, t.source, t.account_id, t.transformer_config, t.created_by_id, t.updated_by_id from neosync_api.transformers t
 INNER JOIN neosync_api.accounts a ON a.id = t.account_id
 WHERE a.id = $1
 ORDER BY t.created_at DESC
 `
 
-func (q *Queries) GetCustomTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
-	rows, err := db.Query(ctx, getCustomTransformersByAccount, accountid)
+func (q *Queries) GetUserDefinedTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
+	rows, err := db.Query(ctx, getUserDefinedTransformersByAccount, accountid)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func (q *Queries) IsTransformerNameAvailable(ctx context.Context, db DBTX, arg I
 	return count, err
 }
 
-const updateCustomTransformer = `-- name: UpdateCustomTransformer :one
+const updateUserDefinedTransformer = `-- name: UpdateUserDefinedTransformer :one
 UPDATE neosync_api.transformers
 SET 
   name = $1,
@@ -160,7 +160,7 @@ WHERE id = $5
 RETURNING id, created_at, updated_at, name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id
 `
 
-type UpdateCustomTransformerParams struct {
+type UpdateUserDefinedTransformerParams struct {
 	Name              string
 	Description       string
 	TransformerConfig *pg_models.TransformerConfigs
@@ -168,8 +168,8 @@ type UpdateCustomTransformerParams struct {
 	ID                pgtype.UUID
 }
 
-func (q *Queries) UpdateCustomTransformer(ctx context.Context, db DBTX, arg UpdateCustomTransformerParams) (NeosyncApiTransformer, error) {
-	row := db.QueryRow(ctx, updateCustomTransformer,
+func (q *Queries) UpdateUserDefinedTransformer(ctx context.Context, db DBTX, arg UpdateUserDefinedTransformerParams) (NeosyncApiTransformer, error) {
+	row := db.QueryRow(ctx, updateUserDefinedTransformer,
 		arg.Name,
 		arg.Description,
 		arg.TransformerConfig,

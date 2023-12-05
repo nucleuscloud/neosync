@@ -8,28 +8,23 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  CustomTransformer,
-  GenerateString,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: CustomTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
 export default function GenerateStringForm(props: Props): ReactElement {
-  const { index, setIsSheetOpen, transformer } = props;
+  const { index, setIsSheetOpen } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateString;
-
-  const [sl, setSl] = useState<number>(
-    config?.length ? Number(config.length) : 0
+  const sLength = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.length`
   );
+
+  const [sl, setSl] = useState<number>(sLength);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -50,7 +45,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Length</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set the length of the output string. The default length is 6.
               </FormDescription>
             </div>
@@ -59,6 +54,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
                 type="number"
                 className="max-w-[180px]"
                 placeholder="6"
+                value={String(sl)}
                 onChange={(event) => {
                   setSl(Number(event.target.value));
                 }}

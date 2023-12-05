@@ -196,7 +196,7 @@ Work to be done:
 Some resources to help you along the way:
 
 - [Docs](https://docs.neosync.dev) for comprehensive documentation and guides: Note these are still a work in progress.
-- [Slack](https://join.slack.com/t/neosynccommunity/shared_invite/zt-1o3g7cned-OTBKzNj3InDm1YmpYdqRXg) for discussion with the community and Neosync team
+- [Discord](https://discord.gg/HwrxVfNk) for discussion with the community and Neosync team
 - [X](https://x.com/neosynccloud) for the latest updates
 <!-- - [Blog](https://neosync.com/blog) for insights, articles and more
 - [Roadmap](https://neosync.dev/roadmap) for future development -->
@@ -207,7 +207,7 @@ We love contributions big and small. Here are just a few ways that you can contr
 
 <!-- - Vote on features or get early access to beta functionality in our [roadmap](https://neosync.dev/roadmap) -->
 
-- Join our [Slack](https://join.slack.com/t/neosynccommunity/shared_invite/zt-1o3g7cned-OTBKzNj3InDm1YmpYdqRXg) channel and ask us any questions there
+- Join our [Discord](https://discord.gg/HwrxVfNk) channel and ask us any questions there
 - Open a PR (see our instructions on [developing with Neosync locally](https://docs.neosync.dev/developing-locally))
 - Submit a [feature request](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=enhancement%2C+feature&template=feature_request.md) or [bug report](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md)
 

@@ -8,28 +8,23 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import {
-  CustomTransformer,
-  GenerateUuid,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: CustomTransformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
 export default function GenerateUuidForm(props: Props): ReactElement {
-  const { index, setIsSheetOpen, transformer } = props;
+  const { index, setIsSheetOpen } = props;
 
   const fc = useFormContext();
 
-  const config = transformer?.config?.config.value as GenerateUuid;
-
-  const [ih, setIh] = useState<boolean>(
-    config?.includeHyphens ? config?.includeHyphens : false
+  const ihValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.includeHyphens`
   );
+
+  const [ih, setIh] = useState<boolean>(ihValue);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -50,7 +45,7 @@ export default function GenerateUuidForm(props: Props): ReactElement {
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Include hyphens</FormLabel>
-              <FormDescription>
+              <FormDescription className="w-[90%]">
                 Set to true to include hyphens in the generated UUID. Note: some
                 databases such as Postgres automatically convert UUIDs with no
                 hyphens to have hyphens when they store the data.

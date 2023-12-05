@@ -38,9 +38,7 @@ const StepCircle = (props: StepCircleProps) => {
       <div className=" flex flex-col gap-2 items-center">
         <div
           className={cn(
-            isActive || isCompleted
-              ? 'bg-black '
-              : 'border-2 border-black gray-800',
+            isActive || isCompleted ? 'bg-black ' : 'border border-gray-400',
             'w-[20px] h-[20px]',
             'rounded-full',
             'justify-center flex align-middle items-center'
@@ -53,7 +51,7 @@ const StepCircle = (props: StepCircleProps) => {
         </div>
       </div>
       {!isLastStep && (
-        <div className=" w-[30px] h-[2px] mt-3 rounded-xl bg-gray-300" />
+        <div className=" w-[30px] h-[2px] mt-[10px] rounded-xl bg-gray-300" />
       )}
     </div>
   );
