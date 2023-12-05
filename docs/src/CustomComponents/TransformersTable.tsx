@@ -20,7 +20,7 @@ interface RowData {
   title: string;
   type: string;
   description: string;
-  pageLink: string;
+  pagelink: string;
   codeRef: string;
 }
 
@@ -41,7 +41,7 @@ export function TransformersTable(props: TableData): ReactElement {
           <TableRow key={tableData.title} className="h2">
             <TableCell className="font-medium bg-[#FFFFFF] w-[300px]">
               <Link
-                href={`/transformers/system/reference#${tableData.pageLink}`}
+                href={`/transformers/system/reference#${tableData.pagelink}`}
                 className=""
               >
                 <div className="flex flex-row gap-2">
