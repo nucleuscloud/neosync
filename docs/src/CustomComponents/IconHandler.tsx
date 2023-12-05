@@ -1,50 +1,25 @@
 import {
+  AvatarIcon,
   HomeIcon,
   LayersIcon,
   LinkBreak1Icon,
+  ListBulletIcon,
   Share1Icon,
+  StackIcon,
   TokensIcon,
 } from '@radix-ui/react-icons';
 import React, { ReactElement } from 'react';
-import {
-  AiOutlineCreditCard,
-  AiOutlineMail,
-  AiOutlinePhone,
-} from 'react-icons/ai';
-import {
-  BiLogoPostgresql,
-  BiSolidCity,
-  BiTerminal,
-  BiTimeFive,
-} from 'react-icons/bi';
-import {
-  BsCalendarDate,
-  BsFillKeyFill,
-  BsFunnel,
-  BsGenderAmbiguous,
-  BsPinMap,
-  BsShieldCheck,
-} from 'react-icons/bs';
-import {
-  FaAws,
-  FaDocker,
-  FaRegAddressBook,
-  FaStreetView,
-} from 'react-icons/fa';
-import { GiTexas } from 'react-icons/gi';
-import { GoCode, GoTable } from 'react-icons/go';
-import { GrMysql, GrSecure } from 'react-icons/gr';
+import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
+import { BiLogInCircle, BiLogoPostgresql, BiTerminal } from 'react-icons/bi';
+import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
+import { FaAws, FaDocker } from 'react-icons/fa';
+import { GoCode, GoTable, GoVersions } from 'react-icons/go';
+import { GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
-import { MdPassword } from 'react-icons/md';
+import { MdPassword, MdStart } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
-import {
-  RxAvatar,
-  RxComponentBoolean,
-  RxLetterCaseCapitalize,
-} from 'react-icons/rx';
 import { SiKubernetes } from 'react-icons/si';
-import { TbDecimal, TbVariable } from 'react-icons/tb';
-import { TiSortNumerically } from 'react-icons/ti';
+import { TbVariable } from 'react-icons/tb';
 
 export function IconHandler(name: string): ReactElement {
   switch (name) {
@@ -86,48 +61,24 @@ export function IconHandler(name: string): ReactElement {
       return <PiFlaskLight />;
     case 'Subset Data':
       return <BsFunnel />;
-    case 'City':
-      return <BiSolidCity />;
-    case 'Card Number':
-      return <AiOutlineCreditCard />;
-    case 'First Name':
-      return <RxAvatar />;
-    case 'Full Name':
-      return <RxAvatar />;
-    case 'Last Name':
-      return <RxAvatar />;
-    case 'Full Address':
-      return <FaRegAddressBook />;
-    case 'Gender':
-      return <BsGenderAmbiguous />;
-    case 'Random Boolean':
-      return <RxComponentBoolean />;
-    case 'Random Float':
-      return <TbDecimal />;
-    case 'Random Integer':
-      return <TiSortNumerically />;
-    case 'Random String':
-      return <RxLetterCaseCapitalize />;
-    case 'State':
-      return <GiTexas />;
-    case 'Street Address':
-      return <FaStreetView />;
-    case 'Unix Timestamp':
-      return <BiTimeFive />;
-    case 'UTC Timestamp':
-      return <BsCalendarDate />;
-    case 'UUID':
-      return <BsFillKeyFill />;
-    case 'Zipcode':
-      return <BsPinMap />;
-    case 'Hash':
-      return <GrSecure />;
     case 'Neosync CLI':
       return <BiTerminal />;
     case 'Environment Variables':
       return <TbVariable />;
     case 'Reference':
       return <GoTable />;
+    case 'login':
+      return <BiLogInCircle />;
+    case 'whoami':
+      return <AvatarIcon />;
+    case 'jobs':
+      return <StackIcon />;
+    case 'list':
+      return <ListBulletIcon />;
+    case 'trigger':
+      return <MdStart />;
+    case 'version':
+      return <GoVersions />;
     default:
       return <LayersIcon />;
   }
