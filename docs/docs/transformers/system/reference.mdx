@@ -777,7 +777,7 @@ Here are some examples of what an output full address value may look like.
 
 ### Generate Full Name{#generate-full-name}
 
-The generate full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/first-name) and [last](/transformers/system/last-name) names transformers.
+The generate full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/reference#generate-first-name) and [last](/transformers/system/last-name) names transformers.
 
 **Configurations**
 
@@ -1346,7 +1346,7 @@ Here are some example UUID values that the uuid transformer can generate:
 
 The generate zipcode transformer generates a randomly selected US zipcode. You can see the complete list of zipcodes that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
-If you'd rather not get back a real zipcode value, you can use the [Random String Transformer](/transformers/system/random-string) to generate a random string value.
+If you'd rather not get back a real zipcode value, you can use the [Random String Transformer](/transformers/system/reference#generate-random-string) to generate a random string value.
 
 **Configurations**
 
@@ -1537,7 +1537,7 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Transform Full Name{#transform-full-name}
 
-The transform full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/first-name) and [last](/transformers/system/last-name) names transformers.
+The transform full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/reference#generate-first-name) and [last](/transformers/system/reference#generate-last-name) names transformers.
 
 By default, the full name transformer generates a full name of random length. To preserve the length of the input full name, you can set the `preserveLength` config.
 
