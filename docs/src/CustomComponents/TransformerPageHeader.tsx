@@ -12,7 +12,6 @@ export const TransformerPageHeader = (props: Props) => {
   const { title, type, apiRef } = props;
   return (
     <div className="transformer-page-header">
-      <div>{title}</div>
       <Badge>{type}</Badge>
       <Link
         href={apiRef}
