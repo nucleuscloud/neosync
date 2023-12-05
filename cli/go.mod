@@ -6,7 +6,7 @@ replace github.com/nucleuscloud/neosync/backend => ../backend
 
 require (
 	connectrpc.com/connect v1.12.0
-	github.com/auth0/go-jwt-middleware/v2 v2.1.0
+	github.com/auth0/go-jwt-middleware/v2 v2.2.0
 	github.com/benthosdev/benthos/v4 v4.24.0
 	github.com/fatih/color v1.16.0
 	github.com/google/uuid v1.4.0
@@ -213,13 +213,13 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
+	gopkg.in/go-jose/go-jose.v2 v2.6.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/gokrb5.v6 v6.1.1 // indirect
 	gopkg.in/jcmturner/rpc.v1 v1.1.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
-	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect
 	modernc.org/ccgo/v3 v3.16.13 // indirect
