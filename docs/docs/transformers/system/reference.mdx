@@ -1,0 +1,59 @@
+---
+title: References
+id: reference
+hide_title: true
+slug: /transformers/system/reference
+---
+
+import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
+
+import { TransformersTable } from '@site/src/CustomComponents/TransformersTable.tsx';
+
+<DocPageHeader title="System Transformer Reference" />
+
+## Introduction
+
+System transformers ship our of the box with Neosync and give you an easy way to get started with anonymizing or generating data.
+
+Below is a reference of all of the system transformers that Neosync ships with as well as some relevant links.
+
+## Reference
+
+<TransformersTable
+  headers={['Name', 'Type', 'Description']}
+  rowData={[
+    {
+      title: 'Generate Email',
+      type: 'string',
+      description:
+        'The email transformer can anonymize an existing email address or completely generate a new one',
+      link: 'generate-email',
+    },
+    {
+      title: 'Generate Realistic Email',
+      type: 'string',
+      description:
+        'The email transformer can anonymize an existing email address or completely generate a new one',
+      link: 'generate-realistic-email',
+    },
+    {
+      title: 'Transform Email',
+      type: 'string',
+      description:
+        'The email transformer can anonymize an existing email address or completely generate a new one',
+      link: 'transform-email',
+    },
+  ]}
+/>
+
+## Generate Email{#generate-email}
+
+TransformersTabletestest
+
+## Generate Realistic Email{#generate-realistic-email}
+
+TransformersTabletestest
+
+## Transform Email{#transform-email}
+
+TransformersTabletestest

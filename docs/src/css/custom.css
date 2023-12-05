@@ -141,6 +141,10 @@ this is the class for the sidebar categories that section headers
     @apply text-xs;
   }
 
+  .menu__link--sublist-caret {
+    @apply text-gray-900;
+  }
+
   .docsImage {
     @apply border border-gray-300 shadow-lg rounded-lg overflow-hidden my-6;
   }
