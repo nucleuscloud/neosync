@@ -1,0 +1,47 @@
+---
+title: User Defined
+id: user-defined
+hide_title: true
+slug: /transformers/user-defined
+---
+
+import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
+
+import { DocsImage } from '@site/src/CustomComponents/DocsImage';
+
+<DocPageHeader title="User Defined Transformers" />
+
+## Introduction
+
+User defined Transfomers are a great way to configure a system transformer with your own presets and publish it everywhere. User defined transformers are saved at the account level and
+can be used across multiple jobs, saving your time during the schema configuration process.
+
+<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/user-defined-transformers-home.png" />
+
+## Creating a User Defined Transformer
+
+In order to create a user defined transformer, follow these steps:
+
+1. Navigate to the **Transformers** page and click on **+ New Transformer**.
+2. You'll be brought to the new transformer page where you can select a base transformer. A base transformer serves as the blueprint for the user defined transformer. Select the base transformer for your user defined transformer.
+
+<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/udt-new.png" />
+
+3. Once you've selected a base transformer, you'll be prompted to give the transformer a name and description. Additionally, you can preset custom default configurations depending on the transformer. Fill out the details and click **save**.
+
+<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/udt-new-float.png" />
+
+## Using a User Defined Transformer
+
+Once you've created a user defined transformer, you'll see it appear in the transformer list in Transformers main page as well as the Schema configuration page. Above, we created a user defined transformer
+called `custom-float-transfomer`, we can now see it both places.
+
+In the transformers table under the User Defined Transformer tab.
+
+<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/udt-new-float-home-page.png" />
+
+In the Schema configuration page in the transformer select.
+
+<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/udt-schema-page.png" />
+
+Now we can finsih the rest of our job configuration and the newly created user defined transformer will be used in the column that it's mapped to.

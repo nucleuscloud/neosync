@@ -1,0 +1,1904 @@
+---
+title: References
+id: reference
+hide_title: true
+slug: /transformers/system/reference
+---
+
+import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
+import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
+import { TransformersTable } from '@site/src/CustomComponents/TransformersTable.tsx';
+
+<DocPageHeader title="System Transformer Reference" />
+
+## Introduction
+
+Neosync comes out of the box with 40+ system transformers in order to give you an easy way to get started with anonymizing or generating data. There are two kinds of system transformers:
+
+1. **Generators** - these begin with `generate_` and do **not** anonymize existing data. They only generate net-new synthetic data.
+
+2. **Transformers** - these begin with `transform_` and **can** anonymize existing data or generate new-new synthetic data based on how you configure it.
+
+## Reference
+
+<TransformersTable
+  headers={['Name', 'Type', 'Code', 'Description']}
+  rowData={[
+    {
+      title: 'Generate Email',
+      type: 'string',
+      description: 'Generates a new randomized email address.',
+      pagelink: 'generate-email',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_email.go',
+    },
+    {
+      title: 'Generate Realistic Email',
+      type: 'string',
+      description: 'Generates a new realistic email address.',
+      pagelink: 'generate-realistic-email',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_realistic_email.go',
+    },
+    {
+      title: 'Transform Email',
+      type: 'string',
+      description: 'Transforms an existing email address.',
+      pagelink: 'transform-email',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_email.go',
+    },
+    {
+      title: 'Generate Boolean',
+      type: 'boolean',
+      description: 'Generates a boolean value at random.',
+      pagelink: 'generate-boolean',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_bool.go',
+    },
+    {
+      title: 'Generate Card Number',
+      type: 'int64',
+      description: 'Generates a card number.',
+      pagelink: 'generate-card-number',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_card_number.go',
+    },
+    {
+      title: 'Generate City',
+      type: 'string',
+      description:
+        'Randomly selects a city from a list of predfined US cities.',
+      pagelink: 'generate-city',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_city.go',
+    },
+    {
+      title: 'Generate E164 Phone Number',
+      type: 'string',
+      description: 'Generates a Generate phone number in e164 format.',
+      pagelink: 'generate-e164-phone-number',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_e164_phone.go',
+    },
+    {
+      title: 'Generate First Name',
+      type: 'string',
+      description: 'Generates a random first name.',
+      pagelink: 'generate-first-name',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_first_name.go',
+    },
+    {
+      title: 'Generate Float64',
+      type: 'float64',
+      description: 'Generates a random float64 value.',
+      pagelink: 'generate-float64',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_float.go',
+    },
+    {
+      title: 'Generate Full Address',
+      type: 'string',
+      description:
+        'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169.',
+      pagelink: 'generate-full-address',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_address.go',
+    },
+    {
+      title: 'Generate Full Name',
+      type: 'string',
+      description:
+        'Generates a new full name consisting of a first and last name',
+      pagelink: 'generate-full-name',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_name.go',
+    },
+    {
+      title: 'Generate Gender',
+      type: 'string',
+      description:
+        'Randomly generates one of the following genders: female, male, undefined, nonbinary.',
+      pagelink: 'generate-gender',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_gender.go',
+    },
+    {
+      title: 'Generate Int64 Phone Number',
+      type: 'int64',
+      description:
+        'Generates a new phone number of type int64 with a default length of 10.',
+      pagelink: 'generate-int64-phone-number',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_164_phone.go',
+    },
+    {
+      title: 'Generate Random Int64',
+      type: 'int64',
+      description:
+        'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.',
+      pagelink: 'generate-random-int64',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_int.go',
+    },
+    {
+      title: 'Generate Last Name',
+      type: 'int64',
+      description: 'Generates a random last name.',
+      pagelink: 'generate-last-name',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_last_name.go',
+    },
+    {
+      title: 'Generate SHA256 Hash',
+      type: 'string',
+      description: 'SHA256 hashes a randomly generated value.',
+      pagelink: 'generate-sha256-hash',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_sha256hash.go',
+    },
+    {
+      title: 'Generate SSN',
+      type: 'string',
+      description:
+        'Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>',
+      pagelink: 'generate-ssn',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_ssn.go',
+    },
+    {
+      title: 'Generate State',
+      type: 'string',
+      description:
+        'Randomly selects a US state and returns the two-character state code.',
+      pagelink: 'generate-state',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_state.go',
+    },
+    {
+      title: 'Generate Street Address',
+      type: 'string',
+      description:
+        'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}. For example, 123 Main Street.',
+      pagelink: 'generate-street-address',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_street_address.go',
+    },
+    {
+      title: 'Generate String Phone Number',
+      type: 'string',
+      description:
+        'Generates a Generate phone number and returns it as a string.',
+      pagelink: 'generate-string-phone-number',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string_phone.go',
+    },
+    {
+      title: 'Generate Random String',
+      type: 'string',
+      description:
+        'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.',
+      pagelink: 'generate-random-string',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string.go',
+    },
+    {
+      title: 'Generate Unix Timestamp',
+      type: 'int64',
+      description: 'Randomly generates a Unix timestamp',
+      pagelink: 'generate-unix-timestamp',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_unixtimestamp.go',
+    },
+    {
+      title: 'Generate Username',
+      type: 'string',
+      description:
+        'Randomly generates a username in the format<first_initial><last_name>.',
+      pagelink: 'generate-username',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_username.go',
+    },
+    {
+      title: 'Generate UTC Timestamp',
+      type: 'time',
+      description: 'Randomly generates a UTC timestamp.',
+      pagelink: 'generate-utc-timestamp',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_utctimestamp.go',
+    },
+    {
+      title: 'Generate UUID',
+      type: 'uuid',
+      description: 'Generates a new UUIDv4 id.',
+      pagelink: 'generate-uuid',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_uuid.go',
+    },
+    {
+      title: 'Generate Zipcode',
+      type: 'string',
+      description:
+        'Randomly selects a zip code from a list of predefined US zipcodes.',
+      pagelink: 'generate-zipcode',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_zipcode.go',
+    },
+    {
+      title: 'Transform E164 Phone Number',
+      type: 'string',
+      description: 'Transforms an existing E164 formatted phone number.',
+      pagelink: 'transform-e164-phone-number',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_e164_phone.go',
+    },
+    {
+      title: 'Transform First Name',
+      type: 'string',
+      description: 'Transforms an existing first name',
+      pagelink: 'transform-first-name',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_first_name.go',
+    },
+    {
+      title: 'Transform Float64',
+      type: 'float64',
+      description: 'Transforms an existing float value.',
+      pagelink: 'transform-float64',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_float.go',
+    },
+    {
+      title: 'Transform Full Name',
+      type: 'string',
+      description: 'Transforms an existing full name.',
+      pagelink: 'transform-full-name',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_full_name.go',
+    },
+    {
+      title: 'Transform Int64 Phone Number',
+      type: 'int64',
+      description:
+        'Transforms an existing phone number that is typed as an integer',
+      pagelink: 'transform-int64-phone-number',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int_phone.go',
+    },
+    {
+      title: 'Transform Int64',
+      type: 'int64',
+      description: 'Transforms an existing integer value.',
+      pagelink: 'transform-int64',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int.go',
+    },
+    {
+      title: 'Transform Last Name',
+      type: 'string',
+      description: 'Transforms an existing last name.',
+      pagelink: 'transform-last-name',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_last_name.go',
+    },
+    {
+      title: 'Transform Phone Number',
+      type: 'string',
+      description:
+        'Transforms an existing phone number that is typed as a string.',
+      pagelink: 'transform-phone-number',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_phone.go',
+    },
+    {
+      title: 'Transform String',
+      type: 'string',
+      description: 'Transforms an existing string value.',
+      pagelink: 'transform-string',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_string.go',
+    },
+    {
+      title: 'Passthrough',
+      type: 'string',
+      description:
+        'Passes the input value through to the desination with no changes.',
+      pagelink: 'passthrough',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go',
+    },
+    {
+      title: 'Null',
+      type: 'string',
+      description: 'Inserts a <null> string instead of the source value.',
+      pagelink: 'null',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go',
+    },
+  ]}
+/>
+
+### Generate Email{#generate-email}
+
+The generate email transformer generates a new randomized email address in the format:
+
+`<username>@<domain>.<top-level-domain>`
+
+By default, the transformer randomizes the username, domain and top-level domain while always preserving the email format by retaining the `@` and `.` characters.
+
+For example, the following input value:
+`john@acme.com`
+
+Would produce the following ouput value:
+`ytvub873@ksh0293.com`
+
+**Configurations**
+
+There are no configurations for this transformer.
+
+**Examples**
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'f98723uh@gmail.com'],
+    },
+    {
+      data: ['N/A', '9cd@ms0ej.com'],
+    },
+    {
+      data: ['N/A', 'mDy@bdo3s.edu'],
+    },
+    {
+      data: ['N/A', 'fweq23f@fheuiw78.edu'],
+    },
+  ]}
+/>
+
+### Generate Realistic Email{#generate-realistic-email}
+
+The generate realistic email transformer generates a new randomized email address that "looks" realistis in the format:
+
+`<username>@<domain>.<top-level-domain>`
+
+By "looks realistic", we mean that the email will look like an email that a normal person will have and won't be randomized letters and numbers. The generated email will either have a first letter initial and last name as a username and then a standardized domain name such as gmail, yahoo, hotmail, etc.
+
+**Configurations**
+
+There are no configurations for this transformer.
+
+**Examples**
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'jdoe@gmail.com'],
+    },
+    {
+      data: ['N/A', 'bill.johnson@yahoo.com'],
+    },
+    {
+      data: ['N/A', 'ataylor@hotmail.com'],
+    },
+    {
+      data: ['N/A', 'list.franklin@gmail.com'],
+    },
+  ]}
+/>
+
+### Transform Email{#transform-email}
+
+The transform email transformer can anonymize an existing email address or generate a new randomized email address in the format:
+
+`<username>@<domain>.<top-level-domain>`
+
+By default, the transformer randomizes the username, domain and top-level domain while always preserving the email format by retaining the `@` and `.` characters.
+
+For example, the following input value:
+`john@acme.com`
+
+Would produce the following ouput value:
+`ytvub873@ksh0293.com`
+
+**Configurations**
+
+Depending on your logic, you may want to configure the output email. The transform email transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'PreserveDomain',
+        'Carries over the input domain and top-level to the output email address.',
+        'false',
+        'john@gmail.com',
+        'fjf2903@gmail.com',
+      ],
+    },
+    {
+      data: [
+        'PreserveLength',
+        'Ensures the output email address is the same length as the input email address.',
+        'false',
+        'john@gmail.com',
+        'hw98@k8g1s.edu',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential email formats. Here are some possible combinations:
+
+<DocsTable
+  headers={[
+    'PreserveLength',
+    'PreserveDomain',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: ['false', 'true', 'joe@gmail.com', 'f98723uh@gmail.com'],
+    },
+    {
+      data: ['true', 'false', 'joe@gmail.com', '9cd@ms0ej.com'],
+    },
+    {
+      data: ['true', 'true', 'joe@gmail.com', 'mDy@bdo3s.com'],
+    },
+    {
+      data: ['false', 'false', 'joe@gmail.com', 'fweq23f@fheuiw78.edu'],
+    },
+  ]}
+/>
+
+### Generate Boolean{#generate-boolean}
+
+The genereate boolean transformer randomly generates a boolean value.
+
+**Configurations**
+
+There are no configurations for the random boolean transformer.
+
+**Examples**
+
+Here are some examples of what an output random boolean value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'true'],
+    },
+    {
+      data: ['N/A', 'false'],
+    },
+  ]}
+/>
+
+### Generate Card Number{#generate-card-number}
+
+The generate card number transformer generates a new card number that is [luhn valid.](https://en.wikipedia.org/wiki/Luhn_algorithm)
+
+By default, the card number transformer generates a random 16 digit card number that is _not_ luhn valid. If you want luhn validation, please set the luhn-check config to `true`.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output card number. The card number transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Luhn Check',
+        'Generate a card number that can pass luhn validation.',
+        'true',
+        'N/A',
+        '6621238134011099',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+Here are some examples of an output card number:
+
+<DocsTable
+  headers={['Luhn Check', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'N/A', '3627893345931223'],
+    },
+    {
+      data: ['true', 'N/A', '6621238134011099'],
+    },
+  ]}
+/>
+
+### Generate City{#generate-city}
+
+The generate city transformers generates a randomly selected US city. You can see the complete list of cities that are available to be randomly selected [here](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
+
+If you'd rather not get back a real city value, you can use the [Generate Random String Transformer](/transformers/system/reference#generate-random-string) to generate a random string value.
+
+**Configurations**
+
+There are no configurations for the city transformer.
+
+**Examples**
+
+Here are some examples of what an output City value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'Manchester'],
+    },
+    {
+      data: ['N/A', 'Louisville'],
+    },
+  ]}
+/>
+
+### Generate E164 Phone Number{#generate-e164-phone-number}
+
+The generate e164 phone transformer generates a new international phone number including the + sign. By default, the generate e164 transformer generates a random 12 digit number with no hyphens in the format:
+
+`+34567890123`
+
+TPhone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to be a certain length by passing in the `length` configuration. Here is more information on the [e164 format](https://www.twilio.com/docs/glossary/what-e164). This transformer also has a min of 9 and a max of 15. If you want to generate a number that is longer than that, you can use the [Generate Random int64 transformer](/transformers/system/reference#generate-random-int64)
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output e164 phone number:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Length',
+        'Length will generate a string value of that length including the + sign.',
+        '12',
+        'N/A',
+        '+29037486752',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['Length', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['12', 'N/A', '5209273239'],
+    },
+    {
+      data: ['10', 'N/A', '520-927-3239'],
+    },
+    {
+      data: ['9', 'N/A', '520927323239'],
+    },
+    {
+      data: ['false', 'N/A', '+520922339'],
+    },
+    {
+      data: ['true', '+N/A', '+520927323921'],
+    },
+  ]}
+/>
+
+### Generate First Name{#generate-first-name}
+
+The generate first name transformer generates a valid first name from a list of predefined first name values. You can see the entire list of first name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/first-names.json)
+
+By default, the generate first name transformer randomly picks a first name with a length between 2 and 12.
+
+**Configurations**
+
+There are no configurations for this transformer.
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different first name formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'Benjamin'],
+    },
+    {
+      data: ['N/A', 'Gregory'],
+    },
+    {
+      data: ['N/A', 'Ashley'],
+    },
+  ]}
+/>
+
+### Generate Float64{#generate-float64}
+
+The generate float transformer generates a random floating point number.
+
+For example:
+`32.2432`
+
+By default, the random float transformer generates a floating point number with 3 digits before the decimal point and 3 digits after the decimal point.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Sign',
+        'Sets the sign of the value. Options are: positive, negative, random. ',
+        'positive',
+        'N/A',
+        '873.923',
+      ],
+    },
+    {
+      data: [
+        'Digits before Decimal',
+        'Specifies how many digits you want before the decimal place. This has a max of 9 digits. ',
+        '3',
+        'N/A',
+        '94.17',
+      ],
+    },
+    {
+      data: [
+        'Digits after Decimal',
+        'Specifies how many digits you want after the decimal place. This has a max of 9 digits. ',
+        '3',
+        'N/A',
+        '34.8',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random float formats. Here are some possible combinations:
+
+<DocsTable
+  headers={[
+    'Sign',
+    'Digits before Decimal',
+    'Digits after Decimal',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: ['positive', 'N/A', 'N/A', 'N/A', '283.824'],
+    },
+    {
+      data: ['negative', '4', '1', 'N/A', '-9872.8'],
+    },
+    {
+      data: ['random', '3', '2', 'N/A', '542.19'],
+    },
+    {
+      data: ['random', '2', '3', 'N/A', '-92.129'],
+    },
+  ]}
+/>
+
+### Generate Full Address{#generate-full-address}
+
+The generate full address transformer generates a randomly selected real full address that exists in the United States. You can see the complete list of full addresses that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json)
+
+The full address transformer returns a valid United States address. For example:
+`123 Main Street Boston, Massachusetts, 02169`
+
+**Configurations**
+
+There are no configurations for the full adddress transformer.
+
+**Examples**
+
+Here are some examples of what an output full address value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', '509 Franklin Street Northeast Washington, DC, 20017'],
+    },
+    {
+      data: ['N/A', '14 Huntingon Street Manchester, CT 06040'],
+    },
+  ]}
+/>
+
+### Generate Full Name{#generate-full-name}
+
+The generate full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/reference#generate-first-name) and [last](/transformers/system/reference#generate-last-name) names transformers.
+
+**Configurations**
+
+There are no configurations for this transformer.
+
+**Examples**
+
+Here are some examples of what an output full name value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'Edward Marshall'],
+    },
+    {
+      data: ['N/A', 'Dante Mayer'],
+    },
+    {
+      data: ['N/A', 'Gregory Johnson'],
+    },
+  ]}
+/>
+
+### Generate Gender{#generate-gender}
+
+The generate gender transformer randomly selects a gender value from a predefined list of genders. Here is the list:
+
+<DocsTable
+  headers={['Gender', 'Abbreviation']}
+  rowData={[
+    {
+      data: ['male', 'm'],
+    },
+    {
+      data: ['female', 'f'],
+    },
+    {
+      data: ['nonbinary', 'n'],
+    },
+    {
+      data: ['undefined', 'u'],
+    },
+  ]}
+/>
+
+By default, the gender transformer does not abbreviate the gender. If you'd like to return an abbreviated gender, pass in the `abbreviate` config.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output gender. The gender transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Abbreviate',
+        'Abbreviate will abbreviate the output gender so that it is only one character. ',
+        'false',
+        'N/A',
+        'u',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different full name formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['Abbreviate', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'N/A', 'male'],
+    },
+    {
+      data: ['true', 'N/A', 'f'],
+    },
+    {
+      data: ['false', 'N/A', 'nonbinary'],
+    },
+  ]}
+/>
+
+### Generate Int64 Phone Number{#generate-int64-phone-number}
+
+The generate int64 phone number generates a random 10 digit phone number and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system/reference#generate-string-phone-number).
+
+For example, the generate int64 phone number transformer could generate the following ouput value:
+`5698437232`
+
+**Configurations**
+
+There are no configurations for this transformer.
+
+**Examples**
+
+Here are some examples of what the output values could look like:
+
+<DocsTable
+  headers={[, 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', '5209273239'],
+    },
+    {
+      data: ['N/A', '9378463528'],
+    },
+  ]}
+/>
+
+### Generate Random Int64{#generate-random-int64}
+
+The generate random int64 transformer generates a random integer and returns it as a int64 type.
+
+For example:
+`6782`
+
+By default, the generate random int64 transformer generates an integer of 4 digits long.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output float. The random integer transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Sign',
+        'Sets the sign of the value. Options are: positive, negative, random.',
+        'positive',
+        'N/A',
+        '78223',
+      ],
+    },
+    {
+      data: [
+        'Length',
+        'Specifies how many digits you want the integer to be. This has a min of 1 and a max of 18 digits. ',
+        '4',
+        'N/A',
+        '2782',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['Sign', 'Length', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['positive', '5', 'N/A', '23324'],
+    },
+    {
+      data: ['negative', '4', 'N/A', '-6721'],
+    },
+    {
+      data: ['random', '2', 'N/A', '54'],
+    },
+    {
+      data: ['random', '5', 'N/A', '-58419'],
+    },
+  ]}
+/>
+
+### Generate Last Name{#generate-last-name}
+
+The generate last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
+
+**Configurations**
+
+This transformer has no configurations.
+
+**Examples**
+
+Here are some possible output examples:
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'Dach'],
+    },
+    {
+      data: ['N/A', 'Sporer'],
+    },
+    {
+      data: ['N/A', 'Rodriguezon'],
+    },
+  ]}
+/>
+
+### Generate SHA256 Hash{#generate-sha256-hash}
+
+The generate sha256 hash transformer generates a random SHA256 hash and hex encodes the resulting value and returns it as a string.
+
+**Configurations**
+
+There are no configurations for the hash transformer.
+
+**Examples**
+
+Here are some examples of what an output hash value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: [
+        'N/A',
+        '1b836d86806e16bd45164b9d665ce86dac9d9d55bf79d0e771265da9fbf950d1',
+      ],
+    },
+    {
+      data: [
+        'N/A',
+        'c74f07e35232c844a6639fef0c82ad093351cfa1a1b458fd2afc44cc19211508C',
+      ],
+    },
+    {
+      data: [
+        `N/A`,
+        '18dd7ce288e5538fbdd9c736aa9951ddb317e42c0b928e2b4db672414a82f811',
+      ],
+    },
+  ]}
+/>
+
+### Generate SSN{#generate-ssn}
+
+The generate ssn transformer randomly generates a social security number and returns it with hyphens as a string.
+
+For, example:
+`123-45-6789`
+
+**Configurations**
+
+There are no configurations for the ssn transformer.
+
+**Examples**
+
+Here are some examples of what an output street address value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', '892-23-7634'],
+    },
+    {
+      data: ['N/A', '479-82-3224'],
+    },
+  ]}
+/>
+
+### Generate State{#generate-state}
+
+The generate state transformer generates a randomly selected US state. You can see the complete list of states that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
+
+If you'd rather not get back a real state value, you can use the [Random String Transformer](/transformers/system/reference#generate-random-string) to generate a random string value.
+
+**Configurations**
+
+There are no configurations for the state transformer.
+
+**Examples**
+
+Here are some examples of what an output state value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'Rhode Island'],
+    },
+    {
+      data: ['N/A', 'Missouri'],
+    },
+  ]}
+/>
+
+### Generate Street Address{#generate-street-address}
+
+The generate street address transformer generates a randomly selects a real street address that exists in the United States. You can see the complete list of street addresses that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
+
+The street address transformer returns a valid United States address. For example:
+`123 Main Street Boston`
+
+**Configurations**
+
+There are no configurations for the street adddress transformer.
+
+**Examples**
+
+Here are some examples of what an output street address value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', '509 Franklin Street Northeast'],
+    },
+    {
+      data: ['N/A', '14 Huntingon Street'],
+    },
+  ]}
+/>
+
+### Generate String Phone Number{#generate-string-phone-number}
+
+The generate string phone transformer generates a random string phone number. By default, the string phone transformer generates a random 10 digit phone number with no hyphens.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output phone number. The generate string phone number transformer has the following configuration:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Include hyphens',
+        'Includes hyphens in the output phone numnber. Note that this config can only be used with default 10 digit phone numbers. ',
+        'false',
+        'N/A',
+        '290-374-8675',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
+
+<DocsTable
+  headers={[
+    'Include Hyphens',
+    'Example Input',
+    'Example Output',
+
+]}
+rowData={[{
+data: ['false', 'N/A', '5209273239'],
+},
+{
+data: ['true', , 'N/A', '520-927-3239'],
+},
+{
+data: ['false', 'N/A', '2927323921'],
+},
+]}
+/>
+
+### Generate Random String{#generate-random-string}
+
+The generate random string transformer generates a random string of alphanumeric characters.
+
+For example:
+`h2983hf28h92`
+
+By default, the random string transformer generates a string of 10 characters long.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output string. The generate string transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'length',
+        'Specifies how many digits you want the string to be. ',
+        '6',
+        'N/A',
+        'noIB8a',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['Length', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['5', 'N/A', 'je7R6'],
+    },
+    {
+      data: ['10', 'N/A', '29h23rega9'],
+    },
+    {
+      data: ['2', 'N/A', 'h2'],
+    },
+  ]}
+/>
+
+### Generate Unix Timestamp{#generate-unix-timestamp}
+
+The generate unix timestamp transformer randomly generates a unix timestamp in UTC timezone and returns back an int64 representation of that timestamp.
+
+By default, the generated timestamp will always be in the **past**.
+
+**Configurations**
+
+There are no configurations for this transformer.
+
+**Examples**
+
+Here are some examples of what an output state value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', '2524608000'],
+    },
+    {
+      data: ['N/A', '946684800'],
+    },
+  ]}
+/>
+
+### Generate Username{#generate-username}
+
+The generate username transformer generates a random string in the format of `<first_initial><last_name>`. The last names are pulled from the last name transformer(/transformers/system/reference#generate-last-name).
+
+**Configurations**
+
+There are no configurations for the state transformer.
+
+**Examples**
+
+Here are some examples of what an output state value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'jdoe'],
+    },
+    {
+      data: ['N/A', 'lsmith'],
+    },
+  ]}
+/>
+
+### Generate UTC Timestamp{#generate-utc-timestamp}
+
+The generate utc timestamp transformer randomly generates a utc timestamp in UTC timezone and returns back an time.Time representation of that timestamp.
+
+By default, the generated timestamp will always be in the **past**.
+
+**Configurations**
+
+There are no configurations for this transformer.
+
+**Examples**
+
+Here are some examples of what an output state value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: [
+  
+        'N/A',
+        'July 8, 2025, 00:00:00 UTC',
+      ],
+    },
+    {
+      data: [
+        'N/A',
+        'September 21, 1989, 00:00:00 UTC',
+      ],
+    },
+
+]}
+/>
+
+### Generate UUID{#generate-uuid}
+
+The generate UUID transformer generates a new UUID v4.
+
+For example:
+`6d871028b072442c9ad9e6e4e223adfa`
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output uuid. The uuid transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Include hyphens',
+        'Includes hyphens in the output UUID. Note: For some databases, such as Postgres, it will automatically convert any UUID without hyphens to having hyphens. ',
+        'false',
+        'N/A',
+        '6817d39c-ea4f-45ec-a81c-bc0801355576',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+Here are some example UUID values that the uuid transformer can generate:
+
+<DocsTable
+  headers={['Include Hyphens', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'N/A', '53ef1f16cd0d455cb45c4cb6434ae807'],
+    },
+    {
+      data: ['true', 'N/A', 'ab6b676b-0d0e-4e38-b98a-3935a832da7d'],
+    },
+  ]}
+/>
+
+### Generate Zipcode{#generate-zipcode}
+
+The generate zipcode transformer generates a randomly selected US zipcode. You can see the complete list of zipcodes that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
+
+If you'd rather not get back a real zipcode value, you can use the [Random String Transformer](/transformers/system/reference#generate-random-string) to generate a random string value.
+
+**Configurations**
+
+There are no configurations for the zipcode transformer.
+
+**Examples**
+
+Here are some examples of what an output zipcode value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', '27563'],
+    },
+    {
+      data: ['N/A', '90237'],
+    },
+  ]}
+/>
+
+### Transform E164 Phone Number{#transform-e164-phone-number}
+
+The transform e164 phone transformer can anonymize an existing e164 phone number or completely generate a new one. It returns a string value with the format `+<number>`.
+
+For example, the following input value:
+`+7829828714`
+
+Could produce the following ouput value:
+`+5698437232`
+
+E164 Phone numbers vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to respect the length of the input value in order maintain the same shape as the input value.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output e164 phone number. The transform e164 phone number transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Preserve Length',
+        'Preserve Length will ensure that the output e164phone number is the same length as the input phone number. If set to false, it will generate a value between 9 and 15 characters long.',
+        'false',
+        '+8923786243',
+        '+290374867526',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+Here are some examples of what the transform e164 phone number tranformer can output:
+
+<DocsTable
+  headers={['Preserve Length', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', '+2890923784', '+520927392'],
+    },
+    {
+      data: ['true', '+62890923784', '+52092732393'],
+    },
+  ]}
+/>
+
+### Transform First Name{#transform-first-name}
+
+The transform first name transformer generates a valid first name from a list of predefined first name values. You can see the entire list of first name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/first-names.json).
+
+By default, the first name transformer generates a first name of random length. To preserve the length of the input first name, you can set the `preserveLength` config.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output first name. The first name transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'PreserveLength',
+        'Preserve Length will ensure that the output first name is the same length as the input first name. The preserveLength config only preserves names up to 12 characters long.',
+        'false',
+        'Johnathan',
+        'Bill',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+Here are some examples of what the transform first name tranformer can output:
+
+<DocsTable
+  headers={['PreserveLength', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'Joe', 'Benjamin'],
+    },
+    {
+      data: ['true', 'Frank', 'Dante'],
+    },
+  ]}
+/>
+
+### Transform Float64{#transform-float64}
+
+The transform float transformer can anonymize an existing float64 value or generate a compeletely random floating point number.
+
+For example:
+`32.2432`
+
+By default, the random float transformer generates a floating point number with 3 digits before the decimal point and 3 digits after the decimal point.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Preserve Length',
+        'Preserves the length of the input float to the output float while maintaining the placement of the decimal.',
+        'false',
+        '1.34',
+        '873.923',
+      ],
+    },
+    {
+      data: [
+        'PreserveSign',
+        'Preserves the sign of the value. If false, will always return a positive value. ',
+        'true',
+        '-67.2',
+        '-71.523',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random float formats. Here are some possible combinations:
+
+<DocsTable
+  headers={[
+    'PreserveLength',
+    'Preserve Sign',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: ['false', 'true', '89.232', '233.824'],
+    },
+    {
+      data: ['true', 'false', '2.344', '9.813'],
+    },
+    {
+      data: ['true', 'true', '-8.23', '-4.19'],
+    },
+  ]}
+/>
+
+### Transform Full Name{#transform-full-name}
+
+The transform full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/reference#generate-first-name) and [last](/transformers/system/reference#generate-last-name) names transformers.
+
+By default, the full name transformer generates a full name of random length. To preserve the length of the input full name, you can set the `preserveLength` config.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output full name. The full name transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'PreserveLength',
+        'Preserve Length will ensure that the output full name is the same length as the input full name by preserving the length of the first and last names. The preserveLength config only preserves first and/or last names up to 12 characters long. So the max full name length is 25 characters.',
+        'false',
+        'John',
+        'Bill',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different full name formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['PreserveLength', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'Joe Smith', 'Edward Marshall'],
+    },
+    {
+      data: ['true', 'Frank Jones', 'Dante Mayer'],
+    },
+    {
+      data: ['false', 'Aidan Bell', 'Gregory Johnson'],
+    },
+  ]}
+/>
+
+### Transform Int64 Phone Number{#transform-int64-phone-number}
+
+The transform int64 phone transformer can anonymize an existing phone number or completely generate a new one. By default, the transform int64 phone number transformer generates a random 10 digit phone number.
+
+For example, the following input value:
+`7829828714`
+
+Would produce the following ouput value:
+`5698437232`
+
+You can see we generated a new phone integer value that can be used as an integer phone number. Also, note that we don't include hyphens in this transformer since the output type is an `integer`.
+
+**#Configurations**
+
+Depending on your validations, you may want to configure the output phone number.
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'PreserveLength',
+        'Preserve Length will ensure that the output phone number is the same length as the input phone number.',
+        'false',
+        '892387786243',
+        '2903748675392',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+Here are some possible example output values:
+
+<DocsTable
+  headers={['PreserveLength', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', , '2890923784', '5209273239'],
+    },
+    {
+      data: ['true', '3839304957', '6395745371'],
+    },
+  ]}
+/>
+
+### Transform Int64{#transform-int64}
+
+The random integer transformer generates a random integer.
+
+For example:
+`6782`
+
+By default, the random int transformer generates an integer of 4 digits long.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output integer. The random integer transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Preserve Length',
+        'Preserves the length of the input float to the output float while maintaining the placement of the decimal.',
+        'false',
+        '1.34',
+        '873.923',
+      ],
+    },
+    {
+      data: [
+        'PreserveSign',
+        'Preserves the sign of the value. If false, will always return a positive value. ',
+        'true',
+        '-672',
+        '-71523',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random int64 values. Here are some possible combinations:
+
+<DocsTable
+  headers={[
+    'PreserveLength',
+    'Preserve Sign',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: ['false', 'true', '89232', '233824'],
+    },
+    {
+      data: ['true', 'false', '2344', '9813'],
+    },
+    {
+      data: ['true', 'true', '-823', '-439'],
+    },
+  ]}
+/>
+
+### Transform Last Name{#transform-last-name}
+
+The transform last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
+
+By default, the last name transformer generates a last name of random length. To preserve the length of the input last name, you can set the `preserveLength` config.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output last name. The last name transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'PreserveLength',
+        'Preserve Length will ensure that the output last name is the same length as the input last name. The preserveLength config only preserves names up to 12 characters long.',
+        'false',
+        'Hills',
+        'Kunze',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different last name formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['PreserveLength', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'Lei', 'Dach'],
+    },
+    {
+      data: ['true', 'Littel', 'Sporer'],
+    },
+    {
+      data: ['false', 'Johnsonston', 'Rodriguezon'],
+    },
+  ]}
+/>
+
+### Transform Phone Number{#transform-phone-number}
+
+The transform phone transformer can anonymize an existing phone number or completely generate a new one. This transformer specifically takes a string value and returns a string value.
+
+By default, the transform phone transformer generates a random 10 string value phone number with no hyphens.
+
+For example, the following input value:
+`7829828714`
+
+Would produce the following ouput value:
+`5698437232`
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output phone number. Here are the configurations for the transform string phone number transformer.
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Include hyphens',
+        'Includes hyphens in the output phone numnber. Note that this config can only be used with default 10 digit phone numbers. ',
+        'false',
+        '9238724378',
+        '290-374-8675',
+      ],
+    },
+    {
+      data: [
+        'PreserveLength',
+        'Preserve Length will ensure that the output phone number is the same length as the input phone number.',
+        'false',
+        '892387243786243',
+        '290374867526392',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
+
+<DocsTable
+  headers={[
+    'PreserveLength',
+    'Include Hyphens',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: ['false', 'false', '2890923784', '5209273239'],
+    },
+    {
+      data: ['false', 'true', '2890923784', '520-927-3239'],
+    },
+    {
+      data: ['true', 'false', '289092378423', '520927323239'],
+    },
+    {
+      data: ['true', 'true', '2890923784', '520-922-3539'],
+    },
+  ]}
+/>
+
+### Transform String{#transform-string}
+
+The random string transformer generates a random string of alphanumeric characters.
+
+For example:
+`h2983hf28h92`
+
+By default, the random string transformer generates a string of 10 characters long.
+
+**Configurations**
+
+Depending on your validations, you may want to configure the output string. The random string transformer has the following configurations:
+
+<DocsTable
+  headers={[
+    'Name',
+    'Description',
+    'Default',
+    'Example Input',
+    'Example Output',
+  ]}
+  rowData={[
+    {
+      data: [
+        'Preserve Length',
+        'Preserves the length of the input integer to the output string.',
+        'false',
+        'hello',
+        '9Fau3',
+      ],
+    },
+  ]}
+/>
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
+
+<DocsTable
+  headers={['PreserveLength', 'Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['false', 'bill', 'je7R6'],
+    },
+    {
+      data: ['true', 'lorem', 'i1NMe'],
+    },
+  ]}
+/>
+
+### Passthrough{#passthrough}
+
+The passthrough tranformer simplfy passes the input data out to the output without making any modications to it. This is useful in many circumstances but cautious of accidently leaking sensitive data through this transformer.
+
+### Null{#null}
+
+The null transformer simply returns a null value. This may be useful if you a column that can't be null but don't have a specific value that you want to insert.
+
+**Configurations**
+
+There are no configurations for the null transformer.
+
+**Examples**
+
+Here are some examples of what an output null value may look like.
+
+<DocsTable
+  headers={['Example Input', 'Example Output']}
+  rowData={[
+    {
+      data: ['N/A', 'null'],
+    },
+  ]}
+/>

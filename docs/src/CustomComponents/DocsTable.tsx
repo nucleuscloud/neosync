@@ -24,16 +24,19 @@ export function DocsTable(props: TableData): ReactElement {
     <Table className="rounded-lg overflow-hidden border border-gray-400">
       <TableHeader>
         <TableRow>
-          {headers.map((header) => (
-            <TableHead key={header}>{header}</TableHead>
+          {headers.map((header, headerIndex) => (
+            <TableHead key={`header-${headerIndex}`}>{header}</TableHead>
           ))}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {rowData.map((tableData) => (
-          <TableRow key={tableData.data[0]}>
-            {tableData.data.map((item) => (
-              <TableCell key={item} className="font-medium bg-[#FFFFFF]">
+        {rowData.map((tableData, rowIndex) => (
+          <TableRow key={`row-${rowIndex}-${tableData.data[0]}`}>
+            {tableData.data.map((item, columnIndex) => (
+              <TableCell
+                key={`cell-${rowIndex}-${columnIndex}`}
+                className="font-medium bg-[#FFFFFF]"
+              >
                 {item}
               </TableCell>
             ))}

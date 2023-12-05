@@ -21,6 +21,8 @@ import {
   useDocSidebarItemsExpandedState,
 } from '@docusaurus/theme-common/internal';
 import useIsBrowser from '@docusaurus/useIsBrowser';
+import { ChevronDownIcon, ChevronRightIcon } from '@radix-ui/react-icons';
+import { IconHandler } from '@site/src/CustomComponents/IconHandler';
 import type { Props } from '@theme/DocSidebarItem/Category';
 import DocSidebarItems from '@theme/DocSidebarItems';
 import clsx from 'clsx';
@@ -169,14 +171,19 @@ export default function DocSidebarItemCategory({
       )}
     >
       <div
-        className={clsx('menu__list-item-collapsible', {
-          'menu__list-item-collapsible--active': isCurrentPage,
-        })}
+        className={clsx(
+          'menu__list-item-collapsible',
+          {
+            'menu__list-item-collapsible--active': isCurrentPage,
+          },
+          'flex flex-row items-center pl-3'
+        )}
       >
+        {IconHandler(item.label)}
         <Link
           className={clsx('menu__link', {
             'menu__link--sublist': collapsible,
-            'menu__link--sublist-caret': !href && collapsible,
+            // 'menu__link--sublist-caret': !href && collapsible,
             'menu__link--active': isActive,
           })}
           onClick={
@@ -199,7 +206,10 @@ export default function DocSidebarItemCategory({
           href={collapsible ? hrefWithSSRFallback ?? '#' : hrefWithSSRFallback}
           {...props}
         >
-          {label}
+          <div className="flex flex-row items-center gap-4">
+            {label}
+            {collapsed ? <ChevronRightIcon /> : <ChevronDownIcon />}
+          </div>
         </Link>
         {href && collapsible && (
           <CollapseButton
