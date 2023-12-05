@@ -53,14 +53,16 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       type: 'boolean',
       description: 'Generates a boolean value at random.',
       pagelink: 'generate-boolean',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_bool.go',
     },
     {
       title: 'Generate Card Number',
       type: 'int64',
       description: 'Generates a card number.',
       pagelink: 'generate-card-number',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_card_number.go',
     },
     {
       title: 'Generate City',
@@ -68,28 +70,32 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Randomly selects a city from a list of predfined US cities.',
       pagelink: 'generate-city',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_city.go',
     },
     {
       title: 'Generate E164 Phone Number',
       type: 'string',
       description: 'Generates a Generate phone number in e164 format.',
       pagelink: 'generate-e164-phone-number',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_e164_phone.go',
     },
     {
       title: 'Generate First Name',
       type: 'string',
       description: 'Generates a random first name.',
       pagelink: 'generate-first-name',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_first_name.go',
     },
     {
       title: 'Generate Float64',
       type: 'float64',
       description: 'Generates a random float64 value.',
       pagelink: 'generate-float64',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_float.go',
     },
     {
       title: 'Generate Full Address',
@@ -97,7 +103,8 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169.',
       pagelink: 'generate-full-address',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_address.go',
     },
     {
       title: 'Generate Full Name',
@@ -105,7 +112,8 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Generates a new full name consisting of a first and last name',
       pagelink: 'generate-full-name',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_name.go',
     },
     {
       title: 'Generate Gender',
@@ -113,7 +121,8 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Randomly generates one of the following genders: female, male, undefined, nonbinary.',
       pagelink: 'generate-gender',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_gender.go',
     },
     {
       title: 'Generate int64 Phone Number',
@@ -121,7 +130,8 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Generates a new phone number of type int64 with a default length of 10.',
       pagelink: 'generate-int64-phone-number',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_164_phone.go',
     },
     {
       title: 'Generate Random Int64',
@@ -129,21 +139,24 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.',
       pagelink: 'generate-random-int64',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_int.go',
     },
     {
       title: 'Generate Last Name',
       type: 'int64',
       description: 'Generates a random last name.',
       pagelink: 'generate-last-name',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_last_name.go',
     },
     {
       title: 'Generate SHA256 Hash',
       type: 'string',
       description: 'SHA256 hashes a randomly generated value.',
       pagelink: 'generate-sha256-hash',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_sha256hash.go',
     },
     {
       title: 'Generate SSN',
@@ -151,7 +164,8 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>',
       pagelink: 'generate-ssn',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_ssn.go',
     },
     {
       title: 'Generate State',
@@ -159,7 +173,8 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Randomly selects a US state and returns the two-character state code.',
       pagelink: 'generate-state',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_state.go',
     },
     {
       title: 'Generate Street Address',
@@ -167,7 +182,8 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}. For example, 123 Main Street.',
       pagelink: 'generate-street-address',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_street_address.go',
     },
     {
       title: 'Generate String Phone Number',
@@ -175,7 +191,8 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Generates a Generate phone number and returns it as a string.',
       pagelink: 'generate-string-phone-number',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string_phone.go',
     },
     {
       title: 'Generate Random String',
@@ -183,14 +200,16 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.',
       pagelink: 'generate-random-string',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string.go',
     },
     {
       title: 'Generate Unix Timestamp',
       type: 'int64',
       description: 'Randomly generates a Unix timestamp',
       pagelink: 'generate-unix-timestamp',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_unixtimestamp.go',
     },
     {
       title: 'Generate Username',
@@ -198,21 +217,24 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Randomly generates a username in the format<first_initial><last_name>.',
       pagelink: 'generate-username',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_username.go',
     },
     {
       title: 'Generate UTC Timestamp',
       type: 'time',
       description: 'Randomly generates a UTC timestamp.',
       pagelink: 'generate-utc-timestamp',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_utctimestamp.go',
     },
     {
       title: 'Generate UUID',
       type: 'uuid',
       description: 'Generates a new UUIDv4 id.',
       pagelink: 'generate-uuid',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_uuid.go',
     },
     {
       title: 'Generate Zipcode',
@@ -220,35 +242,40 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Randomly selects a zip code from a list of predefined US zipcodes.',
       pagelink: 'generate-zipcode',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_zipcode.go',
     },
     {
       title: 'Transform E164 Phone Number',
       type: 'string',
       description: 'Transforms an existing E164 formatted phone number.',
       pagelink: 'transform-e164-phone-number',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_e164_phone.go',
     },
     {
       title: 'Transform First Name',
       type: 'string',
       description: 'Transforms an existing first name',
       pagelink: 'transform-first-name',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_first_name.go',
     },
     {
       title: 'Transform Float64',
       type: 'float64',
       description: 'Transforms an existing float value.',
       pagelink: 'transform-float64',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_float.go',
     },
     {
       title: 'Transform Full Name',
       type: 'string',
       description: 'Transforms an existing full name.',
       pagelink: 'transform-full-name',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_full_name.go',
     },
     {
       title: 'Transform Int64 Phone Number',
@@ -256,21 +283,24 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Transforms an existing phone number that is typed as an integer',
       pagelink: 'transform-int64-phone-number',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int_phone.go',
     },
     {
       title: 'Transform Int64',
       type: 'int64',
       description: 'Transforms an existing integer value.',
       pagelink: 'transform-int64',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int.go',
     },
     {
       title: 'Transform Last Name',
       type: 'string',
       description: 'Transforms an existing last name.',
       pagelink: 'transform-last-name',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_last_name.go',
     },
     {
       title: 'Transform Phone Number',
@@ -278,14 +308,16 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Transforms an existing phone number that is typed as a string.',
       pagelink: 'transform-phone-number',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_phone.go',
     },
     {
       title: 'Transform String',
       type: 'string',
       description: 'Transforms an existing string value.',
       pagelink: 'transform-string',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_string.go',
     },
     {
       title: 'Passthrough',
@@ -293,14 +325,16 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
       description:
         'Passes the input value through to the desination with no changes.',
       pagelink: 'passthrough',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go',
     },
     {
       title: 'Null',
       type: 'string',
       description: 'Inserts a <null> string instead of the source value.',
       pagelink: 'null',
-      codeRef: '',
+      codeRef:
+        'https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go',
     },
   ]}
 />
