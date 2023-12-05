@@ -4,7 +4,6 @@ package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
-import "google/api/annotations.proto";
 
 message GetConnectionsRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
@@ -211,7 +210,7 @@ message Value {
 // The JSON representation for `NullValue` is JSON `null`.
 enum NullValue {
   // Null value.
-  NULL_VALUE = 0;
+  NULL_VALUE_UNSPECIFIED = 0;
 }
 
 // `ListValue` is a wrapper around a repeated field of values.

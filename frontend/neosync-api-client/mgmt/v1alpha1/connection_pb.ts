@@ -18,13 +18,13 @@ export enum NullValue {
   /**
    * Null value.
    *
-   * @generated from enum value: NULL_VALUE = 0;
+   * @generated from enum value: NULL_VALUE_UNSPECIFIED = 0;
    */
-  NULL_VALUE = 0,
+  UNSPECIFIED = 0,
 }
 // Retrieve enum metadata with: proto3.getEnumType(NullValue)
 proto3.util.setEnumType(NullValue, "mgmt.v1alpha1.NullValue", [
-  { no: 0, name: "NULL_VALUE" },
+  { no: 0, name: "NULL_VALUE_UNSPECIFIED" },
 ]);
 
 /**
