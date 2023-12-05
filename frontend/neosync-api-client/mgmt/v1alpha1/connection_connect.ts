@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb";
+import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -91,6 +91,24 @@ export const ConnectionService = {
       name: "CheckSqlQuery",
       I: CheckSqlQueryRequest,
       O: CheckSqlQueryResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionDataStream
+     */
+    getConnectionDataStream: {
+      name: "GetConnectionDataStream",
+      I: GetConnectionDataStreamRequest,
+      O: GetConnectionDataStreamResponse,
+      kind: MethodKind.ServerStreaming,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionForeignConstraints
+     */
+    getConnectionForeignConstraints: {
+      name: "GetConnectionForeignConstraints",
+      I: GetConnectionForeignConstraintsRequest,
+      O: GetConnectionForeignConstraintsResponse,
       kind: MethodKind.Unary,
     },
   }

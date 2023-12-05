@@ -299,6 +299,116 @@ func (_c *MockConnectionServiceClient_GetConnection_Call) RunAndReturn(run func(
 	return _c
 }
 
+// GetConnectionDataStream provides a mock function with given fields: _a0, _a1
+func (_m *MockConnectionServiceClient) GetConnectionDataStream(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest]) (*connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest]) (*connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest]) *connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockConnectionServiceClient_GetConnectionDataStream_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetConnectionDataStream'
+type MockConnectionServiceClient_GetConnectionDataStream_Call struct {
+	*mock.Call
+}
+
+// GetConnectionDataStream is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest]
+func (_e *MockConnectionServiceClient_Expecter) GetConnectionDataStream(_a0 interface{}, _a1 interface{}) *MockConnectionServiceClient_GetConnectionDataStream_Call {
+	return &MockConnectionServiceClient_GetConnectionDataStream_Call{Call: _e.mock.On("GetConnectionDataStream", _a0, _a1)}
+}
+
+func (_c *MockConnectionServiceClient_GetConnectionDataStream_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest])) *MockConnectionServiceClient_GetConnectionDataStream_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest]))
+	})
+	return _c
+}
+
+func (_c *MockConnectionServiceClient_GetConnectionDataStream_Call) Return(_a0 *connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse], _a1 error) *MockConnectionServiceClient_GetConnectionDataStream_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockConnectionServiceClient_GetConnectionDataStream_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest]) (*connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse], error)) *MockConnectionServiceClient_GetConnectionDataStream_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetConnectionForeignConstraints provides a mock function with given fields: _a0, _a1
+func (_m *MockConnectionServiceClient) GetConnectionForeignConstraints(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]) *connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockConnectionServiceClient_GetConnectionForeignConstraints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetConnectionForeignConstraints'
+type MockConnectionServiceClient_GetConnectionForeignConstraints_Call struct {
+	*mock.Call
+}
+
+// GetConnectionForeignConstraints is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]
+func (_e *MockConnectionServiceClient_Expecter) GetConnectionForeignConstraints(_a0 interface{}, _a1 interface{}) *MockConnectionServiceClient_GetConnectionForeignConstraints_Call {
+	return &MockConnectionServiceClient_GetConnectionForeignConstraints_Call{Call: _e.mock.On("GetConnectionForeignConstraints", _a0, _a1)}
+}
+
+func (_c *MockConnectionServiceClient_GetConnectionForeignConstraints_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest])) *MockConnectionServiceClient_GetConnectionForeignConstraints_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]))
+	})
+	return _c
+}
+
+func (_c *MockConnectionServiceClient_GetConnectionForeignConstraints_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse], _a1 error) *MockConnectionServiceClient_GetConnectionForeignConstraints_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockConnectionServiceClient_GetConnectionForeignConstraints_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse], error)) *MockConnectionServiceClient_GetConnectionForeignConstraints_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetConnectionSchema provides a mock function with given fields: _a0, _a1
 func (_m *MockConnectionServiceClient) GetConnectionSchema(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionSchemaRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionSchemaResponse], error) {
 	ret := _m.Called(_a0, _a1)

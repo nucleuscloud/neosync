@@ -1,13 +1,13 @@
-version: "2"
+version: '2'
 sql:
-  - engine: "postgresql"
-    queries: "sql/postgresql/queries"
-    schema: "sql/postgresql/schema"
+  - engine: 'postgresql'
+    queries: 'sql/postgresql/queries'
+    schema: 'sql/postgresql/schema'
     gen:
       go:
-        package: "db_queries"
-        out: "gen/go/db"
-        sql_package: "pgx/v5"
+        package: 'db_queries'
+        out: 'gen/go/db'
+        sql_package: 'pgx/v5'
         emit_interface: true
         emit_methods_with_db_argument: true
         overrides:
@@ -48,3 +48,57 @@ sql:
               package: pg_models
               type: TemporalConfig
               pointer: true
+
+  - engine: 'mysql'
+    queries: 'sql/dbschemas/mysql/queries'
+    schema: 'sql/dbschemas/mysql/schema'
+    gen:
+      go:
+        package: mysql_queries
+        out: 'gen/go/db/dbschemas/mysql'
+        emit_interface: true
+        emit_methods_with_db_argument: true
+        emit_result_struct_pointers: true
+        emit_params_struct_pointers: true
+        emit_pointers_for_null_types: true
+
+  - engine: 'postgresql'
+    queries: 'sql/dbschemas/postgresql/queries'
+    gen:
+      go:
+        package: 'pg_queries'
+        out: 'gen/go/db/dbschemas/postgresql'
+        sql_package: 'pgx/v5'
+        emit_interface: true
+        emit_methods_with_db_argument: true
+        emit_result_struct_pointers: true
+        emit_params_struct_pointers: true
+        emit_pointers_for_null_types: true
+        overrides:
+          - column: information_schema.columns.table_schema
+            go_type: string
+          - column: information_schema.columns.table_name
+            go_type: string
+          - column: information_schema.columns.column_name
+            go_type: string
+          - column: information_schema.columns.ordinal_position
+            go_type: int
+          - column: information_schema.columns.column_default
+            go_type: 'string'
+            nullable: true # this only appears to work on models
+          - column: information_schema.columns.is_nullable
+            go_type: string
+          - column: information_schema.columns.data_type
+            go_type: string
+          - column: information_schema.tables.table_schema
+            go_type: string
+          - column: information_schema.tables.table_name
+            go_type: string
+          - column: information_schema.referential_constraints.constraint_name
+            go_type: string
+          - column: information_schema.key_column_usage.table_schema
+            go_type: string
+          - column: information_schema.key_column_usage.table_name
+            go_type: string
+          - column: information_schema.key_column_usage.column_name
+            go_type: string

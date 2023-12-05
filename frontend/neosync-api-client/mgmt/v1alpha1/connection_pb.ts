@@ -7,6 +7,27 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * `NullValue` is a singleton enumeration to represent the null value for the
+ * `Value` type union.
+ *
+ * The JSON representation for `NullValue` is JSON `null`.
+ *
+ * @generated from enum mgmt.v1alpha1.NullValue
+ */
+export enum NullValue {
+  /**
+   * Null value.
+   *
+   * @generated from enum value: NULL_VALUE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+}
+// Retrieve enum metadata with: proto3.getEnumType(NullValue)
+proto3.util.setEnumType(NullValue, "mgmt.v1alpha1.NullValue", [
+  { no: 0, name: "NULL_VALUE_UNSPECIFIED" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetConnectionsRequest
  */
 export class GetConnectionsRequest extends Message<GetConnectionsRequest> {
@@ -1270,6 +1291,387 @@ export class CheckSqlQueryResponse extends Message<CheckSqlQueryResponse> {
 
   static equals(a: CheckSqlQueryResponse | PlainMessage<CheckSqlQueryResponse> | undefined, b: CheckSqlQueryResponse | PlainMessage<CheckSqlQueryResponse> | undefined): boolean {
     return proto3.util.equals(CheckSqlQueryResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionDataStreamRequest
+ */
+export class GetConnectionDataStreamRequest extends Message<GetConnectionDataStreamRequest> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  /**
+   * @generated from field: string schema = 2;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: string table = 3;
+   */
+  table = "";
+
+  constructor(data?: PartialMessage<GetConnectionDataStreamRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionDataStreamRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionDataStreamRequest {
+    return new GetConnectionDataStreamRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionDataStreamRequest {
+    return new GetConnectionDataStreamRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionDataStreamRequest {
+    return new GetConnectionDataStreamRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionDataStreamRequest | PlainMessage<GetConnectionDataStreamRequest> | undefined, b: GetConnectionDataStreamRequest | PlainMessage<GetConnectionDataStreamRequest> | undefined): boolean {
+    return proto3.util.equals(GetConnectionDataStreamRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionDataStreamResponse
+ */
+export class GetConnectionDataStreamResponse extends Message<GetConnectionDataStreamResponse> {
+  /**
+   * @generated from field: map<string, mgmt.v1alpha1.Value> row = 1;
+   */
+  row: { [key: string]: Value } = {};
+
+  constructor(data?: PartialMessage<GetConnectionDataStreamResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionDataStreamResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "row", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Value} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionDataStreamResponse {
+    return new GetConnectionDataStreamResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionDataStreamResponse {
+    return new GetConnectionDataStreamResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionDataStreamResponse {
+    return new GetConnectionDataStreamResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionDataStreamResponse | PlainMessage<GetConnectionDataStreamResponse> | undefined, b: GetConnectionDataStreamResponse | PlainMessage<GetConnectionDataStreamResponse> | undefined): boolean {
+    return proto3.util.equals(GetConnectionDataStreamResponse, a, b);
+  }
+}
+
+/**
+ * taken from https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/struct.proto#L51
+ * The JSON representation for `Struct` is JSON object.
+ *
+ * @generated from message mgmt.v1alpha1.Struct
+ */
+export class Struct extends Message<Struct> {
+  /**
+   * Unordered map of dynamically typed values.
+   *
+   * @generated from field: map<string, mgmt.v1alpha1.Value> fields = 1;
+   */
+  fields: { [key: string]: Value } = {};
+
+  constructor(data?: PartialMessage<Struct>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.Struct";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "fields", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: Value} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Struct {
+    return new Struct().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Struct {
+    return new Struct().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Struct {
+    return new Struct().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Struct | PlainMessage<Struct> | undefined, b: Struct | PlainMessage<Struct> | undefined): boolean {
+    return proto3.util.equals(Struct, a, b);
+  }
+}
+
+/**
+ * `Value` represents a dynamically typed value which can be either
+ * null, a number, a string, a boolean, a recursive struct value, or a
+ * list of values. A producer of value is expected to set one of these
+ * variants. Absence of any variant indicates an error.
+ *
+ * The JSON representation for `Value` is JSON value.
+ *
+ * @generated from message mgmt.v1alpha1.Value
+ */
+export class Value extends Message<Value> {
+  /**
+   * The kind of value.
+   *
+   * @generated from oneof mgmt.v1alpha1.Value.kind
+   */
+  kind: {
+    /**
+     * Represents a null value.
+     *
+     * @generated from field: mgmt.v1alpha1.NullValue null_value = 1;
+     */
+    value: NullValue;
+    case: "nullValue";
+  } | {
+    /**
+     * Represents a double value.
+     *
+     * @generated from field: double number_value = 2;
+     */
+    value: number;
+    case: "numberValue";
+  } | {
+    /**
+     * Represents a string value.
+     *
+     * @generated from field: string string_value = 3;
+     */
+    value: string;
+    case: "stringValue";
+  } | {
+    /**
+     * Represents a boolean value.
+     *
+     * @generated from field: bool bool_value = 4;
+     */
+    value: boolean;
+    case: "boolValue";
+  } | {
+    /**
+     * Represents a structured value.
+     *
+     * @generated from field: mgmt.v1alpha1.Struct struct_value = 5;
+     */
+    value: Struct;
+    case: "structValue";
+  } | {
+    /**
+     * Represents a repeated `Value`.
+     *
+     * @generated from field: mgmt.v1alpha1.ListValue list_value = 6;
+     */
+    value: ListValue;
+    case: "listValue";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<Value>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.Value";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "null_value", kind: "enum", T: proto3.getEnumType(NullValue), oneof: "kind" },
+    { no: 2, name: "number_value", kind: "scalar", T: 1 /* ScalarType.DOUBLE */, oneof: "kind" },
+    { no: 3, name: "string_value", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "kind" },
+    { no: 4, name: "bool_value", kind: "scalar", T: 8 /* ScalarType.BOOL */, oneof: "kind" },
+    { no: 5, name: "struct_value", kind: "message", T: Struct, oneof: "kind" },
+    { no: 6, name: "list_value", kind: "message", T: ListValue, oneof: "kind" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Value {
+    return new Value().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Value {
+    return new Value().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Value {
+    return new Value().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Value | PlainMessage<Value> | undefined, b: Value | PlainMessage<Value> | undefined): boolean {
+    return proto3.util.equals(Value, a, b);
+  }
+}
+
+/**
+ * `ListValue` is a wrapper around a repeated field of values.
+ *
+ * The JSON representation for `ListValue` is JSON array.
+ *
+ * @generated from message mgmt.v1alpha1.ListValue
+ */
+export class ListValue extends Message<ListValue> {
+  /**
+   * Repeated field of dynamically typed values.
+   *
+   * @generated from field: repeated mgmt.v1alpha1.Value values = 1;
+   */
+  values: Value[] = [];
+
+  constructor(data?: PartialMessage<ListValue>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ListValue";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "values", kind: "message", T: Value, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListValue {
+    return new ListValue().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListValue {
+    return new ListValue().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListValue {
+    return new ListValue().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListValue | PlainMessage<ListValue> | undefined, b: ListValue | PlainMessage<ListValue> | undefined): boolean {
+    return proto3.util.equals(ListValue, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionForeignConstraintsRequest
+ */
+export class GetConnectionForeignConstraintsRequest extends Message<GetConnectionForeignConstraintsRequest> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  constructor(data?: PartialMessage<GetConnectionForeignConstraintsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionForeignConstraintsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionForeignConstraintsRequest {
+    return new GetConnectionForeignConstraintsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionForeignConstraintsRequest {
+    return new GetConnectionForeignConstraintsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionForeignConstraintsRequest {
+    return new GetConnectionForeignConstraintsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionForeignConstraintsRequest | PlainMessage<GetConnectionForeignConstraintsRequest> | undefined, b: GetConnectionForeignConstraintsRequest | PlainMessage<GetConnectionForeignConstraintsRequest> | undefined): boolean {
+    return proto3.util.equals(GetConnectionForeignConstraintsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ForeignConstraintTables
+ */
+export class ForeignConstraintTables extends Message<ForeignConstraintTables> {
+  /**
+   * @generated from field: repeated string tables = 1;
+   */
+  tables: string[] = [];
+
+  constructor(data?: PartialMessage<ForeignConstraintTables>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ForeignConstraintTables";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "tables", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ForeignConstraintTables {
+    return new ForeignConstraintTables().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ForeignConstraintTables {
+    return new ForeignConstraintTables().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ForeignConstraintTables {
+    return new ForeignConstraintTables().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ForeignConstraintTables | PlainMessage<ForeignConstraintTables> | undefined, b: ForeignConstraintTables | PlainMessage<ForeignConstraintTables> | undefined): boolean {
+    return proto3.util.equals(ForeignConstraintTables, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionForeignConstraintsResponse
+ */
+export class GetConnectionForeignConstraintsResponse extends Message<GetConnectionForeignConstraintsResponse> {
+  /**
+   * @generated from field: map<string, mgmt.v1alpha1.ForeignConstraintTables> table_constraints = 1;
+   */
+  tableConstraints: { [key: string]: ForeignConstraintTables } = {};
+
+  constructor(data?: PartialMessage<GetConnectionForeignConstraintsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionForeignConstraintsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table_constraints", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ForeignConstraintTables} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionForeignConstraintsResponse {
+    return new GetConnectionForeignConstraintsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionForeignConstraintsResponse {
+    return new GetConnectionForeignConstraintsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionForeignConstraintsResponse {
+    return new GetConnectionForeignConstraintsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionForeignConstraintsResponse | PlainMessage<GetConnectionForeignConstraintsResponse> | undefined, b: GetConnectionForeignConstraintsResponse | PlainMessage<GetConnectionForeignConstraintsResponse> | undefined): boolean {
+    return proto3.util.equals(GetConnectionForeignConstraintsResponse, a, b);
   }
 }
 

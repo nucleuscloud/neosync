@@ -9,7 +9,7 @@ import (
 type Service struct {
 	cfg                *Config
 	db                 *nucleusdb.NucleusDb
-	connectionService  mgmtv1alpha1connect.ConnectionServiceClient
+	connectionService  mgmtv1alpha1connect.ConnectionServiceHandler
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
 
 	temporalWfManager clientmanager.TemporalClientManagerClient
@@ -23,7 +23,7 @@ func New(
 	cfg *Config,
 	db *nucleusdb.NucleusDb,
 	temporalWfManager clientmanager.TemporalClientManagerClient,
-	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
+	connectionService mgmtv1alpha1connect.ConnectionServiceHandler,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 ) *Service {
 
