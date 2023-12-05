@@ -11,7 +11,11 @@ import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { cn } from '@/libs/utils';
-import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import {
+  GetJobStatusResponse,
+  Job,
+  JobStatus,
+} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
@@ -21,9 +25,9 @@ import { isDataGenJob } from './util';
 
 export default function JobIdLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
-  const { data, isLoading, mutate } = useGetJob(id);
+  const { data, isLoading } = useGetJob(id);
   const router = useRouter();
-  const { data: jobStatus } = useGetJobStatus(id);
+  const { data: jobStatus, mutate: mutateJobStatus } = useGetJobStatus(id);
 
   async function onTriggerJobRun(): Promise<void> {
     try {
@@ -61,6 +65,10 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
         variant: 'destructive',
       });
     }
+  }
+
+  function onNewStatus(newStatus: JobStatus): void {
+    mutateJobStatus(new GetJobStatusResponse({ status: newStatus }));
   }
 
   if (isLoading) {
@@ -115,7 +123,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
                   <JobPauseButton
                     jobId={id}
                     status={jobStatus?.status}
-                    mutate={mutate}
+                    onNewStatus={onNewStatus}
                   />
                   <Button onClick={() => onTriggerJobRun()}>
                     <ButtonText

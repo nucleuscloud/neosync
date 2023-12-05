@@ -15,19 +15,18 @@ import { ReactElement, useEffect, useState } from 'react';
 interface Props {
   jobId: string;
   status?: JobStatus;
-  mutate: () => void;
+  onNewStatus(status: JobStatus): void;
 }
 
 export default function JobPauseButton({
   status,
-  mutate,
+  onNewStatus,
   jobId,
 }: Props): ReactElement {
   const { toast } = useToast();
   const [buttonText, setButtonText] = useState(
     status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job'
   );
-
   const [buttonIcon, setButtonIcon] = useState<JSX.Element>(
     status === JobStatus.PAUSED ? <PlayIcon /> : <PauseIcon />
   );
@@ -35,21 +34,25 @@ export default function JobPauseButton({
 
   useEffect(() => {
     setButtonText(status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job');
-    setButtonIcon(status === JobStatus.PAUSED ? <PlayIcon /> : <PauseIcon />);
-  }, [status]);
+    if (isTrying) {
+      setButtonIcon(<Spinner />);
+    } else {
+      setButtonIcon(status === JobStatus.PAUSED ? <PlayIcon /> : <PauseIcon />);
+    }
+  }, [status, isTrying]);
 
-  async function updateJobStatus(isPaused: boolean) {
-    setIsTrying(true);
+  async function updateJobStatus(isPaused: boolean): Promise<void> {
+    if (isTrying) {
+      return;
+    }
     try {
+      setIsTrying(true);
       await pauseJob(jobId, isPaused);
       toast({
         title: `Successfully ${isPaused ? 'paused' : 'unpaused'}  job!`,
         variant: 'success',
       });
-      mutate();
-      setIsTrying(false);
-      setButtonText((val) => (val == 'Pause Job' ? 'Resume Job' : 'Pause Job'));
-      setButtonIcon(handleIcon());
+      onNewStatus(isPaused ? JobStatus.PAUSED : JobStatus.ENABLED);
     } catch (err) {
       console.error(err);
       toast({
@@ -57,19 +60,10 @@ export default function JobPauseButton({
         description: getErrorMessage(err),
         variant: 'destructive',
       });
+    } finally {
       setIsTrying(false);
     }
   }
-
-  const handleIcon = () => {
-    if (isTrying) {
-      return <Spinner />;
-    } else if (!isTrying && buttonText == 'Resume Job') {
-      return <PlayIcon />;
-    } else {
-      return <PauseIcon />;
-    }
-  };
 
   return (
     <div className="max-w-[300px]">
