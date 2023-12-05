@@ -243,6 +243,11 @@ func serve(ctx context.Context) error {
 	}
 	tfwfmgr := clientmanager.New(&clientmanager.Config{
 		AuthCertificates: authcerts,
+		DefaultTemporalConfig: &clientmanager.DefaultTemporalConfig{
+			Url:              getDefaultTemporalUrl(),
+			Namespace:        getDefaultTemporalNamespace(),
+			SyncJobQueueName: getDefaultTemporalSyncJobQueue(),
+		},
 	}, db.Q, db.Db)
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{

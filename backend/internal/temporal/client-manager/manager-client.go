@@ -40,7 +40,14 @@ type DB interface {
 }
 
 type Config struct {
-	AuthCertificates []tls.Certificate
+	AuthCertificates      []tls.Certificate
+	DefaultTemporalConfig *DefaultTemporalConfig
+}
+
+type DefaultTemporalConfig struct {
+	Url              string
+	Namespace        string
+	SyncJobQueueName string
 }
 
 func New(
@@ -48,6 +55,9 @@ func New(
 	db DB,
 	dbtx db_queries.DBTX,
 ) *TemporalClientManager {
+	if config.DefaultTemporalConfig == nil {
+		config.DefaultTemporalConfig = &DefaultTemporalConfig{}
+	}
 	return &TemporalClientManager{
 		config:      config,
 		db:          db,
@@ -223,7 +233,26 @@ func (t *TemporalClientManager) getTemporalConfigByAccount(
 	if err != nil {
 		return nil, err
 	}
-	return t.db.GetTemporalConfigByAccount(ctx, t.dbtx, accountUuid)
+
+	tc := &pg_models.TemporalConfig{
+		Namespace:        t.config.DefaultTemporalConfig.Namespace,
+		SyncJobQueueName: t.config.DefaultTemporalConfig.SyncJobQueueName,
+		Url:              t.config.DefaultTemporalConfig.Url,
+	}
+	dbConfig, err := t.db.GetTemporalConfigByAccount(ctx, t.dbtx, accountUuid)
+	if err != nil {
+		return nil, err
+	}
+	if dbConfig.Namespace != "" {
+		tc.Namespace = dbConfig.Namespace
+	}
+	if dbConfig.SyncJobQueueName != "" {
+		tc.SyncJobQueueName = dbConfig.SyncJobQueueName
+	}
+	if dbConfig.Url != "" {
+		tc.Url = dbConfig.Url
+	}
+	return tc, nil
 }
 
 func (t *TemporalClientManager) getClientOptions(

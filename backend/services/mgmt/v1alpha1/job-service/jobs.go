@@ -135,11 +135,16 @@ func (s *Service) doesAccountHaveTemporalNamespace(
 	accountUuid pgtype.UUID,
 	logger *slog.Logger,
 ) (bool, error) {
-	tc, err := s.db.Q.GetTemporalConfigByAccount(ctx, s.db.Db, accountUuid)
+	resp, err := s.useraccountService.GetAccountTemporalConfig(ctx, connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
+		AccountId: nucleusdb.UUIDString(accountUuid),
+	}))
 	if err != nil {
 		return false, err
 	}
-	if tc.Namespace == "" {
+
+	tc := resp.Msg.Config
+
+	if resp.Msg.Config == nil || resp.Msg.Config.Namespace == "" {
 		return false, nil
 	}
 	nsclient, err := s.temporalWfManager.GetNamespaceClientByAccount(ctx, nucleusdb.UUIDString(accountUuid), logger)
