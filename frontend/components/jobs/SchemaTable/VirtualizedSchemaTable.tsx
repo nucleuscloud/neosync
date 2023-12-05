@@ -131,20 +131,6 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
     });
   }, []);
 
-  // function getBulKTransformer(): JobMappingTransformer {
-  //   const tc = bulkTransformer.config?.config;
-  //   switch (tc?.case) {
-  //     case 'userDefinedTransformerConfig':
-  //       return transformers.find(
-  //         (t) => isUserDefinedTransformer(t) && t.id === tc.value.id
-  //       )!; // todo: remove bang
-  //     default:
-  //       return transformers.find(
-  //         (t) => isSystemTransformer(t) && t.source === bulkTransformer.source
-  //       )!; // todo: remove bang
-  //   }
-  // }
-
   return (
     <div className="flex flex-row w-full">
       <div className="basis-1/6  pt-[45px] ">
