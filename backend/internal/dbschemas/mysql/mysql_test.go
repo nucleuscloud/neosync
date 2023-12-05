@@ -3,7 +3,7 @@ package dbschemas_mysql
 import (
 	"testing"
 
-	mysql_queries "github.com/nucleuscloud/neosync/cli/gen/go/db/mysql"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	"github.com/stretchr/testify/assert"
 )
 
