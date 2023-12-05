@@ -10,7 +10,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { SystemTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import {
+  SystemTransformer,
+  UserDefinedTransformer,
+} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { Transformer } from '@/shared/transformers';
 import {
   Cross2Icon,
@@ -258,10 +261,23 @@ function handleTransformerForm(
   );
 }
 
-export function filterDataTransformers(
+export function filterInputFreeSystemTransformers(
   transformers: SystemTransformer[]
 ): SystemTransformer[] {
   return transformers.filter(
     (t) => t.source !== 'passthrough' && t.source.startsWith('generate_')
   );
+}
+
+export function filterInputFreeUdfTransformers(
+  udfTransformers: UserDefinedTransformer[],
+  systemTransformers: SystemTransformer[]
+): UserDefinedTransformer[] {
+  const sysMap = new Map(
+    filterInputFreeSystemTransformers(systemTransformers).map((t) => [
+      t.source,
+      t,
+    ])
+  );
+  return udfTransformers.filter((t) => sysMap.has(t.source));
 }

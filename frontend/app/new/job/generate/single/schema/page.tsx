@@ -363,7 +363,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           />
 
           {formValues.schema && formValues.table && (
-            <SchemaTable data={schemaTableData} excludeTransformers />
+            <SchemaTable data={schemaTableData} excludeInputReqTransformers />
           )}
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>

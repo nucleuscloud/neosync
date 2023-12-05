@@ -1,5 +1,8 @@
 'use client';
-import { filterDataTransformers } from '@/app/transformers/EditTransformerOptions';
+import {
+  filterInputFreeSystemTransformers,
+  filterInputFreeUdfTransformers,
+} from '@/app/transformers/EditTransformerOptions';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
@@ -12,11 +15,11 @@ import { VirtualizedSchemaTable } from './VirtualizedSchemaTable';
 
 interface Props {
   data?: JobMappingFormValues[];
-  excludeTransformers?: boolean; // will result in only generators (functions with no data input)
+  excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
 }
 
 export function SchemaTable(props: Props): ReactElement {
-  const { data, excludeTransformers } = props;
+  const { data, excludeInputReqTransformers } = props;
 
   const { account } = useAccount();
   const { data: systemTransformers, isLoading: systemTransformersIsLoading } =
@@ -24,13 +27,20 @@ export function SchemaTable(props: Props): ReactElement {
   const { data: customTransformers, isLoading: customTransformersIsLoading } =
     useGetUserDefinedTransformers(account?.id ?? '');
 
-  const filteredSystemTransformers = excludeTransformers
-    ? filterDataTransformers(systemTransformers?.transformers ?? [])
+  const filteredSystemTransformers = excludeInputReqTransformers
+    ? filterInputFreeSystemTransformers(systemTransformers?.transformers ?? [])
     : systemTransformers?.transformers ?? [];
+
+  const filteredCustomTransformers = excludeInputReqTransformers
+    ? filterInputFreeUdfTransformers(
+        customTransformers?.transformers ?? [],
+        filteredSystemTransformers
+      )
+    : customTransformers?.transformers ?? [];
 
   const mergedTransformers = joinTransformers(
     filteredSystemTransformers,
-    customTransformers?.transformers ?? []
+    filteredCustomTransformers
   );
 
   const tableData = data?.map((d) => {
