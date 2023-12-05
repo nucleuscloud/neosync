@@ -49,7 +49,7 @@ export function IconHandler(name: string): ReactElement {
       return <MdPassword />;
     case 'User Defined':
       return <GoCode />;
-    case 'System Transformers':
+    case 'System':
       return <IoBuildOutline />;
     case 'Use cases':
       return <BsShieldCheck />;
