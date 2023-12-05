@@ -13,7 +13,7 @@ import (
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 )
 
-var grpcConfigSpec = service.NewConfigSpec().
+var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
 	Summary("Creates an input that generates garbage.").
 	Field(service.NewStringField("api_key").Optional()).
 	Field(service.NewStringField("api_url")).
@@ -21,7 +21,7 @@ var grpcConfigSpec = service.NewConfigSpec().
 	Field(service.NewStringField("schema")).
 	Field(service.NewStringField("table"))
 
-func newGrpcInput(conf *service.ParsedConfig) (service.Input, error) {
+func newNeosyncConnectionDataInput(conf *service.ParsedConfig) (service.Input, error) {
 	var apiKey *string
 	if conf.Contains("api_key") {
 		apiKeyStr, err := conf.FieldString("api_key")
@@ -60,9 +60,9 @@ func newGrpcInput(conf *service.ParsedConfig) (service.Input, error) {
 
 func init() {
 	err := service.RegisterInput(
-		"neosync", grpcConfigSpec,
+		"neosync_connection_data", neosyncConnectionDataConfigSpec,
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			return newGrpcInput(conf)
+			return newNeosyncConnectionDataInput(conf)
 		})
 	if err != nil {
 		panic(err)

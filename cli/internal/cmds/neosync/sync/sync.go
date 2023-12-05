@@ -313,7 +313,7 @@ func generateBenthosConfig(
 		StreamConfig: neosync_benthos.StreamConfig{
 			Input: &neosync_benthos.InputConfig{
 				Inputs: neosync_benthos.Inputs{
-					Neosync: &neosync_benthos.Neosync{
+					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
 						ApiKey:       authToken,
 						ApiUrl:       apiUrl,
 						ConnectionId: connectionId,
