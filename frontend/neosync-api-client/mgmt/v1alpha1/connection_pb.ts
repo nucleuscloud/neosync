@@ -1299,9 +1299,9 @@ export class CheckSqlQueryResponse extends Message<CheckSqlQueryResponse> {
  */
 export class GetConnectionDataStreamRequest extends Message<GetConnectionDataStreamRequest> {
   /**
-   * @generated from field: string source_connection_id = 1;
+   * @generated from field: string connection_id = 1;
    */
-  sourceConnectionId = "";
+  connectionId = "";
 
   /**
    * @generated from field: string schema = 2;
@@ -1321,7 +1321,7 @@ export class GetConnectionDataStreamRequest extends Message<GetConnectionDataStr
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetConnectionDataStreamRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "source_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
@@ -1381,6 +1381,7 @@ export class GetConnectionDataStreamResponse extends Message<GetConnectionDataSt
 }
 
 /**
+ * taken from https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/struct.proto#L51
  * The JSON representation for `Struct` is JSON object.
  *
  * @generated from message mgmt.v1alpha1.Struct

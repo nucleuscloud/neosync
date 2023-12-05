@@ -297,9 +297,9 @@ func (s *Service) GetConnectionDataStream(
 	stream *connect.ServerStream[mgmtv1alpha1.GetConnectionDataStreamResponse],
 ) error {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("connectionId", req.Msg.SourceConnectionId)
+	logger = logger.With("connectionId", req.Msg.ConnectionId)
 	sourceConn, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.SourceConnectionId,
+		Id: req.Msg.ConnectionId,
 	}))
 	if err != nil {
 		return err
@@ -307,6 +307,16 @@ func (s *Service) GetConnectionDataStream(
 	_, err = s.verifyUserInAccount(ctx, sourceConn.Msg.Connection.AccountId)
 	if err != nil {
 		return err
+	}
+
+	// check that schema and table are valid
+	schemaResp, err := s.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{Id: req.Msg.ConnectionId}))
+	if err != nil {
+		return err
+	}
+
+	if !isValidSchema(req.Msg.Schema, schemaResp.Msg.Schemas) || !isValidTable(req.Msg.Table, schemaResp.Msg.Schemas) {
+		return nucleuserrors.NewBadRequest("must provide valid schema and table")
 	}
 
 	connCfg := sourceConn.Msg.Connection.ConnectionConfig
@@ -327,7 +337,7 @@ func (s *Service) GetConnectionDataStream(
 	}()
 
 	// used to get column names
-	query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table)
+	query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table) //nolint
 	r, err := conn.QueryContext(ctx, query)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return err
@@ -343,16 +353,17 @@ func (s *Service) GetConnectionDataStream(
 		return err
 	}
 
-	selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table)
+	selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table) //nolint
 	rows, err := conn.QueryContext(ctx, selectQuery)
 	if err != nil && !nucleusdb.IsNoRows(err) {
 		return err
 	}
 
+	numOfCols := len(columnNames)
 	for rows.Next() {
-		columnPointers := make([]interface{}, len(columnNames))
+		columnPointers := make([]interface{}, numOfCols) //nolint
 		for i := range columnNames {
-			columnPointers[i] = new(interface{})
+			columnPointers[i] = new(interface{}) //nolint
 		}
 
 		if err := rows.Scan(columnPointers...); err != nil {
@@ -362,7 +373,7 @@ func (s *Service) GetConnectionDataStream(
 		row := map[string]*mgmtv1alpha1.Value{}
 
 		for i, name := range columnNames {
-			val := *columnPointers[i].(*interface{})
+			val := *columnPointers[i].(*interface{}) //nolint
 			value := &mgmtv1alpha1.Value{}
 
 			if val == nil {
@@ -373,19 +384,13 @@ func (s *Service) GetConnectionDataStream(
 
 			// Get the PostgreSQL data type of the current column
 			dbType := columnTypes[i].DatabaseTypeName()
-			fmt.Println(name)
-			fmt.Println(dbType)
-			fmt.Println(val)
-
 			switch strings.ToLower(dbType) {
 			case "text", "varchar", "char", "citext", "json", "jsonb", "uuid":
 				value.Kind = &mgmtv1alpha1.Value_StringValue{StringValue: fmt.Sprintf("%v", val)}
-			case "bpchar": // Handling BPCHAR separately
+			case "bpchar":
 				byteSlice, ok := val.([]uint8)
 				if !ok {
-					// Handle the error if val is not a byte slice
-					value.Kind = &mgmtv1alpha1.Value_NullValue{}
-					continue
+					return errors.New("unable to assert value is []uint8")
 				}
 				strValue := string(byteSlice)
 				value.Kind = &mgmtv1alpha1.Value_StringValue{StringValue: strValue}
@@ -394,36 +399,27 @@ func (s *Service) GetConnectionDataStream(
 			case "float4", "float8", "decimal":
 				value.Kind = &mgmtv1alpha1.Value_NumberValue{NumberValue: float64(val.(int64))}
 			case "numeric":
-				// Convert the byte slice to string first
 				byteSlice, ok := val.([]uint8)
 				if !ok {
-					// Handle the error if val is not a byte slice
-					// For example, set value.Kind to a null value or an error value
-					value.Kind = &mgmtv1alpha1.Value_NullValue{}
-					continue
+					return errors.New("unable to assert value is []uint8")
 				}
-				// Parse the string to a float64
 				strValue := string(byteSlice)
 				floatValue, err := strconv.ParseFloat(strValue, 64)
 				if err != nil {
-					// Handle the error if the string cannot be parsed to float64
-					// For example, set value.Kind to a null value or an error value
-					value.Kind = &mgmtv1alpha1.Value_NullValue{}
-					continue
+					return errors.New("unable to parse numeric float")
 				}
 				value.Kind = &mgmtv1alpha1.Value_NumberValue{NumberValue: floatValue}
-			case "date", "timestamp": // Handling date and timestamp types
+			case "date", "timestamp":
 				timeVal, ok := val.(time.Time)
 				if !ok {
-					value.Kind = &mgmtv1alpha1.Value_NullValue{}
-					continue
+					return errors.New("unable to assert value is time")
 				}
-				strValue := timeVal.Format(time.RFC3339) // You can change the format as needed
+				strValue := timeVal.Format(time.RFC3339)
 				value.Kind = &mgmtv1alpha1.Value_StringValue{StringValue: strValue}
 			case "bool":
 				value.Kind = &mgmtv1alpha1.Value_BoolValue{BoolValue: val.(bool)}
 			default:
-				value.Kind = &mgmtv1alpha1.Value_NullValue{}
+				return errors.New("unsupported db data type")
 			}
 			row[name] = value
 		}
@@ -521,7 +517,6 @@ func getAllPostgresFkConstraints(
 	pgquerier pg_queries.Querier,
 	ctx context.Context,
 	conn pg_queries.DBTX,
-	// conn *sql.DB,
 	uniqueSchemas []string,
 ) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
 	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
@@ -649,4 +644,22 @@ func (s *Service) getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig) (*conne
 	default:
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}
+}
+
+func isValidTable(table string, columns []*mgmtv1alpha1.DatabaseColumn) bool {
+	for _, c := range columns {
+		if c.Table == table {
+			return true
+		}
+	}
+	return false
+}
+
+func isValidSchema(schema string, columns []*mgmtv1alpha1.DatabaseColumn) bool {
+	for _, c := range columns {
+		if c.Schema == schema {
+			return true
+		}
+	}
+	return false
 }

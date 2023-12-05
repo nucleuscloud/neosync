@@ -3539,7 +3539,7 @@ func (m *GetConnectionDataStreamRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for SourceConnectionId
+	// no validation rules for ConnectionId
 
 	// no validation rules for Schema
 

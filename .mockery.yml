@@ -1,10 +1,10 @@
 quiet: False
 disable-version-string: True
 with-expecter: True
-filename: "mock_{{.InterfaceName}}.go"
-dir: "{{.InterfaceDir}}"
-mockname: "Mock{{.InterfaceName}}"
-outpkg: "{{.PackageName}}"
+filename: 'mock_{{.InterfaceName}}.go'
+dir: '{{.InterfaceDir}}'
+mockname: 'Mock{{.InterfaceName}}'
+outpkg: '{{.PackageName}}'
 inpackage: True
 packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/jwt:
@@ -29,6 +29,7 @@ packages:
       UserAccountServiceClient:
       JobServiceClient:
       ConnectionServiceClient:
+      ConnectionServiceHandler:
       AuthServiceClient:
   github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
     interfaces:

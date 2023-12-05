@@ -94,9 +94,9 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 	)
 
 	resp, err := g.neosyncConnectApi.GetConnectionDataStream(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionDataStreamRequest{
-		SourceConnectionId: g.connectionId,
-		Schema:             g.schema,
-		Table:              g.table,
+		ConnectionId: g.connectionId,
+		Schema:       g.schema,
+		Table:        g.table,
 	}))
 	if err != nil {
 		return err

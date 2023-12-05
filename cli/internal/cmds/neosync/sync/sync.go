@@ -2,7 +2,6 @@ package sync_cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -98,7 +97,7 @@ func sync(
 		),
 	)
 
-	fmt.Println("retrieving connection schema...")
+	fmt.Println("retrieving connection schema...") // nolint
 	schemaResp, err := connectionclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 		Id: connectionId,
 	}))
@@ -112,14 +111,14 @@ func sync(
 		schemaMap[t.Schema] = t.Schema
 	}
 
-	fmt.Println("building foreign table constraints...")
+	fmt.Println("building foreign table constraints...") // nolint
 	fkConnectionResp, err := connectionclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: connectionId}))
 	if err != nil {
 		return err
 	}
 	tableConstraints := fkConnectionResp.Msg.GetTableConstraints()
 
-	fmt.Println("generating benthos configs...")
+	fmt.Println("generating configs...") // nolint
 	configs := []*benthosConfigResponse{}
 	for _, table := range tables {
 		name := fmt.Sprintf("%s.%s", table.Schema, table.Table)
@@ -127,7 +126,7 @@ func sync(
 
 		for _, n := range dependsOn {
 			if name == n {
-				return errors.New("circluar dependency")
+				return fmt.Errorf("circular dependency detected. exiting...")
 			}
 		}
 
@@ -148,11 +147,11 @@ func sync(
 		}
 		if !isConfigReady(cfg, completedConfigs) {
 			index = (index + 1) % numConfigs
-			fmt.Printf("waiting for %s dependencies to be completed: %v \n", cfg.Name, cfg.DependsOn)
+			fmt.Printf("waiting for %s dependencies to be completed: %v \n", cfg.Name, cfg.DependsOn) // nolint
 			continue
 		}
 
-		fmt.Printf("syncing data for %s \n", cfg.Name)
+		fmt.Printf("syncing data for %s \n", cfg.Name) // nolint
 		configbits, err := yaml.Marshal(cfg.Config)
 		if err != nil {
 			return err
@@ -160,7 +159,7 @@ func sync(
 
 		var benthosStream *service.Stream
 		go func() {
-			for {
+			for { // nolint
 				select {
 				// case <-time.After(1 * time.Second):
 				// 	activity.RecordHeartbeat(ctx)
@@ -170,7 +169,7 @@ func sync(
 						// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
 						err := benthosStream.Stop(ctx)
 						if err != nil {
-							// logger.Error(err.Error())
+							fmt.Println(err.Error()) // nolint
 						}
 					}
 					return
@@ -205,7 +204,7 @@ func sync(
 		index = (index + 1) % numConfigs
 	}
 
-	fmt.Println("data sync complete")
+	fmt.Println("data sync complete") // nolint
 
 	return nil
 }
