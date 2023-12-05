@@ -22,54 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// `NullValue` is a singleton enumeration to represent the null value for the
-// `Value` type union.
-//
-// The JSON representation for `NullValue` is JSON `null`.
-type NullValue int32
-
-const (
-	// Null value.
-	NullValue_NULL_VALUE_UNSPECIFIED NullValue = 0
-)
-
-// Enum value maps for NullValue.
-var (
-	NullValue_name = map[int32]string{
-		0: "NULL_VALUE_UNSPECIFIED",
-	}
-	NullValue_value = map[string]int32{
-		"NULL_VALUE_UNSPECIFIED": 0,
-	}
-)
-
-func (x NullValue) Enum() *NullValue {
-	p := new(NullValue)
-	*p = x
-	return p
-}
-
-func (x NullValue) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (NullValue) Descriptor() protoreflect.EnumDescriptor {
-	return file_mgmt_v1alpha1_connection_proto_enumTypes[0].Descriptor()
-}
-
-func (NullValue) Type() protoreflect.EnumType {
-	return &file_mgmt_v1alpha1_connection_proto_enumTypes[0]
-}
-
-func (x NullValue) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use NullValue.Descriptor instead.
-func (NullValue) EnumDescriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{0}
-}
-
 type GetConnectionsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1818,7 +1770,7 @@ type GetConnectionDataStreamResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Row map[string]*Value `protobuf:"bytes,1,rep,name=row,proto3" json:"row,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Row map[string][]byte `protobuf:"bytes,1,rep,name=row,proto3" json:"row,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GetConnectionDataStreamResponse) Reset() {
@@ -1853,261 +1805,9 @@ func (*GetConnectionDataStreamResponse) Descriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{28}
 }
 
-func (x *GetConnectionDataStreamResponse) GetRow() map[string]*Value {
+func (x *GetConnectionDataStreamResponse) GetRow() map[string][]byte {
 	if x != nil {
 		return x.Row
-	}
-	return nil
-}
-
-// taken from https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/struct.proto#L51
-// The JSON representation for `Struct` is JSON object.
-type Struct struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Unordered map of dynamically typed values.
-	Fields map[string]*Value `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-}
-
-func (x *Struct) Reset() {
-	*x = Struct{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[29]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Struct) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Struct) ProtoMessage() {}
-
-func (x *Struct) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[29]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Struct.ProtoReflect.Descriptor instead.
-func (*Struct) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{29}
-}
-
-func (x *Struct) GetFields() map[string]*Value {
-	if x != nil {
-		return x.Fields
-	}
-	return nil
-}
-
-// `Value` represents a dynamically typed value which can be either
-// null, a number, a string, a boolean, a recursive struct value, or a
-// list of values. A producer of value is expected to set one of these
-// variants. Absence of any variant indicates an error.
-//
-// The JSON representation for `Value` is JSON value.
-type Value struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// The kind of value.
-	//
-	// Types that are assignable to Kind:
-	//
-	//	*Value_NullValue
-	//	*Value_NumberValue
-	//	*Value_StringValue
-	//	*Value_BoolValue
-	//	*Value_StructValue
-	//	*Value_ListValue
-	Kind isValue_Kind `protobuf_oneof:"kind"`
-}
-
-func (x *Value) Reset() {
-	*x = Value{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[30]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *Value) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Value) ProtoMessage() {}
-
-func (x *Value) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[30]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Value.ProtoReflect.Descriptor instead.
-func (*Value) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{30}
-}
-
-func (m *Value) GetKind() isValue_Kind {
-	if m != nil {
-		return m.Kind
-	}
-	return nil
-}
-
-func (x *Value) GetNullValue() NullValue {
-	if x, ok := x.GetKind().(*Value_NullValue); ok {
-		return x.NullValue
-	}
-	return NullValue_NULL_VALUE_UNSPECIFIED
-}
-
-func (x *Value) GetNumberValue() float64 {
-	if x, ok := x.GetKind().(*Value_NumberValue); ok {
-		return x.NumberValue
-	}
-	return 0
-}
-
-func (x *Value) GetStringValue() string {
-	if x, ok := x.GetKind().(*Value_StringValue); ok {
-		return x.StringValue
-	}
-	return ""
-}
-
-func (x *Value) GetBoolValue() bool {
-	if x, ok := x.GetKind().(*Value_BoolValue); ok {
-		return x.BoolValue
-	}
-	return false
-}
-
-func (x *Value) GetStructValue() *Struct {
-	if x, ok := x.GetKind().(*Value_StructValue); ok {
-		return x.StructValue
-	}
-	return nil
-}
-
-func (x *Value) GetListValue() *ListValue {
-	if x, ok := x.GetKind().(*Value_ListValue); ok {
-		return x.ListValue
-	}
-	return nil
-}
-
-type isValue_Kind interface {
-	isValue_Kind()
-}
-
-type Value_NullValue struct {
-	// Represents a null value.
-	NullValue NullValue `protobuf:"varint,1,opt,name=null_value,json=nullValue,proto3,enum=mgmt.v1alpha1.NullValue,oneof"`
-}
-
-type Value_NumberValue struct {
-	// Represents a double value.
-	NumberValue float64 `protobuf:"fixed64,2,opt,name=number_value,json=numberValue,proto3,oneof"`
-}
-
-type Value_StringValue struct {
-	// Represents a string value.
-	StringValue string `protobuf:"bytes,3,opt,name=string_value,json=stringValue,proto3,oneof"`
-}
-
-type Value_BoolValue struct {
-	// Represents a boolean value.
-	BoolValue bool `protobuf:"varint,4,opt,name=bool_value,json=boolValue,proto3,oneof"`
-}
-
-type Value_StructValue struct {
-	// Represents a structured value.
-	StructValue *Struct `protobuf:"bytes,5,opt,name=struct_value,json=structValue,proto3,oneof"`
-}
-
-type Value_ListValue struct {
-	// Represents a repeated `Value`.
-	ListValue *ListValue `protobuf:"bytes,6,opt,name=list_value,json=listValue,proto3,oneof"`
-}
-
-func (*Value_NullValue) isValue_Kind() {}
-
-func (*Value_NumberValue) isValue_Kind() {}
-
-func (*Value_StringValue) isValue_Kind() {}
-
-func (*Value_BoolValue) isValue_Kind() {}
-
-func (*Value_StructValue) isValue_Kind() {}
-
-func (*Value_ListValue) isValue_Kind() {}
-
-// `ListValue` is a wrapper around a repeated field of values.
-//
-// The JSON representation for `ListValue` is JSON array.
-type ListValue struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// Repeated field of dynamically typed values.
-	Values []*Value `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
-}
-
-func (x *ListValue) Reset() {
-	*x = ListValue{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[31]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ListValue) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListValue) ProtoMessage() {}
-
-func (x *ListValue) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[31]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListValue.ProtoReflect.Descriptor instead.
-func (*ListValue) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{31}
-}
-
-func (x *ListValue) GetValues() []*Value {
-	if x != nil {
-		return x.Values
 	}
 	return nil
 }
@@ -2123,7 +1823,7 @@ type GetConnectionForeignConstraintsRequest struct {
 func (x *GetConnectionForeignConstraintsRequest) Reset() {
 	*x = GetConnectionForeignConstraintsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[32]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2136,7 +1836,7 @@ func (x *GetConnectionForeignConstraintsRequest) String() string {
 func (*GetConnectionForeignConstraintsRequest) ProtoMessage() {}
 
 func (x *GetConnectionForeignConstraintsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[32]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2149,7 +1849,7 @@ func (x *GetConnectionForeignConstraintsRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use GetConnectionForeignConstraintsRequest.ProtoReflect.Descriptor instead.
 func (*GetConnectionForeignConstraintsRequest) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{32}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetConnectionForeignConstraintsRequest) GetConnectionId() string {
@@ -2170,7 +1870,7 @@ type ForeignConstraintTables struct {
 func (x *ForeignConstraintTables) Reset() {
 	*x = ForeignConstraintTables{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[33]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2183,7 +1883,7 @@ func (x *ForeignConstraintTables) String() string {
 func (*ForeignConstraintTables) ProtoMessage() {}
 
 func (x *ForeignConstraintTables) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[33]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2196,7 +1896,7 @@ func (x *ForeignConstraintTables) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForeignConstraintTables.ProtoReflect.Descriptor instead.
 func (*ForeignConstraintTables) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{33}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ForeignConstraintTables) GetTables() []string {
@@ -2217,7 +1917,7 @@ type GetConnectionForeignConstraintsResponse struct {
 func (x *GetConnectionForeignConstraintsResponse) Reset() {
 	*x = GetConnectionForeignConstraintsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[34]
+		mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[31]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2230,7 +1930,7 @@ func (x *GetConnectionForeignConstraintsResponse) String() string {
 func (*GetConnectionForeignConstraintsResponse) ProtoMessage() {}
 
 func (x *GetConnectionForeignConstraintsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[34]
+	mi := &file_mgmt_v1alpha1_connection_proto_msgTypes[31]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2243,7 +1943,7 @@ func (x *GetConnectionForeignConstraintsResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use GetConnectionForeignConstraintsResponse.ProtoReflect.Descriptor instead.
 func (*GetConnectionForeignConstraintsResponse) Descriptor() ([]byte, []int) {
-	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{34}
+	return file_mgmt_v1alpha1_connection_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetConnectionForeignConstraintsResponse) GetTableConstraints() map[string]*ForeignConstraintTables {
@@ -2504,79 +2204,43 @@ var file_mgmt_v1alpha1_connection_proto_rawDesc = []byte{
 	0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x63, 0x68, 0x65,
 	0x6d, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61,
 	0x12, 0x14, 0x0a, 0x05, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x22, 0xba, 0x01, 0x0a, 0x1f, 0x47, 0x65, 0x74, 0x43, 0x6f,
+	0x05, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x22, 0xa4, 0x01, 0x0a, 0x1f, 0x47, 0x65, 0x74, 0x43, 0x6f,
 	0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61, 0x53, 0x74, 0x72, 0x65,
 	0x61, 0x6d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x49, 0x0a, 0x03, 0x72, 0x6f,
 	0x77, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x37, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76,
 	0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x6e, 0x65,
 	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52,
 	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x52, 0x6f, 0x77, 0x45, 0x6e, 0x74, 0x72, 0x79,
-	0x52, 0x03, 0x72, 0x6f, 0x77, 0x1a, 0x4c, 0x0a, 0x08, 0x52, 0x6f, 0x77, 0x45, 0x6e, 0x74, 0x72,
+	0x52, 0x03, 0x72, 0x6f, 0x77, 0x1a, 0x36, 0x0a, 0x08, 0x52, 0x6f, 0x77, 0x45, 0x6e, 0x74, 0x72,
 	0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
-	0x6b, 0x65, 0x79, 0x12, 0x2a, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x0b, 0x32, 0x14, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68,
-	0x61, 0x31, 0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a,
-	0x02, 0x38, 0x01, 0x22, 0x94, 0x01, 0x0a, 0x06, 0x53, 0x74, 0x72, 0x75, 0x63, 0x74, 0x12, 0x39,
-	0x0a, 0x06, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x21,
-	0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x53,
-	0x74, 0x72, 0x75, 0x63, 0x74, 0x2e, 0x46, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x45, 0x6e, 0x74, 0x72,
-	0x79, 0x52, 0x06, 0x66, 0x69, 0x65, 0x6c, 0x64, 0x73, 0x1a, 0x4f, 0x0a, 0x0b, 0x46, 0x69, 0x65,
-	0x6c, 0x64, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x2a, 0x0a, 0x05, 0x76, 0x61,
-	0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x6d, 0x67, 0x6d, 0x74,
-	0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52,
-	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0xac, 0x02, 0x0a, 0x05, 0x56,
-	0x61, 0x6c, 0x75, 0x65, 0x12, 0x39, 0x0a, 0x0a, 0x6e, 0x75, 0x6c, 0x6c, 0x5f, 0x76, 0x61, 0x6c,
-	0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x18, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e,
-	0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4e, 0x75, 0x6c, 0x6c, 0x56, 0x61, 0x6c,
-	0x75, 0x65, 0x48, 0x00, 0x52, 0x09, 0x6e, 0x75, 0x6c, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12,
-	0x23, 0x0a, 0x0c, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x5f, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x01, 0x48, 0x00, 0x52, 0x0b, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x56,
-	0x61, 0x6c, 0x75, 0x65, 0x12, 0x23, 0x0a, 0x0c, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x5f, 0x76,
-	0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x0b, 0x73, 0x74,
-	0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x1f, 0x0a, 0x0a, 0x62, 0x6f, 0x6f,
-	0x6c, 0x5f, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x48, 0x00, 0x52,
-	0x09, 0x62, 0x6f, 0x6f, 0x6c, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x3a, 0x0a, 0x0c, 0x73, 0x74,
-	0x72, 0x75, 0x63, 0x74, 0x5f, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x15, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
-	0x2e, 0x53, 0x74, 0x72, 0x75, 0x63, 0x74, 0x48, 0x00, 0x52, 0x0b, 0x73, 0x74, 0x72, 0x75, 0x63,
-	0x74, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x39, 0x0a, 0x0a, 0x6c, 0x69, 0x73, 0x74, 0x5f, 0x76,
-	0x61, 0x6c, 0x75, 0x65, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x6d, 0x67, 0x6d,
-	0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x4c, 0x69, 0x73, 0x74, 0x56,
-	0x61, 0x6c, 0x75, 0x65, 0x48, 0x00, 0x52, 0x09, 0x6c, 0x69, 0x73, 0x74, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x42, 0x06, 0x0a, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x22, 0x39, 0x0a, 0x09, 0x4c, 0x69, 0x73,
-	0x74, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x2c, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73,
-	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31,
-	0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x52, 0x06, 0x76, 0x61,
-	0x6c, 0x75, 0x65, 0x73, 0x22, 0x57, 0x0a, 0x26, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x6e, 0x65,
-	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x6f, 0x72, 0x65, 0x69, 0x67, 0x6e, 0x43, 0x6f, 0x6e, 0x73,
-	0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2d,
-	0x0a, 0x0d, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08, 0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52,
-	0x0c, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x22, 0x31, 0x0a,
-	0x17, 0x46, 0x6f, 0x72, 0x65, 0x69, 0x67, 0x6e, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69,
-	0x6e, 0x74, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x74, 0x61, 0x62, 0x6c,
-	0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x73,
-	0x22, 0x91, 0x02, 0x0a, 0x27, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69,
-	0x6f, 0x6e, 0x46, 0x6f, 0x72, 0x65, 0x69, 0x67, 0x6e, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61,
-	0x69, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x79, 0x0a, 0x11,
-	0x74, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x63, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74,
-	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x4c, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76,
-	0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x6e, 0x65,
-	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x6f, 0x72, 0x65, 0x69, 0x67, 0x6e, 0x43, 0x6f, 0x6e, 0x73,
-	0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e,
-	0x54, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73,
-	0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x10, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x73,
-	0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x1a, 0x6b, 0x0a, 0x15, 0x54, 0x61, 0x62, 0x6c, 0x65,
-	0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79,
-	0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b,
-	0x65, 0x79, 0x12, 0x3c, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x0b, 0x32, 0x26, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61,
-	0x31, 0x2e, 0x46, 0x6f, 0x72, 0x65, 0x69, 0x67, 0x6e, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61,
-	0x69, 0x6e, 0x74, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
-	0x3a, 0x02, 0x38, 0x01, 0x2a, 0x27, 0x0a, 0x09, 0x4e, 0x75, 0x6c, 0x6c, 0x56, 0x61, 0x6c, 0x75,
-	0x65, 0x12, 0x1a, 0x0a, 0x16, 0x4e, 0x55, 0x4c, 0x4c, 0x5f, 0x56, 0x41, 0x4c, 0x55, 0x45, 0x5f,
-	0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x32, 0xe1, 0x09,
+	0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x0c, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x57, 0x0a,
+	0x26, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x6f,
+	0x72, 0x65, 0x69, 0x67, 0x6e, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x2d, 0x0a, 0x0d, 0x63, 0x6f, 0x6e, 0x6e, 0x65,
+	0x63, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x08,
+	0xba, 0x48, 0x05, 0x72, 0x03, 0xb0, 0x01, 0x01, 0x52, 0x0c, 0x63, 0x6f, 0x6e, 0x6e, 0x65, 0x63,
+	0x74, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x22, 0x31, 0x0a, 0x17, 0x46, 0x6f, 0x72, 0x65, 0x69, 0x67,
+	0x6e, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x54, 0x61, 0x62, 0x6c, 0x65,
+	0x73, 0x12, 0x16, 0x0a, 0x06, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x09, 0x52, 0x06, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x22, 0x91, 0x02, 0x0a, 0x27, 0x47, 0x65,
+	0x74, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x6f, 0x72, 0x65, 0x69,
+	0x67, 0x6e, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x79, 0x0a, 0x11, 0x74, 0x61, 0x62, 0x6c, 0x65, 0x5f, 0x63,
+	0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b,
+	0x32, 0x4c, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31,
+	0x2e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x46, 0x6f,
+	0x72, 0x65, 0x69, 0x67, 0x6e, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f,
+	0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x10,
+	0x74, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73,
+	0x1a, 0x6b, 0x0a, 0x15, 0x54, 0x61, 0x62, 0x6c, 0x65, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61,
+	0x69, 0x6e, 0x74, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x3c, 0x0a, 0x05, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x6d, 0x67, 0x6d,
+	0x74, 0x2e, 0x76, 0x31, 0x61, 0x6c, 0x70, 0x68, 0x61, 0x31, 0x2e, 0x46, 0x6f, 0x72, 0x65, 0x69,
+	0x67, 0x6e, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x54, 0x61, 0x62, 0x6c,
+	0x65, 0x73, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x32, 0xe1, 0x09,
 	0x0a, 0x11, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x65, 0x72, 0x76,
 	0x69, 0x63, 0x65, 0x12, 0x5f, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x6e, 0x65, 0x63,
 	0x74, 0x69, 0x6f, 0x6e, 0x73, 0x12, 0x24, 0x2e, 0x6d, 0x67, 0x6d, 0x74, 0x2e, 0x76, 0x31, 0x61,
@@ -2683,105 +2347,92 @@ func file_mgmt_v1alpha1_connection_proto_rawDescGZIP() []byte {
 	return file_mgmt_v1alpha1_connection_proto_rawDescData
 }
 
-var file_mgmt_v1alpha1_connection_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_mgmt_v1alpha1_connection_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_mgmt_v1alpha1_connection_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_mgmt_v1alpha1_connection_proto_goTypes = []interface{}{
-	(NullValue)(0),                                  // 0: mgmt.v1alpha1.NullValue
-	(*GetConnectionsRequest)(nil),                   // 1: mgmt.v1alpha1.GetConnectionsRequest
-	(*GetConnectionsResponse)(nil),                  // 2: mgmt.v1alpha1.GetConnectionsResponse
-	(*GetConnectionRequest)(nil),                    // 3: mgmt.v1alpha1.GetConnectionRequest
-	(*GetConnectionResponse)(nil),                   // 4: mgmt.v1alpha1.GetConnectionResponse
-	(*CreateConnectionRequest)(nil),                 // 5: mgmt.v1alpha1.CreateConnectionRequest
-	(*CreateConnectionResponse)(nil),                // 6: mgmt.v1alpha1.CreateConnectionResponse
-	(*UpdateConnectionRequest)(nil),                 // 7: mgmt.v1alpha1.UpdateConnectionRequest
-	(*UpdateConnectionResponse)(nil),                // 8: mgmt.v1alpha1.UpdateConnectionResponse
-	(*DeleteConnectionRequest)(nil),                 // 9: mgmt.v1alpha1.DeleteConnectionRequest
-	(*DeleteConnectionResponse)(nil),                // 10: mgmt.v1alpha1.DeleteConnectionResponse
-	(*CheckConnectionConfigRequest)(nil),            // 11: mgmt.v1alpha1.CheckConnectionConfigRequest
-	(*CheckConnectionConfigResponse)(nil),           // 12: mgmt.v1alpha1.CheckConnectionConfigResponse
-	(*Connection)(nil),                              // 13: mgmt.v1alpha1.Connection
-	(*ConnectionConfig)(nil),                        // 14: mgmt.v1alpha1.ConnectionConfig
-	(*PostgresConnectionConfig)(nil),                // 15: mgmt.v1alpha1.PostgresConnectionConfig
-	(*PostgresConnection)(nil),                      // 16: mgmt.v1alpha1.PostgresConnection
-	(*MysqlConnection)(nil),                         // 17: mgmt.v1alpha1.MysqlConnection
-	(*MysqlConnectionConfig)(nil),                   // 18: mgmt.v1alpha1.MysqlConnectionConfig
-	(*AwsS3ConnectionConfig)(nil),                   // 19: mgmt.v1alpha1.AwsS3ConnectionConfig
-	(*AwsS3Credentials)(nil),                        // 20: mgmt.v1alpha1.AwsS3Credentials
-	(*IsConnectionNameAvailableRequest)(nil),        // 21: mgmt.v1alpha1.IsConnectionNameAvailableRequest
-	(*IsConnectionNameAvailableResponse)(nil),       // 22: mgmt.v1alpha1.IsConnectionNameAvailableResponse
-	(*DatabaseColumn)(nil),                          // 23: mgmt.v1alpha1.DatabaseColumn
-	(*GetConnectionSchemaRequest)(nil),              // 24: mgmt.v1alpha1.GetConnectionSchemaRequest
-	(*GetConnectionSchemaResponse)(nil),             // 25: mgmt.v1alpha1.GetConnectionSchemaResponse
-	(*CheckSqlQueryRequest)(nil),                    // 26: mgmt.v1alpha1.CheckSqlQueryRequest
-	(*CheckSqlQueryResponse)(nil),                   // 27: mgmt.v1alpha1.CheckSqlQueryResponse
-	(*GetConnectionDataStreamRequest)(nil),          // 28: mgmt.v1alpha1.GetConnectionDataStreamRequest
-	(*GetConnectionDataStreamResponse)(nil),         // 29: mgmt.v1alpha1.GetConnectionDataStreamResponse
-	(*Struct)(nil),                                  // 30: mgmt.v1alpha1.Struct
-	(*Value)(nil),                                   // 31: mgmt.v1alpha1.Value
-	(*ListValue)(nil),                               // 32: mgmt.v1alpha1.ListValue
-	(*GetConnectionForeignConstraintsRequest)(nil),  // 33: mgmt.v1alpha1.GetConnectionForeignConstraintsRequest
-	(*ForeignConstraintTables)(nil),                 // 34: mgmt.v1alpha1.ForeignConstraintTables
-	(*GetConnectionForeignConstraintsResponse)(nil), // 35: mgmt.v1alpha1.GetConnectionForeignConstraintsResponse
-	nil,                           // 36: mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry
-	nil,                           // 37: mgmt.v1alpha1.Struct.FieldsEntry
-	nil,                           // 38: mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry
-	(*timestamppb.Timestamp)(nil), // 39: google.protobuf.Timestamp
+	(*GetConnectionsRequest)(nil),                   // 0: mgmt.v1alpha1.GetConnectionsRequest
+	(*GetConnectionsResponse)(nil),                  // 1: mgmt.v1alpha1.GetConnectionsResponse
+	(*GetConnectionRequest)(nil),                    // 2: mgmt.v1alpha1.GetConnectionRequest
+	(*GetConnectionResponse)(nil),                   // 3: mgmt.v1alpha1.GetConnectionResponse
+	(*CreateConnectionRequest)(nil),                 // 4: mgmt.v1alpha1.CreateConnectionRequest
+	(*CreateConnectionResponse)(nil),                // 5: mgmt.v1alpha1.CreateConnectionResponse
+	(*UpdateConnectionRequest)(nil),                 // 6: mgmt.v1alpha1.UpdateConnectionRequest
+	(*UpdateConnectionResponse)(nil),                // 7: mgmt.v1alpha1.UpdateConnectionResponse
+	(*DeleteConnectionRequest)(nil),                 // 8: mgmt.v1alpha1.DeleteConnectionRequest
+	(*DeleteConnectionResponse)(nil),                // 9: mgmt.v1alpha1.DeleteConnectionResponse
+	(*CheckConnectionConfigRequest)(nil),            // 10: mgmt.v1alpha1.CheckConnectionConfigRequest
+	(*CheckConnectionConfigResponse)(nil),           // 11: mgmt.v1alpha1.CheckConnectionConfigResponse
+	(*Connection)(nil),                              // 12: mgmt.v1alpha1.Connection
+	(*ConnectionConfig)(nil),                        // 13: mgmt.v1alpha1.ConnectionConfig
+	(*PostgresConnectionConfig)(nil),                // 14: mgmt.v1alpha1.PostgresConnectionConfig
+	(*PostgresConnection)(nil),                      // 15: mgmt.v1alpha1.PostgresConnection
+	(*MysqlConnection)(nil),                         // 16: mgmt.v1alpha1.MysqlConnection
+	(*MysqlConnectionConfig)(nil),                   // 17: mgmt.v1alpha1.MysqlConnectionConfig
+	(*AwsS3ConnectionConfig)(nil),                   // 18: mgmt.v1alpha1.AwsS3ConnectionConfig
+	(*AwsS3Credentials)(nil),                        // 19: mgmt.v1alpha1.AwsS3Credentials
+	(*IsConnectionNameAvailableRequest)(nil),        // 20: mgmt.v1alpha1.IsConnectionNameAvailableRequest
+	(*IsConnectionNameAvailableResponse)(nil),       // 21: mgmt.v1alpha1.IsConnectionNameAvailableResponse
+	(*DatabaseColumn)(nil),                          // 22: mgmt.v1alpha1.DatabaseColumn
+	(*GetConnectionSchemaRequest)(nil),              // 23: mgmt.v1alpha1.GetConnectionSchemaRequest
+	(*GetConnectionSchemaResponse)(nil),             // 24: mgmt.v1alpha1.GetConnectionSchemaResponse
+	(*CheckSqlQueryRequest)(nil),                    // 25: mgmt.v1alpha1.CheckSqlQueryRequest
+	(*CheckSqlQueryResponse)(nil),                   // 26: mgmt.v1alpha1.CheckSqlQueryResponse
+	(*GetConnectionDataStreamRequest)(nil),          // 27: mgmt.v1alpha1.GetConnectionDataStreamRequest
+	(*GetConnectionDataStreamResponse)(nil),         // 28: mgmt.v1alpha1.GetConnectionDataStreamResponse
+	(*GetConnectionForeignConstraintsRequest)(nil),  // 29: mgmt.v1alpha1.GetConnectionForeignConstraintsRequest
+	(*ForeignConstraintTables)(nil),                 // 30: mgmt.v1alpha1.ForeignConstraintTables
+	(*GetConnectionForeignConstraintsResponse)(nil), // 31: mgmt.v1alpha1.GetConnectionForeignConstraintsResponse
+	nil,                           // 32: mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry
+	nil,                           // 33: mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry
+	(*timestamppb.Timestamp)(nil), // 34: google.protobuf.Timestamp
 }
 var file_mgmt_v1alpha1_connection_proto_depIdxs = []int32{
-	13, // 0: mgmt.v1alpha1.GetConnectionsResponse.connections:type_name -> mgmt.v1alpha1.Connection
-	13, // 1: mgmt.v1alpha1.GetConnectionResponse.connection:type_name -> mgmt.v1alpha1.Connection
-	14, // 2: mgmt.v1alpha1.CreateConnectionRequest.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
-	13, // 3: mgmt.v1alpha1.CreateConnectionResponse.connection:type_name -> mgmt.v1alpha1.Connection
-	14, // 4: mgmt.v1alpha1.UpdateConnectionRequest.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
-	13, // 5: mgmt.v1alpha1.UpdateConnectionResponse.connection:type_name -> mgmt.v1alpha1.Connection
-	14, // 6: mgmt.v1alpha1.CheckConnectionConfigRequest.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
-	14, // 7: mgmt.v1alpha1.Connection.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
-	39, // 8: mgmt.v1alpha1.Connection.created_at:type_name -> google.protobuf.Timestamp
-	39, // 9: mgmt.v1alpha1.Connection.updated_at:type_name -> google.protobuf.Timestamp
-	15, // 10: mgmt.v1alpha1.ConnectionConfig.pg_config:type_name -> mgmt.v1alpha1.PostgresConnectionConfig
-	19, // 11: mgmt.v1alpha1.ConnectionConfig.aws_s3_config:type_name -> mgmt.v1alpha1.AwsS3ConnectionConfig
-	18, // 12: mgmt.v1alpha1.ConnectionConfig.mysql_config:type_name -> mgmt.v1alpha1.MysqlConnectionConfig
-	16, // 13: mgmt.v1alpha1.PostgresConnectionConfig.connection:type_name -> mgmt.v1alpha1.PostgresConnection
-	17, // 14: mgmt.v1alpha1.MysqlConnectionConfig.connection:type_name -> mgmt.v1alpha1.MysqlConnection
-	20, // 15: mgmt.v1alpha1.AwsS3ConnectionConfig.credentials:type_name -> mgmt.v1alpha1.AwsS3Credentials
-	23, // 16: mgmt.v1alpha1.GetConnectionSchemaResponse.schemas:type_name -> mgmt.v1alpha1.DatabaseColumn
-	36, // 17: mgmt.v1alpha1.GetConnectionDataStreamResponse.row:type_name -> mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry
-	37, // 18: mgmt.v1alpha1.Struct.fields:type_name -> mgmt.v1alpha1.Struct.FieldsEntry
-	0,  // 19: mgmt.v1alpha1.Value.null_value:type_name -> mgmt.v1alpha1.NullValue
-	30, // 20: mgmt.v1alpha1.Value.struct_value:type_name -> mgmt.v1alpha1.Struct
-	32, // 21: mgmt.v1alpha1.Value.list_value:type_name -> mgmt.v1alpha1.ListValue
-	31, // 22: mgmt.v1alpha1.ListValue.values:type_name -> mgmt.v1alpha1.Value
-	38, // 23: mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.table_constraints:type_name -> mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry
-	31, // 24: mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry.value:type_name -> mgmt.v1alpha1.Value
-	31, // 25: mgmt.v1alpha1.Struct.FieldsEntry.value:type_name -> mgmt.v1alpha1.Value
-	34, // 26: mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry.value:type_name -> mgmt.v1alpha1.ForeignConstraintTables
-	1,  // 27: mgmt.v1alpha1.ConnectionService.GetConnections:input_type -> mgmt.v1alpha1.GetConnectionsRequest
-	3,  // 28: mgmt.v1alpha1.ConnectionService.GetConnection:input_type -> mgmt.v1alpha1.GetConnectionRequest
-	5,  // 29: mgmt.v1alpha1.ConnectionService.CreateConnection:input_type -> mgmt.v1alpha1.CreateConnectionRequest
-	7,  // 30: mgmt.v1alpha1.ConnectionService.UpdateConnection:input_type -> mgmt.v1alpha1.UpdateConnectionRequest
-	9,  // 31: mgmt.v1alpha1.ConnectionService.DeleteConnection:input_type -> mgmt.v1alpha1.DeleteConnectionRequest
-	21, // 32: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable:input_type -> mgmt.v1alpha1.IsConnectionNameAvailableRequest
-	11, // 33: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig:input_type -> mgmt.v1alpha1.CheckConnectionConfigRequest
-	24, // 34: mgmt.v1alpha1.ConnectionService.GetConnectionSchema:input_type -> mgmt.v1alpha1.GetConnectionSchemaRequest
-	26, // 35: mgmt.v1alpha1.ConnectionService.CheckSqlQuery:input_type -> mgmt.v1alpha1.CheckSqlQueryRequest
-	28, // 36: mgmt.v1alpha1.ConnectionService.GetConnectionDataStream:input_type -> mgmt.v1alpha1.GetConnectionDataStreamRequest
-	33, // 37: mgmt.v1alpha1.ConnectionService.GetConnectionForeignConstraints:input_type -> mgmt.v1alpha1.GetConnectionForeignConstraintsRequest
-	2,  // 38: mgmt.v1alpha1.ConnectionService.GetConnections:output_type -> mgmt.v1alpha1.GetConnectionsResponse
-	4,  // 39: mgmt.v1alpha1.ConnectionService.GetConnection:output_type -> mgmt.v1alpha1.GetConnectionResponse
-	6,  // 40: mgmt.v1alpha1.ConnectionService.CreateConnection:output_type -> mgmt.v1alpha1.CreateConnectionResponse
-	8,  // 41: mgmt.v1alpha1.ConnectionService.UpdateConnection:output_type -> mgmt.v1alpha1.UpdateConnectionResponse
-	10, // 42: mgmt.v1alpha1.ConnectionService.DeleteConnection:output_type -> mgmt.v1alpha1.DeleteConnectionResponse
-	22, // 43: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable:output_type -> mgmt.v1alpha1.IsConnectionNameAvailableResponse
-	12, // 44: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig:output_type -> mgmt.v1alpha1.CheckConnectionConfigResponse
-	25, // 45: mgmt.v1alpha1.ConnectionService.GetConnectionSchema:output_type -> mgmt.v1alpha1.GetConnectionSchemaResponse
-	27, // 46: mgmt.v1alpha1.ConnectionService.CheckSqlQuery:output_type -> mgmt.v1alpha1.CheckSqlQueryResponse
-	29, // 47: mgmt.v1alpha1.ConnectionService.GetConnectionDataStream:output_type -> mgmt.v1alpha1.GetConnectionDataStreamResponse
-	35, // 48: mgmt.v1alpha1.ConnectionService.GetConnectionForeignConstraints:output_type -> mgmt.v1alpha1.GetConnectionForeignConstraintsResponse
-	38, // [38:49] is the sub-list for method output_type
-	27, // [27:38] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	12, // 0: mgmt.v1alpha1.GetConnectionsResponse.connections:type_name -> mgmt.v1alpha1.Connection
+	12, // 1: mgmt.v1alpha1.GetConnectionResponse.connection:type_name -> mgmt.v1alpha1.Connection
+	13, // 2: mgmt.v1alpha1.CreateConnectionRequest.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
+	12, // 3: mgmt.v1alpha1.CreateConnectionResponse.connection:type_name -> mgmt.v1alpha1.Connection
+	13, // 4: mgmt.v1alpha1.UpdateConnectionRequest.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
+	12, // 5: mgmt.v1alpha1.UpdateConnectionResponse.connection:type_name -> mgmt.v1alpha1.Connection
+	13, // 6: mgmt.v1alpha1.CheckConnectionConfigRequest.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
+	13, // 7: mgmt.v1alpha1.Connection.connection_config:type_name -> mgmt.v1alpha1.ConnectionConfig
+	34, // 8: mgmt.v1alpha1.Connection.created_at:type_name -> google.protobuf.Timestamp
+	34, // 9: mgmt.v1alpha1.Connection.updated_at:type_name -> google.protobuf.Timestamp
+	14, // 10: mgmt.v1alpha1.ConnectionConfig.pg_config:type_name -> mgmt.v1alpha1.PostgresConnectionConfig
+	18, // 11: mgmt.v1alpha1.ConnectionConfig.aws_s3_config:type_name -> mgmt.v1alpha1.AwsS3ConnectionConfig
+	17, // 12: mgmt.v1alpha1.ConnectionConfig.mysql_config:type_name -> mgmt.v1alpha1.MysqlConnectionConfig
+	15, // 13: mgmt.v1alpha1.PostgresConnectionConfig.connection:type_name -> mgmt.v1alpha1.PostgresConnection
+	16, // 14: mgmt.v1alpha1.MysqlConnectionConfig.connection:type_name -> mgmt.v1alpha1.MysqlConnection
+	19, // 15: mgmt.v1alpha1.AwsS3ConnectionConfig.credentials:type_name -> mgmt.v1alpha1.AwsS3Credentials
+	22, // 16: mgmt.v1alpha1.GetConnectionSchemaResponse.schemas:type_name -> mgmt.v1alpha1.DatabaseColumn
+	32, // 17: mgmt.v1alpha1.GetConnectionDataStreamResponse.row:type_name -> mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry
+	33, // 18: mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.table_constraints:type_name -> mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry
+	30, // 19: mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry.value:type_name -> mgmt.v1alpha1.ForeignConstraintTables
+	0,  // 20: mgmt.v1alpha1.ConnectionService.GetConnections:input_type -> mgmt.v1alpha1.GetConnectionsRequest
+	2,  // 21: mgmt.v1alpha1.ConnectionService.GetConnection:input_type -> mgmt.v1alpha1.GetConnectionRequest
+	4,  // 22: mgmt.v1alpha1.ConnectionService.CreateConnection:input_type -> mgmt.v1alpha1.CreateConnectionRequest
+	6,  // 23: mgmt.v1alpha1.ConnectionService.UpdateConnection:input_type -> mgmt.v1alpha1.UpdateConnectionRequest
+	8,  // 24: mgmt.v1alpha1.ConnectionService.DeleteConnection:input_type -> mgmt.v1alpha1.DeleteConnectionRequest
+	20, // 25: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable:input_type -> mgmt.v1alpha1.IsConnectionNameAvailableRequest
+	10, // 26: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig:input_type -> mgmt.v1alpha1.CheckConnectionConfigRequest
+	23, // 27: mgmt.v1alpha1.ConnectionService.GetConnectionSchema:input_type -> mgmt.v1alpha1.GetConnectionSchemaRequest
+	25, // 28: mgmt.v1alpha1.ConnectionService.CheckSqlQuery:input_type -> mgmt.v1alpha1.CheckSqlQueryRequest
+	27, // 29: mgmt.v1alpha1.ConnectionService.GetConnectionDataStream:input_type -> mgmt.v1alpha1.GetConnectionDataStreamRequest
+	29, // 30: mgmt.v1alpha1.ConnectionService.GetConnectionForeignConstraints:input_type -> mgmt.v1alpha1.GetConnectionForeignConstraintsRequest
+	1,  // 31: mgmt.v1alpha1.ConnectionService.GetConnections:output_type -> mgmt.v1alpha1.GetConnectionsResponse
+	3,  // 32: mgmt.v1alpha1.ConnectionService.GetConnection:output_type -> mgmt.v1alpha1.GetConnectionResponse
+	5,  // 33: mgmt.v1alpha1.ConnectionService.CreateConnection:output_type -> mgmt.v1alpha1.CreateConnectionResponse
+	7,  // 34: mgmt.v1alpha1.ConnectionService.UpdateConnection:output_type -> mgmt.v1alpha1.UpdateConnectionResponse
+	9,  // 35: mgmt.v1alpha1.ConnectionService.DeleteConnection:output_type -> mgmt.v1alpha1.DeleteConnectionResponse
+	21, // 36: mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable:output_type -> mgmt.v1alpha1.IsConnectionNameAvailableResponse
+	11, // 37: mgmt.v1alpha1.ConnectionService.CheckConnectionConfig:output_type -> mgmt.v1alpha1.CheckConnectionConfigResponse
+	24, // 38: mgmt.v1alpha1.ConnectionService.GetConnectionSchema:output_type -> mgmt.v1alpha1.GetConnectionSchemaResponse
+	26, // 39: mgmt.v1alpha1.ConnectionService.CheckSqlQuery:output_type -> mgmt.v1alpha1.CheckSqlQueryResponse
+	28, // 40: mgmt.v1alpha1.ConnectionService.GetConnectionDataStream:output_type -> mgmt.v1alpha1.GetConnectionDataStreamResponse
+	31, // 41: mgmt.v1alpha1.ConnectionService.GetConnectionForeignConstraints:output_type -> mgmt.v1alpha1.GetConnectionForeignConstraintsResponse
+	31, // [31:42] is the sub-list for method output_type
+	20, // [20:31] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_mgmt_v1alpha1_connection_proto_init() }
@@ -3139,42 +2790,6 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 			}
 		}
 		file_mgmt_v1alpha1_connection_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Struct); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mgmt_v1alpha1_connection_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Value); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mgmt_v1alpha1_connection_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListValue); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_mgmt_v1alpha1_connection_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetConnectionForeignConstraintsRequest); i {
 			case 0:
 				return &v.state
@@ -3186,7 +2801,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_connection_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_connection_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ForeignConstraintTables); i {
 			case 0:
 				return &v.state
@@ -3198,7 +2813,7 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 				return nil
 			}
 		}
-		file_mgmt_v1alpha1_connection_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
+		file_mgmt_v1alpha1_connection_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetConnectionForeignConstraintsResponse); i {
 			case 0:
 				return &v.state
@@ -3229,27 +2844,18 @@ func file_mgmt_v1alpha1_connection_proto_init() {
 	file_mgmt_v1alpha1_connection_proto_msgTypes[18].OneofWrappers = []interface{}{}
 	file_mgmt_v1alpha1_connection_proto_msgTypes[19].OneofWrappers = []interface{}{}
 	file_mgmt_v1alpha1_connection_proto_msgTypes[26].OneofWrappers = []interface{}{}
-	file_mgmt_v1alpha1_connection_proto_msgTypes[30].OneofWrappers = []interface{}{
-		(*Value_NullValue)(nil),
-		(*Value_NumberValue)(nil),
-		(*Value_StringValue)(nil),
-		(*Value_BoolValue)(nil),
-		(*Value_StructValue)(nil),
-		(*Value_ListValue)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_mgmt_v1alpha1_connection_proto_rawDesc,
-			NumEnums:      1,
-			NumMessages:   38,
+			NumEnums:      0,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_mgmt_v1alpha1_connection_proto_goTypes,
 		DependencyIndexes: file_mgmt_v1alpha1_connection_proto_depIdxs,
-		EnumInfos:         file_mgmt_v1alpha1_connection_proto_enumTypes,
 		MessageInfos:      file_mgmt_v1alpha1_connection_proto_msgTypes,
 	}.Build()
 	File_mgmt_v1alpha1_connection_proto = out.File

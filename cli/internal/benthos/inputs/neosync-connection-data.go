@@ -124,23 +124,11 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 		}
 		return nil, nil, service.ErrEndOfInput
 	}
-	valuesMap := map[string]any{}
 	row := g.resp.Msg().Row
 
-	for col, value := range row {
-		switch value.Kind.(type) {
-		case *mgmtv1alpha1.Value_StringValue:
-			valuesMap[col] = value.GetStringValue()
-		case *mgmtv1alpha1.Value_NumberValue:
-			valuesMap[col] = value.GetNumberValue()
-		case *mgmtv1alpha1.Value_BoolValue:
-			valuesMap[col] = value.GetBoolValue()
-		case *mgmtv1alpha1.Value_NullValue:
-			valuesMap[col] = value.GetNullValue()
-		case *mgmtv1alpha1.Value_ListValue:
-			valuesMap[col] = value.GetListValue()
-		default:
-		}
+	valuesMap := map[string]any{}
+	for col, val := range row {
+		valuesMap[col] = val
 	}
 
 	msg := service.NewMessage(nil)

@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"sort"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -17,6 +16,7 @@ import (
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
@@ -28,6 +28,20 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/service"
 )
+
+const (
+	maxPgParamLimit = 65535
+)
+
+type cmdConfig struct {
+	ConnectionId string            `yaml:"connection-id"`
+	Destination  destinationConfig `yaml:"destination"`
+}
+
+type destinationConfig struct {
+	ConnectionUrl string `yaml:"connection-url"`
+	Driver        string `yaml:"driver"`
+}
 
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -44,45 +58,72 @@ func NewCmd() *cobra.Command {
 				apiKey = &apiKeyStr
 			}
 
+			config := &cmdConfig{}
+			configPath, err := cmd.Flags().GetString("config")
+			if err != nil {
+				return err
+			}
+
+			if configPath != "" {
+				fileBytes, err := os.ReadFile(configPath)
+				if err != nil {
+					return fmt.Errorf("error reading config file: %w", err)
+				}
+				err = yaml.Unmarshal(fileBytes, &config)
+				if err != nil {
+					return fmt.Errorf("error parsing config file: %w", err)
+				}
+			}
+
 			connectionId, err := cmd.Flags().GetString("connection-id")
 			if err != nil {
 				return err
 			}
-			if connectionId == "" {
-				return fmt.Errorf("must provide connection id")
+			if connectionId != "" {
+				config.ConnectionId = connectionId
 			}
 
 			destConnUrl, err := cmd.Flags().GetString("destination-connection-url")
 			if err != nil {
 				return err
 			}
-			if destConnUrl == "" {
-				return fmt.Errorf("must provide destination connection url")
+			if destConnUrl != "" {
+				config.Destination.ConnectionUrl = destConnUrl
 			}
 
 			driver, err := cmd.Flags().GetString("destination-driver")
 			if err != nil {
 				return err
 			}
-			if destConnUrl == "" {
-				return fmt.Errorf("must provide destination driver")
+			if driver != "" {
+				config.Destination.Driver = driver
 			}
 
-			return sync(cmd.Context(), apiKey, connectionId, destConnUrl, driver)
+			if config.ConnectionId == "" {
+				return fmt.Errorf("must provide connection-id")
+			}
+			if config.Destination.Driver == "" {
+				return fmt.Errorf("must provide destination-driver")
+			}
+			if config.Destination.ConnectionUrl == "" {
+				return fmt.Errorf("must provide destination-connection-url")
+			}
+
+			return sync(cmd.Context(), apiKey, config)
 		},
 	}
 
-	cmd.Flags().String("connection-id", "", "connection id for sync source")
-	cmd.Flags().String("destination-connection-url", "", "destination url for sync output")
-	cmd.Flags().String("destination-driver", "", "destination driver for sync output")
-
+	cmd.Flags().String("connection-id", "", "Connection id for sync source")
+	cmd.Flags().String("destination-connection-url", "", "Connection url for sync output")
+	cmd.Flags().String("destination-driver", "", "Connection driver for sync output")
+	cmd.Flags().String("config", "neosync.yaml", `Location of config file (default "neosync.yaml")`)
 	return cmd
 }
 
 func sync(
 	ctx context.Context,
 	apiKey *string,
-	connectionId, destConnUrl, driver string,
+	cmd *cmdConfig,
 ) error {
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
@@ -99,7 +140,7 @@ func sync(
 
 	fmt.Println("retrieving connection schema...") // nolint
 	schemaResp, err := connectionclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
-		Id: connectionId,
+		Id: cmd.ConnectionId,
 	}))
 	if err != nil {
 		return err
@@ -112,7 +153,7 @@ func sync(
 	}
 
 	fmt.Println("building foreign table constraints...") // nolint
-	fkConnectionResp, err := connectionclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: connectionId}))
+	fkConnectionResp, err := connectionclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: cmd.ConnectionId}))
 	if err != nil {
 		return err
 	}
@@ -130,78 +171,28 @@ func sync(
 			}
 		}
 
-		benthosConfig := generateBenthosConfig(table.Schema, table.Table, connectionId, serverconfig.GetApiBaseUrl(), destConnUrl, driver, table.Columns, dependsOn, apiKey)
+		benthosConfig := generateBenthosConfig(cmd, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), table.Columns, dependsOn, apiKey)
 		configs = append(configs, benthosConfig)
 	}
 
-	sortedConfigs := sortConfigs(configs)
-	numConfigs := len(sortedConfigs)
-	completedConfigs := map[string]struct{}{}
-	index := 0
-	for len(completedConfigs) != numConfigs {
-		cfg := sortedConfigs[index]
-		_, completed := completedConfigs[cfg.Name]
-		if completed {
-			index = (index + 1) % numConfigs
-			continue
-		}
-		if !isConfigReady(cfg, completedConfigs) {
-			index = (index + 1) % numConfigs
-			fmt.Printf("waiting for %s dependencies to be completed: %v \n", cfg.Name, cfg.DependsOn) // nolint
-			continue
-		}
-
-		fmt.Printf("syncing data for %s \n", cfg.Name) // nolint
-		configbits, err := yaml.Marshal(cfg.Config)
-		if err != nil {
-			return err
-		}
-
-		var benthosStream *service.Stream
-		go func() {
-			for { // nolint
-				select {
-				// case <-time.After(1 * time.Second):
-				// 	activity.RecordHeartbeat(ctx)
-				case <-ctx.Done():
-					if benthosStream != nil {
-						// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
-						// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
-						err := benthosStream.Stop(ctx)
-						if err != nil {
-							fmt.Println(err.Error()) // nolint
-						}
-					}
-					return
+	groupedConfigs := groupConfigsByDependency(configs)
+	for _, group := range groupedConfigs {
+		errgrp, errctx := errgroup.WithContext(ctx)
+		for _, cfg := range group {
+			cfg := cfg
+			errgrp.Go(func() error {
+				err := syncData(errctx, cfg)
+				if err != nil {
+					return err
 				}
-			}
-		}()
-
-		streambldr := service.NewStreamBuilder()
-		// would ideally use the activity logger here but can't convert it into a slog.
-		benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-		streambldr.SetLogger(benthoslogger.With(
-			"benthos", "true",
-		))
-
-		err = streambldr.SetYAML(string(configbits))
-		if err != nil {
-			return fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
+				return nil
+			})
 		}
 
-		stream, err := streambldr.Build()
-		if err != nil {
+		if err := errgrp.Wait(); err != nil {
 			return err
 		}
-		benthosStream = stream
 
-		err = stream.Run(ctx)
-		if err != nil {
-			return fmt.Errorf("unable to run benthos stream: %w", err)
-		}
-		benthosStream = nil
-		completedConfigs[cfg.Name] = struct{}{}
-		index = (index + 1) % numConfigs
 	}
 
 	fmt.Println("data sync complete") // nolint
@@ -209,20 +200,57 @@ func sync(
 	return nil
 }
 
-func isConfigReady(config *benthosConfigResponse, completed map[string]struct{}) bool {
-	if config == nil {
-		return false
+func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
+	fmt.Printf("syncing data for %s \n", cfg.Name) // nolint
+	configbits, err := yaml.Marshal(cfg.Config)
+	if err != nil {
+		return err
 	}
 
-	if len(config.DependsOn) == 0 {
-		return true
-	}
-	for _, dep := range config.DependsOn {
-		if _, ok := completed[dep]; !ok {
-			return false
+	var benthosStream *service.Stream
+	go func() {
+		for { // nolint
+			select {
+			// case <-time.After(1 * time.Second):
+			// 	activity.RecordHeartbeat(ctx)
+			case <-ctx.Done():
+				if benthosStream != nil {
+					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
+					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
+					err := benthosStream.Stop(ctx)
+					if err != nil {
+						fmt.Println(err.Error()) // nolint
+					}
+				}
+				return
+			}
 		}
+	}()
+
+	streambldr := service.NewStreamBuilder()
+	// would ideally use the activity logger here but can't convert it into a slog.
+	benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	streambldr.SetLogger(benthoslogger.With(
+		"benthos", "true",
+	))
+
+	err = streambldr.SetYAML(string(configbits))
+	if err != nil {
+		return fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
 	}
-	return true
+
+	stream, err := streambldr.Build()
+	if err != nil {
+		return err
+	}
+	benthosStream = stream
+
+	err = stream.Run(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to run benthos stream: %w", err)
+	}
+	benthosStream = nil
+	return nil
 }
 
 type SqlTable struct {
@@ -255,16 +283,115 @@ func getSchemaTables(schemas []*mgmtv1alpha1.DatabaseColumn) []*SqlTable {
 	return tables
 }
 
-func sortConfigs(configs []*benthosConfigResponse) []*benthosConfigResponse {
-	sort.SliceStable(configs, func(i, j int) bool {
-		return len(configs[i].DependsOn) < len(configs[j].DependsOn)
-	})
-	return configs
+type benthosConfigResponse struct {
+	Name      string
+	DependsOn []string
+	Config    *neosync_benthos.BenthosConfig
 }
 
-const (
-	maxPgParamLimit = 65535
-)
+func generateBenthosConfig(
+	cmd *cmdConfig,
+	schema, table, apiUrl string,
+	columns, dependsOn []string,
+	authToken *string,
+) *benthosConfigResponse {
+	tableName := fmt.Sprintf("%s.%s", schema, table)
+
+	bc := &neosync_benthos.BenthosConfig{
+		StreamConfig: neosync_benthos.StreamConfig{
+			Input: &neosync_benthos.InputConfig{
+				Inputs: neosync_benthos.Inputs{
+					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
+						ApiKey:       authToken,
+						ApiUrl:       apiUrl,
+						ConnectionId: cmd.ConnectionId,
+						Schema:       schema,
+						Table:        table,
+					},
+				},
+			},
+			Pipeline: &neosync_benthos.PipelineConfig{},
+			Output: &neosync_benthos.OutputConfig{
+				Outputs: neosync_benthos.Outputs{
+					SqlInsert: &neosync_benthos.SqlInsert{
+						Driver: cmd.Destination.Driver,
+						Dsn:    cmd.Destination.ConnectionUrl,
+						// InitStatement: initStmt, TODO
+						Table:       tableName,
+						Columns:     columns,
+						ArgsMapping: buildPlainInsertArgs(columns),
+						ConnMaxIdle: 2,
+						ConnMaxOpen: 2,
+						Batching: &neosync_benthos.Batching{
+							Period: "1s",
+							// max allowed by postgres in a single batch
+							Count: computeMaxPgBatchCount(len(columns)),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	return &benthosConfigResponse{
+		Name:      tableName,
+		Config:    bc,
+		DependsOn: dependsOn,
+	}
+}
+
+func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConfigResponse {
+	configMap := make(map[string]*benthosConfigResponse, len(configs))
+	for _, c := range configs {
+		configMap[c.Name] = c
+	}
+
+	depGraph := make(map[string][]*benthosConfigResponse)
+	indegree := make(map[string]int)
+
+	for _, cfg := range configs {
+		indegree[cfg.Name] = 0
+		depGraph[cfg.Name] = []*benthosConfigResponse{}
+	}
+
+	for _, cfg := range configs {
+		for _, dep := range cfg.DependsOn {
+			depGraph[dep] = append(depGraph[dep], cfg)
+			indegree[cfg.Name]++
+		}
+	}
+
+	var queue []string
+	for _, cfg := range configs {
+		if indegree[cfg.Name] == 0 {
+			queue = append(queue, cfg.Name)
+		}
+	}
+
+	var groupedConfigs [][]*benthosConfigResponse
+
+	for len(queue) > 0 {
+		var group []*benthosConfigResponse
+		var nextQueue []string
+
+		for _, cfgName := range queue {
+			cfg := configMap[cfgName]
+			group = append(group, cfg)
+
+			for _, nextCfg := range depGraph[cfgName] {
+				indegree[nextCfg.Name]--
+				if indegree[nextCfg.Name] == 0 {
+					nextQueue = append(nextQueue, nextCfg.Name)
+				}
+			}
+		}
+
+		groupedConfigs = append(groupedConfigs, group)
+		queue = nextQueue
+	}
+
+	return groupedConfigs
+}
 
 func computeMaxPgBatchCount(numCols int) int {
 	if numCols < 1 {
@@ -293,60 +420,4 @@ func buildPlainInsertArgs(cols []string) string {
 		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
 	}
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
-}
-
-type benthosConfigResponse struct {
-	Name      string
-	DependsOn []string
-	Config    *neosync_benthos.BenthosConfig
-}
-
-func generateBenthosConfig(
-	schema, table, connectionId, apiUrl, destConnUrl, driver string,
-	columns, dependsOn []string,
-	authToken *string,
-) *benthosConfigResponse {
-	tableName := fmt.Sprintf("%s.%s", schema, table)
-
-	bc := &neosync_benthos.BenthosConfig{
-		StreamConfig: neosync_benthos.StreamConfig{
-			Input: &neosync_benthos.InputConfig{
-				Inputs: neosync_benthos.Inputs{
-					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
-						ApiKey:       authToken,
-						ApiUrl:       apiUrl,
-						ConnectionId: connectionId,
-						Schema:       schema,
-						Table:        table,
-					},
-				},
-			},
-			Pipeline: &neosync_benthos.PipelineConfig{},
-			Output: &neosync_benthos.OutputConfig{
-				Outputs: neosync_benthos.Outputs{
-					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver: driver,
-						Dsn:    destConnUrl,
-						// InitStatement: initStmt, TODO
-						Table:       tableName,
-						Columns:     columns,
-						ArgsMapping: buildPlainInsertArgs(columns),
-						ConnMaxIdle: 2,
-						ConnMaxOpen: 2,
-						Batching: &neosync_benthos.Batching{
-							Period: "1s",
-							// max allowed by postgres in a single batch
-							Count: computeMaxPgBatchCount(len(columns)),
-						},
-					},
-				},
-			},
-		},
-	}
-
-	return &benthosConfigResponse{
-		Name:      tableName,
-		Config:    bc,
-		DependsOn: dependsOn,
-	}
 }
