@@ -65,7 +65,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const newJobType = getNewJobType(getSingleOrUndefined(searchParams?.jobType));
 
-  async function onSubmit(values: DefineFormValues) {
+  async function onSubmit(_values: DefineFormValues) {
     if (disableSchedule) {
       form.setValue('cronSchedule', '');
     }
