@@ -61,7 +61,6 @@ import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { DATA_GEN_STEPS } from '../../../JobsProgressSteps';
 import {
   DefineFormValues,
-  JobMappingArrayFormValues,
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableConnectFormValues,
   SingleTableSchemaFormValues,
@@ -114,7 +113,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const [allMappings, setAllMappings] = useState<JobMappingArrayFormValues>([]);
+  const [allMappings, setAllMappings] = useState<DatabaseColumn[]>([]);
   async function getSchema(): Promise<SingleTableSchemaFormValues> {
     try {
       const res = await getConnectionSchema(connectFormValues.connectionId);
@@ -128,17 +127,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           transformer: new JobMappingTransformer({}) as TransformerFormValues,
         };
       });
-      setAllMappings(allJobMappings);
+      setAllMappings(res.schemas);
       if (schemaFormData.mappings.length > 0) {
         //pull values from default values for transformers if already set
         return {
           ...schemaFormData,
           mappings: schemaFormData.mappings
-            .filter(
-              (r) =>
-                r.schema == schemaFormData.schema &&
-                r.table == schemaFormData.table
-            )
+            // .filter(
+            //   (r) =>
+            //     r.schema == schemaFormData.schema &&
+            //     r.table == schemaFormData.table
+            // )
             .map((r) => {
               var pt = JobMappingTransformer.fromJson(
                 r.transformer
@@ -152,7 +151,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       } else {
         return {
           ...schemaFormData,
-          mappings: allMappings,
+          mappings: allJobMappings,
         };
       }
     } catch (err) {
@@ -216,6 +215,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   const formValues = form.watch();
+  const schemaTableData = formValues.mappings?.map((mapping) => ({
+    ...mapping,
+    schema: formValues.schema,
+    table: formValues.table,
+  }));
 
   const uniqueSchemas = Array.from(
     new Set(connSchemaData?.schemas.map((s) => s.schema))
@@ -312,10 +316,20 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         field.onChange(value);
                         form.setValue(
                           'mappings',
-                          allMappings.filter(
-                            (m) =>
-                              m.schema == formValues.schema && m.table == value
-                          )
+                          allMappings
+                            .filter(
+                              (m) =>
+                                m.schema == formValues.schema &&
+                                m.table == value
+                            )
+                            .map((r) => {
+                              return {
+                                ...r,
+                                transformer: new JobMappingTransformer(
+                                  {}
+                                ) as TransformerFormValues,
+                              };
+                            })
                         );
                       }
                     }}
@@ -368,10 +382,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           />
 
           {formValues.schema && formValues.table && (
-            <SchemaTable
-              data={formValues.mappings}
-              excludeInputReqTransformers
-            />
+            <SchemaTable data={schemaTableData} excludeInputReqTransformers />
           )}
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>

@@ -26,7 +26,7 @@ export const JOB_MAPPING_COLUMN_SCHEMA = Yup.object({
   dataType: Yup.string().required(),
   transformer: TRANSFORMER_SCHEMA,
 });
-export const JOB_MAPPING_SCHEMA = JOB_MAPPING_COLUMN_SCHEMA.concat(
+const JOB_MAPPING_SCHEMA = JOB_MAPPING_COLUMN_SCHEMA.concat(
   Yup.object({
     schema: Yup.string().required(),
     table: Yup.string().required(),

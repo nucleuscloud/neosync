@@ -2,7 +2,7 @@ import { getAccount } from '@/components/providers/account-provider';
 import { IsJobNameAvailableResponse } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import {
   DESTINATION_FORM_SCHEMA,
-  JOB_MAPPING_SCHEMA,
+  JOB_MAPPING_COLUMN_SCHEMA,
   SCHEMA_FORM_SCHEMA,
   SOURCE_FORM_SCHEMA,
 } from '@/yup-validations/jobs';
@@ -54,18 +54,12 @@ export type SingleTableConnectFormValues = Yup.InferType<
   typeof SINGLE_TABLE_CONNECT_FORM_SCHEMA
 >;
 
-export const JOB_MAPPING_ARRAY_SCHEMA = Yup.array()
-  .of(JOB_MAPPING_SCHEMA)
-  .required();
-export type JobMappingArrayFormValues = Yup.InferType<
-  typeof JOB_MAPPING_ARRAY_SCHEMA
->;
-
 export const SINGLE_TABLE_SCHEMA_FORM_SCHEMA = Yup.object({
   numRows: Yup.number().required().min(1).max(10000),
   schema: Yup.string().required(),
   table: Yup.string().required(),
-  mappings: JOB_MAPPING_ARRAY_SCHEMA,
+
+  mappings: Yup.array().of(JOB_MAPPING_COLUMN_SCHEMA).required(),
 });
 export type SingleTableSchemaFormValues = Yup.InferType<
   typeof SINGLE_TABLE_SCHEMA_FORM_SCHEMA
