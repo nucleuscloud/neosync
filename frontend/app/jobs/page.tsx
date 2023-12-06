@@ -29,7 +29,7 @@ export default function Jobs() {
 
 interface JobTableProps {}
 
-export function JobTable(props: JobTableProps): ReactElement {
+function JobTable(props: JobTableProps): ReactElement {
   const {} = props;
   const { account } = useAccount();
   const { isLoading, data, mutate } = useGetJobs(account?.id ?? '');
