@@ -13,6 +13,7 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	"github.com/stretchr/testify/mock"
 	"github.com/zeebo/assert"
 )
@@ -31,13 +32,16 @@ func Test_Client_InjectTokenCtx(t *testing.T) {
 	client := New(mockQuerier, mockDbTx)
 
 	fakeToken := apikey.NewV1AccountKey()
+	hashedFakeToken := utils.ToSha256(
+		fakeToken,
+	)
 	expiresAt, err := nucleusdb.ToTimestamp(time.Now().Add(5 * time.Minute))
 	assert.NoError(t, err)
 	apiKeyRecord := db_queries.NeosyncApiAccountApiKey{
 		ID:        pgtype.UUID{Valid: true},
 		ExpiresAt: expiresAt,
 	}
-	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, fakeToken).
+	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, hashedFakeToken).
 		Return(apiKeyRecord, nil)
 
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
@@ -66,13 +70,16 @@ func Test_Client_InjectTokenCtx_Expired(t *testing.T) {
 	client := New(mockQuerier, mockDbTx)
 
 	fakeToken := apikey.NewV1AccountKey()
+	hashedFakeToken := utils.ToSha256(
+		fakeToken,
+	)
 	expiresAt, err := nucleusdb.ToTimestamp(time.Now().Add(-5 * time.Second))
 	assert.NoError(t, err)
 	apiKeyRecord := db_queries.NeosyncApiAccountApiKey{
 		ID:        pgtype.UUID{Valid: true},
 		ExpiresAt: expiresAt,
 	}
-	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, fakeToken).
+	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, hashedFakeToken).
 		Return(apiKeyRecord, nil)
 
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
@@ -109,8 +116,11 @@ func Test_Client_InjectTokenCtx_NotFoundKeyValue(t *testing.T) {
 	client := New(mockQuerier, mockDbTx)
 
 	fakeToken := apikey.NewV1AccountKey()
+	hashedFakeToken := utils.ToSha256(
+		fakeToken,
+	)
 
-	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, fakeToken).
+	mockQuerier.On("GetAccountApiKeyByKeyValue", mock.Anything, mock.Anything, hashedFakeToken).
 		Return(db_queries.NeosyncApiAccountApiKey{}, pgx.ErrNoRows)
 
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
