@@ -86,7 +86,7 @@ services:
     develop:
       watch:
         - path: backend/bin
-          action: rebuild
+          action: sync+restart
           target: /app
 
   worker:
@@ -107,7 +107,7 @@ services:
     develop:
       watch:
         - path: worker/bin
-          action: rebuild
+          action: sync+restart
           target: /app
 networks:
   neosync-network:

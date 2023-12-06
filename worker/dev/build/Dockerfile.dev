@@ -5,8 +5,8 @@ RUN mkdir /app
 
 WORKDIR /app
 
-COPY /bin/worker /app
-
 RUN echo 'NUCLEUS_ENV=dev' > /app/.env
+
+COPY /bin/worker /app
 
 ENTRYPOINT ["/app/worker", "serve"]
