@@ -76,7 +76,9 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
         if (colFilters.length == 0) {
           delete newFilters[columnId as keyof ColumnFilters];
         }
-        const filteredRows = data.filter((r) => shouldFilterRow(r, newFilters));
+        const filteredRows = data.filter((r) =>
+          shouldFilterRow(r, newFilters, transformers)
+        );
         setRows(filteredRows);
         return newFilters;
       });
@@ -126,7 +128,9 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
           newFilters['table'] = newFilters['table'].filter((t) => t != table);
         }
       }
-      const filteredRows = data.filter((r) => shouldFilterRow(r, newFilters));
+      const filteredRows = data.filter((r) =>
+        shouldFilterRow(r, newFilters, transformers)
+      );
       setRows(filteredRows);
       return newFilters;
     });
@@ -429,7 +433,8 @@ function VirtualizedSchemaList({
 function shouldFilterRow(
   row: Row,
   columnFilters: ColumnFilters,
-  columnId?: string
+  transformers: Transformer[],
+  columnId?: keyof Row
 ): boolean {
   for (const key of Object.keys(columnFilters)) {
     if (columnId && key == columnId) {
@@ -439,14 +444,48 @@ function shouldFilterRow(
     if (filters.length == 0) {
       continue;
     }
-    const value =
-      key == 'transformer'
-        ? (row[key as 'transformer'].source as string)
-        : (row[key as keyof Row] as string);
-
-    if (!filters.includes(value)) {
-      return false;
+    switch (key) {
+      case 'transformer': {
+        const rowVal = row[key as keyof Row] as JobMappingTransformer;
+        const value = rowVal.source;
+        if (rowVal.source === 'custom') {
+          const udfId = (
+            rowVal.config?.config.value as UserDefinedTransformerConfig
+          ).id;
+          const value =
+            transformers.find(
+              (t) => isUserDefinedTransformer(t) && t.id === udfId
+            )?.name ?? 'unknown transformer';
+          if (!filters.includes(value)) {
+            return false;
+          }
+        } else {
+          const value =
+            transformers.find(
+              (t) => isSystemTransformer(t) && t.source === rowVal.source
+            )?.name ?? 'unknown transformer';
+          if (!filters.includes(value)) {
+            return false;
+          }
+        }
+        break;
+      }
+      default: {
+        const value = row[key as keyof Row] as string;
+        if (!filters.includes(value)) {
+          return false;
+        }
+      }
     }
+    // // todo: fix this
+    // const value =
+    //   key == 'transformer'
+    //     ? (row[key as 'transformer'].source as string)
+    //     : (row[key as keyof Row] as string);
+
+    // if (!filters.includes(value)) {
+    //   return false;
+    // }
   }
   return true;
 }
@@ -513,10 +552,9 @@ function getUniqueFiltersByColumn(
 ): string[] {
   const uniqueColFilters: Record<string, string> = {};
   const filteredRows = rows.filter((r) =>
-    shouldFilterRow(r, columnFilters, columnId)
+    shouldFilterRow(r, columnFilters, transformers, columnId)
   );
   filteredRows.forEach((r) => {
-    // const value = r[columnId as keyof Row] as string;
     switch (columnId) {
       case 'transformer': {
         const rowVal = r[columnId];
