@@ -101,11 +101,14 @@ export default function TransformerSelect(props: Props): ReactElement {
                     value={t.name}
                   >
                     <div className="flex flex-row items-center justify-between w-full">
-                      <div className=" flex flex-row items-center">
+                      <div className="flex flex-row items-center">
                         <CheckIcon
                           className={cn(
                             'mr-2 h-4 w-4',
-                            value?.source == t?.source
+                            value.config?.config.case ===
+                              'userDefinedTransformerConfig' &&
+                              value?.source === 'custom' &&
+                              value.config.config.value.id === t.id
                               ? 'opacity-100'
                               : 'opacity-0'
                           )}
