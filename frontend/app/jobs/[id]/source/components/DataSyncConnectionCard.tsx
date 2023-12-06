@@ -48,7 +48,11 @@ import {
   TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
-import { SCHEMA_FORM_SCHEMA, SOURCE_FORM_SCHEMA } from '@/yup-validations/jobs';
+import {
+  SCHEMA_FORM_SCHEMA,
+  SOURCE_FORM_SCHEMA,
+  TransformerFormValues,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -417,11 +421,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
     sourceId: getConnectionIdFromSource(job.source) || '',
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
-      transformer: mapping.transformer as {
-        // name: string;
-        source: string;
-        config: { config: { case: string; value: {} } };
-      },
+      transformer: mapping.transformer as TransformerFormValues,
     })),
   };
 
