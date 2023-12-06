@@ -24,12 +24,13 @@ import {
   isSystemTransformer,
   isUserDefinedTransformer,
 } from '@/shared/transformers';
+import { TransformerFormValues } from '@/yup-validations/jobs';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 
 interface Props {
   transformers: Transformer[];
-  value: JobMappingTransformer;
+  value: JobMappingTransformer | TransformerFormValues;
   onSelect(value: JobMappingTransformer): void;
   placeholder: string;
 }
@@ -43,6 +44,13 @@ export default function TransformerSelect(props: Props): ReactElement {
 
   const udfTransformerMap = new Map(udfTransformers.map((t) => [t.id, t]));
   const sysTransformerMap = new Map(sysTransformers.map((t) => [t.source, t]));
+  // Because of how the react-hook-form data is persisted, sometimes the initial data comes in untransformed
+  // and is temporarily the uninstanced value on initial render. But subsequent renders it's correct.
+  // This just combats that and ensures it's the right value
+  const jmValue =
+    value instanceof JobMappingTransformer
+      ? value
+      : JobMappingTransformer.fromJson(value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -59,7 +67,7 @@ export default function TransformerSelect(props: Props): ReactElement {
         >
           <div className="whitespace-nowrap truncate w-[175px]">
             {getPopoverTriggerButtonText(
-              value,
+              jmValue,
               udfTransformerMap,
               sysTransformerMap,
               placeholder
@@ -105,10 +113,10 @@ export default function TransformerSelect(props: Props): ReactElement {
                         <CheckIcon
                           className={cn(
                             'mr-2 h-4 w-4',
-                            value.config?.config.case ===
+                            jmValue.config?.config.case ===
                               'userDefinedTransformerConfig' &&
-                              value?.source === 'custom' &&
-                              value.config.config.value.id === t.id
+                              jmValue?.source === 'custom' &&
+                              jmValue.config.config.value.id === t.id
                               ? 'opacity-100'
                               : 'opacity-0'
                           )}
@@ -175,7 +183,8 @@ function getPopoverTriggerButtonText(
   if (!value.config) {
     return placeholder;
   }
-  switch (value.config?.config.case) {
+
+  switch (value.config?.config?.case) {
     case 'userDefinedTransformerConfig':
       const id = value.config.config.value.id;
       return udfTransformerMap.get(id)?.name ?? placeholder;
