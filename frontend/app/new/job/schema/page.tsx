@@ -31,6 +31,8 @@ import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
+const isBrowser = () => typeof window !== 'undefined';
+
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
@@ -111,14 +113,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const form = useForm({
+  const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
     defaultValues: async () => {
       return getSchema();
     },
   });
-
-  const isBrowser = () => typeof window !== 'undefined';
 
   useFormPersist(`${sessionPrefix}-new-job-schema`, {
     watch: form.watch,
