@@ -1,15 +1,12 @@
 'use client';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
-import RunsTable from './runs/components/RunsTable';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
-  return (
-    <OverviewContainer
-      Header={<PageHeader header="Latest Job Runs" />}
-      containerClassName="overview-page"
-    >
-      <RunsTable />
-    </OverviewContainer>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push('/jobs');
+  });
+  return <div></div>;
 }
