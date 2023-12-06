@@ -256,6 +256,10 @@ func Test_IsUserInAccount_True(t *testing.T) {
 		AccountId: accountUuid,
 		UserId:    userUuid,
 	}).Return(int64(1), nil)
+	m.QuerierMock.On("IsUserInAccountApiKey", ctx, mock.Anything, db_queries.IsUserInAccountApiKeyParams{
+		AccountId: accountUuid,
+		UserId:    userUuid,
+	}).Return(int64(0), nil)
 
 	resp, err := m.Service.IsUserInAccount(ctx, &connect.Request[mgmtv1alpha1.IsUserInAccountRequest]{Msg: &mgmtv1alpha1.IsUserInAccountRequest{AccountId: mockAccountId}})
 
@@ -276,12 +280,36 @@ func Test_IsUserInAccount_False(t *testing.T) {
 		AccountId: accountUuid,
 		UserId:    userUuid,
 	}).Return(int64(0), nil)
+	m.QuerierMock.On("IsUserInAccountApiKey", ctx, mock.Anything, db_queries.IsUserInAccountApiKeyParams{
+		AccountId: accountUuid,
+		UserId:    userUuid,
+	}).Return(int64(0), nil)
 
 	resp, err := m.Service.IsUserInAccount(ctx, &connect.Request[mgmtv1alpha1.IsUserInAccountRequest]{Msg: &mgmtv1alpha1.IsUserInAccountRequest{AccountId: mockAccountId}})
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, false, resp.Msg.Ok)
+}
+
+func Test_IsUserInAccount_ApiKey(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+
+	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("IsUserInAccountApiKey", ctx, mock.Anything, db_queries.IsUserInAccountApiKeyParams{
+		AccountId: accountUuid,
+		UserId:    userUuid,
+	}).Return(int64(1), nil)
+
+	resp, err := m.Service.IsUserInAccount(ctx, &connect.Request[mgmtv1alpha1.IsUserInAccountRequest]{Msg: &mgmtv1alpha1.IsUserInAccountRequest{AccountId: mockAccountId}})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, true, resp.Msg.Ok)
 }
 
 func Test_CreateTeamAccount(t *testing.T) {
@@ -649,6 +677,10 @@ func mockVerifyUserInAccount(ctx context.Context, querierMock *db_queries.MockQu
 		AccountId: accountUuid,
 		UserId:    userUuid,
 	}).Return(int64(inAccount), nil)
+	querierMock.On("IsUserInAccountApiKey", ctx, mock.Anything, db_queries.IsUserInAccountApiKeyParams{
+		AccountId: accountUuid,
+		UserId:    userUuid,
+	}).Return(int64(0), nil)
 }
 
 func mockVerifyTeamAccount(ctx context.Context, querierMock *db_queries.MockQuerier, accountUuid pgtype.UUID, isTeamAccount bool) {
