@@ -31,8 +31,6 @@ Neosync is a developer-first way to create anonymized, secure test data and sync
   <a href="https://docs.neosync.dev">Docs</a> - <a href="https://neosync.dev/slack">Community</a> - <a href="https://neosync.dev/roadmap">Roadmap</a> - <a href="https://neosync.dev/changelog">Changelog</a>
 </p> -->
 
-<strong>Heads up! This repo is still in development mode while we continue to build out the first stable version. In the mean-time, we'll happily accept PRs and support! </strong>
-
 ## Introduction
 
 ![neosync-data-flow](https://assets.nucleuscloud.com/neosync/readmeheader.svg)
@@ -51,12 +49,11 @@ Our mission is to help developers build better, more resilient applications whil
 - Anonymize existing production-data to protect data
 - Create subsets of your production database for local and CI testing by filtering on an object, id or custom query
 - Complete async pipeline that automatically handles job retries, failures and playback using an event-sourcing model
-- Complete referential integrity for your data automatically - never worry about broken foreign keys again
-- APIs and SDKs so you can build your own workflows to hydrate non-prod DBs
+- Referential integrity for your data automatically - never worry about broken foreign keys again
 - Use our declarative, GitOps based configs as a step in your CI pipeline to hydrate your CI DB
 - Pre-built transformers for all major data types
-- Define custom transformers in code to transform your data in any way you want
-- Pre-built integrations with Postgres, Mysql, Mongo, S3, Big Query, Snowflake and much more
+- Define custom transformers
+- Pre-built integrations with Postgres, Mysql, S3
 
 ## Table of Contents
 
@@ -189,15 +186,14 @@ The `make dbuild` command ensures that the Go binary is compiled for Linux inste
 
 This will need to be done for both the `worker` and `api` processes prior to running compose up.
 
-
 #### Running Compose
+
 ```
 $ docker compose -f temporal/compose.yml up -d
 $ docker compose -f compose.yml up -d
 ```
 
 Once everything is up and running, the app can be accessed locally at `http://localhost:3000`.
-
 
 Work to be done:
 
