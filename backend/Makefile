@@ -11,6 +11,10 @@ build: gen vet
 	hack/build.sh
 .PHONY: build
 
+dbuild: gen vet
+	GOOS=linux hack/build.sh
+.PHONY: dbuild
+
 run:
 	./bin/mgmt serve connect
 .PHONY: run

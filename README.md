@@ -180,12 +180,24 @@ To enable hot reloading, must run `docker compose watch` instead of `up`. Curren
 There are two compose files that need to be run today. The first is the Temporal compose, the second is the Neosync compose.
 It's suggested you run these separate (as of today) for a clean separation of concerns.
 
+#### Building the backend and worker when using Docker Compose.
+
+Prior to running `docker compose up -d`, the worker and api will need to be built.
+
+When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your native OS is not Linux.
+The `make dbuild` command ensures that the Go binary is compiled for Linux instead of the host os.
+
+This will need to be done for both the `worker` and `api` processes prior to running compose up.
+
+
+#### Running Compose
 ```
 $ docker compose -f temporal/compose.yml up -d
 $ docker compose -f compose.yml up -d
 ```
 
 Once everything is up and running, the app can be accessed locally at `http://localhost:3000`.
+
 
 Work to be done:
 
