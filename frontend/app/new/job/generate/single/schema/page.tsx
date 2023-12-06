@@ -48,7 +48,10 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { TransformerConfig } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
-import { toJobDestinationOptions } from '@/yup-validations/jobs';
+import {
+  TransformerFormValues,
+  toJobDestinationOptions,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
@@ -126,16 +129,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               (item) => item.column == r.column
             );
 
-            var pt = mappingTransformer?.transformer as {
-              source: string;
-              name: string;
-              config: {
-                config: {
-                  case?: string;
-                  value: {};
-                };
-              };
-            };
+            var pt = mappingTransformer?.transformer as TransformerFormValues;
             return {
               ...r,
               transformer: pt,

@@ -45,6 +45,7 @@ import {
   TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
+import { TransformerFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -327,11 +328,7 @@ function getJobSource(
     return {
       column: c.column,
       dataType: c.dataType,
-      transformer: transformer as {
-        name?: string | undefined;
-        source: string;
-        config: { config: { case?: string | undefined; value: {} } };
-      },
+      transformer: transformer as TransformerFormValues,
     };
   });
 
