@@ -61,6 +61,7 @@ import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { DATA_GEN_STEPS } from '../../../JobsProgressSteps';
 import {
   DefineFormValues,
+  JobMappingArrayFormValues,
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableConnectFormValues,
   SingleTableSchemaFormValues,
@@ -113,6 +114,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
+  const [allMappings, setAllMappings] = useState<JobMappingArrayFormValues>([]);
   async function getSchema(): Promise<SingleTableSchemaFormValues> {
     try {
       const res = await getConnectionSchema(connectFormValues.connectionId);
@@ -120,32 +122,37 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         return { mappings: [], numRows: 10, schema: '', table: '' };
       }
 
+      const allJobMappings = res.schemas.map((r) => {
+        return {
+          ...r,
+          transformer: new JobMappingTransformer({}) as TransformerFormValues,
+        };
+      });
+      setAllMappings(allJobMappings);
       if (schemaFormData.mappings.length > 0) {
         //pull values from default values for transformers if already set
         return {
           ...schemaFormData,
-          mappings: schemaFormData.mappings.map((r) => {
-            var pt = JobMappingTransformer.fromJson(
-              r.transformer
-            ) as TransformerFormValues;
-            return {
-              ...r,
-              transformer: pt,
-            };
-          }),
+          mappings: schemaFormData.mappings
+            .filter(
+              (r) =>
+                r.schema == schemaFormData.schema &&
+                r.table == schemaFormData.table
+            )
+            .map((r) => {
+              var pt = JobMappingTransformer.fromJson(
+                r.transformer
+              ) as TransformerFormValues;
+              return {
+                ...r,
+                transformer: pt,
+              };
+            }),
         };
       } else {
-        //return empty transformers because they haven't been set yet
         return {
           ...schemaFormData,
-          mappings: res.schemas.map((r) => {
-            return {
-              ...r,
-              transformer: new JobMappingTransformer(
-                {}
-              ) as TransformerFormValues,
-            };
-          }),
+          mappings: allMappings,
         };
       }
     } catch (err) {
@@ -209,11 +216,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   const formValues = form.watch();
-  const schemaTableData = formValues.mappings?.map((mapping) => ({
-    ...mapping,
-    schema: formValues.schema,
-    table: formValues.table,
-  }));
 
   const uniqueSchemas = Array.from(
     new Set(connSchemaData?.schemas.map((s) => s.schema))
@@ -308,6 +310,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     onValueChange={(value: string) => {
                       if (value) {
                         field.onChange(value);
+                        form.setValue(
+                          'mappings',
+                          allMappings.filter(
+                            (m) =>
+                              m.schema == formValues.schema && m.table == value
+                          )
+                        );
                       }
                     }}
                     value={field.value}
@@ -359,7 +368,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           />
 
           {formValues.schema && formValues.table && (
-            <SchemaTable data={schemaTableData} excludeInputReqTransformers />
+            <SchemaTable
+              data={formValues.mappings}
+              excludeInputReqTransformers
+            />
           )}
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
