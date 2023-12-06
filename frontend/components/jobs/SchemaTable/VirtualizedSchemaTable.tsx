@@ -477,15 +477,6 @@ function shouldFilterRow(
         }
       }
     }
-    // // todo: fix this
-    // const value =
-    //   key == 'transformer'
-    //     ? (row[key as 'transformer'].source as string)
-    //     : (row[key as keyof Row] as string);
-
-    // if (!filters.includes(value)) {
-    //   return false;
-    // }
   }
   return true;
 }
