@@ -103,7 +103,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const formKey = `${sessionPrefix}-new-job-single-table-schema`;
 
-  const [defaultValues] = useSessionStorage<SingleTableSchemaFormValues>(
+  const [schemaFormData] = useSessionStorage<SingleTableSchemaFormValues>(
     formKey,
     {
       mappings: [],
@@ -117,19 +117,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     try {
       const res = await getConnectionSchema(connectFormValues.connectionId);
       if (!res) {
-        return defaultValues;
+        return { mappings: [], numRows: 10, schema: '', table: '' };
       }
 
-      if (defaultValues.mappings.length > 0) {
+      if (schemaFormData.mappings.length > 0) {
         //pull values from default values for transformers if already set
         return {
-          ...defaultValues,
-          mappings: res.schemas.map((r) => {
-            const mappingTransformer = defaultValues.mappings.find(
-              (item) => item.column == r.column
-            );
-
-            var pt = mappingTransformer?.transformer as TransformerFormValues;
+          ...schemaFormData,
+          mappings: schemaFormData.mappings.map((r) => {
+            var pt = JobMappingTransformer.fromJson(
+              r.transformer
+            ) as TransformerFormValues;
             return {
               ...r,
               transformer: pt,
@@ -139,15 +137,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       } else {
         //return empty transformers because they haven't been set yet
         return {
-          ...defaultValues,
+          ...schemaFormData,
           mappings: res.schemas.map((r) => {
             return {
               ...r,
-              transformer: {
-                name: 'Select a Transformer', // revisit this in the future, we should be rendering the form errors instead, since a user can't set passthrough as an option here
-                source: '',
-                config: { config: { case: '', value: {} } },
-              },
+              transformer: new JobMappingTransformer(
+                {}
+              ) as TransformerFormValues,
             };
           }),
         };
@@ -159,7 +155,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         description: getErrorMessage(err),
         variant: 'destructive',
       });
-      return defaultValues;
+      return schemaFormData;
     }
   }
 
@@ -232,7 +228,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [rowNum, setRowNum] = useState<number>(
     form.getValues('numRows')
       ? form.getValues('numRows')
-      : defaultValues.numRows
+      : schemaFormData.numRows
   );
   const [rowNumError, setRowNumError] = useState<boolean>(false);
   useEffect(() => {
@@ -272,8 +268,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 <FormControl>
                   <Select
                     onValueChange={(value: string) => {
-                      field.onChange(value);
-                      form.setValue('table', ''); // reset the table value because it may no longer apply
+                      if (value) {
+                        field.onChange(value);
+                        form.setValue('table', ''); // reset the table value because it may no longer apply
+                      }
                     }}
                     value={field.value}
                   >
@@ -307,7 +305,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 <FormControl>
                   <Select
                     disabled={!formValues.schema}
-                    onValueChange={field.onChange}
+                    onValueChange={(value: string) => {
+                      if (value) {
+                        field.onChange(value);
+                      }
+                    }}
                     value={field.value}
                   >
                     <SelectTrigger>
