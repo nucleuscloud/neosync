@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { cn } from '@/libs/utils';
 import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { UserDefinedTransformerConfig } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import {
   Transformer,
   isSystemTransformer,
@@ -337,7 +338,7 @@ function VirtualizedSchemaList({
   // Memoize this data to avoid bypassing shouldComponentUpdate().
   const rowData = createRowData(rows, onSelect, onSelectAll, transformers);
   const uniqueFilters = useMemo(
-    () => getUniqueFilters(allRows, columnFilters),
+    () => getUniqueFilters(allRows, columnFilters, transformers),
     [allRows, columnFilters]
   );
 
@@ -507,34 +508,65 @@ function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
 function getUniqueFiltersByColumn(
   rows: Row[],
   columnFilters: ColumnFilters,
-  columnId: string
+  columnId: keyof Row,
+  transformers: Transformer[]
 ): string[] {
   const uniqueColFilters: Record<string, string> = {};
   const filteredRows = rows.filter((r) =>
     shouldFilterRow(r, columnFilters, columnId)
   );
   filteredRows.forEach((r) => {
-    const value = r[columnId as keyof Row] as string;
-    // const value =
-    //   columnId == 'transformer'
-    //     ? (r[columnId as 'transformer']?.name as string)
-    //     : (r[columnId as keyof Row] as string);
-    uniqueColFilters[value] = value;
+    // const value = r[columnId as keyof Row] as string;
+    switch (columnId) {
+      case 'transformer': {
+        const rowVal = r[columnId];
+        if (rowVal.source === 'custom') {
+          const udfId = (
+            rowVal.config.config.value as UserDefinedTransformerConfig
+          ).id;
+          const value =
+            transformers.find(
+              (t) => isUserDefinedTransformer(t) && t.id === udfId
+            )?.name ?? 'unknown transformer';
+          uniqueColFilters[value] = value;
+        } else {
+          const value =
+            transformers.find(
+              (t) => isSystemTransformer(t) && t.source === rowVal.source
+            )?.name ?? 'unknown transformer';
+          uniqueColFilters[value] = value;
+        }
+        break;
+      }
+      case 'isSelected': {
+        uniqueColFilters[r[columnId] ? 'true' : 'false'];
+        break;
+      }
+      default: {
+        const value = r[columnId] as string;
+        uniqueColFilters[value] = value;
+      }
+    }
   });
-
   return Object.keys(uniqueColFilters).sort();
 }
 
 function getUniqueFilters(
   rows: Row[],
-  columnFilters: ColumnFilters
+  columnFilters: ColumnFilters,
+  transformers: Transformer[]
 ): Record<string, string[]> {
   const filterSet: Record<string, string[]> = {
-    schema: getUniqueFiltersByColumn(rows, columnFilters, 'schema'),
-    table: getUniqueFiltersByColumn(rows, columnFilters, 'table'),
-    column: getUniqueFiltersByColumn(rows, columnFilters, 'column'),
-    dataType: getUniqueFiltersByColumn(rows, columnFilters, 'dataType'),
-    transformer: getUniqueFiltersByColumn(rows, columnFilters, 'transformer'),
+    schema: getUniqueFiltersByColumn(rows, columnFilters, 'schema', []),
+    table: getUniqueFiltersByColumn(rows, columnFilters, 'table', []),
+    column: getUniqueFiltersByColumn(rows, columnFilters, 'column', []),
+    dataType: getUniqueFiltersByColumn(rows, columnFilters, 'dataType', []),
+    transformer: getUniqueFiltersByColumn(
+      rows,
+      columnFilters,
+      'transformer',
+      transformers
+    ),
   };
   return filterSet;
 }
