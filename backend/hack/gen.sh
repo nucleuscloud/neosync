@@ -5,15 +5,15 @@ update_frontend_client() {
   rm -rf gen/es
 }
 
-# `buf format -w` writes to each file, so causes tilt to loop. instead we instruct buf
-# to just output the changes in diff format and apply those.
 BUF_VERSION=$(cat BUF_VERSION)
 SQLC_VERSION=$(cat SQLC_VERSION)
 
+# `buf format -w` writes to each file, so causes tilt to loop. instead we instruct buf
+# to just output the changes in diff format and apply those.
 docker run --rm -i \
-  --volume "./protos:/workspace" \
+  --volume "./protos:/workspace/protos" \
   --workdir "/workspace" \
-  "bufbuild/buf:${BUF_VERSION}" format -w
+  "bufbuild/buf:${BUF_VERSION}" format -d | patch --quiet
 
 # buf generate
 docker run --rm -i \
