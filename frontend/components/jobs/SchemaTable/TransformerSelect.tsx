@@ -178,10 +178,8 @@ function getPopoverTriggerButtonText(
   switch (value.config?.config.case) {
     case 'userDefinedTransformerConfig':
       const id = value.config.config.value.id;
-      return udfTransformerMap.get(id)?.name ?? 'unknown transformer';
+      return udfTransformerMap.get(id)?.name ?? placeholder;
     default:
-      return (
-        systemTransformerMap.get(value.source)?.name ?? 'unknown transformer'
-      );
+      return systemTransformerMap.get(value.source)?.name ?? placeholder;
   }
 }
