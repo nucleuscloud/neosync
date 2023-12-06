@@ -84,7 +84,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
             </Button>
           </div>
           <Table className="pt-5">
-            <TableHeader className="bg-gray-100">
+            <TableHeader className="bg-gray-100 dark:bg-gray-800">
               <TableRow>
                 <TableHead>Run Id</TableHead>
                 <TableHead>Start At</TableHead>

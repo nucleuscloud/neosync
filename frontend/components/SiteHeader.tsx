@@ -6,6 +6,7 @@ import Link from 'next/link';
 import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
+import { ModeToggle } from './ModeToggle';
 import { UserNav } from './UserNav';
 import { buttonVariants } from './ui/button';
 
@@ -18,7 +19,7 @@ export default function SiteHeader() {
     'p-0 px-2'
   );
   return (
-    <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+    <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b dark:border-b-gray-700 bg-background/95 backdrop-blur">
       <div className="container flex h-14 items-center">
         <MainNav />
         <MobileNav />
@@ -45,7 +46,7 @@ export default function SiteHeader() {
                 <span className="sr-only">Twitter</span>
               </div>
             </Link>
-            {/* <ModeToggle /> */}
+            <ModeToggle />
             <UserNav />
           </nav>
         </div>

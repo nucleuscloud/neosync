@@ -110,7 +110,7 @@ export const VirtualizedTree = ({ data, onNodeSelect }: TreeProps) => {
     <AutoSizer>
       {({ height, width }) => (
         <List
-          className="border rounded-md"
+          className="border rounded-md dark:border-gray-700"
           height={height}
           itemCount={nodes.length}
           itemSize={38}

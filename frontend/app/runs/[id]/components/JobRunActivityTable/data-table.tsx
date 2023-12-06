@@ -76,7 +76,7 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
     <div className="space-y-4">
       <div className="rounded-md border">
         <Table>
-          <TableHeader className="bg-gray-100">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
