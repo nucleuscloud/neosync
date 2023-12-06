@@ -447,7 +447,6 @@ function shouldFilterRow(
     switch (key) {
       case 'transformer': {
         const rowVal = row[key as keyof Row] as JobMappingTransformer;
-        const value = rowVal.source;
         if (rowVal.source === 'custom') {
           const udfId = (
             rowVal.config?.config.value as UserDefinedTransformerConfig
