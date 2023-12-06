@@ -19,7 +19,7 @@ The first step to defining your replication process is to define your source dat
 
 Next, you'll want to define a new job. [Jobs](/platform#jobs) are async workflows that replicate data from one source to multiple destinations. In the job config, you'll want to define the schedule that you want to the job to run on. This can be on any cadence and Neosync will execute it accordingly.
 
-Next, you'll want to define the schema and mappings. If you're using Neosync simply as a replication engine then you can just leave everything as "Passthrough". This means that we won't transform the data in any way and instead just **pass** the value through.
+Next, you'll want to define the schema and mappings. If you're using Neosync simply as a replication engine then you can just leave everything as **Passthrough**. This means that we won't transform the data in any way and instead just **pass** the value **through**.
 
 Lastly, you'll want to define subsetting rules if there are any. [Subsetting](/platform#subset) allows you to **select** (no pun intended) a subset of data from your source data set and send it to a destination. This makes it easy to reduce the size of the dataset, filter the dataset using a specific `WHERE` clause and do much more.
 
