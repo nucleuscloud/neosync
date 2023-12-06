@@ -1,8 +1,8 @@
 ---
-title: References
-id: reference
+title: System Transformers
+id: system
 hide_title: true
-slug: /transformers/system/reference
+slug: /transformers/system
 ---
 
 import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
@@ -559,7 +559,7 @@ Here are some examples of an output card number:
 
 The generate city transformers generates a randomly selected US city. You can see the complete list of cities that are available to be randomly selected [here](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
-If you'd rather not get back a real city value, you can use the [Generate Random String Transformer](/transformers/system/reference#generate-random-string) to generate a random string value.
+If you'd rather not get back a real city value, you can use the [Generate Random String Transformer](/transformers/system#generate-random-string) to generate a random string value.
 
 **Configurations**
 
@@ -587,7 +587,7 @@ The generate e164 phone transformer generates a new international phone number i
 
 `+34567890123`
 
-TPhone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to be a certain length by passing in the `length` configuration. Here is more information on the [e164 format](https://www.twilio.com/docs/glossary/what-e164). This transformer also has a min of 9 and a max of 15. If you want to generate a number that is longer than that, you can use the [Generate Random int64 transformer](/transformers/system/reference#generate-random-int64)
+TPhone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to be a certain length by passing in the `length` configuration. Here is more information on the [e164 format](https://www.twilio.com/docs/glossary/what-e164). This transformer also has a min of 9 and a max of 15. If you want to generate a number that is longer than that, you can use the [Generate Random int64 transformer](/transformers/system#generate-random-int64)
 
 **Configurations**
 
@@ -777,7 +777,7 @@ Here are some examples of what an output full address value may look like.
 
 ### Generate Full Name{#generate-full-name}
 
-The generate full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/reference#generate-first-name) and [last](/transformers/system/reference#generate-last-name) names transformers.
+The generate full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system#generate-first-name) and [last](/transformers/system#generate-last-name) names transformers.
 
 **Configurations**
 
@@ -872,7 +872,7 @@ There are several ways you can mix-and-match configurations to get different ful
 
 ### Generate Int64 Phone Number{#generate-int64-phone-number}
 
-The generate int64 phone number generates a random 10 digit phone number and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system/reference#generate-string-phone-number).
+The generate int64 phone number generates a random 10 digit phone number and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system#generate-string-phone-number).
 
 For example, the generate int64 phone number transformer could generate the following ouput value:
 `5698437232`
@@ -1056,7 +1056,7 @@ Here are some examples of what an output street address value may look like.
 
 The generate state transformer generates a randomly selected US state. You can see the complete list of states that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
-If you'd rather not get back a real state value, you can use the [Random String Transformer](/transformers/system/reference#generate-random-string) to generate a random string value.
+If you'd rather not get back a real state value, you can use the [Random String Transformer](/transformers/system#generate-random-string) to generate a random string value.
 
 **Configurations**
 
@@ -1238,7 +1238,7 @@ Here are some examples of what an output state value may look like.
 
 ### Generate Username{#generate-username}
 
-The generate username transformer generates a random string in the format of `<first_initial><last_name>`. The last names are pulled from the last name transformer(/transformers/system/reference#generate-last-name).
+The generate username transformer generates a random string in the format of `<first_initial><last_name>`. The last names are pulled from the last name transformer(/transformers/system#generate-last-name).
 
 **Configurations**
 
@@ -1346,7 +1346,7 @@ Here are some example UUID values that the uuid transformer can generate:
 
 The generate zipcode transformer generates a randomly selected US zipcode. You can see the complete list of zipcodes that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
-If you'd rather not get back a real zipcode value, you can use the [Random String Transformer](/transformers/system/reference#generate-random-string) to generate a random string value.
+If you'd rather not get back a real zipcode value, you can use the [Random String Transformer](/transformers/system#generate-random-string) to generate a random string value.
 
 **Configurations**
 
@@ -1537,7 +1537,7 @@ There are several ways you can mix-and-match configurations to get different pot
 
 ### Transform Full Name{#transform-full-name}
 
-The transform full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system/reference#generate-first-name) and [last](/transformers/system/reference#generate-last-name) names transformers.
+The transform full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system#generate-first-name) and [last](/transformers/system#generate-last-name) names transformers.
 
 By default, the full name transformer generates a full name of random length. To preserve the length of the input full name, you can set the `preserveLength` config.
 

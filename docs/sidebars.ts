@@ -169,17 +169,9 @@ const sidebars: SidebarsConfig = {
       label: 'Introduction',
     },
     {
-      type: 'category',
+      type: 'doc',
+      id: 'transformers/system',
       label: 'System',
-      collapsible: true,
-      collapsed: true,
-      items: [
-        {
-          type: 'doc',
-          id: 'transformers/system/reference',
-          label: 'Reference',
-        },
-      ],
     },
     {
       type: 'doc',
