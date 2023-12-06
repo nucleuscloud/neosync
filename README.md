@@ -187,6 +187,11 @@ $ docker compose -f compose.yml up -d
 
 Once everything is up and running, the app can be accessed locally at `http://localhost:3000`.
 
+#### Building the backend and worker when using Docker Compose.
+
+When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your native OS is not Linux.
+The `make dbuild` command ensures that the Go binary is compiled for Linux instead of the host os.
+
 Work to be done:
 
 - inherit the temporal compose inside of the neosync compose, separate with compose profiles.

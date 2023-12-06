@@ -13,6 +13,10 @@ build: vet ## Build and grpc gateway
 	hack/build.sh
 .PHONY: build
 
+dbuild: vet
+	GOOS=linux hack/build.sh
+.PHONY: dbuild
+
 run:
 	./bin/sync serve
 .PHONY: run
