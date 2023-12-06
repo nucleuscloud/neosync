@@ -55,6 +55,10 @@ this is the class for the sidebar categories that section headers
   @apply no-underline;
 }
 
+.navbar__items {
+  @apply no-underline;
+}
+
 @layer components {
   .navbar {
     @apply py-[16px] mx-[40px] shadow-none border-b border-gray-200;
