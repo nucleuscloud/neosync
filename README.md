@@ -24,8 +24,7 @@ Neosync is a developer-first way to create anonymized, secure test data and sync
     </a>
       <a href="https://x.com/neosynccloud">
     <img alt="Follow X" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
-   <img alt="Roadmap" src="https://img.shields.io/badge/project%20roadmap-73C649
-"/>
+   <img alt="Roadmap" src="https://img.shields.io/badge/project%20roadmap-73C649"/>
 
     https://github.com/orgs/nucleuscloud/projects/5
 
