@@ -28,6 +28,10 @@ func (_m *MockQuerier) EXPECT() *MockQuerier_Expecter {
 func (_m *MockQuerier) CreateAccountApiKey(ctx context.Context, db DBTX, arg CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAccountApiKey")
+	}
+
 	var r0 NeosyncApiAccountApiKey
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error)); ok {
@@ -81,6 +85,10 @@ func (_c *MockQuerier_CreateAccountApiKey_Call) RunAndReturn(run func(context.Co
 // CreateAccountInvite provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateAccountInvite(ctx context.Context, db DBTX, arg CreateAccountInviteParams) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAccountInvite")
+	}
 
 	var r0 NeosyncApiAccountInvite
 	var r1 error
@@ -136,6 +144,10 @@ func (_c *MockQuerier_CreateAccountInvite_Call) RunAndReturn(run func(context.Co
 func (_m *MockQuerier) CreateAccountUserAssociation(ctx context.Context, db DBTX, arg CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAccountUserAssociation")
+	}
+
 	var r0 NeosyncApiAccountUserAssociation
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)); ok {
@@ -189,6 +201,10 @@ func (_c *MockQuerier_CreateAccountUserAssociation_Call) RunAndReturn(run func(c
 // CreateAuth0IdentityProviderAssociation provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateAuth0IdentityProviderAssociation(ctx context.Context, db DBTX, arg CreateAuth0IdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAuth0IdentityProviderAssociation")
+	}
 
 	var r0 NeosyncApiUserIdentityProviderAssociation
 	var r1 error
@@ -244,6 +260,10 @@ func (_c *MockQuerier_CreateAuth0IdentityProviderAssociation_Call) RunAndReturn(
 func (_m *MockQuerier) CreateConnection(ctx context.Context, db DBTX, arg CreateConnectionParams) (NeosyncApiConnection, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateConnection")
+	}
+
 	var r0 NeosyncApiConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateConnectionParams) (NeosyncApiConnection, error)); ok {
@@ -297,6 +317,10 @@ func (_c *MockQuerier_CreateConnection_Call) RunAndReturn(run func(context.Conte
 // CreateJob provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJob")
+	}
 
 	var r0 NeosyncApiJob
 	var r1 error
@@ -352,6 +376,10 @@ func (_c *MockQuerier_CreateJob_Call) RunAndReturn(run func(context.Context, DBT
 func (_m *MockQuerier) CreateJobConnectionDestination(ctx context.Context, db DBTX, arg CreateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJobConnectionDestination")
+	}
+
 	var r0 NeosyncApiJobDestinationConnectionAssociation
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error)); ok {
@@ -405,6 +433,10 @@ func (_c *MockQuerier_CreateJobConnectionDestination_Call) RunAndReturn(run func
 // CreateJobConnectionDestinations provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateJobConnectionDestinations(ctx context.Context, db DBTX, arg []CreateJobConnectionDestinationsParams) (int64, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJobConnectionDestinations")
+	}
 
 	var r0 int64
 	var r1 error
@@ -460,6 +492,10 @@ func (_c *MockQuerier_CreateJobConnectionDestinations_Call) RunAndReturn(run fun
 func (_m *MockQuerier) CreateMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
 	ret := _m.Called(ctx, db)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateMachineUser")
+	}
+
 	var r0 NeosyncApiUser
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX) (NeosyncApiUser, error)); ok {
@@ -513,6 +549,10 @@ func (_c *MockQuerier_CreateMachineUser_Call) RunAndReturn(run func(context.Cont
 func (_m *MockQuerier) CreateNonMachineUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
 	ret := _m.Called(ctx, db)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateNonMachineUser")
+	}
+
 	var r0 NeosyncApiUser
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX) (NeosyncApiUser, error)); ok {
@@ -565,6 +605,10 @@ func (_c *MockQuerier_CreateNonMachineUser_Call) RunAndReturn(run func(context.C
 // CreatePersonalAccount provides a mock function with given fields: ctx, db, accountSlug
 func (_m *MockQuerier) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, accountSlug)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreatePersonalAccount")
+	}
 
 	var r0 NeosyncApiAccount
 	var r1 error
@@ -620,6 +664,10 @@ func (_c *MockQuerier_CreatePersonalAccount_Call) RunAndReturn(run func(context.
 func (_m *MockQuerier) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, accountSlug)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateTeamAccount")
+	}
+
 	var r0 NeosyncApiAccount
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) (NeosyncApiAccount, error)); ok {
@@ -673,6 +721,10 @@ func (_c *MockQuerier_CreateTeamAccount_Call) RunAndReturn(run func(context.Cont
 // CreateUserDefinedTransformer provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateUserDefinedTransformer(ctx context.Context, db DBTX, arg CreateUserDefinedTransformerParams) (NeosyncApiTransformer, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateUserDefinedTransformer")
+	}
 
 	var r0 NeosyncApiTransformer
 	var r1 error
@@ -728,6 +780,10 @@ func (_c *MockQuerier_CreateUserDefinedTransformer_Call) RunAndReturn(run func(c
 func (_m *MockQuerier) DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteJob")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
 		r0 = rf(ctx, db, id)
@@ -772,6 +828,10 @@ func (_c *MockQuerier_DeleteJob_Call) RunAndReturn(run func(context.Context, DBT
 func (_m *MockQuerier) DeleteUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteUserDefinedTransformerById")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
 		r0 = rf(ctx, db, id)
@@ -815,6 +875,10 @@ func (_c *MockQuerier_DeleteUserDefinedTransformerById_Call) RunAndReturn(run fu
 // GetAccount provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccount")
+	}
 
 	var r0 NeosyncApiAccount
 	var r1 error
@@ -870,6 +934,10 @@ func (_c *MockQuerier_GetAccount_Call) RunAndReturn(run func(context.Context, DB
 func (_m *MockQuerier) GetAccountApiKeyById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountApiKey, error) {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountApiKeyById")
+	}
+
 	var r0 NeosyncApiAccountApiKey
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountApiKey, error)); ok {
@@ -924,6 +992,10 @@ func (_c *MockQuerier_GetAccountApiKeyById_Call) RunAndReturn(run func(context.C
 func (_m *MockQuerier) GetAccountApiKeyByKeyValue(ctx context.Context, db DBTX, keyValue string) (NeosyncApiAccountApiKey, error) {
 	ret := _m.Called(ctx, db, keyValue)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountApiKeyByKeyValue")
+	}
+
 	var r0 NeosyncApiAccountApiKey
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) (NeosyncApiAccountApiKey, error)); ok {
@@ -977,6 +1049,10 @@ func (_c *MockQuerier_GetAccountApiKeyByKeyValue_Call) RunAndReturn(run func(con
 // GetAccountApiKeys provides a mock function with given fields: ctx, db, accountid
 func (_m *MockQuerier) GetAccountApiKeys(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiAccountApiKey, error) {
 	ret := _m.Called(ctx, db, accountid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountApiKeys")
+	}
 
 	var r0 []NeosyncApiAccountApiKey
 	var r1 error
@@ -1034,6 +1110,10 @@ func (_c *MockQuerier_GetAccountApiKeys_Call) RunAndReturn(run func(context.Cont
 func (_m *MockQuerier) GetAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountInvite")
+	}
+
 	var r0 NeosyncApiAccountInvite
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountInvite, error)); ok {
@@ -1087,6 +1167,10 @@ func (_c *MockQuerier_GetAccountInvite_Call) RunAndReturn(run func(context.Conte
 // GetAccountInviteByToken provides a mock function with given fields: ctx, db, token
 func (_m *MockQuerier) GetAccountInviteByToken(ctx context.Context, db DBTX, token string) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountInviteByToken")
+	}
 
 	var r0 NeosyncApiAccountInvite
 	var r1 error
@@ -1142,6 +1226,10 @@ func (_c *MockQuerier_GetAccountInviteByToken_Call) RunAndReturn(run func(contex
 func (_m *MockQuerier) GetAccountUserAssociation(ctx context.Context, db DBTX, arg GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountUserAssociation")
+	}
+
 	var r0 NeosyncApiAccountUserAssociation
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error)); ok {
@@ -1195,6 +1283,10 @@ func (_c *MockQuerier_GetAccountUserAssociation_Call) RunAndReturn(run func(cont
 // GetAccountsByUser provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountsByUser")
+	}
 
 	var r0 []NeosyncApiAccount
 	var r1 error
@@ -1252,6 +1344,10 @@ func (_c *MockQuerier_GetAccountsByUser_Call) RunAndReturn(run func(context.Cont
 func (_m *MockQuerier) GetActiveAccountInvites(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, accountid)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetActiveAccountInvites")
+	}
+
 	var r0 []NeosyncApiAccountInvite
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccountInvite, error)); ok {
@@ -1308,6 +1404,10 @@ func (_c *MockQuerier_GetActiveAccountInvites_Call) RunAndReturn(run func(contex
 func (_m *MockQuerier) GetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
 	ret := _m.Called(ctx, db)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetAnonymousUser")
+	}
+
 	var r0 NeosyncApiUser
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX) (NeosyncApiUser, error)); ok {
@@ -1360,6 +1460,10 @@ func (_c *MockQuerier_GetAnonymousUser_Call) RunAndReturn(run func(context.Conte
 // GetConnectionById provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetConnectionById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiConnection, error) {
 	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnectionById")
+	}
 
 	var r0 NeosyncApiConnection
 	var r1 error
@@ -1415,6 +1519,10 @@ func (_c *MockQuerier_GetConnectionById_Call) RunAndReturn(run func(context.Cont
 func (_m *MockQuerier) GetConnectionByNameAndAccount(ctx context.Context, db DBTX, arg GetConnectionByNameAndAccountParams) (NeosyncApiConnection, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnectionByNameAndAccount")
+	}
+
 	var r0 NeosyncApiConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, GetConnectionByNameAndAccountParams) (NeosyncApiConnection, error)); ok {
@@ -1468,6 +1576,10 @@ func (_c *MockQuerier_GetConnectionByNameAndAccount_Call) RunAndReturn(run func(
 // GetConnectionsByAccount provides a mock function with given fields: ctx, db, accountid
 func (_m *MockQuerier) GetConnectionsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiConnection, error) {
 	ret := _m.Called(ctx, db, accountid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnectionsByAccount")
+	}
 
 	var r0 []NeosyncApiConnection
 	var r1 error
@@ -1525,6 +1637,10 @@ func (_c *MockQuerier_GetConnectionsByAccount_Call) RunAndReturn(run func(contex
 func (_m *MockQuerier) GetConnectionsByIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiConnection, error) {
 	ret := _m.Called(ctx, db, dollar_1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnectionsByIds")
+	}
+
 	var r0 []NeosyncApiConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []pgtype.UUID) ([]NeosyncApiConnection, error)); ok {
@@ -1581,6 +1697,10 @@ func (_c *MockQuerier_GetConnectionsByIds_Call) RunAndReturn(run func(context.Co
 func (_m *MockQuerier) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobById")
+	}
+
 	var r0 NeosyncApiJob
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiJob, error)); ok {
@@ -1634,6 +1754,10 @@ func (_c *MockQuerier_GetJobById_Call) RunAndReturn(run func(context.Context, DB
 // GetJobByNameAndAccount provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) GetJobByNameAndAccount(ctx context.Context, db DBTX, arg GetJobByNameAndAccountParams) (NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobByNameAndAccount")
+	}
 
 	var r0 NeosyncApiJob
 	var r1 error
@@ -1689,6 +1813,10 @@ func (_c *MockQuerier_GetJobByNameAndAccount_Call) RunAndReturn(run func(context
 func (_m *MockQuerier) GetJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJobDestinationConnectionAssociation, error) {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobConnectionDestination")
+	}
+
 	var r0 NeosyncApiJobDestinationConnectionAssociation
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiJobDestinationConnectionAssociation, error)); ok {
@@ -1742,6 +1870,10 @@ func (_c *MockQuerier_GetJobConnectionDestination_Call) RunAndReturn(run func(co
 // GetJobConnectionDestinations provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetJobConnectionDestinations(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error) {
 	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobConnectionDestinations")
+	}
 
 	var r0 []NeosyncApiJobDestinationConnectionAssociation
 	var r1 error
@@ -1799,6 +1931,10 @@ func (_c *MockQuerier_GetJobConnectionDestinations_Call) RunAndReturn(run func(c
 func (_m *MockQuerier) GetJobConnectionDestinationsByJobIds(ctx context.Context, db DBTX, jobids []pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error) {
 	ret := _m.Called(ctx, db, jobids)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobConnectionDestinationsByJobIds")
+	}
+
 	var r0 []NeosyncApiJobDestinationConnectionAssociation
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error)); ok {
@@ -1854,6 +1990,10 @@ func (_c *MockQuerier_GetJobConnectionDestinationsByJobIds_Call) RunAndReturn(ru
 // GetJobsByAccount provides a mock function with given fields: ctx, db, accountid
 func (_m *MockQuerier) GetJobsByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, accountid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobsByAccount")
+	}
 
 	var r0 []NeosyncApiJob
 	var r1 error
@@ -1911,6 +2051,10 @@ func (_c *MockQuerier_GetJobsByAccount_Call) RunAndReturn(run func(context.Conte
 func (_m *MockQuerier) GetPersonalAccountByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, userid)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetPersonalAccountByUserId")
+	}
+
 	var r0 NeosyncApiAccount
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccount, error)); ok {
@@ -1964,6 +2108,10 @@ func (_c *MockQuerier_GetPersonalAccountByUserId_Call) RunAndReturn(run func(con
 // GetTeamAccountsByUserId provides a mock function with given fields: ctx, db, userid
 func (_m *MockQuerier) GetTeamAccountsByUserId(ctx context.Context, db DBTX, userid pgtype.UUID) ([]NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, userid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamAccountsByUserId")
+	}
 
 	var r0 []NeosyncApiAccount
 	var r1 error
@@ -2021,6 +2169,10 @@ func (_c *MockQuerier_GetTeamAccountsByUserId_Call) RunAndReturn(run func(contex
 func (_m *MockQuerier) GetTemporalConfigByAccount(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.TemporalConfig, error) {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetTemporalConfigByAccount")
+	}
+
 	var r0 *pg_models.TemporalConfig
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (*pg_models.TemporalConfig, error)); ok {
@@ -2076,6 +2228,10 @@ func (_c *MockQuerier_GetTemporalConfigByAccount_Call) RunAndReturn(run func(con
 // GetTemporalConfigByUserAccount provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) GetTemporalConfigByUserAccount(ctx context.Context, db DBTX, arg GetTemporalConfigByUserAccountParams) (*pg_models.TemporalConfig, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTemporalConfigByUserAccount")
+	}
 
 	var r0 *pg_models.TemporalConfig
 	var r1 error
@@ -2133,6 +2289,10 @@ func (_c *MockQuerier_GetTemporalConfigByUserAccount_Call) RunAndReturn(run func
 func (_m *MockQuerier) GetUser(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiUser, error) {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetUser")
+	}
+
 	var r0 NeosyncApiUser
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiUser, error)); ok {
@@ -2186,6 +2346,10 @@ func (_c *MockQuerier_GetUser_Call) RunAndReturn(run func(context.Context, DBTX,
 // GetUserAssociationByAuth0Id provides a mock function with given fields: ctx, db, auth0ProviderID
 func (_m *MockQuerier) GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUserIdentityProviderAssociation, error) {
 	ret := _m.Called(ctx, db, auth0ProviderID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserAssociationByAuth0Id")
+	}
 
 	var r0 NeosyncApiUserIdentityProviderAssociation
 	var r1 error
@@ -2241,6 +2405,10 @@ func (_c *MockQuerier_GetUserAssociationByAuth0Id_Call) RunAndReturn(run func(co
 func (_m *MockQuerier) GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error) {
 	ret := _m.Called(ctx, db, auth0ProviderID)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByAuth0Id")
+	}
+
 	var r0 NeosyncApiUser
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) (NeosyncApiUser, error)); ok {
@@ -2295,6 +2463,10 @@ func (_c *MockQuerier_GetUserByAuth0Id_Call) RunAndReturn(run func(context.Conte
 func (_m *MockQuerier) GetUserDefinedTransformerById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiTransformer, error) {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserDefinedTransformerById")
+	}
+
 	var r0 NeosyncApiTransformer
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiTransformer, error)); ok {
@@ -2348,6 +2520,10 @@ func (_c *MockQuerier_GetUserDefinedTransformerById_Call) RunAndReturn(run func(
 // GetUserDefinedTransformersByAccount provides a mock function with given fields: ctx, db, accountid
 func (_m *MockQuerier) GetUserDefinedTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
 	ret := _m.Called(ctx, db, accountid)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserDefinedTransformersByAccount")
+	}
 
 	var r0 []NeosyncApiTransformer
 	var r1 error
@@ -2405,6 +2581,10 @@ func (_c *MockQuerier_GetUserDefinedTransformersByAccount_Call) RunAndReturn(run
 func (_m *MockQuerier) GetUserIdentitiesByTeamAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error) {
 	ret := _m.Called(ctx, db, accountid)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserIdentitiesByTeamAccount")
+	}
+
 	var r0 []NeosyncApiUserIdentityProviderAssociation
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error)); ok {
@@ -2460,6 +2640,10 @@ func (_c *MockQuerier_GetUserIdentitiesByTeamAccount_Call) RunAndReturn(run func
 // GetUserIdentityAssociationsByUserIds provides a mock function with given fields: ctx, db, dollar_1
 func (_m *MockQuerier) GetUserIdentityAssociationsByUserIds(ctx context.Context, db DBTX, dollar_1 []pgtype.UUID) ([]NeosyncApiUserIdentityProviderAssociation, error) {
 	ret := _m.Called(ctx, db, dollar_1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserIdentityAssociationsByUserIds")
+	}
 
 	var r0 []NeosyncApiUserIdentityProviderAssociation
 	var r1 error
@@ -2517,6 +2701,10 @@ func (_c *MockQuerier_GetUserIdentityAssociationsByUserIds_Call) RunAndReturn(ru
 func (_m *MockQuerier) GetUserIdentityByUserId(ctx context.Context, db DBTX, userID pgtype.UUID) (NeosyncApiUserIdentityProviderAssociation, error) {
 	ret := _m.Called(ctx, db, userID)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserIdentityByUserId")
+	}
+
 	var r0 NeosyncApiUserIdentityProviderAssociation
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiUserIdentityProviderAssociation, error)); ok {
@@ -2570,6 +2758,10 @@ func (_c *MockQuerier_GetUserIdentityByUserId_Call) RunAndReturn(run func(contex
 // IsConnectionInAccount provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) IsConnectionInAccount(ctx context.Context, db DBTX, arg IsConnectionInAccountParams) (int64, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsConnectionInAccount")
+	}
 
 	var r0 int64
 	var r1 error
@@ -2625,6 +2817,10 @@ func (_c *MockQuerier_IsConnectionInAccount_Call) RunAndReturn(run func(context.
 func (_m *MockQuerier) IsConnectionNameAvailable(ctx context.Context, db DBTX, arg IsConnectionNameAvailableParams) (int64, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for IsConnectionNameAvailable")
+	}
+
 	var r0 int64
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, IsConnectionNameAvailableParams) (int64, error)); ok {
@@ -2678,6 +2874,10 @@ func (_c *MockQuerier_IsConnectionNameAvailable_Call) RunAndReturn(run func(cont
 // IsJobNameAvailable provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) IsJobNameAvailable(ctx context.Context, db DBTX, arg IsJobNameAvailableParams) (int64, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsJobNameAvailable")
+	}
 
 	var r0 int64
 	var r1 error
@@ -2733,6 +2933,10 @@ func (_c *MockQuerier_IsJobNameAvailable_Call) RunAndReturn(run func(context.Con
 func (_m *MockQuerier) IsTransformerNameAvailable(ctx context.Context, db DBTX, arg IsTransformerNameAvailableParams) (int64, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for IsTransformerNameAvailable")
+	}
+
 	var r0 int64
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, IsTransformerNameAvailableParams) (int64, error)); ok {
@@ -2786,6 +2990,10 @@ func (_c *MockQuerier_IsTransformerNameAvailable_Call) RunAndReturn(run func(con
 // IsUserInAccount provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) IsUserInAccount(ctx context.Context, db DBTX, arg IsUserInAccountParams) (int64, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsUserInAccount")
+	}
 
 	var r0 int64
 	var r1 error
@@ -2841,6 +3049,10 @@ func (_c *MockQuerier_IsUserInAccount_Call) RunAndReturn(run func(context.Contex
 func (_m *MockQuerier) IsUserInAccountApiKey(ctx context.Context, db DBTX, arg IsUserInAccountApiKeyParams) (int64, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for IsUserInAccountApiKey")
+	}
+
 	var r0 int64
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, IsUserInAccountApiKeyParams) (int64, error)); ok {
@@ -2895,6 +3107,10 @@ func (_c *MockQuerier_IsUserInAccountApiKey_Call) RunAndReturn(run func(context.
 func (_m *MockQuerier) RemoveAccountApiKey(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveAccountApiKey")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
 		r0 = rf(ctx, db, id)
@@ -2938,6 +3154,10 @@ func (_c *MockQuerier_RemoveAccountApiKey_Call) RunAndReturn(run func(context.Co
 // RemoveAccountInvite provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) RemoveAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveAccountInvite")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
@@ -2983,6 +3203,10 @@ func (_c *MockQuerier_RemoveAccountInvite_Call) RunAndReturn(run func(context.Co
 func (_m *MockQuerier) RemoveAccountUser(ctx context.Context, db DBTX, arg RemoveAccountUserParams) error {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveAccountUser")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, RemoveAccountUserParams) error); ok {
 		r0 = rf(ctx, db, arg)
@@ -3026,6 +3250,10 @@ func (_c *MockQuerier_RemoveAccountUser_Call) RunAndReturn(run func(context.Cont
 // RemoveConnectionById provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) RemoveConnectionById(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveConnectionById")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
@@ -3071,6 +3299,10 @@ func (_c *MockQuerier_RemoveConnectionById_Call) RunAndReturn(run func(context.C
 func (_m *MockQuerier) RemoveConnectionByNameAndAccount(ctx context.Context, db DBTX, arg RemoveConnectionByNameAndAccountParams) error {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveConnectionByNameAndAccount")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, RemoveConnectionByNameAndAccountParams) error); ok {
 		r0 = rf(ctx, db, arg)
@@ -3114,6 +3346,10 @@ func (_c *MockQuerier_RemoveConnectionByNameAndAccount_Call) RunAndReturn(run fu
 // RemoveJobById provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) RemoveJobById(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveJobById")
+	}
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
@@ -3159,6 +3395,10 @@ func (_c *MockQuerier_RemoveJobById_Call) RunAndReturn(run func(context.Context,
 func (_m *MockQuerier) RemoveJobConnectionDestination(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveJobConnectionDestination")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) error); ok {
 		r0 = rf(ctx, db, id)
@@ -3203,6 +3443,10 @@ func (_c *MockQuerier_RemoveJobConnectionDestination_Call) RunAndReturn(run func
 func (_m *MockQuerier) RemoveJobConnectionDestinations(ctx context.Context, db DBTX, jobids []pgtype.UUID) error {
 	ret := _m.Called(ctx, db, jobids)
 
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveJobConnectionDestinations")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []pgtype.UUID) error); ok {
 		r0 = rf(ctx, db, jobids)
@@ -3246,6 +3490,10 @@ func (_c *MockQuerier_RemoveJobConnectionDestinations_Call) RunAndReturn(run fun
 // SetAnonymousUser provides a mock function with given fields: ctx, db
 func (_m *MockQuerier) SetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser, error) {
 	ret := _m.Called(ctx, db)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetAnonymousUser")
+	}
 
 	var r0 NeosyncApiUser
 	var r1 error
@@ -3299,6 +3547,10 @@ func (_c *MockQuerier_SetAnonymousUser_Call) RunAndReturn(run func(context.Conte
 // UpdateAccountApiKeyValue provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateAccountApiKeyValue(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAccountApiKeyValue")
+	}
 
 	var r0 NeosyncApiAccountApiKey
 	var r1 error
@@ -3354,6 +3606,10 @@ func (_c *MockQuerier_UpdateAccountApiKeyValue_Call) RunAndReturn(run func(conte
 func (_m *MockQuerier) UpdateAccountInviteToAccepted(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAccountInviteToAccepted")
+	}
+
 	var r0 NeosyncApiAccountInvite
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountInvite, error)); ok {
@@ -3407,6 +3663,10 @@ func (_c *MockQuerier_UpdateAccountInviteToAccepted_Call) RunAndReturn(run func(
 // UpdateActiveAccountInvitesToExpired provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateActiveAccountInvitesToExpired(ctx context.Context, db DBTX, arg UpdateActiveAccountInvitesToExpiredParams) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateActiveAccountInvitesToExpired")
+	}
 
 	var r0 NeosyncApiAccountInvite
 	var r1 error
@@ -3462,6 +3722,10 @@ func (_c *MockQuerier_UpdateActiveAccountInvitesToExpired_Call) RunAndReturn(run
 func (_m *MockQuerier) UpdateConnection(ctx context.Context, db DBTX, arg UpdateConnectionParams) (NeosyncApiConnection, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateConnection")
+	}
+
 	var r0 NeosyncApiConnection
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateConnectionParams) (NeosyncApiConnection, error)); ok {
@@ -3515,6 +3779,10 @@ func (_c *MockQuerier_UpdateConnection_Call) RunAndReturn(run func(context.Conte
 // UpdateJobConnectionDestination provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateJobConnectionDestination(ctx context.Context, db DBTX, arg UpdateJobConnectionDestinationParams) (NeosyncApiJobDestinationConnectionAssociation, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobConnectionDestination")
+	}
 
 	var r0 NeosyncApiJobDestinationConnectionAssociation
 	var r1 error
@@ -3570,6 +3838,10 @@ func (_c *MockQuerier_UpdateJobConnectionDestination_Call) RunAndReturn(run func
 func (_m *MockQuerier) UpdateJobMappings(ctx context.Context, db DBTX, arg UpdateJobMappingsParams) (NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobMappings")
+	}
+
 	var r0 NeosyncApiJob
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobMappingsParams) (NeosyncApiJob, error)); ok {
@@ -3623,6 +3895,10 @@ func (_c *MockQuerier_UpdateJobMappings_Call) RunAndReturn(run func(context.Cont
 // UpdateJobSchedule provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateJobSchedule(ctx context.Context, db DBTX, arg UpdateJobScheduleParams) (NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobSchedule")
+	}
 
 	var r0 NeosyncApiJob
 	var r1 error
@@ -3678,6 +3954,10 @@ func (_c *MockQuerier_UpdateJobSchedule_Call) RunAndReturn(run func(context.Cont
 func (_m *MockQuerier) UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSourceParams) (NeosyncApiJob, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobSource")
+	}
+
 	var r0 NeosyncApiJob
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateJobSourceParams) (NeosyncApiJob, error)); ok {
@@ -3732,6 +4012,10 @@ func (_c *MockQuerier_UpdateJobSource_Call) RunAndReturn(run func(context.Contex
 func (_m *MockQuerier) UpdateTemporalConfigByAccount(ctx context.Context, db DBTX, arg UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error) {
 	ret := _m.Called(ctx, db, arg)
 
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateTemporalConfigByAccount")
+	}
+
 	var r0 NeosyncApiAccount
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateTemporalConfigByAccountParams) (NeosyncApiAccount, error)); ok {
@@ -3785,6 +4069,10 @@ func (_c *MockQuerier_UpdateTemporalConfigByAccount_Call) RunAndReturn(run func(
 // UpdateUserDefinedTransformer provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateUserDefinedTransformer(ctx context.Context, db DBTX, arg UpdateUserDefinedTransformerParams) (NeosyncApiTransformer, error) {
 	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserDefinedTransformer")
+	}
 
 	var r0 NeosyncApiTransformer
 	var r1 error

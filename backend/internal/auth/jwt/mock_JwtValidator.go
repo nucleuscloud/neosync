@@ -25,6 +25,10 @@ func (_m *MockJwtValidator) EXPECT() *MockJwtValidator_Expecter {
 func (_m *MockJwtValidator) ValidateToken(ctx context.Context, tokenString string) (interface{}, error) {
 	ret := _m.Called(ctx, tokenString)
 
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateToken")
+	}
+
 	var r0 interface{}
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (interface{}, error)); ok {
