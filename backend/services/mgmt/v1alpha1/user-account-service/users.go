@@ -185,6 +185,7 @@ func (s *Service) IsUserInAccount(
 	if err != nil {
 		return nil, err
 	}
+
 	userId, err := nucleusdb.ToUuid(user.Msg.UserId)
 	if err != nil {
 		return nil, err
@@ -192,6 +193,18 @@ func (s *Service) IsUserInAccount(
 	accountId, err := nucleusdb.ToUuid(req.Msg.AccountId)
 	if err != nil {
 		return nil, err
+	}
+	apiKeyCount, err := s.db.Q.IsUserInAccountApiKey(ctx, s.db.Db, db_queries.IsUserInAccountApiKeyParams{
+		AccountId: accountId,
+		UserId:    userId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if apiKeyCount > 0 {
+		return connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
+			Ok: apiKeyCount > 0,
+		}), nil
 	}
 	count, err := s.db.Q.IsUserInAccount(ctx, s.db.Db, db_queries.IsUserInAccountParams{
 		AccountId: accountId,

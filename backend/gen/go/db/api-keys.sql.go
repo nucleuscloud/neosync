@@ -137,6 +137,25 @@ func (q *Queries) GetAccountApiKeys(ctx context.Context, db DBTX, accountid pgty
 	return items, nil
 }
 
+const isUserInAccountApiKey = `-- name: IsUserInAccountApiKey :one
+SELECT count(apk.id) from neosync_api.account_api_keys apk 
+INNER JOIN neosync_api.accounts a ON a.id = apk.account_id
+INNER JOIN neosync_api.users u ON u.id = apk.user_id
+WHERE a.id = $1 AND u.id = $2
+`
+
+type IsUserInAccountApiKeyParams struct {
+	AccountId pgtype.UUID
+	UserId    pgtype.UUID
+}
+
+func (q *Queries) IsUserInAccountApiKey(ctx context.Context, db DBTX, arg IsUserInAccountApiKeyParams) (int64, error) {
+	row := db.QueryRow(ctx, isUserInAccountApiKey, arg.AccountId, arg.UserId)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const removeAccountApiKey = `-- name: RemoveAccountApiKey :exec
 DELETE FROM neosync_api.account_api_keys WHERE id = $1
 `
