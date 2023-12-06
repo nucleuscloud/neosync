@@ -113,6 +113,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
+  const [allMappings, setAllMappings] = useState<DatabaseColumn[]>([]);
   async function getSchema(): Promise<SingleTableSchemaFormValues> {
     try {
       const res = await getConnectionSchema(connectFormValues.connectionId);
@@ -120,6 +121,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         return { mappings: [], numRows: 10, schema: '', table: '' };
       }
 
+      const allJobMappings = res.schemas.map((r) => {
+        return {
+          ...r,
+          transformer: new JobMappingTransformer({}) as TransformerFormValues,
+        };
+      });
+      setAllMappings(res.schemas);
       if (schemaFormData.mappings.length > 0) {
         //pull values from default values for transformers if already set
         return {
@@ -135,17 +143,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           }),
         };
       } else {
-        //return empty transformers because they haven't been set yet
         return {
           ...schemaFormData,
-          mappings: res.schemas.map((r) => {
-            return {
-              ...r,
-              transformer: new JobMappingTransformer(
-                {}
-              ) as TransformerFormValues,
-            };
-          }),
+          mappings: allJobMappings,
         };
       }
     } catch (err) {
@@ -308,6 +308,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                     onValueChange={(value: string) => {
                       if (value) {
                         field.onChange(value);
+                        form.setValue(
+                          'mappings',
+                          allMappings
+                            .filter(
+                              (m) =>
+                                m.schema == formValues.schema &&
+                                m.table == value
+                            )
+                            .map((r) => {
+                              return {
+                                ...r,
+                                transformer: new JobMappingTransformer(
+                                  {}
+                                ) as TransformerFormValues,
+                              };
+                            })
+                        );
                       }
                     }}
                     value={field.value}
