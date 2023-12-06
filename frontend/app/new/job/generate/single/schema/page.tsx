@@ -132,21 +132,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         //pull values from default values for transformers if already set
         return {
           ...schemaFormData,
-          mappings: schemaFormData.mappings
-            // .filter(
-            //   (r) =>
-            //     r.schema == schemaFormData.schema &&
-            //     r.table == schemaFormData.table
-            // )
-            .map((r) => {
-              var pt = JobMappingTransformer.fromJson(
-                r.transformer
-              ) as TransformerFormValues;
-              return {
-                ...r,
-                transformer: pt,
-              };
-            }),
+          mappings: schemaFormData.mappings.map((r) => {
+            var pt = JobMappingTransformer.fromJson(
+              r.transformer
+            ) as TransformerFormValues;
+            return {
+              ...r,
+              transformer: pt,
+            };
+          }),
         };
       } else {
         return {
