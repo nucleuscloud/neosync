@@ -175,7 +175,6 @@ type UserDefinedTransformerConfig struct {
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
 
 	t.Source = tr.Source
-	// t.Name = tr.Name
 
 	config := &TransformerConfigs{}
 
