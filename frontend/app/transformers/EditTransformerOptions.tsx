@@ -1,4 +1,3 @@
-import { TransformerWithType } from '@/components/jobs/SchemaTable/schema-table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import {
   SystemTransformer,
   UserDefinedTransformer,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { Transformer } from '@/shared/transformers';
 import {
   Cross2Icon,
   MixerHorizontalIcon,
@@ -41,7 +41,7 @@ import TransformPhoneForm from './Sheetforms/TransformPhoneForm';
 import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
-  transformer: TransformerWithType | undefined;
+  transformer: Transformer | undefined;
   index: number;
 }
 
@@ -124,7 +124,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
 }
 
 function handleTransformerForm(
-  transformer: UserDefinedTransformer,
+  transformer: Transformer,
   index?: number,
   setIsSheetOpen?: (val: boolean) => void
 ): ReactElement {
@@ -261,10 +261,23 @@ function handleTransformerForm(
   );
 }
 
-export function filterDataTransformers(
+export function filterInputFreeSystemTransformers(
   transformers: SystemTransformer[]
 ): SystemTransformer[] {
   return transformers.filter(
     (t) => t.source !== 'passthrough' && t.source.startsWith('generate_')
   );
+}
+
+export function filterInputFreeUdfTransformers(
+  udfTransformers: UserDefinedTransformer[],
+  systemTransformers: SystemTransformer[]
+): UserDefinedTransformer[] {
+  const sysMap = new Map(
+    filterInputFreeSystemTransformers(systemTransformers).map((t) => [
+      t.source,
+      t,
+    ])
+  );
+  return udfTransformers.filter((t) => sysMap.has(t.source));
 }

@@ -8,14 +8,14 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 interface Props {
   index?: number;
   setIsSheetOpen?: (val: boolean) => void;
-  transformer: UserDefinedTransformer;
+  transformer: Transformer;
 }
 
 export default function TransformIntForm(props: Props): ReactElement {
@@ -69,7 +69,7 @@ export default function TransformIntForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
-                disabled={transformer.id ? true : false}
+                disabled={isUserDefinedTransformer(transformer)}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
                 }}
@@ -93,7 +93,7 @@ export default function TransformIntForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={ps}
-                disabled={transformer.id ? true : false}
+                disabled={isUserDefinedTransformer(transformer)}
                 onCheckedChange={() => {
                   ps ? setPs(false) : setPs(true);
                 }}

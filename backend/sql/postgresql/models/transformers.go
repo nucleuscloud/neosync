@@ -6,7 +6,6 @@ import (
 
 type JobMappingTransformerModel struct {
 	Source string              `json:"source"`
-	Name   string              `json:"name"`
 	Config *TransformerConfigs `json:"config,omitempty"`
 }
 
@@ -176,7 +175,6 @@ type UserDefinedTransformerConfig struct {
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
 
 	t.Source = tr.Source
-	t.Name = tr.Name
 
 	config := &TransformerConfigs{}
 
@@ -325,7 +323,6 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMappingTransformer {
 	return &mgmtv1alpha1.JobMappingTransformer{
 		Source: t.Source,
-		Name:   t.Name,
 		Config: t.Config.ToTransformerConfigDto(),
 	}
 }

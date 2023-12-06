@@ -8,12 +8,12 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { UserDefinedTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
-  transformer: UserDefinedTransformer;
+  transformer: Transformer;
   setIsSheetOpen?: (val: boolean) => void;
 }
 
@@ -54,7 +54,7 @@ export default function TransformLastNameForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
-                disabled={transformer.id ? true : false}
+                disabled={isUserDefinedTransformer(transformer)}
                 onCheckedChange={() => {
                   pl ? setPl(false) : setPl(true);
                 }}

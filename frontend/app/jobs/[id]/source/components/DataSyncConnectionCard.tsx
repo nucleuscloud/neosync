@@ -48,7 +48,11 @@ import {
   TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
-import { SCHEMA_FORM_SCHEMA, SOURCE_FORM_SCHEMA } from '@/yup-validations/jobs';
+import {
+  SCHEMA_FORM_SCHEMA,
+  SOURCE_FORM_SCHEMA,
+  TransformerFormValues,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -245,7 +249,6 @@ async function updateJobConnection(
         mappings: values.mappings.map((m) => {
           const jmt = new JobMappingTransformer({
             source: m.transformer.source,
-            name: m.transformer.name,
             config: m.transformer.config as TransformerConfig,
           });
 
@@ -342,7 +345,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
               c?.transformer ??
               new JobMappingTransformer({
                 source: 'passthrough',
-                name: 'Passthrough',
                 config: new TransformerConfig({
                   config: {
                     case: 'passthroughConfig',
@@ -360,7 +362,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
             c.transformer ??
             new JobMappingTransformer({
               source: 'passthrough',
-              name: 'Passthrough',
               config: new TransformerConfig({
                 config: {
                   case: 'passthroughConfig',
@@ -376,7 +377,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
           c.transformer ??
           new JobMappingTransformer({
             source: 'passthrough',
-            name: 'Passthrough',
             config: new TransformerConfig({
               config: {
                 case: 'passthroughConfig',
@@ -400,7 +400,6 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
         colMapping?.transformer ??
         new JobMappingTransformer({
           source: 'passthrough',
-          name: 'Passthrough',
           config: new TransformerConfig({
             config: {
               case: 'passthroughConfig',
@@ -422,11 +421,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
     sourceId: getConnectionIdFromSource(job.source) || '',
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
-      transformer: mapping.transformer as {
-        name: string;
-        source: string;
-        config: { config: { case: string; value: {} } };
-      },
+      transformer: mapping.transformer as TransformerFormValues,
     })),
   };
 
@@ -502,7 +497,6 @@ async function getUpdatedValues(
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
       transformer: mapping.transformer as {
-        name: string;
         source: string;
         config: { config: { case: string; value: {} } };
       },

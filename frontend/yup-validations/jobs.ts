@@ -14,9 +14,10 @@ import * as Yup from 'yup';
 
 const TRANSFORMER_SCHEMA = Yup.object().shape({
   source: Yup.string().required(),
-  name: Yup.string(),
   config: transformerConfig,
 });
+
+export type TransformerFormValues = Yup.InferType<typeof TRANSFORMER_SCHEMA>;
 
 export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
 

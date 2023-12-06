@@ -228,7 +228,7 @@ export default function NewTransformer(): ReactElement {
           <div>{handleCustomTransformerForm(form.getValues('source'))}</div>
           <div className="flex flex-row justify-end">
             <Button type="submit" disabled={!form.formState.isValid}>
-              Next
+              Submit
             </Button>
           </div>
         </form>

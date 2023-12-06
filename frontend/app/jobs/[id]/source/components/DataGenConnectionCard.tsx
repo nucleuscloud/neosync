@@ -45,6 +45,7 @@ import {
   TransformerConfig,
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
+import { TransformerFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -218,7 +219,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         />
 
         {formValues.schema && formValues.table && (
-          <SchemaTable data={schemaTableData} excludeTransformers />
+          <SchemaTable data={schemaTableData} excludeInputReqTransformers />
         )}
         <div className="flex flex-row gap-1 justify-end">
           <Button key="submit" type="submit">
@@ -267,7 +268,6 @@ function getJobSource(
               c?.transformer ??
               new JobMappingTransformer({
                 source: 'passthrough',
-                name: 'Passthrough',
                 config: new TransformerConfig({
                   config: {
                     case: 'passthroughConfig',
@@ -285,7 +285,6 @@ function getJobSource(
             c?.transformer ??
             new JobMappingTransformer({
               source: 'passthrough',
-              name: 'Passthrough',
               config: new TransformerConfig({
                 config: {
                   case: 'passthroughConfig',
@@ -301,7 +300,6 @@ function getJobSource(
           c.transformer ??
           new JobMappingTransformer({
             source: 'passthrough',
-            name: 'Passthrough',
             config: new TransformerConfig({
               config: {
                 case: 'passthroughConfig',
@@ -319,7 +317,6 @@ function getJobSource(
       colMapping?.transformer ??
       new JobMappingTransformer({
         source: 'passthrough',
-        name: 'Passthrough',
         config: new TransformerConfig({
           config: {
             case: 'passthroughConfig',
@@ -331,11 +328,7 @@ function getJobSource(
     return {
       column: c.column,
       dataType: c.dataType,
-      transformer: transformer as {
-        name?: string | undefined;
-        source: string;
-        config: { config: { case?: string | undefined; value: {} } };
-      },
+      transformer: transformer as TransformerFormValues,
     };
   });
 
@@ -362,7 +355,6 @@ async function updateJobConnection(
         mappings: values.mappings.map((m) => {
           const jmt = new JobMappingTransformer({
             source: m.transformer.source,
-            name: m.transformer.name,
             config: m.transformer.config as TransformerConfig,
           });
 
