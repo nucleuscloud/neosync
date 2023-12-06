@@ -59,8 +59,8 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
-      id: 'overview/arch',
-      label: 'Architecture',
+      id: 'overview/core-concepts',
+      label: 'Core Concepts',
     },
     {
       type: 'category',

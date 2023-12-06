@@ -3,6 +3,7 @@ import isInternalUrl from '@docusaurus/isInternalUrl';
 import { ThemeClassNames } from '@docusaurus/theme-common';
 import { isActiveSidebarItem } from '@docusaurus/theme-common/internal';
 import { IconHandler } from '@site/src/CustomComponents/IconHandler';
+import { cn } from '@site/src/utils';
 import IconExternalLink from '@theme/Icon/ExternalLink';
 import clsx from 'clsx';
 import React from 'react';
@@ -47,7 +48,9 @@ export default function DocSidebarItemLink({
         {...props}
       >
         <div className="gap-4 flex flex-row items-center font-normal text-gray-800">
-          {IconHandler(item.label)}
+          <div className={cn(isActive ? 'text-blue-500' : 'text-gray-900')}>
+            {IconHandler(item.label)}
+          </div>
           {label}
           {!isInternalLink && <IconExternalLink />}
         </div>
