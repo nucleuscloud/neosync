@@ -55,6 +55,14 @@ this is the class for the sidebar categories that section headers
   @apply no-underline;
 }
 
+.pagination-nav__link--prev {
+  @apply no-underline;
+}
+
+.pagination-nav__link {
+  @apply no-underline;
+}
+
 .navbar__items {
   @apply no-underline;
 }
@@ -85,6 +93,11 @@ this is the class for the sidebar categories that section headers
   [data-theme='light'] .breadcrumb-label {
     @apply text-gray-900 cursor-pointer text-sm  rounded-full;
   }
+
+  .intro-page-header {
+    @apply flex flex-col text-left font-bold text-3xl pb-10;
+  }
+
   .doc-page-header {
     @apply flex flex-col text-left font-bold text-3xl;
   }
@@ -123,7 +136,7 @@ this is the class for the sidebar categories that section headers
     @apply grid grid-cols-2 gap-2;
   }
   .custom-card {
-    @apply border border-gray-200  hover:border-[#acc7f9] hover:shadow-md rounded-xl p-4 flex flex-col justify-between space-y-2;
+    @apply border border-gray-200  hover:border-[#acc7f9] hover:shadow-md hover:text-gray-900 rounded-xl p-4 flex flex-col justify-between space-y-2;
   }
   .card-title {
     @apply font-semibold text-base;
@@ -159,6 +172,6 @@ this is the class for the sidebar categories that section headers
   }
 
   a {
-    @apply underline text-blue-600 hover:text-blue-600;
+    @apply underline text-blue-700 hover:text-blue-700;
   }
 }

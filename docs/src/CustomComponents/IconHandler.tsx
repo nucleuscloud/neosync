@@ -13,7 +13,7 @@ import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
 import { BiLogInCircle, BiLogoPostgresql, BiTerminal } from 'react-icons/bi';
 import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
 import { FaAws, FaDocker } from 'react-icons/fa';
-import { GoSync } from 'react-icons/go';
+import { GoLightBulb, GoSync } from 'react-icons/go';
 
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
 import { GrMysql } from 'react-icons/gr';
@@ -83,6 +83,8 @@ export function IconHandler(name: string): ReactElement {
       return <GoVersions />;
     case 'sync':
       return <GoSync />;
+    case 'Core Concepts':
+      return <GoLightBulb />;
     default:
       return <LayersIcon />;
   }

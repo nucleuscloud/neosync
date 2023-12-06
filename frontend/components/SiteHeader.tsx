@@ -6,7 +6,6 @@ import Link from 'next/link';
 import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
-import { ModeToggle } from './ModeToggle';
 import { UserNav } from './UserNav';
 import { buttonVariants } from './ui/button';
 
@@ -46,7 +45,7 @@ export default function SiteHeader() {
                 <span className="sr-only">Twitter</span>
               </div>
             </Link>
-            <ModeToggle />
+            {/* <ModeToggle /> */}
             <UserNav />
           </nav>
         </div>

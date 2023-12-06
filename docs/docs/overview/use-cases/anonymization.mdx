@@ -7,6 +7,8 @@ slug: anonymization
 
 import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
 
+import { DocsImage } from '@site/src/CustomComponents/DocsImage.tsx';
+
 <DocPageHeader title="Anonymization" />
 
 ## Introduction
@@ -15,19 +17,19 @@ Neosync is a great way to anonymize senstive data and sync it across multiple en
 
 ## Anonymization
 
-Neosync provides the core anonymization functionlity through [transformers](/platform#transformers). Transformers anonymize or mask source data in any way you'd like. Neosync ships with a number of pre-built tranformers to help you get started or you can write your own custom transformer. For ex. say that you have a users table with the following columns:
+Neosync provides the core anonymization functionlity through [transformers](/platform#transformers). Transformers anonymize or mask source data in any way you'd like. Neosync ships with a number of pre-built tranformers to help you get started or you can write your own user defined transformer. For ex. say that you have a users table with the following columns:
 
 - id, first_name, last_name, email and age
 
 You can use the prebuilt Neosync transformers in order to anonymize the PII in this table (first_name, last_name, email and age). Here's what that would look like:
 
-//insert screenshot showing schema and transformers
+<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/pii-anon.png" />
 
 We've mapped each transformer to the right column which means that every time the job is executed, the value in that column will be tranformed based on the transformer's settings. The output will be transformed source data without any of the PII which makes it usable in lower level environments.
 
-//screenshot of the output here
+<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/pii-anon-table.png" />
 
-Since the transformers are customizable, you can anonymize or mask any source data by writing your own custom tranformer. Check out the [custom transformers](/transformers/user-defined) guide for more information. This gives you ultimate flexibility to control your data.
+Since the transformers are customizable, you can anonymize or mask any source data by writing your own user defined tranformer. Check out the [user defined transformers](/transformers/user-defined) guide for more information. This gives you ultimate flexibility to control your data.
 
 Lastly, you can decide to subset this data to reduce the size of it to make it fit in lower level environments like your local database.
 

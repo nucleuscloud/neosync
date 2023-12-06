@@ -7,6 +7,7 @@ const config: KnipConfig = {
     'neosync-api-client',
     'components/ui',
     'postcss.config.cjs',
+    'components/ModeToggle.tsx',
   ],
   ignoreDependencies: [
     '@radix-ui/react-accordion',

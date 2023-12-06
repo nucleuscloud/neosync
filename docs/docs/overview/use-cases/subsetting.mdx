@@ -7,6 +7,8 @@ slug: subsetting
 
 import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
 
+import { DocsImage } from '@site/src/CustomComponents/DocsImage.tsx';
+
 <DocPageHeader title="Subset Data" />
 
 ## Introduction
@@ -15,7 +17,11 @@ Subseting is useful to reduce the size of a large dataset so that it is usable i
 
 ## Subsetting
 
-Neosync can help teams subset their data by filtering it using a custom query or by taking a given percentage of the database size. Once you've connected Neosync to your source database and configured your schema and mappings, you can then decide to subset that data further by selecting a source table to start with. Neosync will automatically ensure relational integrity in the data, making sure that the resulting dataset, post-subset, still has all of the foreign key constraints you had in the original data set. Once you've subsetted the data, Neosync will push the result set to your destination(s). Subsetting works on a per-destination basis so that it's easy to send a smaller result set to your CI database and then an even smaller subset to your local database of the same source data set.
+Neosync can help you subset your data by taking in a SQL statement of how you want to filter your data on a table-by-data. This gives you a flexible way of building your destination data set. Once you've connected Neosync to your source database and configured your schema and mappings, you can then decide to subset that data further by selecting a source table to start with.
+
+<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/subset.png" />
+
+Neosync will automatically ensure relational integrity in the data, making sure that the resulting dataset, post-subset, still has all of the foreign key constraints you had in the original data set. Once you've subsetted the data, Neosync will push the result set to your destination(s).
 
 ## Conclusion
 

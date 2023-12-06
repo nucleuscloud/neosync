@@ -5,25 +5,31 @@ hide_title: true
 slug: /
 ---
 
+import { HeroImage } from '@site/src/CustomComponents/HeroImage.tsx';
+
+import { IntroPageHeader } from '@site/src/CustomComponents/IntroPageHeader.tsx';
+
 import {
   LayersIcon,
   LightningBoltIcon,
   LinkBreak1Icon,
   StackIcon,
 } from '@radix-ui/react-icons';
-import { BsFunnel } from 'react-icons/bs';
-import {
-  PiPlugsLight,
-  PiArrowsSplitLight,
-  PiRocketLaunchLight,
-  PiFlaskLight,
-} from 'react-icons/pi';
-import { CustomCard } from '@site/src/CustomComponents/CustomCard.tsx';
-import { CustomCardList } from '@site/src/CustomComponents/CustomCardList.tsx';
-import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
-import { HeroImage } from '@site/src/CustomComponents/HeroImage.tsx';
 
-<DocPageHeader title="Welcome to the Neosync Docs" />
+import { CustomCard } from '@site/src/CustomComponents/CustomCard.tsx';
+
+import { CustomCardList } from '@site/src/CustomComponents/CustomCardList.tsx';
+
+import { BsFunnel } from 'react-icons/bs';
+
+import {
+  PiArrowsSplitLight,
+  PiFlaskLight,
+  PiPlugsLight,
+  PiRocketLaunchLight,
+} from 'react-icons/pi';
+
+<IntroPageHeader title="Welcome to the Neosync Docs" />
 
 Neosync is an open-source, developer-first way to create safe, anonymized test data from production data and sync it across all environments for high-quality local, stage and CI testing.
 
