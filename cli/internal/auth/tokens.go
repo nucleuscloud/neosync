@@ -26,7 +26,7 @@ func GetAuthHeaderTokenFn(
 ) func(ctx context.Context) (string, error) {
 	return func(ctx context.Context) (string, error) {
 		if apiKey != nil && *apiKey != "" {
-			return *apiKey, nil
+			return fmt.Sprintf("Bearer %s", *apiKey), nil
 		}
 		return getAuthHeaderToken(ctx)
 	}
