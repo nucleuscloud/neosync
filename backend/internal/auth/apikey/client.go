@@ -48,7 +48,10 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header) (contex
 		return nil, InvalidApiKeyErr
 	}
 
-	apiKey, err := c.q.GetAccountApiKeyByKeyValue(ctx, c.db, token)
+	hashedKeyValue := utils.ToSha256(
+		token,
+	)
+	apiKey, err := c.q.GetAccountApiKeyByKeyValue(ctx, c.db, hashedKeyValue)
 	if err != nil {
 		return nil, err
 	}
