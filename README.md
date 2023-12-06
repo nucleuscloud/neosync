@@ -46,6 +46,17 @@ Our mission is to help developers build better, more resilient applications whil
 2. A platform that can anonymize sensitive data or automatically generate synthetic data from a schema and sync that across all environments
 3. An open source approach that allows you to keep your most sensitive data in your infrastructure
 
+
+## Table of Contents
+
+- [Features](#features)
+- [Getting Started](#get-started-for-free)
+- [Running Neosync Locally](#run-neosync-locally)
+- [Resources](#docs-and-support)
+- [Contributing](#contributing)
+- [Licensing](#licensing)
+- [Triggering a Release](#triggering-a-release)
+
 ## Features
 
 - Automatically generate synthetic data based on your schema
@@ -58,13 +69,6 @@ Our mission is to help developers build better, more resilient applications whil
 - Define custom transformers
 - Pre-built integrations with Postgres, Mysql, S3
 
-## Table of Contents
-
-- [Getting Started](#get-started-for-free)
-- [Features](#features)
-- [Resources](#docs-and-support)
-- [Contributing](#contributing)
-- [Licensing](#licensing)
 
 ## Getting started
 
