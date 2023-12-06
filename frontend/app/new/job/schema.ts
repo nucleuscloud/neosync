@@ -6,7 +6,6 @@ import {
   SCHEMA_FORM_SCHEMA,
   SOURCE_FORM_SCHEMA,
 } from '@/yup-validations/jobs';
-import cron from 'cron-validate';
 import * as Yup from 'yup';
 
 export const DEFINE_FORM_SCHEMA = Yup.object({
@@ -26,14 +25,7 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
       const res = await isJobNameAvailable(value, account.id);
       return res.isAvailable;
     }),
-  cronSchedule: Yup.string()
-    .optional()
-    .test('isValidCron', 'Not a valid cron schedule', (value) => {
-      if (!value) {
-        return true;
-      }
-      return !!value && cron(value).isValid();
-    }),
+  cronSchedule: Yup.string().optional(),
   initiateJobRun: Yup.boolean(),
 });
 
