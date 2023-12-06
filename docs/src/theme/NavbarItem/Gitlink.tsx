@@ -7,9 +7,8 @@ export default function Gitlink(): ReactElement {
       href="https://github.com/nucleuscloud/neosync"
       className="hover:no-underline"
     >
-      <div className="flex flex-row items-center gap-2 mr-10 p-2 rounded-full hover:bg-gray-100 hover:no-underline">
+      <div className="flex flex-row items-center gap-2 mr-10 p-2 rounded-full hover:bg-gray-100  no-underline text-black">
         <GitHubLogoIcon />
-        <div className="text-sm">Github</div>
       </div>
     </a>
   );

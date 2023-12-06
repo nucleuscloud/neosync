@@ -40,11 +40,8 @@ export function TransformersTable(props: TableData): ReactElement {
         {rowData.map((tableData) => (
           <TableRow key={tableData.title} className="h2">
             <TableCell className="font-medium bg-[#FFFFFF] w-[300px]">
-              <Link
-                href={`/transformers/system/reference#${tableData.pagelink}`}
-                className=""
-              >
-                <div className="flex flex-row gap-2">
+              <Link href={`/transformers/system#${tableData.pagelink}`}>
+                <div className="flex flex-row gap-2 items-center">
                   <div>{tableData.title}</div>
                   <div className="flex justify-end transition-transform duration-300 transform group-hover:translate-x-[4px]">
                     <ArrowRightIcon />
