@@ -55,6 +55,14 @@ this is the class for the sidebar categories that section headers
   @apply no-underline;
 }
 
+.pagination-nav__link--prev {
+  @apply no-underline;
+}
+
+.pagination-nav__link {
+  @apply no-underline;
+}
+
 .navbar__items {
   @apply no-underline;
 }
