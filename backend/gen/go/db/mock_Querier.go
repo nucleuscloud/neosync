@@ -3045,6 +3045,64 @@ func (_c *MockQuerier_IsUserInAccount_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
+// IsUserInAccountApiKey provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) IsUserInAccountApiKey(ctx context.Context, db DBTX, arg IsUserInAccountApiKeyParams) (int64, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsUserInAccountApiKey")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, IsUserInAccountApiKeyParams) (int64, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, IsUserInAccountApiKeyParams) int64); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, IsUserInAccountApiKeyParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_IsUserInAccountApiKey_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsUserInAccountApiKey'
+type MockQuerier_IsUserInAccountApiKey_Call struct {
+	*mock.Call
+}
+
+// IsUserInAccountApiKey is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg IsUserInAccountApiKeyParams
+func (_e *MockQuerier_Expecter) IsUserInAccountApiKey(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_IsUserInAccountApiKey_Call {
+	return &MockQuerier_IsUserInAccountApiKey_Call{Call: _e.mock.On("IsUserInAccountApiKey", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_IsUserInAccountApiKey_Call) Run(run func(ctx context.Context, db DBTX, arg IsUserInAccountApiKeyParams)) *MockQuerier_IsUserInAccountApiKey_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(IsUserInAccountApiKeyParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_IsUserInAccountApiKey_Call) Return(_a0 int64, _a1 error) *MockQuerier_IsUserInAccountApiKey_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_IsUserInAccountApiKey_Call) RunAndReturn(run func(context.Context, DBTX, IsUserInAccountApiKeyParams) (int64, error)) *MockQuerier_IsUserInAccountApiKey_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveAccountApiKey provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) RemoveAccountApiKey(ctx context.Context, db DBTX, id pgtype.UUID) error {
 	ret := _m.Called(ctx, db, id)

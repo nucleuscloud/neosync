@@ -116,7 +116,7 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().String("connection-id", "", "Connection id for sync source")
 	cmd.Flags().String("destination-connection-url", "", "Connection url for sync output")
 	cmd.Flags().String("destination-driver", "", "Connection driver for sync output")
-	cmd.Flags().String("config", "neosync.yaml", `Location of config file (default "neosync.yaml")`)
+	cmd.Flags().String("config", "", `Location of config file`)
 	return cmd
 }
 

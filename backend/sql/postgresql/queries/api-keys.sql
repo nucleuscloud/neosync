@@ -27,3 +27,10 @@ SET key_value = $1,
     updated_by_id = $3
 WHERE id = $4
 RETURNING *;
+
+
+-- name: IsUserInAccountApiKey :one
+SELECT count(apk.id) from neosync_api.account_api_keys apk 
+INNER JOIN neosync_api.accounts a ON a.id = apk.account_id
+INNER JOIN neosync_api.users u ON u.id = apk.user_id
+WHERE a.id = sqlc.arg('accountId') AND u.id = sqlc.arg('userId');

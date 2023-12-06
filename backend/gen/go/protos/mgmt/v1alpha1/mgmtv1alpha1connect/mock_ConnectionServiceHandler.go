@@ -28,6 +28,10 @@ func (_m *MockConnectionServiceHandler) EXPECT() *MockConnectionServiceHandler_E
 func (_m *MockConnectionServiceHandler) CheckConnectionConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CheckConnectionConfig")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error)); ok {
@@ -82,6 +86,10 @@ func (_c *MockConnectionServiceHandler_CheckConnectionConfig_Call) RunAndReturn(
 // CheckSqlQuery provides a mock function with given fields: _a0, _a1
 func (_m *MockConnectionServiceHandler) CheckSqlQuery(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CheckSqlQueryRequest]) (*connect.Response[mgmtv1alpha1.CheckSqlQueryResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckSqlQuery")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.CheckSqlQueryResponse]
 	var r1 error
@@ -138,6 +146,10 @@ func (_c *MockConnectionServiceHandler_CheckSqlQuery_Call) RunAndReturn(run func
 func (_m *MockConnectionServiceHandler) CreateConnection(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CreateConnectionRequest]) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateConnection")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.CreateConnectionResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CreateConnectionRequest]) (*connect.Response[mgmtv1alpha1.CreateConnectionResponse], error)); ok {
@@ -192,6 +204,10 @@ func (_c *MockConnectionServiceHandler_CreateConnection_Call) RunAndReturn(run f
 // DeleteConnection provides a mock function with given fields: _a0, _a1
 func (_m *MockConnectionServiceHandler) DeleteConnection(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.DeleteConnectionRequest]) (*connect.Response[mgmtv1alpha1.DeleteConnectionResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteConnection")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.DeleteConnectionResponse]
 	var r1 error
@@ -248,6 +264,10 @@ func (_c *MockConnectionServiceHandler_DeleteConnection_Call) RunAndReturn(run f
 func (_m *MockConnectionServiceHandler) GetConnection(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnection")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetConnectionResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionResponse], error)); ok {
@@ -303,6 +323,10 @@ func (_c *MockConnectionServiceHandler_GetConnection_Call) RunAndReturn(run func
 func (_m *MockConnectionServiceHandler) GetConnectionDataStream(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest], _a2 *connect.ServerStream[mgmtv1alpha1.GetConnectionDataStreamResponse]) error {
 	ret := _m.Called(_a0, _a1, _a2)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnectionDataStream")
+	}
+
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest], *connect.ServerStream[mgmtv1alpha1.GetConnectionDataStreamResponse]) error); ok {
 		r0 = rf(_a0, _a1, _a2)
@@ -346,6 +370,10 @@ func (_c *MockConnectionServiceHandler_GetConnectionDataStream_Call) RunAndRetur
 // GetConnectionForeignConstraints provides a mock function with given fields: _a0, _a1
 func (_m *MockConnectionServiceHandler) GetConnectionForeignConstraints(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnectionForeignConstraints")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse]
 	var r1 error
@@ -402,6 +430,10 @@ func (_c *MockConnectionServiceHandler_GetConnectionForeignConstraints_Call) Run
 func (_m *MockConnectionServiceHandler) GetConnectionSchema(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionSchemaRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionSchemaResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnectionSchema")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetConnectionSchemaResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionSchemaRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionSchemaResponse], error)); ok {
@@ -456,6 +488,10 @@ func (_c *MockConnectionServiceHandler_GetConnectionSchema_Call) RunAndReturn(ru
 // GetConnections provides a mock function with given fields: _a0, _a1
 func (_m *MockConnectionServiceHandler) GetConnections(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionsRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionsResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnections")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetConnectionsResponse]
 	var r1 error
@@ -512,6 +548,10 @@ func (_c *MockConnectionServiceHandler_GetConnections_Call) RunAndReturn(run fun
 func (_m *MockConnectionServiceHandler) IsConnectionNameAvailable(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.IsConnectionNameAvailableRequest]) (*connect.Response[mgmtv1alpha1.IsConnectionNameAvailableResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for IsConnectionNameAvailable")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.IsConnectionNameAvailableResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.IsConnectionNameAvailableRequest]) (*connect.Response[mgmtv1alpha1.IsConnectionNameAvailableResponse], error)); ok {
@@ -566,6 +606,10 @@ func (_c *MockConnectionServiceHandler_IsConnectionNameAvailable_Call) RunAndRet
 // UpdateConnection provides a mock function with given fields: _a0, _a1
 func (_m *MockConnectionServiceHandler) UpdateConnection(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.UpdateConnectionRequest]) (*connect.Response[mgmtv1alpha1.UpdateConnectionResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateConnection")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.UpdateConnectionResponse]
 	var r1 error

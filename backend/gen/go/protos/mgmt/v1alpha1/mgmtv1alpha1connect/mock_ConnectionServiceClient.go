@@ -323,6 +323,10 @@ func (_c *MockConnectionServiceClient_GetConnection_Call) RunAndReturn(run func(
 func (_m *MockConnectionServiceClient) GetConnectionDataStream(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest]) (*connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnectionDataStream")
+	}
+
 	var r0 *connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest]) (*connect.ServerStreamForClient[mgmtv1alpha1.GetConnectionDataStreamResponse], error)); ok {
@@ -377,6 +381,10 @@ func (_c *MockConnectionServiceClient_GetConnectionDataStream_Call) RunAndReturn
 // GetConnectionForeignConstraints provides a mock function with given fields: _a0, _a1
 func (_m *MockConnectionServiceClient) GetConnectionForeignConstraints(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetConnectionForeignConstraints")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse]
 	var r1 error
