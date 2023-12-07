@@ -24,6 +24,64 @@ func (_m *MockQuerier) EXPECT() *MockQuerier_Expecter {
 	return &MockQuerier_Expecter{mock: &_m.Mock}
 }
 
+// AreConnectionsInAccount provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) AreConnectionsInAccount(ctx context.Context, db DBTX, arg AreConnectionsInAccountParams) (int64, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AreConnectionsInAccount")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, AreConnectionsInAccountParams) (int64, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, AreConnectionsInAccountParams) int64); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, AreConnectionsInAccountParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_AreConnectionsInAccount_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AreConnectionsInAccount'
+type MockQuerier_AreConnectionsInAccount_Call struct {
+	*mock.Call
+}
+
+// AreConnectionsInAccount is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg AreConnectionsInAccountParams
+func (_e *MockQuerier_Expecter) AreConnectionsInAccount(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_AreConnectionsInAccount_Call {
+	return &MockQuerier_AreConnectionsInAccount_Call{Call: _e.mock.On("AreConnectionsInAccount", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_AreConnectionsInAccount_Call) Run(run func(ctx context.Context, db DBTX, arg AreConnectionsInAccountParams)) *MockQuerier_AreConnectionsInAccount_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(AreConnectionsInAccountParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_AreConnectionsInAccount_Call) Return(_a0 int64, _a1 error) *MockQuerier_AreConnectionsInAccount_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_AreConnectionsInAccount_Call) RunAndReturn(run func(context.Context, DBTX, AreConnectionsInAccountParams) (int64, error)) *MockQuerier_AreConnectionsInAccount_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateAccountApiKey provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateAccountApiKey(ctx context.Context, db DBTX, arg CreateAccountApiKeyParams) (NeosyncApiAccountApiKey, error) {
 	ret := _m.Called(ctx, db, arg)

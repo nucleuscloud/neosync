@@ -332,8 +332,8 @@ func (s *Service) CreateJob(
 	}
 
 	count, err := s.db.Q.AreConnectionsInAccount(ctx, s.db.Db, db_queries.AreConnectionsInAccountParams{
-		AccountId:      *accountUuid,
-		ConnectiondIds: connectionUuids,
+		AccountId:     *accountUuid,
+		ConnectionIds: connectionUuids,
 	})
 	if count != int64(len(connectionUuids)) {
 		return nil, nucleuserrors.NewForbidden("provided connection id is not in account")

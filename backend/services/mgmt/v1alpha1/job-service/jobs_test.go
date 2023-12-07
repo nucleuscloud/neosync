@@ -321,6 +321,10 @@ func Test_CreateJob(t *testing.T) {
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	mockDbTransaction(m.DbtxMock, mockTx)
+	m.QuerierMock.On("AreConnectionsInAccount", mock.Anything, mock.Anything, db_queries.AreConnectionsInAccountParams{
+		AccountId:     accountUuid,
+		ConnectionIds: []pgtype.UUID{destConn.ID},
+	}).Return(int64(1), nil)
 	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
 		AccountId:    accountUuid,
 		ConnectionId: srcConn.ID,

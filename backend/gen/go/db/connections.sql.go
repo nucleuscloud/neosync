@@ -19,12 +19,12 @@ WHERE a.id = $1 and c.id = ANY($2::uuid[])
 `
 
 type AreConnectionsInAccountParams struct {
-	AccountId      pgtype.UUID
-	ConnectiondIds []pgtype.UUID
+	AccountId     pgtype.UUID
+	ConnectionIds []pgtype.UUID
 }
 
 func (q *Queries) AreConnectionsInAccount(ctx context.Context, db DBTX, arg AreConnectionsInAccountParams) (int64, error) {
-	row := db.QueryRow(ctx, areConnectionsInAccount, arg.AccountId, arg.ConnectiondIds)
+	row := db.QueryRow(ctx, areConnectionsInAccount, arg.AccountId, arg.ConnectionIds)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
