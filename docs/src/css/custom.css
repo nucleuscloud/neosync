@@ -38,7 +38,7 @@ html[data-theme='dark'] {
 
 @layer base {
   body {
-    @apply mx-40 text-sm;
+    @apply lg:mx-40 text-sm;
   }
 }
 
@@ -69,7 +69,7 @@ this is the class for the sidebar categories that section headers
 
 @layer components {
   .navbar {
-    @apply py-[16px] mx-[40px] shadow-none border-b border-gray-200;
+    @apply py-[16px] lg:mx-[40px] shadow-none border-b border-gray-200;
   }
 
   [data-theme='dark'] .navbar {
@@ -133,7 +133,7 @@ this is the class for the sidebar categories that section headers
   }
 
   .custom-card-list {
-    @apply grid grid-cols-2 gap-2;
+    @apply grid  grid-cols-1 lg:grid-cols-2 gap-2;
   }
   .custom-card {
     @apply border border-gray-200  hover:border-[#acc7f9] hover:shadow-md hover:text-gray-900 rounded-xl p-4 flex flex-col justify-between space-y-2;
