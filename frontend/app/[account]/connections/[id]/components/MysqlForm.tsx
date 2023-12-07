@@ -1,5 +1,5 @@
 'use client';
-import { checkMysqlConnection } from '@/app/new/connection/mysql/MysqlForm';
+import { checkMysqlConnection } from '@/app/[account]/new/connection/mysql/MysqlForm';
 import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';

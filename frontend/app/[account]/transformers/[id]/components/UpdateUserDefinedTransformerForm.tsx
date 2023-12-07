@@ -1,9 +1,9 @@
 'use client';
-import { handleCustomTransformerForm } from '@/app/new/transformer/UserDefinedTransformerForms/HandleCustomTransformersForm';
+import { handleCustomTransformerForm } from '@/app/[account]/new/transformer/UserDefinedTransformerForms/HandleCustomTransformersForm';
 import {
   UPDATE_USER_DEFINED_TRANSFORMER,
   UpdateUserDefinedTransformer,
-} from '@/app/new/transformer/schema';
+} from '@/app/[account]/new/transformer/schema';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {

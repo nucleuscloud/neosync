@@ -1,4 +1,4 @@
-import { isConnectionNameAvailable } from '@/app/new/connection/postgres/PostgresForm';
+import { isConnectionNameAvailable } from '@/app/[account]/new/connection/postgres/PostgresForm';
 import { getAccount } from '@/components/providers/account-provider';
 import * as Yup from 'yup';
 

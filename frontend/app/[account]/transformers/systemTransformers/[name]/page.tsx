@@ -1,9 +1,9 @@
 'use client';
-import { handleCustomTransformerForm } from '@/app/new/transformer/UserDefinedTransformerForms/HandleCustomTransformersForm';
+import { handleCustomTransformerForm } from '@/app/[account]/new/transformer/UserDefinedTransformerForms/HandleCustomTransformersForm';
 import {
   SYSTEM_TRANSFORMER_SCHEMA,
   SystemTransformersSchema,
-} from '@/app/new/transformer/schema';
+} from '@/app/[account]/new/transformer/schema';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { PageProps } from '@/components/types';

@@ -32,7 +32,7 @@ import { ReactElement, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import DestinationOptionsForm from '../../../../components/jobs/Form/DestinationOptionsForm';
+import DestinationOptionsForm from '../../../../../components/jobs/Form/DestinationOptionsForm';
 import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
 import { CONNECT_FORM_SCHEMA, ConnectFormValues } from '../schema';
 

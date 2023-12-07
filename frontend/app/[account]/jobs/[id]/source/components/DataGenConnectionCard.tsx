@@ -2,7 +2,7 @@
 import {
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableSchemaFormValues,
-} from '@/app/new/job/schema';
+} from '@/app/[account]/new/job/schema';
 import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';

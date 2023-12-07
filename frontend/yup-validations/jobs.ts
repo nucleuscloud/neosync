@@ -1,5 +1,5 @@
-import { SubsetFormValues } from '@/app/new/job/schema';
-import { transformerConfig } from '@/app/new/transformer/schema';
+import { SubsetFormValues } from '@/app/[account]/new/job/schema';
+import { transformerConfig } from '@/app/[account]/new/transformer/schema';
 import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
   JobDestinationOptions,

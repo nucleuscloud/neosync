@@ -1,4 +1,7 @@
-import { SUBSET_FORM_SCHEMA, SubsetFormValues } from '@/app/new/job/schema';
+import {
+  SUBSET_FORM_SCHEMA,
+  SubsetFormValues,
+} from '@/app/[account]/new/job/schema';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
