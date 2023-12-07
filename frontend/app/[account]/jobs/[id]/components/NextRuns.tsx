@@ -1,4 +1,5 @@
 'use client';
+import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,7 +22,11 @@ interface Props {
 }
 
 export default function JobNextRuns({ jobId, status }: Props): ReactElement {
-  const { data, isLoading, error } = useGetJobNextRuns(jobId);
+  const { account } = useAccount();
+  const { data, isLoading, error } = useGetJobNextRuns(
+    account?.id ?? '',
+    jobId
+  );
 
   if (isLoading) {
     return <Skeleton className="w-full h-full" />;

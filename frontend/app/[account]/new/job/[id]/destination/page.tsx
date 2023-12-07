@@ -53,7 +53,7 @@ export default function Page({ params }: PageProps): ReactElement {
   const { account } = useAccount();
   const { toast } = useToast();
   const router = useRouter();
-  const { data, isLoading } = useGetJob(id);
+  const { data, isLoading } = useGetJob(account?.id ?? '', id);
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
 

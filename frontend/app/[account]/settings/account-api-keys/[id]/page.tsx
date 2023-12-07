@@ -22,9 +22,9 @@ import RemoveAccountApiKeyButton from './components/RemoveAccountApiKeyButton';
 
 export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { data, isLoading } = useGetAccountApiKey(id);
   const router = useRouter();
   const { account } = useAccount();
+  const { data, isLoading } = useGetAccountApiKey(account?.id ?? '', id);
   const [sessionApiKeyValue] = useSessionStorage<
     ApiKeyValueSessionStore | undefined
   >(id, undefined);

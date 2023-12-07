@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useGetUserDefinedTransformersById } from '@/libs/hooks/useGetUserDefinedTransformerById';
@@ -9,8 +10,12 @@ import UpdateUserDefinedTransformerForm from './components/UpdateUserDefinedTran
 
 export default function NewUserDefinedTransformerPage({ params }: PageProps) {
   const id = params?.id ?? '';
+  const { account } = useAccount();
 
-  const { data, isLoading } = useGetUserDefinedTransformersById(id);
+  const { data, isLoading } = useGetUserDefinedTransformersById(
+    account?.id ?? '',
+    id
+  );
 
   if (isLoading) {
     return (

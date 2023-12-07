@@ -41,10 +41,16 @@ export default function SubsetCard(props: Props): ReactElement {
   const { jobId } = props;
   const { toast } = useToast();
   const { account } = useAccount();
-  const { data, mutate: mutateJob, isLoading: isJobLoading } = useGetJob(jobId);
+  const {
+    data,
+    mutate: mutateJob,
+    isLoading: isJobLoading,
+  } = useGetJob(account?.id ?? '', jobId);
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
-  const { data: schema, isLoading: isSchemaLoading } =
-    useGetConnectionSchema(sourceConnectionId);
+  const { data: schema, isLoading: isSchemaLoading } = useGetConnectionSchema(
+    account?.id ?? '',
+    sourceConnectionId
+  );
 
   const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({

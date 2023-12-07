@@ -98,6 +98,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
   const { data: connSchemaData } = useGetConnectionSchema(
+    account?.id ?? '',
     connectFormValues.connectionId
   );
 

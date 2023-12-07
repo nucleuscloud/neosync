@@ -26,10 +26,13 @@ import { isDataGenJob } from './util';
 
 export default function JobIdLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
-  const { data, isLoading } = useGetJob(id);
   const router = useRouter();
   const { account } = useAccount();
-  const { data: jobStatus, mutate: mutateJobStatus } = useGetJobStatus(id);
+  const { data, isLoading } = useGetJob(account?.id ?? '', id);
+  const { data: jobStatus, mutate: mutateJobStatus } = useGetJobStatus(
+    account?.id ?? '',
+    id
+  );
 
   async function onTriggerJobRun(): Promise<void> {
     try {

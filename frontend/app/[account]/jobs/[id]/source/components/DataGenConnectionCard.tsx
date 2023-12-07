@@ -61,10 +61,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
   const { account } = useAccount();
 
-  const { data, mutate, isLoading: isJobLoading } = useGetJob(jobId);
+  const {
+    data,
+    mutate,
+    isLoading: isJobLoading,
+  } = useGetJob(account?.id ?? '', jobId);
   const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
   const { data: schema, isLoading: isGetConnectionsSchemaLoading } =
-    useGetConnectionSchema(fkSourceConnectionId);
+    useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
 
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),

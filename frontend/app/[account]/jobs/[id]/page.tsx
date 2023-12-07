@@ -2,6 +2,7 @@
 import { PageProps } from '@/components/types';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
@@ -12,8 +13,9 @@ import JobScheduleCard from './components/ScheduleCard';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { data, isLoading, mutate } = useGetJob(id);
-  const { data: jobStatus } = useGetJobStatus(id);
+  const { account } = useAccount();
+  const { data, isLoading, mutate } = useGetJob(account?.id ?? '', id);
+  const { data: jobStatus } = useGetJobStatus(account?.id ?? '', id);
 
   if (isLoading) {
     return (

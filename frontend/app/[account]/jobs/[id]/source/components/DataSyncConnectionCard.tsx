@@ -95,9 +95,12 @@ function getConnectionIdFromSource(
 export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
   const { account } = useAccount();
-  const { data, mutate } = useGetJob(jobId);
+  const { data, mutate } = useGetJob(account?.id ?? '', jobId);
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
-  const { data: schema } = useGetConnectionSchema(sourceConnectionId);
+  const { data: schema } = useGetConnectionSchema(
+    account?.id ?? '',
+    sourceConnectionId
+  );
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
 

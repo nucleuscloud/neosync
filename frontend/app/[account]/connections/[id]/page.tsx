@@ -1,5 +1,6 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -11,7 +12,8 @@ import { getConnectionComponentDetails } from './components/connection-component
 
 export default function ConnectionPage({ params }: PageProps) {
   const id = params?.id ?? '';
-  const { data, isLoading, mutate } = useGetConnection(id);
+  const { account } = useAccount();
+  const { data, isLoading, mutate } = useGetConnection(account?.id ?? '', id);
   const { toast } = useToast();
   if (!id) {
     return <div>Not Found</div>;

@@ -59,10 +59,10 @@ export default function RegenerateAccountApiKey({
   params,
 }: PageProps): ReactElement {
   const id = params?.id ?? '';
-  const { data, isLoading } = useGetAccountApiKey(id);
   const { toast } = useToast();
   const router = useRouter();
   const { account } = useAccount();
+  const { data, isLoading } = useGetAccountApiKey(account?.id ?? '', id);
 
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),

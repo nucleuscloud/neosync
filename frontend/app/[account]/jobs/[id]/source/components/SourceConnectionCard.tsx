@@ -1,4 +1,5 @@
 'use client';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetJob } from '@/libs/hooks/useGetJob';
@@ -12,7 +13,8 @@ interface Props {
 }
 
 export default function SourceConnectionCard({ jobId }: Props): ReactElement {
-  const { data, isLoading } = useGetJob(jobId);
+  const { account } = useAccount();
+  const { data, isLoading } = useGetJob(account?.id ?? '', jobId);
 
   if (isLoading) {
     return (

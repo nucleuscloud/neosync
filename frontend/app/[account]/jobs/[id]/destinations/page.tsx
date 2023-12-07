@@ -17,7 +17,7 @@ import DestinationConnectionCard from './components/DestinationConnectionCard';
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { account } = useAccount();
-  const { data, isLoading, mutate } = useGetJob(id);
+  const { data, isLoading, mutate } = useGetJob(account?.id ?? '', id);
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
 

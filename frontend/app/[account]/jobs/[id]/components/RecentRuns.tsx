@@ -26,16 +26,18 @@ interface Props {
 }
 
 export default function JobRecentRuns({ jobId }: Props): ReactElement {
-  const { data, isLoading, error, mutate, isValidating } =
-    useGetJobRecentRuns(jobId);
   const { account } = useAccount();
+  const { data, isLoading, error, mutate, isValidating } = useGetJobRecentRuns(
+    account?.id ?? '',
+    jobId
+  );
 
   const {
     data: jobRuns,
     isLoading: jobRunsLoading,
     mutate: jobsRunsMutate,
     isValidating: jobRunsValidating,
-  } = useGetJobRunsByJob(jobId);
+  } = useGetJobRunsByJob(account?.id ?? '', jobId);
 
   function onRefreshClick(): void {
     mutate();
