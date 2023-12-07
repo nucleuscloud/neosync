@@ -1043,7 +1043,7 @@ func Test_TransformerFunctionLint(t *testing.T) {
 		assert.NoError(t, err)
 
 		_, err = bloblang.Parse(val)
-		assert.NoError(t, err, "failed to parse the transformer")
+		assert.NoError(t, err, "transfomer lint failed, check that the transformer string is being constructed correcrtly. ")
 
 	}
 }
