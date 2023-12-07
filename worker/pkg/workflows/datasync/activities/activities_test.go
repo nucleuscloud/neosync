@@ -693,11 +693,6 @@ func Test_sha256Hash_transformer_float(t *testing.T) {
 	assert.Equal(t, res, buf.String())
 }
 
-type Test_TransformerMapping struct {
-	Name   string
-	Params []string
-}
-
 func Test_TransformerStringLint(t *testing.T) {
 
 	col := "email"
