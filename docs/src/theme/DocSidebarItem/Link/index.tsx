@@ -47,7 +47,7 @@ export default function DocSidebarItemLink({
         })}
         {...props}
       >
-        <div className="gap-4 flex flex-row items-center font-normal text-gray-800">
+        <div className="gap-3 flex flex-row items-center font-normal text-gray-800">
           <div className={cn(isActive ? 'text-blue-500' : 'text-gray-900')}>
             {IconHandler(item.label)}
           </div>
