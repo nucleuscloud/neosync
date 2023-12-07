@@ -326,6 +326,16 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					if err != nil {
 						return nil, err
 					}
+					tableKey := neosync_benthos.BuildBenthosTable(resp.tableSchema, resp.tableName)
+					tm := groupedTableMapping[tableKey]
+					if tm == nil {
+						return nil, errors.New("unable to find table mapping for key")
+					}
+					colSourceMap := map[string]string{}
+					for _, col := range tm.Mappings {
+						colSourceMap[col.Column] = col.GetTransformer().Source
+					}
+					filteredCols := b.filterColsBySource(resp.Config.Input.SqlSelect.Columns, colSourceMap)
 					logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
@@ -333,10 +343,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							Driver: "postgres",
 							Dsn:    dsn,
 
-							Query: "",
-							// Table:         resp.Config.Input.SqlSelect.Table,
-							// Columns:       resp.Config.Input.SqlSelect.Columns,
-							ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+							Query: b.buildPostgresInsertQuery(resp.Config.Input.SqlSelect.Table, resp.Config.Input.SqlSelect.Columns, colSourceMap),
+							// Table:       resp.Config.Input.SqlSelect.Table,
+							// Columns:     resp.Config.Input.SqlSelect.Columns,
+							ArgsMapping: buildPlainInsertArgs(filteredCols),
+							// ArgsMapping:   "root = [this.region_name]",
 							InitStatement: initStmt,
 
 							ConnMaxIdle: 2,
@@ -357,6 +368,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 
 					cols := buildPlainColumns(tm.Mappings)
+					colSourceMap := map[string]string{}
+					for _, col := range tm.Mappings {
+						colSourceMap[col.Column] = col.GetTransformer().Source
+					}
+					// filters out default columns
+					filteredCols := b.filterColsBySource(cols, colSourceMap)
 					initStmt, err := b.getInitStatementFromPostgres(
 						ctx,
 						nil,
@@ -373,13 +390,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						SqlInsert: &neosync_benthos.SqlInsert{
+						SqlRaw: &neosync_benthos.SqlRaw{
 							Driver: "postgres",
 							Dsn:    dsn,
 
-							Table:         tableKey,
-							Columns:       cols,
-							ArgsMapping:   buildPlainInsertArgs(cols),
+							Query:       b.buildPostgresInsertQuery(tableKey, cols, colSourceMap),
+							ArgsMapping: buildPlainInsertArgs(filteredCols),
+
 							InitStatement: initStmt,
 
 							ConnMaxIdle: 2,
@@ -756,3 +773,38 @@ func (b *benthosBuilder) getInitStatementFromMysql(
 	}
 	return strings.Join(statements, "\n"), nil
 }
+
+func (b *benthosBuilder) buildPostgresInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
+	values := make([]string, len(columns))
+	paramCount := 1
+	for i, col := range columns {
+		colSource := colSourceMap[col]
+		if colSource == "generate_default" {
+			values[i] = "DEFAULT"
+		} else {
+			values[i] = fmt.Sprintf("$%d", paramCount)
+			paramCount++
+		}
+	}
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+}
+
+func (b *benthosBuilder) filterColsBySource(columns []string, colSourceMap map[string]string) []string {
+	filteredCols := []string{}
+	for _, col := range columns {
+		colSource := colSourceMap[col]
+		if colSource != "generate_default" {
+			filteredCols = append(filteredCols, col)
+		}
+	}
+
+	return filteredCols
+}
+
+// func (b *benthosBuilder) buildMysqlInsertQuery(table string, columns []string) string {
+// 	values := make([]string, len(columns))
+// 	for i := range values {
+// 		values[i] = "?"
+// 	}
+// 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+// }

@@ -567,7 +567,7 @@ func (b *benthosBuilder) buildProcessorMutation(ctx context.Context, cols []*mgm
 	pieces := []string{}
 
 	for _, col := range cols {
-		if col.Transformer != nil && col.Transformer.Source != "" && col.Transformer.Source != "passthrough" {
+		if col.Transformer != nil && col.Transformer.Source != "" && col.Transformer.Source != "passthrough" && col.Transformer.Source != "generate_default" {
 
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 
