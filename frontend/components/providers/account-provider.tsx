@@ -12,13 +12,15 @@ import {
 
 interface AccountContextType {
   account: UserAccount | undefined;
-  setAccount: (updatedAccount: UserAccount) => void;
+  setAccount(updatedAccount: UserAccount): void;
   isLoading: boolean;
+  mutateUserAccount(): void;
 }
 const AccountContext = createContext<AccountContextType>({
   account: undefined,
   setAccount: () => {},
   isLoading: false,
+  mutateUserAccount() {},
 });
 
 const USER_ACCOUNT_KEY = 'user-account';
@@ -82,7 +84,12 @@ export default function AccountProvider(props: Props): ReactElement {
 
   return (
     <AccountContext.Provider
-      value={{ account: userAccount, setAccount: setAccount, isLoading }}
+      value={{
+        account: userAccount,
+        setAccount: setAccount,
+        isLoading,
+        mutateUserAccount: mutate,
+      }}
     >
       {children}
     </AccountContext.Provider>

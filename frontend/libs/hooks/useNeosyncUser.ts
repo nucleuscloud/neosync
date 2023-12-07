@@ -10,10 +10,10 @@ import { HookReply } from './types';
 import { useGenericErrorToast } from './useGenericErrorToast';
 
 /**
- * Component that returns Nucleus user data.
- * This hook should be called at least once in the app to ensure that the nucleus user record is set.
+ * Neosync user data.
+ * This hook should be called at least once in the app to ensure that the user record is set.
  */
-export function useNucleusUser(suspense?: boolean): HookReply<SetUserResponse> {
+export function useNeosyncUser(): HookReply<SetUserResponse> {
   const { status } = useSession();
   const isReady = isReadyStatus(status);
   const {
@@ -22,9 +22,11 @@ export function useNucleusUser(suspense?: boolean): HookReply<SetUserResponse> {
     mutate,
     isLoading: isDataLoading,
     isValidating,
-  } = useSWR<JsonValue, Error>(isReady ? `/api/users/whoami` : null, fetcher, {
-    suspense: suspense,
-  });
+  } = useSWR<JsonValue, Error>(
+    isReady ? `/api/users/whoami` : null,
+    fetcher,
+    {}
+  );
   useGenericErrorToast(error);
 
   const isLoading = !isReady || isDataLoading;

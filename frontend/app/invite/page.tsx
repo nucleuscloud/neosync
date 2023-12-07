@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useEffect, useRef, useState } from 'react';
 
 export default function InvitePage(): ReactElement {
-  const { setAccount } = useAccount();
+  const { setAccount, mutateUserAccount } = useAccount();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
   const router = useRouter();
@@ -25,7 +25,8 @@ export default function InvitePage(): ReactElement {
           .then((res) => {
             if (res.account) {
               setAccount(res.account);
-              router.replace(`/`);
+              mutateUserAccount();
+              router.replace(`/${res.account.name}`);
             }
           })
           .catch((err) => setError(getErrorMessage(err)));
