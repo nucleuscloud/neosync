@@ -7,7 +7,7 @@ import (
 )
 
 type Auth0MgmtClientInterface interface {
-	GetUserById(id string) (*management.User, error)
+	GetUserById(ctx context.Context, id string) (*management.User, error)
 }
 
 type Auth0MgmtClient struct {

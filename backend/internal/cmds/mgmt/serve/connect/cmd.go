@@ -214,7 +214,7 @@ func serve(ctx context.Context) error {
 		CliClientId:   viper.GetString("AUTH_CLI_CLIENT_ID"),
 		CliAudience:   getAuthCliAudience(),
 		IssuerUrl:     issuerStr,
-	}, authclient, auth0Mgmt)
+	}, authclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(
 			authService,
@@ -237,7 +237,7 @@ func serve(ctx context.Context) error {
 
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled: isAuthEnabled,
-	}, db, authService, tfwfmgr)
+	}, db, auth0Mgmt, tfwfmgr)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,

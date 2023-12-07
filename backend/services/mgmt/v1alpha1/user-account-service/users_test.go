@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/auth0/go-auth0/management"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
+	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/stretchr/testify/assert"
@@ -352,15 +353,12 @@ func Test_GetTeamAccountMembers(t *testing.T) {
 		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, Auth0ProviderID: authProviderId}},
 		nil,
 	)
-	m.AuthServiceMock.On("GetAuthUser", ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
-		UserId:       authProviderId,
-		AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
-	})).Return(connect.NewResponse(&mgmtv1alpha1.GetAuthUserResponse{
-		User: &mgmtv1alpha1.AuthUser{
-			Id: authProviderId,
-		},
-	}), nil)
-
+	m.Auth0MgmtMock.On("GetUserById", ctx, authProviderId).
+		Return(
+			&management.User{
+				ID: &authProviderId,
+			}, nil,
+		)
 	resp, err := m.Service.GetTeamAccountMembers(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]{Msg: &mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: mockAccountId}})
 
 	assert.NoError(t, err)
@@ -381,11 +379,10 @@ func Test_GetTeamAccountMembers_NoAuthUser(t *testing.T) {
 		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, Auth0ProviderID: authProviderId}},
 		nil,
 	)
-	m.AuthServiceMock.On("GetAuthUser", ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
-		UserId:       authProviderId,
-		AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
-	})).Return(connect.NewResponse(&mgmtv1alpha1.GetAuthUserResponse{}), fmt.Errorf("bad news"))
-
+	m.Auth0MgmtMock.On("GetUserById", ctx, authProviderId).
+		Return(
+			nil, fmt.Errorf("bad news"),
+		)
 	resp, err := m.Service.GetTeamAccountMembers(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]{Msg: &mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: mockAccountId}})
 
 	assert.NoError(t, err)
@@ -568,15 +565,13 @@ func Test_AcceptTeamAccountInvite(t *testing.T) {
 	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	m.QuerierMock.On("GetUserIdentityByUserId", ctx, mock.Anything, userUuid).Return(userAssociation, nil)
 	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
-	m.AuthServiceMock.On("GetAuthUser", ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
-		UserId:       userAssociation.Auth0ProviderID,
-		AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
-	})).Return(connect.NewResponse(&mgmtv1alpha1.GetAuthUserResponse{
-		User: &mgmtv1alpha1.AuthUser{
-			Id:    userAssociation.Auth0ProviderID,
-			Email: email,
-		},
-	}), nil)
+	m.Auth0MgmtMock.On("GetUserById", ctx, userAssociation.Auth0ProviderID).
+		Return(
+			&management.User{
+				ID:    &userAssociation.Auth0ProviderID,
+				Email: &email,
+			}, nil,
+		)
 	m.QuerierMock.On("GetAccountInviteByToken", ctx, mockTx, token).Return(db_queries.NeosyncApiAccountInvite{
 		AccountID:    accountUuid,
 		SenderUserID: userUuid,
@@ -616,23 +611,23 @@ type serviceMocks struct {
 	Service                   *Service
 	DbtxMock                  *nucleusdb.MockDBTX
 	QuerierMock               *db_queries.MockQuerier
-	AuthServiceMock           *mgmtv1alpha1connect.MockAuthServiceClient
+	Auth0MgmtMock             *auth0.MockAuth0MgmtClientInterface
 	TemporalClientManagerMock *clientmanager.MockTemporalClientManagerClient
 }
 
 func createServiceMock(t *testing.T, config *Config) *serviceMocks {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockAuthService := mgmtv1alpha1connect.NewMockAuthServiceClient(t)
+	mockAuth0MgmtClient := auth0.NewMockAuth0MgmtClientInterface(t)
 	temporalClientManager := clientmanager.NewMockTemporalClientManagerClient(t)
 
-	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockAuthService, temporalClientManager)
+	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockAuth0MgmtClient, temporalClientManager)
 
 	return &serviceMocks{
 		Service:                   service,
 		DbtxMock:                  mockDbtx,
 		QuerierMock:               mockQuerier,
-		AuthServiceMock:           mockAuthService,
+		Auth0MgmtMock:             mockAuth0MgmtClient,
 		TemporalClientManagerMock: temporalClientManager,
 	}
 }

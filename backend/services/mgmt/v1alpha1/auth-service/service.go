@@ -4,13 +4,11 @@ import (
 	"context"
 
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
-	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 )
 
 type Service struct {
 	cfg        *Config
 	authclient AuthClient
-	auth0Mgmt  *auth0.Auth0MgmtClient
 }
 
 type Config struct {
@@ -34,7 +32,6 @@ type AuthClient interface {
 func New(
 	cfg *Config,
 	authclient AuthClient,
-	auth0Mgmt *auth0.Auth0MgmtClient,
 ) *Service {
-	return &Service{cfg: cfg, authclient: authclient, auth0Mgmt: auth0Mgmt}
+	return &Service{cfg: cfg, authclient: authclient}
 }

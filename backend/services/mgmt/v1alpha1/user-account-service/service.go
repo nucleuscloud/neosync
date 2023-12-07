@@ -1,7 +1,7 @@
 package v1alpha1_useraccountservice
 
 import (
-	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 )
@@ -9,7 +9,7 @@ import (
 type Service struct {
 	cfg                   *Config
 	db                    *nucleusdb.NucleusDb
-	authService           mgmtv1alpha1connect.AuthServiceClient
+	auth0MgmtClient       auth0.Auth0MgmtClientInterface
 	temporalClientManager clientmanager.TemporalClientManagerClient
 }
 
@@ -20,13 +20,13 @@ type Config struct {
 func New(
 	cfg *Config,
 	db *nucleusdb.NucleusDb,
-	authService mgmtv1alpha1connect.AuthServiceClient,
+	auth0MgmtClient auth0.Auth0MgmtClientInterface,
 	temporalClientManager clientmanager.TemporalClientManagerClient,
 ) *Service {
 	return &Service{
 		cfg:                   cfg,
 		db:                    db,
-		authService:           authService,
+		auth0MgmtClient:       auth0MgmtClient,
 		temporalClientManager: temporalClientManager,
 	}
 }

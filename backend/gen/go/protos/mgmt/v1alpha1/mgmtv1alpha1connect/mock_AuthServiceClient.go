@@ -83,65 +83,6 @@ func (_c *MockAuthServiceClient_GetAuthStatus_Call) RunAndReturn(run func(contex
 	return _c
 }
 
-// GetAuthUser provides a mock function with given fields: _a0, _a1
-func (_m *MockAuthServiceClient) GetAuthUser(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAuthUserRequest]) (*connect.Response[mgmtv1alpha1.GetAuthUserResponse], error) {
-	ret := _m.Called(_a0, _a1)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAuthUser")
-	}
-
-	var r0 *connect.Response[mgmtv1alpha1.GetAuthUserResponse]
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAuthUserRequest]) (*connect.Response[mgmtv1alpha1.GetAuthUserResponse], error)); ok {
-		return rf(_a0, _a1)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAuthUserRequest]) *connect.Response[mgmtv1alpha1.GetAuthUserResponse]); ok {
-		r0 = rf(_a0, _a1)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetAuthUserResponse])
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAuthUserRequest]) error); ok {
-		r1 = rf(_a0, _a1)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockAuthServiceClient_GetAuthUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAuthUser'
-type MockAuthServiceClient_GetAuthUser_Call struct {
-	*mock.Call
-}
-
-// GetAuthUser is a helper method to define mock.On call
-//   - _a0 context.Context
-//   - _a1 *connect.Request[mgmtv1alpha1.GetAuthUserRequest]
-func (_e *MockAuthServiceClient_Expecter) GetAuthUser(_a0 interface{}, _a1 interface{}) *MockAuthServiceClient_GetAuthUser_Call {
-	return &MockAuthServiceClient_GetAuthUser_Call{Call: _e.mock.On("GetAuthUser", _a0, _a1)}
-}
-
-func (_c *MockAuthServiceClient_GetAuthUser_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAuthUserRequest])) *MockAuthServiceClient_GetAuthUser_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetAuthUserRequest]))
-	})
-	return _c
-}
-
-func (_c *MockAuthServiceClient_GetAuthUser_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetAuthUserResponse], _a1 error) *MockAuthServiceClient_GetAuthUser_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockAuthServiceClient_GetAuthUser_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetAuthUserRequest]) (*connect.Response[mgmtv1alpha1.GetAuthUserResponse], error)) *MockAuthServiceClient_GetAuthUser_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetAuthorizeUrl provides a mock function with given fields: _a0, _a1
 func (_m *MockAuthServiceClient) GetAuthorizeUrl(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[mgmtv1alpha1.GetAuthorizeUrlResponse], error) {
 	ret := _m.Called(_a0, _a1)

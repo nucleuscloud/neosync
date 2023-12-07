@@ -70,26 +70,6 @@ message GetCliIssuerResponse {
   string audience = 2;
 }
 
-enum AuthProvider {
-  AUTH_PROVIDER_UNSPECIFIED = 0;
-  AUTH_PROVIDER_AUTH_0 = 1;
-}
-
-message AuthUser {
-  string id = 1;
-  string name = 2;
-  string email = 3;
-  string image = 4;
-}
-
-message GetAuthUserRequest {
-  string user_id = 1;
-  AuthProvider auth_provider = 2;
-}
-message GetAuthUserResponse {
-  AuthUser user = 1;
-}
-
 service AuthService {
   rpc LoginCli(LoginCliRequest) returns (LoginCliResponse) {}
   rpc GetCliIssuer(GetCliIssuerRequest) returns (GetCliIssuerResponse) {}
@@ -98,6 +78,4 @@ service AuthService {
   // rpc RefreshAccessToken(RefreshAccessTokenRequest) returns (RefreshAccessTokenResponse) {}
 
   rpc GetAuthStatus(GetAuthStatusRequest) returns (GetAuthStatusResponse) {}
-
-  rpc GetAuthUser(GetAuthUserRequest) returns (GetAuthUserResponse) {}
 }
