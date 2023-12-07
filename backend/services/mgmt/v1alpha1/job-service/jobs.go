@@ -335,6 +335,9 @@ func (s *Service) CreateJob(
 		AccountId:     *accountUuid,
 		ConnectionIds: connectionUuids,
 	})
+	if err != nil {
+		return nil, err
+	}
 	if count != int64(len(connectionUuids)) {
 		return nil, nucleuserrors.NewForbidden("provided connection id is not in account")
 	}
