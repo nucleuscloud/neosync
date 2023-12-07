@@ -5,16 +5,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   req: NextRequest,
-  _: RequestContext
+  { params }: RequestContext
 ): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
   const tname = searchParams.get('transformerName') ?? '';
-  const accountId = searchParams.get('accountId') ?? '';
   return withNeosyncContext(async (ctx) => {
     return ctx.transformerClient.isTransformerNameAvailable(
       new IsTransformerNameAvailableRequest({
         transformerName: tname,
-        accountId: accountId,
+        accountId: params.accountId,
       })
     );
   })(req);

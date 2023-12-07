@@ -10,13 +10,11 @@ export async function GET(
   req: NextRequest,
   { params }: RequestContext
 ): Promise<NextResponse> {
-  const { searchParams } = new URL(req.url);
-  const accountId = searchParams.get('accountId') ?? '';
   return withNeosyncContext(async (ctx) => {
     return ctx.jobsClient.getJobRun(
       new GetJobRunRequest({
         jobRunId: params.id,
-        accountId,
+        accountId: params.accountId,
       })
     );
   })(req);
@@ -26,13 +24,11 @@ export async function DELETE(
   req: NextRequest,
   { params }: RequestContext
 ): Promise<NextResponse> {
-  const { searchParams } = new URL(req.url);
-  const accountId = searchParams.get('accountId') ?? '';
   return withNeosyncContext(async (ctx) => {
     return ctx.jobsClient.deleteJobRun(
       new DeleteJobRunRequest({
         jobRunId: params.id,
-        accountId,
+        accountId: params.accountId,
       })
     );
   })(req);

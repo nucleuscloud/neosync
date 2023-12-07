@@ -8,10 +8,16 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.transformerClient.getUserDefinedTransformerById(
-      new GetUserDefinedTransformerByIdRequest({
-        transformerId: params.id,
-      })
-    );
+    const transformer =
+      await ctx.transformerClient.getUserDefinedTransformerById(
+        new GetUserDefinedTransformerByIdRequest({
+          transformerId: params.id,
+        })
+      );
+    if (transformer.transformer?.accountId !== params.accountId) {
+      throw new Error('resource not found in account');
+    }
+
+    return transformer;
   })(req);
 }

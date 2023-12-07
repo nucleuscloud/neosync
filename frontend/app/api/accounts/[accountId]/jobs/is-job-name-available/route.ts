@@ -5,16 +5,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   req: NextRequest,
-  _: RequestContext
+  { params }: RequestContext
 ): Promise<NextResponse> {
   const { searchParams } = new URL(req.url);
   const name = searchParams.get('name') ?? '';
-  const accountId = searchParams.get('accountId') ?? '';
   return withNeosyncContext(async (ctx) => {
     return ctx.jobsClient.isJobNameAvailable(
       new IsJobNameAvailableRequest({
         name,
-        accountId,
+        accountId: params.accountId,
       })
     );
   })(req);

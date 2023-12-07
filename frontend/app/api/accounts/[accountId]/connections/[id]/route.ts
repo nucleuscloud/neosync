@@ -12,11 +12,15 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.connectionClient.getConnection(
+    const connection = await ctx.connectionClient.getConnection(
       new GetConnectionRequest({
         id: params.id,
       })
     );
+    if (connection.connection?.accountId !== params.accountId) {
+      throw new Error('resource not found in account');
+    }
+    return connection;
   })(req);
 }
 

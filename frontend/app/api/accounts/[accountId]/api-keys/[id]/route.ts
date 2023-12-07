@@ -11,11 +11,15 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.apikeyClient.getAccountApiKey(
+    const apiKey = await ctx.apikeyClient.getAccountApiKey(
       new GetAccountApiKeyRequest({
         id: params.id,
       })
     );
+    if (apiKey.apiKey?.accountId !== params.accountId) {
+      throw new Error('resource not found in account');
+    }
+    return apiKey;
   })(req);
 }
 
