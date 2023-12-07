@@ -12,6 +12,24 @@ import (
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
+const areConnectionsInAccount = `-- name: AreConnectionsInAccount :one
+SELECT count(c.id) from neosync_api.connections c
+INNER JOIN neosync_api.accounts a ON a.id = c.account_id
+WHERE a.id = $1 and c.id = ANY($2::uuid[])
+`
+
+type AreConnectionsInAccountParams struct {
+	AccountId      pgtype.UUID
+	ConnectiondIds []pgtype.UUID
+}
+
+func (q *Queries) AreConnectionsInAccount(ctx context.Context, db DBTX, arg AreConnectionsInAccountParams) (int64, error) {
+	row := db.QueryRow(ctx, areConnectionsInAccount, arg.AccountId, arg.ConnectiondIds)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createConnection = `-- name: CreateConnection :one
 INSERT INTO neosync_api.connections (
   name, account_id, connection_config, created_by_id, updated_by_id

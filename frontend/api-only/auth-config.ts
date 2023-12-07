@@ -14,7 +14,6 @@ export function getAuthOptions(): AuthOptions {
 
   if (isAuthEnabled()) {
     providers.push(getAuth0Provider());
-    console.log('auth0', getAuth0Provider());
   }
 
   return {

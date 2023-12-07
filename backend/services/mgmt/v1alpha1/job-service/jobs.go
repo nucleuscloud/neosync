@@ -313,6 +313,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 
+	connectionUuids := []pgtype.UUID{}
 	connectionIds := []string{}
 	destinations := []*Destination{}
 	for _, dest := range req.Msg.Destinations {
@@ -327,6 +328,15 @@ func (s *Service) CreateJob(
 		}
 		destinations = append(destinations, &Destination{ConnectionId: destUuid, Options: options})
 		connectionIds = append(connectionIds, dest.ConnectionId)
+		connectionUuids = append(connectionUuids, destUuid)
+	}
+
+	count, err := s.db.Q.AreConnectionsInAccount(ctx, s.db.Db, db_queries.AreConnectionsInAccountParams{
+		AccountId:      *accountUuid,
+		ConnectiondIds: connectionUuids,
+	})
+	if count != int64(len(connectionUuids)) {
+		return nil, nucleuserrors.NewForbidden("provided connection id is not in account")
 	}
 
 	// we leave out generation fk source connection id as it might be set to a destination id
@@ -476,7 +486,6 @@ func (s *Service) CreateJob(
 		}
 	}
 
-	// todo: verify connection ids are all in this account
 	destinationConnections, err := s.db.Q.GetJobConnectionDestinations(ctx, s.db.Db, cj.ID)
 	if err != nil {
 		logger.Error("unable to retrieve job destination connections")
