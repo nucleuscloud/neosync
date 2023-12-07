@@ -299,7 +299,7 @@ func Test_buildProcessorMutation(t *testing.T) {
 	})
 
 	assert.Nil(t, err)
-	assert.Equal(t, output, `root.email = transform_email(value:this.email,preserve_domain:true, preserve_length:false)`)
+	assert.Equal(t, output, `root.email = transform_email(value:this.email,preserve_domain:true,preserve_length:false)`)
 
 	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
@@ -698,7 +698,7 @@ type Test_TransformerMapping struct {
 	Params []string
 }
 
-func Test_TransformerFunctionLint(t *testing.T) {
+func Test_TransformerStringLint(t *testing.T) {
 
 	col := "email"
 
