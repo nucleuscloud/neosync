@@ -631,7 +631,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "transform_email":
 		pd := col.Transformer.Config.GetTransformEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
-		return fmt.Sprintf("transform_email(value:this.%s,preserve_domain:%t, preserve_length:%t)", col.Column, pd, pl), nil
+		return fmt.Sprintf("transform_email(value:this.%s,preserve_domain:%t,preserve_length:%t)", col.Column, pd, pl), nil
 	case "generate_bool":
 		return "generate_bool()", nil
 	case "generate_card_number":
