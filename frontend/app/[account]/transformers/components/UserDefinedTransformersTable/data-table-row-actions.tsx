@@ -4,6 +4,7 @@ import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -29,10 +30,11 @@ export function DataTableRowActions<TData>({
   const transformer = row.original as UserDefinedTransformer;
   const router = useRouter();
   const { toast } = useToast();
+  const { account } = useAccount();
 
   async function onDelete(): Promise<void> {
     try {
-      await removeTransformer(transformer.id);
+      await removeTransformer(account?.id ?? '', transformer.id);
       toast({
         title: 'Transformer removed successfully!',
         variant: 'success',
@@ -61,7 +63,9 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/transformers/${transformer.id}`)}
+          onClick={() =>
+            router.push(`/${account?.name}/transformers/${transformer.id}`)
+          }
         >
           View
         </DropdownMenuItem>
@@ -84,9 +88,12 @@ export function DataTableRowActions<TData>({
   );
 }
 
-async function removeTransformer(transformerId: string): Promise<void> {
+async function removeTransformer(
+  accountId: string,
+  transformerId: string
+): Promise<void> {
   const res = await fetch(
-    `/api/transformers/user-defined?transformerId=${transformerId}`,
+    `/api/accounts/${accountId}/transformers/user-defined?transformerId=${transformerId}`,
     {
       method: 'DELETE',
     }

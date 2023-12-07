@@ -43,7 +43,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
   useEffect(() => {
     if (!searchParams?.sessionId) {
-      router.push(`/new/job`);
+      router.push(`/${account?.name}/new/job`);
     }
   }, [searchParams?.sessionId]);
 
@@ -78,7 +78,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const connections = connectionsData?.connections ?? [];
 
   async function onSubmit(_values: ConnectFormValues) {
-    router.push(`/new/job/schema?sessionId=${sessionPrefix}`);
+    router.push(`/${account?.name}/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
   const [sourceConn, setSourceConn] = useState<string>(
@@ -148,8 +148,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           onValueChange={(value: string) => {
                             if (value === NEW_CONNECTION_VALUE) {
                               router.push(
-                                `/new/connection?returnTo=${encodeURIComponent(
-                                  `/new/job/connect?sessionId=${sessionPrefix}`
+                                `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
+                                  `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}`
                                 )}`
                               );
                               return;

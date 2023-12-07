@@ -4,6 +4,7 @@ import ButtonText from '@/components/ButtonText';
 import { CopyButton } from '@/components/CopyButton';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -23,6 +24,7 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const { data, isLoading } = useGetAccountApiKey(id);
   const router = useRouter();
+  const { account } = useAccount();
   const [sessionApiKeyValue] = useSessionStorage<
     ApiKeyValueSessionStore | undefined
   >(id, undefined);
@@ -66,9 +68,13 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
             <div className="flex flex-row gap-2">
               <RemoveAccountApiKeyButton
                 id={id}
-                onDeleted={() => router.push(`/settings/account-api-keys`)}
+                onDeleted={() =>
+                  router.push(`/${account?.name}/settings/api-keys`)
+                }
               />
-              <Link href={`/settings/account-api-keys/${id}/regenerate`}>
+              <Link
+                href={`/${account?.name}/settings/api-keys/${id}/regenerate`}
+              >
                 <Button type="button">
                   <ButtonText
                     leftIcon={<ReloadIcon className="h-4 w-4" />}

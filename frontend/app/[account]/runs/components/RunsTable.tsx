@@ -44,6 +44,7 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
       mutate();
     },
     accountId: account?.id || '',
+    accountName: account?.name ?? '',
   });
 
   function refreshClick(): void {

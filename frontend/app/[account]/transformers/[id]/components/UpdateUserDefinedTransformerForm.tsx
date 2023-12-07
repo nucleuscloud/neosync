@@ -81,7 +81,7 @@ export default function UpdateUserDefinedTransformerForm(
         variant: 'success',
       });
       if (transformer.transformer?.id) {
-        router.push(`/transformers`);
+        router.push(`/${account?.name}/transformers`);
       }
     } catch (err) {
       console.error(err);

@@ -53,7 +53,7 @@ export default function Page({ params }: PageProps): ReactElement {
       toast({
         title: 'Job run removed successfully!',
       });
-      router.push(`/runs`);
+      router.push(`/${account?.name}/runs`);
     } catch (err) {
       console.error(err);
       toast({
@@ -242,13 +242,14 @@ interface ButtonProps {
 
 function ButtonLink(props: ButtonProps): ReactElement {
   const router = useRouter();
+  const { account } = useAccount();
   if (!props.jobId) {
     return <></>;
   }
   return (
     <Button
       variant="outline"
-      onClick={() => router.push(`/jobs/${props.jobId}`)}
+      onClick={() => router.push(`/${account?.name}/jobs/${props.jobId}`)}
     >
       <ButtonText
         text="View Job"

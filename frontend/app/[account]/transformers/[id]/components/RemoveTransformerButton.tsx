@@ -1,5 +1,6 @@
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
@@ -15,15 +16,16 @@ export default function RemoveTransformerButton(props: Props): ReactElement {
   const { transformerID } = props;
   const router = useRouter();
   const { toast } = useToast();
+  const { account } = useAccount();
 
   async function deleteTransformer(): Promise<void> {
     try {
-      await removeTransformer(transformerID);
+      await removeTransformer(account?.id ?? '', transformerID);
       toast({
         title: 'Successfully removed transformer!',
         variant: 'success',
       });
-      router.push(`/transformers`);
+      router.push(`/${account?.name}/transformers`);
     } catch (err) {
       console.error(err);
       toast({
@@ -47,9 +49,12 @@ export default function RemoveTransformerButton(props: Props): ReactElement {
   );
 }
 
-async function removeTransformer(transformerId: string): Promise<void> {
+async function removeTransformer(
+  accountId: string,
+  transformerId: string
+): Promise<void> {
   const res = await fetch(
-    `/api/transformers/user-defined?transformerId=${transformerId}`,
+    `/api/accounts/${accountId}/transformers/user-defined?transformerId=${transformerId}`,
     {
       method: 'DELETE',
     }

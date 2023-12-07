@@ -87,9 +87,9 @@ export default function Page({ params }: PageProps): ReactElement {
     try {
       const job = await createJobConnections(id, values, connections);
       if (job.job?.id) {
-        router.push(`/jobs/${job.job.id}/destinations`);
+        router.push(`/${account?.name}/jobs/${job.job.id}/destinations`);
       } else {
-        router.push(`/jobs`);
+        router.push(`/${account?.name}/jobs`);
       }
     } catch (err) {
       console.error(err);

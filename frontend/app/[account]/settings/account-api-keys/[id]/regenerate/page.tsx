@@ -3,6 +3,7 @@ import { ApiKeyValueSessionStore } from '@/app/[account]/new/account-api-key/New
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -61,6 +62,7 @@ export default function RegenerateAccountApiKey({
   const { data, isLoading } = useGetAccountApiKey(id);
   const { toast } = useToast();
   const router = useRouter();
+  const { account } = useAccount();
 
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
@@ -82,9 +84,9 @@ export default function RegenerateAccountApiKey({
         };
         window.sessionStorage.setItem(id, JSON.stringify(storeVal));
       }
-      router.push(`/settings/account-api-keys/${id}`);
+      router.push(`/${account?.name}/settings/api-keys/${id}`);
       mutate(
-        `/api/api-keys/account/${id}`,
+        `/api/accounts/${account?.id}/api-keys/${id}`,
         new GetAccountApiKeyResponse({
           apiKey: updatedApiKey.apiKey,
         })

@@ -58,8 +58,9 @@ interface NewConnectionButtonprops {}
 
 function NewConnectionButton(props: NewConnectionButtonprops): ReactElement {
   const {} = props;
+  const { account } = useAccount();
   return (
-    <NextLink href={'/new/connection'}>
+    <NextLink href={`/${account?.name}/new/connection`}>
       <Button>
         <ButtonText leftIcon={<PlusIcon />} text="New Connection" />
       </Button>

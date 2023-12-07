@@ -1,5 +1,6 @@
 'use client';
 import JobRunStatus from '@/app/[account]/runs/components/JobRunStatus';
+import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,7 @@ interface Props {
 export default function JobRecentRuns({ jobId }: Props): ReactElement {
   const { data, isLoading, error, mutate, isValidating } =
     useGetJobRecentRuns(jobId);
+  const { account } = useAccount();
 
   const {
     data: jobRuns,
@@ -101,7 +103,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                     <TableCell>
                       <Link
                         className="hover:underline"
-                        href={`/runs/${r.jobRunId}`}
+                        href={`/${account?.name}/runs/${r.jobRunId}`}
                       >
                         <span className="font-medium">{r.jobRunId}</span>
                       </Link>
@@ -123,7 +125,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                     </TableCell>
                     <TableCell>
                       {jobRun && (
-                        <Link href={`/runs/${jobRun.id}`}>
+                        <Link href={`/${account?.name}/runs/${jobRun.id}`}>
                           <Button variant="ghost" size="icon">
                             <ArrowRightIcon />
                           </Button>

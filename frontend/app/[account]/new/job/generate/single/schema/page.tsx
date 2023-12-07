@@ -74,7 +74,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
-      router.push(`/new/job`);
+      router.push(`/${account?.name}/new/job`);
     }
   }, [searchParams?.sessionId]);
   const { data: connectionsData } = useGetConnections(account?.id ?? '');
@@ -194,9 +194,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       window.sessionStorage.removeItem(connectFormKey);
       window.sessionStorage.removeItem(formKey);
       if (job.job?.id) {
-        router.push(`/jobs/${job.job.id}`);
+        router.push(`/${account?.name}/jobs/${job.job.id}`);
       } else {
-        router.push(`/jobs`);
+        router.push(`/${account?.name}/jobs`);
       }
     } catch (err) {
       console.error(err);

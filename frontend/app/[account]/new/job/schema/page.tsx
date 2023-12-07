@@ -40,7 +40,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
-      router.push(`/new/job`);
+      router.push(`/${account?.name}/new/job`);
     }
   }, [searchParams?.sessionId]);
 
@@ -130,7 +130,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     if (!account) {
       return;
     }
-    router.push(`/new/job/subset?sessionId=${sessionPrefix}`);
+    router.push(`/${account?.name}/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
   return (

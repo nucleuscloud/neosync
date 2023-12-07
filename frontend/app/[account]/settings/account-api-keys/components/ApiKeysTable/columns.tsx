@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import NextLink from 'next/link';
 
+import { useAccount } from '@/components/providers/account-provider';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import { AccountApiKey } from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
 import { formatDateTime } from '@/util/util';
@@ -19,6 +20,7 @@ export function getColumns(
   props: GetColumnsProps
 ): ColumnDef<PlainMessage<AccountApiKey>>[] {
   const { onDeleted } = props;
+  const { account } = useAccount();
   return [
     {
       accessorKey: 'id',
@@ -29,7 +31,7 @@ export function getColumns(
         <div>
           <NextLink
             className="hover:underline"
-            href={`/settings/account-api-keys/${row.getValue('id')}`}
+            href={`/${account?.name}/settings/api-keys/${row.getValue('id')}`}
           >
             <span>{row.getValue('id')}</span>
           </NextLink>

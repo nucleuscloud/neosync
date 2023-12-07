@@ -70,8 +70,9 @@ function JobTable(props: JobTableProps): ReactElement {
 }
 
 function NewJobButton(): ReactElement {
+  const { account } = useAccount();
   return (
-    <NextLink href={'/new/job'}>
+    <NextLink href={`/${account?.name}/new/job`}>
       <Button>
         <ButtonText leftIcon={<PlusIcon />} text="New Job" />
       </Button>

@@ -60,8 +60,10 @@ interface NewApiKeyButtonProps {}
 
 function NewApiKeyButton(props: NewApiKeyButtonProps): ReactElement {
   const {} = props;
+  const { account } = useAccount();
+
   return (
-    <Link href={'/new/account-api-key'}>
+    <Link href={`/${account?.name}/new/api-key`}>
       <Button type="button">
         <ButtonText leftIcon={<PlusIcon />} text="New API Key" />
       </Button>

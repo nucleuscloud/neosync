@@ -13,12 +13,13 @@ import { DataTableRowActions } from './data-table-row-actions';
 interface GetColumnsProps {
   onDeleted(id: string): void;
   accountId: string;
+  accountName: string;
 }
 
 export function getColumns(
   props: GetColumnsProps
 ): ColumnDef<PlainMessage<JobRun>>[] {
-  const { onDeleted, accountId } = props;
+  const { onDeleted, accountId, accountName } = props;
   return [
     {
       accessorKey: 'status',
@@ -46,7 +47,7 @@ export function getColumns(
           <div>
             <NextLink
               className="hover:underline"
-              href={`/runs/${row.getValue('id')}`}
+              href={`/${accountName}/runs/${row.getValue('id')}`}
             >
               <span>{row.getValue('id')}</span>
             </NextLink>
@@ -81,7 +82,7 @@ export function getColumns(
           <div className="flex space-x-2">
             <NextLink
               className="hover:underline"
-              href={`/jobs/${row.getValue('jobId')}`}
+              href={`/${accountName}/jobs/${row.getValue('jobId')}`}
             >
               <span className="max-w-[500px] truncate font-medium">
                 {row.getValue('jobId')}

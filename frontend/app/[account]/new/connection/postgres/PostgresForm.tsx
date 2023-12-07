@@ -92,9 +92,11 @@ export default function PostgresForm() {
       if (returnTo) {
         router.push(returnTo);
       } else if (connection.connection?.id) {
-        router.push(`/connections/${connection.connection.id}`);
+        router.push(
+          `/${account?.name}/connections/${connection.connection.id}`
+        );
       } else {
-        router.push(`/connections`);
+        router.push(`/${account?.name}/connections`);
       }
     } catch (err) {
       console.error('Error in form submission:', err);

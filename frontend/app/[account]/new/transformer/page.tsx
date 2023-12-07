@@ -77,9 +77,11 @@ export default function NewTransformer(): ReactElement {
         variant: 'success',
       });
       if (transformer.transformer?.id) {
-        router.push(`/transformers/${transformer.transformer?.id}`);
+        router.push(
+          `/${account?.name}/transformers/${transformer.transformer?.id}`
+        );
       } else {
-        router.push(`/transformers`);
+        router.push(`/${account?.name}/transformers`);
       }
     } catch (err) {
       console.error(err);

@@ -4,8 +4,10 @@ import {
   SYSTEM_TRANSFORMER_SCHEMA,
   SystemTransformersSchema,
 } from '@/app/[account]/new/transformer/schema';
+import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +40,7 @@ export default function ViewSystemTransformers({
   );
 
   const router = useRouter();
+  const { account } = useAccount();
 
   const form = useForm<SystemTransformersSchema>({
     resolver: yupResolver(SYSTEM_TRANSFORMER_SCHEMA),
@@ -129,7 +132,10 @@ export default function ViewSystemTransformers({
             {handleCustomTransformerForm(currentTransformer?.source, true)}
           </div>
           <div className="flex flex-row justify-start">
-            <Button type="button" onClick={() => router.push('/transformers')}>
+            <Button
+              type="button"
+              onClick={() => router.push(`/${account?.name}/transformers`)}
+            >
               Back
             </Button>
           </div>
@@ -140,9 +146,12 @@ export default function ViewSystemTransformers({
 }
 
 function NewTransformerButton(): ReactElement {
+  const { account } = useAccount();
   return (
-    <NextLink href={'/new/transformer'}>
-      <Button> Clone Transformer</Button>
+    <NextLink href={`/${account?.name}/new/transformer`}>
+      <Button>
+        <ButtonText text="Clone Transformer" />
+      </Button>
     </NextLink>
   );
 }

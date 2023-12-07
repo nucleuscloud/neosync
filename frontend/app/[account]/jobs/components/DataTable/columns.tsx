@@ -2,6 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 
+import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
@@ -43,6 +44,7 @@ interface GetJobsProps {
 
 export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
   const { onDeleted } = props;
+  const { account } = useAccount();
 
   return [
     {
@@ -75,7 +77,7 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
           <div>
             <NextLink
               className="hover:underline"
-              href={`/jobs/${row.getValue('id')}`}
+              href={`/${account?.name}/jobs/${row.getValue('id')}`}
             >
               <span>{row.getValue('id')}</span>
             </NextLink>

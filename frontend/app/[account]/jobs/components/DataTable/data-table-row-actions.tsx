@@ -12,6 +12,7 @@ import { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import { useAccount } from '@/components/providers/account-provider';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
@@ -27,12 +28,13 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const job = row.original as Job;
   const router = useRouter();
+  const { account } = useAccount();
 
   const { toast } = useToast();
 
   async function onDelete(): Promise<void> {
     try {
-      await removeJob(job.id);
+      await removeJob(account?.id ?? '', job.id);
       toast({
         title: 'Job removed successfully!',
         variant: 'success',
@@ -58,7 +60,7 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent>
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/jobs/${job.id}`)}
+          onClick={() => router.push(`/${account?.name}/jobs/${job.id}`)}
         >
           View
         </DropdownMenuItem>
@@ -81,8 +83,8 @@ export function DataTableRowActions<TData>({
   );
 }
 
-async function removeJob(jobId: string): Promise<void> {
-  const res = await fetch(`/api/jobs/${jobId}`, {
+async function removeJob(accountId: string, jobId: string): Promise<void> {
+  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}`, {
     method: 'DELETE',
   });
   if (!res.ok) {

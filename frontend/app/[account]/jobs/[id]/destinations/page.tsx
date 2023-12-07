@@ -69,8 +69,9 @@ interface NewDestinationButtonProps {
 
 function NewDestinationButton(props: NewDestinationButtonProps): ReactElement {
   const { jobId } = props;
+  const { account } = useAccount();
   return (
-    <NextLink href={`/new/job/${jobId}/destination`}>
+    <NextLink href={`/${account?.name}/new/job/${jobId}/destination`}>
       <Button>
         <ButtonText leftIcon={<PlusIcon />} text="New Destination" />
       </Button>

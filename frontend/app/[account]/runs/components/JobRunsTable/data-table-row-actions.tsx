@@ -3,6 +3,7 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -29,6 +30,7 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const run = row.original as JobRun;
   const router = useRouter();
+  const { account } = useAccount();
   const { toast } = useToast();
 
   async function onDelete(): Promise<void> {
@@ -79,7 +81,7 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/runs/${run.id}`)}
+          onClick={() => router.push(`/${account?.name}/runs/${run.id}`)}
         >
           View
         </DropdownMenuItem>

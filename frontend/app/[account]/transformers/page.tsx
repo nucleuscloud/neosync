@@ -1,4 +1,5 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
+import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { getSystemTransformerColumns } from './components/SystemTransformersTable/columns';
@@ -80,9 +82,12 @@ function TransformersTable(): ReactElement {
 }
 
 function NewTransformerButton(): ReactElement {
+  const { account } = useAccount();
   return (
-    <NextLink href={'/new/transformer'}>
-      <Button> + New Transformer</Button>
+    <NextLink href={`/${account?.name}/new/transformer`}>
+      <Button>
+        <ButtonText leftIcon={<PlusIcon />} text="New Transformer" />
+      </Button>
     </NextLink>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
@@ -32,9 +33,10 @@ import { DEFINE_FORM_SCHEMA, DefineFormValues } from '../schema';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
+  const { account } = useAccount();
   useEffect(() => {
     if (!searchParams?.sessionId) {
-      router.push(`/new/job`);
+      router.push(`/${account?.name}/new/job`);
     }
   }, [searchParams?.sessionId]);
 
@@ -71,10 +73,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
     if (newJobType === 'generate-table') {
       router.push(
-        `/new/job/generate/single/connect?sessionId=${sessionPrefix}`
+        `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}`
       );
     } else {
-      router.push(`/new/job/connect?sessionId=${sessionPrefix}`);
+      router.push(
+        `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}`
+      );
     }
   }
 

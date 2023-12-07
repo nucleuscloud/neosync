@@ -1,5 +1,6 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
+import { useAccount } from '@/components/providers/account-provider';
 import { Avatar } from '@/components/ui/avatar';
 import {
   Card,
@@ -22,12 +23,15 @@ interface Props {
 export default function ConnectionCard(props: Props) {
   const { connection } = props;
   const router = useRouter();
+  const { account } = useAccount();
   const searchParams = useSearchParams();
   return (
     <Card
       onClick={() =>
         router.push(
-          `/new/connection/${connection.urlSlug}?${searchParams.toString()}`
+          `/${account?.name}/new/connection/${
+            connection.urlSlug
+          }?${searchParams.toString()}`
         )
       }
       className="cursor-pointer"

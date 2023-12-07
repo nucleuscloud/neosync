@@ -4,6 +4,7 @@ import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const connection = row.original as Connection;
   const router = useRouter();
+  const account = useAccount();
   const { toast } = useToast();
 
   async function onDelete(): Promise<void> {
@@ -62,7 +64,11 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/connections/${connection.id}`)}
+          onClick={() =>
+            router.push(
+              `/${account.account?.name}/connections/${connection.id}`
+            )
+          }
         >
           View
         </DropdownMenuItem>

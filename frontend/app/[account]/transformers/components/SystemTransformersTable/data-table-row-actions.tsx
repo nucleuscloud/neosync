@@ -3,6 +3,7 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -22,6 +23,7 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const transformer = row.original as SystemTransformer;
   const router = useRouter();
+  const { account } = useAccount();
 
   return (
     <DropdownMenu>
@@ -39,7 +41,7 @@ export function DataTableRowActions<TData>({
           className="cursor-pointer"
           onClick={() =>
             router.push(
-              `/transformers/systemTransformers/${transformer.source}`
+              `/${account?.name}/transformers/systemTransformers/${transformer.source}`
             )
           }
         >

@@ -1,5 +1,6 @@
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
@@ -14,16 +15,17 @@ interface Props {
 export default function RemoveConnectionButton(props: Props): ReactElement {
   const { connectionId } = props;
   const router = useRouter();
+  const account = useAccount();
   const { toast } = useToast();
 
   async function onDelete(): Promise<void> {
     try {
-      await removeConnection(connectionId);
+      await removeConnection(account.account?.id ?? '', connectionId);
       toast({
         title: 'Successfully removed connection!',
         variant: 'success',
       });
-      router.push(`/connections`);
+      router.push(`/${account.account?.name}/connections`);
     } catch (err) {
       console.error(err);
       toast({
@@ -48,10 +50,16 @@ export default function RemoveConnectionButton(props: Props): ReactElement {
   );
 }
 
-async function removeConnection(connectionId: string): Promise<void> {
-  const res = await fetch(`/api/connections/${connectionId}`, {
-    method: 'DELETE',
-  });
+async function removeConnection(
+  accountId: string,
+  connectionId: string
+): Promise<void> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${connectionId}`,
+    {
+      method: 'DELETE',
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

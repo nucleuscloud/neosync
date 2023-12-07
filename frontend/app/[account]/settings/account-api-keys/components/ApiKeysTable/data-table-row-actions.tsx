@@ -3,6 +3,7 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,6 +27,7 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const apikey = row.original as AccountApiKey;
   const router = useRouter();
+  const { account } = useAccount();
 
   return (
     <DropdownMenu modal={false}>
@@ -41,7 +43,9 @@ export function DataTableRowActions<TData>({
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
           className="cursor-pointer"
-          onClick={() => router.push(`/settings/account-api-keys/${apikey.id}`)}
+          onClick={() =>
+            router.push(`/${account?.name}/settings/api-keys/${apikey.id}`)
+          }
         >
           View
         </DropdownMenuItem>

@@ -85,7 +85,7 @@ export default function NewApiKeyForm(): ReactElement {
             JSON.stringify(storeVal)
           );
         }
-        router.push(`/settings/account-api-keys/${apiKey.apiKey.id}`);
+        router.push(`/${account?.name}/settings/api-keys/${apiKey.apiKey.id}`);
         mutate(
           `/api/api-keys/account/${apiKey.apiKey.id}`,
           new GetAccountApiKeyResponse({
@@ -93,7 +93,7 @@ export default function NewApiKeyForm(): ReactElement {
           })
         );
       } else {
-        router.push(`/settings/account-api-keys`);
+        router.push(`/${account?.name}/settings/api-keys`);
       }
       toast({
         title: 'Successfully created api key!',

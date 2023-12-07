@@ -3,6 +3,7 @@ import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { LayoutProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -27,6 +28,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
   const { data, isLoading } = useGetJob(id);
   const router = useRouter();
+  const { account } = useAccount();
   const { data: jobStatus, mutate: mutateJobStatus } = useGetJobStatus(id);
 
   async function onTriggerJobRun(): Promise<void> {
@@ -36,7 +38,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
         title: 'Job run triggered successfully!',
         variant: 'success',
       });
-      router.push(`/jobs/${id}`);
+      router.push(`/${account?.name}/jobs/${id}`);
     } catch (err) {
       console.error(err);
       toast({
@@ -56,7 +58,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       toast({
         title: 'Job removed successfully!',
       });
-      router.push('/jobs');
+      router.push(`/${account?.name}/jobs`);
     } catch (err) {
       console.error(err);
       toast({
