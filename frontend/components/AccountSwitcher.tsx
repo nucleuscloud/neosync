@@ -112,7 +112,7 @@ export default function AccountSwitcher(_: Props): ReactElement {
                       setAccount(a);
                       setOpen(false);
                     }}
-                    className="text-sm"
+                    className="text-sm cursor-pointer"
                   >
                     <Avatar className="mr-2 h-5 w-5">
                       <AvatarImage
@@ -140,7 +140,7 @@ export default function AccountSwitcher(_: Props): ReactElement {
                       setAccount(a);
                       setOpen(false);
                     }}
-                    className="text-sm"
+                    className="text-sm cursor-pointer"
                   >
                     <Avatar className="mr-2 h-5 w-5">
                       <AvatarImage
@@ -169,6 +169,7 @@ export default function AccountSwitcher(_: Props): ReactElement {
                       setOpen(false);
                       setShowNewTeamDialog(true);
                     }}
+                    className="cursor-pointer"
                   >
                     <PlusCircledIcon className="mr-2 h-5 w-5" />
                     Create Team
