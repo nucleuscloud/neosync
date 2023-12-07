@@ -23,8 +23,8 @@
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 html[data-theme='dark'] {
-  --ifm-background-color: #101010;
-  --ifm-background-surface-color: #101010;
+  --ifm-background-color: #1c1c1c;
+  --ifm-background-surface-color: #1c1c1c;
   --ifm-color-primary: #acc7f9;
   --ifm-color-primary-dark: #9bb3de;
   --ifm-color-primary-darker: #586c91;
@@ -38,7 +38,7 @@ html[data-theme='dark'] {
 
 @layer base {
   body {
-    @apply lg:mx-40 text-sm;
+    @apply lg:mx-20 dark:text-gray-300;
   }
 }
 
@@ -69,15 +69,11 @@ this is the class for the sidebar categories that section headers
 
 @layer components {
   .navbar {
-    @apply py-[16px] lg:mx-[40px] shadow-none border-b border-gray-200;
+    @apply py-[16px] lg:mx-[40px] shadow-none border-b border-gray-200 dark:border-gray-700;
   }
 
   [data-theme='dark'] .navbar {
-    @apply border-gray-800;
-  }
-
-  .clean-btn.menu__caret {
-    @apply bg-red-300;
+    @apply border-gray-700;
   }
 
   [data-theme='light'] .home-icon {
@@ -111,21 +107,19 @@ this is the class for the sidebar categories that section headers
   }
 
   .menu__list {
-    @apply px-8 text-gray-800 no-underline;
-  }
-  .menu__list-item-collapsible {
-    @apply rounded-xl font-normal text-gray-800;
+    @apply px-6 text-gray-800 dark:text-gray-300 no-underline;
   }
 
   .menu__link {
-    @apply rounded-xl no-underline;
+    @apply rounded-xl no-underline dark:text-gray-300;
   }
+
   h2 {
-    @apply text-gray-900 text-2xl font-semibold;
+    @apply text-gray-900 text-2xl font-semibold dark:text-gray-300;
   }
 
   h3 {
-    @apply text-gray-900 text-xl font-semibold;
+    @apply text-gray-900 text-xl font-semibold dark:text-gray-300;
   }
 
   .card {
@@ -136,8 +130,13 @@ this is the class for the sidebar categories that section headers
     @apply grid  grid-cols-1 lg:grid-cols-2 gap-2;
   }
   .custom-card {
-    @apply border border-gray-200  hover:border-[#acc7f9] hover:shadow-md hover:text-gray-900 rounded-xl p-4 flex flex-col justify-between space-y-2;
+    @apply border border-gray-200 dark:border-gray-900 dark:bg-[#232323] hover:dark:border-gray-700 hover:border-[#acc7f9] hover:shadow-md hover:text-gray-800  dark:text-gray-300 rounded-xl p-4 flex flex-col justify-between space-y-2 dark:hover:text-gray-100;
   }
+
+  .custom-card-icon {
+    @apply border-2 border-blue-200 dark:border-gray-800 rounded-lg bg-blue-100 dark:bg-gray-700 dark:text-gray-300 p-2;
+  }
+
   .card-title {
     @apply font-semibold text-base;
   }
@@ -153,25 +152,21 @@ this is the class for the sidebar categories that section headers
     the prev and next nav links at the bottom of the page
     */
   .pagination-nav__link {
-    @apply border border-gray-100 hover:border-[#acc7f9] hover:shadow-md;
+    @apply border border-gray-100 hover:border-[#acc7f9] dark:border-gray-700  dark:hover:border-gray-600 hover:shadow-md;
   }
   .pagination-nav__sublabel {
     @apply text-xs;
   }
 
   .menu__link--sublist {
-    @apply text-gray-900 font-[10px];
+    @apply text-gray-900 font-[10px] dark:text-gray-300;
   }
 
   .docsImage {
     @apply border border-gray-300 shadow-lg rounded-lg overflow-hidden my-6;
   }
 
-  .table-of-contents {
-    @apply bg-red-300 no-underline;
-  }
-
   a {
-    @apply underline text-blue-700 hover:text-blue-700;
+    @apply underline text-blue-700 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-600;
   }
 }

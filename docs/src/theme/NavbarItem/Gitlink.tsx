@@ -4,7 +4,6 @@ import React, { ReactElement } from 'react';
 
 export default function Gitlink(): ReactElement {
   const { colorMode } = useColorMode();
-  console.log('color', colorMode);
   return (
     <a
       href="https://github.com/nucleuscloud/neosync"

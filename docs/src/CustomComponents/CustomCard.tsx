@@ -12,9 +12,7 @@ export function CustomCard(props: Card): ReactElement {
     >
       <div className="flex flex-col space-y-4">
         <div className="flex flex-row gap-2 items-center">
-          <div className="border-2 border-blue-200 rounded-lg bg-blue-100 p-2">
-            {icon}
-          </div>
+          <div className="custom-card-icon">{icon}</div>
           <div className="card-title">{title}</div>
         </div>
         <div className="card-text">{description}</div>

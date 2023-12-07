@@ -147,7 +147,7 @@ function LocalHomeBreadcrumbItem(props: LocalHomeBreadcrumbItemsProps) {
       <Link href={homePageRoute.path}>
         <HomeIcon className="home-icon" />
       </Link>
-      <ChevronRightIcon className="dark:text-gray-100 text-gray-800" />
+      <ChevronRightIcon className="dark:text-gray-300 text-gray-800" />
     </div>
   );
 }
