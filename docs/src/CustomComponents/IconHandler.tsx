@@ -1,5 +1,6 @@
 import {
   AvatarIcon,
+  GitHubLogoIcon,
   HomeIcon,
   LayersIcon,
   LinkBreak1Icon,
@@ -85,6 +86,8 @@ export function IconHandler(name: string): ReactElement {
       return <GoSync />;
     case 'Core Concepts':
       return <GoLightBulb />;
+    case 'Github Actions':
+      return <GitHubLogoIcon />;
     default:
       return <LayersIcon />;
   }
