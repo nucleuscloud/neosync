@@ -1024,14 +1024,15 @@ func Test_TransformerStringLint(t *testing.T) {
 		},
 	}
 
-	for i := 0; i < len(transformers); i++ {
+	for _, transformer := range transformers {
 
+	}
 		val, err := computeMutationFunction(
 			&mgmtv1alpha1.JobMapping{
 				Column: col,
 				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: transformers[i].Name,
-					Config: transformers[i].Config,
+					Source: transformer.Name,
+					Config: transformer.Config,
 				},
 			})
 
