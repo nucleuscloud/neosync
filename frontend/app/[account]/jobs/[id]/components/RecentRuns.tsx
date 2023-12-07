@@ -1,5 +1,5 @@
 'use client';
-import JobRunStatus from '@/app/runs/components/JobRunStatus';
+import JobRunStatus from '@/app/[account]/runs/components/JobRunStatus';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';

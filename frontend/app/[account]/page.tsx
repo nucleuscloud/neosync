@@ -5,29 +5,30 @@ import { PageProps } from '@/components/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import Error from 'next/error';
-import { ReactElement } from 'react';
+import { useRouter } from 'next/navigation';
+import { ReactElement, useEffect } from 'react';
 
 export default function AccountPage({ params }: PageProps): ReactElement {
+  const router = useRouter();
   const { data, isLoading } = useGetUserAccounts();
   const accountName = params?.account ?? 'personal'; // if not present, may need to update url to include personal
+  const account = data?.accounts.find((a) => a.name === accountName);
+
+  useEffect(() => {
+    if (isLoading || !account?.name) {
+      return;
+    }
+    router.push(`/${account.name}/connections`);
+  }, [isLoading, accountName, account?.id]);
 
   if (isLoading) {
     return <Skeleton />;
   }
 
-  const account = data?.accounts.find((a) => a.name === accountName);
   if (!account) {
     return <Error statusCode={404} />;
   }
-  // const authEnabled = useGetAuthEnabled();
 
-  // const router = useRouter();
-
-  // useEffect(() => {
-  //   if (!authEnabled) {
-  //     router.push('/settings/temporal');
-  //   }
-  // });
   return (
     <OverviewContainer
       Header={<PageHeader header={`Home - ${account.name}`} />}
