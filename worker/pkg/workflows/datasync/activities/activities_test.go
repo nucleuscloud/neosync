@@ -1026,7 +1026,6 @@ func Test_TransformerStringLint(t *testing.T) {
 
 	for _, transformer := range transformers {
 
-	}
 		val, err := computeMutationFunction(
 			&mgmtv1alpha1.JobMapping{
 				Column: col,
