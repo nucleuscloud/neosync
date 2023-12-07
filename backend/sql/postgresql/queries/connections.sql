@@ -45,3 +45,9 @@ WHERE a.id = sqlc.arg('accountId') and c.name = sqlc.arg('connectionName');
 SELECT count(c.id) from neosync_api.connections c
 INNER JOIN neosync_api.accounts a ON a.id = c.account_id
 WHERE a.id = sqlc.arg('accountId') and c.id = sqlc.arg('connectionId');
+
+
+-- name: AreConnectionsInAccount :one
+SELECT count(c.id) from neosync_api.connections c
+INNER JOIN neosync_api.accounts a ON a.id = c.account_id
+WHERE a.id = sqlc.arg('accountId') and c.id = ANY(sqlc.arg('connectionIds')::uuid[]);;
