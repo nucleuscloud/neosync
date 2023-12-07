@@ -114,6 +114,24 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
+      type: 'category',
+      label: 'SDK',
+      collapsible: true,
+      collapsed: true,
+      items: [
+        {
+          type: 'doc',
+          id: 'sdk/intro',
+          label: 'Introduction',
+        },
+        {
+          type: 'doc',
+          id: 'sdk/go',
+          label: 'Go',
+        },
+      ],
+    },
+    {
       type: 'doc',
       id: 'overview/github-actions',
       label: 'Github Actions',
