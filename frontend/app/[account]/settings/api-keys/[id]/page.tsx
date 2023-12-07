@@ -1,5 +1,5 @@
 'use client';
-import { ApiKeyValueSessionStore } from '@/app/[account]/new/account-api-key/NewApiKeyForm';
+import { ApiKeyValueSessionStore } from '@/app/[account]/new/api-key/NewApiKeyForm';
 import ButtonText from '@/components/ButtonText';
 import { CopyButton } from '@/components/CopyButton';
 import OverviewContainer from '@/components/containers/OverviewContainer';
@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useSessionStorage } from 'usehooks-ts';
-import SubNav, { ITEMS } from '../../temporal/components/SubNav';
+import SubNav, { getNavSettings } from '../../temporal/components/SubNav';
 import RemoveAccountApiKeyButton from './components/RemoveAccountApiKeyButton';
 
 export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
@@ -90,7 +90,7 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
     >
       <div className="flex flex-col gap-4">
         <div>
-          <SubNav items={ITEMS} />
+          <SubNav items={getNavSettings(account?.name ?? '')} />
         </div>
         <ApiKeyDetails apiKey={data.apiKey} keyValue={apiKeyValue} />
       </div>

@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
@@ -16,10 +17,11 @@ interface Props {
 export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
   const { id, trigger, onDeleted } = props;
   const { toast } = useToast();
+  const { account } = useAccount();
 
   async function onDelete(): Promise<void> {
     try {
-      await removeAccountApiKey(id);
+      await removeAccountApiKey(account?.id ?? '', id);
       toast({
         title: 'Successfully removed api key!',
         variant: 'success',
@@ -55,8 +57,11 @@ export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
   );
 }
 
-async function removeAccountApiKey(id: string): Promise<void> {
-  const res = await fetch(`/api/accounts/${id}/api-keys`, {
+async function removeAccountApiKey(
+  accountId: string,
+  id: string
+): Promise<void> {
+  const res = await fetch(`/api/accounts/${accountId}/api-keys/${id}`, {
     method: 'DELETE',
   });
   if (!res.ok) {

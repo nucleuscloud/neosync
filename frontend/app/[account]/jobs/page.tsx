@@ -57,6 +57,7 @@ function JobTable(props: JobTableProps): ReactElement {
   });
 
   const columns = getColumns({
+    accountName: account?.name ?? '',
     onDeleted() {
       mutate();
     },

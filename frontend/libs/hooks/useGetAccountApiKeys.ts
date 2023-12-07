@@ -9,7 +9,7 @@ export function useGetAccountApiKeys(
   return useNucleusAuthenticatedFetch<
     GetAccountApiKeysResponse,
     JsonValue | GetAccountApiKeysResponse
-  >(`/api/accounts/${accountId}api-keys`, !!accountId, undefined, (data) =>
+  >(`/api/accounts/${accountId}/api-keys`, !!accountId, undefined, (data) =>
     data instanceof GetAccountApiKeysResponse
       ? data
       : GetAccountApiKeysResponse.fromJson(data)

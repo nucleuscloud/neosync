@@ -13,7 +13,7 @@ export async function GET(
   return withNeosyncContext(async (ctx) => {
     return ctx.connectionClient.getConnections(
       new GetConnectionsRequest({
-        accountId: params.id,
+        accountId: params.accountId,
       })
     );
   })(req);

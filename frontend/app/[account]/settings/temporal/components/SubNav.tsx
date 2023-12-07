@@ -11,20 +11,22 @@ interface Item {
   title: string;
 }
 
-export const ITEMS: Item[] = [
-  {
-    href: '/settings',
-    title: 'Overview',
-  },
-  {
-    href: '/settings/temporal',
-    title: 'Temporal',
-  },
-  {
-    href: '/settings/account-api-keys',
-    title: 'API Keys',
-  },
-];
+export function getNavSettings(accountName: string): Item[] {
+  return [
+    {
+      href: `/${accountName}/settings`,
+      title: 'Overview',
+    },
+    {
+      href: `/${accountName}/settings/temporal`,
+      title: 'Temporal',
+    },
+    {
+      href: `/${accountName}/settings/api-keys`,
+      title: 'API Keys',
+    },
+  ];
+}
 
 interface Props extends HTMLAttributes<HTMLElement> {
   items: Item[];

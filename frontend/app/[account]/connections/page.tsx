@@ -42,6 +42,7 @@ function ConnectionTable(props: ConnectionTableProps): ReactElement {
   const connections = data?.connections ?? [];
 
   const columns = getColumns({
+    accountName: account?.name ?? '',
     onConnectionDeleted() {
       mutate();
     },

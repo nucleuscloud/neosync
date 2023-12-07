@@ -13,7 +13,7 @@ export async function GET(
   return withNeosyncContext(async (ctx) => {
     return ctx.apikeyClient.getAccountApiKeys(
       new GetAccountApiKeysRequest({
-        accountId: params.id,
+        accountId: params.accountId,
       })
     );
   })(req);

@@ -7,13 +7,11 @@ export async function PUT(
   req: NextRequest,
   { params }: RequestContext
 ): Promise<NextResponse> {
-  const { searchParams } = new URL(req.url);
-  const accountId = searchParams.get('accountId') ?? '';
   return withNeosyncContext(async (ctx) => {
     return ctx.jobsClient.cancelJobRun(
       new CancelJobRunRequest({
         jobRunId: params.id,
-        accountId,
+        accountId: params.accountId,
       })
     );
   })(req);

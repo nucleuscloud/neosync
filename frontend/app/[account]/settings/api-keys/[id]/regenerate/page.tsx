@@ -1,5 +1,5 @@
 'use client';
-import { ApiKeyValueSessionStore } from '@/app/[account]/new/account-api-key/NewApiKeyForm';
+import { ApiKeyValueSessionStore } from '@/app/[account]/new/api-key/NewApiKeyForm';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import RequiredLabel from '@/components/labels/RequiredLabel';

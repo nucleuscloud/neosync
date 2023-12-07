@@ -9,11 +9,12 @@ import { useGetAccountApiKeys } from '@/libs/hooks/useGetAccountApiKeys';
 import { PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
-import SubNav, { ITEMS } from '../temporal/components/SubNav';
+import SubNav, { getNavSettings } from '../temporal/components/SubNav';
 import { getColumns } from './components/ApiKeysTable/columns';
 import { DataTable } from './components/ApiKeysTable/data-table';
 
 export default function ApiKeys(): ReactElement {
+  const { account } = useAccount();
   return (
     <OverviewContainer
       Header={
@@ -23,7 +24,7 @@ export default function ApiKeys(): ReactElement {
     >
       <div className="flex flex-col gap-4">
         <div>
-          <SubNav items={ITEMS} />
+          <SubNav items={getNavSettings(account?.name ?? '')} />
         </div>
         <ApiKeyTable />
       </div>
@@ -44,6 +45,7 @@ function ApiKeyTable(props: ApiKeyTableProps): ReactElement {
   const apiKeys = data?.apiKeys ?? [];
 
   const columns = getColumns({
+    accountName: account?.name ?? '',
     onDeleted() {
       mutate();
     },

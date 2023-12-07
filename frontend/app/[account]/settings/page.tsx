@@ -6,7 +6,7 @@ import { useGetAuthEnabled } from '@/libs/hooks/useGetAuthEnabled';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import MemberManagementSettings from './components/MemberManagementSettings';
-import SubNav, { ITEMS } from './temporal/components/SubNav';
+import SubNav, { getNavSettings } from './temporal/components/SubNav';
 
 export default function Settings() {
   const authEnabled = useGetAuthEnabled();
@@ -27,9 +27,11 @@ export default function Settings() {
       Header={<PageHeader header="Settings" />}
       containerClassName="settings-page"
     >
-      <div className="flex flex-row gap-4">
-        <SubNav items={ITEMS} />
-        <div>{authEnabled && <MemberManagementSettings />}</div>
+      <div className="flex flex-col gap-4">
+        <div>
+          <SubNav items={getNavSettings(account?.name ?? '')} />
+        </div>
+        {authEnabled && <MemberManagementSettings />}
       </div>
     </OverviewContainer>
   );

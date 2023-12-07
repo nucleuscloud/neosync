@@ -94,7 +94,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
     );
   }
 
-  const sidebarNavItems = getSidebarNavItems(data?.job);
+  const sidebarNavItems = getSidebarNavItems(account?.name ?? '', data?.job);
 
   return (
     <div>
@@ -155,11 +155,11 @@ interface SidebarNav {
   title: string;
   href: string;
 }
-function getSidebarNavItems(job?: Job): SidebarNav[] {
+function getSidebarNavItems(accountName: string, job?: Job): SidebarNav[] {
   if (!job) {
     return [{ title: 'Overview', href: `` }];
   }
-  const basePath = `/jobs/${job.id}`;
+  const basePath = `/${accountName}/jobs/${job.id}`;
 
   if (isDataGenJob(job)) {
     return [

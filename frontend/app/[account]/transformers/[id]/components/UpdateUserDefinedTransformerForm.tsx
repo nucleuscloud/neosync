@@ -26,7 +26,6 @@ import {
 } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -63,8 +62,6 @@ export default function UpdateUserDefinedTransformerForm(
     },
     context: { name: currentTransformer?.name },
   });
-
-  const router = useRouter();
   const { account } = useAccount();
 
   async function onSubmit(values: UpdateUserDefinedTransformer): Promise<void> {
@@ -81,9 +78,6 @@ export default function UpdateUserDefinedTransformerForm(
         title: 'Successfully updated transformer!',
         variant: 'success',
       });
-      if (transformer.transformer?.id) {
-        router.push(`/${account?.name}/transformers`);
-      }
     } catch (err) {
       console.error(err);
       toast({

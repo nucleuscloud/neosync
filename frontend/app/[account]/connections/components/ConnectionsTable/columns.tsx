@@ -4,7 +4,6 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import NextLink from 'next/link';
 
-import { useAccount } from '@/components/providers/account-provider';
 import {
   Connection,
   ConnectionConfig,
@@ -16,13 +15,13 @@ import { DataTableRowActions } from './data-table-row-actions';
 
 interface GetColumnsProps {
   onConnectionDeleted(id: string): void;
+  accountName: string;
 }
 
 export function getColumns(
   props: GetColumnsProps
 ): ColumnDef<PlainMessage<Connection>>[] {
-  const { onConnectionDeleted } = props;
-  const { account } = useAccount();
+  const { accountName, onConnectionDeleted } = props;
   return [
     {
       accessorKey: 'id',
@@ -33,7 +32,7 @@ export function getColumns(
         <div>
           <NextLink
             className="hover:underline"
-            href={`/${account?.name}/connections/${row.getValue('id')}`}
+            href={`/${accountName}/connections/${row.getValue('id')}`}
           >
             <span>{row.getValue('id')}</span>
           </NextLink>

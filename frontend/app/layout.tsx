@@ -10,6 +10,7 @@ import { fontSans } from '@/libs/fonts';
 import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
+import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
   title: 'Neosync',
@@ -19,9 +20,11 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
-}) {
+  params?: any;
+}): Promise<ReactElement> {
   const session = await getServerSession(getAuthOptions());
   return (
     <html lang="en" suppressHydrationWarning>
@@ -39,7 +42,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider session={session}>
-            <AccountProvider>
+            <AccountProvider params={params}>
               <div className="relative flex min-h-screen flex-col">
                 <SiteHeader />
                 <div className="flex-1 container" id="top-level-layout">

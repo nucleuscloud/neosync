@@ -7,8 +7,8 @@ import {
   createContext,
   useContext,
   useEffect,
+  useState,
 } from 'react';
-import { useLocalStorage } from 'usehooks-ts';
 
 interface AccountContextType {
   account: UserAccount | undefined;
@@ -25,34 +25,59 @@ const USER_ACCOUNT_KEY = 'user-account';
 
 interface Props {
   children: ReactNode;
+  params: Record<string, string>;
 }
 
 export default function AccountProvider(props: Props): ReactElement {
-  const { children } = props;
-  const { data: accountsResponse, isLoading, mutate } = useGetUserAccounts();
+  const { children, params } = props;
 
-  const [userAccount, setUserAccount] = useLocalStorage<
-    UserAccount | undefined
-  >(USER_ACCOUNT_KEY, undefined);
+  const accountName = params.account ?? 'personal';
+
+  const { data: accountsResponse, isLoading, mutate } = useGetUserAccounts();
+  // const [] = useState(accountName);
+
+  // const [userAccount, setUserAccount] = useLocalStorage<
+  //   UserAccount | undefined
+  // >(USER_ACCOUNT_KEY, undefined);
+  const [userAccount, setUserAccount] = useState<UserAccount | undefined>(
+    undefined
+  );
 
   useEffect(() => {
-    if (
-      !userAccount &&
-      accountsResponse?.accounts &&
-      accountsResponse.accounts.length > 0
-    ) {
-      setUserAccount(accountsResponse.accounts[0]);
-    } else if (
-      userAccount &&
-      accountsResponse?.accounts &&
-      !accountsResponse.accounts.some((acc) => acc.id === userAccount.id)
-    ) {
-      setUserAccount(accountsResponse.accounts[0]);
+    if (isLoading) {
+      return;
     }
-  }, [userAccount, accountsResponse?.accounts.length, isLoading]);
+    if (userAccount?.name === accountName) {
+      return;
+    }
+    const foundAccount = accountsResponse?.accounts.find(
+      (a) => a.name === accountName
+    );
+    if (userAccount?.id === foundAccount?.id) {
+      return;
+    }
+    if (foundAccount) {
+      setUserAccount(foundAccount);
+    }
+
+    // if (
+    //   !userAccount &&
+    //   accountsResponse?.accounts &&
+    //   accountsResponse.accounts.length > 0
+    // ) {
+    //   setUserAccount(accountsResponse.accounts[0]);
+    // } else if (
+    //   userAccount &&
+    //   accountsResponse?.accounts &&
+    //   !accountsResponse.accounts.some((acc) => acc.id === userAccount.id)
+    // ) {
+    //   setUserAccount(accountsResponse.accounts[0]);
+    // }
+  }, [userAccount, accountsResponse?.accounts.length, isLoading, accountName]);
 
   function setAccount(userAccount?: UserAccount): void {
-    mutate().then(() => setUserAccount(userAccount));
+    // mutate().then(() => setUserAccount(userAccount));
+    setUserAccount(userAccount);
   }
 
   return (

@@ -12,7 +12,7 @@ export function useGetAccountApiKey(
     GetAccountApiKeyResponse,
     JsonValue | GetAccountApiKeyResponse
   >(
-    `/api/accounts/${accountId}api-keys/${id}`,
+    `/api/accounts/${accountId}/api-keys/${id}`,
     !!accountId && !!id,
     undefined,
     (data) =>

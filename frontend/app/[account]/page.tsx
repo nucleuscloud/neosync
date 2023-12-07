@@ -18,7 +18,7 @@ export default function AccountPage({ params }: PageProps): ReactElement {
     if (isLoading || !account?.name) {
       return;
     }
-    router.push(`/${account.name}/connections`);
+    router.push(`/${account.name}/jobs`);
   }, [isLoading, accountName, account?.id]);
 
   if (isLoading) {
