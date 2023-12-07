@@ -256,7 +256,7 @@ async function createNewApiKey(
     }),
   });
 
-  const res = await fetch(`/api/api-keys/account`, {
+  const res = await fetch(`/api/accounts/${accountId}/api-keys`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',

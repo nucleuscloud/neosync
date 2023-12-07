@@ -1,4 +1,5 @@
 'use client';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -55,10 +56,11 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
     defaultValues: { cronSchedule: '' },
     values: { cronSchedule: job?.cronSchedule },
   });
+  const { account } = useAccount();
 
   async function onSubmit(values: ScheduleFormValues) {
     try {
-      await updateJobSchedule(job.id, values.cronSchedule);
+      await updateJobSchedule(account?.id ?? '', job.id, values.cronSchedule);
       toast({
         title: 'Successfully updated job schedule!',
         variant: 'success',
@@ -123,10 +125,11 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
 }
 
 async function updateJobSchedule(
+  accountId: string,
   jobId: string,
   cronSchedule?: string
 ): Promise<UpdateJobScheduleResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/schedule`, {
+  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}/schedule`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',

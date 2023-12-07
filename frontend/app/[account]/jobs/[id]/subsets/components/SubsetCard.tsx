@@ -9,6 +9,7 @@ import {
   buildRowKey,
   buildTableRowData,
 } from '@/components/jobs/subsets/utils';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -39,6 +40,7 @@ interface Props {
 export default function SubsetCard(props: Props): ReactElement {
   const { jobId } = props;
   const { toast } = useToast();
+  const { account } = useAccount();
   const { data, mutate: mutateJob, isLoading: isJobLoading } = useGetJob(jobId);
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
   const { data: schema, isLoading: isSchemaLoading } =
@@ -73,7 +75,11 @@ export default function SubsetCard(props: Props): ReactElement {
 
   async function onSubmit(values: SubsetFormValues): Promise<void> {
     try {
-      const updatedJobRes = await setJobSubsets(jobId, values);
+      const updatedJobRes = await setJobSubsets(
+        account?.id ?? '',
+        jobId,
+        values
+      );
       toast({
         title: 'Successfully updated database subsets',
         variant: 'success',
@@ -227,28 +233,32 @@ function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
 }
 
 async function setJobSubsets(
+  accountId: string,
   jobId: string,
   values: SubsetFormValues
 ): Promise<SetJobSourceSqlConnectionSubsetsResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/source-connection/subsets`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new SetJobSourceSqlConnectionSubsetsRequest({
-        id: jobId,
-        schemas: new JobSourceSqlSubetSchemas({
-          schemas: {
-            case: 'postgresSubset',
-            value: new PostgresSourceSchemaSubset({
-              postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
-            }),
-          },
-        }),
-      })
-    ),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/source-connection/subsets`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new SetJobSourceSqlConnectionSubsetsRequest({
+          id: jobId,
+          schemas: new JobSourceSqlSubetSchemas({
+            schemas: {
+              case: 'postgresSubset',
+              value: new PostgresSourceSchemaSubset({
+                postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
+              }),
+            },
+          }),
+        })
+      ),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

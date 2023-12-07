@@ -3,6 +3,7 @@ import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import { useAccount } from '@/components/providers/account-provider';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -46,12 +47,14 @@ export default function AwsS3Form(props: Props) {
     values: defaultValues,
     context: { originalConnectionName: defaultValues.connectionName },
   });
+  const { account } = useAccount();
 
   async function onSubmit(values: AWSFormValues) {
     try {
       const connectionResp = await updateAwsS3Connection(
         values.s3,
-        connectionId
+        connectionId,
+        account?.id ?? ''
       );
       onSaved(connectionResp);
     } catch (err) {
@@ -288,39 +291,43 @@ export default function AwsS3Form(props: Props) {
 
 async function updateAwsS3Connection(
   s3: AWSFormValues['s3'],
-  connectionId: string
+  connectionId: string,
+  accountId: string
 ): Promise<UpdateConnectionResponse> {
-  const res = await fetch(`/api/connections/${connectionId}`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new UpdateConnectionRequest({
-        id: connectionId,
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'awsS3Config',
-            value: new AwsS3ConnectionConfig({
-              bucketArn: s3.bucketArn,
-              pathPrefix: s3.pathPrefix,
-              region: s3.region,
-              endpoint: s3.endpoint,
-              credentials: new AwsS3Credentials({
-                profile: s3.credentials?.profile,
-                accessKeyId: s3.credentials?.accessKeyId,
-                secretAccessKey: s3.credentials?.secretAccessKey,
-                fromEc2Role: s3.credentials?.fromEc2Role,
-                roleArn: s3.credentials?.roleArn,
-                roleExternalId: s3.credentials?.roleExternalId,
-                sessionToken: s3.credentials?.sessionToken,
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${connectionId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new UpdateConnectionRequest({
+          id: connectionId,
+          connectionConfig: new ConnectionConfig({
+            config: {
+              case: 'awsS3Config',
+              value: new AwsS3ConnectionConfig({
+                bucketArn: s3.bucketArn,
+                pathPrefix: s3.pathPrefix,
+                region: s3.region,
+                endpoint: s3.endpoint,
+                credentials: new AwsS3Credentials({
+                  profile: s3.credentials?.profile,
+                  accessKeyId: s3.credentials?.accessKeyId,
+                  secretAccessKey: s3.credentials?.secretAccessKey,
+                  fromEc2Role: s3.credentials?.fromEc2Role,
+                  roleArn: s3.credentials?.roleArn,
+                  roleExternalId: s3.credentials?.roleExternalId,
+                  sessionToken: s3.credentials?.sessionToken,
+                }),
               }),
-            }),
-          },
-        }),
-      })
-    ),
-  });
+            },
+          }),
+        })
+      ),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

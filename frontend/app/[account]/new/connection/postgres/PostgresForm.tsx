@@ -275,7 +275,10 @@ export default function PostgresForm() {
             onClick={async () => {
               setIsTesting(true);
               try {
-                const resp = await checkPostgresConnection(form.getValues().db);
+                const resp = await checkPostgresConnection(
+                  form.getValues().db,
+                  account?.id ?? ''
+                );
                 setCheckResp(resp);
                 setIsTesting(false);
               } catch (err) {
@@ -373,7 +376,7 @@ async function createPostgresConnection(
   name: string,
   accountId: string
 ): Promise<CreateConnectionResponse> {
-  const res = await fetch(`/api/connections`, {
+  const res = await fetch(`/api/accounts/${accountId}/connections`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -411,15 +414,19 @@ async function createPostgresConnection(
 }
 
 async function checkPostgresConnection(
-  db: PostgresFormValues['db']
+  db: PostgresFormValues['db'],
+  accountId: string
 ): Promise<CheckConnectionConfigResponse> {
-  const res = await fetch(`/api/connections/postgres/check`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(db),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/postgres/check`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(db),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);
@@ -432,7 +439,7 @@ export async function isConnectionNameAvailable(
   accountId: string
 ): Promise<IsConnectionNameAvailableResponse> {
   const res = await fetch(
-    `/api/connections/is-connection-name-available?connectionName=${name}&accountId=${accountId}`,
+    `/api/accounts/${accountId}/connections/is-connection-name-available?connectionName=${name}`,
     {
       method: 'GET',
       headers: {

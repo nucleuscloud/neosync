@@ -3,6 +3,7 @@ import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,6 +61,7 @@ export default function PostgresForm(props: Props) {
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
+  const { account } = useAccount();
 
   const [isTesting, setIsTesting] = useState<boolean>(false);
 
@@ -68,7 +70,8 @@ export default function PostgresForm(props: Props) {
       const connectionResp = await updatePostgresConnection(
         connectionId,
         values.connectionName,
-        values.db
+        values.db,
+        account?.id ?? ''
       );
       onSaved(connectionResp);
     } catch (err) {
@@ -244,7 +247,8 @@ export default function PostgresForm(props: Props) {
               setIsTesting(true);
               try {
                 const resp = await checkPostgresConnection(
-                  form.getValues('db')
+                  form.getValues('db'),
+                  account?.id ?? ''
                 );
                 setCheckResp(resp);
               } catch (err) {
@@ -342,38 +346,42 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 async function updatePostgresConnection(
   connectionId: string,
   connectionName: string,
-  db: PostgresFormValues['db']
+  db: PostgresFormValues['db'],
+  accountId: string
 ): Promise<UpdateConnectionResponse> {
-  const res = await fetch(`/api/connections/${connectionId}`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new UpdateConnectionRequest({
-        id: connectionId,
-        name: connectionName,
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'pgConfig',
-            value: new PostgresConnectionConfig({
-              connectionConfig: {
-                case: 'connection',
-                value: new PostgresConnection({
-                  host: db.host,
-                  name: db.name,
-                  user: db.user,
-                  pass: db.pass,
-                  port: db.port,
-                  sslMode: db.sslMode,
-                }),
-              },
-            }),
-          },
-        }),
-      })
-    ),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${connectionId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new UpdateConnectionRequest({
+          id: connectionId,
+          name: connectionName,
+          connectionConfig: new ConnectionConfig({
+            config: {
+              case: 'pgConfig',
+              value: new PostgresConnectionConfig({
+                connectionConfig: {
+                  case: 'connection',
+                  value: new PostgresConnection({
+                    host: db.host,
+                    name: db.name,
+                    user: db.user,
+                    pass: db.pass,
+                    port: db.port,
+                    sslMode: db.sslMode,
+                  }),
+                },
+              }),
+            },
+          }),
+        })
+      ),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);
@@ -382,15 +390,19 @@ async function updatePostgresConnection(
 }
 
 async function checkPostgresConnection(
-  db: PostgresFormValues['db']
+  db: PostgresFormValues['db'],
+  accountId: string
 ): Promise<CheckConnectionConfigResponse> {
-  const res = await fetch(`/api/connections/postgres/check`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(db),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/postgres/check`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(db),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

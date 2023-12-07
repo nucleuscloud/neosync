@@ -4,6 +4,7 @@ import {
   SingleTableSchemaFormValues,
 } from '@/app/[account]/new/job/schema';
 import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,6 +59,7 @@ interface Props {
 
 export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const { toast } = useToast();
+  const { account } = useAccount();
 
   const { data, mutate, isLoading: isJobLoading } = useGetJob(jobId);
   const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
@@ -91,7 +93,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       return;
     }
     try {
-      await updateJobConnection(job, values);
+      await updateJobConnection(account?.id ?? '', job, values);
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'success',
@@ -341,54 +343,58 @@ function getJobSource(
 }
 
 async function updateJobConnection(
+  accountId: string,
   job: Job,
   values: SingleTableSchemaFormValues
 ): Promise<UpdateJobSourceConnectionResponse> {
-  const res = await fetch(`/api/jobs/${job.id}/source-connection`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new UpdateJobSourceConnectionRequest({
-        id: job.id,
-        mappings: values.mappings.map((m) => {
-          const jmt = new JobMappingTransformer({
-            source: m.transformer.source,
-            config: m.transformer.config as TransformerConfig,
-          });
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${job.id}/source-connection`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new UpdateJobSourceConnectionRequest({
+          id: job.id,
+          mappings: values.mappings.map((m) => {
+            const jmt = new JobMappingTransformer({
+              source: m.transformer.source,
+              config: m.transformer.config as TransformerConfig,
+            });
 
-          return new JobMapping({
-            schema: values.schema,
-            table: values.table,
-            column: m.column,
-            transformer: jmt,
-          });
-        }),
-        source: new JobSource({
-          options: new JobSourceOptions({
-            config: {
-              case: 'generate',
-              value: new GenerateSourceOptions({
-                fkSourceConnectionId: getFkIdFromGenerateSource(job.source),
-                schemas: [
-                  new GenerateSourceSchemaOption({
-                    schema: values.schema,
-                    tables: [
-                      new GenerateSourceTableOption({
-                        table: values.table,
-                        rowCount: BigInt(values.numRows),
-                      }),
-                    ],
-                  }),
-                ],
-              }),
-            },
+            return new JobMapping({
+              schema: values.schema,
+              table: values.table,
+              column: m.column,
+              transformer: jmt,
+            });
           }),
-        }),
-      })
-    ),
-  });
+          source: new JobSource({
+            options: new JobSourceOptions({
+              config: {
+                case: 'generate',
+                value: new GenerateSourceOptions({
+                  fkSourceConnectionId: getFkIdFromGenerateSource(job.source),
+                  schemas: [
+                    new GenerateSourceSchemaOption({
+                      schema: values.schema,
+                      tables: [
+                        new GenerateSourceTableOption({
+                          table: values.table,
+                          rowCount: BigInt(values.numRows),
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              },
+            }),
+          }),
+        })
+      ),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

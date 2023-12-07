@@ -56,7 +56,7 @@ export default function RemoveAccountApiKeyButton(props: Props): ReactElement {
 }
 
 async function removeAccountApiKey(id: string): Promise<void> {
-  const res = await fetch(`/api/api-keys/account/${id}`, {
+  const res = await fetch(`/api/accounts/${id}/api-keys`, {
     method: 'DELETE',
   });
   if (!res.ok) {

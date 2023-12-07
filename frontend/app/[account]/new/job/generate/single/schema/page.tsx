@@ -457,7 +457,7 @@ async function createNewJob(
     ],
   });
 
-  const res = await fetch(`/api/jobs`, {
+  const res = await fetch(`/api/accounts/${accountId}/jobs`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',

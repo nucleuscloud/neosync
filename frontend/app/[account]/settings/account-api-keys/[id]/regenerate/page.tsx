@@ -77,7 +77,11 @@ export default function RegenerateAccountApiKey({
       return;
     }
     try {
-      const updatedApiKey = await regenerateApiKey(values, id);
+      const updatedApiKey = await regenerateApiKey(
+        values,
+        account?.id ?? '',
+        id
+      );
       if (updatedApiKey.apiKey?.keyValue && !!window?.sessionStorage) {
         const storeVal: ApiKeyValueSessionStore = {
           keyValue: updatedApiKey.apiKey.keyValue,
@@ -254,6 +258,7 @@ export default function RegenerateAccountApiKey({
 
 async function regenerateApiKey(
   formData: FormValues,
+  accountId: string,
   keyId: string
 ): Promise<RegenerateAccountApiKeyResponse> {
   const body = new RegenerateAccountApiKeyRequest({
@@ -263,13 +268,16 @@ async function regenerateApiKey(
     }),
   });
 
-  const res = await fetch(`/api/api-keys/account/${keyId}/regenerate`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/api-keys/${keyId}/regenerate`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

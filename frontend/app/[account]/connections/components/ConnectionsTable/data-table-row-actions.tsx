@@ -29,12 +29,12 @@ export function DataTableRowActions<TData>({
 }: DataTableRowActionsProps<TData>) {
   const connection = row.original as Connection;
   const router = useRouter();
-  const account = useAccount();
+  const { account } = useAccount();
   const { toast } = useToast();
 
   async function onDelete(): Promise<void> {
     try {
-      await removeConnection(connection.id);
+      await removeConnection(account?.id ?? '', connection.id);
       toast({
         title: 'Connection removed successfully!',
         variant: 'success',
@@ -65,9 +65,7 @@ export function DataTableRowActions<TData>({
         <DropdownMenuItem
           className="cursor-pointer"
           onClick={() =>
-            router.push(
-              `/${account.account?.name}/connections/${connection.id}`
-            )
+            router.push(`/${account?.name}/connections/${connection.id}`)
           }
         >
           View
@@ -91,10 +89,16 @@ export function DataTableRowActions<TData>({
   );
 }
 
-async function removeConnection(connectionId: string): Promise<void> {
-  const res = await fetch(`/api/connections/${connectionId}`, {
-    method: 'DELETE',
-  });
+async function removeConnection(
+  accountId: string,
+  connectionId: string
+): Promise<void> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${connectionId}`,
+    {
+      method: 'DELETE',
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

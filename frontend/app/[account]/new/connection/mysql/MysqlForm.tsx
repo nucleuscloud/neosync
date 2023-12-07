@@ -272,7 +272,10 @@ export default function MysqlForm() {
             onClick={async () => {
               setIsTesting(true);
               try {
-                const resp = await checkMysqlConnection(form.getValues().db);
+                const resp = await checkMysqlConnection(
+                  form.getValues().db,
+                  account?.id ?? ''
+                );
                 setCheckResp(resp);
                 setIsTesting(false);
               } catch (err) {
@@ -371,7 +374,7 @@ async function createMysqlConnection(
   name: string,
   accountId: string
 ): Promise<CreateConnectionResponse> {
-  const res = await fetch(`/api/connections`, {
+  const res = await fetch(`/api/accounts/${accountId}/connections`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -409,9 +412,10 @@ async function createMysqlConnection(
 }
 
 export async function checkMysqlConnection(
-  db: MysqlFormValues['db']
+  db: MysqlFormValues['db'],
+  accountId: string
 ): Promise<CheckConnectionConfigResponse> {
-  const res = await fetch(`/api/connections/check`, {
+  const res = await fetch(`/api/accounts/${accountId}/connections/check`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',

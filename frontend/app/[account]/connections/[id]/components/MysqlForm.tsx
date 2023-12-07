@@ -4,6 +4,7 @@ import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -61,6 +62,7 @@ export default function MysqlForm(props: Props) {
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
+  const { account } = useAccount();
 
   const [isTesting, setIsTesting] = useState<boolean>(false);
 
@@ -69,7 +71,8 @@ export default function MysqlForm(props: Props) {
       const connectionResp = await updateMysqlConnection(
         connectionId,
         values.connectionName,
-        values.db
+        values.db,
+        account?.id ?? ''
       );
       onSaved(connectionResp);
     } catch (err) {
@@ -340,38 +343,42 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 async function updateMysqlConnection(
   connectionId: string,
   connectionName: string,
-  db: MysqlFormValues['db']
+  db: MysqlFormValues['db'],
+  accountId: string
 ): Promise<UpdateConnectionResponse> {
-  const res = await fetch(`/api/connections/${connectionId}`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new UpdateConnectionRequest({
-        id: connectionId,
-        name: connectionName,
-        connectionConfig: new ConnectionConfig({
-          config: {
-            case: 'mysqlConfig',
-            value: new MysqlConnectionConfig({
-              connectionConfig: {
-                case: 'connection',
-                value: new MysqlConnection({
-                  host: db.host,
-                  name: db.name,
-                  user: db.user,
-                  pass: db.pass,
-                  port: db.port,
-                  protocol: db.protocol,
-                }),
-              },
-            }),
-          },
-        }),
-      })
-    ),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${connectionId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new UpdateConnectionRequest({
+          id: connectionId,
+          name: connectionName,
+          connectionConfig: new ConnectionConfig({
+            config: {
+              case: 'mysqlConfig',
+              value: new MysqlConnectionConfig({
+                connectionConfig: {
+                  case: 'connection',
+                  value: new MysqlConnection({
+                    host: db.host,
+                    name: db.name,
+                    user: db.user,
+                    pass: db.pass,
+                    port: db.port,
+                    protocol: db.protocol,
+                  }),
+                },
+              }),
+            },
+          }),
+        })
+      ),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

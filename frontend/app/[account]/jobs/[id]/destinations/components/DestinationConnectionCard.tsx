@@ -1,5 +1,6 @@
 'use client';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
@@ -56,6 +57,7 @@ export default function DestinationConnectionCard({
   isDeleteDisabled,
 }: Props): ReactElement {
   const { toast } = useToast();
+  const { account } = useAccount();
 
   const form = useForm({
     resolver: yupResolver<FormValues>(FORM_SCHEMA),
@@ -65,7 +67,13 @@ export default function DestinationConnectionCard({
   async function onSubmit(values: FormValues) {
     try {
       const connection = connections.find((c) => c.id == values.connectionId);
-      await setJobConnection(jobId, values, destination.id, connection);
+      await setJobConnection(
+        account?.id ?? '',
+        jobId,
+        values,
+        destination.id,
+        connection
+      );
       mutate();
       toast({
         title: 'Successfully updated job destination!',
@@ -83,7 +91,7 @@ export default function DestinationConnectionCard({
 
   async function onDelete() {
     try {
-      await deleteJobConnection(jobId, destination.id);
+      await deleteJobConnection(account?.id ?? '', jobId, destination.id);
       mutate();
       toast({
         title: 'Successfully deleted job destination!',
@@ -178,11 +186,12 @@ export default function DestinationConnectionCard({
 }
 
 async function deleteJobConnection(
+  accountId: string,
   jobId: string,
   destinationId: string
 ): Promise<void> {
   const res = await fetch(
-    `/api/jobs/${jobId}/destination-connection/${destinationId}`,
+    `/api/accounts/${accountId}/jobs/${jobId}/destination-connection/${destinationId}`,
     {
       method: 'DELETE',
     }
@@ -195,27 +204,31 @@ async function deleteJobConnection(
 }
 
 async function setJobConnection(
+  accountId: string,
   jobId: string,
   values: FormValues,
   destinationId: string,
   connection?: Connection
 ): Promise<UpdateJobDestinationConnectionResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/destination-connection`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new UpdateJobDestinationConnectionRequest({
-        jobId: jobId,
-        connectionId: values.connectionId,
-        destinationId: destinationId,
-        options: new JobDestinationOptions(
-          toJobDestinationOptions(values, connection)
-        ),
-      })
-    ),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/destination-connection`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new UpdateJobDestinationConnectionRequest({
+          jobId: jobId,
+          connectionId: values.connectionId,
+          destinationId: destinationId,
+          options: new JobDestinationOptions(
+            toJobDestinationOptions(values, connection)
+          ),
+        })
+      ),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

@@ -263,7 +263,7 @@ async function removeJobRun(
   jobRunId: string,
   accountId: string
 ): Promise<void> {
-  const res = await fetch(`/api/runs/${jobRunId}?accountId=${accountId}`, {
+  const res = await fetch(`/api/accounts/${accountId}/runs/${jobRunId}`, {
     method: 'DELETE',
   });
   if (!res.ok) {
@@ -278,7 +278,7 @@ async function cancelJobRun(
   accountId: string
 ): Promise<void> {
   const res = await fetch(
-    `/api/runs/${jobRunId}/cancel?accountId=${accountId}`,
+    `/api/accounts/${accountId}/runs/${jobRunId}/cancel`,
     {
       method: 'PUT',
     }

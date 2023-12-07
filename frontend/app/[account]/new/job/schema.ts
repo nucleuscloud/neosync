@@ -85,7 +85,7 @@ async function isJobNameAvailable(
   accountId: string
 ): Promise<IsJobNameAvailableResponse> {
   const res = await fetch(
-    `/api/jobs/is-job-name-available?name=${name}&accountId=${accountId}`,
+    `/api/accounts/${accountId}/jobs/is-job-name-available?name=${name}`,
     {
       method: 'GET',
       headers: {

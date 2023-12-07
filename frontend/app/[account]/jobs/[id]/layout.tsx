@@ -33,7 +33,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
 
   async function onTriggerJobRun(): Promise<void> {
     try {
-      await triggerJobRun(id);
+      await triggerJobRun(account?.id ?? '', id);
       toast({
         title: 'Job run triggered successfully!',
         variant: 'success',
@@ -54,7 +54,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       return;
     }
     try {
-      await removeJob(id);
+      await removeJob(account?.id ?? '', id);
       toast({
         title: 'Job removed successfully!',
       });
@@ -195,8 +195,8 @@ function getSidebarNavItems(job?: Job): SidebarNav[] {
   ];
 }
 
-async function removeJob(jobId: string): Promise<void> {
-  const res = await fetch(`/api/jobs/${jobId}`, {
+async function removeJob(accountId: string, jobId: string): Promise<void> {
+  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}`, {
     method: 'DELETE',
   });
   if (!res.ok) {
@@ -206,11 +206,14 @@ async function removeJob(jobId: string): Promise<void> {
   await res.json();
 }
 
-async function triggerJobRun(jobId: string): Promise<void> {
-  const res = await fetch(`/api/jobs/${jobId}/create-run`, {
-    method: 'POST',
-    body: JSON.stringify({ jobId }),
-  });
+async function triggerJobRun(accountId: string, jobId: string): Promise<void> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/create-run`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ jobId }),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

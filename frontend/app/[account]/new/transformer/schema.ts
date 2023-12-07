@@ -292,7 +292,7 @@ async function isTransformerNameAvailable(
   accountId: string
 ): Promise<IsTransformerNameAvailableResponse> {
   const res = await fetch(
-    `/api/transformers/is-transformer-name-available?transformerName=${name}&accountId=${accountId}`,
+    `/api/accounts/${accountId}/transformers/is-transformer-name-available?transformerName=${name}`,
     {
       method: 'GET',
       headers: {

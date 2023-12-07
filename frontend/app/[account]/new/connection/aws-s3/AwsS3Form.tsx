@@ -300,7 +300,7 @@ async function createAwsS3Connection(
   name: string,
   accountId: string
 ): Promise<CreateConnectionResponse> {
-  const res = await fetch(`/api/connections`, {
+  const res = await fetch(`/api/accounts/${accountId}/connections`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',

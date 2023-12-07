@@ -1,6 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
+import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -23,6 +24,7 @@ export default function JobPauseButton({
   onNewStatus,
   jobId,
 }: Props): ReactElement {
+  const { account } = useAccount();
   const { toast } = useToast();
   const [buttonText, setButtonText] = useState(
     status === JobStatus.PAUSED ? 'Resume Job' : 'Pause Job'
@@ -47,7 +49,7 @@ export default function JobPauseButton({
     }
     try {
       setIsTrying(true);
-      await pauseJob(jobId, isPaused);
+      await pauseJob(account?.id ?? '', jobId, isPaused);
       toast({
         title: `Successfully ${isPaused ? 'paused' : 'unpaused'}  job!`,
         variant: 'success',
@@ -81,10 +83,11 @@ export default function JobPauseButton({
 }
 
 async function pauseJob(
+  accountId: string,
   jobId: string,
   isPaused: boolean
 ): Promise<PauseJobResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/pause`, {
+  const res = await fetch(`/api/accounts/${accountId}/jobs/${jobId}/pause`, {
     method: 'PUT',
     headers: {
       'content-type': 'application/json',

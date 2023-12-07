@@ -85,7 +85,12 @@ export default function Page({ params }: PageProps): ReactElement {
 
   async function onSubmit(values: FormValues) {
     try {
-      const job = await createJobConnections(id, values, connections);
+      const job = await createJobConnections(
+        id,
+        values,
+        connections,
+        account?.id ?? ''
+      );
       if (job.job?.id) {
         router.push(`/${account?.name}/jobs/${job.job.id}/destinations`);
       } else {
@@ -225,28 +230,32 @@ export default function Page({ params }: PageProps): ReactElement {
 async function createJobConnections(
   jobId: string,
   values: FormValues,
-  connections: Connection[]
+  connections: Connection[],
+  accountId: string
 ): Promise<CreateJobDestinationConnectionsResponse> {
-  const res = await fetch(`/api/jobs/${jobId}/destination-connections`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new CreateJobDestinationConnectionsRequest({
-        jobId: jobId,
-        destinations: values.destinations.map((d) => {
-          return new JobDestination({
-            connectionId: d.connectionId,
-            options: toJobDestinationOptions(
-              d,
-              connections.find((c) => c.id == d.connectionId)
-            ),
-          });
-        }),
-      })
-    ),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${jobId}/destination-connections`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new CreateJobDestinationConnectionsRequest({
+          jobId: jobId,
+          destinations: values.destinations.map((d) => {
+            return new JobDestination({
+              connectionId: d.connectionId,
+              options: toJobDestinationOptions(
+                d,
+                connections.find((c) => c.id == d.connectionId)
+              ),
+            });
+          }),
+        })
+      ),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

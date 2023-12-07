@@ -118,7 +118,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   async function onSourceChange(value: string): Promise<void> {
     try {
-      const newValues = await getUpdatedValues(value, form.getValues());
+      const newValues = await getUpdatedValues(
+        account?.id ?? '',
+        value,
+        form.getValues()
+      );
       form.reset(newValues);
     } catch (err) {
       form.reset({ ...form.getValues, mappings: [], sourceId: value });
@@ -137,7 +141,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       return;
     }
     try {
-      await updateJobConnection(job, values, connection);
+      await updateJobConnection(account?.id ?? '', job, values, connection);
       toast({
         title: 'Successfully updated job source connection!',
         variant: 'success',
@@ -234,37 +238,46 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 }
 
 async function updateJobConnection(
+  accountId: string,
   job: Job,
   values: SourceFormValues,
   connection: Connection
 ): Promise<UpdateJobSourceConnectionResponse> {
-  const res = await fetch(`/api/jobs/${job.id}/source-connection`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(
-      new UpdateJobSourceConnectionRequest({
-        id: job.id,
-        mappings: values.mappings.map((m) => {
-          const jmt = new JobMappingTransformer({
-            source: m.transformer.source,
-            config: m.transformer.config as TransformerConfig,
-          });
+  const res = await fetch(
+    `/api/accounts/${accountId}/jobs/${job.id}/source-connection`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(
+        new UpdateJobSourceConnectionRequest({
+          id: job.id,
+          mappings: values.mappings.map((m) => {
+            const jmt = new JobMappingTransformer({
+              source: m.transformer.source,
+              config: m.transformer.config as TransformerConfig,
+            });
 
-          return new JobMapping({
-            schema: m.schema,
-            table: m.table,
-            column: m.column,
-            transformer: jmt,
-          });
-        }),
-        source: new JobSource({
-          options: toJobSourceOptions(values, job, connection, values.sourceId),
-        }),
-      })
-    ),
-  });
+            return new JobMapping({
+              schema: m.schema,
+              table: m.table,
+              column: m.column,
+              transformer: jmt,
+            });
+          }),
+          source: new JobSource({
+            options: toJobSourceOptions(
+              values,
+              job,
+              connection,
+              values.sourceId
+            ),
+          }),
+        })
+      ),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);
@@ -466,12 +479,13 @@ export function getColumnMapping(
 }
 
 async function getUpdatedValues(
+  accountId: string,
   connectionId: string,
   originalValues: SourceFormValues
 ): Promise<SourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
-    getConnectionSchema(connectionId),
-    getConnection(connectionId),
+    getConnectionSchema(accountId, connectionId),
+    getConnection(accountId, connectionId),
   ]);
 
   if (!schemaRes || !connRes) {

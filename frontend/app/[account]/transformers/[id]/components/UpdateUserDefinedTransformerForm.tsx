@@ -73,6 +73,7 @@ export default function UpdateUserDefinedTransformerForm(
     }
     try {
       const transformer = await updateCustomTransformer(
+        account?.id ?? '',
         currentTransformer?.id ?? '',
         values
       );
@@ -169,6 +170,7 @@ export default function UpdateUserDefinedTransformerForm(
 }
 
 async function updateCustomTransformer(
+  accountId: string,
   transformerId: string,
   formData: UpdateUserDefinedTransformer
 ): Promise<UpdateUserDefinedTransformerResponse> {
@@ -179,13 +181,16 @@ async function updateCustomTransformer(
     transformerConfig: formData.config as TransformerConfig,
   });
 
-  const res = await fetch(`/api/transformers/user-defined`, {
-    method: 'PUT',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/transformers/user-defined`,
+    {
+      method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

@@ -252,13 +252,16 @@ async function createNewTransformer(
     transformerConfig: formData.config as TransformerConfig,
   });
 
-  const res = await fetch(`/api/transformers/user-defined`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/transformers/user-defined`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);
