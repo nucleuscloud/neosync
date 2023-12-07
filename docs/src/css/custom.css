@@ -146,7 +146,7 @@ this is the class for the sidebar categories that section headers
   }
 
   .footer {
-    @apply bg-transparent border-t border-t-gray-300 text-gray-600 text-sm;
+    @apply bg-transparent border-t border-t-gray-300 dark:border-t-gray-700 text-gray-600 text-sm;
   }
   /*
     the prev and next nav links at the bottom of the page
