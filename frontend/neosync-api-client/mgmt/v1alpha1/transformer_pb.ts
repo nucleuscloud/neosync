@@ -947,6 +947,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: UserDefinedTransformerConfig;
     case: "userDefinedTransformerConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.GenerateDefault generate_default_config = 39;
+     */
+    value: GenerateDefault;
+    case: "generateDefaultConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -995,6 +1001,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 36, name: "passthrough_config", kind: "message", T: Passthrough, oneof: "config" },
     { no: 37, name: "nullconfig", kind: "message", T: Null, oneof: "config" },
     { no: 38, name: "user_defined_transformer_config", kind: "message", T: UserDefinedTransformerConfig, oneof: "config" },
+    { no: 39, name: "generate_default_config", kind: "message", T: GenerateDefault, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -1215,6 +1222,37 @@ export class GenerateCity extends Message<GenerateCity> {
 
   static equals(a: GenerateCity | PlainMessage<GenerateCity> | undefined, b: GenerateCity | PlainMessage<GenerateCity> | undefined): boolean {
     return proto3.util.equals(GenerateCity, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GenerateDefault
+ */
+export class GenerateDefault extends Message<GenerateDefault> {
+  constructor(data?: PartialMessage<GenerateDefault>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GenerateDefault";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateDefault {
+    return new GenerateDefault().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateDefault {
+    return new GenerateDefault().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateDefault {
+    return new GenerateDefault().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GenerateDefault | PlainMessage<GenerateDefault> | undefined, b: GenerateDefault | PlainMessage<GenerateDefault> | undefined): boolean {
+    return proto3.util.equals(GenerateDefault, a, b);
   }
 }
 

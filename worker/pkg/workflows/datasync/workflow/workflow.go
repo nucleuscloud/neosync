@@ -128,6 +128,7 @@ func invokeSync(
 			settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
 			return
 		}
+		fmt.Printf("\n\n  %s \n\n", string(configbits))
 		var result datasync_activities.SyncResponse
 		err = workflow.ExecuteActivity(
 			ctx,

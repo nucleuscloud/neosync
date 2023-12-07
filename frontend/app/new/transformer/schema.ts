@@ -104,6 +104,8 @@ export const transformerConfig = Yup.object().shape({
           return generateCardNumberConfig;
         case 'generateCityConfig':
           return Yup.object().shape({});
+        case 'generateDefaultConfig':
+          return Yup.object().shape({});
         case 'generateE164NumberConfig':
           return generateE164NumberConfig;
         case 'generateFirstNameConfig':
@@ -179,6 +181,7 @@ export const transformerConfig = Yup.object().shape({
       'generateBoolConfig',
       'generateCardNumberConfig',
       'generateCityConfig',
+      'generateDefaultConfig',
       'generateE164NumberConfig',
       'generateFirstNameConfig',
       'generateFloatConfig',

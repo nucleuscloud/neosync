@@ -265,7 +265,11 @@ export function filterInputFreeSystemTransformers(
   transformers: SystemTransformer[]
 ): SystemTransformer[] {
   return transformers.filter(
-    (t) => t.source !== 'passthrough' && t.source.startsWith('generate_')
+    (t) =>
+      t.source !== 'passthrough' &&
+      (t.source == 'null' ||
+        t.source == 'default' ||
+        t.source.startsWith('generate_'))
   );
 }
 

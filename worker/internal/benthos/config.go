@@ -69,6 +69,7 @@ type OutputConfig struct {
 
 type Outputs struct {
 	SqlInsert *SqlInsert          `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
+	SqlRaw    *SqlRaw             `json:"sql_raw,omitempty" yaml:"sql_raw,omitempty"`
 	AwsS3     *AwsS3Insert        `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
 	Retry     *RetryConfig        `json:"retry,omitempty" yaml:"retry,omitempty"`
 	Broker    *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
@@ -100,6 +101,19 @@ type Backoff struct {
 	InitialInterval string `json:"initial_interval" yaml:"initial_interval"`
 	MaxInterval     string `json:"max_interval" yaml:"max_interval"`
 	MaxElapsedTime  string `json:"max_elapsed_time" yaml:"max_elapsed_time"`
+}
+
+type SqlRaw struct {
+	Driver          string    `json:"driver" yaml:"driver"`
+	Dsn             string    `json:"dsn" yaml:"dsn"`
+	Query           string    `json:"query" yaml:"query"`
+	ArgsMapping     string    `json:"args_mapping" yaml:"args_mapping"`
+	InitStatement   string    `json:"init_statement" yaml:"init_statement"`
+	ConnMaxIdleTime string    `json:"conn_max_idle_time,omitempty" yaml:"conn_max_idle_time,omitempty"`
+	ConnMaxLifeTime string    `json:"conn_max_life_time,omitempty" yaml:"conn_max_life_time,omitempty"`
+	ConnMaxIdle     int       `json:"conn_max_idle,omitempty" yaml:"conn_max_idle,omitempty"`
+	ConnMaxOpen     int       `json:"conn_max_open,omitempty" yaml:"conn_max_open,omitempty"`
+	Batching        *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type SqlInsert struct {

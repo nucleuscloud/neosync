@@ -328,12 +328,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 					logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						SqlInsert: &neosync_benthos.SqlInsert{
+						SqlRaw: &neosync_benthos.SqlRaw{
+
 							Driver: "postgres",
 							Dsn:    dsn,
 
-							Table:         resp.Config.Input.SqlSelect.Table,
-							Columns:       resp.Config.Input.SqlSelect.Columns,
+							Query: "",
+							// Table:         resp.Config.Input.SqlSelect.Table,
+							// Columns:       resp.Config.Input.SqlSelect.Columns,
 							ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
 							InitStatement: initStmt,
 
