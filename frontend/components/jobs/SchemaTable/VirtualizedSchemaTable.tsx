@@ -222,7 +222,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
   const row = rows[index];
 
   return (
-    <div style={style} className="border-t">
+    <div style={style} className="border-t dark:border-gray-700">
       <div className="grid grid-cols-5 gap-4 items-center p-2">
         <div className="flex flex-row truncate ">
           <Checkbox
@@ -347,7 +347,9 @@ function VirtualizedSchemaList({
   );
 
   return (
-    <div className={cn(`grid grid-col-1 border rounded-md`)}>
+    <div
+      className={cn(`grid grid-col-1 border rounded-md dark:border-gray-700`)}
+    >
       <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 pb-1 bg-muted`}>
         <div className="flex flex-row">
           <Checkbox

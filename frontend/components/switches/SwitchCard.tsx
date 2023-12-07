@@ -12,7 +12,7 @@ interface Props {
 export default function SwitchCard(props: Props): ReactElement {
   const { isChecked, onCheckedChange, title, description } = props;
   return (
-    <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+    <div className="flex flex-row items-center justify-between rounded-lg border p-4 dark:border dark:border-gray-700">
       <div className="space-y-0.5">
         <Label className="text-sm">{title}</Label>
         {description && (

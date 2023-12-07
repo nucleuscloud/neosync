@@ -62,15 +62,15 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
   }
 
   return (
-    <Card className="p-2">
+    <Card>
       {!data?.recentRuns || error ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
         </Alert>
       ) : (
         <div>
-          <div className="flex flex-row items-center">
-            <CardTitle className="py-6 px-2">Recent Job Runs</CardTitle>
+          <div className="flex flex-row items-center px-2">
+            <CardTitle className="py-6">Recent Job Runs</CardTitle>
             <Button
               className={
                 isValidating || jobRunsValidating ? 'animate-spin' : ''
@@ -84,7 +84,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
             </Button>
           </div>
           <Table className="pt-5">
-            <TableHeader className="bg-gray-100">
+            <TableHeader className="bg-gray-100 dark:bg-gray-800">
               <TableRow>
                 <TableHead>Run Id</TableHead>
                 <TableHead>Start At</TableHead>

@@ -1,5 +1,6 @@
 'use client';
 import { buttonVariants } from '@/components/ui/button';
+import { useGetAuthEnabled } from '@/libs/hooks/useGetAuthEnabled';
 import { cn } from '@/libs/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,6 +37,12 @@ export default function SubNav({
   ...props
 }: Props): ReactElement {
   const pathname = usePathname();
+  const authEnabled = useGetAuthEnabled();
+
+  const filteredItems = authEnabled
+    ? items
+    : items.filter((item) => item.title !== 'Overview');
+
   return (
     <nav
       className={cn(
@@ -44,7 +51,9 @@ export default function SubNav({
       )}
       {...props}
     >
-      {items.map((item) => {
+      {filteredItems.map((item) => {
+        if (item.href) {
+        }
         return (
           <Link
             key={item.href}
