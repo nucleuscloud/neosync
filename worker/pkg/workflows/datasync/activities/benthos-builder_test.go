@@ -649,6 +649,13 @@ output:
                     processors: []
 `),
 	)
+
+	// create a new streambuilder instance so we can access the SetYaml method
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *testing.T) {
@@ -1626,6 +1633,13 @@ output:
                     processors: []
 `),
 	)
+
+	// create a new streambuilder instance so we can access the SetYaml method
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T) {
@@ -1789,6 +1803,12 @@ output:
                     processors: []
 `),
 	)
+	// create a new streambuilder instance so we can access the SetYaml method
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
 }
 
 func getBenthosConfigByName(resps []*BenthosConfigResponse, name string) *BenthosConfigResponse {
