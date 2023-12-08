@@ -24,7 +24,7 @@ Neosync is a developer-first way to create anonymized, secure test data and sync
     </a>
       <a href="https://x.com/neosynccloud">
     <img alt="Follow X" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
- <a href="https://github.com/orgs/nucleuscloud/projects/5/views/1">
+ <a href="https://github.com/orgs/nucleuscloud/projects/6">
         <img alt="Roadmap" src="https://img.shields.io/badge/project%20roadmap-73C649"/>
  </a>
   </a>
@@ -154,14 +154,21 @@ Host machine setup can be skipped by developing inside of a vscode devcontainer.
 This container comes pre-baked with all of the tools we use to develop and work on neosync.
 This container also supports running neosync with compose or tilt.
 
+### Running Docker with Docker Desktop
+
+When running with either `Tilt` or `docker compose`, we map volumes from these filesystems to the host machine for both neosync and Temporal's databases.
+We mount a container path locally in a `.data` folder. If on a Mac, ensure that you've allowed wherever this repository has been cloned into to the allow-list in Docker Desktop.
+
+The allow list can be found by first opening Docker Desktop. `Settings -> Resources -> File Sharing` and add the path to the Neosync repository.
+
+If you don't want to do this, you can remove the volume mappings in the compose file or remove the pvc for Tilt.
+This comes at a negative of the local database not surviving restarts, however.
+
 ### Setup with Tilt
 
 Step 1 is to ensure that the `kind` cluster is up and running along with its registry.
 This can be manually created, or done simply with `ctlptl`.
 The cluster is declaratively defined [here](./tilt/kind/cluster.yaml)
-
-Note: Because databases are installed into the Kubernetes cluster, we like to persist them directly on the host volume to survive cluster re-creations.
-We mount a container path locally in a `.data` folder. If on a Mac, ensure that you've allowed wherever this repository has been cloned into the allow-list in Docker Desktop.
 
 The below command invokes the cluster-create script that can be found [here](./tilt/scripts/cluster-create.sh)
 
@@ -179,7 +186,7 @@ Once everything is up and running, the app can be accessed at locally at `http:/
 
 Neosync can be run with compose. This works pretty well, but is a bit more manual today than with Tilt.
 Not everything is hot-reload, but you can successfully run everything using just compose instead of having to manage a kubernetes cluster and running Tilt.
-To enable hot reloading, must run `docker compose watch` instead of `up`. Currently there is a limitation with devcontainers where this command must be run via `sudo`.
+To enable hot reloading, must run `docker compose watch` instead of `up`. **Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
 
 There are two compose files that need to be run today. The first is the Temporal compose, the second is the Neosync compose.
 It's suggested you run these separate (as of today) for a clean separation of concerns.
@@ -188,7 +195,7 @@ It's suggested you run these separate (as of today) for a clean separation of co
 
 Prior to running `docker compose up -d`, the worker and api will need to be built.
 
-When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your native OS is not Linux.
+When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your native OS is not Linux (or aren't running in a devcontainer).
 The `make dbuild` command ensures that the Go binary is compiled for Linux instead of the host os.
 
 This will need to be done for both the `worker` and `api` processes prior to running compose up.

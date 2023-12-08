@@ -21,7 +21,7 @@ export function DocsTable(props: TableData): ReactElement {
   const { headers, rowData } = props;
 
   return (
-    <Table className="rounded-lg overflow-hidden border border-gray-400">
+    <Table className="rounded-lg border border-gray-400 dark:border-gray-70 overflow-hidden">
       <TableHeader>
         <TableRow>
           {headers.map((header, headerIndex) => (
@@ -35,7 +35,7 @@ export function DocsTable(props: TableData): ReactElement {
             {tableData.data.map((item, columnIndex) => (
               <TableCell
                 key={`cell-${rowIndex}-${columnIndex}`}
-                className="font-medium bg-[#FFFFFF]"
+                className="font-medium bg-[#FFFFFF] dark:bg-[#1c1c1c] "
               >
                 {item}
               </TableCell>

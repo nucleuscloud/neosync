@@ -43,7 +43,7 @@ export default function ColumnFilterSelect(props: Props) {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="hover:bg-gray-200 p-2"
+          className="hover:bg-gray-200 dark:hover:bg-gray-600 p-2"
         >
           <AiOutlineFilter />
           {columnFilters && columnFilters.length ? (

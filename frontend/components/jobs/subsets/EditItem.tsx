@@ -68,7 +68,7 @@ export default function EditItem(props: Props): ReactElement {
           <div className="flex flex-row gap-2 items-center">
             <span className="font-semibold tracking-tight">Schema</span>
             <Badge
-              className="px-4 py-2"
+              className="px-4 py-2 dark:border-gray-700"
               variant={item?.schema ? 'outline' : 'secondary'}
             >
               {item?.schema ?? ''}
@@ -77,7 +77,7 @@ export default function EditItem(props: Props): ReactElement {
           <div className="flex flex-row gap-2 items-center">
             <span className="font-semibold tracking-tight">Table</span>
             <Badge
-              className="px-4 py-2"
+              className="px-4 py-2 dark:border-gray-700"
               variant={item?.table ? 'outline' : 'secondary'}
             >
               {item?.table ?? ''}

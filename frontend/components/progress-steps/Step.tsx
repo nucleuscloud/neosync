@@ -55,7 +55,7 @@ function StepCircle(props: StepCircleProps): ReactElement {
         </div>
       </div>
       {!isLastStep && (
-        <div className=" w-[30px] h-[2px] mt-[10px] rounded-xl bg-gray-300 dark:bg-gray" />
+        <div className=" w-[30px] h-[2px] mt-[10px] rounded-xl bg-gray-300 dark:bg-gray-700 dark:bg-gray" />
       )}
     </div>
   );

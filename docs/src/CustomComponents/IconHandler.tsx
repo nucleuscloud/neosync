@@ -1,5 +1,6 @@
 import {
   AvatarIcon,
+  GitHubLogoIcon,
   HomeIcon,
   LayersIcon,
   LinkBreak1Icon,
@@ -20,8 +21,8 @@ import { GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword, MdStart } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
-import { SiKubernetes } from 'react-icons/si';
-import { TbVariable } from 'react-icons/tb';
+import { SiGo, SiKubernetes } from 'react-icons/si';
+import { TbSdk, TbVariable } from 'react-icons/tb';
 
 export function IconHandler(name: string): ReactElement {
   switch (name) {
@@ -85,6 +86,13 @@ export function IconHandler(name: string): ReactElement {
       return <GoSync />;
     case 'Core Concepts':
       return <GoLightBulb />;
+    case 'Github Actions':
+      return <GitHubLogoIcon />;
+    case 'SDK':
+      return <TbSdk />;
+    case 'Go':
+    case 'Golang':
+      return <SiGo />;
     default:
       return <LayersIcon />;
   }

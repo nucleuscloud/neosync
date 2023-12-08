@@ -27,6 +27,8 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
     return <Skeleton className="w-full h-full" />;
   }
 
+  console.log('status', data);
+
   return (
     <Card>
       {!data?.nextRuns || error ? (
@@ -36,12 +38,19 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
       ) : (
         <div>
           <Table className="pt-5">
-            <TableHeader className="bg-gray-100">
+            <TableHeader className="bg-gray-100 dark:bg-gray-800">
               <TableRow>
                 <TableHead>Upcoming Runs</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
+              {status && data?.nextRuns?.nextRunTimes.length == 0 && (
+                <TableRow>
+                  <TableCell>
+                    <span className="font-medium">No upcoming runs</span>
+                  </TableCell>
+                </TableRow>
+              )}
               {status && status == JobStatus.PAUSED ? (
                 <TableRow>
                   <TableCell>

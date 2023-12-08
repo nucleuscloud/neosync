@@ -28,7 +28,7 @@ export function TransformersTable(props: TableData): ReactElement {
   const { headers, rowData } = props;
 
   return (
-    <Table className="rounded-lg overflow-hidden border border-gray-400">
+    <Table className="rounded-lg overflow-hidden border border-gray-400 dark:border-gray-700">
       <TableHeader>
         <TableRow>
           {headers.map((header) => (
@@ -39,7 +39,7 @@ export function TransformersTable(props: TableData): ReactElement {
       <TableBody>
         {rowData.map((tableData) => (
           <TableRow key={tableData.title} className="h2">
-            <TableCell className="font-medium bg-[#FFFFFF] w-[300px]">
+            <TableCell className="font-medium bg-[#FFFFFF] dark:bg-[#1c1c1c] w-[300px]">
               <Link href={`/transformers/system#${tableData.pagelink}`}>
                 <div className="flex flex-row gap-2 items-center">
                   <div>{tableData.title}</div>
@@ -51,13 +51,13 @@ export function TransformersTable(props: TableData): ReactElement {
             </TableCell>
             <TableCell
               key={tableData.type}
-              className="font-medium bg-[#FFFFFF]"
+              className="font-medium bg-[#FFFFFF] dark:bg-[#1c1c1c]"
             >
               <Badge variant="outline">{tableData.type}</Badge>
             </TableCell>
             <TableCell
               key={tableData.codeRef}
-              className="font-medium bg-[#FFFFFF]"
+              className="font-medium bg-[#FFFFFF] dark:bg-[#1c1c1c]"
             >
               <Link href={tableData.codeRef} className="justify-center flex">
                 <div className="flex flex-row gap-2">
@@ -69,7 +69,7 @@ export function TransformersTable(props: TableData): ReactElement {
             </TableCell>
             <TableCell
               key={tableData.description}
-              className="font-medium bg-[#FFFFFF]"
+              className="font-medium bg-[#FFFFFF] dark:bg-[#1c1c1c]"
             >
               {tableData.description}
             </TableCell>

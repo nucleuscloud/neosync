@@ -17,7 +17,7 @@ export default function Page({ params }: PageProps): ReactElement {
 
   if (isLoading) {
     return (
-      <div className="mt-10">
+      <div className="pt-10">
         <SkeletonForm />
       </div>
     );

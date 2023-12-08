@@ -1,14 +1,11 @@
 FROM node:18-alpine
 
-ENV NEXT_TELEMETRY_DISABLED 1
-
 WORKDIR /app
 
 ADD package.json .
 ADD package-lock.json .
 
-# RUN --mount=type=secret,source=npmrc \
-#   NPM_CONFIG_USERCONFIG=/run/secrets/npmrc npm install
+RUN npm install
 
 ADD . .
 

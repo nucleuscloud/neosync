@@ -299,7 +299,7 @@ func Test_buildProcessorMutation(t *testing.T) {
 	})
 
 	assert.Nil(t, err)
-	assert.Equal(t, output, `root.email = transform_email(value:this.email,preserve_domain:true, preserve_length:false)`)
+	assert.Equal(t, output, `root.email = transform_email(value:this.email,preserve_domain:true,preserve_length:false)`)
 
 	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
@@ -691,4 +691,353 @@ func Test_sha256Hash_transformer_float(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, res, buf.String())
+}
+
+func Test_TransformerStringLint(t *testing.T) {
+
+	col := "email"
+
+	transformers := []*mgmtv1alpha1.SystemTransformer{
+		{
+
+			Name: "generate_email",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+				},
+			},
+		},
+		{
+			Name: "generate_realistic_email",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateRealisticEmailConfig{
+					GenerateRealisticEmailConfig: &mgmtv1alpha1.GenerateRealisticEmail{},
+				},
+			},
+		},
+		{
+			Name: "transform_email",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
+					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
+						PreserveDomain: false,
+						PreserveLength: false,
+					},
+				},
+			},
+		},
+		{
+			Name: "generate_bool",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
+					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
+				},
+			},
+		},
+		{
+			Name: "generate_card_number",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
+					GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
+						ValidLuhn: true,
+					},
+				},
+			},
+		},
+		{
+			Name: "generate_city",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
+					GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+				},
+			},
+		},
+		{
+			Name: "generate_e164_number",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig{
+					GenerateE164NumberConfig: &mgmtv1alpha1.GenerateE164Number{
+						Length: 12,
+					},
+				},
+			},
+		},
+		{
+			Name: "generate_first_name",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
+					GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
+				},
+			},
+		},
+		{
+			Name: "generate_float",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloatConfig{
+					GenerateFloatConfig: &mgmtv1alpha1.GenerateFloat{
+						Sign:                "positive",
+						DigitsBeforeDecimal: 3,
+						DigitsAfterDecimal:  3,
+					},
+				},
+			},
+		},
+		{
+			Name: "generate_full_address",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
+					GenerateFullAddressConfig: &mgmtv1alpha1.GenerateFullAddress{},
+				},
+			},
+		},
+		{
+			Name: "generate_full_name",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
+					GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+				},
+			},
+		},
+		{
+			Name: "generate_gender",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
+					GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
+						Abbreviate: false,
+					},
+				},
+			},
+		},
+		{
+			Name: "generate_int64_phone",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig{
+					GenerateInt64PhoneConfig: &mgmtv1alpha1.GenerateInt64Phone{},
+				},
+			},
+		},
+		{
+			Name: "generate_int",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{
+					GenerateIntConfig: &mgmtv1alpha1.GenerateInt{
+						Length: 4,
+						Sign:   "positive",
+					},
+				},
+			},
+		},
+		{
+			Name: "generate_last_name",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
+					GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
+				},
+			},
+		},
+		{
+			Name: "generate_sha256hash",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
+					GenerateSha256HashConfig: &mgmtv1alpha1.GenerateSha256Hash{},
+				},
+			},
+		},
+		{
+			Name: "generate_ssn",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
+					GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
+				},
+			},
+		},
+		{
+			Name: "generate_state",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
+					GenerateStateConfig: &mgmtv1alpha1.GenerateState{},
+				},
+			},
+		},
+		{
+			Name: "generate_street_address",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
+					GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
+				},
+			},
+		},
+		{
+			Name: "generate_string_phone",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
+					GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
+						IncludeHyphens: false,
+					},
+				},
+			},
+		},
+		{
+			Name: "generate_string",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+						Length: 6,
+					},
+				},
+			},
+		},
+		{
+			Name: "generate_unixtimestamp",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
+					GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
+				},
+			},
+		},
+		{
+			Name: "generate_username",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{
+					GenerateUsernameConfig: &mgmtv1alpha1.GenerateUsername{},
+				},
+			},
+		},
+		{
+			Name: "generate_utctimestamp",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{
+					GenerateUtctimestampConfig: &mgmtv1alpha1.GenerateUtcTimestamp{},
+				},
+			},
+		},
+		{
+			Name: "generate_uuid",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
+						IncludeHyphens: true,
+					},
+				},
+			},
+		},
+		{
+			Name: "generate_zipcode",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
+					GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
+				},
+			},
+		},
+		{
+			Name: "transform_e164_phone",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneConfig{
+					TransformE164PhoneConfig: &mgmtv1alpha1.TransformE164Phone{
+						PreserveLength: false,
+					},
+				},
+			},
+		},
+		{
+			Name: "transform_first_name",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
+					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
+						PreserveLength: false,
+					},
+				},
+			},
+		},
+		{
+			Name: "transform_float",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFloatConfig{
+					TransformFloatConfig: &mgmtv1alpha1.TransformFloat{
+						PreserveLength: false,
+						PreserveSign:   true,
+					},
+				},
+			},
+		},
+		{
+			Name: "transform_full_name",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
+					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
+						PreserveLength: false,
+					},
+				},
+			},
+		},
+		{
+			Name: "transform_int_phone",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformIntPhoneConfig{
+					TransformIntPhoneConfig: &mgmtv1alpha1.TransformIntPhone{
+						PreserveLength: false,
+					},
+				},
+			},
+		},
+		{
+			Name: "transform_int",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformIntConfig{
+					TransformIntConfig: &mgmtv1alpha1.TransformInt{
+						PreserveLength: false,
+						PreserveSign:   true,
+					},
+				},
+			},
+		},
+		{
+			Name: "transform_last_name",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
+					TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
+						PreserveLength: false,
+					},
+				},
+			},
+		},
+		{
+			Name: "transform_phone",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneConfig{
+					TransformPhoneConfig: &mgmtv1alpha1.TransformPhone{
+						PreserveLength: false,
+						IncludeHyphens: false,
+					},
+				},
+			},
+		},
+		{
+			Name: "transform_string",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
+					TransformStringConfig: &mgmtv1alpha1.TransformString{
+						PreserveLength: false,
+					},
+				},
+			},
+		},
+	}
+
+	for _, transformer := range transformers {
+
+		val, err := computeMutationFunction(
+			&mgmtv1alpha1.JobMapping{
+				Column: col,
+				Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: transformer.Name,
+					Config: transformer.Config,
+				},
+			})
+
+		assert.NoError(t, err)
+
+		_, err = bloblang.Parse(val)
+		assert.NoError(t, err, "transformer lint failed, check that the transformer string is being constructed correctly.")
+	}
 }

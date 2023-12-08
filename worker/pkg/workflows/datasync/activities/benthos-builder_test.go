@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	sb "github.com/benthosdev/benthos/v4/public/service"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	mysql_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/mysql"
@@ -163,6 +164,14 @@ output:
                     processors: []
 `),
 	)
+
+	// create a new streambuilder instance so we can access the SetYaml method
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T) {
@@ -470,6 +479,13 @@ output:
                     processors: []
 `),
 	)
+
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T) {
@@ -878,6 +894,15 @@ output:
                     processors: []
 `),
 	)
+
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+
+	err = newSB.SetYAML(string(out2))
+	assert.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.T) {
@@ -1027,6 +1052,12 @@ output:
                     processors: []
 `),
 	)
+
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) {
@@ -1190,6 +1221,12 @@ output:
                     processors: []
 `),
 	)
+
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constraints(t *testing.T) {
@@ -1434,6 +1471,16 @@ output:
                     processors: []
 `),
 	)
+
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out2))
+	assert.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *testing.T) {

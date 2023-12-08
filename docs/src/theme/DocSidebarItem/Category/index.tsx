@@ -176,7 +176,7 @@ export default function DocSidebarItemCategory({
           {
             'menu__list-item-collapsible--active': isCurrentPage,
           },
-          'flex flex-row items-center pl-3'
+          'flex flex-row items-center pl-3 rounded-xl'
         )}
       >
         {IconHandler(item.label)}

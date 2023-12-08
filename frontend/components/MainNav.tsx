@@ -22,9 +22,6 @@ export function MainNav({
     <div className="mr-4 hidden md:flex">
       <Link href="/" className="mr-6 flex items-center space-x-2">
         <Logo className="" />
-        {/* <span className="hidden font-bold sm:inline-block">
-          {siteConfig.name}
-        </span> */}
       </Link>
       <nav
         className={cn('flex items-center space-x-4 lg:space-x-6', className)}
@@ -43,7 +40,9 @@ export function MainNav({
           href="/jobs"
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-            highlightPathName('/') ? 'text-foreground' : 'text-foreground/60'
+            highlightPathName('/jobs')
+              ? 'text-foreground'
+              : 'text-foreground/60'
           )}
         >
           Jobs

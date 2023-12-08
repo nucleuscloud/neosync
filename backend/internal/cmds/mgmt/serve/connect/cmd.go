@@ -138,6 +138,10 @@ func serve(ctx context.Context) error {
 	// this will only authenticate jwts, not api keys. Mostly used by just the api key service
 	jwtOnlyAuthInterceptors := []connect.Interceptor{}
 
+	// interceptors for auth service.
+	authSvcInterceptors := []connect.Interceptor{}
+	authSvcInterceptors = append(authSvcInterceptors, stdAuthInterceptors...)
+
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
 		jwtclient, err := auth_jwt.New(getJwtClientConfig())
@@ -158,6 +162,18 @@ func serve(ctx context.Context) error {
 			jwtOnlyAuthInterceptors,
 			auth_interceptor.NewInterceptor(
 				jwtclient.InjectTokenCtx,
+			),
+		)
+		authSvcInterceptors = append(
+			authSvcInterceptors,
+			auth_interceptor.NewInterceptorWithExclude(
+				jwtclient.InjectTokenCtx,
+				[]string{
+					mgmtv1alpha1connect.AuthServiceGetAuthStatusProcedure,
+					mgmtv1alpha1connect.AuthServiceGetAuthorizeUrlProcedure,
+					mgmtv1alpha1connect.AuthServiceGetCliIssuerProcedure,
+					mgmtv1alpha1connect.AuthServiceLoginCliProcedure,
+				},
 			),
 		)
 	}
@@ -198,11 +214,11 @@ func serve(ctx context.Context) error {
 		CliClientId:   viper.GetString("AUTH_CLI_CLIENT_ID"),
 		CliAudience:   getAuthCliAudience(),
 		IssuerUrl:     issuerStr,
-	}, authclient, auth0Mgmt)
+	}, authclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewAuthServiceHandler(
 			authService,
-			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(authSvcInterceptors...),
 		),
 	)
 
@@ -221,7 +237,7 @@ func serve(ctx context.Context) error {
 
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled: isAuthEnabled,
-	}, db, authService, tfwfmgr)
+	}, db, auth0Mgmt, tfwfmgr)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,

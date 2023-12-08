@@ -2,6 +2,7 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -261,22 +262,23 @@ func (s *Service) GetTeamAccountMembers(
 		i := i
 		user := userIdentities[i]
 		group.Go(func() error {
-			authUser, err := s.authService.GetAuthUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
-				UserId:       user.Auth0ProviderID,
-				AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
-			}))
-			if err != nil {
-				// if unable to get auth user still return user id
-				dtoUsers[i] = &mgmtv1alpha1.AccountUser{
-					Id: nucleusdb.UUIDString(user.UserID),
+			if user.Auth0ProviderID != "" {
+				authUser, err := s.auth0MgmtClient.GetUserById(ctx, user.Auth0ProviderID)
+				if err != nil {
+					// if unable to get auth user still return user id
+					dtoUsers[i] = &mgmtv1alpha1.AccountUser{
+						Id: nucleusdb.UUIDString(user.UserID),
+					}
+					return err
 				}
-				return err
-			}
-			dtoUsers[i] = &mgmtv1alpha1.AccountUser{
-				Id:    nucleusdb.UUIDString(user.UserID),
-				Name:  authUser.Msg.User.Name,
-				Email: authUser.Msg.User.Email,
-				Image: authUser.Msg.User.Image,
+				dtoUsers[i] = &mgmtv1alpha1.AccountUser{
+					Id:    nucleusdb.UUIDString(user.UserID),
+					Name:  authUser.GetName(),
+					Email: authUser.GetEmail(),
+					Image: authUser.GetPicture(),
+				}
+			} else {
+				return errors.New("unsupported or no provider id for user identity")
 			}
 			return nil
 		})
@@ -440,15 +442,12 @@ func (s *Service) AcceptTeamAccountInvite(
 	}
 
 	// check auth user email to invite email
-	authUser, err := s.authService.GetAuthUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthUserRequest{
-		UserId:       userIdentity.Auth0ProviderID,
-		AuthProvider: mgmtv1alpha1.AuthProvider_AUTH_PROVIDER_AUTH_0,
-	}))
+	authUser, err := s.auth0MgmtClient.GetUserById(ctx, userIdentity.Auth0ProviderID)
 	if err != nil {
 		return nil, err
 	}
 
-	accountId, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, authUser.Msg.User.Email)
+	accountId, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, authUser.GetEmail())
 	if err != nil {
 		return nil, err
 	}

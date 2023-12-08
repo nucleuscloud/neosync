@@ -86,9 +86,9 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
         onAutoRefreshIntervalChange={onAutoRefreshIntervalChange}
         isRefreshing={isRefreshing}
       />
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-hidden dark:border-gray-700 ">
         <Table>
-          <TableHeader className="bg-gray-100">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
