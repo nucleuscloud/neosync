@@ -142,7 +142,7 @@ func GenerateRandomStringWithLength(l int64) (string, error) {
 		index := rand.Intn(len(alphabet))
 
 		// Get the character at the generated index and append it to the result
-		result[i] = alphanumeric[index]
+		result[i] = alphabet[index]
 	}
 
 	return strings.ToLower(string(result)), nil
