@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { PageProps } from '@/components/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
@@ -34,7 +35,9 @@ export default function AccountPage({ params }: PageProps): ReactElement {
       Header={<PageHeader header={`Home - ${account.name}`} />}
       containerClassName="home-page"
     >
-      <div className="flex flex-col gap-4">Hello</div>
+      <div className="flex flex-col gap-4">
+        <SkeletonTable />
+      </div>
     </OverviewContainer>
   );
 }

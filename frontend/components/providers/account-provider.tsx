@@ -36,11 +36,7 @@ export default function AccountProvider(props: Props): ReactElement {
   const accountName = params.account ?? 'personal';
 
   const { data: accountsResponse, isLoading, mutate } = useGetUserAccounts();
-  // const [] = useState(accountName);
 
-  // const [userAccount, setUserAccount] = useLocalStorage<
-  //   UserAccount | undefined
-  // >(USER_ACCOUNT_KEY, undefined);
   const [userAccount, setUserAccount] = useState<UserAccount | undefined>(
     undefined
   );
@@ -61,20 +57,6 @@ export default function AccountProvider(props: Props): ReactElement {
     if (foundAccount) {
       setUserAccount(foundAccount);
     }
-
-    // if (
-    //   !userAccount &&
-    //   accountsResponse?.accounts &&
-    //   accountsResponse.accounts.length > 0
-    // ) {
-    //   setUserAccount(accountsResponse.accounts[0]);
-    // } else if (
-    //   userAccount &&
-    //   accountsResponse?.accounts &&
-    //   !accountsResponse.accounts.some((acc) => acc.id === userAccount.id)
-    // ) {
-    //   setUserAccount(accountsResponse.accounts[0]);
-    // }
   }, [userAccount, accountsResponse?.accounts.length, isLoading, accountName]);
 
   function setAccount(userAccount?: UserAccount): void {
