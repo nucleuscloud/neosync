@@ -5,10 +5,24 @@ id: home
 slug: /
 ---
 
+import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
+
+<DocPageHeader title="APIs and SDKs" />
+
 ## Introduction
 
-This page contains generated documentation for all of the Neosync backend proto files.
+Neosync, like many web services these days, is a full-fledged API. Check out the [architecture](/platform) page for an overview of how the Neosync API fits into the picture.
 
-Use the sidebar to navigate to the specific proto file that is of interest to read the documentation regarding it.
+All of our APIs are generated from Protobuf files. For this reason, a client can easily be generated in any of the many supported languages.
+Internally, we make great use of the Go SDK as well as the TypeScript SDK.
 
-This can also be found directly on the proto files in the main Neosync Github repository.
+## Generating a client
+
+### Go
+
+The Go SDK can be easily generated, or the SDK that is committed to the Neosync repo may be freely imported and utilized.
+See the [Go SDK](./go.mdx) page for more information on how to do this.
+
+### Other languages
+
+We are working on publishing Neosync SDKs in a few other languages, but as the Neosync protos are public, they can be downloaded separately and used to generate a client in the chosen language using `protoc` or `buf`.

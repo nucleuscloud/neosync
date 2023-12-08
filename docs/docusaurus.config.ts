@@ -73,6 +73,10 @@ const config: Config = {
           routeBasePath: 'protos',
           sidebarPath: './proto-sidebars.ts',
         },
+        blog: false,
+        theme: {
+          customCss: require.resolve('./src/css/custom.css'),
+        },
       },
     ],
   ],

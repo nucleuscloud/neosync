@@ -6,7 +6,11 @@ const protodocs =
     (item) => item.type === 'category' && item.label === 'Files'
   )?.items ?? [];
 
-const all = [{ type: 'doc', label: 'Overview', id: 'home' }, ...protodocs];
+const all = [
+  { type: 'doc', label: 'Overview', id: 'home' },
+  { type: 'doc', label: 'Go', id: 'go' },
+  ...protodocs,
+];
 
 const sidebars: SidebarsConfig = {
   // By default, Docusaurus generates a sidebar from the docs folder structure
