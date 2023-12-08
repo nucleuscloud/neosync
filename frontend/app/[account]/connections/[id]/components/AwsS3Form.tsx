@@ -38,6 +38,7 @@ interface Props {
 
 export default function AwsS3Form(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
+  const { account } = useAccount();
   const form = useForm<AWSFormValues>({
     resolver: yupResolver(AWS_FORM_SCHEMA),
     defaultValues: {
@@ -45,9 +46,11 @@ export default function AwsS3Form(props: Props) {
       s3: {},
     },
     values: defaultValues,
-    context: { originalConnectionName: defaultValues.connectionName },
+    context: {
+      originalConnectionName: defaultValues.connectionName,
+      accountId: account?.id ?? '',
+    },
   });
-  const { account } = useAccount();
 
   async function onSubmit(values: AWSFormValues) {
     try {

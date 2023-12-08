@@ -53,15 +53,18 @@ interface Props {
 
 export default function PostgresForm(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
+  const { account } = useAccount();
   const form = useForm<PostgresFormValues>({
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
     values: defaultValues,
-    context: { originalConnectionName: defaultValues.connectionName }, // used when validating a new connection name
+    context: {
+      originalConnectionName: defaultValues.connectionName,
+      accountId: account?.id ?? '',
+    }, // used when validating a new connection name
   });
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
-  const { account } = useAccount();
 
   const [isTesting, setIsTesting] = useState<boolean>(false);
 

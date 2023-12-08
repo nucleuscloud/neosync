@@ -54,15 +54,18 @@ interface Props {
 
 export default function MysqlForm(props: Props) {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
+  const { account } = useAccount();
   const form = useForm<MysqlFormValues>({
     resolver: yupResolver(MYSQL_FORM_SCHEMA),
     values: defaultValues,
-    context: { originalConnectionName: defaultValues.connectionName },
+    context: {
+      originalConnectionName: defaultValues.connectionName,
+      accountId: account?.id ?? '',
+    },
   });
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
-  const { account } = useAccount();
 
   const [isTesting, setIsTesting] = useState<boolean>(false);
 
@@ -246,7 +249,10 @@ export default function MysqlForm(props: Props) {
             onClick={async () => {
               setIsTesting(true);
               try {
-                const resp = await checkMysqlConnection(form.getValues('db'));
+                const resp = await checkMysqlConnection(
+                  form.getValues('db'),
+                  account?.id ?? ''
+                );
                 setCheckResp(resp);
                 setIsTesting(false);
               } catch (err) {

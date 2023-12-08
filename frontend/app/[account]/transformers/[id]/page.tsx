@@ -5,6 +5,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useGetUserDefinedTransformersById } from '@/libs/hooks/useGetUserDefinedTransformerById';
+import { GetUserDefinedTransformerByIdResponse } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import UpdateUserDefinedTransformerForm from './components/UpdateUserDefinedTransformerForm';
 
@@ -12,7 +13,7 @@ export default function NewUserDefinedTransformerPage({ params }: PageProps) {
   const id = params?.id ?? '';
   const { account } = useAccount();
 
-  const { data, isLoading } = useGetUserDefinedTransformersById(
+  const { data, isLoading, mutate } = useGetUserDefinedTransformersById(
     account?.id ?? '',
     id
   );
@@ -46,6 +47,13 @@ export default function NewUserDefinedTransformerPage({ params }: PageProps) {
             <div>
               <UpdateUserDefinedTransformerForm
                 currentTransformer={data?.transformer}
+                onUpdated={(updatedTransformer) => {
+                  mutate(
+                    new GetUserDefinedTransformerByIdResponse({
+                      transformer: updatedTransformer,
+                    })
+                  );
+                }}
               />
             </div>
           </div>

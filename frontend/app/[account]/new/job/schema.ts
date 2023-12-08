@@ -1,4 +1,3 @@
-import { getAccount } from '@/components/providers/account-provider';
 import { IsJobNameAvailableResponse } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import {
   DESTINATION_FORM_SCHEMA,
@@ -14,17 +13,21 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
     .required('Name is a required field')
     .min(3)
     .max(30)
-    .test('checkNameUnique', 'This name is already taken.', async (value) => {
-      if (!value || value.length == 0) {
-        return false;
+    .test(
+      'checkNameUnique',
+      'This name is already taken.',
+      async (value, context) => {
+        if (!value || value.length == 0) {
+          return false;
+        }
+        const accountId = context.options.context?.accountId;
+        if (!accountId) {
+          return false;
+        }
+        const res = await isJobNameAvailable(value, accountId);
+        return res.isAvailable;
       }
-      const account = getAccount();
-      if (!account) {
-        return false;
-      }
-      const res = await isJobNameAvailable(value, account.id);
-      return res.isAvailable;
-    }),
+    ),
   cronSchedule: Yup.string().optional(),
   initiateJobRun: Yup.boolean(),
 });

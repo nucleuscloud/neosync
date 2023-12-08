@@ -1,4 +1,3 @@
-import { getAccount } from '@/components/providers/account-provider';
 import { IsTransformerNameAvailableResponse } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import * as Yup from 'yup';
 
@@ -236,8 +235,8 @@ const transformerNameSchema = Yup.string()
         });
       }
 
-      const account = getAccount();
-      if (!account) {
+      const accountId = context?.options?.context?.accountId;
+      if (!accountId) {
         return context.createError({
           message: 'Account is not valid.',
         });
@@ -248,7 +247,7 @@ const transformerNameSchema = Yup.string()
       }
 
       try {
-        const res = await isTransformerNameAvailable(value, account.id);
+        const res = await isTransformerNameAvailable(value, accountId);
         if (!res.isAvailable) {
           return context.createError({
             message: 'This Transformer Name is already taken.',

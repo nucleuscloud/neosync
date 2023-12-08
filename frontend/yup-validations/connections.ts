@@ -1,5 +1,4 @@
 import { isConnectionNameAvailable } from '@/app/[account]/new/connection/postgres/PostgresForm';
-import { getAccount } from '@/components/providers/account-provider';
 import * as Yup from 'yup';
 
 export const POSTGRES_CONNECTION = Yup.object({
@@ -48,21 +47,21 @@ const connectionNameSchema = Yup.string()
         });
       }
 
-      const account = getAccount();
-      if (!account) {
-        return context.createError({
-          message: 'Account is not valid.',
-        });
-      }
-
       // this handles the case in the update flow where the connection already exists
       // we return true otherwise the isConnectionName func below will fail since it already exists
       if (value == context?.options?.context?.originalConnectionName) {
         return true;
       }
 
+      const accountId = context?.options?.context?.accountId;
+      if (!accountId) {
+        return context.createError({
+          message: 'Account is not valid.',
+        });
+      }
+
       try {
-        const res = await isConnectionNameAvailable(value, account.id);
+        const res = await isConnectionNameAvailable(value, accountId);
         if (!res.isAvailable) {
           return context.createError({
             message: 'This Connection Name is already taken.',

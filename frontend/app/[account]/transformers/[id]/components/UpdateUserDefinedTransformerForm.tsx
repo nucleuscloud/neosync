@@ -31,12 +31,14 @@ import { Controller, useForm } from 'react-hook-form';
 
 interface Props {
   currentTransformer: UserDefinedTransformer | undefined;
+  onUpdated(transformer: UserDefinedTransformer): void;
 }
 
 export default function UpdateUserDefinedTransformerForm(
   props: Props
 ): ReactElement {
-  const { currentTransformer } = props;
+  const { currentTransformer, onUpdated } = props;
+  const { account } = useAccount();
 
   const form = useForm<UpdateUserDefinedTransformer>({
     resolver: yupResolver(UPDATE_USER_DEFINED_TRANSFORMER),
@@ -60,9 +62,8 @@ export default function UpdateUserDefinedTransformerForm(
         },
       },
     },
-    context: { name: currentTransformer?.name },
+    context: { name: currentTransformer?.name, accountId: account?.id ?? '' },
   });
-  const { account } = useAccount();
 
   async function onSubmit(values: UpdateUserDefinedTransformer): Promise<void> {
     if (!account) {
@@ -78,6 +79,9 @@ export default function UpdateUserDefinedTransformerForm(
         title: 'Successfully updated transformer!',
         variant: 'success',
       });
+      if (transformer.transformer) {
+        onUpdated(transformer.transformer);
+      }
     } catch (err) {
       console.error(err);
       toast({

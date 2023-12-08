@@ -55,6 +55,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const form = useForm<DefineFormValues>({
     resolver: yupResolver<DefineFormValues>(DEFINE_FORM_SCHEMA),
     defaultValues,
+    context: { accountId: account?.id ?? '' },
   });
 
   const isBrowser = () => typeof window !== 'undefined';
