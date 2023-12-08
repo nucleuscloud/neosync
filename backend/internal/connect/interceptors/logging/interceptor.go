@@ -44,6 +44,8 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 			connectErr, ok := err.(*connect.Error)
 			if ok {
 				fields = append(fields, "connect.code", connectErr.Code().String())
+			} else {
+				fields = append(fields, "connect.code", connect.CodeInternal.String())
 			}
 
 			i.logger.Info(
