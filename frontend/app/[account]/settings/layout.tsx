@@ -13,7 +13,7 @@ interface Item {
   title: string;
 }
 
-export function getNavSettings(accountName: string): Item[] {
+function getNavSettings(accountName: string): Item[] {
   return [
     {
       href: `/${accountName}/settings/temporal`,
