@@ -25,6 +25,7 @@ import (
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
+	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
@@ -126,11 +127,13 @@ func serve(ctx context.Context) error {
 
 	otelInterceptor := otelconnect.NewInterceptor()
 	loggerInterceptor := logger_interceptor.NewInterceptor(logger)
+	loggingInterceptor := logging_interceptor.NewInterceptor(logger)
 
 	stdInterceptors := []connect.Interceptor{
 		otelInterceptor,
 		loggerInterceptor,
 		validateInterceptor,
+		loggingInterceptor,
 	}
 
 	// standard auth interceptors that should be applied to most services
