@@ -22,11 +22,9 @@ export default function Settings() {
       Header={<PageHeader header="Settings" />}
       containerClassName="settings-page"
     >
-      <div className="flex flex-col gap-4">
-        <div>
-          <SubNav items={ITEMS} />
-        </div>
-        {authEnabled && <MemberManagementSettings />}
+      <div className="flex flex-row gap-4">
+        <SubNav items={ITEMS} />
+        <div>{authEnabled && <MemberManagementSettings />}</div>
       </div>
     </OverviewContainer>
   );
