@@ -49,10 +49,7 @@ export default function SettingsLayout({
 
   return (
     <div>
-      <OverviewContainer
-        Header={<PageHeader header="Settings" />}
-        containerClassName="px-12 md:px-24 lg:px-32"
-      >
+      <OverviewContainer Header={<PageHeader header="Settings" />}>
         <div className="flex flex-row gap-20">
           <div className="flex flex-col gap-2 w-1/6">
             {filteredItems.map((item) => {
