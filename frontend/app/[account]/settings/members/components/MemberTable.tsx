@@ -93,7 +93,7 @@ interface Props {
   accountId: string;
 }
 
-export function MembersTable(props: Props) {
+export default function MembersTable(props: Props) {
   const { accountId } = props;
   const { data, isLoading, mutate } = useGetAccountMembers(accountId || '');
   if (isLoading) {

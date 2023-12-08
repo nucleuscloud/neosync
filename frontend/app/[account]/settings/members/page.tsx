@@ -4,8 +4,8 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ReactElement } from 'react';
-import { InvitesTable } from './InviteTable';
-import { MembersTable } from './MemberTable';
+import { InvitesTable } from './components/InviteTable';
+import MembersTable from './components/MemberTable';
 
 interface Props {}
 
