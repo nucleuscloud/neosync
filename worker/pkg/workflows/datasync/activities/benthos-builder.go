@@ -21,6 +21,11 @@ import (
 	"go.temporal.io/sdk/log"
 )
 
+const (
+	generateDefault = "generate_default"
+	dbDefault       = "DEFAULT"
+)
+
 type benthosBuilder struct {
 	pgpool    map[string]pg_queries.DBTX
 	pgquerier pg_queries.Querier
@@ -343,11 +348,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							Driver: "postgres",
 							Dsn:    dsn,
 
-							Query: b.buildPostgresInsertQuery(resp.Config.Input.SqlSelect.Table, resp.Config.Input.SqlSelect.Columns, colSourceMap),
-							// Table:       resp.Config.Input.SqlSelect.Table,
-							// Columns:     resp.Config.Input.SqlSelect.Columns,
-							ArgsMapping: buildPlainInsertArgs(filteredCols),
-							// ArgsMapping:   "root = [this.region_name]",
+							Query:         b.buildPostgresInsertQuery(resp.Config.Input.SqlSelect.Table, resp.Config.Input.SqlSelect.Columns, colSourceMap),
+							ArgsMapping:   buildPlainInsertArgs(filteredCols),
 							InitStatement: initStmt,
 
 							ConnMaxIdle: 2,
@@ -445,15 +447,24 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					if err != nil {
 						return nil, err
 					}
+					tableKey := neosync_benthos.BuildBenthosTable(resp.tableSchema, resp.tableName)
+					tm := groupedTableMapping[tableKey]
+					if tm == nil {
+						return nil, errors.New("unable to find table mapping for key")
+					}
+					colSourceMap := map[string]string{}
+					for _, col := range tm.Mappings {
+						colSourceMap[col.Column] = col.GetTransformer().Source
+					}
+					filteredCols := b.filterColsBySource(resp.Config.Input.SqlSelect.Columns, colSourceMap)
 					logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						SqlInsert: &neosync_benthos.SqlInsert{
+						SqlRaw: &neosync_benthos.SqlRaw{
 							Driver: "mysql",
 							Dsn:    dsn,
 
-							Table:         resp.Config.Input.SqlSelect.Table,
-							Columns:       resp.Config.Input.SqlSelect.Columns,
-							ArgsMapping:   buildPlainInsertArgs(resp.Config.Input.SqlSelect.Columns),
+							Query:         b.buildMysqlInsertQuery(resp.Config.Input.SqlSelect.Table, resp.Config.Input.SqlSelect.Columns, colSourceMap),
+							ArgsMapping:   buildPlainInsertArgs(filteredCols),
 							InitStatement: initStmt,
 
 							ConnMaxIdle: 2,
@@ -474,6 +485,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 
 					cols := buildPlainColumns(tm.Mappings)
+					colSourceMap := map[string]string{}
+					for _, col := range tm.Mappings {
+						colSourceMap[col.Column] = col.GetTransformer().Source
+					}
+					// filters out default columns
+					filteredCols := b.filterColsBySource(cols, colSourceMap)
 					initStmt, err := b.getInitStatementFromMysql(
 						ctx,
 						nil,
@@ -490,13 +507,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						SqlInsert: &neosync_benthos.SqlInsert{
+						SqlRaw: &neosync_benthos.SqlRaw{
 							Driver: "mysql",
 							Dsn:    dsn,
 
-							Table:         tableKey,
-							Columns:       cols,
-							ArgsMapping:   buildPlainInsertArgs(cols),
+							Query:         b.buildMysqlInsertQuery(tableKey, cols, colSourceMap),
+							ArgsMapping:   buildPlainInsertArgs(filteredCols),
 							InitStatement: initStmt,
 
 							ConnMaxIdle: 2,
@@ -779,11 +795,24 @@ func (b *benthosBuilder) buildPostgresInsertQuery(table string, columns []string
 	paramCount := 1
 	for i, col := range columns {
 		colSource := colSourceMap[col]
-		if colSource == "generate_default" {
-			values[i] = "DEFAULT"
+		if colSource == generateDefault {
+			values[i] = dbDefault
 		} else {
 			values[i] = fmt.Sprintf("$%d", paramCount)
 			paramCount++
+		}
+	}
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+}
+
+func (b *benthosBuilder) buildMysqlInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
+	values := make([]string, len(columns))
+	for i, col := range columns {
+		colSource := colSourceMap[col]
+		if colSource == generateDefault {
+			values[i] = dbDefault
+		} else {
+			values[i] = "?"
 		}
 	}
 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
@@ -793,18 +822,10 @@ func (b *benthosBuilder) filterColsBySource(columns []string, colSourceMap map[s
 	filteredCols := []string{}
 	for _, col := range columns {
 		colSource := colSourceMap[col]
-		if colSource != "generate_default" {
+		if colSource != generateDefault {
 			filteredCols = append(filteredCols, col)
 		}
 	}
 
 	return filteredCols
 }
-
-// func (b *benthosBuilder) buildMysqlInsertQuery(table string, columns []string) string {
-// 	values := make([]string, len(columns))
-// 	for i := range values {
-// 		values[i] = "?"
-// 	}
-// 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
-// }
