@@ -63,18 +63,17 @@ type NeosyncApiConnection struct {
 }
 
 type NeosyncApiJob struct {
-	ID                 pgtype.UUID
-	CreatedAt          pgtype.Timestamp
-	UpdatedAt          pgtype.Timestamp
-	Name               string
-	AccountID          pgtype.UUID
-	Status             int16
-	ConnectionSourceID pgtype.UUID
-	ConnectionOptions  *pg_models.JobSourceOptions
-	Mappings           []*pg_models.JobMapping
-	CronSchedule       pgtype.Text
-	CreatedByID        pgtype.UUID
-	UpdatedByID        pgtype.UUID
+	ID                pgtype.UUID
+	CreatedAt         pgtype.Timestamp
+	UpdatedAt         pgtype.Timestamp
+	Name              string
+	AccountID         pgtype.UUID
+	Status            int16
+	ConnectionOptions *pg_models.JobSourceOptions
+	Mappings          []*pg_models.JobMapping
+	CronSchedule      pgtype.Text
+	CreatedByID       pgtype.UUID
+	UpdatedByID       pgtype.UUID
 }
 
 type NeosyncApiJobDestinationConnectionAssociation struct {
