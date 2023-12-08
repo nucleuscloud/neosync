@@ -9,7 +9,6 @@ import { useGetAccountApiKeys } from '@/libs/hooks/useGetAccountApiKeys';
 import { PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
-import SubNav, { getNavSettings } from '../temporal/components/SubNav';
 import { getColumns } from './components/ApiKeysTable/columns';
 import { DataTable } from './components/ApiKeysTable/data-table';
 
@@ -22,12 +21,7 @@ export default function ApiKeys(): ReactElement {
       }
       containerClassName="apikeys-settings-page"
     >
-      <div className="flex flex-col gap-4">
-        <div>
-          <SubNav items={getNavSettings(account?.name ?? '')} />
-        </div>
-        <ApiKeyTable />
-      </div>
+      <ApiKeyTable />
     </OverviewContainer>
   );
 }
