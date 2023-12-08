@@ -19,7 +19,7 @@ INSERT INTO neosync_api.jobs (
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8
 )
-RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
 `
 
 type CreateJobParams struct {
@@ -52,7 +52,6 @@ func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (
 		&i.Name,
 		&i.AccountID,
 		&i.Status,
-		&i.ConnectionSourceID,
 		&i.ConnectionOptions,
 		&i.Mappings,
 		&i.CronSchedule,
@@ -109,7 +108,7 @@ func (q *Queries) DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error 
 }
 
 const getJobById = `-- name: GetJobById :one
-SELECT id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id from neosync_api.jobs WHERE id = $1
+SELECT id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id from neosync_api.jobs WHERE id = $1
 `
 
 func (q *Queries) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJob, error) {
@@ -122,7 +121,6 @@ func (q *Queries) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (Neos
 		&i.Name,
 		&i.AccountID,
 		&i.Status,
-		&i.ConnectionSourceID,
 		&i.ConnectionOptions,
 		&i.Mappings,
 		&i.CronSchedule,
@@ -133,7 +131,7 @@ func (q *Queries) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (Neos
 }
 
 const getJobByNameAndAccount = `-- name: GetJobByNameAndAccount :one
-SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_source_id, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id from neosync_api.jobs j
+SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id from neosync_api.jobs j
 INNER JOIN neosync_api.accounts a ON a.id = j.account_id
 WHERE a.id = $1 AND j.name = $2
 `
@@ -153,7 +151,6 @@ func (q *Queries) GetJobByNameAndAccount(ctx context.Context, db DBTX, arg GetJo
 		&i.Name,
 		&i.AccountID,
 		&i.Status,
-		&i.ConnectionSourceID,
 		&i.ConnectionOptions,
 		&i.Mappings,
 		&i.CronSchedule,
@@ -249,7 +246,7 @@ func (q *Queries) GetJobConnectionDestinationsByJobIds(ctx context.Context, db D
 }
 
 const getJobsByAccount = `-- name: GetJobsByAccount :many
-SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_source_id, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id from neosync_api.jobs j
+SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id from neosync_api.jobs j
 INNER JOIN neosync_api.accounts a ON a.id = j.account_id
 WHERE a.id = $1
 ORDER BY j.created_at DESC
@@ -271,7 +268,6 @@ func (q *Queries) GetJobsByAccount(ctx context.Context, db DBTX, accountid pgtyp
 			&i.Name,
 			&i.AccountID,
 			&i.Status,
-			&i.ConnectionSourceID,
 			&i.ConnectionOptions,
 			&i.Mappings,
 			&i.CronSchedule,
@@ -367,7 +363,7 @@ UPDATE neosync_api.jobs
 SET mappings = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
 `
 
 type UpdateJobMappingsParams struct {
@@ -386,7 +382,6 @@ func (q *Queries) UpdateJobMappings(ctx context.Context, db DBTX, arg UpdateJobM
 		&i.Name,
 		&i.AccountID,
 		&i.Status,
-		&i.ConnectionSourceID,
 		&i.ConnectionOptions,
 		&i.Mappings,
 		&i.CronSchedule,
@@ -401,7 +396,7 @@ UPDATE neosync_api.jobs
 SET cron_schedule = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
 `
 
 type UpdateJobScheduleParams struct {
@@ -420,7 +415,6 @@ func (q *Queries) UpdateJobSchedule(ctx context.Context, db DBTX, arg UpdateJobS
 		&i.Name,
 		&i.AccountID,
 		&i.Status,
-		&i.ConnectionSourceID,
 		&i.ConnectionOptions,
 		&i.Mappings,
 		&i.CronSchedule,
@@ -435,7 +429,7 @@ UPDATE neosync_api.jobs
 SET connection_options = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_source_id, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id
 `
 
 type UpdateJobSourceParams struct {
@@ -454,7 +448,6 @@ func (q *Queries) UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSou
 		&i.Name,
 		&i.AccountID,
 		&i.Status,
-		&i.ConnectionSourceID,
 		&i.ConnectionOptions,
 		&i.Mappings,
 		&i.CronSchedule,

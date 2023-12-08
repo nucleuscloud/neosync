@@ -988,22 +988,20 @@ func mockJob(accountId, userId, srcConnId string) db_queries.NeosyncApiJob {
 	id, _ := nucleusdb.ToUuid(uuid.NewString())
 	accountUuid, _ := nucleusdb.ToUuid(accountId)
 	userUuid, _ := nucleusdb.ToUuid(userId)
-	srcConnUuid, _ := nucleusdb.ToUuid(srcConnId)
 	currentTime := time.Now()
 	var timestamp pgtype.Timestamp
 	timestamp.Time = currentTime
 	return db_queries.NeosyncApiJob{
-		ID:                 id,
-		AccountID:          accountUuid,
-		CreatedAt:          timestamp,
-		UpdatedAt:          timestamp,
-		CreatedByID:        userUuid,
-		UpdatedByID:        userUuid,
-		Status:             0,
-		Name:               "some-name",
-		ConnectionSourceID: srcConnUuid,
-		ConnectionOptions:  &pg_models.JobSourceOptions{},
-		Mappings:           []*pg_models.JobMapping{},
+		ID:                id,
+		AccountID:         accountUuid,
+		CreatedAt:         timestamp,
+		UpdatedAt:         timestamp,
+		CreatedByID:       userUuid,
+		UpdatedByID:       userUuid,
+		Status:            0,
+		Name:              "some-name",
+		ConnectionOptions: &pg_models.JobSourceOptions{},
+		Mappings:          []*pg_models.JobMapping{},
 	}
 
 }
