@@ -1,6 +1,7 @@
 'use client';
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import { UserAccount } from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
+import { useParams, useRouter } from 'next/navigation';
 import {
   ReactElement,
   ReactNode,
@@ -23,19 +24,17 @@ const AccountContext = createContext<AccountContextType>({
   mutateUserAccount() {},
 });
 
-const USER_ACCOUNT_KEY = 'user-account';
-
 interface Props {
   children: ReactNode;
-  params: Record<string, string>;
 }
 
 export default function AccountProvider(props: Props): ReactElement {
-  const { children, params } = props;
-
-  const accountName = params.account ?? 'personal';
+  const { children } = props;
+  const { account } = useParams();
+  const accountName = account ?? 'personal';
 
   const { data: accountsResponse, isLoading, mutate } = useGetUserAccounts();
+  const router = useRouter();
 
   const [userAccount, setUserAccount] = useState<UserAccount | undefined>(
     undefined
@@ -59,8 +58,11 @@ export default function AccountProvider(props: Props): ReactElement {
     }
   }, [userAccount, accountsResponse?.accounts.length, isLoading, accountName]);
 
-  function setAccount(userAccount?: UserAccount): void {
-    setUserAccount(userAccount);
+  function setAccount(userAccount: UserAccount): void {
+    if (userAccount.name !== accountName) {
+      router.push(`/${userAccount.name}`);
+      setUserAccount(userAccount);
+    }
   }
 
   return (

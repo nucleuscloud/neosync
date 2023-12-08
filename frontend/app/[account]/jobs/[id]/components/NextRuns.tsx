@@ -32,8 +32,6 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
     return <Skeleton className="w-full h-full" />;
   }
 
-  console.log('status', data);
-
   return (
     <Card>
       {!data?.nextRuns || error ? (

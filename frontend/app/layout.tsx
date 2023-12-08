@@ -20,10 +20,8 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params?: any;
 }): Promise<ReactElement> {
   const session = await getServerSession(getAuthOptions());
   return (
@@ -42,7 +40,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider session={session}>
-            <AccountProvider params={params}>
+            <AccountProvider>
               <div className="relative flex min-h-screen flex-col">
                 <SiteHeader />
                 <div className="flex-1 container" id="top-level-layout">
