@@ -2,8 +2,6 @@
 import { ApiKeyValueSessionStore } from '@/app/[account]/new/api-key/NewApiKeyForm';
 import ButtonText from '@/components/ButtonText';
 import { CopyButton } from '@/components/CopyButton';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
@@ -18,7 +16,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useSessionStorage } from 'usehooks-ts';
-import SubNav, { getNavSettings } from '../../temporal/components/SubNav';
 import RemoveAccountApiKeyButton from './components/RemoveAccountApiKeyButton';
 
 export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
@@ -60,42 +57,31 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
     );
   }
   return (
-    <OverviewContainer
-      Header={
-        <PageHeader
-          header={`API Key: ${data.apiKey.name}`}
-          description={data.apiKey.id}
-          extraHeading={
-            <div className="flex flex-row gap-2">
-              <RemoveAccountApiKeyButton
-                id={id}
-                onDeleted={() =>
-                  router.push(`/${account?.name}/settings/api-keys`)
-                }
-              />
-              <Link
-                href={`/${account?.name}/settings/api-keys/${id}/regenerate`}
-              >
-                <Button type="button">
-                  <ButtonText
-                    leftIcon={<ReloadIcon className="h-4 w-4" />}
-                    text="Regenerate"
-                  />
-                </Button>
-              </Link>
-            </div>
-          }
-        />
-      }
-      containerClassName="mx-24"
-    >
-      <div className="flex flex-col gap-4">
-        <div>
-          <SubNav items={getNavSettings(account?.name ?? '')} />
+    <div>
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-col justify-start">
+          <h1 className="text-xl font-bold tracking-tight">{`API Key: ${data.apiKey.name}`}</h1>
+          <h3 className="text-muted-foreground text-sm">{data.apiKey.id}</h3>
         </div>
+        <div className="flex flex-row gap-2">
+          <RemoveAccountApiKeyButton
+            id={id}
+            onDeleted={() => router.push(`/${account?.name}/settings/api-keys`)}
+          />
+          <Link href={`/${account?.name}/settings/api-keys/${id}/regenerate`}>
+            <Button type="button">
+              <ButtonText
+                leftIcon={<ReloadIcon className="h-4 w-4" />}
+                text="Regenerate"
+              />
+            </Button>
+          </Link>
+        </div>
+      </div>
+      <div className="mt-10">
         <ApiKeyDetails apiKey={data.apiKey} keyValue={apiKeyValue} />
       </div>
-    </OverviewContainer>
+    </div>
   );
 }
 

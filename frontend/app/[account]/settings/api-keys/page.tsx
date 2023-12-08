@@ -1,7 +1,5 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
@@ -9,26 +7,20 @@ import { useGetAccountApiKeys } from '@/libs/hooks/useGetAccountApiKeys';
 import { PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
-import SubNav, { getNavSettings } from '../temporal/components/SubNav';
 import { getColumns } from './components/ApiKeysTable/columns';
 import { DataTable } from './components/ApiKeysTable/data-table';
 
 export default function ApiKeys(): ReactElement {
-  const { account } = useAccount();
   return (
-    <OverviewContainer
-      Header={
-        <PageHeader header="API Keys" extraHeading={<NewApiKeyButton />} />
-      }
-      containerClassName="apikeys-settings-page"
-    >
-      <div className="flex flex-col gap-4">
-        <div>
-          <SubNav items={getNavSettings(account?.name ?? '')} />
-        </div>
+    <div>
+      <div className="flex justify-between">
+        <h1 className="text-xl font-bold tracking-tight">API Keys</h1>
+        <NewApiKeyButton />
+      </div>
+      <div className="mt-10">
         <ApiKeyTable />
       </div>
-    </OverviewContainer>
+    </div>
   );
 }
 

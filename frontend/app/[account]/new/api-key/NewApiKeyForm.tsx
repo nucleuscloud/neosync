@@ -15,11 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -38,6 +34,7 @@ import { getErrorMessage } from '@/util/util';
 import { Timestamp } from '@bufbuild/protobuf';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CalendarIcon } from '@radix-ui/react-icons';
+import { PopoverTrigger } from '@radix-ui/react-popover';
 import { addDays } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
@@ -178,10 +175,8 @@ export default function NewApiKeyForm(): ReactElement {
                 </SelectContent>
               </Select>
               <FormDescription>
-                <p>
-                  The token will expire on{' '}
-                  {format(form.getValues().expiresAt, 'PPP')}
-                </p>
+                The token will expire on{' '}
+                {format(form.getValues().expiresAt, 'PPP')}
               </FormDescription>
               <FormMessage />
             </FormItem>
