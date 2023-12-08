@@ -47,8 +47,6 @@ export default function SettingsLayout({
     ? items
     : items.filter((item) => item.title !== 'Members');
 
-  console.log('segmets', pathname);
-
   return (
     <div>
       <OverviewContainer
