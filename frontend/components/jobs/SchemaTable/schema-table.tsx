@@ -2,7 +2,7 @@
 import {
   filterInputFreeSystemTransformers,
   filterInputFreeUdfTransformers,
-} from '@/app/transformers/EditTransformerOptions';
+} from '@/app/[account]/transformers/EditTransformerOptions';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
@@ -69,17 +69,21 @@ export function SchemaTable(props: Props): ReactElement {
 }
 
 export async function getConnectionSchema(
+  accountId: string,
   connectionId?: string
 ): Promise<GetConnectionSchemaResponse | undefined> {
   if (!connectionId) {
     return;
   }
-  const res = await fetch(`/api/connections/${connectionId}/schema`, {
-    method: 'GET',
-    headers: {
-      'content-type': 'application/json',
-    },
-  });
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${connectionId}/schema`,
+    {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json',
+      },
+    }
+  );
   if (!res.ok) {
     const body = await res.json();
     throw new Error(body.message);

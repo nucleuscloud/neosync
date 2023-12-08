@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { cn } from '@/libs/utils';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
+import { useAccount } from './providers/account-provider';
 
 export function MainNav({
   className,
   ...props
 }: React.HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
+  const { account } = useAccount();
 
   const highlightPathName = (href: string): boolean => {
     if (href === '/' && pathname === '/') {
@@ -37,7 +39,7 @@ export function MainNav({
           Overview
         </Link> */}
         <Link
-          href="/jobs"
+          href={`/${account?.name}/jobs`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
             highlightPathName('/jobs')
@@ -48,7 +50,7 @@ export function MainNav({
           Jobs
         </Link>
         <Link
-          href="/runs"
+          href={`/${account?.name}/runs`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
             highlightPathName('/run') ? 'text-foreground' : 'text-foreground/60'
@@ -57,7 +59,7 @@ export function MainNav({
           Runs
         </Link>
         <Link
-          href="/transformers"
+          href={`/${account?.name}/transformers`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
             highlightPathName('/transformer')
@@ -68,7 +70,7 @@ export function MainNav({
           Transformers
         </Link>
         <Link
-          href="/connections"
+          href={`/${account?.name}/connections`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
             highlightPathName('connection')
@@ -80,7 +82,7 @@ export function MainNav({
         </Link>
 
         <Link
-          href="/settings"
+          href={`/${account?.name}/settings`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
             highlightPathName('/settings')

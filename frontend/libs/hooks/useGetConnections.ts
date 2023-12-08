@@ -9,13 +9,9 @@ export function useGetConnections(
   return useNucleusAuthenticatedFetch<
     GetConnectionsResponse,
     JsonValue | GetConnectionsResponse
-  >(
-    `/api/connections?accountId=${accountId}`,
-    !!accountId,
-    undefined,
-    (data) =>
-      data instanceof GetConnectionsResponse
-        ? data
-        : GetConnectionsResponse.fromJson(data)
+  >(`/api/accounts/${accountId}/connections`, !!accountId, undefined, (data) =>
+    data instanceof GetConnectionsResponse
+      ? data
+      : GetConnectionsResponse.fromJson(data)
   );
 }

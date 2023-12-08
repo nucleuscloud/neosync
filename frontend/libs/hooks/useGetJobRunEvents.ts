@@ -15,7 +15,7 @@ export function useGetJobRunEvents(
 ): HookReply<GetJobRunEventsResponse> {
   const { refreshIntervalFn } = opts;
   return useNucleusAuthenticatedFetch<GetJobRunEventsResponse, JsonValue>(
-    `/api/runs/${runId}/events?accountId=${accountId}`,
+    `/api/accounts/${accountId}/runs/${runId}/events`,
     !!runId || !!accountId,
     {
       refreshInterval: getRefreshIntervalFn(refreshIntervalFn),

@@ -10,7 +10,7 @@ export function useGetUserDefinedTransformers(
     GetUserDefinedTransformersResponse,
     JsonValue | GetUserDefinedTransformersResponse
   >(
-    `/api/transformers/user-defined?accountId=${accountId}`,
+    `/api/accounts/${accountId}/transformers/user-defined`,
     !!accountId,
     undefined,
     (data) =>

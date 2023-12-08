@@ -10,7 +10,7 @@ export function useGetJobStatuses(
     GetJobStatusesResponse,
     JsonValue | GetJobStatusesResponse
   >(
-    `/api/jobs/statuses?accountId=${accountId}`,
+    `/api/accounts/${accountId}/jobs/statuses`,
     !!accountId,
     undefined,
     (data) =>

@@ -694,28 +694,15 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 }
 
 // SetJobSourceSqlConnectionSubsets
-func Test_SetJobSourceSqlConnectionSubsets_InvalidConnection(t *testing.T) {
+func Test_SetJobSourceSqlConnectionSubsets_Invalid_Connection_No_ConnectionId(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	conn := &mgmtv1alpha1.Connection{
-		Name: "conn",
-		ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-			Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
-				AwsS3Config: &mgmtv1alpha1.AwsS3ConnectionConfig{},
-			},
-		},
-	}
 	jobId := nucleusdb.UUIDString(job.ID)
 	whereClause := "where2"
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
-	m.ConnectionServiceClientMock.On("GetConnection", mock.Anything, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: nucleusdb.UUIDString(job.ConnectionSourceID),
-	})).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: conn,
-	}), nil)
 
 	resp, err := m.Service.SetJobSourceSqlConnectionSubsets(context.Background(), &connect.Request[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsRequest]{
 		Msg: &mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsRequest{
