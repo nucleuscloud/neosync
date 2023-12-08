@@ -64,7 +64,18 @@ this is the class for the sidebar categories that section headers
 }
 
 .navbar__items {
-  @apply no-underline;
+  @apply no-underline flex flex-row items-center;
+}
+.navbar__link {
+  @apply no-underline py-0;
+}
+
+.navbar__link:hover {
+  @apply font-semibold;
+}
+
+.breadcrumbs__item {
+  @apply flex flex-row items-center
 }
 
 @layer components {
@@ -88,6 +99,10 @@ this is the class for the sidebar categories that section headers
   }
   [data-theme='light'] .breadcrumb-label {
     @apply text-gray-900 cursor-pointer text-sm  rounded-full;
+  }
+
+  .breadcrumbs__link {
+    @apply py-1;
   }
 
   .intro-page-header {

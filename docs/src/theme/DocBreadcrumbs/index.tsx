@@ -15,7 +15,7 @@ import {
 import clsx from 'clsx';
 import React, { type ReactNode } from 'react';
 
-import { ChevronRightIcon, HomeIcon } from '@radix-ui/react-icons';
+import HomeBreadcrumbItem from './Items/Home';
 import styles from './styles.module.css';
 
 // TODO move to design system folder
@@ -109,9 +109,7 @@ export default function DocBreadcrumbs(): JSX.Element | null {
         itemType="https://schema.org/BreadcrumbList"
       >
         <div className="flex flex-row gap-2">
-          {homePageRoute && (
-            <LocalHomeBreadcrumbItem homePageRoute={homePageRoute} />
-          )}
+          {homePageRoute && <HomeBreadcrumbItem />}
           {breadcrumbs.map((item, idx) => {
             const isLast = idx === breadcrumbs.length - 1;
             const href =
@@ -134,20 +132,5 @@ export default function DocBreadcrumbs(): JSX.Element | null {
         </div>
       </ul>
     </nav>
-  );
-}
-
-interface LocalHomeBreadcrumbItemsProps {
-  homePageRoute: any;
-}
-function LocalHomeBreadcrumbItem(props: LocalHomeBreadcrumbItemsProps) {
-  const { homePageRoute } = props;
-  return (
-    <div className="flex flex-row items-center space-x-2">
-      <Link href={homePageRoute.path}>
-        <HomeIcon className="home-icon" />
-      </Link>
-      <ChevronRightIcon className="dark:text-gray-300 text-gray-800" />
-    </div>
   );
 }

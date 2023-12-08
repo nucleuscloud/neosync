@@ -10,11 +10,11 @@ export default function Gitlink(): ReactElement {
       className="hover:no-underline"
     >
       {colorMode == 'light' ? (
-        <div className="flex flex-row items-center gap-2 mr-10 p-2 rounded-full hover:bg-gray-100  no-underline text-black">
-          <GitHubLogoIcon />
+        <div className="flex flex-row items-center rounded-full hover:bg-gray-100  no-underline text-black">
+          <GitHubLogoIcon width={20} height={20} />
         </div>
       ) : (
-        <div className="flex flex-row items-center gap-2 mr-10 p-2 rounded-full text-gray-100  no-underline hover:bg-gray-700">
+        <div className="flex flex-row items-center rounded-full text-gray-100  no-underline hover:bg-gray-700">
           <GitHubLogoIcon />
         </div>
       )}
