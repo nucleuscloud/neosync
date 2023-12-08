@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnection } from '@/libs/hooks/useGetConnection';
 import { GetConnectionResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { getErrorMessage } from '@/util/util';
+import Error from 'next/error';
 import RemoveConnectionButton from './components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from './components/connection-component';
 
@@ -16,7 +17,7 @@ export default function ConnectionPage({ params }: PageProps) {
   const { data, isLoading, mutate } = useGetConnection(account?.id ?? '', id);
   const { toast } = useToast();
   if (!id) {
-    return <div>Not Found</div>;
+    return <Error statusCode={404} />;
   }
   if (isLoading) {
     return (
@@ -24,6 +25,9 @@ export default function ConnectionPage({ params }: PageProps) {
         <SkeletonForm />
       </div>
     );
+  }
+  if (!isLoading && !data?.connection) {
+    return <Error statusCode={404} />;
   }
   const connectionComponent = getConnectionComponentDetails({
     connection: data?.connection!,

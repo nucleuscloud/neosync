@@ -13,6 +13,7 @@ import { useGetAccountApiKey } from '@/libs/hooks/useGetAccountApiKey';
 import { AccountApiKey } from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
 import { formatDateTime } from '@/util/util';
 import { ReloadIcon } from '@radix-ui/react-icons';
+import Error from 'next/error';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
@@ -40,7 +41,7 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
   }, [sessionApiKeyValue]);
 
   if (!id) {
-    return <div>Not Found</div>;
+    return <Error statusCode={404} />;
   }
   if (isLoading) {
     return (

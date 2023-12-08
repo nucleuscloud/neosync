@@ -4,6 +4,7 @@ import {
   GetJobRequest,
 } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { RequestContext } from '@/shared';
+import { Code, ConnectError } from '@connectrpc/connect';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -18,7 +19,7 @@ export async function GET(
     );
 
     if (job?.job?.accountId !== params.accountId) {
-      throw new Error('resource not found in account');
+      throw new ConnectError('resource not found in account', Code.NotFound);
     }
 
     return job;

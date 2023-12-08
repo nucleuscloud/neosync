@@ -1,16 +1,5 @@
 import { format } from 'date-fns';
 
-// interface Instance {
-//   createdDate?: string;
-// }
-
-// function formatDate(dateStr?: string): string | undefined {
-//   if (!dateStr) {
-//     return undefined;
-//   }
-//   return format(new Date(dateStr), 'MM/dd/yyyy');
-// }
-
 export function formatDateTime(
   dateStr?: string | Date | number,
   is24Hour = false

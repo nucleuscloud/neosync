@@ -43,6 +43,7 @@ import { Timestamp } from '@bufbuild/protobuf';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { addDays, endOfDay, format, startOfDay } from 'date-fns';
+import Error from 'next/error';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
@@ -110,7 +111,7 @@ export default function RegenerateAccountApiKey({
   }
 
   if (!id) {
-    return <div>Not Found</div>;
+    return <Error statusCode={404} />;
   }
   if (isLoading) {
     return (
