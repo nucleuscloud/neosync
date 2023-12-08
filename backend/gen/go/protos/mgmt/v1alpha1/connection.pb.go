@@ -215,7 +215,8 @@ type CreateConnectionRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	AccountId        string            `protobuf:"bytes,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	AccountId string `protobuf:"bytes,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	// The friendly name of the connection
 	Name             string            `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	ConnectionConfig *ConnectionConfig `protobuf:"bytes,3,opt,name=connection_config,json=connectionConfig,proto3" json:"connection_config,omitempty"`
 }
@@ -567,7 +568,9 @@ type CheckConnectionConfigResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	IsConnected     bool    `protobuf:"varint,1,opt,name=is_connected,json=isConnected,proto3" json:"is_connected,omitempty"`
+	// Whether or not the API was able to ping the connection
+	IsConnected bool `protobuf:"varint,1,opt,name=is_connected,json=isConnected,proto3" json:"is_connected,omitempty"`
+	// This is the error that was received if the API was unable to connect
 	ConnectionError *string `protobuf:"bytes,2,opt,name=connection_error,json=connectionError,proto3,oneof" json:"connection_error,omitempty"`
 }
 
@@ -820,6 +823,8 @@ type PostgresConnectionConfig struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// May provide either a raw string url, or a structured version
+	//
 	// Types that are assignable to ConnectionConfig:
 	//
 	//	*PostgresConnectionConfig_Url
@@ -1075,6 +1080,8 @@ type MysqlConnectionConfig struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// May provide either a raw string url, or a structured version
+	//
 	// Types that are assignable to ConnectionConfig:
 	//
 	//	*MysqlConnectionConfig_Url
@@ -1230,6 +1237,8 @@ func (x *AwsS3ConnectionConfig) GetEndpoint() string {
 	return ""
 }
 
+// S3 Credentials that are used by the worker process.
+// Note: this may be optionally provided if the worker that is being hosted has environment credentials to the S3 bucket instead.
 type AwsS3Credentials struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1432,9 +1441,13 @@ type DatabaseColumn struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Schema   string `protobuf:"bytes,1,opt,name=schema,proto3" json:"schema,omitempty"`
-	Table    string `protobuf:"bytes,2,opt,name=table,proto3" json:"table,omitempty"`
-	Column   string `protobuf:"bytes,3,opt,name=column,proto3" json:"column,omitempty"`
+	// The database schema. Ex: public
+	Schema string `protobuf:"bytes,1,opt,name=schema,proto3" json:"schema,omitempty"`
+	// The name of the table in the schema
+	Table string `protobuf:"bytes,2,opt,name=table,proto3" json:"table,omitempty"`
+	// The name of the column
+	Column string `protobuf:"bytes,3,opt,name=column,proto3" json:"column,omitempty"`
+	// The datatype of the column
 	DataType string `protobuf:"bytes,4,opt,name=data_type,json=dataType,proto3" json:"data_type,omitempty"`
 }
 
@@ -1597,7 +1610,9 @@ type CheckSqlQueryRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id    string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The connection id that the query will be checked against
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The full query that will be run through a PREPARE statement
 	Query string `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
 }
 
@@ -1652,7 +1667,9 @@ type CheckSqlQueryResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	IsValid      bool    `protobuf:"varint,1,opt,name=is_valid,json=isValid,proto3" json:"is_valid,omitempty"`
+	// The query is run through PREPARE. Returns valid if it correctly compiled
+	IsValid bool `protobuf:"varint,1,opt,name=is_valid,json=isValid,proto3" json:"is_valid,omitempty"`
+	// The error message returned by the sql client if the prepare did not return successfully
 	ErorrMessage *string `protobuf:"bytes,2,opt,name=erorr_message,json=erorrMessage,proto3,oneof" json:"erorr_message,omitempty"`
 }
 
@@ -1765,11 +1782,13 @@ func (x *GetConnectionDataStreamRequest) GetTable() string {
 	return ""
 }
 
+// Each stream response is a single row in the requested schema and table
 type GetConnectionDataStreamResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// A map of column name to the bytes value of the data that was found for that column and row
 	Row map[string][]byte `protobuf:"bytes,1,rep,name=row,proto3" json:"row,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
@@ -1906,11 +1925,13 @@ func (x *ForeignConstraintTables) GetTables() []string {
 	return nil
 }
 
+// Dependency constraints for a specific table
 type GetConnectionForeignConstraintsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
 	TableConstraints map[string]*ForeignConstraintTables `protobuf:"bytes,1,rep,name=table_constraints,json=tableConstraints,proto3" json:"table_constraints,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 

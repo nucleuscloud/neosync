@@ -7,12 +7,17 @@ import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQu
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
+ * Service for managing datasource connections.
+ * This is a primary data model in Neosync and is used in reference when hooking up Jobs to synchronize and generate data.
+ *
  * @generated from service mgmt.v1alpha1.ConnectionService
  */
 export const ConnectionService = {
   typeName: "mgmt.v1alpha1.ConnectionService",
   methods: {
     /**
+     * Returns a list of connections associated with the account
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnections
      */
     getConnections: {
@@ -22,6 +27,8 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Returns a single connection
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnection
      */
     getConnection: {
@@ -31,6 +38,8 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Creates a new connection
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.CreateConnection
      */
     createConnection: {
@@ -40,6 +49,8 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Updates an existing connection
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.UpdateConnection
      */
     updateConnection: {
@@ -49,6 +60,8 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Removes a connection from the system.
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.DeleteConnection
      */
     deleteConnection: {
@@ -58,6 +71,8 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Connections have friendly names, this method checks if the requested name is available in the system based on the account
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.IsConnectionNameAvailable
      */
     isConnectionNameAvailable: {
@@ -67,6 +82,9 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Checks if the connection config is connectable by the backend.
+     * Used mostly to verify that a connection is valid prior to creating a Connection object.
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.CheckConnectionConfig
      */
     checkConnectionConfig: {
@@ -76,6 +94,8 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Returns the schema for a specific connection. Used mostly for SQL-based connections
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionSchema
      */
     getConnectionSchema: {
@@ -85,6 +105,9 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
+     * This is useful when constructing subsets to see if the WHERE clause is correct
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.CheckSqlQuery
      */
     checkSqlQuery: {
@@ -94,6 +117,9 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Streaming endpoint that will stream the data available from the Connection to the client.
+     * Used primarily by the CLI sync command.
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionDataStream
      */
     getConnectionDataStream: {
@@ -103,6 +129,9 @@ export const ConnectionService = {
       kind: MethodKind.ServerStreaming,
     },
     /**
+     * For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
+     * Used primarily by the CLI sync command to determine stream order.
+     *
      * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionForeignConstraints
      */
     getConnectionForeignConstraints: {

@@ -1,0 +1,234 @@
+---
+title: user_account.proto
+hide_title: true
+---
+
+import { ProtoMessage, ProtoServiceMethod, ProtoEnum } from '@theme/ProtoFile';
+
+# `user_account.proto`
+_**path** mgmt/v1alpha1/user_account.proto_
+
+_**package** mgmt.v1alpha1_
+
+
+
+---
+
+## Messages
+
+
+### `AcceptTeamAccountInviteRequest`
+<ProtoMessage key={0} message={{"name":"AcceptTeamAccountInviteRequest","longName":"AcceptTeamAccountInviteRequest","fullName":"mgmt.v1alpha1.AcceptTeamAccountInviteRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"token","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `AcceptTeamAccountInviteResponse`
+<ProtoMessage key={1} message={{"name":"AcceptTeamAccountInviteResponse","longName":"AcceptTeamAccountInviteResponse","fullName":"mgmt.v1alpha1.AcceptTeamAccountInviteResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account","description":"","label":"","type":"UserAccount","longType":"UserAccount","fullType":"mgmt.v1alpha1.UserAccount","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/user_account.proto#useraccount"}]}} />
+
+
+### `AccountInvite`
+<ProtoMessage key={2} message={{"name":"AccountInvite","longName":"AccountInvite","fullName":"mgmt.v1alpha1.AccountInvite","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"sender_user_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"email","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"token","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"accepted","description":"","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"created_at","description":"","label":"","type":"Timestamp","longType":"google.protobuf.Timestamp","fullType":"google.protobuf.Timestamp","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"updated_at","description":"","label":"","type":"Timestamp","longType":"google.protobuf.Timestamp","fullType":"google.protobuf.Timestamp","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"expires_at","description":"","label":"","type":"Timestamp","longType":"google.protobuf.Timestamp","fullType":"google.protobuf.Timestamp","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `AccountTemporalConfig`
+<ProtoMessage key={3} message={{"name":"AccountTemporalConfig","longName":"AccountTemporalConfig","fullName":"mgmt.v1alpha1.AccountTemporalConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"url","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"namespace","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"sync_job_queue_name","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `AccountUser`
+<ProtoMessage key={4} message={{"name":"AccountUser","longName":"AccountUser","fullName":"mgmt.v1alpha1.AccountUser","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"image","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"email","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `ConvertPersonalToTeamAccountRequest`
+<ProtoMessage key={5} message={{"name":"ConvertPersonalToTeamAccountRequest","longName":"ConvertPersonalToTeamAccountRequest","fullName":"mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `ConvertPersonalToTeamAccountResponse`
+<ProtoMessage key={6} message={{"name":"ConvertPersonalToTeamAccountResponse","longName":"ConvertPersonalToTeamAccountResponse","fullName":"mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `CreateTeamAccountRequest`
+<ProtoMessage key={7} message={{"name":"CreateTeamAccountRequest","longName":"CreateTeamAccountRequest","fullName":"mgmt.v1alpha1.CreateTeamAccountRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"name","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `CreateTeamAccountResponse`
+<ProtoMessage key={8} message={{"name":"CreateTeamAccountResponse","longName":"CreateTeamAccountResponse","fullName":"mgmt.v1alpha1.CreateTeamAccountResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetAccountTemporalConfigRequest`
+<ProtoMessage key={9} message={{"name":"GetAccountTemporalConfigRequest","longName":"GetAccountTemporalConfigRequest","fullName":"mgmt.v1alpha1.GetAccountTemporalConfigRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetAccountTemporalConfigResponse`
+<ProtoMessage key={10} message={{"name":"GetAccountTemporalConfigResponse","longName":"GetAccountTemporalConfigResponse","fullName":"mgmt.v1alpha1.GetAccountTemporalConfigResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"config","description":"","label":"","type":"AccountTemporalConfig","longType":"AccountTemporalConfig","fullType":"mgmt.v1alpha1.AccountTemporalConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/user_account.proto#accounttemporalconfig"}]}} />
+
+
+### `GetTeamAccountInvitesRequest`
+<ProtoMessage key={11} message={{"name":"GetTeamAccountInvitesRequest","longName":"GetTeamAccountInvitesRequest","fullName":"mgmt.v1alpha1.GetTeamAccountInvitesRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetTeamAccountInvitesResponse`
+<ProtoMessage key={12} message={{"name":"GetTeamAccountInvitesResponse","longName":"GetTeamAccountInvitesResponse","fullName":"mgmt.v1alpha1.GetTeamAccountInvitesResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"invites","description":"","label":"repeated","type":"AccountInvite","longType":"AccountInvite","fullType":"mgmt.v1alpha1.AccountInvite","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/user_account.proto#accountinvite"}]}} />
+
+
+### `GetTeamAccountMembersRequest`
+<ProtoMessage key={13} message={{"name":"GetTeamAccountMembersRequest","longName":"GetTeamAccountMembersRequest","fullName":"mgmt.v1alpha1.GetTeamAccountMembersRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetTeamAccountMembersResponse`
+<ProtoMessage key={14} message={{"name":"GetTeamAccountMembersResponse","longName":"GetTeamAccountMembersResponse","fullName":"mgmt.v1alpha1.GetTeamAccountMembersResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"users","description":"","label":"repeated","type":"AccountUser","longType":"AccountUser","fullType":"mgmt.v1alpha1.AccountUser","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/user_account.proto#accountuser"}]}} />
+
+
+### `GetUserAccountsRequest`
+<ProtoMessage key={15} message={{"name":"GetUserAccountsRequest","longName":"GetUserAccountsRequest","fullName":"mgmt.v1alpha1.GetUserAccountsRequest","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `GetUserAccountsResponse`
+<ProtoMessage key={16} message={{"name":"GetUserAccountsResponse","longName":"GetUserAccountsResponse","fullName":"mgmt.v1alpha1.GetUserAccountsResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"accounts","description":"","label":"repeated","type":"UserAccount","longType":"UserAccount","fullType":"mgmt.v1alpha1.UserAccount","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/user_account.proto#useraccount"}]}} />
+
+
+### `GetUserRequest`
+<ProtoMessage key={17} message={{"name":"GetUserRequest","longName":"GetUserRequest","fullName":"mgmt.v1alpha1.GetUserRequest","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `GetUserResponse`
+<ProtoMessage key={18} message={{"name":"GetUserResponse","longName":"GetUserResponse","fullName":"mgmt.v1alpha1.GetUserResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"user_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `InviteUserToTeamAccountRequest`
+<ProtoMessage key={19} message={{"name":"InviteUserToTeamAccountRequest","longName":"InviteUserToTeamAccountRequest","fullName":"mgmt.v1alpha1.InviteUserToTeamAccountRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"email","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `InviteUserToTeamAccountResponse`
+<ProtoMessage key={20} message={{"name":"InviteUserToTeamAccountResponse","longName":"InviteUserToTeamAccountResponse","fullName":"mgmt.v1alpha1.InviteUserToTeamAccountResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"invite","description":"","label":"","type":"AccountInvite","longType":"AccountInvite","fullType":"mgmt.v1alpha1.AccountInvite","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/user_account.proto#accountinvite"}]}} />
+
+
+### `IsUserInAccountRequest`
+<ProtoMessage key={21} message={{"name":"IsUserInAccountRequest","longName":"IsUserInAccountRequest","fullName":"mgmt.v1alpha1.IsUserInAccountRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `IsUserInAccountResponse`
+<ProtoMessage key={22} message={{"name":"IsUserInAccountResponse","longName":"IsUserInAccountResponse","fullName":"mgmt.v1alpha1.IsUserInAccountResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"ok","description":"","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `RemoveTeamAccountInviteRequest`
+<ProtoMessage key={23} message={{"name":"RemoveTeamAccountInviteRequest","longName":"RemoveTeamAccountInviteRequest","fullName":"mgmt.v1alpha1.RemoveTeamAccountInviteRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `RemoveTeamAccountInviteResponse`
+<ProtoMessage key={24} message={{"name":"RemoveTeamAccountInviteResponse","longName":"RemoveTeamAccountInviteResponse","fullName":"mgmt.v1alpha1.RemoveTeamAccountInviteResponse","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `RemoveTeamAccountMemberRequest`
+<ProtoMessage key={25} message={{"name":"RemoveTeamAccountMemberRequest","longName":"RemoveTeamAccountMemberRequest","fullName":"mgmt.v1alpha1.RemoveTeamAccountMemberRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"user_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `RemoveTeamAccountMemberResponse`
+<ProtoMessage key={26} message={{"name":"RemoveTeamAccountMemberResponse","longName":"RemoveTeamAccountMemberResponse","fullName":"mgmt.v1alpha1.RemoveTeamAccountMemberResponse","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `SetAccountTemporalConfigRequest`
+<ProtoMessage key={27} message={{"name":"SetAccountTemporalConfigRequest","longName":"SetAccountTemporalConfigRequest","fullName":"mgmt.v1alpha1.SetAccountTemporalConfigRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"config","description":"","label":"","type":"AccountTemporalConfig","longType":"AccountTemporalConfig","fullType":"mgmt.v1alpha1.AccountTemporalConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/user_account.proto#accounttemporalconfig"}]}} />
+
+
+### `SetAccountTemporalConfigResponse`
+<ProtoMessage key={28} message={{"name":"SetAccountTemporalConfigResponse","longName":"SetAccountTemporalConfigResponse","fullName":"mgmt.v1alpha1.SetAccountTemporalConfigResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"config","description":"","label":"","type":"AccountTemporalConfig","longType":"AccountTemporalConfig","fullType":"mgmt.v1alpha1.AccountTemporalConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/user_account.proto#accounttemporalconfig"}]}} />
+
+
+### `SetPersonalAccountRequest`
+<ProtoMessage key={29} message={{"name":"SetPersonalAccountRequest","longName":"SetPersonalAccountRequest","fullName":"mgmt.v1alpha1.SetPersonalAccountRequest","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `SetPersonalAccountResponse`
+<ProtoMessage key={30} message={{"name":"SetPersonalAccountResponse","longName":"SetPersonalAccountResponse","fullName":"mgmt.v1alpha1.SetPersonalAccountResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `SetUserRequest`
+<ProtoMessage key={31} message={{"name":"SetUserRequest","longName":"SetUserRequest","fullName":"mgmt.v1alpha1.SetUserRequest","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `SetUserResponse`
+<ProtoMessage key={32} message={{"name":"SetUserResponse","longName":"SetUserResponse","fullName":"mgmt.v1alpha1.SetUserResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"user_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `UserAccount`
+<ProtoMessage key={33} message={{"name":"UserAccount","longName":"UserAccount","fullName":"mgmt.v1alpha1.UserAccount","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"type","description":"","label":"","type":"UserAccountType","longType":"UserAccountType","fullType":"mgmt.v1alpha1.UserAccountType","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/user_account.proto#useraccounttype"}]}} />
+
+---
+## Enums
+
+
+### `UserAccountType`
+<ProtoEnum key={0} enumb={{"name":"UserAccountType","longName":"UserAccountType","fullName":"mgmt.v1alpha1.UserAccountType","description":"","values":[{"name":"USER_ACCOUNT_TYPE_UNSPECIFIED","number":"0","description":""},{"name":"USER_ACCOUNT_TYPE_PERSONAL","number":"1","description":""},{"name":"USER_ACCOUNT_TYPE_TEAM","number":"2","description":""}]}} />
+
+---
+## Services
+
+
+### `UserAccountService`
+
+
+
+
+#### `GetUser`
+<ProtoServiceMethod key={'GetUser-0'} method={{"name":"GetUser","description":"","requestType":"GetUserRequest","requestLongType":"GetUserRequest","requestFullType":"mgmt.v1alpha1.GetUserRequest","requestStreaming":false,"responseType":"GetUserResponse","responseLongType":"GetUserResponse","responseFullType":"mgmt.v1alpha1.GetUserResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getuserrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getuserresponse"}} />
+
+
+#### `SetUser`
+<ProtoServiceMethod key={'SetUser-1'} method={{"name":"SetUser","description":"","requestType":"SetUserRequest","requestLongType":"SetUserRequest","requestFullType":"mgmt.v1alpha1.SetUserRequest","requestStreaming":false,"responseType":"SetUserResponse","responseLongType":"SetUserResponse","responseFullType":"mgmt.v1alpha1.SetUserResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#setuserrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#setuserresponse"}} />
+
+
+#### `GetUserAccounts`
+<ProtoServiceMethod key={'GetUserAccounts-2'} method={{"name":"GetUserAccounts","description":"","requestType":"GetUserAccountsRequest","requestLongType":"GetUserAccountsRequest","requestFullType":"mgmt.v1alpha1.GetUserAccountsRequest","requestStreaming":false,"responseType":"GetUserAccountsResponse","responseLongType":"GetUserAccountsResponse","responseFullType":"mgmt.v1alpha1.GetUserAccountsResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getuseraccountsrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getuseraccountsresponse"}} />
+
+
+#### `SetPersonalAccount`
+<ProtoServiceMethod key={'SetPersonalAccount-3'} method={{"name":"SetPersonalAccount","description":"","requestType":"SetPersonalAccountRequest","requestLongType":"SetPersonalAccountRequest","requestFullType":"mgmt.v1alpha1.SetPersonalAccountRequest","requestStreaming":false,"responseType":"SetPersonalAccountResponse","responseLongType":"SetPersonalAccountResponse","responseFullType":"mgmt.v1alpha1.SetPersonalAccountResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#setpersonalaccountrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#setpersonalaccountresponse"}} />
+
+
+#### `ConvertPersonalToTeamAccount`
+<ProtoServiceMethod key={'ConvertPersonalToTeamAccount-4'} method={{"name":"ConvertPersonalToTeamAccount","description":"","requestType":"ConvertPersonalToTeamAccountRequest","requestLongType":"ConvertPersonalToTeamAccountRequest","requestFullType":"mgmt.v1alpha1.ConvertPersonalToTeamAccountRequest","requestStreaming":false,"responseType":"ConvertPersonalToTeamAccountResponse","responseLongType":"ConvertPersonalToTeamAccountResponse","responseFullType":"mgmt.v1alpha1.ConvertPersonalToTeamAccountResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#convertpersonaltoteamaccountrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#convertpersonaltoteamaccountresponse"}} />
+
+
+#### `CreateTeamAccount`
+<ProtoServiceMethod key={'CreateTeamAccount-5'} method={{"name":"CreateTeamAccount","description":"","requestType":"CreateTeamAccountRequest","requestLongType":"CreateTeamAccountRequest","requestFullType":"mgmt.v1alpha1.CreateTeamAccountRequest","requestStreaming":false,"responseType":"CreateTeamAccountResponse","responseLongType":"CreateTeamAccountResponse","responseFullType":"mgmt.v1alpha1.CreateTeamAccountResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#createteamaccountrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#createteamaccountresponse"}} />
+
+
+#### `IsUserInAccount`
+<ProtoServiceMethod key={'IsUserInAccount-6'} method={{"name":"IsUserInAccount","description":"","requestType":"IsUserInAccountRequest","requestLongType":"IsUserInAccountRequest","requestFullType":"mgmt.v1alpha1.IsUserInAccountRequest","requestStreaming":false,"responseType":"IsUserInAccountResponse","responseLongType":"IsUserInAccountResponse","responseFullType":"mgmt.v1alpha1.IsUserInAccountResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#isuserinaccountrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#isuserinaccountresponse"}} />
+
+
+#### `GetAccountTemporalConfig`
+<ProtoServiceMethod key={'GetAccountTemporalConfig-7'} method={{"name":"GetAccountTemporalConfig","description":"","requestType":"GetAccountTemporalConfigRequest","requestLongType":"GetAccountTemporalConfigRequest","requestFullType":"mgmt.v1alpha1.GetAccountTemporalConfigRequest","requestStreaming":false,"responseType":"GetAccountTemporalConfigResponse","responseLongType":"GetAccountTemporalConfigResponse","responseFullType":"mgmt.v1alpha1.GetAccountTemporalConfigResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getaccounttemporalconfigrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getaccounttemporalconfigresponse"}} />
+
+
+#### `SetAccountTemporalConfig`
+<ProtoServiceMethod key={'SetAccountTemporalConfig-8'} method={{"name":"SetAccountTemporalConfig","description":"","requestType":"SetAccountTemporalConfigRequest","requestLongType":"SetAccountTemporalConfigRequest","requestFullType":"mgmt.v1alpha1.SetAccountTemporalConfigRequest","requestStreaming":false,"responseType":"SetAccountTemporalConfigResponse","responseLongType":"SetAccountTemporalConfigResponse","responseFullType":"mgmt.v1alpha1.SetAccountTemporalConfigResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#setaccounttemporalconfigrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#setaccounttemporalconfigresponse"}} />
+
+
+#### `GetTeamAccountMembers`
+<ProtoServiceMethod key={'GetTeamAccountMembers-9'} method={{"name":"GetTeamAccountMembers","description":"","requestType":"GetTeamAccountMembersRequest","requestLongType":"GetTeamAccountMembersRequest","requestFullType":"mgmt.v1alpha1.GetTeamAccountMembersRequest","requestStreaming":false,"responseType":"GetTeamAccountMembersResponse","responseLongType":"GetTeamAccountMembersResponse","responseFullType":"mgmt.v1alpha1.GetTeamAccountMembersResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getteamaccountmembersrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getteamaccountmembersresponse"}} />
+
+
+#### `RemoveTeamAccountMember`
+<ProtoServiceMethod key={'RemoveTeamAccountMember-10'} method={{"name":"RemoveTeamAccountMember","description":"","requestType":"RemoveTeamAccountMemberRequest","requestLongType":"RemoveTeamAccountMemberRequest","requestFullType":"mgmt.v1alpha1.RemoveTeamAccountMemberRequest","requestStreaming":false,"responseType":"RemoveTeamAccountMemberResponse","responseLongType":"RemoveTeamAccountMemberResponse","responseFullType":"mgmt.v1alpha1.RemoveTeamAccountMemberResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#removeteamaccountmemberrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#removeteamaccountmemberresponse"}} />
+
+
+#### `InviteUserToTeamAccount`
+<ProtoServiceMethod key={'InviteUserToTeamAccount-11'} method={{"name":"InviteUserToTeamAccount","description":"","requestType":"InviteUserToTeamAccountRequest","requestLongType":"InviteUserToTeamAccountRequest","requestFullType":"mgmt.v1alpha1.InviteUserToTeamAccountRequest","requestStreaming":false,"responseType":"InviteUserToTeamAccountResponse","responseLongType":"InviteUserToTeamAccountResponse","responseFullType":"mgmt.v1alpha1.InviteUserToTeamAccountResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#inviteusertoteamaccountrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#inviteusertoteamaccountresponse"}} />
+
+
+#### `GetTeamAccountInvites`
+<ProtoServiceMethod key={'GetTeamAccountInvites-12'} method={{"name":"GetTeamAccountInvites","description":"","requestType":"GetTeamAccountInvitesRequest","requestLongType":"GetTeamAccountInvitesRequest","requestFullType":"mgmt.v1alpha1.GetTeamAccountInvitesRequest","requestStreaming":false,"responseType":"GetTeamAccountInvitesResponse","responseLongType":"GetTeamAccountInvitesResponse","responseFullType":"mgmt.v1alpha1.GetTeamAccountInvitesResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getteamaccountinvitesrequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#getteamaccountinvitesresponse"}} />
+
+
+#### `RemoveTeamAccountInvite`
+<ProtoServiceMethod key={'RemoveTeamAccountInvite-13'} method={{"name":"RemoveTeamAccountInvite","description":"","requestType":"RemoveTeamAccountInviteRequest","requestLongType":"RemoveTeamAccountInviteRequest","requestFullType":"mgmt.v1alpha1.RemoveTeamAccountInviteRequest","requestStreaming":false,"responseType":"RemoveTeamAccountInviteResponse","responseLongType":"RemoveTeamAccountInviteResponse","responseFullType":"mgmt.v1alpha1.RemoveTeamAccountInviteResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#removeteamaccountinviterequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#removeteamaccountinviteresponse"}} />
+
+
+#### `AcceptTeamAccountInvite`
+<ProtoServiceMethod key={'AcceptTeamAccountInvite-14'} method={{"name":"AcceptTeamAccountInvite","description":"","requestType":"AcceptTeamAccountInviteRequest","requestLongType":"AcceptTeamAccountInviteRequest","requestFullType":"mgmt.v1alpha1.AcceptTeamAccountInviteRequest","requestStreaming":false,"responseType":"AcceptTeamAccountInviteResponse","responseLongType":"AcceptTeamAccountInviteResponse","responseFullType":"mgmt.v1alpha1.AcceptTeamAccountInviteResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#acceptteamaccountinviterequest","responseTypeLink":"/protos/mgmt/v1alpha1/user_account.proto#acceptteamaccountinviteresponse"}} />
+
+
+---
+
+
+  

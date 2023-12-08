@@ -7,12 +7,16 @@ import { CreateAccountApiKeyRequest, CreateAccountApiKeyResponse, DeleteAccountA
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
+ * Service that manages the lifecycle of API Keys that are associated with a specific Account.
+ *
  * @generated from service mgmt.v1alpha1.ApiKeyService
  */
 export const ApiKeyService = {
   typeName: "mgmt.v1alpha1.ApiKeyService",
   methods: {
     /**
+     * Retrieves a list of Account API Keys
+     *
      * @generated from rpc mgmt.v1alpha1.ApiKeyService.GetAccountApiKeys
      */
     getAccountApiKeys: {
@@ -22,6 +26,8 @@ export const ApiKeyService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Retrieves a single API Key
+     *
      * @generated from rpc mgmt.v1alpha1.ApiKeyService.GetAccountApiKey
      */
     getAccountApiKey: {
@@ -31,6 +37,9 @@ export const ApiKeyService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Creates a single API Key
+     * This method will return the decrypted contents of the API key
+     *
      * @generated from rpc mgmt.v1alpha1.ApiKeyService.CreateAccountApiKey
      */
     createAccountApiKey: {
@@ -40,6 +49,9 @@ export const ApiKeyService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Regenerates a single API Key with a new expiration time
+     * This method will return the decrypted contents of the API key
+     *
      * @generated from rpc mgmt.v1alpha1.ApiKeyService.RegenerateAccountApiKey
      */
     regenerateAccountApiKey: {
@@ -49,6 +61,8 @@ export const ApiKeyService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Deletes an API Key from the system.
+     *
      * @generated from rpc mgmt.v1alpha1.ApiKeyService.DeleteAccountApiKey
      */
     deleteAccountApiKey: {

@@ -21,6 +21,7 @@ message GetConnectionResponse {
 
 message CreateConnectionRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The friendly name of the connection
   string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
 
   ConnectionConfig connection_config = 3;
@@ -48,7 +49,9 @@ message CheckConnectionConfigRequest {
 }
 
 message CheckConnectionConfigResponse {
+  // Whether or not the API was able to ping the connection
   bool is_connected = 1;
+  // This is the error that was received if the API was unable to connect
   optional string connection_error = 2;
 }
 
@@ -78,6 +81,7 @@ message ConnectionConfig {
 }
 
 message PostgresConnectionConfig {
+  // May provide either a raw string url, or a structured version
   oneof connection_config {
     option (buf.validate.oneof).required = true;
 
@@ -105,6 +109,7 @@ message MysqlConnection {
 }
 
 message MysqlConnectionConfig {
+  // May provide either a raw string url, or a structured version
   oneof connection_config {
     option (buf.validate.oneof).required = true;
 
@@ -121,6 +126,8 @@ message AwsS3ConnectionConfig {
   optional string endpoint = 5;
 }
 
+// S3 Credentials that are used by the worker process.
+// Note: this may be optionally provided if the worker that is being hosted has environment credentials to the S3 bucket instead.
 message AwsS3Credentials {
   optional string profile = 1;
   optional string access_key_id = 2;
@@ -141,9 +148,13 @@ message IsConnectionNameAvailableResponse {
 }
 
 message DatabaseColumn {
+  // The database schema. Ex: public
   string schema = 1;
+  // The name of the table in the schema
   string table = 2;
+  // The name of the column
   string column = 3;
+  // The datatype of the column
   string data_type = 4;
 }
 
@@ -156,11 +167,15 @@ message GetConnectionSchemaResponse {
 }
 
 message CheckSqlQueryRequest {
+  // The connection id that the query will be checked against
   string id = 1 [(buf.validate.field).string.uuid = true];
+  // The full query that will be run through a PREPARE statement
   string query = 2 [(buf.validate.field).string.min_len = 1];
 }
 message CheckSqlQueryResponse {
+  // The query is run through PREPARE. Returns valid if it correctly compiled
   bool is_valid = 1;
+  // The error message returned by the sql client if the prepare did not return successfully
   optional string erorr_message = 2;
 }
 
@@ -169,7 +184,10 @@ message GetConnectionDataStreamRequest {
   string schema = 2;
   string table = 3;
 }
+
+// Each stream response is a single row in the requested schema and table
 message GetConnectionDataStreamResponse {
+  // A map of column name to the bytes value of the data that was found for that column and row
   map<string, bytes> row = 1;
 }
 
@@ -179,22 +197,42 @@ message GetConnectionForeignConstraintsRequest {
 message ForeignConstraintTables {
   repeated string tables = 1;
 }
+
+// Dependency constraints for a specific table
 message GetConnectionForeignConstraintsResponse {
+  // the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
   map<string, ForeignConstraintTables> table_constraints = 1;
 }
 
+// Service for managing datasource connections.
+// This is a primary data model in Neosync and is used in reference when hooking up Jobs to synchronize and generate data.
 service ConnectionService {
+  // Returns a list of connections associated with the account
   rpc GetConnections(GetConnectionsRequest) returns (GetConnectionsResponse) {}
+  // Returns a single connection
   rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse) {}
+  // Creates a new connection
   rpc CreateConnection(CreateConnectionRequest) returns (CreateConnectionResponse) {}
+  // Updates an existing connection
   rpc UpdateConnection(UpdateConnectionRequest) returns (UpdateConnectionResponse) {}
+  // Removes a connection from the system.
   rpc DeleteConnection(DeleteConnectionRequest) returns (DeleteConnectionResponse) {}
+  // Connections have friendly names, this method checks if the requested name is available in the system based on the account
   rpc IsConnectionNameAvailable(IsConnectionNameAvailableRequest) returns (IsConnectionNameAvailableResponse) {}
 
+  // Checks if the connection config is connectable by the backend.
+  // Used mostly to verify that a connection is valid prior to creating a Connection object.
   rpc CheckConnectionConfig(CheckConnectionConfigRequest) returns (CheckConnectionConfigResponse) {}
+  // Returns the schema for a specific connection. Used mostly for SQL-based connections
   rpc GetConnectionSchema(GetConnectionSchemaRequest) returns (GetConnectionSchemaResponse) {}
+  // Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
+  // This is useful when constructing subsets to see if the WHERE clause is correct
   rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}
 
+  // Streaming endpoint that will stream the data available from the Connection to the client.
+  // Used primarily by the CLI sync command.
   rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns (stream GetConnectionDataStreamResponse) {}
+  // For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
+  // Used primarily by the CLI sync command to determine stream order.
   rpc GetConnectionForeignConstraints(GetConnectionForeignConstraintsRequest) returns (GetConnectionForeignConstraintsResponse) {}
 }

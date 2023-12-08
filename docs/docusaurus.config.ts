@@ -62,6 +62,20 @@ const config: Config = {
         },
       } satisfies Preset.Options,
     ],
+    [
+      'docusaurus-protobuffet',
+      {
+        protobuffet: {
+          fileDescriptorsPath: './protos/proto_docs.json',
+          protoDocsPath: 'protos',
+          sidebarPath: './proto-sidebars.js',
+        },
+        docs: {
+          routeBasePath: 'protos',
+          sidebarPath: './proto-sidebars.js',
+        },
+      },
+    ],
   ],
 
   themeConfig: {

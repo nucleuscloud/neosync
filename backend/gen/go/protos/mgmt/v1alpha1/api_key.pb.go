@@ -29,7 +29,7 @@ type CreateAccountApiKeyRequest struct {
 
 	AccountId string `protobuf:"bytes,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	Name      string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// Validate between now and one year: now < x < 1year
+	// Validate between now and one year: now < x < 365 days
 	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 }
 
@@ -138,7 +138,8 @@ type AccountApiKey struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The friendly name of the API Key
 	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	AccountId   string                 `protobuf:"bytes,3,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	CreatedById string                 `protobuf:"bytes,4,opt,name=created_by_id,json=createdById,proto3" json:"created_by_id,omitempty"`
@@ -146,8 +147,9 @@ type AccountApiKey struct {
 	UpdatedById string                 `protobuf:"bytes,6,opt,name=updated_by_id,json=updatedById,proto3" json:"updated_by_id,omitempty"`
 	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	// key_value is only returned on initial creation or when it is regenerated
-	KeyValue  *string                `protobuf:"bytes,8,opt,name=key_value,json=keyValue,proto3,oneof" json:"key_value,omitempty"`
-	UserId    string                 `protobuf:"bytes,9,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	KeyValue *string `protobuf:"bytes,8,opt,name=key_value,json=keyValue,proto3,oneof" json:"key_value,omitempty"`
+	UserId   string  `protobuf:"bytes,9,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	// The timestamp of what the API key expires and will not longer be usable.
 	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 }
 
@@ -447,7 +449,7 @@ type RegenerateAccountApiKeyRequest struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Validate between now and one year: now < x < 1year
+	// Validate between now and one year: now < x < 365 days
 	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 }
 

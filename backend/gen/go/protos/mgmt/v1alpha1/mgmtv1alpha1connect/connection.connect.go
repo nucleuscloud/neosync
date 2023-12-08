@@ -70,16 +70,31 @@ const (
 
 // ConnectionServiceClient is a client for the mgmt.v1alpha1.ConnectionService service.
 type ConnectionServiceClient interface {
+	// Returns a list of connections associated with the account
 	GetConnections(context.Context, *connect.Request[v1alpha1.GetConnectionsRequest]) (*connect.Response[v1alpha1.GetConnectionsResponse], error)
+	// Returns a single connection
 	GetConnection(context.Context, *connect.Request[v1alpha1.GetConnectionRequest]) (*connect.Response[v1alpha1.GetConnectionResponse], error)
+	// Creates a new connection
 	CreateConnection(context.Context, *connect.Request[v1alpha1.CreateConnectionRequest]) (*connect.Response[v1alpha1.CreateConnectionResponse], error)
+	// Updates an existing connection
 	UpdateConnection(context.Context, *connect.Request[v1alpha1.UpdateConnectionRequest]) (*connect.Response[v1alpha1.UpdateConnectionResponse], error)
+	// Removes a connection from the system.
 	DeleteConnection(context.Context, *connect.Request[v1alpha1.DeleteConnectionRequest]) (*connect.Response[v1alpha1.DeleteConnectionResponse], error)
+	// Connections have friendly names, this method checks if the requested name is available in the system based on the account
 	IsConnectionNameAvailable(context.Context, *connect.Request[v1alpha1.IsConnectionNameAvailableRequest]) (*connect.Response[v1alpha1.IsConnectionNameAvailableResponse], error)
+	// Checks if the connection config is connectable by the backend.
+	// Used mostly to verify that a connection is valid prior to creating a Connection object.
 	CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error)
+	// Returns the schema for a specific connection. Used mostly for SQL-based connections
 	GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error)
+	// Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
+	// This is useful when constructing subsets to see if the WHERE clause is correct
 	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
+	// Streaming endpoint that will stream the data available from the Connection to the client.
+	// Used primarily by the CLI sync command.
 	GetConnectionDataStream(context.Context, *connect.Request[v1alpha1.GetConnectionDataStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetConnectionDataStreamResponse], error)
+	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
+	// Used primarily by the CLI sync command to determine stream order.
 	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
 }
 
@@ -224,16 +239,31 @@ func (c *connectionServiceClient) GetConnectionForeignConstraints(ctx context.Co
 
 // ConnectionServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionService service.
 type ConnectionServiceHandler interface {
+	// Returns a list of connections associated with the account
 	GetConnections(context.Context, *connect.Request[v1alpha1.GetConnectionsRequest]) (*connect.Response[v1alpha1.GetConnectionsResponse], error)
+	// Returns a single connection
 	GetConnection(context.Context, *connect.Request[v1alpha1.GetConnectionRequest]) (*connect.Response[v1alpha1.GetConnectionResponse], error)
+	// Creates a new connection
 	CreateConnection(context.Context, *connect.Request[v1alpha1.CreateConnectionRequest]) (*connect.Response[v1alpha1.CreateConnectionResponse], error)
+	// Updates an existing connection
 	UpdateConnection(context.Context, *connect.Request[v1alpha1.UpdateConnectionRequest]) (*connect.Response[v1alpha1.UpdateConnectionResponse], error)
+	// Removes a connection from the system.
 	DeleteConnection(context.Context, *connect.Request[v1alpha1.DeleteConnectionRequest]) (*connect.Response[v1alpha1.DeleteConnectionResponse], error)
+	// Connections have friendly names, this method checks if the requested name is available in the system based on the account
 	IsConnectionNameAvailable(context.Context, *connect.Request[v1alpha1.IsConnectionNameAvailableRequest]) (*connect.Response[v1alpha1.IsConnectionNameAvailableResponse], error)
+	// Checks if the connection config is connectable by the backend.
+	// Used mostly to verify that a connection is valid prior to creating a Connection object.
 	CheckConnectionConfig(context.Context, *connect.Request[v1alpha1.CheckConnectionConfigRequest]) (*connect.Response[v1alpha1.CheckConnectionConfigResponse], error)
+	// Returns the schema for a specific connection. Used mostly for SQL-based connections
 	GetConnectionSchema(context.Context, *connect.Request[v1alpha1.GetConnectionSchemaRequest]) (*connect.Response[v1alpha1.GetConnectionSchemaResponse], error)
+	// Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
+	// This is useful when constructing subsets to see if the WHERE clause is correct
 	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
+	// Streaming endpoint that will stream the data available from the Connection to the client.
+	// Used primarily by the CLI sync command.
 	GetConnectionDataStream(context.Context, *connect.Request[v1alpha1.GetConnectionDataStreamRequest], *connect.ServerStream[v1alpha1.GetConnectionDataStreamResponse]) error
+	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
+	// Used primarily by the CLI sync command to determine stream order.
 	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
 }
 

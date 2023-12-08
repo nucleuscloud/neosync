@@ -5,6 +5,13 @@ update_frontend_client() {
   rm -rf gen/es
 }
 
+update_docs() {
+  rm -rf ../docs/protos
+  mkdir -p ../docs/protos
+  mv gen/docs/** ../docs/protos
+  rm -rf gen/docs
+}
+
 BUF_VERSION=$(cat BUF_VERSION)
 SQLC_VERSION=$(cat SQLC_VERSION)
 
@@ -23,13 +30,6 @@ docker run --rm -i \
   --volume "./protos:/workspace/protos" \
   --workdir "/workspace" \
   "bufbuild/buf:${BUF_VERSION}" generate &
-docker run --rm -i \
-  --volume "./gen:/workspace/gen" \
-  --volume "./buf.work.yaml:/workspace/buf.work.yaml" \
-  --volume "./buf-es.gen.yaml:/workspace/buf.gen.yaml" \
-  --volume "./protos:/workspace/protos" \
-  --workdir "/workspace" \
-  "bufbuild/buf:${BUF_VERSION}" generate &
 
 # sqlc
 docker run --rm -i \
@@ -41,5 +41,6 @@ docker run --rm -i \
 wait
 
 update_frontend_client &
+update_docs &
 
 wait

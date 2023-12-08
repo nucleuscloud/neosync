@@ -164,6 +164,8 @@ export class CreateConnectionRequest extends Message<CreateConnectionRequest> {
   accountId = "";
 
   /**
+   * The friendly name of the connection
+   *
    * @generated from field: string name = 2;
    */
   name = "";
@@ -436,11 +438,15 @@ export class CheckConnectionConfigRequest extends Message<CheckConnectionConfigR
  */
 export class CheckConnectionConfigResponse extends Message<CheckConnectionConfigResponse> {
   /**
+   * Whether or not the API was able to ping the connection
+   *
    * @generated from field: bool is_connected = 1;
    */
   isConnected = false;
 
   /**
+   * This is the error that was received if the API was unable to connect
+   *
    * @generated from field: optional string connection_error = 2;
    */
   connectionError?: string;
@@ -615,6 +621,8 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
  */
 export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> {
   /**
+   * May provide either a raw string url, or a structured version
+   *
    * @generated from oneof mgmt.v1alpha1.PostgresConnectionConfig.connection_config
    */
   connectionConfig: {
@@ -799,6 +807,8 @@ export class MysqlConnection extends Message<MysqlConnection> {
  */
 export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
   /**
+   * May provide either a raw string url, or a structured version
+   *
    * @generated from oneof mgmt.v1alpha1.MysqlConnectionConfig.connection_config
    */
   connectionConfig: {
@@ -906,6 +916,9 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
 }
 
 /**
+ * S3 Credentials that are used by the worker process.
+ * Note: this may be optionally provided if the worker that is being hosted has environment credentials to the S3 bucket instead.
+ *
  * @generated from message mgmt.v1alpha1.AwsS3Credentials
  */
 export class AwsS3Credentials extends Message<AwsS3Credentials> {
@@ -1063,21 +1076,29 @@ export class IsConnectionNameAvailableResponse extends Message<IsConnectionNameA
  */
 export class DatabaseColumn extends Message<DatabaseColumn> {
   /**
+   * The database schema. Ex: public
+   *
    * @generated from field: string schema = 1;
    */
   schema = "";
 
   /**
+   * The name of the table in the schema
+   *
    * @generated from field: string table = 2;
    */
   table = "";
 
   /**
+   * The name of the column
+   *
    * @generated from field: string column = 3;
    */
   column = "";
 
   /**
+   * The datatype of the column
+   *
    * @generated from field: string data_type = 4;
    */
   dataType = "";
@@ -1192,11 +1213,15 @@ export class GetConnectionSchemaResponse extends Message<GetConnectionSchemaResp
  */
 export class CheckSqlQueryRequest extends Message<CheckSqlQueryRequest> {
   /**
+   * The connection id that the query will be checked against
+   *
    * @generated from field: string id = 1;
    */
   id = "";
 
   /**
+   * The full query that will be run through a PREPARE statement
+   *
    * @generated from field: string query = 2;
    */
   query = "";
@@ -1235,11 +1260,15 @@ export class CheckSqlQueryRequest extends Message<CheckSqlQueryRequest> {
  */
 export class CheckSqlQueryResponse extends Message<CheckSqlQueryResponse> {
   /**
+   * The query is run through PREPARE. Returns valid if it correctly compiled
+   *
    * @generated from field: bool is_valid = 1;
    */
   isValid = false;
 
   /**
+   * The error message returned by the sql client if the prepare did not return successfully
+   *
    * @generated from field: optional string erorr_message = 2;
    */
   erorrMessage?: string;
@@ -1323,10 +1352,14 @@ export class GetConnectionDataStreamRequest extends Message<GetConnectionDataStr
 }
 
 /**
+ * Each stream response is a single row in the requested schema and table
+ *
  * @generated from message mgmt.v1alpha1.GetConnectionDataStreamResponse
  */
 export class GetConnectionDataStreamResponse extends Message<GetConnectionDataStreamResponse> {
   /**
+   * A map of column name to the bytes value of the data that was found for that column and row
+   *
    * @generated from field: map<string, bytes> row = 1;
    */
   row: { [key: string]: Uint8Array } = {};
@@ -1434,10 +1467,14 @@ export class ForeignConstraintTables extends Message<ForeignConstraintTables> {
 }
 
 /**
+ * Dependency constraints for a specific table
+ *
  * @generated from message mgmt.v1alpha1.GetConnectionForeignConstraintsResponse
  */
 export class GetConnectionForeignConstraintsResponse extends Message<GetConnectionForeignConstraintsResponse> {
   /**
+   * the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
+   *
    * @generated from field: map<string, mgmt.v1alpha1.ForeignConstraintTables> table_constraints = 1;
    */
   tableConstraints: { [key: string]: ForeignConstraintTables } = {};

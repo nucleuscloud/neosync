@@ -25,6 +25,7 @@
     "@radix-ui/react-icons": "^1.3.0",
     "autoprefixer": "^10.4.16",
     "class-variance-authority": "^0.7.0",
+    "docusaurus-protobuffet": "^0.3.3",
     "postcss": "^8.4.32",
     "prism-react-renderer": "^2.3.0",
     "react": "^18.2.0",

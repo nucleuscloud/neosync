@@ -1,0 +1,212 @@
+---
+title: connection.proto
+hide_title: true
+---
+
+import { ProtoMessage, ProtoServiceMethod, ProtoEnum } from '@theme/ProtoFile';
+
+# `connection.proto`
+_**path** mgmt/v1alpha1/connection.proto_
+
+_**package** mgmt.v1alpha1_
+
+
+
+---
+
+## Messages
+
+
+### `AwsS3ConnectionConfig`
+<ProtoMessage key={0} message={{"name":"AwsS3ConnectionConfig","longName":"AwsS3ConnectionConfig","fullName":"mgmt.v1alpha1.AwsS3ConnectionConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"bucket_arn","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"path_prefix","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_path_prefix","defaultValue":""},{"name":"credentials","description":"","label":"optional","type":"AwsS3Credentials","longType":"AwsS3Credentials","fullType":"mgmt.v1alpha1.AwsS3Credentials","ismap":false,"isoneof":true,"oneofdecl":"_credentials","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#awss3credentials"},{"name":"region","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_region","defaultValue":""},{"name":"endpoint","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_endpoint","defaultValue":""}]}} />
+
+
+### `AwsS3Credentials`
+<ProtoMessage key={1} message={{"name":"AwsS3Credentials","longName":"AwsS3Credentials","fullName":"mgmt.v1alpha1.AwsS3Credentials","description":"S3 Credentials that are used by the worker process.\nNote: this may be optionally provided if the worker that is being hosted has environment credentials to the S3 bucket instead.","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"profile","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_profile","defaultValue":""},{"name":"access_key_id","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_access_key_id","defaultValue":""},{"name":"secret_access_key","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_secret_access_key","defaultValue":""},{"name":"session_token","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_session_token","defaultValue":""},{"name":"from_ec2_role","description":"","label":"optional","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":true,"oneofdecl":"_from_ec2_role","defaultValue":""},{"name":"role_arn","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_role_arn","defaultValue":""},{"name":"role_external_id","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_role_external_id","defaultValue":""}]}} />
+
+
+### `CheckConnectionConfigRequest`
+<ProtoMessage key={2} message={{"name":"CheckConnectionConfigRequest","longName":"CheckConnectionConfigRequest","fullName":"mgmt.v1alpha1.CheckConnectionConfigRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection_config","description":"","label":"","type":"ConnectionConfig","longType":"ConnectionConfig","fullType":"mgmt.v1alpha1.ConnectionConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#connectionconfig"}]}} />
+
+
+### `CheckConnectionConfigResponse`
+<ProtoMessage key={3} message={{"name":"CheckConnectionConfigResponse","longName":"CheckConnectionConfigResponse","fullName":"mgmt.v1alpha1.CheckConnectionConfigResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"is_connected","description":"Whether or not the API was able to ping the connection","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"connection_error","description":"This is the error that was received if the API was unable to connect","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_connection_error","defaultValue":""}]}} />
+
+
+### `CheckSqlQueryRequest`
+<ProtoMessage key={4} message={{"name":"CheckSqlQueryRequest","longName":"CheckSqlQueryRequest","fullName":"mgmt.v1alpha1.CheckSqlQueryRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"The connection id that the query will be checked against","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"query","description":"The full query that will be run through a PREPARE statement","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `CheckSqlQueryResponse`
+<ProtoMessage key={5} message={{"name":"CheckSqlQueryResponse","longName":"CheckSqlQueryResponse","fullName":"mgmt.v1alpha1.CheckSqlQueryResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"is_valid","description":"The query is run through PREPARE. Returns valid if it correctly compiled","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"erorr_message","description":"The error message returned by the sql client if the prepare did not return successfully","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_erorr_message","defaultValue":""}]}} />
+
+
+### `Connection`
+<ProtoMessage key={6} message={{"name":"Connection","longName":"Connection","fullName":"mgmt.v1alpha1.Connection","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"connection_config","description":"","label":"","type":"ConnectionConfig","longType":"ConnectionConfig","fullType":"mgmt.v1alpha1.ConnectionConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#connectionconfig"},{"name":"created_by_user_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"created_at","description":"","label":"","type":"Timestamp","longType":"google.protobuf.Timestamp","fullType":"google.protobuf.Timestamp","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"updated_by_user_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"updated_at","description":"","label":"","type":"Timestamp","longType":"google.protobuf.Timestamp","fullType":"google.protobuf.Timestamp","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `ConnectionConfig`
+<ProtoMessage key={7} message={{"name":"ConnectionConfig","longName":"ConnectionConfig","fullName":"mgmt.v1alpha1.ConnectionConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"pg_config","description":"","label":"","type":"PostgresConnectionConfig","longType":"PostgresConnectionConfig","fullType":"mgmt.v1alpha1.PostgresConnectionConfig","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#postgresconnectionconfig"},{"name":"aws_s3_config","description":"","label":"","type":"AwsS3ConnectionConfig","longType":"AwsS3ConnectionConfig","fullType":"mgmt.v1alpha1.AwsS3ConnectionConfig","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#awss3connectionconfig"},{"name":"mysql_config","description":"","label":"","type":"MysqlConnectionConfig","longType":"MysqlConnectionConfig","fullType":"mgmt.v1alpha1.MysqlConnectionConfig","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#mysqlconnectionconfig"}]}} />
+
+
+### `CreateConnectionRequest`
+<ProtoMessage key={8} message={{"name":"CreateConnectionRequest","longName":"CreateConnectionRequest","fullName":"mgmt.v1alpha1.CreateConnectionRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"The friendly name of the connection","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"connection_config","description":"","label":"","type":"ConnectionConfig","longType":"ConnectionConfig","fullType":"mgmt.v1alpha1.ConnectionConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#connectionconfig"}]}} />
+
+
+### `CreateConnectionResponse`
+<ProtoMessage key={9} message={{"name":"CreateConnectionResponse","longName":"CreateConnectionResponse","fullName":"mgmt.v1alpha1.CreateConnectionResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection","description":"","label":"","type":"Connection","longType":"Connection","fullType":"mgmt.v1alpha1.Connection","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#connection"}]}} />
+
+
+### `DatabaseColumn`
+<ProtoMessage key={10} message={{"name":"DatabaseColumn","longName":"DatabaseColumn","fullName":"mgmt.v1alpha1.DatabaseColumn","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"schema","description":"The database schema. Ex: public","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"table","description":"The name of the table in the schema","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"column","description":"The name of the column","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"data_type","description":"The datatype of the column","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `DeleteConnectionRequest`
+<ProtoMessage key={11} message={{"name":"DeleteConnectionRequest","longName":"DeleteConnectionRequest","fullName":"mgmt.v1alpha1.DeleteConnectionRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `DeleteConnectionResponse`
+<ProtoMessage key={12} message={{"name":"DeleteConnectionResponse","longName":"DeleteConnectionResponse","fullName":"mgmt.v1alpha1.DeleteConnectionResponse","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `ForeignConstraintTables`
+<ProtoMessage key={13} message={{"name":"ForeignConstraintTables","longName":"ForeignConstraintTables","fullName":"mgmt.v1alpha1.ForeignConstraintTables","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"tables","description":"","label":"repeated","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionDataStreamRequest`
+<ProtoMessage key={14} message={{"name":"GetConnectionDataStreamRequest","longName":"GetConnectionDataStreamRequest","fullName":"mgmt.v1alpha1.GetConnectionDataStreamRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"schema","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"table","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionDataStreamResponse`
+<ProtoMessage key={15} message={{"name":"GetConnectionDataStreamResponse","longName":"GetConnectionDataStreamResponse","fullName":"mgmt.v1alpha1.GetConnectionDataStreamResponse","description":"Each stream response is a single row in the requested schema and table","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"row","description":"A map of column name to the bytes value of the data that was found for that column and row","label":"repeated","type":"RowEntry","longType":"GetConnectionDataStreamResponse.RowEntry","fullType":"mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry","ismap":true,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectiondatastreamresponserowentry"}]}} />
+
+
+### `GetConnectionDataStreamResponse.RowEntry`
+<ProtoMessage key={16} message={{"name":"RowEntry","longName":"GetConnectionDataStreamResponse.RowEntry","fullName":"mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"key","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"value","description":"","label":"","type":"bytes","longType":"bytes","fullType":"bytes","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionForeignConstraintsRequest`
+<ProtoMessage key={17} message={{"name":"GetConnectionForeignConstraintsRequest","longName":"GetConnectionForeignConstraintsRequest","fullName":"mgmt.v1alpha1.GetConnectionForeignConstraintsRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionForeignConstraintsResponse`
+<ProtoMessage key={18} message={{"name":"GetConnectionForeignConstraintsResponse","longName":"GetConnectionForeignConstraintsResponse","fullName":"mgmt.v1alpha1.GetConnectionForeignConstraintsResponse","description":"Dependency constraints for a specific table","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"table_constraints","description":"the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.","label":"repeated","type":"TableConstraintsEntry","longType":"GetConnectionForeignConstraintsResponse.TableConstraintsEntry","fullType":"mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry","ismap":true,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectionforeignconstraintsresponsetableconstraintsentry"}]}} />
+
+
+### `GetConnectionForeignConstraintsResponse.TableConstraintsEntry`
+<ProtoMessage key={19} message={{"name":"TableConstraintsEntry","longName":"GetConnectionForeignConstraintsResponse.TableConstraintsEntry","fullName":"mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"key","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"value","description":"","label":"","type":"ForeignConstraintTables","longType":"ForeignConstraintTables","fullType":"mgmt.v1alpha1.ForeignConstraintTables","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#foreignconstrainttables"}]}} />
+
+
+### `GetConnectionRequest`
+<ProtoMessage key={20} message={{"name":"GetConnectionRequest","longName":"GetConnectionRequest","fullName":"mgmt.v1alpha1.GetConnectionRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionResponse`
+<ProtoMessage key={21} message={{"name":"GetConnectionResponse","longName":"GetConnectionResponse","fullName":"mgmt.v1alpha1.GetConnectionResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection","description":"","label":"","type":"Connection","longType":"Connection","fullType":"mgmt.v1alpha1.Connection","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#connection"}]}} />
+
+
+### `GetConnectionSchemaRequest`
+<ProtoMessage key={22} message={{"name":"GetConnectionSchemaRequest","longName":"GetConnectionSchemaRequest","fullName":"mgmt.v1alpha1.GetConnectionSchemaRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionSchemaResponse`
+<ProtoMessage key={23} message={{"name":"GetConnectionSchemaResponse","longName":"GetConnectionSchemaResponse","fullName":"mgmt.v1alpha1.GetConnectionSchemaResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"schemas","description":"","label":"repeated","type":"DatabaseColumn","longType":"DatabaseColumn","fullType":"mgmt.v1alpha1.DatabaseColumn","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#databasecolumn"}]}} />
+
+
+### `GetConnectionsRequest`
+<ProtoMessage key={24} message={{"name":"GetConnectionsRequest","longName":"GetConnectionsRequest","fullName":"mgmt.v1alpha1.GetConnectionsRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionsResponse`
+<ProtoMessage key={25} message={{"name":"GetConnectionsResponse","longName":"GetConnectionsResponse","fullName":"mgmt.v1alpha1.GetConnectionsResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connections","description":"","label":"repeated","type":"Connection","longType":"Connection","fullType":"mgmt.v1alpha1.Connection","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#connection"}]}} />
+
+
+### `IsConnectionNameAvailableRequest`
+<ProtoMessage key={26} message={{"name":"IsConnectionNameAvailableRequest","longName":"IsConnectionNameAvailableRequest","fullName":"mgmt.v1alpha1.IsConnectionNameAvailableRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"account_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"connection_name","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `IsConnectionNameAvailableResponse`
+<ProtoMessage key={27} message={{"name":"IsConnectionNameAvailableResponse","longName":"IsConnectionNameAvailableResponse","fullName":"mgmt.v1alpha1.IsConnectionNameAvailableResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"is_available","description":"","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `MysqlConnection`
+<ProtoMessage key={28} message={{"name":"MysqlConnection","longName":"MysqlConnection","fullName":"mgmt.v1alpha1.MysqlConnection","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"user","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"pass","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"protocol","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"host","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"port","description":"","label":"","type":"int32","longType":"int32","fullType":"int32","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `MysqlConnectionConfig`
+<ProtoMessage key={29} message={{"name":"MysqlConnectionConfig","longName":"MysqlConnectionConfig","fullName":"mgmt.v1alpha1.MysqlConnectionConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"url","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"connection_config","defaultValue":""},{"name":"connection","description":"","label":"","type":"MysqlConnection","longType":"MysqlConnection","fullType":"mgmt.v1alpha1.MysqlConnection","ismap":false,"isoneof":true,"oneofdecl":"connection_config","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#mysqlconnection"}]}} />
+
+
+### `PostgresConnection`
+<ProtoMessage key={30} message={{"name":"PostgresConnection","longName":"PostgresConnection","fullName":"mgmt.v1alpha1.PostgresConnection","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"host","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"port","description":"","label":"","type":"int32","longType":"int32","fullType":"int32","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"user","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"pass","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"ssl_mode","description":"","label":"optional","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"_ssl_mode","defaultValue":""}]}} />
+
+
+### `PostgresConnectionConfig`
+<ProtoMessage key={31} message={{"name":"PostgresConnectionConfig","longName":"PostgresConnectionConfig","fullName":"mgmt.v1alpha1.PostgresConnectionConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"url","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"connection_config","defaultValue":""},{"name":"connection","description":"","label":"","type":"PostgresConnection","longType":"PostgresConnection","fullType":"mgmt.v1alpha1.PostgresConnection","ismap":false,"isoneof":true,"oneofdecl":"connection_config","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#postgresconnection"}]}} />
+
+
+### `UpdateConnectionRequest`
+<ProtoMessage key={32} message={{"name":"UpdateConnectionRequest","longName":"UpdateConnectionRequest","fullName":"mgmt.v1alpha1.UpdateConnectionRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"name","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"connection_config","description":"","label":"","type":"ConnectionConfig","longType":"ConnectionConfig","fullType":"mgmt.v1alpha1.ConnectionConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#connectionconfig"}]}} />
+
+
+### `UpdateConnectionResponse`
+<ProtoMessage key={33} message={{"name":"UpdateConnectionResponse","longName":"UpdateConnectionResponse","fullName":"mgmt.v1alpha1.UpdateConnectionResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection","description":"","label":"","type":"Connection","longType":"Connection","fullType":"mgmt.v1alpha1.Connection","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/protos/mgmt/v1alpha1/connection.proto#connection"}]}} />
+
+---
+## Services
+
+
+### `ConnectionService`
+
+Service for managing datasource connections.
+This is a primary data model in Neosync and is used in reference when hooking up Jobs to synchronize and generate data.
+
+
+#### `GetConnections`
+<ProtoServiceMethod key={'GetConnections-0'} method={{"name":"GetConnections","description":"Returns a list of connections associated with the account","requestType":"GetConnectionsRequest","requestLongType":"GetConnectionsRequest","requestFullType":"mgmt.v1alpha1.GetConnectionsRequest","requestStreaming":false,"responseType":"GetConnectionsResponse","responseLongType":"GetConnectionsResponse","responseFullType":"mgmt.v1alpha1.GetConnectionsResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectionsrequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectionsresponse"}} />
+
+
+#### `GetConnection`
+<ProtoServiceMethod key={'GetConnection-1'} method={{"name":"GetConnection","description":"Returns a single connection","requestType":"GetConnectionRequest","requestLongType":"GetConnectionRequest","requestFullType":"mgmt.v1alpha1.GetConnectionRequest","requestStreaming":false,"responseType":"GetConnectionResponse","responseLongType":"GetConnectionResponse","responseFullType":"mgmt.v1alpha1.GetConnectionResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectionrequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectionresponse"}} />
+
+
+#### `CreateConnection`
+<ProtoServiceMethod key={'CreateConnection-2'} method={{"name":"CreateConnection","description":"Creates a new connection","requestType":"CreateConnectionRequest","requestLongType":"CreateConnectionRequest","requestFullType":"mgmt.v1alpha1.CreateConnectionRequest","requestStreaming":false,"responseType":"CreateConnectionResponse","responseLongType":"CreateConnectionResponse","responseFullType":"mgmt.v1alpha1.CreateConnectionResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#createconnectionrequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#createconnectionresponse"}} />
+
+
+#### `UpdateConnection`
+<ProtoServiceMethod key={'UpdateConnection-3'} method={{"name":"UpdateConnection","description":"Updates an existing connection","requestType":"UpdateConnectionRequest","requestLongType":"UpdateConnectionRequest","requestFullType":"mgmt.v1alpha1.UpdateConnectionRequest","requestStreaming":false,"responseType":"UpdateConnectionResponse","responseLongType":"UpdateConnectionResponse","responseFullType":"mgmt.v1alpha1.UpdateConnectionResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#updateconnectionrequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#updateconnectionresponse"}} />
+
+
+#### `DeleteConnection`
+<ProtoServiceMethod key={'DeleteConnection-4'} method={{"name":"DeleteConnection","description":"Removes a connection from the system.","requestType":"DeleteConnectionRequest","requestLongType":"DeleteConnectionRequest","requestFullType":"mgmt.v1alpha1.DeleteConnectionRequest","requestStreaming":false,"responseType":"DeleteConnectionResponse","responseLongType":"DeleteConnectionResponse","responseFullType":"mgmt.v1alpha1.DeleteConnectionResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#deleteconnectionrequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#deleteconnectionresponse"}} />
+
+
+#### `IsConnectionNameAvailable`
+<ProtoServiceMethod key={'IsConnectionNameAvailable-5'} method={{"name":"IsConnectionNameAvailable","description":"Connections have friendly names, this method checks if the requested name is available in the system based on the account","requestType":"IsConnectionNameAvailableRequest","requestLongType":"IsConnectionNameAvailableRequest","requestFullType":"mgmt.v1alpha1.IsConnectionNameAvailableRequest","requestStreaming":false,"responseType":"IsConnectionNameAvailableResponse","responseLongType":"IsConnectionNameAvailableResponse","responseFullType":"mgmt.v1alpha1.IsConnectionNameAvailableResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#isconnectionnameavailablerequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#isconnectionnameavailableresponse"}} />
+
+
+#### `CheckConnectionConfig`
+<ProtoServiceMethod key={'CheckConnectionConfig-6'} method={{"name":"CheckConnectionConfig","description":"Checks if the connection config is connectable by the backend.\nUsed mostly to verify that a connection is valid prior to creating a Connection object.","requestType":"CheckConnectionConfigRequest","requestLongType":"CheckConnectionConfigRequest","requestFullType":"mgmt.v1alpha1.CheckConnectionConfigRequest","requestStreaming":false,"responseType":"CheckConnectionConfigResponse","responseLongType":"CheckConnectionConfigResponse","responseFullType":"mgmt.v1alpha1.CheckConnectionConfigResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#checkconnectionconfigrequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#checkconnectionconfigresponse"}} />
+
+
+#### `GetConnectionSchema`
+<ProtoServiceMethod key={'GetConnectionSchema-7'} method={{"name":"GetConnectionSchema","description":"Returns the schema for a specific connection. Used mostly for SQL-based connections","requestType":"GetConnectionSchemaRequest","requestLongType":"GetConnectionSchemaRequest","requestFullType":"mgmt.v1alpha1.GetConnectionSchemaRequest","requestStreaming":false,"responseType":"GetConnectionSchemaResponse","responseLongType":"GetConnectionSchemaResponse","responseFullType":"mgmt.v1alpha1.GetConnectionSchemaResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectionschemarequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectionschemaresponse"}} />
+
+
+#### `CheckSqlQuery`
+<ProtoServiceMethod key={'CheckSqlQuery-8'} method={{"name":"CheckSqlQuery","description":"Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema\nThis is useful when constructing subsets to see if the WHERE clause is correct","requestType":"CheckSqlQueryRequest","requestLongType":"CheckSqlQueryRequest","requestFullType":"mgmt.v1alpha1.CheckSqlQueryRequest","requestStreaming":false,"responseType":"CheckSqlQueryResponse","responseLongType":"CheckSqlQueryResponse","responseFullType":"mgmt.v1alpha1.CheckSqlQueryResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#checksqlqueryrequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#checksqlqueryresponse"}} />
+
+
+#### `GetConnectionDataStream`
+<ProtoServiceMethod key={'GetConnectionDataStream-9'} method={{"name":"GetConnectionDataStream","description":"Streaming endpoint that will stream the data available from the Connection to the client.\nUsed primarily by the CLI sync command.","requestType":"GetConnectionDataStreamRequest","requestLongType":"GetConnectionDataStreamRequest","requestFullType":"mgmt.v1alpha1.GetConnectionDataStreamRequest","requestStreaming":false,"responseType":"GetConnectionDataStreamResponse","responseLongType":"GetConnectionDataStreamResponse","responseFullType":"mgmt.v1alpha1.GetConnectionDataStreamResponse","responseStreaming":true,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectiondatastreamrequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectiondatastreamresponse"}} />
+
+
+#### `GetConnectionForeignConstraints`
+<ProtoServiceMethod key={'GetConnectionForeignConstraints-10'} method={{"name":"GetConnectionForeignConstraints","description":"For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to determine stream order.","requestType":"GetConnectionForeignConstraintsRequest","requestLongType":"GetConnectionForeignConstraintsRequest","requestFullType":"mgmt.v1alpha1.GetConnectionForeignConstraintsRequest","requestStreaming":false,"responseType":"GetConnectionForeignConstraintsResponse","responseLongType":"GetConnectionForeignConstraintsResponse","responseFullType":"mgmt.v1alpha1.GetConnectionForeignConstraintsResponse","responseStreaming":false,"requestTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectionforeignconstraintsrequest","responseTypeLink":"/protos/mgmt/v1alpha1/connection.proto#getconnectionforeignconstraintsresponse"}} />
+
+
+---
+
+
+  
