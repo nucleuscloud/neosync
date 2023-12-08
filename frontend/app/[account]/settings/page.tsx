@@ -14,12 +14,12 @@ export default function Settings() {
 
   useEffect(() => {
     if (!authEnabled) {
-      router.push('/settings/temporal');
+      router.push('/personal/settings/temporal');
     } else {
-      router.push('/settings/members');
+      router.push(`/${account?.name}/settings/members`);
     }
     if (!isAccountLoading && account?.name) {
-      router.push(`/${account.name}/settings/temporal`);
+      router.push(`/${account?.name}/settings/temporal`);
     }
   }, [account?.id, isAccountLoading]);
   return (

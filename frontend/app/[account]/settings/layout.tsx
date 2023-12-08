@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import { useGetAuthEnabled } from '@/libs/hooks/useGetAuthEnabled';
 import { cn } from '@/libs/utils';
 import Link from 'next/link';
@@ -8,39 +9,45 @@ import { usePathname } from 'next/navigation';
 
 interface Item {
   href: string;
+  ref: string;
   title: string;
 }
 
-export const links: Item[] = [
-  {
-    href: '/settings',
-    title: 'Overview',
-  },
-  {
-    href: '/settings/temporal',
-    title: 'Temporal',
-  },
-  {
-    href: '/settings/account-api-keys',
-    title: 'API Keys',
-  },
-  {
-    href: '/settings/members',
-    title: 'Members',
-  },
-];
+export function getNavSettings(accountName: string): Item[] {
+  return [
+    {
+      href: `/${accountName}/settings/temporal`,
+      ref: 'temporal',
+      title: 'Temporal',
+    },
+    {
+      href: `/${accountName}/settings/api-keys`,
+      ref: 'api-keys',
+      title: 'API Keys',
+    },
+    {
+      href: `/${accountName}/settings/members`,
+      ref: 'members',
+      title: 'Members',
+    },
+  ];
+}
 
 export default function SettingsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { account } = useAccount();
   const pathname = usePathname();
   const authEnabled = useGetAuthEnabled();
+  const items = getNavSettings(account?.name ?? '');
 
   const filteredItems = authEnabled
-    ? links
-    : links.filter((item) => item.title !== 'Overview');
+    ? items
+    : items.filter((item) => item.title !== 'Members');
+
+  console.log('segmets', pathname);
 
   return (
     <div>
@@ -59,8 +66,8 @@ export default function SettingsLayout({
                   href={item.href}
                   className={cn(
                     'rounded p-2 text-sm',
-                    pathname === item.href
-                      ? 'bg-gray-200 hover:bg-gray-200 font-medium'
+                    refInPathName(item.ref, pathname)
+                      ? 'bg-gray-200 hover:bg-gray-200 font-bold'
                       : 'hover:bg-gray-200 hover:no-underline'
                   )}
                 >
@@ -74,4 +81,9 @@ export default function SettingsLayout({
       </OverviewContainer>
     </div>
   );
+}
+
+function refInPathName(ref: string, pathname: string): boolean {
+  const segments = pathname.split('/');
+  return segments.includes(ref);
 }

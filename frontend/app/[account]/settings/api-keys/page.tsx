@@ -11,7 +11,6 @@ import { getColumns } from './components/ApiKeysTable/columns';
 import { DataTable } from './components/ApiKeysTable/data-table';
 
 export default function ApiKeys(): ReactElement {
-  const { account } = useAccount();
   return (
     <div>
       <div className="flex justify-between">
