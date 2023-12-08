@@ -7,7 +7,7 @@ export function useGetJobs(accountId: string): HookReply<GetJobsResponse> {
   return useNucleusAuthenticatedFetch<
     GetJobsResponse,
     JsonValue | GetJobsResponse
-  >(`/api/jobs?accountId=${accountId}`, !!accountId, undefined, (data) =>
+  >(`/api/accounts/${accountId}/jobs`, !!accountId, undefined, (data) =>
     data instanceof GetJobsResponse ? data : GetJobsResponse.fromJson(data)
   );
 }

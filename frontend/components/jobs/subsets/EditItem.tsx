@@ -1,4 +1,5 @@
 import ButtonText from '@/components/ButtonText';
+import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,6 +28,7 @@ export default function EditItem(props: Props): ReactElement {
   const [validateResp, setValidateResp] = useState<
     CheckSqlQueryResponse | undefined
   >();
+  const { account } = useAccount();
 
   function onWhereChange(value: string): void {
     if (!item) {
@@ -38,6 +40,7 @@ export default function EditItem(props: Props): ReactElement {
   async function onValidate(): Promise<void> {
     try {
       const resp = await validateSql(
+        account?.id ?? '',
         connectionId,
         `select * from ${item?.schema}.${item?.table} WHERE ${item?.where};`
       );
@@ -163,6 +166,7 @@ export default function EditItem(props: Props): ReactElement {
 }
 
 async function validateSql(
+  accountId: string,
   connectionId: string,
   query: string
 ): Promise<CheckSqlQueryResponse> {
@@ -170,7 +174,7 @@ async function validateSql(
     query,
   });
   const res = await fetch(
-    `/api/connections/${connectionId}/check-query?${queryParams.toString()}`,
+    `/api/accounts/${accountId}/connections/${connectionId}/check-query?${queryParams.toString()}`,
     {
       method: 'GET',
     }

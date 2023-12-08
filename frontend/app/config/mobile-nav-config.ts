@@ -1,18 +1,26 @@
-export const MOBILE_MAIN_NAV = [
-  {
-    title: 'Overview',
-    href: '/',
-  },
-  {
-    title: 'Jobs',
-    href: '/jobs',
-  },
-  {
-    title: 'Connections',
-    href: '/connections',
-  },
-  {
-    title: 'Settings',
-    href: '/settings',
-  },
-];
+export function getMobileMainNav(
+  accountName: string
+): { title: string; href: string }[] {
+  return [
+    {
+      title: 'Overview',
+      href: `/`,
+    },
+    {
+      title: 'Jobs',
+      href: `/${accountName}/jobs`,
+    },
+    {
+      title: 'Transformers',
+      href: `/${accountName}/transformers`,
+    },
+    {
+      title: 'Connections',
+      href: `/${accountName}/connections`,
+    },
+    {
+      title: 'Settings',
+      href: `/${accountName}/settings`,
+    },
+  ];
+}

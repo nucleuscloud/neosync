@@ -1,12 +1,8 @@
 'use client';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { PageProps } from '@/components/types';
+import { ReactElement } from 'react';
+import AccountPage from './[account]/page';
 
-export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.push('/jobs');
-  });
-  return <div></div>;
+export default function Home(props: PageProps): ReactElement {
+  return <AccountPage {...props} />;
 }

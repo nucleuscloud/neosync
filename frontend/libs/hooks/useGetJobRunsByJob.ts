@@ -4,14 +4,19 @@ import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
 export function useGetJobRunsByJob(
+  accountId: string,
   jobId: string
 ): HookReply<GetJobRunsResponse> {
   return useNucleusAuthenticatedFetch<
     GetJobRunsResponse,
     JsonValue | GetJobRunsResponse
-  >(`/api/runs?jobId=${jobId}`, !!jobId, undefined, (data) =>
-    data instanceof GetJobRunsResponse
-      ? data
-      : GetJobRunsResponse.fromJson(data)
+  >(
+    `/api/accounts/${accountId}/runs?jobId=${jobId}`,
+    !!accountId && !!jobId,
+    undefined,
+    (data) =>
+      data instanceof GetJobRunsResponse
+        ? data
+        : GetJobRunsResponse.fromJson(data)
   );
 }

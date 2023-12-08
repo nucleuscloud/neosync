@@ -600,7 +600,7 @@ func (b *benthosBuilder) convertUserDefinedFunctionConfig(ctx context.Context, t
 	}
 
 	return &mgmtv1alpha1.JobMappingTransformer{
-		Source: t.Source,
+		Source: transformer.Msg.Transformer.Source,
 		Config: transformer.Msg.Transformer.Config,
 	}, nil
 }
