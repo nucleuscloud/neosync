@@ -12,7 +12,6 @@ import (
 )
 
 var alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
-var alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 // returns a random index from a one-dimensional slice
 func GetRandomValueFromSlice[T any](arr []T) (T, error) {
@@ -139,10 +138,10 @@ func GenerateRandomStringWithLength(l int64) (string, error) {
 	for i := int64(0); i < l; i++ {
 		// Generate a random index in the range [0, len(alphabet))
 		//nolint:all
-		index := rand.Intn(len(alphabet))
+		index := rand.Intn(len(alphanumeric))
 
 		// Get the character at the generated index and append it to the result
-		result[i] = alphabet[index]
+		result[i] = alphanumeric[index]
 	}
 
 	return strings.ToLower(string(result)), nil
