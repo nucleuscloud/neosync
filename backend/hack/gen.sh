@@ -6,9 +6,9 @@ update_frontend_client() {
 }
 
 update_docs() {
-  rm -rf ../docs/protos
-  mkdir -p ../docs/protos
-  mv gen/docs/** ../docs/protos
+  rm -rf ../docs/protos/data
+  mkdir -p ../docs/protos/data
+  mv gen/docs/** ../docs/protos/data
   rm -rf gen/docs
 }
 
