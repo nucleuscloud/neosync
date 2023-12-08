@@ -5,7 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "npm run proto-build && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -16,7 +16,8 @@
     "knip": "knip",
     "knip:production": "knip --production --strict",
     "prettier:check": "prettier --check .",
-    "prettier:write": "prettier --write ."
+    "prettier:write": "prettier --write .",
+    "proto-build": "docusaurus generate-proto-docs"
   },
   "dependencies": {
     "@docusaurus/core": "3.0.1",
