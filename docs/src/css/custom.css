@@ -67,7 +67,7 @@ this is the class for the sidebar categories that section headers
   @apply no-underline flex flex-row items-center;
 }
 .navbar__link {
-  @apply no-underline py-0;
+  @apply no-underline py-0 dark:text-gray-300 dark:hover:text-gray-300;
 }
 
 .navbar__link:hover {
@@ -75,7 +75,11 @@ this is the class for the sidebar categories that section headers
 }
 
 .breadcrumbs__item {
-  @apply flex flex-row items-center
+  @apply flex flex-row items-center;
+}
+
+.navbar__items--right {
+  @apply flex flex-row items-center gap-2;
 }
 
 @layer components {
@@ -87,12 +91,12 @@ this is the class for the sidebar categories that section headers
     @apply border-gray-700;
   }
 
-  [data-theme='light'] .home-icon {
+  /* [data-theme='light'] .home-icon {
     @apply text-gray-900;
   }
   [data-theme='dark'] .home-icon {
     @apply text-gray-100;
-  }
+  } */
 
   [data-theme='dark'] .breadcrumb-label {
     @apply text-gray-100 cursor-pointer text-sm rounded-full;

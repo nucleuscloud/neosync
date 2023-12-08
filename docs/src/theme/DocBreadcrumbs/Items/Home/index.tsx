@@ -21,7 +21,7 @@ export default function HomeBreadcrumbItem(props: Props): ReactElement {
         className="breadcrumbs__link"
         href={homeHref}
       >
-        <IconHome className={styles.breadcrumbHomeIcon} />
+        <IconHome className={styles['home-icon']} />
       </Link>
     </li>
   );
