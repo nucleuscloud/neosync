@@ -102,7 +102,7 @@ const config: Config = {
           position: 'right',
         },
         { to: '/', label: 'Docs' },
-        { to: '/protos', label: 'API' },
+        { to: '/api', label: 'API' },
       ],
     },
     footer: {
