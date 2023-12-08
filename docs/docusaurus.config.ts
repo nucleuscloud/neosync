@@ -68,11 +68,11 @@ const config: Config = {
         protobuffet: {
           fileDescriptorsPath: './protos/data/proto_docs.json',
           protoDocsPath: 'protos',
-          sidebarPath: './proto-sidebars.js',
+          sidebarPath: './protos/proto-sidebars.js',
         },
         docs: {
           routeBasePath: 'protos',
-          sidebarPath: './proto-sidebars.js',
+          sidebarPath: './proto-sidebars.ts',
         },
       },
     ],
