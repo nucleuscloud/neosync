@@ -111,7 +111,7 @@ this is the class for the sidebar categories that section headers
   }
 
   .menu__link {
-    @apply rounded-xl no-underline dark:text-gray-300;
+    @apply rounded-xl no-underline dark:text-gray-300 dark:hover:text-gray-300;
   }
 
   h2 {
