@@ -18,7 +18,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useSessionStorage } from 'usehooks-ts';
-import SubNav, { getNavSettings } from '../../temporal/components/SubNav';
 import RemoveAccountApiKeyButton from './components/RemoveAccountApiKeyButton';
 
 export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
@@ -90,9 +89,12 @@ export default function AccountApiKeyPage({ params }: PageProps): ReactElement {
       containerClassName="mx-24"
     >
       <div className="flex flex-col gap-4">
+<<<<<<< HEAD:frontend/app/[account]/settings/api-keys/[id]/page.tsx
         <div>
           <SubNav items={getNavSettings(account?.name ?? '')} />
         </div>
+=======
+>>>>>>> 28289980 (updates before rebase):frontend/app/settings/account-api-keys/[id]/page.tsx
         <ApiKeyDetails apiKey={data.apiKey} keyValue={apiKeyValue} />
       </div>
     </OverviewContainer>

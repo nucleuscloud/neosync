@@ -1,7 +1,5 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
@@ -15,14 +13,15 @@ import { DataTable } from './components/ApiKeysTable/data-table';
 export default function ApiKeys(): ReactElement {
   const { account } = useAccount();
   return (
-    <OverviewContainer
-      Header={
-        <PageHeader header="API Keys" extraHeading={<NewApiKeyButton />} />
-      }
-      containerClassName="apikeys-settings-page"
-    >
-      <ApiKeyTable />
-    </OverviewContainer>
+    <div>
+      <div className="flex justify-between">
+        <h1 className="text-xl font-bold tracking-tight">API Keys</h1>
+        <NewApiKeyButton />
+      </div>
+      <div className="mt-10">
+        <ApiKeyTable />
+      </div>
+    </div>
   );
 }
 
