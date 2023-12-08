@@ -22,6 +22,7 @@ const (
 	GenerateBool           Transformation = "generate_bool"
 	GenerateCardNumber     Transformation = "generate_card_number"
 	GenerateCity           Transformation = "generate_city"
+	GenerateDefault        Transformation = "generate_default"
 	GenerateE164Number     Transformation = "generate_e164_number"
 	GenerateFirstName      Transformation = "generate_first_name"
 	GenerateFloat          Transformation = "generate_float"
@@ -132,6 +133,17 @@ func (s *Service) GetSystemTransformers(
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
 						GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
+					},
+				},
+			},
+			{
+				Name:        "Generate Default",
+				Description: "Defers to the database column default",
+				DataType:    "string",
+				Source:      string(GenerateDefault),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+						GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
 					},
 				},
 			},
