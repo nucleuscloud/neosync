@@ -988,7 +988,6 @@ func mockJob(accountId, userId, srcConnId string) db_queries.NeosyncApiJob {
 	id, _ := nucleusdb.ToUuid(uuid.NewString())
 	accountUuid, _ := nucleusdb.ToUuid(accountId)
 	userUuid, _ := nucleusdb.ToUuid(userId)
-	// srcConnUuid, _ := nucleusdb.ToUuid(srcConnId)
 	currentTime := time.Now()
 	var timestamp pgtype.Timestamp
 	timestamp.Time = currentTime
