@@ -40,6 +40,7 @@ export default function AwsS3Form() {
         bucketArn: '',
       },
     },
+    context: { accountId: account?.id ?? '' },
   });
   const router = useRouter();
   const searchParams = useSearchParams();

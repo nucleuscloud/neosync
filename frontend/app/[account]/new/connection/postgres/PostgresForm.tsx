@@ -63,6 +63,7 @@ export default function PostgresForm() {
         sslMode: 'disable',
       },
     },
+    context: { accountId: account?.id ?? '' },
   });
   const router = useRouter();
   const searchParams = useSearchParams();

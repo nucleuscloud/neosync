@@ -63,6 +63,7 @@ export default function MysqlForm() {
         protocol: 'tcp',
       },
     },
+    context: { accountId: account?.id ?? '' },
   });
   const router = useRouter();
   const searchParams = useSearchParams();
