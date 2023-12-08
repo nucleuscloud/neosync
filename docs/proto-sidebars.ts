@@ -1,13 +1,15 @@
 import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
 import protosidebar from './protos/proto-sidebars';
 
-const protodocs =
-  protosidebar.protodocs.find(
-    (item) => item.type === 'category' && item.label === 'Files'
-  )?.items ?? [];
+const protodocs = protosidebar.protodocs.map((item) => {
+  if (item.type === 'category' && item.label === 'Files') {
+    item.label = 'Protos';
+  }
+  return item;
+});
 
 const all = [
-  { type: 'doc', label: 'Overview', id: 'home' },
+  { type: 'doc', label: 'Introduction', id: 'home' },
   { type: 'doc', label: 'Go', id: 'go' },
   ...protodocs,
 ];

@@ -70,7 +70,7 @@ const config: Config = {
           sidebarPath: './protos/proto-sidebars.js',
         },
         docs: {
-          routeBasePath: 'protos',
+          routeBasePath: 'api',
           sidebarPath: './proto-sidebars.ts',
         },
         blog: false,
