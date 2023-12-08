@@ -1,27 +1,28 @@
 'use client';
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import { UserAccount } from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
+import { useParams, useRouter } from 'next/navigation';
 import {
   ReactElement,
   ReactNode,
   createContext,
   useContext,
   useEffect,
+  useState,
 } from 'react';
-import { useLocalStorage } from 'usehooks-ts';
 
 interface AccountContextType {
   account: UserAccount | undefined;
-  setAccount: (updatedAccount: UserAccount) => void;
+  setAccount(updatedAccount: UserAccount): void;
   isLoading: boolean;
+  mutateUserAccount(): void;
 }
 const AccountContext = createContext<AccountContextType>({
   account: undefined,
   setAccount: () => {},
   isLoading: false,
+  mutateUserAccount() {},
 });
-
-const USER_ACCOUNT_KEY = 'user-account';
 
 interface Props {
   children: ReactNode;
@@ -29,35 +30,49 @@ interface Props {
 
 export default function AccountProvider(props: Props): ReactElement {
   const { children } = props;
-  const { data: accountsResponse, isLoading, mutate } = useGetUserAccounts();
+  const { account } = useParams();
+  const accountName = account ?? 'personal';
 
-  const [userAccount, setUserAccount] = useLocalStorage<
-    UserAccount | undefined
-  >(USER_ACCOUNT_KEY, undefined);
+  const { data: accountsResponse, isLoading, mutate } = useGetUserAccounts();
+  const router = useRouter();
+
+  const [userAccount, setUserAccount] = useState<UserAccount | undefined>(
+    undefined
+  );
 
   useEffect(() => {
-    if (
-      !userAccount &&
-      accountsResponse?.accounts &&
-      accountsResponse.accounts.length > 0
-    ) {
-      setUserAccount(accountsResponse.accounts[0]);
-    } else if (
-      userAccount &&
-      accountsResponse?.accounts &&
-      !accountsResponse.accounts.some((acc) => acc.id === userAccount.id)
-    ) {
-      setUserAccount(accountsResponse.accounts[0]);
+    if (isLoading) {
+      return;
     }
-  }, [userAccount, accountsResponse?.accounts.length, isLoading]);
+    if (userAccount?.name === accountName) {
+      return;
+    }
+    const foundAccount = accountsResponse?.accounts.find(
+      (a) => a.name === accountName
+    );
+    if (userAccount?.id === foundAccount?.id) {
+      return;
+    }
+    if (foundAccount) {
+      setUserAccount(foundAccount);
+    }
+  }, [userAccount, accountsResponse?.accounts.length, isLoading, accountName]);
 
-  function setAccount(userAccount?: UserAccount): void {
-    mutate().then(() => setUserAccount(userAccount));
+  function setAccount(userAccount: UserAccount): void {
+    if (userAccount.name !== accountName) {
+      router.push(`/${userAccount.name}`);
+      setUserAccount(userAccount);
+    }
   }
 
   return (
     <AccountContext.Provider
-      value={{ account: userAccount, setAccount: setAccount, isLoading }}
+      value={{
+        account: userAccount,
+        setAccount: setAccount,
+        isLoading,
+        mutateUserAccount: mutate,
+      }}
     >
       {children}
     </AccountContext.Provider>
@@ -67,22 +82,4 @@ export default function AccountProvider(props: Props): ReactElement {
 export function useAccount(): AccountContextType {
   const account = useContext(AccountContext);
   return account;
-}
-
-// Retrieves the account from local storage. Useful if need to retrieve outside of a hook
-export function getAccount(): UserAccount | undefined {
-  if (!localStorage) {
-    return undefined;
-  }
-  const item = localStorage.getItem(USER_ACCOUNT_KEY);
-  if (!item) {
-    return undefined;
-  }
-  try {
-    const val = JSON.parse(item) as UserAccount;
-    return val;
-  } catch (err) {
-    console.error(err);
-    return undefined;
-  }
 }

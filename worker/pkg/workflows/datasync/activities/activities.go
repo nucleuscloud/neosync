@@ -567,7 +567,7 @@ func (b *benthosBuilder) buildProcessorMutation(ctx context.Context, cols []*mgm
 	pieces := []string{}
 
 	for _, col := range cols {
-		if col.Transformer != nil && col.Transformer.Source != "" && col.Transformer.Source != "passthrough" {
+		if col.Transformer != nil && col.Transformer.Source != "" && col.Transformer.Source != "passthrough" && col.Transformer.Source != "generate_default" {
 
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 
@@ -600,7 +600,7 @@ func (b *benthosBuilder) convertUserDefinedFunctionConfig(ctx context.Context, t
 	}
 
 	return &mgmtv1alpha1.JobMappingTransformer{
-		Source: t.Source,
+		Source: transformer.Msg.Transformer.Source,
 		Config: transformer.Msg.Transformer.Config,
 	}, nil
 }
@@ -721,6 +721,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t)`, col.Column, pl), nil
 	case "null":
 		return "null", nil
+	case "generate_default":
+		return "default", nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

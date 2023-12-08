@@ -4,14 +4,15 @@ import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
 export function useGetConnectionSchema(
+  accountId: string,
   connectionId?: string
 ): HookReply<GetConnectionSchemaResponse> {
   return useNucleusAuthenticatedFetch<
     GetConnectionSchemaResponse,
     JsonValue | GetConnectionSchemaResponse
   >(
-    `/api/connections/${connectionId}/schema`,
-    !!connectionId,
+    `/api/accounts/${accountId}/connections/${connectionId}/schema`,
+    !!accountId && !!connectionId,
     undefined,
     (data) =>
       data instanceof GetConnectionSchemaResponse

@@ -16,6 +16,7 @@ type TransformerConfigs struct {
 	GenerateBool           *GenerateBoolConfig           `json:"generateBool,omitempty"`
 	GenerateCardNumber     *GenerateCardNumberConfig     `json:"generateCardNumber,omitempty"`
 	GenerateCity           *GenerateCityConfig           `json:"generateCity,omitempty"`
+	GenerateDefault        *GenerateDefaultConfig        `json:"generateDefault,omitempty"`
 	GenerateE164Number     *GenerateE164NumberConfig     `json:"generateE164Number,omitempty"`
 	GenerateFirstName      *GenerateFirstNameConfig      `json:"generateFirstName,omitempty"`
 	GenerateFloat          *GenerateFloatConfig          `json:"generateFloat,omitempty"`
@@ -66,6 +67,8 @@ type GenerateCardNumberConfig struct {
 }
 
 type GenerateCityConfig struct{}
+
+type GenerateDefaultConfig struct{}
 
 type GenerateE164NumberConfig struct {
 	Length int64 `json:"length"`
@@ -207,6 +210,8 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateCityConfig:
 		t.GenerateCity = &GenerateCityConfig{}
+	case *mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig:
+		t.GenerateDefault = &GenerateDefaultConfig{}
 	case *mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig:
 		t.GenerateE164Number = &GenerateE164NumberConfig{
 			Length: tr.GetGenerateE164NumberConfig().Length,
@@ -369,6 +374,10 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
 				GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
 			},
+		}
+	case t.GenerateDefault != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{},
 		}
 	case t.GenerateE164Number != nil:
 		return &mgmtv1alpha1.TransformerConfig{

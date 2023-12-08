@@ -10,6 +10,7 @@ import { fontSans } from '@/libs/fonts';
 import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
+import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
   title: 'Neosync',
@@ -21,7 +22,7 @@ export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}): Promise<ReactElement> {
   const session = await getServerSession(getAuthOptions());
   return (
     <html lang="en" suppressHydrationWarning>

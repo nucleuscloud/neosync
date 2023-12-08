@@ -68,8 +68,8 @@ const config: Config = {
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
       defaultMode: 'light',
-      // disableSwitch: false,
-      respectPrefersColorScheme: true,
+      disableSwitch: true,
+      //respectPrefersColorScheme: true,
     },
     navbar: {
       logo: {

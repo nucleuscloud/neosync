@@ -129,6 +129,8 @@ message TransformerConfig {
     Null nullconfig = 37;
 
     UserDefinedTransformerConfig user_defined_transformer_config = 38;
+
+    GenerateDefault generate_default_config = 39;
   }
 }
 
@@ -148,6 +150,8 @@ message GenerateCardNumber {
 }
 
 message GenerateCity {}
+
+message GenerateDefault {}
 
 message GenerateE164Number {
   int64 length = 1;

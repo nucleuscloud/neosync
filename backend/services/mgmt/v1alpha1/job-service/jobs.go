@@ -937,8 +937,22 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 		return nil, err
 	}
 
+	var connectionId *string
+	if job.ConnectionOptions != nil {
+		if job.ConnectionOptions.MysqlOptions != nil {
+			connectionId = &job.ConnectionOptions.MysqlOptions.ConnectionId
+		} else if job.ConnectionOptions.PostgresOptions != nil {
+			connectionId = &job.ConnectionOptions.PostgresOptions.ConnectionId
+		} else {
+			return nil, nucleuserrors.NewBadRequest("only jobs with a valid source connection id may be subset")
+		}
+	}
+	if connectionId == nil || *connectionId == "" {
+		return nil, nucleuserrors.NewInternalError("unable to find connection id")
+	}
+
 	connectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: nucleusdb.UUIDString(job.ConnectionSourceID),
+		Id: *connectionId,
 	}))
 	if err != nil {
 		return nil, err

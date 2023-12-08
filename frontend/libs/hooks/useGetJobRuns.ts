@@ -17,7 +17,7 @@ export function useGetJobRuns(
 ): HookReply<GetJobRunsResponse> {
   const { refreshIntervalFn, isPaused } = opts;
   return useNucleusAuthenticatedFetch<GetJobRunsResponse, JsonValue>(
-    `/api/runs?accountId=${accountId}`,
+    `/api/accounts/${accountId}/runs`,
     !!accountId,
     {
       refreshInterval: getRefreshIntervalFn(refreshIntervalFn),
