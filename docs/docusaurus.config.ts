@@ -1,8 +1,7 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-import type * as Preset from '@docusaurus/preset-classic';
-import { Config } from '@docusaurus/types';
+import type { Config } from '@docusaurus/types';
 import { themes } from 'prism-react-renderer';
 
 const config: Config = {
@@ -10,7 +9,7 @@ const config: Config = {
   tagline: 'Open source Test Data Management',
   favicon: 'img/logo_light_mode.png',
 
-  // Set the production url of your site here
+  // Set the production url of your s here
   url: 'https://docs.neosync.dev',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
@@ -60,7 +59,7 @@ const config: Config = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
-      } satisfies Preset.Options,
+      },
     ],
     [
       'docusaurus-protobuffet',
@@ -91,11 +90,14 @@ const config: Config = {
         srcDark: 'img/logo_and_text_dark_mode.png',
         src: 'img/logo_and_text_light_mode.png',
       },
+
       items: [
         {
           type: 'custom-Gitlink',
           position: 'right',
         },
+        { to: '/', label: 'Docs' },
+        { to: '/protos', label: 'API' },
       ],
     },
     footer: {
@@ -106,7 +108,7 @@ const config: Config = {
       theme: themes.github,
       darkTheme: themes.dracula,
     },
-  } satisfies Preset.ThemeConfig,
+  },
 };
 
 export default config;
