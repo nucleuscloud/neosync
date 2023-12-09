@@ -1,6 +1,6 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import { GetJobRecentRunsRequest } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { RequestContext } from '@/shared';
+import { GetJobRecentRunsRequest } from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.jobsClient.getJobRecentRuns(
+    return ctx.client.jobs.getJobRecentRuns(
       new GetJobRecentRunsRequest({
         jobId: params.id,
       })

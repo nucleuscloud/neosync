@@ -1,9 +1,6 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import {
-  CreateJobRequest,
-  GetJobsRequest,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { RequestContext } from '@/shared';
+import { CreateJobRequest, GetJobsRequest } from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -11,7 +8,7 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.jobsClient.getJobs(
+    return ctx.client.jobs.getJobs(
       new GetJobsRequest({
         accountId: params.accountId,
       })
@@ -22,6 +19,6 @@ export async function GET(
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     const body = CreateJobRequest.fromJson(await req.json());
-    return ctx.jobsClient.createJob(body);
+    return ctx.client.jobs.createJob(body);
   })(req);
 }

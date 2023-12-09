@@ -1,6 +1,6 @@
 'use client';
-import { GetAccountApiKeyResponse } from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
 import { JsonValue } from '@bufbuild/protobuf';
+import { GetAccountApiKeyResponse } from '@neosync/sdk';
 import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 

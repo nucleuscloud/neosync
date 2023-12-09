@@ -22,12 +22,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
+import { getErrorMessage } from '@/util/util';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   InviteUserToTeamAccountRequest,
   InviteUserToTeamAccountResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
-import { getErrorMessage } from '@/util/util';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import { DialogClose } from '@radix-ui/react-dialog';
 import { PlusIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';

@@ -16,8 +16,14 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { getErrorMessage } from '@/util/util';
 import {
+  SchemaFormValues,
+  toJobDestinationOptions,
+} from '@/yup-validations/jobs';
+import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  Connection,
   CreateJobRequest,
   CreateJobResponse,
   JobDestination,
@@ -27,13 +33,7 @@ import {
   JobSourceOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { getErrorMessage } from '@/util/util';
-import {
-  SchemaFormValues,
-  toJobDestinationOptions,
-} from '@/yup-validations/jobs';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';

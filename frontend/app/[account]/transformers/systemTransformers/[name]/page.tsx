@@ -21,8 +21,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
-import { SystemTransformer } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { SystemTransformer } from '@neosync/sdk';
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';

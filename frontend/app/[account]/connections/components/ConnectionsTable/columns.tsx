@@ -4,12 +4,9 @@ import { ColumnDef } from '@tanstack/react-table';
 
 import NextLink from 'next/link';
 
-import {
-  Connection,
-  ConnectionConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { Connection, ConnectionConfig } from '@neosync/sdk';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 

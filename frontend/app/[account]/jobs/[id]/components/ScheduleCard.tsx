@@ -19,13 +19,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { getErrorMessage } from '@/util/util';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Job,
   UpdateJobScheduleRequest,
   UpdateJobScheduleResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { getErrorMessage } from '@/util/util';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import cron from 'cron-validate';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';

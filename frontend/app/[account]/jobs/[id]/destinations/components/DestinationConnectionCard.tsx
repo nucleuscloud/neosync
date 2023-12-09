@@ -19,19 +19,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
-import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import {
-  JobDestination,
-  JobDestinationOptions,
-  UpdateJobDestinationConnectionRequest,
-  UpdateJobDestinationConnectionResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
 import {
   DESTINATION_FORM_SCHEMA,
   toJobDestinationOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  Connection,
+  JobDestination,
+  JobDestinationOptions,
+  UpdateJobDestinationConnectionRequest,
+  UpdateJobDestinationConnectionResponse,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';

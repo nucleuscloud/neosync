@@ -26,8 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { JobRunEvent } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTimeMilliseconds } from '@/util/util';
+import { JobRunEvent } from '@neosync/sdk';
 import { DataTablePagination } from './data-table-pagination';
 
 interface DataTableProps {

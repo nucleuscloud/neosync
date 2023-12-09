@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/libs/utils';
-import { JobRunStatus as JobRunStatusEnum } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import { ReactElement } from 'react';
 
 interface Props {

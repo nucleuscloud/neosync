@@ -1,6 +1,6 @@
 'use client';
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
-import { UserAccount } from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
+import { UserAccount } from '@neosync/sdk';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ReactElement,

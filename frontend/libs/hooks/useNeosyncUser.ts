@@ -2,8 +2,8 @@
 import useSWR, { KeyedMutator } from 'swr';
 
 import { isAuthEnabled } from '@/api-only/auth-config';
-import { SetUserResponse } from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
 import { JsonValue } from '@bufbuild/protobuf';
+import { SetUserResponse } from '@neosync/sdk';
 import { useSession } from 'next-auth/react';
 import { fetcher } from '../fetcher';
 import { HookReply } from './types';

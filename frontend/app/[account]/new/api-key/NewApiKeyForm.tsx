@@ -25,14 +25,14 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/libs/utils';
+import { getErrorMessage } from '@/util/util';
+import { Timestamp } from '@bufbuild/protobuf';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CreateAccountApiKeyRequest,
   CreateAccountApiKeyResponse,
   GetAccountApiKeyResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
-import { getErrorMessage } from '@/util/util';
-import { Timestamp } from '@bufbuild/protobuf';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { PopoverTrigger } from '@radix-ui/react-popover';
 import { addDays } from 'date-fns';

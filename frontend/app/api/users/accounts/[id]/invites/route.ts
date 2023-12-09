@@ -1,10 +1,10 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
+import { RequestContext } from '@/shared';
 import {
   GetTeamAccountInvitesRequest,
   InviteUserToTeamAccountRequest,
   RemoveTeamAccountInviteRequest,
-} from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
-import { RequestContext } from '@/shared';
+} from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -12,7 +12,7 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.userClient.getTeamAccountInvites(
+    return ctx.client.users.getTeamAccountInvites(
       new GetTeamAccountInvitesRequest({
         accountId: params.id,
       })
@@ -22,7 +22,7 @@ export async function GET(
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) =>
-    ctx.userClient.inviteUserToTeamAccount(
+    ctx.client.users.inviteUserToTeamAccount(
       InviteUserToTeamAccountRequest.fromJson(await req.json())
     )
   )(req);
@@ -35,7 +35,7 @@ export async function DELETE(
   const { searchParams } = new URL(req.url);
   const inviteId = searchParams.get('id') ?? '';
   return withNeosyncContext(async (ctx) => {
-    return ctx.userClient.removeTeamAccountInvite(
+    return ctx.client.users.removeTeamAccountInvite(
       new RemoveTeamAccountInviteRequest({
         id: inviteId,
       })

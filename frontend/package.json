@@ -19,6 +19,7 @@
     "@bufbuild/protobuf": "^1.5.0",
     "@connectrpc/connect": "^1.0.0",
     "@connectrpc/connect-node": "^1.1.4",
+    "@neosync/sdk": "file://../sdk/ts-client",
     "@hookform/resolvers": "^3.3.2",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-avatar": "^1.0.4",

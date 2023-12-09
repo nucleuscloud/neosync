@@ -1,5 +1,5 @@
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import { JobRunEvent } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { JobRunEvent } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { getColumns } from './JobRunActivityTable/columns';
 import { DataTable } from './JobRunActivityTable/data-table';

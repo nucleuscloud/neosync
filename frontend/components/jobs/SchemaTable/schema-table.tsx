@@ -7,9 +7,9 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
-import { GetConnectionSchemaResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { joinTransformers } from '@/shared/transformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
+import { GetConnectionSchemaResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { VirtualizedSchemaTable } from './VirtualizedSchemaTable';
 

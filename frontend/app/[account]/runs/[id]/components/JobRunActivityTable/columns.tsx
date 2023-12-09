@@ -3,13 +3,13 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { formatDateTimeMilliseconds } from '@/util/util';
+import { Timestamp } from '@bufbuild/protobuf';
 import {
   JobRunEvent,
   JobRunEventMetadata,
   JobRunEventTaskError,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { formatDateTimeMilliseconds } from '@/util/util';
-import { Timestamp } from '@bufbuild/protobuf';
+} from '@neosync/sdk';
 import {
   ChevronDownIcon,
   ChevronRightIcon,

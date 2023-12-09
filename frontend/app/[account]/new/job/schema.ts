@@ -1,10 +1,10 @@
-import { IsJobNameAvailableResponse } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import {
   DESTINATION_FORM_SCHEMA,
   JOB_MAPPING_COLUMN_SCHEMA,
   SCHEMA_FORM_SCHEMA,
   SOURCE_FORM_SCHEMA,
 } from '@/yup-validations/jobs';
+import { IsJobNameAvailableResponse } from '@neosync/sdk';
 import * as Yup from 'yup';
 
 export const DEFINE_FORM_SCHEMA = Yup.object({

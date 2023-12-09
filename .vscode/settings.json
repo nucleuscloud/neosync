@@ -7,8 +7,8 @@
   },
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports": true,
-    "source.fixAll": true,
+    "source.organizeImports": "explicit",
+    "source.fixAll": "explicit"
   },
   "typescript.tsdk": "frontend/node_modules/typescript/lib"
 }

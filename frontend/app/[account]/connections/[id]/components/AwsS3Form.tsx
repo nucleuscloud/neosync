@@ -17,15 +17,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   AwsS3ConnectionConfig,
   AwsS3Credentials,
   ConnectionConfig,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 

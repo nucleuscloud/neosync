@@ -24,6 +24,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
+import { getErrorMessage } from '@/util/util';
+import {
+  MYSQL_CONNECTION_PROTOCOLS,
+  MYSQL_FORM_SCHEMA,
+  MysqlFormValues,
+} from '@/yup-validations/connections';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigRequest,
   CheckConnectionConfigResponse,
@@ -32,14 +39,7 @@ import {
   CreateConnectionResponse,
   MysqlConnection,
   MysqlConnectionConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { getErrorMessage } from '@/util/util';
-import {
-  MYSQL_CONNECTION_PROTOCOLS,
-  MYSQL_FORM_SCHEMA,
-  MysqlFormValues,
-} from '@/yup-validations/connections';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,

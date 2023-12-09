@@ -12,12 +12,8 @@ import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { cn } from '@/libs/utils';
-import {
-  GetJobStatusResponse,
-  Job,
-  JobStatus,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
+import { GetJobStatusResponse, Job, JobStatus } from '@neosync/sdk';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';

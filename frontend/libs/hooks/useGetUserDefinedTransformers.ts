@@ -1,5 +1,5 @@
-import { GetUserDefinedTransformersResponse } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { JsonValue } from '@bufbuild/protobuf';
+import { GetUserDefinedTransformersResponse } from '@neosync/sdk';
 import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 

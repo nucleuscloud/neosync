@@ -7,7 +7,7 @@ import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { useGetJobStatuses } from '@/libs/hooks/useGetJobStatuses';
 import { useGetJobs } from '@/libs/hooks/useGetJobs';
-import { JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { JobStatus } from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';

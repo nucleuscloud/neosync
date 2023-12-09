@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { cn } from '@/libs/utils';
-import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { UserDefinedTransformerConfig } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import {
   Transformer,
   isSystemTransformer,
@@ -15,6 +13,10 @@ import {
   SchemaFormValues,
   TransformerFormValues,
 } from '@/yup-validations/jobs';
+import {
+  JobMappingTransformer,
+  UserDefinedTransformerConfig,
+} from '@neosync/sdk';
 import { UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {

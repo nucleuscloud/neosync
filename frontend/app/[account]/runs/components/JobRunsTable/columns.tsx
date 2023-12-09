@@ -2,9 +2,9 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 
-import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { JobRun } from '@neosync/sdk';
 import NextLink from 'next/link';
 import JobRunStatus from '../JobRunStatus';
 import { DataTableColumnHeader } from './data-table-column-header';

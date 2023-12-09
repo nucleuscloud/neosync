@@ -1,21 +1,21 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
 import {
+  EXISTING_POSTGRES_CONNECTION,
+  NEW_POSTGRES_CONNECTION,
+} from '@/yup-validations/connections';
+import {
   ConnectionConfig,
   CreateConnectionRequest,
   PostgresConnection,
   PostgresConnectionConfig,
   UpdateConnectionRequest,
-} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import {
-  EXISTING_POSTGRES_CONNECTION,
-  NEW_POSTGRES_CONNECTION,
-} from '@/yup-validations/connections';
+} from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     const jsonbody = await NEW_POSTGRES_CONNECTION.validate(await req.json());
-    return ctx.connectionClient.createConnection(
+    return ctx.client.connections.createConnection(
       new CreateConnectionRequest({
         name: jsonbody.connectionName,
         connectionConfig: new ConnectionConfig({
@@ -46,7 +46,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     const jsonbody = await EXISTING_POSTGRES_CONNECTION.validate(
       await req.json()
     );
-    return ctx.connectionClient.updateConnection(
+    return ctx.client.connections.updateConnection(
       new UpdateConnectionRequest({
         id: jsonbody.id,
         connectionConfig: new ConnectionConfig({

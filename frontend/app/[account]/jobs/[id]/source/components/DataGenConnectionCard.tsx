@@ -28,8 +28,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetJob } from '@/libs/hooks/useGetJob';
-import { DatabaseColumn } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { getErrorMessage } from '@/util/util';
+import { TransformerFormValues } from '@/yup-validations/jobs';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  DatabaseColumn,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
@@ -38,16 +41,11 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
-  UpdateJobSourceConnectionRequest,
-  UpdateJobSourceConnectionResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import {
   Passthrough,
   TransformerConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-import { getErrorMessage } from '@/util/util';
-import { TransformerFormValues } from '@/yup-validations/jobs';
-import { yupResolver } from '@hookform/resolvers/yup';
+  UpdateJobSourceConnectionRequest,
+  UpdateJobSourceConnectionResponse,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { SchemaMap, getColumnMapping } from './DataSyncConnectionCard';

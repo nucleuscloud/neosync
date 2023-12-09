@@ -1,5 +1,5 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckSqlQueryResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { CheckSqlQueryResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
 
 interface Props {

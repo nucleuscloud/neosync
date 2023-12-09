@@ -1,7 +1,7 @@
 import { SubsetFormValues } from '@/app/[account]/new/job/schema';
 import { transformerConfig } from '@/app/[account]/new/transformer/schema';
-import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import {
+  Connection,
   JobDestinationOptions,
   MysqlDestinationConnectionOptions,
   MysqlTruncateTableConfig,
@@ -9,7 +9,7 @@ import {
   PostgresSourceSchemaOption,
   PostgresSourceTableOption,
   PostgresTruncateTableConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+} from '@neosync/sdk';
 import * as Yup from 'yup';
 
 const TRANSFORMER_SCHEMA = Yup.object().shape({

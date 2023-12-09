@@ -9,12 +9,12 @@ import { ReactElement } from 'react';
 
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import { cn } from '@/libs/utils';
+import { getErrorMessage } from '@/util/util';
 import {
   CreateTeamAccountRequest,
   CreateTeamAccountResponse,
   UserAccountType,
-} from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
-import { getErrorMessage } from '@/util/util';
+} from '@neosync/sdk';
 import { useAccount } from './providers/account-provider';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';

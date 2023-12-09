@@ -30,13 +30,17 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { getErrorMessage } from '@/util/util';
+import {
+  TransformerFormValues,
+  toJobDestinationOptions,
+} from '@/yup-validations/jobs';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Connection,
-  DatabaseColumn,
-} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import {
   CreateJobRequest,
   CreateJobResponse,
+  DatabaseColumn,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
@@ -45,14 +49,8 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { TransformerConfig } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-import { getErrorMessage } from '@/util/util';
-import {
-  TransformerFormValues,
-  toJobDestinationOptions,
-} from '@/yup-validations/jobs';
-import { yupResolver } from '@hookform/resolvers/yup';
+  TransformerConfig,
+} from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';

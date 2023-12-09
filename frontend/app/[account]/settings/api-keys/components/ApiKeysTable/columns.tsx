@@ -5,9 +5,9 @@ import { ColumnDef } from '@tanstack/react-table';
 import NextLink from 'next/link';
 
 import { Badge, BadgeProps } from '@/components/ui/badge';
-import { AccountApiKey } from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { AccountApiKey } from '@neosync/sdk';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 

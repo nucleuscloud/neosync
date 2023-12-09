@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { CheckSqlQueryResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { CheckSqlQueryResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
 
 interface Props {

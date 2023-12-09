@@ -1,8 +1,5 @@
-import {
-  GetJobRunResponse,
-  JobRunStatus,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { JsonValue } from '@bufbuild/protobuf';
+import { GetJobRunResponse, JobRunStatus } from '@neosync/sdk';
 import { getRefreshIntervalFn } from '../utils';
 import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';

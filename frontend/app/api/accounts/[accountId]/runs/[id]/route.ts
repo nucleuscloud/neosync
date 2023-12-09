@@ -1,9 +1,6 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import {
-  DeleteJobRunRequest,
-  GetJobRunRequest,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { RequestContext } from '@/shared';
+import { DeleteJobRunRequest, GetJobRunRequest } from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -11,7 +8,7 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.jobsClient.getJobRun(
+    return ctx.client.jobs.getJobRun(
       new GetJobRunRequest({
         jobRunId: params.id,
         accountId: params.accountId,
@@ -25,7 +22,7 @@ export async function DELETE(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.jobsClient.deleteJobRun(
+    return ctx.client.jobs.deleteJobRun(
       new DeleteJobRunRequest({
         jobRunId: params.id,
         accountId: params.accountId,

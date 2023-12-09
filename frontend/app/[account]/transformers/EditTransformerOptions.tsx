@@ -10,11 +10,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-  SystemTransformer,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { Transformer } from '@/shared/transformers';
+import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
 import {
   Cross2Icon,
   MixerHorizontalIcon,

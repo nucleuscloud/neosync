@@ -12,8 +12,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useGetJobNextRuns } from '@/libs/hooks/useGetJobNextRuns';
-import { JobStatus } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
+import { JobStatus } from '@neosync/sdk';
 import { ReactElement } from 'react';
 
 interface Props {

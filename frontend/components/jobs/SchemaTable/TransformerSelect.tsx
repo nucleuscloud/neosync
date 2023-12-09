@@ -12,19 +12,19 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
-import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import {
-  SystemTransformer,
-  TransformerConfig,
-  UserDefinedTransformer,
-  UserDefinedTransformerConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import {
   Transformer,
   isSystemTransformer,
   isUserDefinedTransformer,
 } from '@/shared/transformers';
 import { TransformerFormValues } from '@/yup-validations/jobs';
+import {
+  JobMappingTransformer,
+  SystemTransformer,
+  TransformerConfig,
+  UserDefinedTransformer,
+  UserDefinedTransformerConfig,
+} from '@neosync/sdk';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 
