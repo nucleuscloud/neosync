@@ -6,11 +6,11 @@ import {
 } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-node";
 
-import { ApiKeyService } from "./v1alpha1/api_key_connect";
-import { ConnectionService } from "./v1alpha1/connection_connect";
-import { JobService } from "./v1alpha1/job_connect";
-import { TransformersService } from "./v1alpha1/transformer_connect";
-import { UserAccountService } from "./v1alpha1/user_account_connect";
+import { ApiKeyService } from "./mgmt/v1alpha1/api_key_connect";
+import { ConnectionService } from "./mgmt/v1alpha1/connection_connect";
+import { JobService } from "./mgmt/v1alpha1/job_connect";
+import { TransformersService } from "./mgmt/v1alpha1/transformer_connect";
+import { UserAccountService } from "./mgmt/v1alpha1/user_account_connect";
 
 export type NeosyncClient = NeosyncV1alpha1Client;
 export type ClientVersion = "v1alpha1" | "latest";
