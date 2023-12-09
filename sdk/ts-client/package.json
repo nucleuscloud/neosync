@@ -26,8 +26,8 @@
     "build:esm": "tsc -p ./tsconfig.json && mv dist/esm/index.js dist/esm/index.mjs",
     "build:cjs": "tsc -p ./tsconfig.cjs.json"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "nickzelei",
+  "license": "MIT",
   "devDependencies": {
     "typescript": "^5.3.3"
   }
