@@ -2,6 +2,7 @@ package sync_cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
+	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
@@ -109,25 +111,58 @@ func NewCmd() *cobra.Command {
 				return fmt.Errorf("must provide destination-connection-url")
 			}
 
-			return sync(cmd.Context(), apiKey, config)
+			accountId, err := cmd.Flags().GetString("account-id")
+			if err != nil {
+				return err
+			}
+
+			return sync(cmd.Context(), apiKey, &accountId, config)
 		},
 	}
 
 	cmd.Flags().String("connection-id", "", "Connection id for sync source")
 	cmd.Flags().String("destination-connection-url", "", "Connection url for sync output")
 	cmd.Flags().String("destination-driver", "", "Connection driver for sync output")
+	cmd.Flags().String("account-id", "", "Account source connection is in. Defaults to account id in cli context")
 	cmd.Flags().String("config", "", `Location of config file`)
 	return cmd
 }
 
 func sync(
 	ctx context.Context,
-	apiKey *string,
+	apiKey, accountIdFlag *string,
 	cmd *cmdConfig,
 ) error {
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
 		return err
+	}
+
+	var token *string
+	if isAuthEnabled {
+		if apiKey != nil && *apiKey != "" {
+			token = apiKey
+		} else {
+			accessToken, err := userconfig.GetAccessToken()
+			if err != nil {
+				return err
+			}
+			token = &accessToken
+		}
+	}
+
+	var accountId = accountIdFlag
+	if accountId == nil || *accountId == "" {
+		aId, err := userconfig.GetAccountId()
+		if err != nil {
+			fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") // nolint
+			return err
+		}
+		accountId = &aId
+	}
+
+	if accountId == nil || *accountId == "" {
+		return errors.New("Account Id not found. Please use account switch command to set account.")
 	}
 
 	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(
@@ -137,6 +172,26 @@ func sync(
 			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
 		),
 	)
+
+	connection, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: cmd.ConnectionId,
+	}))
+	if err != nil {
+		return err
+	}
+
+	if connection.Msg.Connection.AccountId != *accountId {
+		return errors.New(fmt.Sprintf("Connection not found. AccountId: %s", *accountId)) // nolint
+	}
+
+	if cmd.Destination.Driver != "mysql" && cmd.Destination.Driver != "postgres" {
+		return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
+	}
+
+	err = areSourceAndDestCompatible(connection.Msg.Connection, cmd.Destination.Driver)
+	if err != nil {
+		return err
+	}
 
 	fmt.Println("retrieving connection schema...") // nolint
 	schemaResp, err := connectionclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
@@ -171,7 +226,7 @@ func sync(
 			}
 		}
 
-		benthosConfig := generateBenthosConfig(cmd, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), table.Columns, dependsOn, apiKey)
+		benthosConfig := generateBenthosConfig(cmd, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), table.Columns, dependsOn, token)
 		configs = append(configs, benthosConfig)
 	}
 
@@ -200,6 +255,24 @@ func sync(
 	return nil
 }
 
+func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver string) error {
+	switch connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		if destinationDriver != "postgres" {
+			return fmt.Errorf("Connection and destination types are incompatible [postgres, %s]", destinationDriver)
+		}
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		if destinationDriver != "mysql" {
+			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", destinationDriver)
+		}
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		return errors.New("AWS S3 is not a supported source.")
+	default:
+		return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
+	}
+	return nil
+}
+
 func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	fmt.Printf("syncing data for %s \n", cfg.Name) // nolint
 	configbits, err := yaml.Marshal(cfg.Config)
@@ -211,8 +284,6 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	go func() {
 		for { // nolint
 			select {
-			// case <-time.After(1 * time.Second):
-			// 	activity.RecordHeartbeat(ctx)
 			case <-ctx.Done():
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
