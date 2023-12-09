@@ -24,36 +24,26 @@ import (
 )
 
 var (
-	// appStyle = lipgloss.NewStyle().Padding(1, 2)
-
 	titleStyle = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFDF5")).
 		Background(lipgloss.Color("#25A065")).
 		Padding(0, 1)
-
-	// statusMessageStyle = lipgloss.NewStyle().
-	// 			Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"}).
-	// 			Render
 )
 
 const listHeight = 14
 
 var (
-	// titleStyle        = lipgloss.NewStyle().MarginLeft(2)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(2)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
 	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 )
 
-// type item string
-
-// func (i item) FilterValue() string { return "" }
-
 type item struct {
 	title       string
 	description string
+	isCurrent   bool
 }
 
 func (i item) Title() string       { return i.title }
@@ -71,14 +61,18 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	// str := fmt.Sprintf("┃ %s \n┃ %s \n", i.title, i.description)
-	str := fmt.Sprintf("%s %s \n", i.title, i.description)
+	var str = i.title
+	if i.description != "" {
+		str = fmt.Sprintf("%s (%s)", str, i.description)
+	}
+	if i.isCurrent {
+		str = fmt.Sprintf("%s (current)", str)
+	}
 
 	fn := itemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
 			return selectedItemStyle.Render("> " + strings.Join(s, " "))
-			// return selectedItemStyle.Render("> " + strings.Join(s, " "))
 		}
 	}
 
@@ -87,7 +81,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 type model struct {
 	list     list.Model
-	choice   string
+	choice   item
 	quitting bool
 }
 
@@ -110,7 +104,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			i, ok := m.list.SelectedItem().(item)
 			if ok {
-				m.choice = i.title
+				m.choice = i
 			}
 			return m, tea.Quit
 		}
@@ -122,11 +116,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	if m.choice != "" {
-		return quitTextStyle.Render(fmt.Sprintf("%s? Sounds good to me.", m.choice))
+	if m.choice.description != "" {
+		err := userconfig.SetAccountId(m.choice.description)
+		if err != nil {
+			return quitTextStyle.Render(fmt.Sprintf("Failed to switch accounts. Error %s", err.Error()))
+		}
+		return quitTextStyle.Render(fmt.Sprintf("Switched account to %s", m.choice.title))
 	}
-	if m.quitting {
-		return quitTextStyle.Render("Not hungry? That’s cool.")
+	if m.quitting || m.choice.title == "Cancel" {
+		return quitTextStyle.Render("Canceling...")
 	}
 	return "\n" + m.list.View()
 }
@@ -152,17 +150,18 @@ func newSwitchCmd() *cobra.Command {
 			}
 
 			cmd.SilenceUsage = true
-			return switchAccount(cmd.Context(), &apiKey, &id, &name)
+			flagCount := cmd.Flags().NFlag()
+			return switchAccount(cmd.Context(), flagCount, &apiKey, &id, &name)
 		},
 	}
 	cmd.Flags().String("id", "", "Account id to switch to")
 	cmd.Flags().String("name", "", "Account name to switch to")
-	cmd.MarkFlagsOneRequired("id", "name")
 	return cmd
 }
 
 func switchAccount(
 	ctx context.Context,
+	flagCount int,
 	apiKey, id, name *string,
 ) error {
 
@@ -186,34 +185,44 @@ func switchAccount(
 	if err != nil {
 		return err
 	}
+
+	currentAccountId, _ := userconfig.GetAccountId()
+
 	accounts := accountsResp.Msg.Accounts
 	if len(accounts) == 0 {
 		return errors.New("unable to find accounts for user")
 	}
 
-	items := []list.Item{}
-	for _, a := range accounts {
-		items = append(items, item{
-			title:       a.Name,
-			description: a.Id,
-		})
-	}
+	if flagCount == 0 {
+		items := []list.Item{}
+		for _, a := range accounts {
+			isCurrent := a.Id == currentAccountId
+			items = append(items, item{
+				title:       a.Name,
+				description: a.Id,
+				isCurrent:   isCurrent,
+			})
+		}
+		items = append(items, item{title: "Cancel"})
 
-	const defaultWidth = 20
+		const defaultWidth = 20
 
-	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
-	l.Title = "Select an account"
-	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
-	l.Styles.Title = titleStyle
-	l.Styles.PaginationStyle = paginationStyle
-	l.Styles.HelpStyle = helpStyle
+		l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
+		l.Title = "Select an account"
+		l.SetShowStatusBar(false)
+		l.SetFilteringEnabled(false)
+		l.Styles.Title = titleStyle
+		l.Styles.PaginationStyle = paginationStyle
+		l.Styles.HelpStyle = helpStyle
 
-	m := model{list: l}
+		m := model{list: l}
 
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+		if _, err := tea.NewProgram(m).Run(); err != nil {
+			fmt.Println("Error running program:", err) // nolint
+			os.Exit(1)
+		}
+		return nil
+
 	}
 
 	var account *mgmtv1alpha1.UserAccount
@@ -242,8 +251,7 @@ func switchAccount(
 		return err
 	}
 
-	fmt.Println("Switched accounts")                            // nolint
-	fmt.Printf("Name: %s  Id: %s \n", account.Name, account.Id) // nolint
+	fmt.Println(selectedItemStyle.Render(fmt.Sprintf("\n Switched account to %s (%s) \n", account.Name, account.Id))) // nolint
 
 	return nil
 }
