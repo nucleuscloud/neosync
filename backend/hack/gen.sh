@@ -1,5 +1,5 @@
 update_frontend_client() {
-  rm -rf ../sdk/ts-client/src/client/v1alpha1
+  rm -rf ../sdk/ts-client/src/client/mgmt
   mv gen/es/protos/** ../sdk/ts-client/src/client
   rm -rf gen/es
 }
