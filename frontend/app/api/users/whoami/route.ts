@@ -4,9 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    const setUserResp = await ctx.client.userssetUser(new SetUserRequest({}));
+    const setUserResp = await ctx.client.users.setUser(new SetUserRequest({}));
 
-    await ctx.client.userssetPersonalAccount(new SetPersonalAccountRequest({}));
+    await ctx.client.users.setPersonalAccount(
+      new SetPersonalAccountRequest({})
+    );
     return setUserResp;
   })(req);
 }

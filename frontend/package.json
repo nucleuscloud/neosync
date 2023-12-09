@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@auth/core": "^0.18.4",
-    "@bufbuild/protobuf": "^1.5.0",
+    "@bufbuild/protobuf": "^1.5.1",
     "@connectrpc/connect": "^1.0.0",
     "@connectrpc/connect-node": "^1.1.4",
     "@neosync/sdk": "file://../sdk/ts-client",
