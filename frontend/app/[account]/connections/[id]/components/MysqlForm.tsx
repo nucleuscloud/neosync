@@ -25,19 +25,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  MYSQL_CONNECTION_PROTOCOLS,
+  MYSQL_FORM_SCHEMA,
+  MysqlFormValues,
+} from '@/yup-validations/connections';
+import { yupResolver } from '@hookform/resolvers/yup';
+import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
   MysqlConnection,
   MysqlConnectionConfig,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import {
-  MYSQL_CONNECTION_PROTOCOLS,
-  MYSQL_FORM_SCHEMA,
-  MysqlFormValues,
-} from '@/yup-validations/connections';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,

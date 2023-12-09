@@ -6,7 +6,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
 
 interface SourceOptionsProps {

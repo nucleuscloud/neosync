@@ -18,6 +18,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { getErrorMessage } from '@/util/util';
+import { toPostgresSourceSchemaOptions } from '@/yup-validations/jobs';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetJobResponse,
   JobSourceOptions,
@@ -25,10 +28,7 @@ import {
   PostgresSourceSchemaSubset,
   SetJobSourceSqlConnectionSubsetsRequest,
   SetJobSourceSqlConnectionSubsetsResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import { getErrorMessage } from '@/util/util';
-import { toPostgresSourceSchemaOptions } from '@/yup-validations/jobs';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { getConnectionIdFromSource } from '../../source/components/util';

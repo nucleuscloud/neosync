@@ -30,9 +30,9 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountInvites } from '@/libs/hooks/useGetAccountInvites';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { AccountInvite } from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
+import { AccountInvite } from '@neosync/sdk';
 import { TrashIcon } from '@radix-ui/react-icons';
 import InviteUserForm, { buildInviteLink } from './InviteUserForm';
 

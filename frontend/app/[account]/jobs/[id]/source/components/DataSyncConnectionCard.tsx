@@ -28,25 +28,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
-import {
-  Connection,
-  DatabaseColumn,
-} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import {
-  Job,
-  JobMapping,
-  JobMappingTransformer,
-  JobSource,
-  JobSourceOptions,
-  MysqlSourceConnectionOptions,
-  PostgresSourceConnectionOptions,
-  UpdateJobSourceConnectionRequest,
-  UpdateJobSourceConnectionResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import {
-  Passthrough,
-  TransformerConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import {
   SCHEMA_FORM_SCHEMA,
@@ -54,6 +35,21 @@ import {
   TransformerFormValues,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  Connection,
+  DatabaseColumn,
+  Job,
+  JobMapping,
+  JobMappingTransformer,
+  JobSource,
+  JobSourceOptions,
+  MysqlSourceConnectionOptions,
+  Passthrough,
+  PostgresSourceConnectionOptions,
+  TransformerConfig,
+  UpdateJobSourceConnectionRequest,
+  UpdateJobSourceConnectionResponse,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';

@@ -1,6 +1,6 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import { CancelJobRunRequest } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { RequestContext } from '@/shared';
+import { CancelJobRunRequest } from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(
@@ -8,7 +8,7 @@ export async function PUT(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.jobsClient.cancelJobRun(
+    return ctx.client.jobs.cancelJobRun(
       new CancelJobRunRequest({
         jobRunId: params.id,
         accountId: params.accountId,

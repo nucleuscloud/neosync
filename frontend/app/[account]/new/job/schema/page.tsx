@@ -11,11 +11,6 @@ import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
-import { JobMappingTransformer } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
-import {
-  Passthrough,
-  TransformerConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { getErrorMessage } from '@/util/util';
 import {
   SCHEMA_FORM_SCHEMA,
@@ -23,6 +18,11 @@ import {
   TransformerFormValues,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
+import {
+  JobMappingTransformer,
+  Passthrough,
+  TransformerConfig,
+} from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';

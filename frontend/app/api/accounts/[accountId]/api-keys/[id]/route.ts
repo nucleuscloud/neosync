@@ -1,10 +1,10 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
+import { RequestContext } from '@/shared';
+import { Code, ConnectError } from '@connectrpc/connect';
 import {
   DeleteAccountApiKeyRequest,
   GetAccountApiKeyRequest,
-} from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
-import { RequestContext } from '@/shared';
-import { Code, ConnectError } from '@connectrpc/connect';
+} from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -12,7 +12,7 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    const apiKey = await ctx.apikeyClient.getAccountApiKey(
+    const apiKey = await ctx.client.apikeys.getAccountApiKey(
       new GetAccountApiKeyRequest({
         id: params.id,
       })
@@ -29,7 +29,7 @@ export async function DELETE(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.apikeyClient.deleteAccountApiKey(
+    return ctx.client.apikeys.deleteAccountApiKey(
       new DeleteAccountApiKeyRequest({
         id: params.id,
       })

@@ -33,14 +33,14 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountApiKey } from '@/libs/hooks/useGetAccountApiKey';
 import { cn } from '@/libs/utils';
+import { getErrorMessage } from '@/util/util';
+import { Timestamp } from '@bufbuild/protobuf';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetAccountApiKeyResponse,
   RegenerateAccountApiKeyRequest,
   RegenerateAccountApiKeyResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
-import { getErrorMessage } from '@/util/util';
-import { Timestamp } from '@bufbuild/protobuf';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import { CalendarIcon } from '@radix-ui/react-icons';
 import { addDays, endOfDay, format, startOfDay } from 'date-fns';
 import Error from 'next/error';

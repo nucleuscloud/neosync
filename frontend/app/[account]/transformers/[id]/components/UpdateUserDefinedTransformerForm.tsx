@@ -18,14 +18,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
+import { getErrorMessage } from '@/util/util';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   TransformerConfig,
   UpdateUserDefinedTransformerRequest,
   UpdateUserDefinedTransformerResponse,
   UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-import { getErrorMessage } from '@/util/util';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 

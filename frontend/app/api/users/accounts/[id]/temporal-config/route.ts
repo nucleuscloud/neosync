@@ -1,9 +1,9 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
+import { RequestContext } from '@/shared';
 import {
   GetAccountTemporalConfigRequest,
   SetAccountTemporalConfigRequest,
-} from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
-import { RequestContext } from '@/shared';
+} from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -11,7 +11,7 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) =>
-    ctx.userClient.getAccountTemporalConfig(
+    ctx.client.users.getAccountTemporalConfig(
       new GetAccountTemporalConfigRequest({
         accountId: params.id,
       })
@@ -21,7 +21,7 @@ export async function GET(
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) =>
-    ctx.userClient.setAccountTemporalConfig(
+    ctx.client.users.setAccountTemporalConfig(
       SetAccountTemporalConfigRequest.fromJson(await req.json())
     )
   )(req);
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
 export async function PUT(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) =>
-    ctx.userClient.setAccountTemporalConfig(
+    ctx.client.users.setAccountTemporalConfig(
       SetAccountTemporalConfigRequest.fromJson(await req.json())
     )
   )(req);

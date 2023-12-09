@@ -4,12 +4,8 @@ import Spinner from '@/components/Spinner';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  JobStatus,
-  PauseJobRequest,
-  PauseJobResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
+import { JobStatus, PauseJobRequest, PauseJobResponse } from '@neosync/sdk';
 import { PauseIcon, PlayIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useState } from 'react';
 

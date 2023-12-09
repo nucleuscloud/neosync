@@ -1,10 +1,7 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import {
-  DeleteJobRequest,
-  GetJobRequest,
-} from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { RequestContext } from '@/shared';
 import { Code, ConnectError } from '@connectrpc/connect';
+import { DeleteJobRequest, GetJobRequest } from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -12,7 +9,7 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    const job = await ctx.jobsClient.getJob(
+    const job = await ctx.client.jobs.getJob(
       new GetJobRequest({
         id: params.id,
       })
@@ -29,7 +26,7 @@ export async function GET(
 // export async function PUT(req: NextRequest): Promise<NextResponse> {
 //   return withNeosyncContext(async (ctx) => {
 //     const body = UpdateConnectionRequest.fromJson(await req.json());
-//     return ctx.jobsClient.updateConnection(body);
+//     return ctx.client.jobs.updateConnection(body);
 //   })(req);
 // }
 
@@ -38,7 +35,7 @@ export async function DELETE(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.jobsClient.deleteJob(
+    return ctx.client.jobs.deleteJob(
       new DeleteJobRequest({
         id: params.id,
       })

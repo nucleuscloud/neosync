@@ -36,9 +36,9 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountMembers } from '@/libs/hooks/useGetAccountMembers';
-import { AccountUser } from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
 import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
+import { AccountUser } from '@neosync/sdk';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 
 interface ColumnProps {

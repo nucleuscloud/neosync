@@ -1,7 +1,7 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import { GetUserDefinedTransformerByIdRequest } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
 import { RequestContext } from '@/shared';
 import { Code, ConnectError } from '@connectrpc/connect';
+import { GetUserDefinedTransformerByIdRequest } from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -10,7 +10,7 @@ export async function GET(
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     const transformer =
-      await ctx.transformerClient.getUserDefinedTransformerById(
+      await ctx.client.transformers.getUserDefinedTransformerById(
         new GetUserDefinedTransformerByIdRequest({
           transformerId: params.id,
         })

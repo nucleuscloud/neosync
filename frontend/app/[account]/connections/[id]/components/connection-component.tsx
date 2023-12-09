@@ -1,10 +1,7 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import PageHeader from '@/components/headers/PageHeader';
-import {
-  Connection,
-  UpdateConnectionResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
+import { Connection, UpdateConnectionResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
 import MysqlForm from './MysqlForm';

@@ -1,5 +1,4 @@
-import { GetConnectionResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { GetConnectionResponse, Job } from '@neosync/sdk';
 
 export async function getConnection(
   accountId: string,

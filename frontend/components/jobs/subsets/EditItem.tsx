@@ -9,8 +9,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { CheckSqlQueryResponse } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { getErrorMessage } from '@/util/util';
+import { CheckSqlQueryResponse } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import ValidateQueryBadge from './ValidateQueryBadge';
 import ValidateQueryErrorAlert from './ValidateQueryErrorAlert';

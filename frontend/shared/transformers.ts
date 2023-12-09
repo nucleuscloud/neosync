@@ -1,7 +1,4 @@
-import {
-  SystemTransformer,
-  UserDefinedTransformer,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
 
 export type Transformer = SystemTransformer | UserDefinedTransformer;
 

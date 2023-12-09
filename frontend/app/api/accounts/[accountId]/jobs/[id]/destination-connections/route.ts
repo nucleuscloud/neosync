@@ -1,5 +1,5 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import { CreateJobDestinationConnectionsRequest } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { CreateJobDestinationConnectionsRequest } from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(req: NextRequest): Promise<NextResponse> {
@@ -7,6 +7,6 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     const body = CreateJobDestinationConnectionsRequest.fromJson(
       await req.json()
     );
-    return ctx.jobsClient.createJobDestinationConnections(body);
+    return ctx.client.jobs.createJobDestinationConnections(body);
   })(req);
 }

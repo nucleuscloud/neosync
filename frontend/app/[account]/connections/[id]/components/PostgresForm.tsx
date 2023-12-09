@@ -24,19 +24,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  POSTGRES_FORM_SCHEMA,
+  PostgresFormValues,
+  SSL_MODES,
+} from '@/yup-validations/connections';
+import { yupResolver } from '@hookform/resolvers/yup';
+import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
   PostgresConnection,
   PostgresConnectionConfig,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
-import {
-  POSTGRES_FORM_SCHEMA,
-  PostgresFormValues,
-  SSL_MODES,
-} from '@/yup-validations/connections';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,

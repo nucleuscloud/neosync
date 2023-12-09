@@ -1,4 +1,4 @@
-import { IsTransformerNameAvailableResponse } from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
+import { IsTransformerNameAvailableResponse } from '@neosync/sdk';
 import * as Yup from 'yup';
 
 const transformEmailConfig = Yup.object().shape({

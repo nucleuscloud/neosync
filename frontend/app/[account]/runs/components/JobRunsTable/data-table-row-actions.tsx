@@ -13,8 +13,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { getErrorMessage } from '@/util/util';
+import { JobRun } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 
 interface DataTableRowActionsProps<TData> {

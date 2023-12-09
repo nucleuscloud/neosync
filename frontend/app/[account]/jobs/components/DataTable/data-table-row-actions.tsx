@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Job } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { Job } from '@neosync/sdk';
 import { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 

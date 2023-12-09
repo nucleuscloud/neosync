@@ -26,14 +26,14 @@ import { Select, SelectContent, SelectTrigger } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { cn } from '@/libs/utils';
+import { getErrorMessage } from '@/util/util';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CreateUserDefinedTransformerRequest,
   CreateUserDefinedTransformerResponse,
   SystemTransformer,
   TransformerConfig,
-} from '@/neosync-api-client/mgmt/v1alpha1/transformer_pb';
-import { getErrorMessage } from '@/util/util';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';

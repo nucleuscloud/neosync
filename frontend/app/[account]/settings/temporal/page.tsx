@@ -13,14 +13,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountTemporalConfig } from '@/libs/hooks/useGetAccountTemporalConfig';
+import { getErrorMessage } from '@/util/util';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   AccountTemporalConfig,
   GetAccountTemporalConfigResponse,
   SetAccountTemporalConfigRequest,
   SetAccountTemporalConfigResponse,
-} from '@/neosync-api-client/mgmt/v1alpha1/user_account_pb';
-import { getErrorMessage } from '@/util/util';
-import { yupResolver } from '@hookform/resolvers/yup';
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';

@@ -14,8 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { Connection } from '@/neosync-api-client/mgmt/v1alpha1/connection_pb';
 import { getErrorMessage } from '@/util/util';
+import { Connection } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 
 interface DataTableRowActionsProps<TData> {

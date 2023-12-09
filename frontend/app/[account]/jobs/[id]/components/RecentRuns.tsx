@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/table';
 import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
-import { JobRun } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
 import { formatDateTime } from '@/util/util';
+import { JobRun } from '@neosync/sdk';
 import { ArrowRightIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement, useEffect } from 'react';

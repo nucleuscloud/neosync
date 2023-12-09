@@ -1,4 +1,4 @@
-import { JobSource } from '@/neosync-api-client/mgmt/v1alpha1/job_pb';
+import { JobSource } from '@neosync/sdk';
 
 export function getConnectionIdFromSource(
   js: JobSource | undefined

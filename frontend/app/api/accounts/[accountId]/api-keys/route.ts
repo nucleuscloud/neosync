@@ -1,9 +1,9 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
+import { RequestContext } from '@/shared';
 import {
   CreateAccountApiKeyRequest,
   GetAccountApiKeysRequest,
-} from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
-import { RequestContext } from '@/shared';
+} from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -11,7 +11,7 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.apikeyClient.getAccountApiKeys(
+    return ctx.client.apikeys.getAccountApiKeys(
       new GetAccountApiKeysRequest({
         accountId: params.accountId,
       })
@@ -22,6 +22,6 @@ export async function GET(
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     const body = CreateAccountApiKeyRequest.fromJson(await req.json());
-    return ctx.apikeyClient.createAccountApiKey(body);
+    return ctx.client.apikeys.createAccountApiKey(body);
   })(req);
 }
