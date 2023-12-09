@@ -1,7 +1,0 @@
-{
-  "name": "neosync",
-  "workspaces": [
-    "frontend",
-    "sdk/ts-client"
-  ]
-}

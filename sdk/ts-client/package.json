@@ -24,7 +24,8 @@
     "clean": "rm -rf dist",
     "build": "npm run clean && npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p ./tsconfig.json && mv dist/esm/index.js dist/esm/index.mjs",
-    "build:cjs": "tsc -p ./tsconfig.cjs.json"
+    "build:cjs": "tsc -p ./tsconfig.cjs.json",
+    "prepare": "npm run build"
   },
   "author": "nickzelei",
   "license": "MIT",
@@ -32,6 +33,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^1.5.1",
     "@connectrpc/connect": "^1.1.4",
     "@connectrpc/connect-node": "^1.1.4"
   }

@@ -1,0 +1,62 @@
+lockfileVersion: '6.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+dependencies:
+  '@connectrpc/connect':
+    specifier: ^1.1.4
+    version: 1.1.4(@bufbuild/protobuf@1.5.1)
+  '@connectrpc/connect-node':
+    specifier: ^1.1.4
+    version: 1.1.4(@bufbuild/protobuf@1.5.1)(@connectrpc/connect@1.1.4)
+
+devDependencies:
+  typescript:
+    specifier: ^5.3.3
+    version: 5.3.3
+
+packages:
+
+  /@bufbuild/protobuf@1.5.1:
+    resolution: {integrity: sha512-LX+MeB1AzlbqgJXkq83lilQpLGnPvsAMj7SH8KtJAmQfBc55ee78Stxuff/HMw0xLMYJN3P1FBh5TENgjJof1w==}
+    dev: false
+
+  /@connectrpc/connect-node@1.1.4(@bufbuild/protobuf@1.5.1)(@connectrpc/connect@1.1.4):
+    resolution: {integrity: sha512-1Pv4PSTh7k6+c8kNjVx9wZiWm8dChexsq+hW4EKcYItjSqvyKpmTfLBTl12y6W+RBQ9vCuFCu3xT79outhNY9g==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.4.2
+      '@connectrpc/connect': 1.1.4
+    dependencies:
+      '@bufbuild/protobuf': 1.5.1
+      '@connectrpc/connect': 1.1.4(@bufbuild/protobuf@1.5.1)
+      undici: 5.28.2
+    dev: false
+
+  /@connectrpc/connect@1.1.4(@bufbuild/protobuf@1.5.1):
+    resolution: {integrity: sha512-kFiOi3jsEyOuL4gGW55LgNCqQBNA0Z/GLXrfeJO4r6pI/f8L9rqnjrFZTCeyrvzu1TuqEtL51cR+c46KMCposw==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.4.2
+    dependencies:
+      '@bufbuild/protobuf': 1.5.1
+    dev: false
+
+  /@fastify/busboy@2.1.0:
+    resolution: {integrity: sha512-+KpH+QxZU7O4675t3mnkQKcZZg56u+K/Ct2K+N2AZYNVK8kyeo/bI18tI8aPm3tvNNRyTWfj6s5tnGNlcbQRsA==}
+    engines: {node: '>=14'}
+    dev: false
+
+  /typescript@5.3.3:
+    resolution: {integrity: sha512-pXWcraxM0uxAS+tN0AG/BF2TyqmHO014Z070UsJ+pFvYuRSq8KH8DmWpnbXe0pEPDHXZV3FcAbJkijJ5oNEnWw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true
+
+  /undici@5.28.2:
+    resolution: {integrity: sha512-wh1pHJHnUeQV5Xa8/kyQhO7WFa8M34l026L5P/+2TYiakvGy5Rdc8jWZVyG7ieht/0WgJLEd3kcU5gKx+6GC8w==}
+    engines: {node: '>=14.0'}
+    dependencies:
+      '@fastify/busboy': 2.1.0
+    dev: false
