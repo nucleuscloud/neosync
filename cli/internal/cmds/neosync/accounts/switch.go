@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -16,24 +18,38 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/spf13/cobra"
 
-	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 var (
-	appStyle = lipgloss.NewStyle().Padding(1, 2)
+	// appStyle = lipgloss.NewStyle().Padding(1, 2)
 
 	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#25A065")).
-			Padding(0, 1)
+		Foreground(lipgloss.Color("#FFFDF5")).
+		Background(lipgloss.Color("#25A065")).
+		Padding(0, 1)
 
-	statusMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"}).
-				Render
+	// statusMessageStyle = lipgloss.NewStyle().
+	// 			Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"}).
+	// 			Render
 )
+
+const listHeight = 14
+
+var (
+	// titleStyle        = lipgloss.NewStyle().MarginLeft(2)
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
+	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
+	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
+)
+
+// type item string
+
+// func (i item) FilterValue() string { return "" }
 
 type item struct {
 	title       string
@@ -44,9 +60,75 @@ func (i item) Title() string       { return i.title }
 func (i item) Description() string { return i.description }
 func (i item) FilterValue() string { return i.title }
 
-type listKeyMap struct {
-	togglePagination key.Binding
-	toggleHelpMenu   key.Binding
+type itemDelegate struct{}
+
+func (d itemDelegate) Height() int                             { return 1 }
+func (d itemDelegate) Spacing() int                            { return 0 }
+func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+	i, ok := listItem.(item)
+	if !ok {
+		return
+	}
+
+	// str := fmt.Sprintf("┃ %s \n┃ %s \n", i.title, i.description)
+	str := fmt.Sprintf("%s %s \n", i.title, i.description)
+
+	fn := itemStyle.Render
+	if index == m.Index() {
+		fn = func(s ...string) string {
+			return selectedItemStyle.Render("> " + strings.Join(s, " "))
+			// return selectedItemStyle.Render("> " + strings.Join(s, " "))
+		}
+	}
+
+	fmt.Fprint(w, fn(str))
+}
+
+type model struct {
+	list     list.Model
+	choice   string
+	quitting bool
+}
+
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.list.SetWidth(msg.Width)
+		return m, nil
+
+	case tea.KeyMsg:
+		switch keypress := msg.String(); keypress {
+		case "ctrl+c":
+			m.quitting = true
+			return m, tea.Quit
+
+		case "enter":
+			i, ok := m.list.SelectedItem().(item)
+			if ok {
+				m.choice = i.title
+			}
+			return m, tea.Quit
+		}
+	}
+
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+	return m, cmd
+}
+
+func (m model) View() string {
+	if m.choice != "" {
+		return quitTextStyle.Render(fmt.Sprintf("%s? Sounds good to me.", m.choice))
+	}
+	if m.quitting {
+		return quitTextStyle.Render("Not hungry? That’s cool.")
+	}
+	return "\n" + m.list.View()
 }
 
 func newSwitchCmd() *cobra.Command {
@@ -109,7 +191,27 @@ func switchAccount(
 		return errors.New("unable to find accounts for user")
 	}
 
-	if _, err := tea.NewProgram(newModel(accounts)).Run(); err != nil {
+	items := []list.Item{}
+	for _, a := range accounts {
+		items = append(items, item{
+			title:       a.Name,
+			description: a.Id,
+		})
+	}
+
+	const defaultWidth = 20
+
+	l := list.New(items, itemDelegate{}, defaultWidth, listHeight)
+	l.Title = "Select an account"
+	l.SetShowStatusBar(false)
+	l.SetFilteringEnabled(false)
+	l.Styles.Title = titleStyle
+	l.Styles.PaginationStyle = paginationStyle
+	l.Styles.HelpStyle = helpStyle
+
+	m := model{list: l}
+
+	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
@@ -144,166 +246,4 @@ func switchAccount(
 	fmt.Printf("Name: %s  Id: %s \n", account.Name, account.Id) // nolint
 
 	return nil
-}
-
-func newListKeyMap() *listKeyMap {
-	return &listKeyMap{
-		togglePagination: key.NewBinding(
-			key.WithKeys("P"),
-			key.WithHelp("P", "toggle pagination"),
-		),
-		toggleHelpMenu: key.NewBinding(
-			key.WithKeys("H"),
-			key.WithHelp("H", "toggle help"),
-		),
-	}
-}
-
-type model struct {
-	list         list.Model
-	keys         *listKeyMap
-	delegateKeys *delegateKeyMap
-}
-
-func newModel(accounts []*mgmtv1alpha1.UserAccount) model {
-	var (
-		delegateKeys = newDelegateKeyMap()
-		listKeys     = newListKeyMap()
-	)
-
-	items := make([]list.Item, len(accounts))
-	for i := 0; i < len(accounts); i++ {
-		a := accounts[i]
-		items[i] = item{
-			title:       a.Name,
-			description: a.Id,
-		}
-	}
-
-	// Setup list
-	delegate := newItemDelegate(delegateKeys)
-	accountList := list.New(items, delegate, 0, 0)
-	accountList.Title = "Accounts"
-	accountList.Styles.Title = titleStyle
-	accountList.AdditionalFullHelpKeys = func() []key.Binding {
-		return []key.Binding{
-			listKeys.togglePagination,
-			listKeys.toggleHelpMenu,
-		}
-	}
-
-	return model{
-		list:         accountList,
-		keys:         listKeys,
-		delegateKeys: delegateKeys,
-	}
-}
-
-func (m model) Init() tea.Cmd {
-	return tea.EnterAltScreen
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmds []tea.Cmd
-
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		h, v := appStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
-
-	case tea.KeyMsg:
-		// Don't match any of the keys below if we're actively filtering.
-		if m.list.FilterState() == list.Filtering {
-			break
-		}
-
-		switch {
-		case key.Matches(msg, m.keys.togglePagination):
-			m.list.SetShowPagination(!m.list.ShowPagination())
-			return m, nil
-
-		case key.Matches(msg, m.keys.toggleHelpMenu):
-			m.list.SetShowHelp(!m.list.ShowHelp())
-			return m, nil
-		}
-	}
-
-	// This will also call our delegate's update function.
-	newListModel, cmd := m.list.Update(msg)
-	m.list = newListModel
-	cmds = append(cmds, cmd)
-
-	return m, tea.Batch(cmds...)
-}
-
-func (m model) View() string {
-	return appStyle.Render(m.list.View())
-}
-
-func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
-	d := list.NewDefaultDelegate()
-
-	d.UpdateFunc = func(msg tea.Msg, m *list.Model) tea.Cmd {
-		var title string
-
-		if i, ok := m.SelectedItem().(item); ok {
-			title = i.Title()
-		} else {
-			return nil
-		}
-
-		switch msg := msg.(type) {
-		case tea.KeyMsg:
-			switch {
-			case key.Matches(msg, keys.choose):
-				return m.NewStatusMessage(statusMessageStyle("You chose " + title))
-
-			}
-		}
-
-		return nil
-	}
-
-	help := []key.Binding{keys.choose}
-
-	d.ShortHelpFunc = func() []key.Binding {
-		return help
-	}
-
-	d.FullHelpFunc = func() [][]key.Binding {
-		return [][]key.Binding{help}
-	}
-
-	return d
-}
-
-type delegateKeyMap struct {
-	choose key.Binding
-}
-
-// Additional short help entries. This satisfies the help.KeyMap interface and
-// is entirely optional.
-func (d delegateKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		d.choose,
-	}
-}
-
-// Additional full help entries. This satisfies the help.KeyMap interface and
-// is entirely optional.
-func (d delegateKeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{
-			d.choose,
-		},
-	}
-}
-
-func newDelegateKeyMap() *delegateKeyMap {
-	return &delegateKeyMap{
-		choose: key.NewBinding(
-			key.WithKeys("enter"),
-			key.WithHelp("enter", "choose"),
-		),
-	}
 }
