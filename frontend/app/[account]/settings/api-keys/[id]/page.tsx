@@ -5,12 +5,14 @@ import { CopyButton } from '@/components/CopyButton';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useGetAccountApiKey } from '@/libs/hooks/useGetAccountApiKey';
 import { AccountApiKey } from '@/neosync-api-client/mgmt/v1alpha1/api_key_pb';
 import { formatDateTime } from '@/util/util';
-import { ReloadIcon } from '@radix-ui/react-icons';
+import { InfoCircledIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Error from 'next/error';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -95,66 +97,51 @@ function ApiKeyDetails(props: ApiKeyDetailsProps): ReactElement {
   return (
     <div className="flex flex-col gap-3">
       {keyValue && (
-        <div>
-          <KeyValueAlert keyValue={keyValue} />
-        </div>
-      )}
-
-      <div className="flex flex-row gap-2">
-        <p className="text-lg tracking-tight">Expires At:</p>
-        <p className="text-lg tracking-tight">
-          {formatDateTime(apiKey.expiresAt?.toDate())}
-        </p>
-      </div>
-      <div className="flex flex-row gap-2">
-        <p className="text-lg tracking-tight">Created At:</p>
-        <p className="text-lg tracking-tight">
-          {formatDateTime(apiKey.createdAt?.toDate())}
-        </p>
-      </div>
-      <div className="flex flex-row gap-2">
-        <p className="text-lg tracking-tight">Updated At:</p>
-        <p className="text-lg tracking-tight">
-          {formatDateTime(apiKey.updatedAt?.toDate())}
-        </p>
-      </div>
-      <div className="flex flex-row gap-2">
-        <p className="text-lg tracking-tight">User ID:</p>
-        <p className="text-lg tracking-tight">{apiKey.userId}</p>
-      </div>
-    </div>
-  );
-}
-
-interface KeyValueAlertProps {
-  keyValue?: string;
-}
-function KeyValueAlert(props: KeyValueAlertProps): ReactElement | null {
-  const { keyValue } = props;
-
-  if (!keyValue) {
-    return null;
-  }
-
-  return (
-    <Alert variant="default" className="flex flex-col gap-3">
-      <AlertTitle>
-        Make sure to copy this access token now as you will not be able to see
-        it again!
-      </AlertTitle>
-      <AlertDescription>
-        <div className="flex flex-row">
-          <div className="flex w-full bg-transparent rounded-md border border-input py-1 px-3">
-            <p>{keyValue}</p>
+        <Alert variant="success">
+          <div className="flex flex-row items-center gap-3">
+            <InfoCircledIcon />
+            <div className="font-semibold">
+              Make sure to copy this access token now as you will not be able to
+              see it again!
+            </div>
           </div>
+        </Alert>
+      )}
+      <div className=" flex flex-col gap-6 rounded-xl border border-gray-200 p-4">
+        <div className="flex flex-row">
+          <Input value={keyValue} disabled={true} className="mr-3" />
           <CopyButton
             buttonVariant="outline"
-            textToCopy={keyValue}
+            textToCopy={keyValue ?? ''}
             onCopiedText="Success!"
-            onHoverText="Copy the api key"
+            onHoverText="Copy the API key"
           />
         </div>
-      </AlertDescription>
-    </Alert>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-row gap-2">
+            <p className=" text-sm tracking-tight w-[100px]">Created At:</p>
+            <Badge variant="outline">
+              {formatDateTime(apiKey.createdAt?.toDate())}
+            </Badge>
+          </div>
+          <div className="flex flex-row gap-2">
+            <p className="text-sm tracking-tight w-[100px]">Updated At:</p>
+            <Badge variant="outline">
+              {formatDateTime(apiKey.updatedAt?.toDate())}
+            </Badge>
+          </div>
+          <div className="flex flex-row gap-2">
+            <p className=" text-sm tracking-tight w-[100px]">Expires At:</p>
+            <Badge variant="outline">
+              {formatDateTime(apiKey.expiresAt?.toDate())}
+            </Badge>
+          </div>
+          <div className="flex flex-row gap-2">
+            <p className="text-sm tracking-tight w-[100px]">User ID:</p>
+            <Badge variant="outline">{apiKey.userId}</Badge>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
