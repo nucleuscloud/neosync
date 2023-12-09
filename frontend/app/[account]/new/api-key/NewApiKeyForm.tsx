@@ -93,7 +93,7 @@ export default function NewApiKeyForm(): ReactElement {
         router.push(`/${account?.name}/settings/api-keys`);
       }
       toast({
-        title: 'Successfully created api key!',
+        title: 'Successfully created API key!',
         variant: 'success',
       });
     } catch (err) {

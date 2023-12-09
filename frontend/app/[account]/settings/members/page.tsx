@@ -1,5 +1,4 @@
 'use client';
-import SubPageHeader from '@/components/headers/SubPageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,10 +23,7 @@ export default function MemberManagementSettings(_: Props): ReactElement {
 
   return (
     <div className="mt-10">
-      <SubPageHeader
-        header="Members and Invites"
-        description="Manage members in your account, as well as invite new members."
-      />
+      <h1 className="text-xl font-bold tracking-tight">Member Managment</h1>
       <Tabs defaultValue="members">
         <TabsList>
           <TabsTrigger value="members">Members</TabsTrigger>
