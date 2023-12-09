@@ -1,6 +1,4 @@
-import type { KnipConfig } from 'knip';
-
-const config: KnipConfig = {
+const config = {
   ignore: [
     'next-env.d.ts',
     'next.config.mjs',
