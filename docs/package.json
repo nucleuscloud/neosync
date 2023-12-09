@@ -5,7 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "npm run proto-build && docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -16,7 +16,8 @@
     "knip": "knip",
     "knip:production": "knip --production --strict",
     "prettier:check": "prettier --check .",
-    "prettier:write": "prettier --write ."
+    "prettier:write": "prettier --write .",
+    "proto-build": "docusaurus generate-proto-docs"
   },
   "dependencies": {
     "@docusaurus/core": "3.0.1",
@@ -25,6 +26,7 @@
     "@radix-ui/react-icons": "^1.3.0",
     "autoprefixer": "^10.4.16",
     "class-variance-authority": "^0.7.0",
+    "docusaurus-protobuffet": "^0.3.3",
     "postcss": "^8.4.32",
     "prism-react-renderer": "^2.3.0",
     "react": "^18.2.0",

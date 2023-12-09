@@ -21,7 +21,7 @@ export class CreateAccountApiKeyRequest extends Message<CreateAccountApiKeyReque
   name = "";
 
   /**
-   * Validate between now and one year: now < x < 1year
+   * Validate between now and one year: now < x < 365 days
    *
    * @generated from field: google.protobuf.Timestamp expires_at = 3;
    */
@@ -104,6 +104,8 @@ export class AccountApiKey extends Message<AccountApiKey> {
   id = "";
 
   /**
+   * The friendly name of the API Key
+   *
    * @generated from field: string name = 2;
    */
   name = "";
@@ -134,7 +136,7 @@ export class AccountApiKey extends Message<AccountApiKey> {
   updatedAt?: Timestamp;
 
   /**
-   * key_value is only returned on initial creation or when it is regenerated 
+   * key_value is only returned on initial creation or when it is regenerated
    *
    * @generated from field: optional string key_value = 8;
    */
@@ -146,6 +148,8 @@ export class AccountApiKey extends Message<AccountApiKey> {
   userId = "";
 
   /**
+   * The timestamp of what the API key expires and will not longer be usable.
+   *
    * @generated from field: google.protobuf.Timestamp expires_at = 10;
    */
   expiresAt?: Timestamp;
@@ -345,7 +349,7 @@ export class RegenerateAccountApiKeyRequest extends Message<RegenerateAccountApi
   id = "";
 
   /**
-   * Validate between now and one year: now < x < 1year
+   * Validate between now and one year: now < x < 365 days
    *
    * @generated from field: google.protobuf.Timestamp expires_at = 2;
    */

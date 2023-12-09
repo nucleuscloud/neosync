@@ -13,7 +13,7 @@ import React, { ReactElement } from 'react';
 import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
 import { BiLogInCircle, BiLogoPostgresql, BiTerminal } from 'react-icons/bi';
 import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
-import { FaAws, FaDocker } from 'react-icons/fa';
+import { FaAws, FaDocker, FaFolder } from 'react-icons/fa';
 import { GoLightBulb, GoSync } from 'react-icons/go';
 
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
@@ -93,6 +93,9 @@ export function IconHandler(name: string): ReactElement {
     case 'Go':
     case 'Golang':
       return <SiGo />;
+    case 'Protos':
+    case '/mgmt/v1alpha1':
+      return <FaFolder />;
     default:
       return <LayersIcon />;
   }

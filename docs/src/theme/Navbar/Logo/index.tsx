@@ -4,7 +4,7 @@ export default function NavbarLogo() {
   return (
     <Logo
       className="navbar__brand"
-      imageClassName="navbar__logo w-[84px] h-[20px]"
+      imageClassName="navbar__logo w-[84px] h-[20px] flex"
       titleClassName="navbar__title text--truncate"
     />
   );

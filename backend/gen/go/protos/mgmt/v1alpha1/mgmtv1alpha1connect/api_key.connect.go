@@ -52,10 +52,17 @@ const (
 
 // ApiKeyServiceClient is a client for the mgmt.v1alpha1.ApiKeyService service.
 type ApiKeyServiceClient interface {
+	// Retrieves a list of Account API Keys
 	GetAccountApiKeys(context.Context, *connect.Request[v1alpha1.GetAccountApiKeysRequest]) (*connect.Response[v1alpha1.GetAccountApiKeysResponse], error)
+	// Retrieves a single API Key
 	GetAccountApiKey(context.Context, *connect.Request[v1alpha1.GetAccountApiKeyRequest]) (*connect.Response[v1alpha1.GetAccountApiKeyResponse], error)
+	// Creates a single API Key
+	// This method will return the decrypted contents of the API key
 	CreateAccountApiKey(context.Context, *connect.Request[v1alpha1.CreateAccountApiKeyRequest]) (*connect.Response[v1alpha1.CreateAccountApiKeyResponse], error)
+	// Regenerates a single API Key with a new expiration time
+	// This method will return the decrypted contents of the API key
 	RegenerateAccountApiKey(context.Context, *connect.Request[v1alpha1.RegenerateAccountApiKeyRequest]) (*connect.Response[v1alpha1.RegenerateAccountApiKeyResponse], error)
+	// Deletes an API Key from the system.
 	DeleteAccountApiKey(context.Context, *connect.Request[v1alpha1.DeleteAccountApiKeyRequest]) (*connect.Response[v1alpha1.DeleteAccountApiKeyResponse], error)
 }
 
@@ -133,10 +140,17 @@ func (c *apiKeyServiceClient) DeleteAccountApiKey(ctx context.Context, req *conn
 
 // ApiKeyServiceHandler is an implementation of the mgmt.v1alpha1.ApiKeyService service.
 type ApiKeyServiceHandler interface {
+	// Retrieves a list of Account API Keys
 	GetAccountApiKeys(context.Context, *connect.Request[v1alpha1.GetAccountApiKeysRequest]) (*connect.Response[v1alpha1.GetAccountApiKeysResponse], error)
+	// Retrieves a single API Key
 	GetAccountApiKey(context.Context, *connect.Request[v1alpha1.GetAccountApiKeyRequest]) (*connect.Response[v1alpha1.GetAccountApiKeyResponse], error)
+	// Creates a single API Key
+	// This method will return the decrypted contents of the API key
 	CreateAccountApiKey(context.Context, *connect.Request[v1alpha1.CreateAccountApiKeyRequest]) (*connect.Response[v1alpha1.CreateAccountApiKeyResponse], error)
+	// Regenerates a single API Key with a new expiration time
+	// This method will return the decrypted contents of the API key
 	RegenerateAccountApiKey(context.Context, *connect.Request[v1alpha1.RegenerateAccountApiKeyRequest]) (*connect.Response[v1alpha1.RegenerateAccountApiKeyResponse], error)
+	// Deletes an API Key from the system.
 	DeleteAccountApiKey(context.Context, *connect.Request[v1alpha1.DeleteAccountApiKeyRequest]) (*connect.Response[v1alpha1.DeleteAccountApiKeyResponse], error)
 }
 

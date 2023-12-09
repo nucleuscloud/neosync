@@ -7,12 +7,17 @@ import { GetAuthorizeUrlRequest, GetAuthorizeUrlResponse, GetAuthStatusRequest, 
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
+ * Service that handles generic Authentication for Neosync
+ * Today this is mostly used by the CLI to receive authentication information
+ *
  * @generated from service mgmt.v1alpha1.AuthService
  */
 export const AuthService = {
   typeName: "mgmt.v1alpha1.AuthService",
   methods: {
     /**
+     * Used by the CLI to login to Neosync with OAuth.
+     *
      * @generated from rpc mgmt.v1alpha1.AuthService.LoginCli
      */
     loginCli: {
@@ -22,6 +27,8 @@ export const AuthService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Used by the CLI to retrieve Auth Issuer information
+     *
      * @generated from rpc mgmt.v1alpha1.AuthService.GetCliIssuer
      */
     getCliIssuer: {
@@ -31,6 +38,8 @@ export const AuthService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Used by the CLI to retrieve an Authorize URL for use with OAuth login.
+     *
      * @generated from rpc mgmt.v1alpha1.AuthService.GetAuthorizeUrl
      */
     getAuthorizeUrl: {
@@ -40,6 +49,9 @@ export const AuthService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Returns the auth status of the API server. Whether or not the backend has authentication enabled.
+     * This is used by clients to make decisions on whether or not they should send access tokens to the API.
+     *
      * @generated from rpc mgmt.v1alpha1.AuthService.GetAuthStatus
      */
     getAuthStatus: {

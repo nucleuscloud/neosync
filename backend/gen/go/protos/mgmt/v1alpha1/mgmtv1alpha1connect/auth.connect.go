@@ -48,9 +48,14 @@ const (
 
 // AuthServiceClient is a client for the mgmt.v1alpha1.AuthService service.
 type AuthServiceClient interface {
+	// Used by the CLI to login to Neosync with OAuth.
 	LoginCli(context.Context, *connect.Request[v1alpha1.LoginCliRequest]) (*connect.Response[v1alpha1.LoginCliResponse], error)
+	// Used by the CLI to retrieve Auth Issuer information
 	GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error)
+	// Used by the CLI to retrieve an Authorize URL for use with OAuth login.
 	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
+	// Returns the auth status of the API server. Whether or not the backend has authentication enabled.
+	// This is used by clients to make decisions on whether or not they should send access tokens to the API.
 	GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error)
 }
 
@@ -117,9 +122,14 @@ func (c *authServiceClient) GetAuthStatus(ctx context.Context, req *connect.Requ
 
 // AuthServiceHandler is an implementation of the mgmt.v1alpha1.AuthService service.
 type AuthServiceHandler interface {
+	// Used by the CLI to login to Neosync with OAuth.
 	LoginCli(context.Context, *connect.Request[v1alpha1.LoginCliRequest]) (*connect.Response[v1alpha1.LoginCliResponse], error)
+	// Used by the CLI to retrieve Auth Issuer information
 	GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error)
+	// Used by the CLI to retrieve an Authorize URL for use with OAuth login.
 	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
+	// Returns the auth status of the API server. Whether or not the backend has authentication enabled.
+	// This is used by clients to make decisions on whether or not they should send access tokens to the API.
 	GetAuthStatus(context.Context, *connect.Request[v1alpha1.GetAuthStatusRequest]) (*connect.Response[v1alpha1.GetAuthStatusResponse], error)
 }
 
