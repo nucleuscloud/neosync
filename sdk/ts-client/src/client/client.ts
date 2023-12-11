@@ -4,13 +4,12 @@ import {
   Transport,
   createPromiseClient,
 } from "@connectrpc/connect";
-import { createConnectTransport } from "@connectrpc/connect-node";
 
-import { ApiKeyService } from "./mgmt/v1alpha1/api_key_connect";
-import { ConnectionService } from "./mgmt/v1alpha1/connection_connect";
-import { JobService } from "./mgmt/v1alpha1/job_connect";
-import { TransformersService } from "./mgmt/v1alpha1/transformer_connect";
-import { UserAccountService } from "./mgmt/v1alpha1/user_account_connect";
+import { ApiKeyService } from "./mgmt/v1alpha1/api_key_connect.js";
+import { ConnectionService } from "./mgmt/v1alpha1/connection_connect.js";
+import { JobService } from "./mgmt/v1alpha1/job_connect.js";
+import { TransformersService } from "./mgmt/v1alpha1/transformer_connect.js";
+import { UserAccountService } from "./mgmt/v1alpha1/user_account_connect.js";
 
 export type NeosyncClient = NeosyncV1alpha1Client;
 export type ClientVersion = "v1alpha1" | "latest";
@@ -30,16 +29,16 @@ export type GetAccessTokenFn = () => string | Promise<string>;
 
 export interface ClientConfig {
   /**
-   * The baseurl for Neosync API
-   */
-  apiBaseUrl: string;
-
-  /**
    * Return the access token to be used for authenticating against Neosync API
    * This will either be a JWT, or an API Key
    * It will be used to construct the Authorization Header in the format: Authorization: Bearer <access token>
    */
   getAccessToken?: GetAccessTokenFn;
+  /**
+   * Return the connect transport for the appropriate environment (connect, grpc, web)
+   * @param interceptors - A list of interceptors that have been pre-compuled. If `getAccessToken` is provided, this will include the auth interceptor
+   */
+  getTransport(interceptors: Interceptor[]): Transport;
 }
 
 /**
@@ -74,10 +73,10 @@ export function getNeosyncClient(
 export function getNeosyncV1alpha1Client(
   config: ClientConfig
 ): NeosyncV1alpha1Client {
-  const transport = getConnectTransport(
-    config.apiBaseUrl,
-    config.getAccessToken
-  );
+  const interceptors = config.getAccessToken
+    ? [getAuthInterceptor(config.getAccessToken)]
+    : [];
+  const transport = config.getTransport(interceptors);
   return {
     connections: createPromiseClient(ConnectionService, transport),
     users: createPromiseClient(UserAccountService, transport),
@@ -85,20 +84,6 @@ export function getNeosyncV1alpha1Client(
     transformers: createPromiseClient(TransformersService, transport),
     apikeys: createPromiseClient(ApiKeyService, transport),
   };
-}
-
-function getConnectTransport(
-  baseUrl: string,
-  getAccessToken?: GetAccessTokenFn
-): Transport {
-  const interceptors = getAccessToken
-    ? [getAuthInterceptor(getAccessToken)]
-    : [];
-  return createConnectTransport({
-    baseUrl,
-    httpVersion: "2",
-    interceptors: interceptors,
-  });
 }
 
 function getAuthInterceptor(getAccessToken: GetAccessTokenFn): Interceptor {

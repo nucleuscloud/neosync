@@ -1,3 +1,4 @@
+import { createConnectTransport } from '@connectrpc/connect-node';
 import {
   Code,
   ConnectError,
@@ -25,8 +26,14 @@ export function withNeosyncContext<T = unknown>(
   return async (req) => {
     try {
       const neosyncClient = getNeosyncClient({
-        apiBaseUrl: getApiBaseUrlFromEnv(),
         getAccessToken: getAccessTokenFn(req),
+        getTransport(interceptors) {
+          return createConnectTransport({
+            baseUrl: getApiBaseUrlFromEnv(),
+            httpVersion: '2',
+            interceptors: interceptors,
+          });
+        },
       });
       const output = await handler({ client: neosyncClient });
       return NextResponse.json(output);
