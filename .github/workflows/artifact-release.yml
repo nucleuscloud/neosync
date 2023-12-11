@@ -509,6 +509,7 @@ jobs:
           echo "NEW_PACKAGE_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
 
       - name: Update package.json version
+        working-directory: frontend/packages/sdk
         run: |
           jq '.version = "${{ env.NEW_PACKAGE_VERSION }}"' package.json > temp.json && mv temp.json package.json
 
