@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Neosync SDK",
   "files": [
-    "./dist/**/*"
+    "dist/**"
   ],
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.cts",
@@ -23,9 +23,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf dist",
-    "build": "npm run clean && npm run tsup",
-    "tsup": "tsup src/index.ts --format cjs,esm --dts",
-    "prepare": "npm run tsup"
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
   },
   "author": "nickzelei",
   "license": "MIT",

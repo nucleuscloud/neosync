@@ -19,3 +19,5 @@ Chart.lock
 go.work.sum
 
 .data
+
+.turbo
