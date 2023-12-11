@@ -5,36 +5,35 @@
   "files": [
     "./dist/**/*"
   ],
-  "main": "./dist/cjs/index.js",
-  "types": "./dist/cjs/index.d.ts",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
+  "type": "module",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.mjs"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       },
       "require": {
-        "types": "./dist/cjs/index.d.ts",
-        "default": "./dist/cjs/index.js"
+        "types": "./dist/index.d.ctx",
+        "default": "./dist/index.cjs"
       }
     }
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf dist",
-    "build": "npm run clean && npm run build:esm && npm run build:cjs",
-    "build:esm": "tsc -p ./tsconfig.json && mv dist/esm/index.js dist/esm/index.mjs",
-    "build:cjs": "tsc -p ./tsconfig.cjs.json",
-    "prepare": "npm run build"
+    "build": "npm run clean && npm run tsup",
+    "tsup": "tsup src/index.ts --format cjs,esm --dts"
   },
   "author": "nickzelei",
   "license": "MIT",
   "devDependencies": {
+    "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^1.5.1",
-    "@connectrpc/connect": "^1.1.4",
-    "@connectrpc/connect-node": "^1.1.4"
+    "@connectrpc/connect": "^1.1.4"
   }
 }
