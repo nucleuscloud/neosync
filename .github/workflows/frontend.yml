@@ -2,6 +2,8 @@ on:
   pull_request:
     paths:
       - frontend/**
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
 
 name: Frontend
 jobs:
