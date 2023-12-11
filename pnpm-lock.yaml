@@ -204,9 +204,6 @@ importers:
       '@connectrpc/connect':
         specifier: ^1.1.4
         version: 1.1.4(@bufbuild/protobuf@1.5.1)
-      '@connectrpc/connect-node':
-        specifier: ^1.1.4
-        version: 1.1.4(@bufbuild/protobuf@1.5.1)(@connectrpc/connect@1.1.4)
     devDependencies:
       tsup:
         specifier: ^8.0.1
