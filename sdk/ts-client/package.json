@@ -24,7 +24,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf dist",
     "build": "npm run clean && npm run tsup",
-    "tsup": "tsup src/index.ts --format cjs,esm --dts"
+    "tsup": "tsup src/index.ts --format cjs,esm --dts",
+    "prepare": "npm run tsup"
   },
   "author": "nickzelei",
   "license": "MIT",
