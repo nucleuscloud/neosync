@@ -7,3 +7,4 @@ charts
 dev
 pnpm-lock.yaml
 packages/sdk/src/client/
+package.json
