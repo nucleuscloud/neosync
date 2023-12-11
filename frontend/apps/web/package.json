@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "latest-tag": "git tag --sort=creatordate | tail -1"
+    "latest-tag": "git tag --sort=creatordate | tail -1",
+    "knip": "knip",
+    "knip:production": "knip --production --strict"
   },
   "dependencies": {
     "@auth/core": "^0.18.4",
