@@ -24,5 +24,5 @@ config.set_enabled_resources(resources)
 
 load_dynamic('tilt/temporal/Tiltfile')
 load_dynamic('backend/Tiltfile')
-load_dynamic('frontend/apps/web/Tiltfile')
+load_dynamic('frontend/Tiltfile')
 load_dynamic('worker/Tiltfile')
