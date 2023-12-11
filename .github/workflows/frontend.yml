@@ -2,8 +2,6 @@ on:
   pull_request:
     paths:
       - frontend/**
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
 
 name: Frontend
 jobs:
@@ -20,8 +18,8 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
 
-      - run: npm ci
-      - run: npm run knip:production
+      - run: pnpm ci
+      - run: pnpm run knip:production
 
   prettier:
     name: Prettier
@@ -44,14 +42,14 @@ jobs:
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - run: npm ci
-      - run: npm run prettier:check
+      - run: pnpm ci
+      - run: pnpm run prettier:check
 
   build:
     name: TS Build
@@ -74,10 +72,10 @@ jobs:
           path: |
             ~/.npm
             ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
 
-      - run: npm ci
+      - run: pnpm ci
       - name: Build
-        run: npm run build
+        run: pnpm run build

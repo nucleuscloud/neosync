@@ -8,10 +8,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "knip": "knip",
-    "knip:production": "knip --production --strict",
-    "prettier:check": "prettier --check .",
-    "prettier:write": "prettier --write .",
     "latest-tag": "git tag --sort=creatordate | tail -1"
   },
   "dependencies": {

@@ -6,9 +6,15 @@
 		"lint": "turbo run lint",
 		"test": "turbo run test",
 		"typecheck": "turbo run typecheck",
-		"docker": "turbo prune @neosync/app --docker"
+		"docker": "turbo prune @neosync/app --docker",
+		"knip": "knip",
+		"knip:production": "knip --production --strict",
+		"prettier:check": "prettier --check .",
+		"prettier:write": "prettier --write ."
 	},
 	"devDependencies": {
+		"knip": "^3.5.0",
+		"prettier": "^3.1.0",
 		"turbo": "^1.11.1"
 	},
 	"packageManager": "pnpm@8.12.0"
