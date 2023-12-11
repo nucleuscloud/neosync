@@ -20,6 +20,8 @@ jobs:
 
       - uses: pnpm/action-setup@v2
         name: Install pnpm
+        with:
+          package_json_file: frontend/package.json
 
       - run: pnpm ci
       - run: pnpm run knip:production
@@ -39,6 +41,8 @@ jobs:
 
       - uses: pnpm/action-setup@v2
         name: Install pnpm
+        with:
+          package_json_file: frontend/package.json
 
       - name: Cache node modules
         id: cache-npm
@@ -72,6 +76,8 @@ jobs:
 
       - uses: pnpm/action-setup@v2
         name: Install pnpm
+        with:
+          package_json_file: frontend/package.json
 
       - name: Cache node modules
         id: cache-npm
