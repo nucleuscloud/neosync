@@ -1,43 +1,24 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+bin
 .DS_Store
-*.pem
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+.env.prod
+.env.stage
+.env.dev
+.env.dev.secrets
+.env.stage.secrets
+.env.prod.secrets
+.env.*.secrets
 
-# local env files
-.env*.local
+*.log
 
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+node_modules
 
 Chart.lock
-charts/**/*.tgz
+**/*.tgz
 
-.env
-.env.development
-.env.staging
-.env.production
+go.work.sum
+
+.data
+
+.turbo
+frontend/out

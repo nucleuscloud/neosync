@@ -1,8 +1,10 @@
 .prettierrc.json
 .vercel
 .vscode
-neosync-api-client
 README.md
 tsconfig.json
 charts
 dev
+pnpm-lock.yaml
+packages/sdk/src/client/
+package.json
