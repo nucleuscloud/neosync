@@ -5,7 +5,8 @@
 		"dev": "turbo run dev",
 		"lint": "turbo run lint",
 		"test": "turbo run test",
-		"typecheck": "turbo run typecheck"
+		"typecheck": "turbo run typecheck",
+		"docker": "turbo prune @neosync/app --docker"
 	},
 	"devDependencies": {
 		"turbo": "^1.11.1"
