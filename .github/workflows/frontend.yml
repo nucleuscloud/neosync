@@ -58,7 +58,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - run: pnpm ci
+      - run: pnpm install
       - run: pnpm run prettier:check
 
   build:
