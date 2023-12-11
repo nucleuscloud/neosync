@@ -2,7 +2,7 @@ load('ext://restart_process', 'docker_build_with_restart')
 load('ext://configmap', 'configmap_from_dict')
 load('ext://namespace', 'namespace_create')
 
-helpers = load_dynamic("../tilt/extensions/Tiltfile")
+helpers = load_dynamic("../../../tilt/extensions/Tiltfile")
 helmfile_with_local_chart = helpers['helmfile_with_local_chart']
 helmfile = helpers['helmfile']
 
