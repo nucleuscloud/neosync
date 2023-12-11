@@ -20,6 +20,12 @@ Based on your usage, you'll have to install a different version of `connect` to 
 * Node: [@connectrpc/connect-node](https://connectrpc.com/docs/node/using-clients)
 * Web: [@connectrpc/connect-web](https://connectrpc.com/docs/web/using-clients)
 
+Install whichever one makes sense for you
+```sh
+npm install @connectrpc/connect-node
+npm install @connectrpc/connect-web
+```
+
 Neosync API serves up `Connect`, which can listen using Connect, gRPC, or Web protocols.
 Each of the libraries above provides all three of those protocols, but it's recommended to use `createConnectTransport` for the most efficient setup.
 
