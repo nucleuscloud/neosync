@@ -17,6 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/version"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -494,4 +495,15 @@ func (s *Service) verifyUserInAccount(
 		return nil, err
 	}
 	return &accountUuid, nil
+}
+
+func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) (*connect.Response[mgmtv1alpha1.GetSystemInformationResponse], error) {
+	versionInfo := version.Get()
+
+	return connect.NewResponse(&mgmtv1alpha1.GetSystemInformationResponse{
+		Version:  versionInfo.GitVersion,
+		Commit:   versionInfo.GitCommit,
+		Compiler: versionInfo.Compiler,
+		Platform: versionInfo.Platform,
+	}), nil
 }

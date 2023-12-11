@@ -7967,6 +7967,89 @@
           ]
         },
         {
+          "name": "GetSystemInformationRequest",
+          "longName": "GetSystemInformationRequest",
+          "fullName": "mgmt.v1alpha1.GetSystemInformationRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "GetSystemInformationResponse",
+          "longName": "GetSystemInformationResponse",
+          "fullName": "mgmt.v1alpha1.GetSystemInformationResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "version",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "commit",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "compiler",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "platform",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "build_date",
+              "description": "",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetTeamAccountInvitesRequest",
           "longName": "GetTeamAccountInvitesRequest",
           "fullName": "mgmt.v1alpha1.GetTeamAccountInvitesRequest",
@@ -8686,6 +8769,18 @@
               "responseType": "AcceptTeamAccountInviteResponse",
               "responseLongType": "AcceptTeamAccountInviteResponse",
               "responseFullType": "mgmt.v1alpha1.AcceptTeamAccountInviteResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetSystemInformation",
+              "description": "",
+              "requestType": "GetSystemInformationRequest",
+              "requestLongType": "GetSystemInformationRequest",
+              "requestFullType": "mgmt.v1alpha1.GetSystemInformationRequest",
+              "requestStreaming": false,
+              "responseType": "GetSystemInformationResponse",
+              "responseLongType": "GetSystemInformationResponse",
+              "responseFullType": "mgmt.v1alpha1.GetSystemInformationResponse",
               "responseStreaming": false
             }
           ]

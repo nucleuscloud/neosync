@@ -260,6 +260,65 @@ func (_c *MockUserAccountServiceClient_GetAccountTemporalConfig_Call) RunAndRetu
 	return _c
 }
 
+// GetSystemInformation provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) GetSystemInformation(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) (*connect.Response[mgmtv1alpha1.GetSystemInformationResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSystemInformation")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.GetSystemInformationResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) (*connect.Response[mgmtv1alpha1.GetSystemInformationResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) *connect.Response[mgmtv1alpha1.GetSystemInformationResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetSystemInformationResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_GetSystemInformation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSystemInformation'
+type MockUserAccountServiceClient_GetSystemInformation_Call struct {
+	*mock.Call
+}
+
+// GetSystemInformation is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]
+func (_e *MockUserAccountServiceClient_Expecter) GetSystemInformation(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_GetSystemInformation_Call {
+	return &MockUserAccountServiceClient_GetSystemInformation_Call{Call: _e.mock.On("GetSystemInformation", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_GetSystemInformation_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetSystemInformationRequest])) *MockUserAccountServiceClient_GetSystemInformation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetSystemInformationRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetSystemInformation_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetSystemInformationResponse], _a1 error) *MockUserAccountServiceClient_GetSystemInformation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetSystemInformation_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) (*connect.Response[mgmtv1alpha1.GetSystemInformationResponse], error)) *MockUserAccountServiceClient_GetSystemInformation_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTeamAccountInvites provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) GetTeamAccountInvites(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse], error) {
 	ret := _m.Called(_a0, _a1)

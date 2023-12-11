@@ -1350,3 +1350,95 @@ export class AcceptTeamAccountInviteResponse extends Message<AcceptTeamAccountIn
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetSystemInformationRequest
+ */
+export class GetSystemInformationRequest extends Message<GetSystemInformationRequest> {
+  constructor(data?: PartialMessage<GetSystemInformationRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetSystemInformationRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetSystemInformationRequest {
+    return new GetSystemInformationRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetSystemInformationRequest {
+    return new GetSystemInformationRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetSystemInformationRequest {
+    return new GetSystemInformationRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetSystemInformationRequest | PlainMessage<GetSystemInformationRequest> | undefined, b: GetSystemInformationRequest | PlainMessage<GetSystemInformationRequest> | undefined): boolean {
+    return proto3.util.equals(GetSystemInformationRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetSystemInformationResponse
+ */
+export class GetSystemInformationResponse extends Message<GetSystemInformationResponse> {
+  /**
+   * @generated from field: string version = 1;
+   */
+  version = "";
+
+  /**
+   * @generated from field: string commit = 2;
+   */
+  commit = "";
+
+  /**
+   * @generated from field: string compiler = 3;
+   */
+  compiler = "";
+
+  /**
+   * @generated from field: string platform = 4;
+   */
+  platform = "";
+
+  /**
+   * @generated from field: google.protobuf.Timestamp build_date = 5;
+   */
+  buildDate?: Timestamp;
+
+  constructor(data?: PartialMessage<GetSystemInformationResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetSystemInformationResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "version", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "commit", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "compiler", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "platform", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "build_date", kind: "message", T: Timestamp },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetSystemInformationResponse {
+    return new GetSystemInformationResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetSystemInformationResponse {
+    return new GetSystemInformationResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetSystemInformationResponse {
+    return new GetSystemInformationResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetSystemInformationResponse | PlainMessage<GetSystemInformationResponse> | undefined, b: GetSystemInformationResponse | PlainMessage<GetSystemInformationResponse> | undefined): boolean {
+    return proto3.util.equals(GetSystemInformationResponse, a, b);
+  }
+}
+
