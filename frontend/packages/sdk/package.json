@@ -2,6 +2,7 @@
   "name": "@neosync/sdk",
   "version": "0.0.0",
   "description": "Neosync SDK",
+  "private": false,
   "files": [
     "dist/**"
   ],
@@ -37,5 +38,17 @@
   "dependencies": {
     "@bufbuild/protobuf": "^1.5.1",
     "@connectrpc/connect": "^1.1.4"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nucleuscloud/neosync.git"
+  },
+  "keywords": [
+    "neosync",
+    "sdk"
+  ],
+  "bugs": {
+    "url": "https://github.com/nucleuscloud/neosync/issues"
+  },
+  "homepage": "https://github.com/nucleuscloud/neosync#readme"
 }

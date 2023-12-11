@@ -456,3 +456,61 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_PAT }} # needs to be a non-action token because this also pushes to the homebrew repo
           # GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           AUR_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
+
+  ts-sdk:
+    name: TypeScript SDK Release
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install jq
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          registry-url: "https://registry.npmjs.org"
+          scope: "@neosync"
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          package_json_file: frontend/package.json
+
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v3
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+
+      - run: pnpm install
+      - name: Build
+        run: pnpm run build
+
+      - name: Setup Trimmed package.json version
+        run: |
+          V_PREFIX="v"
+          VERSION="${{ github.ref_name }}"
+          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+          echo "$TRIMMED_VERSION"
+          echo "NEW_PACKAGE_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+
+      - name: Update package.json version
+        run: |
+          jq '.version = "${{ env.NEW_PACKAGE_VERSION }}"' package.json > temp.json && mv temp.json package.json
+
+      - name: Publish SDK
+        working-directory: frontend/packages/sdk
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_DEPLOY_KEY }}
