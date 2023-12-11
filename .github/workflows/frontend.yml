@@ -23,7 +23,7 @@ jobs:
         with:
           package_json_file: frontend/package.json
 
-      - run: pnpm ci
+      - run: pnpm install
       - run: pnpm run knip:production
 
   prettier:
@@ -91,6 +91,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
 
-      - run: pnpm ci
+      - run: pnpm install
       - name: Build
         run: pnpm run build
