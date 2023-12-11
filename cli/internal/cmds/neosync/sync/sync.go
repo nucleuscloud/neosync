@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -18,7 +19,6 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v2"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
@@ -29,11 +29,174 @@ import (
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 
 	"github.com/benthosdev/benthos/v4/public/service"
+
+	"github.com/charmbracelet/bubbles/progress"
+	"github.com/charmbracelet/bubbles/spinner"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 const (
 	maxPgParamLimit = 65535
 )
+
+type model struct {
+	groupedConfigs [][]*benthosConfigResponse
+	tableSynced    int
+	index          int
+	width          int
+	height         int
+	spinner        spinner.Model
+	progress       progress.Model
+	done           bool
+}
+
+var (
+	currentPkgNameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("211"))
+	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
+	checkMark           = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).SetString("✓")
+)
+
+func newModel(groupedConfigs [][]*benthosConfigResponse) model {
+	p := progress.New(
+		progress.WithDefaultGradient(),
+		progress.WithWidth(40),
+		progress.WithoutPercentage(),
+	)
+	s := spinner.New()
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
+	return model{
+		groupedConfigs: groupedConfigs,
+		tableSynced:    0,
+		spinner:        s,
+		progress:       p,
+	}
+}
+
+func (m model) Init() tea.Cmd {
+	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
+
+}
+
+func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
+	count := 0
+	for _, group := range groupedConfigs {
+		for _, config := range group {
+			if config != nil {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width, m.height = msg.Width, msg.Height
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "esc", "q":
+			return m, tea.Quit
+		}
+	case installedPkgMsg:
+		totalConfigCount := getConfigCount(m.groupedConfigs)
+		configCount := len(m.groupedConfigs)
+		if m.index == configCount-1 {
+			successStrs := []string{}
+			for _, config := range m.groupedConfigs[m.index] {
+				successStrs = append(successStrs, fmt.Sprintf("%s %s", checkMark, config.Name))
+				m.tableSynced++
+			}
+			// Update progress bar
+			progressCmd := m.progress.SetPercent(float64(m.tableSynced) / float64(totalConfigCount))
+
+			m.done = true
+			return m, tea.Batch(
+				progressCmd,
+				tea.Println(strings.Join(successStrs, " \n")), // print success message above our program
+				tea.Quit,
+			)
+		}
+
+		successStrs := []string{}
+		for _, config := range m.groupedConfigs[m.index] {
+			successStrs = append(successStrs, fmt.Sprintf("%s %s", checkMark, config.Name))
+			m.tableSynced++
+		}
+		// Update progress bar
+		progressCmd := m.progress.SetPercent(float64(m.tableSynced) / float64(totalConfigCount))
+
+		m.index++
+
+		return m, tea.Batch(
+			progressCmd,
+			tea.Println(strings.Join(successStrs, " \n")), // print success message above our program
+
+			syncConfigs(m.groupedConfigs[m.index]), // download the next package
+		)
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
+	case progress.FrameMsg:
+		newModel, cmd := m.progress.Update(msg)
+		if newModel, ok := newModel.(progress.Model); ok {
+			m.progress = newModel
+		}
+		return m, cmd
+	}
+	return m, nil
+}
+
+func (m model) View() string {
+	configCount := getConfigCount(m.groupedConfigs)
+	w := lipgloss.Width(fmt.Sprintf("%d", configCount))
+
+	if m.done {
+		return doneStyle.Render(fmt.Sprintf("Done! Installed %d packages.\n", configCount))
+	}
+
+	pkgCount := fmt.Sprintf(" %*d/%*d", w, m.tableSynced, w, configCount)
+
+	spin := m.spinner.View() + " "
+	prog := m.progress.View()
+	cellsAvail := max(0, m.width-lipgloss.Width(spin+prog+pkgCount))
+
+	successStrs := []string{}
+	for _, config := range m.groupedConfigs[m.index] {
+		successStrs = append(successStrs, config.Name)
+	}
+	pkgName := currentPkgNameStyle.Render(successStrs...)
+	info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Syncing " + pkgName)
+
+	cellsRemaining := max(0, m.width-lipgloss.Width(spin+info+prog+pkgCount))
+	gap := strings.Repeat(" ", cellsRemaining)
+
+	return spin + info + gap + prog + pkgCount
+}
+
+type installedPkgMsg string
+
+func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
+	// This is where you'd do i/o stuff to download and install packages. In
+	// our case we're just pausing for a moment to simulate the process.
+	message := ""
+	for _, config := range configs {
+		message = fmt.Sprintf("%s, %s", message, config.Name)
+	}
+	d := time.Second * 1 //nolint:gosec
+	return tea.Tick(d, func(t time.Time) tea.Msg {
+		return installedPkgMsg(message)
+	})
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
 
 type cmdConfig struct {
 	ConnectionId string            `yaml:"connection-id"`
@@ -232,25 +395,37 @@ func sync(
 
 	groupedConfigs := groupConfigsByDependency(configs)
 	for _, group := range groupedConfigs {
-		errgrp, errctx := errgroup.WithContext(ctx)
-		for _, cfg := range group {
-			cfg := cfg
-			errgrp.Go(func() error {
-				err := syncData(errctx, cfg)
-				if err != nil {
-					return err
-				}
-				return nil
-			})
+		fmt.Println("------")
+		for _, config := range group {
+			fmt.Println(config.Name)
 		}
-
-		if err := errgrp.Wait(); err != nil {
-			return err
-		}
-
 	}
+	fmt.Println(getConfigCount(groupedConfigs))
+	fmt.Println("syncing data...")
+	if _, err := tea.NewProgram(newModel(groupedConfigs)).Run(); err != nil {
+		fmt.Println("Error syncing data:", err)
+		os.Exit(1)
+	}
+	// for _, group := range groupedConfigs {
+	// 	errgrp, errctx := errgroup.WithContext(ctx)
+	// 	for _, cfg := range group {
+	// 		cfg := cfg
+	// 		errgrp.Go(func() error {
+	// 			err := syncData(errctx, cfg)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 			return nil
+	// 		})
+	// 	}
 
-	fmt.Println("data sync complete") // nolint
+	// 	if err := errgrp.Wait(); err != nil {
+	// 		return err
+	// 	}
+
+	// }
+
+	// fmt.Println("data sync complete") // nolint
 
 	return nil
 }
