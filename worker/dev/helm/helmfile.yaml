@@ -6,7 +6,8 @@ releases:
     createNamespace: false
 
     values:
-      - image:
+      -
+        image:
           repository: neosync-worker
         serviceAccount:
           create: true
@@ -27,6 +28,6 @@ releases:
         temporal:
           url: temporal.temporal:7233
           namespace: default
-          taskQueue: 'sync-job'
+          taskQueue: "sync-job"
 
         containerPort: 8080

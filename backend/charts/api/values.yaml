@@ -54,7 +54,7 @@ terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
 auth:
-  enabled: true
+  enabled: false
   audience:
   baseUrl:
   cliClientId:

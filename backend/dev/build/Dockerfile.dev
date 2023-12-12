@@ -8,7 +8,6 @@ WORKDIR /app
 COPY /sql/postgresql/schema/ /app/migrations/
 
 RUN echo 'NUCLEUS_ENV=dev' > /app/.env
-COPY .env.dev /app
 
 COPY /bin/mgmt /app
 

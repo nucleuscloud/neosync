@@ -6,7 +6,8 @@ releases:
     createNamespace: false
 
     values:
-      - image:
+      -
+        image:
           repository: neosync-app
 
         serviceAccount:
@@ -21,4 +22,5 @@ releases:
           url: http://neosync-api
 
         auth:
-          enabled: true
+          enabled: false
+

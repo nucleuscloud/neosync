@@ -43,7 +43,7 @@ nextPublic:
   appBaseUrl: 'http://localhost:3000'
 
 auth:
-  enabled: true
+  enabled: false
 
 auth0:
   clientId:
