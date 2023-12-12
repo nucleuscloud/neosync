@@ -184,7 +184,7 @@ func getHeader(accountType mgmtv1alpha1.UserAccountType, shouldShowHeader bool) 
 		header = "── Personal Account ─────────────────────────────────────"
 	}
 	if shouldShowHeader && accountType == mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_TEAM {
-		header = "── Team Account ─────────────────────────────────────"
+		header = "── Team Account ─────────────────────────────────────────"
 	}
 	return &header
 }
