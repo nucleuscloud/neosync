@@ -4092,3 +4092,354 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetConnectionForeignConstraintsResponseValidationError{}
+
+// Validate checks the field values on InitStatementOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *InitStatementOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on InitStatementOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// InitStatementOptionsMultiError, or nil if none found.
+func (m *InitStatementOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *InitStatementOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for InitSchema
+
+	// no validation rules for TruncateBeforeInsert
+
+	// no validation rules for TruncateCascade
+
+	if len(errors) > 0 {
+		return InitStatementOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// InitStatementOptionsMultiError is an error wrapping multiple validation
+// errors returned by InitStatementOptions.ValidateAll() if the designated
+// constraints aren't met.
+type InitStatementOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m InitStatementOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m InitStatementOptionsMultiError) AllErrors() []error { return m }
+
+// InitStatementOptionsValidationError is the validation error returned by
+// InitStatementOptions.Validate if the designated constraints aren't met.
+type InitStatementOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e InitStatementOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e InitStatementOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e InitStatementOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e InitStatementOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e InitStatementOptionsValidationError) ErrorName() string {
+	return "InitStatementOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e InitStatementOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sInitStatementOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = InitStatementOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = InitStatementOptionsValidationError{}
+
+// Validate checks the field values on GetConnectionInitStatementsRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetConnectionInitStatementsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetConnectionInitStatementsRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetConnectionInitStatementsRequestMultiError, or nil if none found.
+func (m *GetConnectionInitStatementsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionInitStatementsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	if all {
+		switch v := interface{}(m.GetOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetConnectionInitStatementsRequestValidationError{
+					field:  "Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetConnectionInitStatementsRequestValidationError{
+					field:  "Options",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetConnectionInitStatementsRequestValidationError{
+				field:  "Options",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetConnectionInitStatementsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionInitStatementsRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// GetConnectionInitStatementsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetConnectionInitStatementsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionInitStatementsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionInitStatementsRequestMultiError) AllErrors() []error { return m }
+
+// GetConnectionInitStatementsRequestValidationError is the validation error
+// returned by GetConnectionInitStatementsRequest.Validate if the designated
+// constraints aren't met.
+type GetConnectionInitStatementsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionInitStatementsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionInitStatementsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionInitStatementsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionInitStatementsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionInitStatementsRequestValidationError) ErrorName() string {
+	return "GetConnectionInitStatementsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionInitStatementsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionInitStatementsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionInitStatementsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionInitStatementsRequestValidationError{}
+
+// Validate checks the field values on GetConnectionInitStatementsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetConnectionInitStatementsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetConnectionInitStatementsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetConnectionInitStatementsResponseMultiError, or nil if none found.
+func (m *GetConnectionInitStatementsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionInitStatementsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for TableInitStatements
+
+	if len(errors) > 0 {
+		return GetConnectionInitStatementsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionInitStatementsResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// GetConnectionInitStatementsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetConnectionInitStatementsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionInitStatementsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionInitStatementsResponseMultiError) AllErrors() []error { return m }
+
+// GetConnectionInitStatementsResponseValidationError is the validation error
+// returned by GetConnectionInitStatementsResponse.Validate if the designated
+// constraints aren't met.
+type GetConnectionInitStatementsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionInitStatementsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionInitStatementsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionInitStatementsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionInitStatementsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionInitStatementsResponseValidationError) ErrorName() string {
+	return "GetConnectionInitStatementsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionInitStatementsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionInitStatementsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionInitStatementsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionInitStatementsResponseValidationError{}

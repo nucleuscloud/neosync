@@ -1507,3 +1507,136 @@ export class GetConnectionForeignConstraintsResponse extends Message<GetConnecti
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.InitStatementOptions
+ */
+export class InitStatementOptions extends Message<InitStatementOptions> {
+  /**
+   * @generated from field: bool init_schema = 1;
+   */
+  initSchema = false;
+
+  /**
+   * @generated from field: bool truncate_before_insert = 2;
+   */
+  truncateBeforeInsert = false;
+
+  /**
+   * @generated from field: bool truncate_cascade = 3;
+   */
+  truncateCascade = false;
+
+  constructor(data?: PartialMessage<InitStatementOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.InitStatementOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "init_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "truncate_before_insert", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "truncate_cascade", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InitStatementOptions {
+    return new InitStatementOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InitStatementOptions {
+    return new InitStatementOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InitStatementOptions {
+    return new InitStatementOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: InitStatementOptions | PlainMessage<InitStatementOptions> | undefined, b: InitStatementOptions | PlainMessage<InitStatementOptions> | undefined): boolean {
+    return proto3.util.equals(InitStatementOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionInitStatementsRequest
+ */
+export class GetConnectionInitStatementsRequest extends Message<GetConnectionInitStatementsRequest> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.InitStatementOptions options = 2;
+   */
+  options?: InitStatementOptions;
+
+  constructor(data?: PartialMessage<GetConnectionInitStatementsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionInitStatementsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "options", kind: "message", T: InitStatementOptions },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionInitStatementsRequest {
+    return new GetConnectionInitStatementsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionInitStatementsRequest {
+    return new GetConnectionInitStatementsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionInitStatementsRequest {
+    return new GetConnectionInitStatementsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionInitStatementsRequest | PlainMessage<GetConnectionInitStatementsRequest> | undefined, b: GetConnectionInitStatementsRequest | PlainMessage<GetConnectionInitStatementsRequest> | undefined): boolean {
+    return proto3.util.equals(GetConnectionInitStatementsRequest, a, b);
+  }
+}
+
+/**
+ * Init statement for a specific table
+ *
+ * @generated from message mgmt.v1alpha1.GetConnectionInitStatementsResponse
+ */
+export class GetConnectionInitStatementsResponse extends Message<GetConnectionInitStatementsResponse> {
+  /**
+   * the key here is <schema>.<table> and value is the table init statement.
+   *
+   * @generated from field: map<string, string> table_init_statements = 1;
+   */
+  tableInitStatements: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<GetConnectionInitStatementsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionInitStatementsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table_init_statements", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionInitStatementsResponse {
+    return new GetConnectionInitStatementsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionInitStatementsResponse {
+    return new GetConnectionInitStatementsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionInitStatementsResponse {
+    return new GetConnectionInitStatementsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionInitStatementsResponse | PlainMessage<GetConnectionInitStatementsResponse> | undefined, b: GetConnectionInitStatementsResponse | PlainMessage<GetConnectionInitStatementsResponse> | undefined): boolean {
+    return proto3.util.equals(GetConnectionInitStatementsResponse, a, b);
+  }
+}
+

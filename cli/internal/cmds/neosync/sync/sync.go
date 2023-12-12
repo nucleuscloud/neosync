@@ -33,6 +33,8 @@ import (
 
 const (
 	maxPgParamLimit = 65535
+	postgresDriver  = "postgres"
+	mysqlDriver     = "mysql"
 )
 
 type cmdConfig struct {
@@ -41,8 +43,11 @@ type cmdConfig struct {
 }
 
 type destinationConfig struct {
-	ConnectionUrl string `yaml:"connection-url"`
-	Driver        string `yaml:"driver"`
+	ConnectionUrl        string `yaml:"connection-url"`
+	Driver               string `yaml:"driver"`
+	InitSchema           bool   `yaml:"init-table-schema,omitempty"`
+	TruncateBeforeInsert bool   `yaml:"truncate-before-insert,omitempty"`
+	TruncateCascade      bool   `yaml:"truncate-cascade,omitempty"`
 }
 
 func NewCmd() *cobra.Command {
@@ -101,6 +106,30 @@ func NewCmd() *cobra.Command {
 				config.Destination.Driver = driver
 			}
 
+			initSchema, err := cmd.Flags().GetBool("init-schema")
+			if err != nil {
+				return err
+			}
+			if initSchema {
+				config.Destination.InitSchema = initSchema
+			}
+
+			truncateBeforeInsert, err := cmd.Flags().GetBool("truncate-before-insert")
+			if err != nil {
+				return err
+			}
+			if truncateBeforeInsert {
+				config.Destination.TruncateBeforeInsert = truncateBeforeInsert
+			}
+
+			truncateCascade, err := cmd.Flags().GetBool("truncate-cascade")
+			if err != nil {
+				return err
+			}
+			if truncateBeforeInsert {
+				config.Destination.TruncateCascade = truncateCascade
+			}
+
 			if config.ConnectionId == "" {
 				return fmt.Errorf("must provide connection-id")
 			}
@@ -109,6 +138,14 @@ func NewCmd() *cobra.Command {
 			}
 			if config.Destination.ConnectionUrl == "" {
 				return fmt.Errorf("must provide destination-connection-url")
+			}
+
+			if config.Destination.TruncateCascade && config.Destination.Driver != postgresDriver {
+				return fmt.Errorf("wrong driver type. truncate cascade is only supported in postgres")
+			}
+
+			if config.Destination.Driver != mysqlDriver && config.Destination.Driver != postgresDriver {
+				return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
 			}
 
 			accountId, err := cmd.Flags().GetString("account-id")
@@ -125,6 +162,10 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().String("destination-driver", "", "Connection driver for sync output")
 	cmd.Flags().String("account-id", "", "Account source connection is in. Defaults to account id in cli context")
 	cmd.Flags().String("config", "", `Location of config file`)
+	cmd.Flags().Bool("init-schema", false, "Create table schema and its constraints")
+	cmd.Flags().Bool("truncate-before-insert", false, "Truncate table before insert")
+	cmd.Flags().Bool("truncate-cascade", false, "Truncate cascade table before insert (postgres only)")
+
 	return cmd
 }
 
@@ -184,10 +225,6 @@ func sync(
 		return errors.New(fmt.Sprintf("Connection not found. AccountId: %s", *accountId)) // nolint
 	}
 
-	if cmd.Destination.Driver != "mysql" && cmd.Destination.Driver != "postgres" {
-		return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
-	}
-
 	err = areSourceAndDestCompatible(connection.Msg.Connection, cmd.Destination.Driver)
 	if err != nil {
 		return err
@@ -214,6 +251,11 @@ func sync(
 	}
 	tableConstraints := fkConnectionResp.Msg.GetTableConstraints()
 
+	initTableStatementsMap, err := getTableInitStatementMap(ctx, connectionclient, cmd.ConnectionId, cmd.Destination)
+	if err != nil {
+		return err
+	}
+
 	fmt.Println("generating configs...") // nolint
 	configs := []*benthosConfigResponse{}
 	for _, table := range tables {
@@ -225,8 +267,9 @@ func sync(
 				return fmt.Errorf("circular dependency detected. exiting...")
 			}
 		}
+		initStatement := initTableStatementsMap[name]
 
-		benthosConfig := generateBenthosConfig(cmd, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), table.Columns, dependsOn, token)
+		benthosConfig := generateBenthosConfig(cmd, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, table.Columns, dependsOn, token)
 		configs = append(configs, benthosConfig)
 	}
 
@@ -258,11 +301,11 @@ func sync(
 func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver string) error {
 	switch connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		if destinationDriver != "postgres" {
+		if destinationDriver != postgresDriver {
 			return fmt.Errorf("Connection and destination types are incompatible [postgres, %s]", destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		if destinationDriver != "mysql" {
+		if destinationDriver != mysqlDriver {
 			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
@@ -324,6 +367,27 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	return nil
 }
 
+func getTableInitStatementMap(ctx context.Context, connectionclient mgmtv1alpha1connect.ConnectionServiceClient, connectionId string, opts destinationConfig) (map[string]string, error) {
+	if opts.InitSchema || opts.TruncateBeforeInsert || opts.TruncateCascade {
+		fmt.Println("creating init statements...") // nolint
+		initStatementResp, err := connectionclient.GetConnectionInitStatements(ctx,
+			connect.NewRequest(&mgmtv1alpha1.GetConnectionInitStatementsRequest{
+				ConnectionId: connectionId,
+				Options: &mgmtv1alpha1.InitStatementOptions{
+					InitSchema:           opts.InitSchema,
+					TruncateBeforeInsert: opts.TruncateBeforeInsert,
+					TruncateCascade:      opts.TruncateCascade,
+				},
+			},
+			))
+		if err != nil {
+			return nil, err
+		}
+		return initStatementResp.Msg.TableInitStatements, nil
+	}
+	return map[string]string{}, nil
+}
+
 type SqlTable struct {
 	Schema  string
 	Table   string
@@ -362,7 +426,7 @@ type benthosConfigResponse struct {
 
 func generateBenthosConfig(
 	cmd *cmdConfig,
-	schema, table, apiUrl string,
+	schema, table, apiUrl, initStatement string,
 	columns, dependsOn []string,
 	authToken *string,
 ) *benthosConfigResponse {
@@ -385,14 +449,14 @@ func generateBenthosConfig(
 			Output: &neosync_benthos.OutputConfig{
 				Outputs: neosync_benthos.Outputs{
 					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver: cmd.Destination.Driver,
-						Dsn:    cmd.Destination.ConnectionUrl,
-						// InitStatement: initStmt, TODO
-						Table:       tableName,
-						Columns:     columns,
-						ArgsMapping: buildPlainInsertArgs(columns),
-						ConnMaxIdle: 2,
-						ConnMaxOpen: 2,
+						Driver:        cmd.Destination.Driver,
+						Dsn:           cmd.Destination.ConnectionUrl,
+						InitStatement: initStatement,
+						Table:         tableName,
+						Columns:       columns,
+						ArgsMapping:   buildPlainInsertArgs(columns),
+						ConnMaxIdle:   2,
+						ConnMaxOpen:   2,
 						Batching: &neosync_benthos.Batching{
 							Period: "1s",
 							// max allowed by postgres in a single batch

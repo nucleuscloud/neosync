@@ -1698,6 +1698,102 @@
           ]
         },
         {
+          "name": "GetConnectionInitStatementsRequest",
+          "longName": "GetConnectionInitStatementsRequest",
+          "fullName": "mgmt.v1alpha1.GetConnectionInitStatementsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "options",
+              "description": "",
+              "label": "",
+              "type": "InitStatementOptions",
+              "longType": "InitStatementOptions",
+              "fullType": "mgmt.v1alpha1.InitStatementOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionInitStatementsResponse",
+          "longName": "GetConnectionInitStatementsResponse",
+          "fullName": "mgmt.v1alpha1.GetConnectionInitStatementsResponse",
+          "description": "Init statement for a specific table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "table_init_statements",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the table init statement.",
+              "label": "repeated",
+              "type": "TableInitStatementsEntry",
+              "longType": "GetConnectionInitStatementsResponse.TableInitStatementsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionInitStatementsResponse.TableInitStatementsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableInitStatementsEntry",
+          "longName": "GetConnectionInitStatementsResponse.TableInitStatementsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionInitStatementsResponse.TableInitStatementsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetConnectionRequest",
           "longName": "GetConnectionRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionRequest",
@@ -1834,6 +1930,54 @@
               "type": "Connection",
               "longType": "Connection",
               "fullType": "mgmt.v1alpha1.Connection",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "InitStatementOptions",
+          "longName": "InitStatementOptions",
+          "fullName": "mgmt.v1alpha1.InitStatementOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "init_schema",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "truncate_before_insert",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "truncate_cascade",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -2351,6 +2495,18 @@
               "responseType": "GetConnectionForeignConstraintsResponse",
               "responseLongType": "GetConnectionForeignConstraintsResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionForeignConstraintsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetConnectionInitStatements",
+              "description": "For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to create table schema init statement.",
+              "requestType": "GetConnectionInitStatementsRequest",
+              "requestLongType": "GetConnectionInitStatementsRequest",
+              "requestFullType": "mgmt.v1alpha1.GetConnectionInitStatementsRequest",
+              "requestStreaming": false,
+              "responseType": "GetConnectionInitStatementsResponse",
+              "responseLongType": "GetConnectionInitStatementsResponse",
+              "responseFullType": "mgmt.v1alpha1.GetConnectionInitStatementsResponse",
               "responseStreaming": false
             }
           ]
