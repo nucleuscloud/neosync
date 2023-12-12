@@ -21,7 +21,7 @@ services:
       watch:
         - path: frontend/package.json
           action: rebuild
-        - path: frontend/pnpm-lock.yaml
+        - path: frontend/package-lock.json
           action: rebuild
         - path: frontend/
           action: sync

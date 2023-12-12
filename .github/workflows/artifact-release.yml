@@ -479,11 +479,6 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           scope: "@neosync"
 
-      - uses: pnpm/action-setup@v2
-        name: Install pnpm
-        with:
-          package_json_file: frontend/package.json
-
       - name: Cache node modules
         id: cache-npm
         uses: actions/cache@v3
@@ -492,13 +487,13 @@ jobs:
           path: |
             ~/.npm
             ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
-      - run: pnpm install
+      - run: npm install
       - name: Build
-        run: pnpm run build
+        run: npm run build
 
       - name: Setup Trimmed package.json version
         run: |

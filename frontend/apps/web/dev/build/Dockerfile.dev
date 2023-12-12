@@ -2,9 +2,7 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-RUN npm install -g pnpm
-
 ADD . .
-RUN pnpm install
+RUN npm install
 
-ENTRYPOINT [ "pnpm", "run", "dev" ]
+ENTRYPOINT [ "npm", "run", "dev" ]

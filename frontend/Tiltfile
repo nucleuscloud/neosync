@@ -30,6 +30,6 @@ docker_build(
   # secret='id=npmrc,src=%s' % npmrc,
   live_update=[
     sync('.', '/app'),
-    run('pnpm install', trigger=['package.json', 'pnpm-lock.yaml']),
+    run('npm install', trigger=['package.json', 'package-lock.json']),
   ],
 )
