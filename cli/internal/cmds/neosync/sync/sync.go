@@ -60,168 +60,6 @@ var (
 	checkMark           = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("42")).SetString("✓")
 )
 
-func newModel(groupedConfigs [][]*benthosConfigResponse) model {
-	p := progress.New(
-		progress.WithDefaultGradient(),
-		progress.WithWidth(40),
-		progress.WithoutPercentage(),
-	)
-	s := spinner.New()
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
-	return model{
-		groupedConfigs: groupedConfigs,
-		tableSynced:    0,
-		spinner:        s,
-		progress:       p,
-	}
-}
-
-func (m model) Init() tea.Cmd {
-	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
-
-}
-
-func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
-	count := 0
-	for _, group := range groupedConfigs {
-		for _, config := range group {
-			if config != nil {
-				count++
-			}
-		}
-	}
-	return count
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width, m.height = msg.Width, msg.Height
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc", "q":
-			return m, tea.Quit
-		}
-	case syncedDataMsg:
-		totalConfigCount := getConfigCount(m.groupedConfigs)
-		configCount := len(m.groupedConfigs)
-		if m.index == configCount-1 {
-			successStrs := []string{}
-			for _, config := range m.groupedConfigs[m.index] {
-				successStrs = append(successStrs, fmt.Sprintf("%s %s", checkMark, config.Name))
-				m.tableSynced++
-			}
-			// Update progress bar
-			progressCmd := m.progress.SetPercent(float64(m.tableSynced) / float64(totalConfigCount))
-
-			m.done = true
-			return m, tea.Batch(
-				progressCmd,
-				tea.Println(strings.Join(successStrs, " \n")), // print success message above our program
-				tea.Quit,
-			)
-		}
-
-		successStrs := []string{}
-		for _, config := range m.groupedConfigs[m.index] {
-			successStrs = append(successStrs, fmt.Sprintf("%s %s", checkMark, config.Name))
-			m.tableSynced++
-		}
-		// Update progress bar
-		progressCmd := m.progress.SetPercent(float64(m.tableSynced) / float64(totalConfigCount))
-
-		m.index++
-
-		return m, tea.Batch(
-			progressCmd,
-			tea.Println(strings.Join(successStrs, " \n")), // print success message above our program
-
-			syncConfigs(m.groupedConfigs[m.index]), // download the next package
-		)
-	case spinner.TickMsg:
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
-	case progress.FrameMsg:
-		newModel, cmd := m.progress.Update(msg)
-		if newModel, ok := newModel.(progress.Model); ok {
-			m.progress = newModel
-		}
-		return m, cmd
-	}
-	return m, nil
-}
-
-func (m model) View() string {
-	configCount := getConfigCount(m.groupedConfigs)
-	w := lipgloss.Width(fmt.Sprintf("%d", configCount))
-
-	if m.done {
-		return doneStyle.Render(fmt.Sprintf("Done! Completed %d tables.\n", configCount))
-	}
-
-	pkgCount := fmt.Sprintf(" %*d/%*d", w, m.tableSynced, w, configCount)
-
-	spin := m.spinner.View() + " "
-	prog := m.progress.View()
-	cellsAvail := max(0, m.width-lipgloss.Width(spin+prog+pkgCount))
-
-	successStrs := []string{}
-	for _, config := range m.groupedConfigs[m.index] {
-		successStrs = append(successStrs, config.Name)
-	}
-	pkgName := currentPkgNameStyle.Render(successStrs...)
-	info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Syncing " + pkgName)
-
-	cellsRemaining := max(0, m.width-lipgloss.Width(spin+info+prog+pkgCount))
-	gap := strings.Repeat(" ", cellsRemaining)
-
-	return spin + info + gap + prog + pkgCount
-}
-
-type syncedDataMsg string
-
-func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
-	// This is where you'd do i/o stuff to download and install packages. In
-	// our case we're just pausing for a moment to simulate the process.
-
-	return func() tea.Msg {
-		errgrp, errctx := errgroup.WithContext(context.Background())
-		for _, cfg := range configs {
-			cfg := cfg
-			errgrp.Go(func() error {
-				err := syncData(errctx, cfg)
-				if err != nil {
-					return err
-				}
-				return nil
-			})
-		}
-
-		if err := errgrp.Wait(); err != nil {
-			tea.Printf("Error syncing data: %s \n", err.Error())
-			return tea.Quit
-		}
-
-		message := ""
-		for _, config := range configs {
-			message = fmt.Sprintf("%s, %s", message, config.Name)
-		}
-		return syncedDataMsg(message)
-	}
-	// d := time.Second * 1 //nolint:gosec
-	// return tea.Tick(d, func(t time.Time) tea.Msg {
-	// 	return syncedDataMsg(message)
-	// })
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 type cmdConfig struct {
 	ConnectionId string            `yaml:"connection-id"`
 	Destination  destinationConfig `yaml:"destination"`
@@ -487,7 +325,6 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 }
 
 func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
-	// fmt.Printf("syncing data for %s \n", cfg.Name) // nolint
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err
@@ -705,7 +542,6 @@ func computeMaxPgBatchCount(numCols int) int {
 	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
 }
 
-// clamps the input between low, high
 func clampInt(input, low, high int) int {
 	if input < low {
 		return low
@@ -725,4 +561,149 @@ func buildPlainInsertArgs(cols []string) string {
 		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
 	}
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
+}
+
+func newModel(groupedConfigs [][]*benthosConfigResponse) model {
+	p := progress.New(
+		progress.WithDefaultGradient(),
+		progress.WithWidth(40),
+		progress.WithoutPercentage(),
+	)
+	s := spinner.New()
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
+	return model{
+		groupedConfigs: groupedConfigs,
+		tableSynced:    0,
+		spinner:        s,
+		progress:       p,
+	}
+}
+
+func (m model) Init() tea.Cmd {
+	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
+
+}
+
+func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
+	count := 0
+	for _, group := range groupedConfigs {
+		for _, config := range group {
+			if config != nil {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width, m.height = msg.Width, msg.Height
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "esc", "q":
+			return m, tea.Quit
+		}
+	case syncedDataMsg:
+		totalConfigCount := getConfigCount(m.groupedConfigs)
+		configCount := len(m.groupedConfigs)
+
+		successStrs := []string{}
+		for _, config := range m.groupedConfigs[m.index] {
+			successStrs = append(successStrs, fmt.Sprintf("%s %s", checkMark, config.Name))
+			m.tableSynced++
+		}
+		progressCmd := m.progress.SetPercent(float64(m.tableSynced) / float64(totalConfigCount))
+
+		if m.index == configCount-1 {
+			m.done = true
+			return m, tea.Batch(
+				progressCmd,
+				tea.Println(strings.Join(successStrs, " \n")),
+				tea.Quit,
+			)
+		}
+
+		m.index++
+		return m, tea.Batch(
+			progressCmd,
+			tea.Println(strings.Join(successStrs, " \n")),
+			syncConfigs(m.groupedConfigs[m.index]),
+		)
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
+	case progress.FrameMsg:
+		newModel, cmd := m.progress.Update(msg)
+		if newModel, ok := newModel.(progress.Model); ok {
+			m.progress = newModel
+		}
+		return m, cmd
+	}
+	return m, nil
+}
+
+func (m model) View() string {
+	configCount := getConfigCount(m.groupedConfigs)
+	w := lipgloss.Width(fmt.Sprintf("%d", configCount))
+
+	if m.done {
+		return doneStyle.Render(fmt.Sprintf("Done! Completed %d tables.\n", configCount))
+	}
+
+	pkgCount := fmt.Sprintf(" %*d/%*d", w, m.tableSynced, w, configCount)
+
+	spin := m.spinner.View() + " "
+	prog := m.progress.View()
+	cellsAvail := max(0, m.width-lipgloss.Width(spin+prog+pkgCount))
+
+	successStrs := []string{}
+	for _, config := range m.groupedConfigs[m.index] {
+		successStrs = append(successStrs, config.Name)
+	}
+	pkgName := currentPkgNameStyle.Render(successStrs...)
+	info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Syncing " + pkgName)
+
+	cellsRemaining := max(0, m.width-lipgloss.Width(spin+info+prog+pkgCount))
+	gap := strings.Repeat(" ", cellsRemaining)
+
+	return spin + info + gap + prog + pkgCount
+}
+
+type syncedDataMsg string
+
+func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
+	return func() tea.Msg {
+		errgrp, errctx := errgroup.WithContext(context.Background())
+		for _, cfg := range configs {
+			cfg := cfg
+			errgrp.Go(func() error {
+				err := syncData(errctx, cfg)
+				if err != nil {
+					return err
+				}
+				return nil
+			})
+		}
+
+		if err := errgrp.Wait(); err != nil {
+			tea.Printf("Error syncing data: %s \n", err.Error())
+			return tea.Quit
+		}
+
+		message := ""
+		for _, config := range configs {
+			message = fmt.Sprintf("%s, %s", message, config.Name)
+		}
+		return syncedDataMsg(message)
+	}
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

@@ -5,56 +5,20 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/fatih/color"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
+	"github.com/rodaine/table"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
-
-	"github.com/charmbracelet/bubbles/table"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
-
-var baseStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("240"))
-
-type tableModel struct {
-	table table.Model
-}
-
-func (m tableModel) Init() tea.Cmd { return nil }
-
-func (m tableModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "esc":
-			if m.table.Focused() {
-				m.table.Blur()
-			} else {
-				m.table.Focus()
-			}
-		case "q", "ctrl+c":
-			return m, tea.Quit
-		}
-	}
-	m.table, cmd = m.table.Update(msg)
-	return m, cmd
-}
-
-func (m tableModel) View() string {
-	return baseStyle.Render(m.table.View()) + "\n"
-}
 
 func newListCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -143,76 +107,25 @@ func printJobTable(
 	jobs []*mgmtv1alpha1.Job,
 	jobstatuses []*mgmtv1alpha1.JobStatus,
 ) {
-	columns := []table.Column{
-		{Title: "Id", Width: 40},
-		{Title: "Name", Width: 20},
-		{Title: "Status", Width: 20},
-		{Title: "Created At", Width: 30},
-		{Title: "Updated At", Width: 30},
-	}
+	tbl := table.
+		New("Id", "Name", "Status", "Created At", "Updated At").
+		WithHeaderFormatter(
+			color.New(color.FgGreen, color.Underline).SprintfFunc(),
+		).
+		WithFirstColumnFormatter(
+			color.New(color.FgYellow).SprintfFunc(),
+		)
 
-	rows := make([]table.Row, len(jobs))
 	for idx := range jobs {
 		job := jobs[idx]
 		js := jobstatuses[idx]
-		rows[idx] = table.Row{
+		tbl.AddRow(
 			job.Id,
 			job.Name,
 			js.String(),
 			job.CreatedAt.AsTime().Local().Format(time.RFC3339),
 			job.UpdatedAt.AsTime().Local().Format(time.RFC3339),
-		}
+		)
 	}
-
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(7),
-	)
-
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
-
-	m := tableModel{t}
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err) // nolint
-		os.Exit(1)
-	}
+	tbl.Print()
 }
-
-// func printJobTable(
-// 	jobs []*mgmtv1alpha1.Job,
-// 	jobstatuses []*mgmtv1alpha1.JobStatus,
-// ) {
-// 	tbl := table.
-// 		New("Id", "Name", "Status", "Created At", "Updated At").
-// 		WithHeaderFormatter(
-// 			color.New(color.FgGreen, color.Underline).SprintfFunc(),
-// 		).
-// 		WithFirstColumnFormatter(
-// 			color.New(color.FgYellow).SprintfFunc(),
-// 		)
-
-// 	for idx := range jobs {
-// 		job := jobs[idx]
-// 		js := jobstatuses[idx]
-// 		tbl.AddRow(
-// 			job.Id,
-// 			job.Name,
-// 			js.String(),
-// 			job.CreatedAt.AsTime().Local().Format(time.RFC3339),
-// 			job.UpdatedAt.AsTime().Local().Format(time.RFC3339),
-// 		)
-// 	}
-// 	tbl.Print()
-// }
