@@ -563,7 +563,7 @@ func buildPlainInsertArgs(cols []string) string {
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
 
-func newModel(groupedConfigs [][]*benthosConfigResponse) model {
+func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 	p := progress.New(
 		progress.WithDefaultGradient(),
 		progress.WithWidth(40),
@@ -571,7 +571,7 @@ func newModel(groupedConfigs [][]*benthosConfigResponse) model {
 	)
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
-	return model{
+	return &model{
 		groupedConfigs: groupedConfigs,
 		tableSynced:    0,
 		spinner:        s,
@@ -579,7 +579,7 @@ func newModel(groupedConfigs [][]*benthosConfigResponse) model {
 	}
 }
 
-func (m model) Init() tea.Cmd {
+func (m *model) Init() tea.Cmd {
 	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
 
 }
@@ -596,7 +596,7 @@ func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
 	return count
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
@@ -645,7 +645,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) View() string {
+func (m *model) View() string {
 	configCount := getConfigCount(m.groupedConfigs)
 	w := lipgloss.Width(fmt.Sprintf("%d", configCount))
 
