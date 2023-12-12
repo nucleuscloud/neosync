@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb";
+import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -138,6 +138,18 @@ export const ConnectionService = {
       name: "GetConnectionForeignConstraints",
       I: GetConnectionForeignConstraintsRequest,
       O: GetConnectionForeignConstraintsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
+     * Used primarily by the CLI sync command to create table schema init statement.
+     *
+     * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionInitStatements
+     */
+    getConnectionInitStatements: {
+      name: "GetConnectionInitStatements",
+      I: GetConnectionInitStatementsRequest,
+      O: GetConnectionInitStatementsResponse,
       kind: MethodKind.Unary,
     },
   }

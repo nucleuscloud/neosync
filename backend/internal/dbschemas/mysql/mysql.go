@@ -3,6 +3,7 @@ package dbschemas_mysql
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/internal/dbschemas"
@@ -22,7 +23,8 @@ func GetTableCreateStatement(
 	if err != nil {
 		return "", fmt.Errorf("unable to get table create statement: %w", err)
 	}
-	return result.CreateTable, nil
+	split := strings.Split(result.CreateTable, "CREATE TABLE")
+	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s; ", split[1]), nil
 }
 
 type DatabaseTableShowCreate struct {
