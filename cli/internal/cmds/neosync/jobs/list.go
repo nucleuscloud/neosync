@@ -99,7 +99,9 @@ func listJobs(
 		return err
 	}
 
+	fmt.Println() // nolint
 	printJobTable(res.Msg.Jobs, jobstatuses)
+	fmt.Println() // nolint
 	return nil
 }
 

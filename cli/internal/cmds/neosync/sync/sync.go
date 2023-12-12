@@ -29,12 +29,35 @@ import (
 	_ "github.com/nucleuscloud/neosync/cli/internal/benthos/inputs"
 
 	"github.com/benthosdev/benthos/v4/public/service"
+
+	"github.com/charmbracelet/bubbles/progress"
+	"github.com/charmbracelet/bubbles/spinner"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 const (
 	maxPgParamLimit = 65535
 	postgresDriver  = "postgres"
 	mysqlDriver     = "mysql"
+)
+
+type model struct {
+	groupedConfigs [][]*benthosConfigResponse
+	tableSynced    int
+	index          int
+	width          int
+	height         int
+	spinner        spinner.Model
+	progress       progress.Model
+	done           bool
+}
+
+var (
+	printlog            = lipgloss.NewStyle().PaddingLeft(2)
+	currentPkgNameStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("211"))
+	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
+	checkMark           = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("42")).SetString("✓")
 )
 
 type cmdConfig struct {
@@ -230,7 +253,7 @@ func sync(
 		return err
 	}
 
-	fmt.Println("retrieving connection schema...") // nolint
+	fmt.Println(printlog.Render("\nRetrieving connection schema...")) // nolint
 	schemaResp, err := connectionclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 		Id: cmd.ConnectionId,
 	}))
@@ -244,7 +267,7 @@ func sync(
 		schemaMap[t.Schema] = t.Schema
 	}
 
-	fmt.Println("building foreign table constraints...") // nolint
+	fmt.Println(printlog.Render("Building foreign table constraints...")) // nolint
 	fkConnectionResp, err := connectionclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: cmd.ConnectionId}))
 	if err != nil {
 		return err
@@ -256,7 +279,7 @@ func sync(
 		return err
 	}
 
-	fmt.Println("generating configs...") // nolint
+	fmt.Println(printlog.Render("Generating configs... \n")) // nolint
 	configs := []*benthosConfigResponse{}
 	for _, table := range tables {
 		name := fmt.Sprintf("%s.%s", table.Schema, table.Table)
@@ -274,26 +297,11 @@ func sync(
 	}
 
 	groupedConfigs := groupConfigsByDependency(configs)
-	for _, group := range groupedConfigs {
-		errgrp, errctx := errgroup.WithContext(ctx)
-		for _, cfg := range group {
-			cfg := cfg
-			errgrp.Go(func() error {
-				err := syncData(errctx, cfg)
-				if err != nil {
-					return err
-				}
-				return nil
-			})
-		}
-
-		if err := errgrp.Wait(); err != nil {
-			return err
-		}
-
+	fmt.Println(printlog.Render("Syncing tables")) // nolint
+	if _, err := tea.NewProgram(newModel(groupedConfigs)).Run(); err != nil {
+		fmt.Println("Error syncing data:", err) // nolint
+		os.Exit(1)
 	}
-
-	fmt.Println("data sync complete") // nolint
 
 	return nil
 }
@@ -317,7 +325,6 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 }
 
 func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
-	fmt.Printf("syncing data for %s \n", cfg.Name) // nolint
 	configbits, err := yaml.Marshal(cfg.Config)
 	if err != nil {
 		return err
@@ -369,7 +376,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 
 func getTableInitStatementMap(ctx context.Context, connectionclient mgmtv1alpha1connect.ConnectionServiceClient, connectionId string, opts destinationConfig) (map[string]string, error) {
 	if opts.InitSchema || opts.TruncateBeforeInsert || opts.TruncateCascade {
-		fmt.Println("creating init statements...") // nolint
+		fmt.Println(printlog.Render("Creating init statements...")) // nolint
 		initStatementResp, err := connectionclient.GetConnectionInitStatements(ctx,
 			connect.NewRequest(&mgmtv1alpha1.GetConnectionInitStatementsRequest{
 				ConnectionId: connectionId,
@@ -535,7 +542,6 @@ func computeMaxPgBatchCount(numCols int) int {
 	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
 }
 
-// clamps the input between low, high
 func clampInt(input, low, high int) int {
 	if input < low {
 		return low
@@ -555,4 +561,149 @@ func buildPlainInsertArgs(cols []string) string {
 		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
 	}
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
+}
+
+func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
+	p := progress.New(
+		progress.WithDefaultGradient(),
+		progress.WithWidth(40),
+		progress.WithoutPercentage(),
+	)
+	s := spinner.New()
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
+	return &model{
+		groupedConfigs: groupedConfigs,
+		tableSynced:    0,
+		spinner:        s,
+		progress:       p,
+	}
+}
+
+func (m *model) Init() tea.Cmd {
+	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
+
+}
+
+func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
+	count := 0
+	for _, group := range groupedConfigs {
+		for _, config := range group {
+			if config != nil {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width, m.height = msg.Width, msg.Height
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "esc", "q":
+			return m, tea.Quit
+		}
+	case syncedDataMsg:
+		totalConfigCount := getConfigCount(m.groupedConfigs)
+		configCount := len(m.groupedConfigs)
+
+		successStrs := []string{}
+		for _, config := range m.groupedConfigs[m.index] {
+			successStrs = append(successStrs, fmt.Sprintf("%s %s", checkMark, config.Name))
+			m.tableSynced++
+		}
+		progressCmd := m.progress.SetPercent(float64(m.tableSynced) / float64(totalConfigCount))
+
+		if m.index == configCount-1 {
+			m.done = true
+			return m, tea.Batch(
+				progressCmd,
+				tea.Println(strings.Join(successStrs, " \n")),
+				tea.Quit,
+			)
+		}
+
+		m.index++
+		return m, tea.Batch(
+			progressCmd,
+			tea.Println(strings.Join(successStrs, " \n")),
+			syncConfigs(m.groupedConfigs[m.index]),
+		)
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
+	case progress.FrameMsg:
+		newModel, cmd := m.progress.Update(msg)
+		if newModel, ok := newModel.(progress.Model); ok {
+			m.progress = newModel
+		}
+		return m, cmd
+	}
+	return m, nil
+}
+
+func (m *model) View() string {
+	configCount := getConfigCount(m.groupedConfigs)
+	w := lipgloss.Width(fmt.Sprintf("%d", configCount))
+
+	if m.done {
+		return doneStyle.Render(fmt.Sprintf("Done! Completed %d tables.\n", configCount))
+	}
+
+	pkgCount := fmt.Sprintf(" %*d/%*d", w, m.tableSynced, w, configCount)
+
+	spin := m.spinner.View() + " "
+	prog := m.progress.View()
+	cellsAvail := max(0, m.width-lipgloss.Width(spin+prog+pkgCount))
+
+	successStrs := []string{}
+	for _, config := range m.groupedConfigs[m.index] {
+		successStrs = append(successStrs, config.Name)
+	}
+	pkgName := currentPkgNameStyle.Render(successStrs...)
+	info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Syncing " + pkgName)
+
+	cellsRemaining := max(0, m.width-lipgloss.Width(spin+info+prog+pkgCount))
+	gap := strings.Repeat(" ", cellsRemaining)
+
+	return spin + info + gap + prog + pkgCount
+}
+
+type syncedDataMsg string
+
+func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
+	return func() tea.Msg {
+		errgrp, errctx := errgroup.WithContext(context.Background())
+		for _, cfg := range configs {
+			cfg := cfg
+			errgrp.Go(func() error {
+				err := syncData(errctx, cfg)
+				if err != nil {
+					return err
+				}
+				return nil
+			})
+		}
+
+		if err := errgrp.Wait(); err != nil {
+			tea.Printf("Error syncing data: %s \n", err.Error())
+			return tea.Quit
+		}
+
+		message := ""
+		for _, config := range configs {
+			message = fmt.Sprintf("%s, %s", message, config.Name)
+		}
+		return syncedDataMsg(message)
+	}
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
