@@ -66,6 +66,9 @@ const (
 	// ConnectionServiceGetConnectionForeignConstraintsProcedure is the fully-qualified name of the
 	// ConnectionService's GetConnectionForeignConstraints RPC.
 	ConnectionServiceGetConnectionForeignConstraintsProcedure = "/mgmt.v1alpha1.ConnectionService/GetConnectionForeignConstraints"
+	// ConnectionServiceGetConnectionInitStatementsProcedure is the fully-qualified name of the
+	// ConnectionService's GetConnectionInitStatements RPC.
+	ConnectionServiceGetConnectionInitStatementsProcedure = "/mgmt.v1alpha1.ConnectionService/GetConnectionInitStatements"
 )
 
 // ConnectionServiceClient is a client for the mgmt.v1alpha1.ConnectionService service.
@@ -96,6 +99,9 @@ type ConnectionServiceClient interface {
 	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to determine stream order.
 	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
+	// For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
+	// Used primarily by the CLI sync command to create table schema init statement.
+	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
 }
 
 // NewConnectionServiceClient constructs a client for the mgmt.v1alpha1.ConnectionService service.
@@ -163,6 +169,11 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			baseURL+ConnectionServiceGetConnectionForeignConstraintsProcedure,
 			opts...,
 		),
+		getConnectionInitStatements: connect.NewClient[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse](
+			httpClient,
+			baseURL+ConnectionServiceGetConnectionInitStatementsProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -179,6 +190,7 @@ type connectionServiceClient struct {
 	checkSqlQuery                   *connect.Client[v1alpha1.CheckSqlQueryRequest, v1alpha1.CheckSqlQueryResponse]
 	getConnectionDataStream         *connect.Client[v1alpha1.GetConnectionDataStreamRequest, v1alpha1.GetConnectionDataStreamResponse]
 	getConnectionForeignConstraints *connect.Client[v1alpha1.GetConnectionForeignConstraintsRequest, v1alpha1.GetConnectionForeignConstraintsResponse]
+	getConnectionInitStatements     *connect.Client[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse]
 }
 
 // GetConnections calls mgmt.v1alpha1.ConnectionService.GetConnections.
@@ -237,6 +249,11 @@ func (c *connectionServiceClient) GetConnectionForeignConstraints(ctx context.Co
 	return c.getConnectionForeignConstraints.CallUnary(ctx, req)
 }
 
+// GetConnectionInitStatements calls mgmt.v1alpha1.ConnectionService.GetConnectionInitStatements.
+func (c *connectionServiceClient) GetConnectionInitStatements(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error) {
+	return c.getConnectionInitStatements.CallUnary(ctx, req)
+}
+
 // ConnectionServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionService service.
 type ConnectionServiceHandler interface {
 	// Returns a list of connections associated with the account
@@ -265,6 +282,9 @@ type ConnectionServiceHandler interface {
 	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to determine stream order.
 	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
+	// For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
+	// Used primarily by the CLI sync command to create table schema init statement.
+	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
 }
 
 // NewConnectionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -328,6 +348,11 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		svc.GetConnectionForeignConstraints,
 		opts...,
 	)
+	connectionServiceGetConnectionInitStatementsHandler := connect.NewUnaryHandler(
+		ConnectionServiceGetConnectionInitStatementsProcedure,
+		svc.GetConnectionInitStatements,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.ConnectionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionServiceGetConnectionsProcedure:
@@ -352,6 +377,8 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 			connectionServiceGetConnectionDataStreamHandler.ServeHTTP(w, r)
 		case ConnectionServiceGetConnectionForeignConstraintsProcedure:
 			connectionServiceGetConnectionForeignConstraintsHandler.ServeHTTP(w, r)
+		case ConnectionServiceGetConnectionInitStatementsProcedure:
+			connectionServiceGetConnectionInitStatementsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -403,4 +430,8 @@ func (UnimplementedConnectionServiceHandler) GetConnectionDataStream(context.Con
 
 func (UnimplementedConnectionServiceHandler) GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.GetConnectionForeignConstraints is not implemented"))
+}
+
+func (UnimplementedConnectionServiceHandler) GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.GetConnectionInitStatements is not implemented"))
 }

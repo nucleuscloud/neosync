@@ -1,7 +1,6 @@
 update_frontend_client() {
-  rm -rf ../frontend/neosync-api-client
-  mkdir -p ../frontend/neosync-api-client
-  mv gen/es/protos/** ../frontend/neosync-api-client
+  rm -rf ../frontend/packages/sdk/src/client/mgmt
+  mv gen/es/protos/** ../frontend/packages/sdk/src/client
   rm -rf gen/es
 }
 
