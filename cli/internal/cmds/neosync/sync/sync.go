@@ -202,7 +202,6 @@ func sync(
 	if err != nil {
 		return err
 	}
-	fmt.Println(isAuthEnabled)
 
 	var token *string
 	if isAuthEnabled {
