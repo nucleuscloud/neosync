@@ -1,10 +1,10 @@
 quiet: False
 disable-version-string: True
 with-expecter: True
-filename: "mock_{{.InterfaceName}}.go"
-dir: "{{.InterfaceDir}}"
-mockname: "Mock{{.InterfaceName}}"
-outpkg: "{{.PackageName}}"
+filename: 'mock_{{.InterfaceName}}.go'
+dir: '{{.InterfaceDir}}'
+mockname: 'Mock{{.InterfaceName}}'
+outpkg: '{{.PackageName}}'
 inpackage: True
 packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/jwt:
@@ -37,12 +37,12 @@ packages:
       DB:
       # this is broken. it uses the wrong package. after running mockery change internal to client in mock
       # TemporalClientManagerClient:
-  github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql:
+  github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql:
     # config:
     interfaces:
       Querier:
       DBTX:
-  github.com/nucleuscloud/neosync/worker/gen/go/db/mysql:
+  github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql:
     # config:
     interfaces:
       Querier:

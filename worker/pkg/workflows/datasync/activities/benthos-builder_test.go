@@ -8,10 +8,10 @@ import (
 
 	"connectrpc.com/connect"
 	sb "github.com/benthosdev/benthos/v4/public/service"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	mysql_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/log"
