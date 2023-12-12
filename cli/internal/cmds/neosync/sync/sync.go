@@ -54,6 +54,7 @@ type model struct {
 }
 
 var (
+	header              = lipgloss.NewStyle().Faint(true).PaddingLeft(2)
 	printlog            = lipgloss.NewStyle().PaddingLeft(2)
 	currentPkgNameStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("211"))
 	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
@@ -253,7 +254,8 @@ func sync(
 		return err
 	}
 
-	fmt.Println(printlog.Render("\nRetrieving connection schema...")) // nolint
+	fmt.Println(header.Render("\n── Preparing ─────────────────────────────────────")) // nolint
+	fmt.Println(printlog.Render("Retrieving connection schema..."))                    // nolint
 	schemaResp, err := connectionclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 		Id: cmd.ConnectionId,
 	}))
@@ -287,7 +289,7 @@ func sync(
 
 		for _, n := range dependsOn {
 			if name == n {
-				return fmt.Errorf("circular dependency detected. exiting...")
+				return fmt.Errorf("Circular dependency detected. exiting...")
 			}
 		}
 		initStatement := initTableStatementsMap[name]
@@ -297,7 +299,7 @@ func sync(
 	}
 
 	groupedConfigs := groupConfigsByDependency(configs)
-	fmt.Println(printlog.Render("Syncing tables")) // nolint
+	fmt.Println(header.Render("── Syncing Tables ────────────────────────────────")) // nolint
 	if _, err := tea.NewProgram(newModel(groupedConfigs)).Run(); err != nil {
 		fmt.Println("Error syncing data:", err) // nolint
 		os.Exit(1)

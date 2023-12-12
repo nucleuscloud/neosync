@@ -33,6 +33,7 @@ var (
 const listHeight = 14
 
 var (
+	header            = lipgloss.NewStyle().Faint(true).PaddingLeft(4)
 	bold              = lipgloss.NewStyle().Bold(true)
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(2).Height(1)
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Height(1).Foreground(lipgloss.Color("170"))
@@ -43,38 +44,35 @@ var (
 
 func newSwitchCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "switch",
+		Use:   "switch [name | id]",
 		Short: "switch accounts",
+		Example: `
+    $ neosync accounts switch [name | id]
+
+    - If the name and id is omitted, you can choose interactively
+
+    NOTE: When you switch, everything in the CLI will be scoped that account!`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			apiKey, err := cmd.Flags().GetString("api-key")
 			if err != nil {
 				return err
 			}
 
-			id, err := cmd.Flags().GetString("id")
-			if err != nil {
-				return err
-			}
-
-			name, err := cmd.Flags().GetString("name")
-			if err != nil {
-				return err
+			var accountIdOrName *string
+			if len(args) > 0 {
+				accountIdOrName = &args[0]
 			}
 
 			cmd.SilenceUsage = true
-			flagCount := cmd.Flags().NFlag()
-			return switchAccount(cmd.Context(), flagCount, &apiKey, &id, &name)
+			return switchAccount(cmd.Context(), &apiKey, accountIdOrName)
 		},
 	}
-	cmd.Flags().String("id", "", "Account id to switch to")
-	cmd.Flags().String("name", "", "Account name to switch to")
 	return cmd
 }
 
 func switchAccount(
 	ctx context.Context,
-	flagCount int,
-	apiKey, id, name *string,
+	apiKey, accountIdOrName *string,
 ) error {
 
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
@@ -105,17 +103,38 @@ func switchAccount(
 		return errors.New("unable to find accounts for user")
 	}
 
-	if flagCount == 0 {
+	if accountIdOrName == nil || *accountIdOrName == "" {
 		items := []list.Item{}
+		personalAccounts := []*mgmtv1alpha1.UserAccount{}
+		teamAccounts := []*mgmtv1alpha1.UserAccount{}
 		for _, a := range accounts {
+			if a.Type == mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_PERSONAL {
+				personalAccounts = append(personalAccounts, a)
+			} else if a.Type == mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_TEAM {
+				teamAccounts = append(teamAccounts, a)
+			}
+		}
+		for i, a := range personalAccounts {
 			isCurrent := a.Id == currentAccountId
 			items = append(items, item{
 				title:       a.Name,
 				description: a.Id,
 				isCurrent:   isCurrent,
+				header:      getHeader(a.Type, i == 0),
 			})
 		}
-		items = append(items, item{title: "Cancel"})
+
+		for i, a := range teamAccounts {
+			isCurrent := a.Id == currentAccountId
+			items = append(items, item{
+				title:       a.Name,
+				description: a.Id,
+				isCurrent:   isCurrent,
+				header:      getHeader(a.Type, i == 0),
+			})
+		}
+		cancelHeader := "─────────────────────────────────────────────────────────"
+		items = append(items, item{title: "Cancel", header: &cancelHeader})
 
 		const defaultWidth = 20
 
@@ -138,18 +157,9 @@ func switchAccount(
 	}
 
 	var account *mgmtv1alpha1.UserAccount
-	if id != nil && *id != "" {
-		for _, a := range accounts {
-			if a.Id == *id {
-				account = a
-
-			}
-		}
-	} else if name != nil && *name != "" {
-		for _, a := range accounts {
-			if a.Name == *name {
-				account = a
-			}
+	for _, a := range accounts {
+		if strings.EqualFold(a.Name, *accountIdOrName) || strings.EqualFold(a.Id, *accountIdOrName) {
+			account = a
 		}
 	}
 
@@ -163,15 +173,27 @@ func switchAccount(
 		return err
 	}
 
-	fmt.Println(selectedItemStyle.Render(fmt.Sprintf("\n Switched account to %s (%s) \n", account.Name, account.Id))) // nolint
+	fmt.Println(itemStyle.Render(fmt.Sprintf("\n Switched account to %s (%s) \n", account.Name, account.Id))) // nolint
 
 	return nil
+}
+
+func getHeader(accountType mgmtv1alpha1.UserAccountType, shouldShowHeader bool) *string {
+	var header string
+	if shouldShowHeader && accountType == mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_PERSONAL {
+		header = "── Personal Account ─────────────────────────────────────"
+	}
+	if shouldShowHeader && accountType == mgmtv1alpha1.UserAccountType_USER_ACCOUNT_TYPE_TEAM {
+		header = "── Team Account ─────────────────────────────────────────"
+	}
+	return &header
 }
 
 type item struct {
 	title       string
 	description string
 	isCurrent   bool
+	header      *string
 }
 
 func (i item) Title() string       { return i.title }
@@ -197,12 +219,16 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		str = bold.Render(fmt.Sprintf("%s (current)", str))
 	}
 
+	var itemHeader string
+	if i.header != nil && *i.header != "" {
+		itemHeader = fmt.Sprintf("%s \n", header.Render(*i.header))
+	}
 	fn := func(s ...string) string {
-		return itemStyle.Render("○ " + strings.Join(s, " "))
+		return fmt.Sprintf("%s%s", itemHeader, itemStyle.Render("○ "+strings.Join(s, " ")))
 	}
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return selectedItemStyle.Render("● " + strings.Join(s, " "))
+			return fmt.Sprintf("%s%s", itemHeader, selectedItemStyle.Render("● "+strings.Join(s, " ")))
 		}
 	}
 
@@ -251,10 +277,10 @@ func (m *model) View() string {
 		if err != nil {
 			return quitTextStyle.Render(fmt.Sprintf("Failed to switch accounts. Error %s", err.Error()))
 		}
-		return quitTextStyle.Render(fmt.Sprintf("Switched account to %s", m.choice.title))
+		return quitTextStyle.Render(fmt.Sprintf("Switched account to %s (%s)", m.choice.title, m.choice.description))
 	}
 	if m.quitting || m.choice.title == "Cancel" {
-		return quitTextStyle.Render("Canceling...")
+		return quitTextStyle.Render("No changes made")
 	}
 	return "\n" + m.list.View()
 }

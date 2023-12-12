@@ -7,12 +7,15 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/cli/internal/auth"
+	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/spf13/cobra"
@@ -52,7 +55,41 @@ func login(ctx context.Context) error {
 		slog.Info("auth is not enabled server-side, exiting")
 		return nil
 	}
-	return oAuthLogin(ctx, authclient)
+	err = oAuthLogin(ctx, authclient)
+	if err != nil {
+		return err
+	}
+
+	var nokey *string
+	isAuthEnabled := true
+	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
+		http.DefaultClient,
+		serverconfig.GetApiBaseUrl(),
+		connect.WithInterceptors(
+			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(nokey)),
+		),
+	)
+
+	accountsResp, err := userclient.GetUserAccounts(
+		ctx,
+		connect.NewRequest[mgmtv1alpha1.GetUserAccountsRequest](&mgmtv1alpha1.GetUserAccountsRequest{}),
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range accountsResp.Msg.Accounts {
+		if strings.EqualFold(a.Name, "personal") {
+			// set account to personal
+			err = userconfig.SetAccountId(a.Id)
+			if err != nil {
+				fmt.Println("unable to switch accounts") // nolint
+				return err
+			}
+			fmt.Printf("  Account set to %s \n", a.Name) // nolint
+		}
+	}
+	return nil
 }
 
 const (
