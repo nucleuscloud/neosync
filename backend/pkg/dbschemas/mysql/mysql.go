@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	mysql_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/mysql"
-	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 )
 
 type GetTableCreateStatementRequest struct {
@@ -24,7 +24,7 @@ func GetTableCreateStatement(
 		return "", fmt.Errorf("unable to get table create statement: %w", err)
 	}
 	split := strings.Split(result.CreateTable, "CREATE TABLE")
-	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s", split[1]), nil
+	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s; ", split[1]), nil
 }
 
 type DatabaseTableShowCreate struct {
@@ -103,7 +103,7 @@ func GetUniqueSchemaColMappings(
 ) map[string]map[string]struct{} {
 	groupedSchemas := map[string]map[string]struct{}{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	for _, record := range dbschemas {
-		key := neosync_benthos.BuildBenthosTable(record.TableSchema, record.TableName)
+		key := dbschemas_utils.BuildTable(record.TableSchema, record.TableName)
 		if _, ok := groupedSchemas[key]; ok {
 			groupedSchemas[key][record.ColumnName] = struct{}{}
 		} else {
