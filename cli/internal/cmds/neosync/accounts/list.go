@@ -3,6 +3,7 @@ package accounts_cmd
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"connectrpc.com/connect"
@@ -59,8 +60,9 @@ func listAccounts(
 	if len(accounts) == 0 {
 		return errors.New("unable to find accounts for user")
 	}
-
+	fmt.Println() // nolint
 	printAccountTable(accounts)
+	fmt.Println() // nolint
 	return nil
 }
 
