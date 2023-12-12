@@ -19,6 +19,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/internal/version"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (s *Service) GetUser(
@@ -500,10 +501,18 @@ func (s *Service) verifyUserInAccount(
 func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) (*connect.Response[mgmtv1alpha1.GetSystemInformationResponse], error) {
 	versionInfo := version.Get()
 
+	layout := "2006-01-02T15:04:05Z"
+
+	builtDate, err := time.Parse(layout, versionInfo.BuildDate)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetSystemInformationResponse{
-		Version:  versionInfo.GitVersion,
-		Commit:   versionInfo.GitCommit,
-		Compiler: versionInfo.Compiler,
-		Platform: versionInfo.Platform,
+		Version:   versionInfo.GitVersion,
+		Commit:    versionInfo.GitCommit,
+		Compiler:  versionInfo.Compiler,
+		Platform:  versionInfo.Platform,
+		BuildDate: timestamppb.New(builtDate),
 	}), nil
 }
