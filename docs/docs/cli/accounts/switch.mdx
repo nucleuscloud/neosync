@@ -1,0 +1,28 @@
+---
+title: Switch
+id: switch
+hide_title: true
+slug: /cli/accounts/switch
+---
+
+import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
+
+<DocPageHeader title="neosync accounts switch" />
+
+## Overview
+
+Learn how to switch accounts with the neosync accounts switch command.
+
+The `neosync accounts switch` command is used to switch the account in the cli context.
+This is useful if you want to run cli commands for a different account.
+
+## Usage
+
+```bash
+neosync switch
+```
+
+### Argument: job-id
+
+A job-id must be provided as the first command-line argument. This is required and will fail otherwise.
+This job-id is used to trigger a workflow execution of the relevant Neosync Job.
