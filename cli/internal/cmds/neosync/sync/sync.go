@@ -203,33 +203,6 @@ func sync(
 		return err
 	}
 
-	var token *string
-	if isAuthEnabled {
-		if apiKey != nil && *apiKey != "" {
-			token = apiKey
-		} else {
-			accessToken, err := userconfig.GetAccessToken()
-			if err != nil {
-				return err
-			}
-			token = &accessToken
-		}
-	}
-
-	var accountId = accountIdFlag
-	if accountId == nil || *accountId == "" {
-		aId, err := userconfig.GetAccountId()
-		if err != nil {
-			fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") // nolint
-			return err
-		}
-		accountId = &aId
-	}
-
-	if accountId == nil || *accountId == "" {
-		return errors.New("Account Id not found. Please use account switch command to set account.")
-	}
-
 	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
@@ -245,8 +218,35 @@ func sync(
 		return err
 	}
 
-	if connection.Msg.Connection.AccountId != *accountId {
-		return errors.New(fmt.Sprintf("Connection not found. AccountId: %s", *accountId)) // nolint
+	var token *string
+	if isAuthEnabled {
+		if apiKey != nil && *apiKey != "" {
+			token = apiKey
+		} else {
+			accessToken, err := userconfig.GetAccessToken()
+			if err != nil {
+				fmt.Println("Unable to retrieve access token. Please use neosync login command and try again.") // nolint
+				return err
+			}
+			token = &accessToken
+			var accountId = accountIdFlag
+			if accountId == nil || *accountId == "" {
+				aId, err := userconfig.GetAccountId()
+				if err != nil {
+					fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") // nolint
+					return err
+				}
+				accountId = &aId
+			}
+
+			if accountId == nil || *accountId == "" {
+				return errors.New("Account Id not found. Please use account switch command to set account.")
+			}
+
+			if connection.Msg.Connection.AccountId != *accountId {
+				return errors.New(fmt.Sprintf("Connection not found. AccountId: %s", *accountId)) // nolint
+			}
+		}
 	}
 
 	err = areSourceAndDestCompatible(connection.Msg.Connection, cmd.Destination.Driver)
