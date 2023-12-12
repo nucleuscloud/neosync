@@ -33,8 +33,9 @@ var (
 const listHeight = 14
 
 var (
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(2)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	bold              = lipgloss.NewStyle().Bold(true)
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(2).Height(1)
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Height(1).Foreground(lipgloss.Color("170"))
 	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
 	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
@@ -193,13 +194,15 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		str = fmt.Sprintf("%s (%s)", str, i.description)
 	}
 	if i.isCurrent {
-		str = fmt.Sprintf("%s (current)", str)
+		str = bold.Render(fmt.Sprintf("%s (current)", str))
 	}
 
-	fn := itemStyle.Render
+	fn := func(s ...string) string {
+		return itemStyle.Render("○ " + strings.Join(s, " "))
+	}
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return selectedItemStyle.Render("> " + strings.Join(s, " "))
+			return selectedItemStyle.Render("● " + strings.Join(s, " "))
 		}
 	}
 
