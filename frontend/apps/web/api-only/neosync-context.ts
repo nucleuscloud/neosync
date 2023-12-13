@@ -6,8 +6,8 @@ import {
   NeosyncClient,
   getNeosyncClient,
 } from '@neosync/sdk';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '../app/api/auth/[...nextauth]/auth';
 import { isAuthEnabled } from './auth-config';
 
 interface NeosyncContext {
@@ -63,8 +63,8 @@ function getAccessTokenFn(req: NextRequest): GetAccessTokenFn | undefined {
     return undefined;
   }
   return async (): Promise<string> => {
-    const jwt = await getToken({ req });
-    const accessToken = jwt?.accessToken;
+    const jwt = await auth();
+    const accessToken = (jwt as any)?.accessToken;
     if (!accessToken) {
       throw new Error('no session provided');
     }
