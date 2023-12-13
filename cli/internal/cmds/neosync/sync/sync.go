@@ -276,7 +276,7 @@ func sync(
 
 	tables := getSchemaTables(schemaResp.Msg.GetSchemas())
 	if len(tables) == 0 {
-		fmt.Println(bold.Render("No tables found."))
+		fmt.Println(bold.Render("No tables found.")) // nolint
 		return nil
 	}
 	schemaMap := map[string]string{}
