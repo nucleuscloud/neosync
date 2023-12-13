@@ -19,10 +19,10 @@ This is useful if you want to run cli commands for a different account.
 ## Usage
 
 ```bash
-neosync switch
+neosync switch <name | id>
 ```
 
-### Argument: job-id
+### Argument: name | id
 
-A job-id must be provided as the first command-line argument. This is required and will fail otherwise.
-This job-id is used to trigger a workflow execution of the relevant Neosync Job.
+An account-name or account-id can be provided as the first command-line argument. If omitted
+it will start an interactive selection mode.
