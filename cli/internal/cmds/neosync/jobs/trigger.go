@@ -19,7 +19,7 @@ import (
 
 func newTriggerCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "trigger",
+		Use:   "trigger [id]",
 		Short: "trigger a job",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {

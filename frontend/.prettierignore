@@ -6,5 +6,6 @@ tsconfig.json
 charts
 dev
 pnpm-lock.yaml
+package-lock.json
 packages/sdk/src/client/
 package.json

@@ -22,8 +22,8 @@ import (
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/internal/dbschemas/mysql"
-	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/internal/dbschemas/postgres"
+	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
+	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 )
 
 const (

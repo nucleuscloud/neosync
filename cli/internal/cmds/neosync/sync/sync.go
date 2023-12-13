@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -15,6 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
+	"github.com/nucleuscloud/neosync/cli/internal/output"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/spf13/cobra"
@@ -54,6 +57,8 @@ type model struct {
 }
 
 var (
+	bold                = lipgloss.NewStyle().PaddingLeft(2).Bold(true)
+	header              = lipgloss.NewStyle().Faint(true).PaddingLeft(2)
 	printlog            = lipgloss.NewStyle().PaddingLeft(2)
 	currentPkgNameStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("211"))
 	doneStyle           = lipgloss.NewStyle().Margin(1, 2)
@@ -176,7 +181,12 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 
-			return sync(cmd.Context(), apiKey, &accountId, config)
+			outputType, err := output.ValidateAndRetrieveOutputFlag(cmd)
+			if err != nil {
+				return err
+			}
+
+			return sync(cmd.Context(), outputType, apiKey, &accountId, config)
 		},
 	}
 
@@ -188,45 +198,20 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().Bool("init-schema", false, "Create table schema and its constraints")
 	cmd.Flags().Bool("truncate-before-insert", false, "Truncate table before insert")
 	cmd.Flags().Bool("truncate-cascade", false, "Truncate cascade table before insert (postgres only)")
+	output.AttachOutputFlag(cmd)
 
 	return cmd
 }
 
 func sync(
 	ctx context.Context,
+	outputType output.OutputType,
 	apiKey, accountIdFlag *string,
 	cmd *cmdConfig,
 ) error {
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
 		return err
-	}
-
-	var token *string
-	if isAuthEnabled {
-		if apiKey != nil && *apiKey != "" {
-			token = apiKey
-		} else {
-			accessToken, err := userconfig.GetAccessToken()
-			if err != nil {
-				return err
-			}
-			token = &accessToken
-		}
-	}
-
-	var accountId = accountIdFlag
-	if accountId == nil || *accountId == "" {
-		aId, err := userconfig.GetAccountId()
-		if err != nil {
-			fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") // nolint
-			return err
-		}
-		accountId = &aId
-	}
-
-	if accountId == nil || *accountId == "" {
-		return errors.New("Account Id not found. Please use account switch command to set account.")
 	}
 
 	connectionclient := mgmtv1alpha1connect.NewConnectionServiceClient(
@@ -244,8 +229,35 @@ func sync(
 		return err
 	}
 
-	if connection.Msg.Connection.AccountId != *accountId {
-		return errors.New(fmt.Sprintf("Connection not found. AccountId: %s", *accountId)) // nolint
+	var token *string
+	if isAuthEnabled {
+		if apiKey != nil && *apiKey != "" {
+			token = apiKey
+		} else {
+			accessToken, err := userconfig.GetAccessToken()
+			if err != nil {
+				fmt.Println("Unable to retrieve access token. Please use neosync login command and try again.") // nolint
+				return err
+			}
+			token = &accessToken
+			var accountId = accountIdFlag
+			if accountId == nil || *accountId == "" {
+				aId, err := userconfig.GetAccountId()
+				if err != nil {
+					fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") // nolint
+					return err
+				}
+				accountId = &aId
+			}
+
+			if accountId == nil || *accountId == "" {
+				return errors.New("Account Id not found. Please use account switch command to set account.")
+			}
+
+			if connection.Msg.Connection.AccountId != *accountId {
+				return errors.New(fmt.Sprintf("Connection not found. AccountId: %s", *accountId)) // nolint
+			}
+		}
 	}
 
 	err = areSourceAndDestCompatible(connection.Msg.Connection, cmd.Destination.Driver)
@@ -253,7 +265,8 @@ func sync(
 		return err
 	}
 
-	fmt.Println(printlog.Render("\nRetrieving connection schema...")) // nolint
+	fmt.Println(header.Render("\n── Preparing ─────────────────────────────────────")) // nolint
+	fmt.Println(printlog.Render("Retrieving connection schema..."))                    // nolint
 	schemaResp, err := connectionclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 		Id: cmd.ConnectionId,
 	}))
@@ -262,6 +275,10 @@ func sync(
 	}
 
 	tables := getSchemaTables(schemaResp.Msg.GetSchemas())
+	if len(tables) == 0 {
+		fmt.Println(bold.Render("No tables found.")) // nolint
+		return nil
+	}
 	schemaMap := map[string]string{}
 	for _, t := range tables {
 		schemaMap[t.Schema] = t.Schema
@@ -287,7 +304,7 @@ func sync(
 
 		for _, n := range dependsOn {
 			if name == n {
-				return fmt.Errorf("circular dependency detected. exiting...")
+				return fmt.Errorf("Circular dependency detected. exiting...")
 			}
 		}
 		initStatement := initTableStatementsMap[name]
@@ -297,11 +314,21 @@ func sync(
 	}
 
 	groupedConfigs := groupConfigsByDependency(configs)
-	fmt.Println(printlog.Render("Syncing tables")) // nolint
-	if _, err := tea.NewProgram(newModel(groupedConfigs)).Run(); err != nil {
+
+	var opts []tea.ProgramOption
+	if outputType == output.PlainOutput {
+		// Plain mode don't render the TUI
+		opts = []tea.ProgramOption{tea.WithoutRenderer(), tea.WithInput(nil)}
+	} else {
+		// TUI mode, discard log output
+		log.SetOutput(io.Discard)
+	}
+	fmt.Println(header.Render("── Syncing Tables ────────────────────────────────")) // nolint
+	if _, err := tea.NewProgram(newModel(groupedConfigs), opts...).Run(); err != nil {
 		fmt.Println("Error syncing data:", err) // nolint
 		os.Exit(1)
 	}
+	log.Printf("Done! Completed %d tables.", len(configs))
 
 	return nil
 }
@@ -535,34 +562,6 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 	return groupedConfigs
 }
 
-func computeMaxPgBatchCount(numCols int) int {
-	if numCols < 1 {
-		return maxPgParamLimit
-	}
-	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
-}
-
-func clampInt(input, low, high int) int {
-	if input < low {
-		return low
-	}
-	if input > high {
-		return high
-	}
-	return input
-}
-
-func buildPlainInsertArgs(cols []string) string {
-	if len(cols) == 0 {
-		return ""
-	}
-	pieces := make([]string, len(cols))
-	for idx := range cols {
-		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
-	}
-	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
-}
-
 func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 	p := progress.New(
 		progress.WithDefaultGradient(),
@@ -582,18 +581,6 @@ func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 func (m *model) Init() tea.Cmd {
 	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
 
-}
-
-func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
-	count := 0
-	for _, group := range groupedConfigs {
-		for _, config := range group {
-			if config != nil {
-				count++
-			}
-		}
-	}
-	return count
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -680,6 +667,7 @@ func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
 		for _, cfg := range configs {
 			cfg := cfg
 			errgrp.Go(func() error {
+				log.Printf("Syncing table %s \n", cfg.Name)
 				err := syncData(errctx, cfg)
 				if err != nil {
 					return err
@@ -699,6 +687,46 @@ func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
 		}
 		return syncedDataMsg(message)
 	}
+}
+
+func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
+	count := 0
+	for _, group := range groupedConfigs {
+		for _, config := range group {
+			if config != nil {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+func computeMaxPgBatchCount(numCols int) int {
+	if numCols < 1 {
+		return maxPgParamLimit
+	}
+	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
+}
+
+func clampInt(input, low, high int) int {
+	if input < low {
+		return low
+	}
+	if input > high {
+		return high
+	}
+	return input
+}
+
+func buildPlainInsertArgs(cols []string) string {
+	if len(cols) == 0 {
+		return ""
+	}
+	pieces := make([]string, len(cols))
+	for idx := range cols {
+		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
+	}
+	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
 
 func max(a, b int) int {

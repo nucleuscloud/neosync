@@ -19,7 +19,6 @@ WORKDIR /workspace/worker
 # Copy the go source
 COPY worker/cmd/ cmd/
 COPY worker/internal/ internal/
-COPY worker/gen/ gen/
 COPY worker/pkg/ pkg/
 
 # Build

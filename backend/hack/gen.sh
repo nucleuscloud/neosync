@@ -34,6 +34,7 @@ docker run --rm -i \
 docker run --rm -i \
   --volume "./gen:/workspace/gen" \
   --volume "./sql:/workspace/sql" \
+  --volume "./pkg/dbschemas/sql:/workspace/pkg/dbschemas/sql" \
   --volume "./sqlc.yaml:/workspace/sqlc.yaml" \
   --workdir "/workspace" \
   "sqlc/sqlc:${SQLC_VERSION}" generate &

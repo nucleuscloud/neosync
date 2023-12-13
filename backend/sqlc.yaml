@@ -50,8 +50,8 @@ sql:
               pointer: true
 
   - engine: 'mysql'
-    queries: 'sql/dbschemas/mysql/queries'
-    schema: 'sql/dbschemas/mysql/schema'
+    queries: 'pkg/dbschemas/sql/mysql/queries'
+    schema: 'pkg/dbschemas/sql/mysql/schema'
     gen:
       go:
         package: mysql_queries
@@ -63,7 +63,7 @@ sql:
         emit_pointers_for_null_types: true
 
   - engine: 'postgresql'
-    queries: 'sql/dbschemas/postgresql/queries'
+    queries: 'pkg/dbschemas/sql/postgresql/queries'
     gen:
       go:
         package: 'pg_queries'

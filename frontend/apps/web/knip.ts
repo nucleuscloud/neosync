@@ -12,7 +12,7 @@ const config = {
     '@radix-ui/react-checkbox',
     // '@radix-ui/react-dialog',
     '@radix-ui/react-label',
-    '@radix-ui/react-popover',
+    // '@radix-ui/react-popover',
     '@radix-ui/react-scroll-area',
     '@radix-ui/react-select',
     '@radix-ui/react-separator',
@@ -27,12 +27,13 @@ const config = {
     'autoprefixer',
     'postcss',
     'eslint-config-next',
-    'memoize-one',
+    // 'memoize-one',
     'tailwindcss-animate',
     'use-resize-observer',
     'react-day-picker',
+    'react-dom',
   ],
-  ignoreBinaries: ['tail'],
+  ignoreBinaries: ['tail', 'next'],
 };
 
 export default config;
