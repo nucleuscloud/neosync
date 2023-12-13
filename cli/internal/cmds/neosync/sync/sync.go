@@ -557,34 +557,6 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 	return groupedConfigs
 }
 
-func computeMaxPgBatchCount(numCols int) int {
-	if numCols < 1 {
-		return maxPgParamLimit
-	}
-	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
-}
-
-func clampInt(input, low, high int) int {
-	if input < low {
-		return low
-	}
-	if input > high {
-		return high
-	}
-	return input
-}
-
-func buildPlainInsertArgs(cols []string) string {
-	if len(cols) == 0 {
-		return ""
-	}
-	pieces := make([]string, len(cols))
-	for idx := range cols {
-		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
-	}
-	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
-}
-
 func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 	p := progress.New(
 		progress.WithDefaultGradient(),
@@ -604,18 +576,6 @@ func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 func (m *model) Init() tea.Cmd {
 	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
 
-}
-
-func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
-	count := 0
-	for _, group := range groupedConfigs {
-		for _, config := range group {
-			if config != nil {
-				count++
-			}
-		}
-	}
-	return count
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -724,14 +684,49 @@ func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
 	}
 }
 
+func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
+	count := 0
+	for _, group := range groupedConfigs {
+		for _, config := range group {
+			if config != nil {
+				count++
+			}
+		}
+	}
+	return count
+}
+
+func computeMaxPgBatchCount(numCols int) int {
+	if numCols < 1 {
+		return maxPgParamLimit
+	}
+	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
+}
+
+func clampInt(input, low, high int) int {
+	if input < low {
+		return low
+	}
+	if input > high {
+		return high
+	}
+	return input
+}
+
+func buildPlainInsertArgs(cols []string) string {
+	if len(cols) == 0 {
+		return ""
+	}
+	pieces := make([]string, len(cols))
+	for idx := range cols {
+		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
+	}
+	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
+}
+
 func max(a, b int) int {
 	if a > b {
 		return a
 	}
 	return b
-}
-
-func isGithubAction() bool {
-	val := os.Getenv("GITHUB_ACTIONS")
-	return val == "true"
 }
