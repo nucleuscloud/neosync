@@ -57,6 +57,7 @@ type model struct {
 }
 
 var (
+	bold                = lipgloss.NewStyle().PaddingLeft(2).Bold(true)
 	header              = lipgloss.NewStyle().Faint(true).PaddingLeft(2)
 	printlog            = lipgloss.NewStyle().PaddingLeft(2)
 	currentPkgNameStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("211"))
@@ -274,6 +275,10 @@ func sync(
 	}
 
 	tables := getSchemaTables(schemaResp.Msg.GetSchemas())
+	if len(tables) == 0 {
+		fmt.Println(bold.Render("No tables found.")) // nolint
+		return nil
+	}
 	schemaMap := map[string]string{}
 	for _, t := range tables {
 		schemaMap[t.Schema] = t.Schema
@@ -313,7 +318,7 @@ func sync(
 	var opts []tea.ProgramOption
 	if outputType == output.PlainOutput {
 		// Plain mode don't render the TUI
-		opts = []tea.ProgramOption{tea.WithoutRenderer()}
+		opts = []tea.ProgramOption{tea.WithoutRenderer(), tea.WithInput(nil)}
 	} else {
 		// TUI mode, discard log output
 		log.SetOutput(io.Discard)
