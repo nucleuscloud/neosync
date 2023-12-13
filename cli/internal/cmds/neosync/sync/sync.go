@@ -40,7 +40,21 @@ const (
 	maxPgParamLimit = 65535
 	postgresDriver  = "postgres"
 	mysqlDriver     = "mysql"
+
+	autoProgress  OutputType = "auto"
+	PlainProgress OutputType = "plain"
+	TtyProgress   OutputType = "tty"
 )
+
+var (
+	outputMap = map[string]OutputType{
+		string(autoProgress):  autoProgress,
+		string(PlainProgress): PlainProgress,
+		string(TtyProgress):   TtyProgress,
+	}
+)
+
+type OutputType string
 
 type model struct {
 	groupedConfigs [][]*benthosConfigResponse
@@ -708,4 +722,9 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func isGithubAction() bool {
+	val := os.Getenv("GITHUB_ACTIONS")
+	return val == "true"
 }
