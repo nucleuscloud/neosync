@@ -499,10 +499,14 @@ func (s *Service) GetConnectionInitStatements(
 		for k, v := range schemaTableMap {
 			statements := []string{}
 			if req.Msg.Options.InitSchema {
+				fmt.Println("BLAH")
 				stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, pool, pgquerier, v.Schema, v.Table)
 				if err != nil {
+					fmt.Println("ERROR")
 					return nil, err
 				}
+				fmt.Println(stmt)
+
 				statements = append(statements, stmt)
 			}
 			if req.Msg.Options.TruncateBeforeInsert {

@@ -18,6 +18,7 @@ func GetTableCreateStatement(
 	schema string,
 	table string,
 ) (string, error) {
+	fmt.Println("HERE")
 	errgrp, errctx := errgroup.WithContext(ctx)
 
 	var tableSchemas []*pg_queries.GetDatabaseTableSchemaRow
@@ -79,7 +80,17 @@ func generateCreateTableStatement(
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	pieces := []string{record.ColumnName, record.DataType, buildNullableText(record)}
+	fmt.Println()
+	fmt.Println(record.ColumnDefault)
+	fmt.Println(strings.HasPrefix(record.ColumnDefault, "nextval"))
 	if record.ColumnDefault != "" && record.ColumnDefault != "NULL" {
+
+		if strings.HasPrefix(record.ColumnDefault, "nextval") {
+			x := strings.ReplaceAll(record.ColumnDefault, "::regclass", "")
+			fmt.Println(x)
+			fmt.Println()
+
+		}
 		pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 	}
 	return strings.Join(pieces, " ")
