@@ -147,6 +147,15 @@ export const UserAccountService = {
       O: AcceptTeamAccountInviteResponse,
       kind: MethodKind.Unary,
     },
+    /**
+     * @generated from rpc mgmt.v1alpha1.UserAccountService.GetSystemInformation
+     */
+    getSystemInformation: {
+      name: "GetSystemInformation",
+      I: GetSystemInformationRequest,
+      O: GetSystemInformationResponse,
+      kind: MethodKind.Unary,
+    },
   }
 } as const;
 

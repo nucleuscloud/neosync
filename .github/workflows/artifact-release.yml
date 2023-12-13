@@ -48,6 +48,10 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile.backend
+          build-args: |
+            buildDate: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            gitCommit: ${{ github.sha }}
+            gitVersion: $(git describe --tags --abbrev=0)
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}

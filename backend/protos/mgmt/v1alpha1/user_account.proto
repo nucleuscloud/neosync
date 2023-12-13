@@ -135,6 +135,15 @@ message AcceptTeamAccountInviteResponse {
   UserAccount account = 1;
 }
 
+message GetSystemInformationRequest {}
+message GetSystemInformationResponse {
+  string version = 1;
+  string commit = 2;
+  string compiler = 3;
+  string platform = 4;
+  google.protobuf.Timestamp build_date = 5;
+}
+
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
@@ -157,4 +166,6 @@ service UserAccountService {
   rpc GetTeamAccountInvites(GetTeamAccountInvitesRequest) returns (GetTeamAccountInvitesResponse) {}
   rpc RemoveTeamAccountInvite(RemoveTeamAccountInviteRequest) returns (RemoveTeamAccountInviteResponse) {}
   rpc AcceptTeamAccountInvite(AcceptTeamAccountInviteRequest) returns (AcceptTeamAccountInviteResponse) {}
+
+  rpc GetSystemInformation(GetSystemInformationRequest) returns (GetSystemInformationResponse) {}
 }

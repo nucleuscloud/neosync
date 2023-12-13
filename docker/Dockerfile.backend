@@ -24,6 +24,16 @@ WORKDIR /workspace/backend
 # ENV GOBIN="$PWD/bin"
 # ENV PATH="$PATH:$GOBIN"
 
+# Define build arguments
+ARG buildDate
+ARG gitCommit
+ARG gitVersion
+
+# Set environment variables using the build arguments
+ENV buildDate=$buildDate
+ENV gitCommit=$gitCommit
+ENV gitVersion=$gitVersion
+
 # Copy in generated code
 COPY backend/gen/ gen/
 
@@ -35,7 +45,7 @@ COPY backend/pkg/ pkg/
 COPY backend/sql sql/
 
 # Build
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/mgmt cmd/mgmt/*.go
+RUN CGO_ENABLED=0 go build -ldflags="-s -w -X 'github.com/nucleuscloud/neosync/backend/internal/version.buildDate=$buildDate' -X 'github.com/nucleuscloud/neosync/backend/internal/version.gitCommit=$gitCommit' -X 'github.com/nucleuscloud/neosync/backend/internal/version.gitVersion=$gitVersion'" -o bin/mgmt cmd/mgmt/*.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
