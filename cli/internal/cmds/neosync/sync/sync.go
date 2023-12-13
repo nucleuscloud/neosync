@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -15,6 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
+	"github.com/nucleuscloud/neosync/cli/internal/output"
 	"github.com/nucleuscloud/neosync/cli/internal/serverconfig"
 	"github.com/nucleuscloud/neosync/cli/internal/userconfig"
 	"github.com/spf13/cobra"
@@ -40,21 +43,7 @@ const (
 	maxPgParamLimit = 65535
 	postgresDriver  = "postgres"
 	mysqlDriver     = "mysql"
-
-	autoProgress  OutputType = "auto"
-	PlainProgress OutputType = "plain"
-	TtyProgress   OutputType = "tty"
 )
-
-var (
-	outputMap = map[string]OutputType{
-		string(autoProgress):  autoProgress,
-		string(PlainProgress): PlainProgress,
-		string(TtyProgress):   TtyProgress,
-	}
-)
-
-type OutputType string
 
 type model struct {
 	groupedConfigs [][]*benthosConfigResponse
@@ -191,7 +180,12 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 
-			return sync(cmd.Context(), apiKey, &accountId, config)
+			outputType, err := output.ValidateAndRetrieveOutputFlag(cmd)
+			if err != nil {
+				return err
+			}
+
+			return sync(cmd.Context(), outputType, apiKey, &accountId, config)
 		},
 	}
 
@@ -203,12 +197,14 @@ func NewCmd() *cobra.Command {
 	cmd.Flags().Bool("init-schema", false, "Create table schema and its constraints")
 	cmd.Flags().Bool("truncate-before-insert", false, "Truncate table before insert")
 	cmd.Flags().Bool("truncate-cascade", false, "Truncate cascade table before insert (postgres only)")
+	output.AttachOutputFlag(cmd)
 
 	return cmd
 }
 
 func sync(
 	ctx context.Context,
+	outputType output.OutputType,
 	apiKey, accountIdFlag *string,
 	cmd *cmdConfig,
 ) error {
@@ -313,11 +309,21 @@ func sync(
 	}
 
 	groupedConfigs := groupConfigsByDependency(configs)
+
+	var opts []tea.ProgramOption
+	if outputType == output.PlainOutput {
+		// Plain mode don't render the TUI
+		opts = []tea.ProgramOption{tea.WithoutRenderer()}
+	} else {
+		// TUI mode, discard log output
+		log.SetOutput(io.Discard)
+	}
 	fmt.Println(header.Render("── Syncing Tables ────────────────────────────────")) // nolint
-	if _, err := tea.NewProgram(newModel(groupedConfigs)).Run(); err != nil {
+	if _, err := tea.NewProgram(newModel(groupedConfigs), opts...).Run(); err != nil {
 		fmt.Println("Error syncing data:", err) // nolint
 		os.Exit(1)
 	}
+	log.Printf("Done! Completed %d tables.", len(configs))
 
 	return nil
 }
@@ -696,6 +702,7 @@ func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
 		for _, cfg := range configs {
 			cfg := cfg
 			errgrp.Go(func() error {
+				log.Printf("Syncing table %s \n", cfg.Name)
 				err := syncData(errctx, cfg)
 				if err != nil {
 					return err
