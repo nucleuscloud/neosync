@@ -22,8 +22,8 @@ import (
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/internal/dbschemas/mysql"
-	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/internal/dbschemas/postgres"
+	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
+	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 )
 
 const (
@@ -454,6 +454,100 @@ func (s *Service) GetConnectionForeignConstraints(
 
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionForeignConstraintsResponse{
 		TableConstraints: constraints,
+	}), nil
+}
+
+func (s *Service) GetConnectionInitStatements(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionInitStatementsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("connectionId", req.Msg.ConnectionId)
+	connection, err := s.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: req.Msg.ConnectionId}))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	connDetails, err := s.getConnectionDetails(connection.Msg.Connection.ConnectionConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaResp, err := s.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{Id: req.Msg.ConnectionId}))
+	if err != nil {
+		return nil, err
+	}
+
+	schemaTableMap := map[string]*mgmtv1alpha1.DatabaseColumn{}
+	for _, s := range schemaResp.Msg.GetSchemas() {
+		schemaTableMap[fmt.Sprintf("%s.%s", s.Schema, s.Table)] = s
+	}
+
+	statementsMap := map[string]string{}
+	switch connDetails.ConnectionDriver {
+	case postgresDriver:
+		pgquerier := pg_queries.New()
+		pool, err := pgxpool.New(ctx, connDetails.ConnectionString)
+		if err != nil {
+			return nil, err
+		}
+		for k, v := range schemaTableMap {
+			statements := []string{}
+			if req.Msg.Options.InitSchema {
+				stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, pool, pgquerier, v.Schema, v.Table)
+				if err != nil {
+					return nil, err
+				}
+				statements = append(statements, stmt)
+			}
+			if req.Msg.Options.TruncateBeforeInsert {
+				if req.Msg.Options.TruncateCascade {
+					statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", v.Schema, v.Table))
+				} else {
+					statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", v.Schema, v.Table))
+				}
+			}
+			statementsMap[k] = strings.Join(statements, "\n")
+		}
+	case mysqlDriver:
+		conn, err := s.sqlConnector.Open(connDetails.ConnectionDriver, connDetails.ConnectionString)
+		if err != nil {
+			logger.Error("unable to connect", err)
+			return nil, err
+		}
+		defer func() {
+			if err := conn.Close(); err != nil {
+				logger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
+			}
+		}()
+		for k, v := range schemaTableMap {
+			statements := []string{}
+			if req.Msg.Options.InitSchema {
+				stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{
+					Schema: v.Schema,
+					Table:  v.Table,
+				})
+				if err != nil {
+					return nil, err
+				}
+				statements = append(statements, stmt)
+			}
+			if req.Msg.Options.TruncateBeforeInsert {
+				statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", v.Schema, v.Table))
+			}
+			statementsMap[k] = strings.Join(statements, "\n")
+		}
+	default:
+		return nil, errors.New("unsupported connection config")
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionInitStatementsResponse{
+		TableInitStatements: statementsMap,
 	}), nil
 }
 

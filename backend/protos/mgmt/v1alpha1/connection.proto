@@ -204,6 +204,22 @@ message GetConnectionForeignConstraintsResponse {
   map<string, ForeignConstraintTables> table_constraints = 1;
 }
 
+message InitStatementOptions {
+  bool init_schema = 1;
+  bool truncate_before_insert = 2;
+  bool truncate_cascade = 3;
+}
+message GetConnectionInitStatementsRequest {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  InitStatementOptions options = 2;
+}
+
+// Init statement for a specific table
+message GetConnectionInitStatementsResponse {
+  // the key here is <schema>.<table> and value is the table init statement.
+  map<string, string> table_init_statements = 1;
+}
+
 // Service for managing datasource connections.
 // This is a primary data model in Neosync and is used in reference when hooking up Jobs to synchronize and generate data.
 service ConnectionService {
@@ -235,4 +251,7 @@ service ConnectionService {
   // For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
   // Used primarily by the CLI sync command to determine stream order.
   rpc GetConnectionForeignConstraints(GetConnectionForeignConstraintsRequest) returns (GetConnectionForeignConstraintsResponse) {}
+  // For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
+  // Used primarily by the CLI sync command to create table schema init statement.
+  rpc GetConnectionInitStatements(GetConnectionInitStatementsRequest) returns (GetConnectionInitStatementsResponse) {}
 }

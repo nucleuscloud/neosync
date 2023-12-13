@@ -41,6 +41,7 @@ COPY backend/gen/ gen/
 COPY backend/cmd/ cmd/
 COPY backend/internal/ internal/
 COPY backend/services/ services/
+COPY backend/pkg/ pkg/
 COPY backend/sql sql/
 
 # Build

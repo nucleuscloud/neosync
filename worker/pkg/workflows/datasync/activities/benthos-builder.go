@@ -9,13 +9,13 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgxpool"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	mysql_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/worker/gen/go/db/postgresql"
+	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
+	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/worker/internal/dbschemas/mysql"
-	dbschemas_postgres "github.com/nucleuscloud/neosync/worker/internal/dbschemas/postgres"
 	"golang.org/x/sync/errgroup"
 
 	"go.temporal.io/sdk/log"

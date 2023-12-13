@@ -4,7 +4,7 @@ services:
     image: neosync-app
     build:
       context: ./frontend
-      dockerfile: ./dev/build/Dockerfile.dev
+      dockerfile: ./apps/web/dev/build/Dockerfile.dev
     ports:
       - 3000:3000
     environment:

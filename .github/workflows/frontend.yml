@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: frontend/apps/web
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
 
-      - run: npm ci
+      - run: npm install
       - run: npm run knip:production
 
   prettier:
@@ -48,7 +48,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - run: npm ci
+      - run: npm install
       - run: npm run prettier:check
 
   build:
@@ -76,6 +76,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
-      - run: npm ci
+      - run: npm install
       - name: Build
         run: npm run build
