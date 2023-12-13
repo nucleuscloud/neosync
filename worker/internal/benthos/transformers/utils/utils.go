@@ -27,23 +27,24 @@ func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 }
 
 // generates a random int between two numbers inclusive of the boundaries
-func GenerateRandomIntWithInclusiveBounds(min, max int) (int, error) {
+func GenerateRandomIntWithInclusiveBounds(min, max int64) (int64, error) {
 
 	if min > max {
-		return 0, errors.New("min cannot be greater than max")
+		return 0, fmt.Errorf("min cannot be greater than max")
+	}
+
+	if min < 1 || max < 1 {
+		return 0, fmt.Errorf("min or max cannot be less than 1")
 	}
 
 	if min == max {
 		return min, nil
 	}
 
-	// Generate a random number in the range [0, max-min]
-	// the + 1 allows us to make the max inclusive
-	//nolint:all
-	randValue := rand.Intn(max - min + 1)
+	// rand.Int63n returns a non-negative pseudo-random 63-bit integer as an int64
+	val := min + rand.Int63n(max-min+1)
 
-	// Shift the range to [min, max]
-	return randValue + min, nil
+	return val, nil
 }
 
 // substrings a string using rune length to account for multi-byte characters
@@ -190,4 +191,18 @@ func IsValidUsername(username string) bool {
 	matched, _ := regexp.MatchString(rfcRegex, username)
 
 	return matched
+}
+
+func GetRange(min, max int64) (int64, error) {
+
+	if min > max {
+		return 0, fmt.Errorf("min cannot be greater than max")
+	}
+
+	if min == max {
+		return min, nil
+	}
+
+	return max - min, nil
+
 }

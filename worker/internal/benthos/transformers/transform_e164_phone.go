@@ -65,7 +65,10 @@ func TransformE164Number(phone string, preserveLength bool) (*string, error) {
 
 	} else {
 
-		res, err := GenerateE164FormatPhoneNumber(int64(defaultE164Length))
+		min := int64(9)
+		max := int64(15)
+
+		res, err := GenerateRandomE164Phone(min, max)
 		if err != nil {
 			return nil, err
 		}

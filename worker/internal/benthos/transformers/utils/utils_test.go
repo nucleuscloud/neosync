@@ -31,9 +31,15 @@ func Test_GenerateRandomNumberWithBoundsMinError(t *testing.T) {
 	assert.Error(t, err, "Expected an error such that the min is greated than the max")
 }
 
+func Test_GenerateRandomNumberWithBoundsNegative(t *testing.T) {
+
+	_, err := GenerateRandomIntWithInclusiveBounds(-1, 1)
+	assert.Error(t, err, "Expected an error due to negative min or max")
+}
+
 func Test_GenerateRandomNumberWithBoundsMinEqualMax(t *testing.T) {
 
-	const minMax = 5
+	minMax := int64(5)
 	val, err := GenerateRandomIntWithInclusiveBounds(minMax, minMax)
 	assert.NoError(t, err, "Did not expect an error when min == max")
 	assert.Equal(t, minMax, val, "actual value to be equal to min/max")
@@ -42,10 +48,17 @@ func Test_GenerateRandomNumberWithBoundsMinEqualMax(t *testing.T) {
 
 func Test_GenerateRandomNumberWithBoundsValid(t *testing.T) {
 
-	min, max := 2, 9
+	min := int64(2)
+	max := int64(9)
 	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
 	assert.NoError(t, err, "Did not expect an error for valid range")
 	assert.True(t, val >= min && val <= max, "actual value to be within the range")
+}
+
+func Test_GenerateRandomIntError(t *testing.T) {
+
+	_, err := GenerateRandomInt(-2)
+	assert.Error(t, err)
 }
 
 func Test_SliceStringEmptyString(t *testing.T) {
@@ -155,6 +168,13 @@ func Test_RandomStringGeneration(t *testing.T) {
 
 }
 
+func Test_RandomStringGenerationError(t *testing.T) {
+
+	_, err := GenerateRandomStringWithLength(int64(-2))
+	assert.Error(t, err, "The length cannot be")
+
+}
+
 func Test_ParseEmail(t *testing.T) {
 	test := "evis@gmail.com"
 
@@ -190,4 +210,38 @@ func Test_IsValidUsername(t *testing.T) {
 	assert.True(t, IsValidUsername("test-test"), "Username should be an alphanumeric value comprised of  a-z A-Z 0-9 . - _ and starting and ending in alphanumeric chars with a max length of 63")
 	assert.True(t, IsValidUsername("test-TEST"), "Username should be an alphanumeric value comprised of  a-z A-Z 0-9 . - _ and starting and ending in alphanumeric chars with a max length of 63")
 	assert.False(t, IsValidUsername("eger?45//"), "Username contains non-alphanumeric characters")
+}
+
+func Test_GetRange(t *testing.T) {
+
+	min := int64(2)
+	max := int64(4)
+
+	val, err := GetRange(min, max)
+	assert.NoError(t, err)
+
+	assert.Equal(t, max-min, val)
+
+}
+
+func Test_GetRangeError(t *testing.T) {
+
+	min := int64(6)
+	max := int64(2)
+
+	_, err := GetRange(min, max)
+	assert.Error(t, err)
+
+}
+
+func Test_GetRangeMinEqualMax(t *testing.T) {
+
+	min := int64(2)
+	max := int64(2)
+
+	val, err := GetRange(min, max)
+	assert.NoError(t, err)
+
+	assert.Equal(t, min, val)
+
 }
