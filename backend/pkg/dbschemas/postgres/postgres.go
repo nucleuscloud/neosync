@@ -18,7 +18,6 @@ func GetTableCreateStatement(
 	schema string,
 	table string,
 ) (string, error) {
-	fmt.Println("HERE")
 	errgrp, errctx := errgroup.WithContext(ctx)
 
 	var tableSchemas []*pg_queries.GetDatabaseTableSchemaRow
@@ -79,22 +78,26 @@ func generateCreateTableStatement(
 }
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
-	pieces := []string{record.ColumnName, record.DataType, buildNullableText(record)}
-	fmt.Println()
-	fmt.Println(record.ColumnDefault)
-	fmt.Println(strings.HasPrefix(record.ColumnDefault, "nextval"))
+	pieces := []string{record.ColumnName, buildDataType(record), buildNullableText(record)}
 	if record.ColumnDefault != "" && record.ColumnDefault != "NULL" {
-
-		if strings.HasPrefix(record.ColumnDefault, "nextval") {
-			x := strings.ReplaceAll(record.ColumnDefault, "::regclass", "")
-			fmt.Println(x)
-			fmt.Println()
-
+		if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
+			pieces = []string{record.ColumnName, "SERIAL"}
+		} else {
+			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 		}
-		pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 	}
 	return strings.Join(pieces, " ")
 }
+
+func buildDataType(record *pg_queries.GetDatabaseTableSchemaRow) string {
+	if record.CharacterMaximumLength != nil {
+		if strings.EqualFold(record.DataType, "character varying") || strings.EqualFold(record.DataType, "character") || strings.EqualFold(record.DataType, "varchar") || strings.EqualFold(record.DataType, "bpchar") {
+			return fmt.Sprintf("%s(%d)", record.DataType, record.CharacterMaximumLength)
+		}
+	}
+	return record.DataType
+}
+
 func buildNullableText(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	if record.IsNullable == "NO" {
 		return "NOT NULL"

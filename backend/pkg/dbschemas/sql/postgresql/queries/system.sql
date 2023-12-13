@@ -23,7 +23,8 @@ SELECT
 	c.ordinal_position,
 	COALESCE(c.column_default, 'NULL') as column_default, -- must coalesce because sqlc doesn't appear to work for system structs to output a *string
 	c.is_nullable,
-	c.data_type
+	c.data_type,
+    c.character_maximum_length
 FROM
 	information_schema.columns AS c
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema

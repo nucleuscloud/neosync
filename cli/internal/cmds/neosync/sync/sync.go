@@ -356,7 +356,6 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(configbits))
 
 	var benthosStream *service.Stream
 	go func() {
