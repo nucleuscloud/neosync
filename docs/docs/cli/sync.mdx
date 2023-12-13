@@ -31,6 +31,10 @@ The following options can be passed using the `neosync sync` command:
 - `--connection-id` - Neosync connection id for sync data source. Takes precedence over config.
 - `--destination-connection-url` - Local destination connection url to sync data to. Takes precedence over config.
 - `--destination-driver` - Destination connection driver (postgres, mysql). Takes precendence over config.
+- `--truncate-before-insert` - Truncates the table before inserting data. This will not work with Foreign Keys.
+- `--truncate-cascade` - Truncate cascades to all tables. Only supported for postgres.
+- `--init-schema` - Creates the table schema and its constraints.
+- `--output` - Sets output type (auto, plain, tty). (default `auto`).
 
 ## Yaml Config File
 
@@ -39,4 +43,7 @@ connection-id: d9dc020d-746b-48c1-9319-a165a25ac32e
 destination:
   connection-url: user:pass@tcp(127.0.0.1:3306)/database
   driver: mysql
+  truncate-before-insert: false
+  truncate-cascade: false
+  init-schema: false
 ```
