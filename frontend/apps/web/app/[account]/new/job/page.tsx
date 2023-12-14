@@ -1,6 +1,7 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import {
   Card,
@@ -20,6 +21,7 @@ export type NewJobType = 'data-sync' | 'generate-table';
 export default function NewJob({ params }: PageProps): ReactElement {
   const [sessionToken, setSessionToken] = useState<string>('');
   const searchParams = useSearchParams();
+  const { account } = useAccount();
 
   useEffect(() => {
     // Generate the session token only on the client side
@@ -43,14 +45,14 @@ export default function NewJob({ params }: PageProps): ReactElement {
       name: 'Data Synchronization',
       description:
         'Synchronize and anonymize data between a source and destination. ',
-      href: `/new/job/define?${dataSyncParams.toString()}`,
+      href: `/${account?.name}/new/job/define?${dataSyncParams.toString()}`,
       icon: <SymbolIcon />,
     },
     {
       name: 'Data Generation',
       description:
         'Generate synthetic data from scratch for a chosen destination.',
-      href: `/new/job/define?${dataGenParams.toString()}`,
+      href: `/${account?.name}/new/job/define?${dataGenParams.toString()}`,
       icon: <AiOutlineExperiment />,
     },
   ] as const;
