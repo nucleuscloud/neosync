@@ -68,6 +68,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const { data: schema, isLoading: isGetConnectionsSchemaLoading } =
     useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
 
+  const allJobMappings =
+    schema?.schemas.map((r) => {
+      return {
+        ...r,
+        transformer: new JobMappingTransformer({}) as TransformerFormValues,
+      };
+    }) || [];
+
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
     defaultValues: {
@@ -111,9 +119,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
-  // changed to getValues() from watch() because watch would listen for a change and then trigger a render which would overwrite the values that were changed (which we wanted to keep)
-
-  const formValues = form.getValues();
+  const formValues = form.watch();
   const schemaTableData = formValues.mappings?.map((mapping) => ({
     ...mapping,
     schema: formValues.schema,
@@ -182,6 +188,20 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
                     return;
                   }
                   field.onChange(value);
+                  form.setValue(
+                    'mappings',
+                    allJobMappings
+                      .filter(
+                        (m) => m.schema == formValues.schema && m.table == value
+                      )
+                      .map((r) => {
+                        return {
+                          column: r.column,
+                          dataType: r.dataType,
+                          transformer: r.transformer,
+                        };
+                      })
+                  );
                 }}
                 value={field.value}
               >
@@ -315,26 +335,33 @@ function getJobSource(
     }
   });
 
-  const mappings: SingleTableSchemaFormValues['mappings'] = dbCols.map((c) => {
-    const colMapping = getColumnMapping(schemaMap, c.schema, c.table, c.column);
-    const transformer =
-      colMapping?.transformer ??
-      new JobMappingTransformer({
-        source: 'passthrough',
-        config: new TransformerConfig({
-          config: {
-            case: 'passthroughConfig',
-            value: new Passthrough({}),
-          },
-        }),
-      });
+  const mappings: SingleTableSchemaFormValues['mappings'] = dbCols
+    .filter((c) => c.schema == schema && c.table == table)
+    .map((c) => {
+      const colMapping = getColumnMapping(
+        schemaMap,
+        c.schema,
+        c.table,
+        c.column
+      );
+      const transformer =
+        colMapping?.transformer ??
+        new JobMappingTransformer({
+          source: 'passthrough',
+          config: new TransformerConfig({
+            config: {
+              case: 'passthroughConfig',
+              value: new Passthrough({}),
+            },
+          }),
+        });
 
-    return {
-      column: c.column,
-      dataType: c.dataType,
-      transformer: transformer as TransformerFormValues,
-    };
-  });
+      return {
+        column: c.column,
+        dataType: c.dataType,
+        transformer: transformer as TransformerFormValues,
+      };
+    });
 
   return {
     mappings: mappings,

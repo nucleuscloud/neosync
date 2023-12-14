@@ -115,7 +115,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [allMappings, setAllMappings] = useState<DatabaseColumn[]>([]);
   async function getSchema(): Promise<SingleTableSchemaFormValues> {
     try {
-      const res = await getConnectionSchema(connectFormValues.connectionId);
+      const res = await getConnectionSchema(
+        account?.id || '',
+        connectFormValues.connectionId
+      );
       if (!res) {
         return { mappings: [], numRows: 10, schema: '', table: '' };
       }
@@ -254,7 +257,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       >
         <div />
       </OverviewContainer>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
