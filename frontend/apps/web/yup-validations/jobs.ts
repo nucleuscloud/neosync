@@ -1,6 +1,7 @@
 import { SubsetFormValues } from '@/app/[account]/new/job/schema';
 import { transformerConfig } from '@/app/[account]/new/transformer/schema';
 import {
+  AwsS3DestinationConnectionOptions,
   Connection,
   JobDestinationOptions,
   MysqlDestinationConnectionOptions,
@@ -105,6 +106,14 @@ export function toJobDestinationOptions(
             }),
             initTableSchema: values.destinationOptions.initTableSchema,
           }),
+        },
+      });
+    }
+    case 'awsS3Config': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'awsS3Options',
+          value: new AwsS3DestinationConnectionOptions({}),
         },
       });
     }

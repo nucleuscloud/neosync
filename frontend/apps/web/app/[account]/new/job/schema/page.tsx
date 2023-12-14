@@ -64,7 +64,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   async function getSchema(): Promise<SchemaFormValues> {
     try {
-      const res = await getConnectionSchema(connectFormValues.sourceId);
+      const res = await getConnectionSchema(
+        account?.id || '',
+        connectFormValues.sourceId
+      );
       if (!res) {
         return { mappings: [] };
       }
