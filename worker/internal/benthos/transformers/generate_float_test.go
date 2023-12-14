@@ -5,144 +5,122 @@ import (
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GenerateRandomFloatDigitsAfterDecimalErrorTooShort(t *testing.T) {
+func Test_GenerateRandomFloatPositiveRange(t *testing.T) {
 
-	_, err := GenerateRandomFloat("positive", 1, 0)
+	min := float64(12.3)
+	max := float64(19.2)
 
-	assert.Error(t, err, "The digits after decimal cannot be less than 1")
-
-}
-
-func Test_GenerateRandomFloatDigitsAfterDecimalErrorTooLong(t *testing.T) {
-
-	_, err := GenerateRandomFloat("positive", 1, 11)
-
-	assert.Error(t, err, "The digits after decimal cannot be greater than 9")
-
-}
-
-func Test_GenerateRandomFloatDigitsBeforeDecimalErrorTooShort(t *testing.T) {
-
-	_, err := GenerateRandomFloat("positive", -1, 4)
-
-	assert.Error(t, err, "The digits after decimal cannot be less than 1")
-
-}
-
-func Test_GenerateRandomFloatDigitsBeforeDecimalErrorTooLong(t *testing.T) {
-
-	_, err := GenerateRandomFloat("positive", 12, 5)
-
-	assert.Error(t, err, "The digits after decimal cannot be greater than 9")
-
-}
-
-func Test_GenerateRandomFloatWrongSign(t *testing.T) {
-
-	_, err := GenerateRandomFloat("nosign", 2, 5)
-
-	assert.Error(t, err, "The sign should be either positive, negative or random")
-
-}
-func Test_GenerateRandomFloatPositive(t *testing.T) {
-
-	dbd := 4
-	dad := 4
-
-	res, err := GenerateRandomFloat("positive", int64(dbd), int64(dad))
-	actual := GetFloatLength(res).DigitsBeforeDecimalLength + GetFloatLength(res).DigitsAfterDecimalLength
-
-	assert.NoError(t, err)
-	assert.Equal(t, IsNegativeInt(int64(dbd)), IsNegativeFloat(res), "The actual value should be positive")
-	assert.Equal(t, dbd+dad, actual, "The output float needs to be the same length as the input Float")
-
-}
-
-func Test_GenerateRandomFloatRandom(t *testing.T) {
-
-	dbd := 4
-	dad := 4
-
-	res, err := GenerateRandomFloat("random", int64(dbd), int64(dad))
-	actual := GetFloatLength(res).DigitsBeforeDecimalLength + GetFloatLength(res).DigitsAfterDecimalLength
-
+	res, err := GenerateRandomFloat(false, min, max)
 	assert.NoError(t, err)
 
-	if res < 0 {
-		assert.Equal(t, IsNegativeInt(int64(dbd*-1)), IsNegativeFloat(res), "The actual value should be negative")
+	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
+	assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
+
+}
+
+func Test_GenerateRandomFloatNegativeRange(t *testing.T) {
+
+	min := float64(-12.3)
+	max := float64(-19.2)
+
+	res, err := GenerateRandomFloat(false, min, max)
+	assert.NoError(t, err)
+
+	// swapped because negative min number is the max
+	assert.GreaterOrEqual(t, res, max, "The result should be greater or equal to the minimum")
+	assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
+
+}
+
+func Test_GenerateRandomFloatNegativetoPositiveRange(t *testing.T) {
+
+	min := float64(-12.3)
+	max := float64(19.2)
+
+	res, err := GenerateRandomFloat(false, min, max)
+	assert.NoError(t, err)
+
+	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
+	assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
+
+}
+
+func Test_GenerateRandomFloatRandomizePositive(t *testing.T) {
+
+	min := float64(12.3)
+	max := float64(19.2)
+
+	res, err := GenerateRandomFloat(true, min, max)
+	assert.NoError(t, err)
+
+	if !transformer_utils.IsNegativeFloat64(res) {
+		// res is positive
+		assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
+		assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
 	} else {
-		assert.Equal(t, IsNegativeFloat(float64(dbd+dad)), IsNegativeFloat(res), "The actual value should be positive and 8 digits in length")
-	}
-
-	if res < 0 {
-		assert.Equal(t, dbd+dad+1, actual, "The output float needs to be the same length as the input Float")
-
-	} else {
-		assert.Equal(t, dbd+dad, actual, "The output float needs to be the same length as the input Float")
-
+		// res is negative
+		assert.GreaterOrEqual(t, res, -max, "The result should be greater or equal to the minimum")
+		assert.LessOrEqual(t, res, -min, "The result should be less or equal to the maximum")
 	}
 
 }
 
-func Test_GenerateRandomFloatNegative(t *testing.T) {
+func Test_GenerateRandomFloatRandomizeNegative(t *testing.T) {
 
-	dbd := 4
-	dad := 4
+	min := float64(-12.3)
+	max := float64(-19.2)
 
-	res, err := GenerateRandomFloat("negative", int64(dbd), int64(dad))
-
-	actual := GetFloatLength(res).DigitsBeforeDecimalLength + GetFloatLength(res).DigitsAfterDecimalLength
-
+	res, err := GenerateRandomFloat(true, min, max)
 	assert.NoError(t, err)
-	assert.Equal(t, IsNegativeInt(int64(dbd*-1)), IsNegativeFloat(res), "The actual value should be negative")
 
-	// + 1 to account for the negative signal
-	assert.Equal(t, dbd+dad+1, actual, "The output float should be 9 digits long")
-
+	if !transformer_utils.IsNegativeFloat64(res) {
+		// res is positive
+		assert.GreaterOrEqual(t, res, -min, "The result should be greater or equal to the minimum")
+		assert.LessOrEqual(t, res, -max, "The result should be less or equal to the maximum")
+	} else {
+		// res is negative
+		assert.GreaterOrEqual(t, res, max, "The result should be greater or equal to the minimum")
+		assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
+	}
 }
 
-func Test_GenerateRandomFloatWithLength(t *testing.T) {
+func Test_GenerateRandomFloatRandomizeNegativeToPositive(t *testing.T) {
 
-	dbd := 4
-	dad := 4
+	min := float64(-12.3)
+	max := float64(19.2)
 
-	res, err := GenerateRandomFloatWithLength(dbd, dad)
-
-	actual := GetFloatLength(res).DigitsAfterDecimalLength + GetFloatLength(res).DigitsBeforeDecimalLength
+	res, err := GenerateRandomFloat(true, min, max)
 	assert.NoError(t, err)
-	assert.Equal(t, actual, dbd+dad, "The length of the output float needs to match the digits before + the digits after")
+
+	if !transformer_utils.IsNegativeFloat64(res) {
+		// res is positive
+		assert.GreaterOrEqual(t, res, -min, "The result should be greater or equal to the minimum")
+		assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
+	} else {
+		// res is negative
+		assert.GreaterOrEqual(t, res, -max, "The result should be greater or equal to the minimum")
+		assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
+	}
 }
 
 func Test_GenerateRandomFloatTransformer(t *testing.T) {
 
-	dbd := 4
-	dad := 4
-	mapping := fmt.Sprintf(`root = generate_float(sign:"positive", digits_before_decimal:%d, digits_after_decimal:%d)`, dbd, dad)
+	min := float64(9.2)
+	max := float64(9.7)
+	randomizeSign := false
+
+	mapping := fmt.Sprintf(`root = generate_float(randomize_sign:%t, min:%f, max:%f)`, randomizeSign, min, max)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the random float transformer")
+	assert.NoError(t, err, "failed to parse the generate float transformer")
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	actual := GetFloatLength(res.(float64)).DigitsAfterDecimalLength + GetFloatLength(res.(float64)).DigitsBeforeDecimalLength
-	assert.Equal(t, dbd+dad, actual, "The length of the output float needs to match the digits before + the digits after")
-	assert.Equal(t, IsNegativeInt(int64(dbd)), IsNegativeFloat(res.(float64)), "The actual value should be positive")
-	assert.IsType(t, res, float64(1), "The actual value should be a float64")
-}
+	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
+	assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
 
-func Test_IsNegativeFloatTrue(t *testing.T) {
-
-	val := IsNegativeFloat(-1.63)
-
-	assert.True(t, val, "The value should be negative")
-}
-
-func Test_IsNegativeFloatFalse(t *testing.T) {
-
-	val := IsNegativeFloat(324.435)
-
-	assert.False(t, val, "The value should be positive")
 }

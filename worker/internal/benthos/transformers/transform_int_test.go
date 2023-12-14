@@ -16,7 +16,7 @@ func Test_TransformIntPreserveLengthFalse(t *testing.T) {
 	res, err := TransformInt(val, false, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, transformer_utils.GetIntLength(*res), int64(4), "The output int needs to be the same length as the input int")
+	assert.Equal(t, transformer_utils.GetInt64Length(*res), int64(4), "The output int needs to be the same length as the input int")
 
 }
 
@@ -37,8 +37,8 @@ func Test_TransformIntPreserveLengthTrue(t *testing.T) {
 	res, err := TransformInt(val, true, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, transformer_utils.GetIntLength(*res), (transformer_utils.GetIntLength((val))), "The output int needs to be the same length as the input int")
-	assert.Equal(t, IsNegativeInt(*res), false, "The value return should be positive")
+	assert.Equal(t, transformer_utils.GetInt64Length(*res), (transformer_utils.GetInt64Length((val))), "The output int needs to be the same length as the input int")
+	assert.Equal(t, transformer_utils.IsNegativeInt64(*res), false, "The value return should be positive")
 
 }
 
@@ -49,9 +49,9 @@ func Test_TransformIntPreserveSignTrue(t *testing.T) {
 	res, err := TransformInt(val, true, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, IsNegativeInt(*res), true, "The value return should be negative")
+	assert.Equal(t, transformer_utils.IsNegativeInt64(*res), true, "The value return should be negative")
 
-	assert.Equal(t, transformer_utils.GetIntLength(*res), transformer_utils.GetIntLength((val)), "The output int needs to be the same length as the input int")
+	assert.Equal(t, transformer_utils.GetInt64Length(*res), transformer_utils.GetInt64Length((val)), "The output int needs to be the same length as the input int")
 
 }
 
@@ -75,7 +75,7 @@ func Test_TransformIntTransformerWithPreserveLengthFalse(t *testing.T) {
 
 	if resInt != nil {
 
-		assert.Equal(t, int64(4), transformer_utils.GetIntLength(*resInt), "The actual value should be 4 digits long")
+		assert.Equal(t, int64(4), transformer_utils.GetInt64Length(*resInt), "The actual value should be 4 digits long")
 		assert.IsType(t, *resInt, int64(2), "The actual value should be an int64")
 
 	} else {
@@ -102,7 +102,7 @@ func Test_TransformIntTransformerWithPreserveLength(t *testing.T) {
 
 	if resInt != nil {
 
-		assert.Equal(t, int64(5), transformer_utils.GetIntLength(*resInt), "The actual value should be 5 digits long")
+		assert.Equal(t, int64(5), transformer_utils.GetInt64Length(*resInt), "The actual value should be 5 digits long")
 		assert.IsType(t, *resInt, int64(2), "The actual value should be an int64")
 	} else {
 		t.Error("Pointer is nil, expected a valid int64 pointer")

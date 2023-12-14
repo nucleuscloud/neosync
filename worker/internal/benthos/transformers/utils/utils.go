@@ -29,22 +29,25 @@ func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 // generates a random int between two numbers inclusive of the boundaries
 func GenerateRandomIntWithInclusiveBounds(min, max int64) (int64, error) {
 
-	if min > max {
-		return 0, fmt.Errorf("min cannot be greater than max")
+	if !IsNegativeInt64(min) && !IsNegativeInt64(max) && min > max {
+		return 0, fmt.Errorf("the min can't be greater than the max if both the min and max are positive")
 	}
-
-	if min < 1 || max < 1 {
-		return 0, fmt.Errorf("min or max cannot be less than 1")
+	// If min is numerically larger (but less negative) than max, swap them
+	if min < max {
+		min, max = max, min
 	}
 
 	if min == max {
 		return min, nil
 	}
 
-	// rand.Int63n returns a non-negative pseudo-random 63-bit integer as an int64
-	val := min + rand.Int63n(max-min+1)
+	// Calculate the range. Since we are dealing with negative numbers,
+	// min is less negative than max.
+	rangeVal := min - max + 1
 
-	return val, nil
+	// Generate a random value within the range and subtract it from min
+	// This keeps the result within the original [max, min] bounds
+	return min - rand.Int63n(rangeVal), nil
 }
 
 // substrings a string using rune length to account for multi-byte characters
@@ -106,9 +109,26 @@ func FirstDigitIsNine(n int64) bool {
 }
 
 // gets the number of digits in an int64
-func GetIntLength(i int64) int64 {
+func GetInt64Length(i int64) int64 {
 	// Convert the int64 to a string
 	str := strconv.FormatInt(i, 10)
+
+	length := int64(len(str))
+
+	return length
+}
+
+// GetFloatLength gets the number of digits in a float64
+func GetFloat64Length(i float64) int64 {
+	// Convert the float64 to a string with a specific format and precision
+	// Using 'g' format and a precision of -1 to automatically determine the best format
+	str := strconv.FormatFloat(i, 'g', -1, 64)
+
+	// Remove the minus sign if the number is negative
+	str = strings.Replace(str, "-", "", 1)
+
+	// Remove the decimal point
+	str = strings.Replace(str, ".", "", 1)
 
 	length := int64(len(str))
 
@@ -193,7 +213,63 @@ func IsValidUsername(username string) bool {
 	return matched
 }
 
-func GetRange(min, max int64) (int64, error) {
+// Generates a random float64 in the range of the min and max float64 values
+func GenerateRandomFloat64InRange(min, max float64) (float64, error) {
+
+	if !IsNegativeFloat64(min) && !IsNegativeFloat64(max) && min > max {
+		return 0, fmt.Errorf("the min can't be greater than the max if both the min and max are positive")
+	}
+
+	// generates a rand float64 value from [0.0,1.0)
+	//nolint:all
+	randValue := rand.Float64()
+
+	// Scale and shift the value to the range
+	returnValue := min + randValue*(max-min)
+
+	return returnValue, nil
+}
+
+// Returns the float64 range between the min and max
+func GetFloat64Range(min, max float64) (float64, error) {
+
+	if min > max {
+		return 0, fmt.Errorf("min cannot be greater than max")
+	}
+
+	if min == max {
+		return min, nil
+	}
+
+	return max - min, nil
+
+}
+
+func IsNegativeFloat64(val float64) bool {
+	if (val * -1) < 0 {
+		return false
+	} else {
+		return true
+	}
+}
+
+func IsNegativeInt64(val int64) bool {
+	if (val * -1) < 0 {
+		return false
+	} else {
+		return true
+	}
+}
+
+func AbsInt64(n int64) int64 {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+// Returns the int64 range between the min and max
+func GetInt64Range(min, max int64) (int64, error) {
 
 	if min > max {
 		return 0, fmt.Errorf("min cannot be greater than max")

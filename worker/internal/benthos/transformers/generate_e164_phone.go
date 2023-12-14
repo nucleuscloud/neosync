@@ -43,7 +43,7 @@ func init() {
 // Generates a random phone number in e164 format and returns it as a string
 func GenerateRandomE164Phone(min, max int64) (string, error) {
 
-	if transformer_utils.GetIntLength(min) < 9 || transformer_utils.GetIntLength(max) > 15 {
+	if transformer_utils.GetInt64Length(min) < 9 || transformer_utils.GetInt64Length(max) > 15 {
 		return "", errors.New("the length has between 9 and 15 characters long")
 	}
 

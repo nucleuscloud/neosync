@@ -60,7 +60,7 @@ func TransformInt(value int64, preserveLength, preserveSign bool) (*int64, error
 		return nil, nil
 	}
 
-	if transformer_utils.GetIntLength(value) > 10 {
+	if transformer_utils.GetInt64Length(value) > 10 {
 		return nil, errors.New("the length of the input integer cannot be greater than 18 digits")
 	}
 
@@ -68,7 +68,7 @@ func TransformInt(value int64, preserveLength, preserveSign bool) (*int64, error
 
 		if value < 0 {
 			// if negative, subtract one from the legnth since GetLength will count the sign in the count
-			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value) - 1))
+			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetInt64Length(value) - 1))
 
 			if err != nil {
 				return nil, fmt.Errorf("unable to generate a random string with length")
@@ -77,7 +77,7 @@ func TransformInt(value int64, preserveLength, preserveSign bool) (*int64, error
 
 		} else {
 
-			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetIntLength(value)))
+			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetInt64Length(value)))
 
 			if err != nil {
 				return nil, fmt.Errorf("unable to generate a random string with length")

@@ -31,12 +31,6 @@ func Test_GenerateRandomNumberWithBoundsMinError(t *testing.T) {
 	assert.Error(t, err, "Expected an error such that the min is greated than the max")
 }
 
-func Test_GenerateRandomNumberWithBoundsNegative(t *testing.T) {
-
-	_, err := GenerateRandomIntWithInclusiveBounds(-1, 1)
-	assert.Error(t, err, "Expected an error due to negative min or max")
-}
-
 func Test_GenerateRandomNumberWithBoundsMinEqualMax(t *testing.T) {
 
 	minMax := int64(5)
@@ -50,6 +44,26 @@ func Test_GenerateRandomNumberWithBoundsValid(t *testing.T) {
 
 	min := int64(2)
 	max := int64(9)
+	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
+	assert.NoError(t, err, "Did not expect an error for valid range")
+	assert.True(t, val >= min && val <= max, "actual value to be within the range")
+}
+
+func Test_GenerateRandomNumberWithBoundsNegative(t *testing.T) {
+
+	min := int64(-2)
+	max := int64(-9)
+
+	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
+	assert.NoError(t, err, "Did not expect an error for valid range")
+	assert.True(t, val <= min && val >= max, "actual value to be within the range")
+}
+
+func Test_GenerateRandomNumberWithBoundsNegativeToPositive(t *testing.T) {
+
+	min := int64(-2)
+	max := int64(9)
+
 	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
 	assert.NoError(t, err, "Did not expect an error for valid range")
 	assert.True(t, val >= min && val <= max, "actual value to be within the range")
@@ -133,11 +147,20 @@ func Test_FirstDigitIsNineFalse(t *testing.T) {
 	assert.Equal(t, res, false, "The first digit is not nine.")
 }
 
-func Test_GetIntLegth(t *testing.T) {
+func Test_GetInt64Legth(t *testing.T) {
 
 	expected := 3
 
-	val := GetIntLength(782)
+	val := GetInt64Length(782)
+
+	assert.Equal(t, int64(expected), val, "The calculated length should match the expected length.")
+}
+
+func Test_GetFloat64Legth(t *testing.T) {
+
+	expected := 8
+
+	val := GetFloat64Length(7823.2332)
 
 	assert.Equal(t, int64(expected), val, "The calculated length should match the expected length.")
 }
@@ -212,36 +235,115 @@ func Test_IsValidUsername(t *testing.T) {
 	assert.False(t, IsValidUsername("eger?45//"), "Username contains non-alphanumeric characters")
 }
 
-func Test_GetRange(t *testing.T) {
+func Test_GetInt64Range(t *testing.T) {
 
 	min := int64(2)
 	max := int64(4)
 
-	val, err := GetRange(min, max)
+	val, err := GetInt64Range(min, max)
 	assert.NoError(t, err)
 
 	assert.Equal(t, max-min, val)
 
 }
 
-func Test_GetRangeError(t *testing.T) {
+func Test_GetInt64RangeError(t *testing.T) {
 
 	min := int64(6)
 	max := int64(2)
 
-	_, err := GetRange(min, max)
+	_, err := GetInt64Range(min, max)
 	assert.Error(t, err)
 
 }
 
-func Test_GetRangeMinEqualMax(t *testing.T) {
+func Test_GetInt64RangeMinEqualMax(t *testing.T) {
 
 	min := int64(2)
 	max := int64(2)
 
-	val, err := GetRange(min, max)
+	val, err := GetInt64Range(min, max)
 	assert.NoError(t, err)
 
 	assert.Equal(t, min, val)
 
+}
+
+func Test_GetFloat64Range(t *testing.T) {
+
+	min := float64(2.2)
+	max := float64(4.2)
+
+	val, err := GetFloat64Range(min, max)
+	assert.NoError(t, err)
+
+	assert.Equal(t, max-min, val)
+
+}
+
+func Test_GetFloat64RangeError(t *testing.T) {
+
+	min := float64(6.9)
+	max := float64(2.2)
+
+	_, err := GetFloat64Range(min, max)
+	assert.Error(t, err)
+
+}
+
+func Test_GetFloat64RangeMinEqualMax(t *testing.T) {
+
+	min := float64(2.2)
+	max := float64(2.2)
+
+	val, err := GetFloat64Range(min, max)
+	assert.NoError(t, err)
+
+	assert.Equal(t, min, val)
+}
+
+func Test_IsNegativeFloatTrue(t *testing.T) {
+
+	val := IsNegativeFloat64(-1.63)
+
+	assert.True(t, val, "The value should be negative")
+}
+
+func Test_IsNegativeFloatFalse(t *testing.T) {
+
+	val := IsNegativeFloat64(324.435)
+
+	assert.False(t, val, "The value should be positive")
+}
+
+func Test_AbsInt64Positive(t *testing.T) {
+
+	val := int64(7)
+
+	res := AbsInt64(val)
+	assert.Equal(t, int64(7), res)
+
+}
+
+func Test_AbsInt64Negative(t *testing.T) {
+
+	val := int64(-7)
+
+	res := AbsInt64(val)
+	assert.Equal(t, int64(7), res)
+
+}
+
+func Test_IsNegativeIntTrue(t *testing.T) {
+
+	val := IsNegativeInt64(-1)
+
+	assert.True(t, val, "The value should be negative")
+}
+
+func Test_IsNegativeIntFalse(t *testing.T) {
+
+	val := IsNegativeInt64(1)
+
+	assert.False(t, val, "The value should be positive")
 }

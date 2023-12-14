@@ -19,7 +19,7 @@ func Test_GenerateIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 	assert.NoError(t, err)
 
 	numStr := strconv.FormatInt(*res, 10)
-	assert.Equal(t, int64(len(numStr)), transformer_utils.GetIntLength(testValue), "The length of the output phone number should be the same as the input phone number")
+	assert.Equal(t, int64(len(numStr)), transformer_utils.GetInt64Length(testValue), "The length of the output phone number should be the same as the input phone number")
 
 }
 
@@ -29,7 +29,7 @@ func Test_GenerateIntPhoneNumberPreserveLengthFalse(t *testing.T) {
 	assert.NoError(t, err)
 
 	numStr := strconv.FormatInt(*res, 10)
-	assert.Equal(t, int64(len(numStr)), transformer_utils.GetIntLength(testValue), "The length of the output phone number should be the same as the input phone number")
+	assert.Equal(t, int64(len(numStr)), transformer_utils.GetInt64Length(testValue), "The length of the output phone number should be the same as the input phone number")
 }
 
 func Test_GenerateIntPhoneNumberPreserveLengthFunction(t *testing.T) {

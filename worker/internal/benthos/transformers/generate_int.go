@@ -1,8 +1,6 @@
 package transformers
 
 import (
-	"errors"
-	"fmt"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -13,23 +11,29 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("length")).
-		Param(bloblang.NewStringParam("sign"))
+		Param(bloblang.NewBoolParam("randomize_sign")).
+		Param(bloblang.NewInt64Param("min")).
+		Param(bloblang.NewInt64Param("max"))
 
 	err := bloblang.RegisterFunctionV2("generate_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
-		length, err := args.GetInt64("length")
+		randomizeSign, err := args.GetBool("randomize_sign")
 		if err != nil {
 			return nil, err
 		}
 
-		sign, err := args.GetString("sign")
+		min, err := args.GetInt64("min")
+		if err != nil {
+			return nil, err
+		}
+
+		max, err := args.GetInt64("max")
 		if err != nil {
 			return nil, err
 		}
 
 		return func() (any, error) {
-			res, err := GenerateRandomInt(length, sign)
+			res, err := GenerateRandomInt(randomizeSign, min, max)
 			return res, err
 		}, nil
 	})
@@ -42,34 +46,19 @@ func init() {
 
 // Generates a random integer up to 18 digits in length
 // The sign param determines either a positive, negative or randomly assigned sign
-func GenerateRandomInt(intLength int64, sign string) (int64, error) {
+func GenerateRandomInt(randomizeSign bool, min, max int64) (int64, error) {
 
 	var returnValue int64
 
-	if sign != "positive" && sign != "negative" && sign != "random" {
-		return 0, errors.New("sign can only be 'positive', 'negative', or 'random'")
-	}
+	if randomizeSign {
 
-	if intLength <= 1 {
-		return 0, errors.New("the length of the integer cannot be zero or less than zero")
-	}
+		res, err := transformer_utils.GenerateRandomIntWithInclusiveBounds(transformer_utils.AbsInt64(min), transformer_utils.AbsInt64(max))
+		if err != nil {
+			return 0, err
+		}
 
-	if intLength > 10 {
-		return 0, errors.New("the length of the integer cannot be greater than 18 digits")
-	}
+		returnValue = res
 
-	// user didnt set the int length so we can randomly generate one of the default length four
-
-	// max length of intLength is 9 digits so no issues with casting an int64 to an int32
-	val, err := transformer_utils.GenerateRandomInt(int(intLength))
-	if err != nil {
-		return 0, fmt.Errorf("unable to generate a random string with length")
-	}
-
-	returnValue = int64(val)
-
-	if sign == "random" {
-		//nolint:all
 		randInt := rand.Intn(2)
 		if randInt == 1 {
 			// return the positive value
@@ -79,18 +68,17 @@ func GenerateRandomInt(intLength int64, sign string) (int64, error) {
 			return returnValue * -1, nil
 		}
 
-	} else if sign == "negative" {
-		return returnValue * -1, nil
 	} else {
-		return returnValue, nil
+
+		res, err := transformer_utils.GenerateRandomIntWithInclusiveBounds(min, max)
+		if err != nil {
+			return 0, err
+		}
+
+		returnValue = res
+
 	}
 
-}
+	return returnValue, nil
 
-func IsNegativeInt(val int64) bool {
-	if (val * -1) < 0 {
-		return false
-	} else {
-		return true
-	}
 }
