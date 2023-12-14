@@ -73,7 +73,8 @@ SELECT
 	c.ordinal_position,
 	COALESCE(c.column_default, 'NULL') as column_default, -- must coalesce because sqlc doesn't appear to work for system structs to output a *string
 	c.is_nullable,
-	c.data_type
+	c.data_type,
+    c.character_maximum_length
 FROM
 	information_schema.columns AS c
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
@@ -90,13 +91,14 @@ type GetDatabaseTableSchemaParams struct {
 }
 
 type GetDatabaseTableSchemaRow struct {
-	TableSchema     string
-	TableName       string
-	ColumnName      string
-	OrdinalPosition int
-	ColumnDefault   string
-	IsNullable      string
-	DataType        string
+	TableSchema            string
+	TableName              string
+	ColumnName             string
+	OrdinalPosition        int
+	ColumnDefault          string
+	IsNullable             string
+	DataType               string
+	CharacterMaximumLength interface{}
 }
 
 func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemaParams) ([]*GetDatabaseTableSchemaRow, error) {
@@ -116,6 +118,7 @@ func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetD
 			&i.ColumnDefault,
 			&i.IsNullable,
 			&i.DataType,
+			&i.CharacterMaximumLength,
 		); err != nil {
 			return nil, err
 		}

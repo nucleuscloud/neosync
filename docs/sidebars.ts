@@ -85,6 +85,24 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'category',
+          label: 'accounts',
+          collapsible: true,
+          collapsed: false,
+          items: [
+            {
+              type: 'doc',
+              id: 'cli/accounts/list',
+              label: 'list',
+            },
+            {
+              type: 'doc',
+              id: 'cli/accounts/switch',
+              label: 'switch',
+            },
+          ],
+        },
+        {
+          type: 'category',
           label: 'jobs',
           collapsible: true,
           collapsed: false,
