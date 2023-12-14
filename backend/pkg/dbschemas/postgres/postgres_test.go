@@ -82,6 +82,13 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 				OrdinalPosition: 5,
 				IsNullable:      "YES",
 			},
+			{
+				ColumnName:             "name",
+				DataType:               "varchar",
+				OrdinalPosition:        6,
+				IsNullable:             "YES",
+				CharacterMaximumLength: 40,
+			},
 		},
 		[]*pg_queries.GetTableConstraintsRow{
 			{
@@ -94,7 +101,7 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 	assert.Equal(
 		t,
 		result,
-		"CREATE TABLE IF NOT EXISTS public.users (id uuid NOT NULL DEFAULT gen_random_uuid(), created_at timestamp without time zone NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, extra varchar NULL, CONSTRAINT users_pkey PRIMARY KEY (id));", //nolint
+		"CREATE TABLE IF NOT EXISTS public.users (id uuid NOT NULL DEFAULT gen_random_uuid(), created_at timestamp without time zone NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, extra varchar NULL, name varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));", //nolint
 	)
 }
 

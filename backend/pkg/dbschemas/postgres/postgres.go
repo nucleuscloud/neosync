@@ -78,12 +78,26 @@ func generateCreateTableStatement(
 }
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
-	pieces := []string{record.ColumnName, record.DataType, buildNullableText(record)}
+	pieces := []string{record.ColumnName, buildDataType(record), buildNullableText(record)}
 	if record.ColumnDefault != "" && record.ColumnDefault != "NULL" {
-		pieces = append(pieces, "DEFAULT", record.ColumnDefault)
+		if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
+			pieces = []string{record.ColumnName, "SERIAL"}
+		} else {
+			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
+		}
 	}
 	return strings.Join(pieces, " ")
 }
+
+func buildDataType(record *pg_queries.GetDatabaseTableSchemaRow) string {
+	if record.CharacterMaximumLength != nil {
+		if strings.EqualFold(record.DataType, "character varying") || strings.EqualFold(record.DataType, "character") || strings.EqualFold(record.DataType, "varchar") || strings.EqualFold(record.DataType, "bpchar") {
+			return fmt.Sprintf("%s(%d)", record.DataType, record.CharacterMaximumLength)
+		}
+	}
+	return record.DataType
+}
+
 func buildNullableText(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	if record.IsNullable == "NO" {
 		return "NOT NULL"
