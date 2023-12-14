@@ -24,7 +24,7 @@ func GetTableCreateStatement(
 		return "", fmt.Errorf("unable to get table create statement: %w", err)
 	}
 	split := strings.Split(result.CreateTable, "CREATE TABLE")
-	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s; ", split[1]), nil
+	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s;", split[1]), nil
 }
 
 type DatabaseTableShowCreate struct {
