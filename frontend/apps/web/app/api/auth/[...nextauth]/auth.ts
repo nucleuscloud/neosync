@@ -23,7 +23,12 @@ function getAuth0Provider(): any {
 
 export const {
   handlers: { GET, POST },
+  // auth function meant to be used in RSC or middleware.
   auth,
+  // server-side signIn. Use signIn from the next-auth/react library for client-side
+  signIn,
+  // server-side signOut. Use signOut from the next-auth/react library for client-side
+  signOut,
 } = NextAuth({
   providers: [
     {
@@ -43,23 +48,22 @@ export const {
   ],
   session: { strategy: 'jwt' },
   callbacks: {
-    // authorized: async ({ auth }) => {
-    //   console.log('hit authorized');
-    //   return isAuthEnabled() ? !!auth : true;
-    // },
     session: async ({ session, token }) => {
       (session as any).accessToken = (token as any).accessToken;
       return session;
     },
     jwt: async ({ token, account }) => {
-      console.log('hit here');
       // Persist the OAuth access_token and or the user id to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
       }
-      if (!token.expiresAt || isAfter(new Date(), (token as any).expiresAt)) {
+      if (
+        !token.expiresAt ||
+        // Both times must be in the same format
+        isAfter(new Date(), new Date((token as any).expiresAt * 1000))
+      ) {
         // refresh token
         if (!token.refreshToken) {
           // token can't be refreshed, fail
@@ -83,7 +87,6 @@ export const {
         if (!response.ok) {
           throw tokens;
         }
-        console.log('updating access token', tokens);
         token.accessToken = tokens.access_token;
         // the refresh token may not always be returned. If it's not, don't update
         if (tokens.refresh_token) {
@@ -95,7 +98,6 @@ export const {
           token.expiresAt = Math.floor(
             addSeconds(new Date(), tokens.expires_in).getTime() / 1000
           );
-          console.log('updated token expires in', token.expiresAt);
         }
       }
       return token;

@@ -10,6 +10,7 @@ import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
 import { ReactElement } from 'react';
 import { auth } from './api/auth/[...nextauth]/auth';
+import { getSystemAppConfig } from './api/config/route';
 
 export const metadata: Metadata = {
   title: 'Neosync',
@@ -22,7 +23,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }): Promise<ReactElement> {
-  const session = await auth();
+  const systemAppConfig = getSystemAppConfig();
+  const session = systemAppConfig.isAuthEnabled ? await auth() : null;
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
@@ -38,7 +40,10 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SessionProvider session={session}>
+          <SessionProvider
+            session={session}
+            isAuthEnabled={systemAppConfig.isAuthEnabled}
+          >
             <AccountProvider>
               <div className="relative flex min-h-screen flex-col">
                 <SiteHeader />

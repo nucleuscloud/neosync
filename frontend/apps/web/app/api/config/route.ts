@@ -4,12 +4,13 @@ import { SystemAppConfig } from '@/app/config/app-config';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  return withNeosyncContext(async () => {
-    const sysConfig: SystemAppConfig = {
-      isAuthEnabled: isAuthEnabled(),
-      publicAppBaseUrl:
-        process.env.NEXT_PUBLIC_APP_BASE_URL ?? 'http://localhost:3000',
-    };
-    return sysConfig;
-  })(req);
+  return withNeosyncContext(async () => getSystemAppConfig())(req);
+}
+
+export function getSystemAppConfig(): SystemAppConfig {
+  return {
+    isAuthEnabled: isAuthEnabled(),
+    publicAppBaseUrl:
+      process.env.NEXT_PUBLIC_APP_BASE_URL ?? 'http://localhost:3000',
+  };
 }
