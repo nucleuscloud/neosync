@@ -1,4 +1,3 @@
-import { getAuthOptions } from '@/api-only/auth-config';
 import '@/app/globals.css';
 import SiteFooter from '@/components/SiteFooter';
 import SiteHeader from '@/components/SiteHeader';
@@ -9,8 +8,9 @@ import { Toaster } from '@/components/ui/toaster';
 import { fontSans } from '@/libs/fonts';
 import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
-import { getServerSession } from 'next-auth';
 import { ReactElement } from 'react';
+import { auth, getDefaultProvider } from './api/auth/[...nextauth]/auth';
+import { getSystemAppConfig } from './api/config/config';
 
 export const metadata: Metadata = {
   title: 'Neosync',
@@ -23,7 +23,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }): Promise<ReactElement> {
-  const session = await getServerSession(getAuthOptions());
+  const systemAppConfig = getSystemAppConfig();
+  const session = systemAppConfig.isAuthEnabled ? await auth() : null;
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
@@ -39,7 +40,11 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SessionProvider session={session}>
+          <SessionProvider
+            session={session}
+            isAuthEnabled={systemAppConfig.isAuthEnabled}
+            defaultProvider={getDefaultProvider()}
+          >
             <AccountProvider>
               <div className="relative flex min-h-screen flex-col">
                 <SiteHeader />

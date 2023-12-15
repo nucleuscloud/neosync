@@ -1,3 +1,4 @@
+import { getSystemAppConfig } from '@/app/api/config/config';
 import { createConnectTransport } from '@connectrpc/connect-node';
 import {
   Code,
@@ -6,9 +7,8 @@ import {
   NeosyncClient,
   getNeosyncClient,
 } from '@neosync/sdk';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
-import { isAuthEnabled } from './auth-config';
+import { auth } from '../app/api/auth/[...nextauth]/auth';
 
 interface NeosyncContext {
   client: NeosyncClient;
@@ -23,10 +23,11 @@ interface ErrorMessageResponse {
 export function withNeosyncContext<T = unknown>(
   handler: NeosyncApiHandler<T>
 ): (req: NextRequest) => Promise<NextResponse<T | ErrorMessageResponse>> {
+  const systemAppConfig = getSystemAppConfig();
   return async (req) => {
     try {
       const neosyncClient = getNeosyncClient({
-        getAccessToken: getAccessTokenFn(req),
+        getAccessToken: getAccessTokenFn(systemAppConfig.isAuthEnabled),
         getTransport(interceptors) {
           return createConnectTransport({
             baseUrl: getApiBaseUrlFromEnv(),
@@ -58,13 +59,15 @@ export function withNeosyncContext<T = unknown>(
   };
 }
 
-function getAccessTokenFn(req: NextRequest): GetAccessTokenFn | undefined {
-  if (!isAuthEnabled()) {
+function getAccessTokenFn(
+  isAuthEnabled: boolean
+): GetAccessTokenFn | undefined {
+  if (!isAuthEnabled) {
     return undefined;
   }
   return async (): Promise<string> => {
-    const jwt = await getToken({ req });
-    const accessToken = jwt?.accessToken;
+    const session = await auth();
+    const accessToken = session?.accessToken;
     if (!accessToken) {
       throw new Error('no session provided');
     }
