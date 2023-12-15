@@ -42,7 +42,6 @@
     "cmdk": "^0.2.0",
     "cron-validate": "^1.4.5",
     "date-fns": "^2.30.0",
-    "date-fns-tz": "^2.0.0",
     "memoize-one": "^6.0.0",
     "nanoid": "^5.0.4",
     "neocron": "^0.4.8",
