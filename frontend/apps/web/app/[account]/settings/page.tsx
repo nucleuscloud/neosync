@@ -2,26 +2,32 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
-import { useGetAuthEnabled } from '@/libs/hooks/useGetAuthEnabled';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function Settings() {
-  const authEnabled = useGetAuthEnabled();
+  const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
+    useGetSystemAppConfig();
   const { account, isLoading: isAccountLoading } = useAccount();
 
   const router = useRouter();
 
   useEffect(() => {
-    if (!authEnabled) {
-      router.push('/personal/settings/temporal');
+    if (isSystemAppConfigDataLoading || isAccountLoading) {
+      return;
+    }
+    if (systemAppConfigData?.isAuthEnabled && account?.name) {
+      return router.push(`/${account?.name}/settings/members`);
     } else {
-      router.push(`/${account?.name}/settings/members`);
+      return router.push('/personal/settings/temporal');
     }
-    if (!isAccountLoading && account?.name) {
-      router.push(`/${account?.name}/settings/temporal`);
-    }
-  }, [account?.id, isAccountLoading]);
+  }, [
+    account?.id,
+    isAccountLoading,
+    systemAppConfigData?.isAuthEnabled,
+    isSystemAppConfigDataLoading,
+  ]);
   return (
     <OverviewContainer
       Header={<PageHeader header="Settings" />}

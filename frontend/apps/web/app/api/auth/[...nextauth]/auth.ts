@@ -2,8 +2,6 @@ import { type TokenSet } from '@auth/core/types';
 import { addSeconds, isAfter } from 'date-fns';
 import NextAuth from 'next-auth';
 
-// console.log('auth0', getAuth0Provider());
-
 function getAuth0Provider(): any {
   return {
     id: 'auth0',
@@ -104,3 +102,9 @@ export const {
     },
   },
 });
+
+declare module 'next-auth' {
+  export interface Session {
+    accessToken: string;
+  }
+}

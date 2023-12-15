@@ -10,7 +10,7 @@ import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
 import { ReactElement } from 'react';
 import { auth } from './api/auth/[...nextauth]/auth';
-import { getSystemAppConfig } from './api/config/route';
+import { getSystemAppConfig } from './api/config/config';
 
 export const metadata: Metadata = {
   title: 'Neosync',
