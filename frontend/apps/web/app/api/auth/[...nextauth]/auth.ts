@@ -67,7 +67,7 @@ export const {
   session: { strategy: 'jwt' },
   callbacks: {
     session: async ({ session, token }) => {
-      (session as any).accessToken = (token as any).accessToken;
+      session.accessToken = (token as any).accessToken; // eslint-disable-line @typescript-eslint/no-explicit-any
       return session;
     },
     jwt: async ({ token, account }) => {
@@ -81,7 +81,7 @@ export const {
       if (
         !token.expiresAt ||
         // Both times must be in the same format
-        isAfter(new Date(), new Date((token as any).expiresAt * 1000))
+        isAfter(new Date(), new Date((token as any).expiresAt * 1000)) // eslint-disable-line @typescript-eslint/no-explicit-any
       ) {
         // refresh token
         if (!token.refreshToken) {
@@ -93,7 +93,7 @@ export const {
             'unable to find provider to be used to refresh token'
           );
         }
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         switch ((token as any).provider) {
           case 'auth0': {
             const auth0Provider = getAuth0Config();
@@ -110,7 +110,7 @@ export const {
                   client_id: auth0Provider?.clientId ?? '',
                   client_secret: auth0Provider?.clientSecret ?? '',
                   grant_type: 'refresh_token',
-                  refresh_token: (token as any).refreshToken,
+                  refresh_token: (token as any).refreshToken, // eslint-disable-line @typescript-eslint/no-explicit-any
                 }),
                 method: 'POST',
               }
@@ -151,6 +151,7 @@ declare module 'next-auth' {
   }
 }
 
+// This isn't currently working, guessing because next-auth has its own local dependency of @auth/core due to mismatched versions
 // declare module '@auth/core/jwt' {
 //   export interface JWT {
 //     refreshToken?: string;
