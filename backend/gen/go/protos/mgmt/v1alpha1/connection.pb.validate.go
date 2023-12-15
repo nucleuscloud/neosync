@@ -2485,6 +2485,8 @@ func (m *AwsS3ConnectionConfig) validate(all bool) error {
 
 	// no validation rules for BucketArn
 
+	// no validation rules for Bucket
+
 	if m.PathPrefix != nil {
 		// no validation rules for PathPrefix
 	}

@@ -119,11 +119,12 @@ message MysqlConnectionConfig {
 }
 
 message AwsS3ConnectionConfig {
-  string bucket_arn = 1;
+  string bucket_arn = 1 [deprecated = true];
   optional string path_prefix = 2;
   optional AwsS3Credentials credentials = 3;
   optional string region = 4;
   optional string endpoint = 5;
+  string bucket = 6;
 }
 
 // S3 Credentials that are used by the worker process.

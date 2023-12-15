@@ -878,7 +878,10 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "path_prefix",
@@ -926,6 +929,18 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_endpoint",
+              "defaultValue": ""
+            },
+            {
+              "name": "bucket",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]
