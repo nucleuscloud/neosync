@@ -157,8 +157,26 @@ export function getConnectionComponentDetails(
               s3: {
                 bucketArn: connection.connectionConfig.config.value.bucketArn,
                 pathPrefix: connection.connectionConfig.config.value.pathPrefix,
-                credentials:
-                  connection.connectionConfig.config.value.credentials,
+                credentials: {
+                  accessKeyId:
+                    connection.connectionConfig.config.value.credentials
+                      ?.accessKeyId,
+                  secretAccessKey:
+                    connection.connectionConfig.config.value.credentials
+                      ?.secretAccessKey,
+                  sessionToken:
+                    connection.connectionConfig.config.value.credentials
+                      ?.sessionToken,
+                  fromEc2Role:
+                    connection.connectionConfig.config.value.credentials
+                      ?.fromEc2Role,
+                  roleArn:
+                    connection.connectionConfig.config.value.credentials
+                      ?.roleArn,
+                  roleExternalId:
+                    connection.connectionConfig.config.value.credentials
+                      ?.roleExternalId,
+                },
                 endpoint: connection.connectionConfig.config.value.endpoint,
                 region: connection.connectionConfig.config.value.region,
               },

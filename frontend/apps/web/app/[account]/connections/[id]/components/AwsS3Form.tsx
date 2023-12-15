@@ -56,6 +56,7 @@ export default function AwsS3Form(props: Props) {
     try {
       const connectionResp = await updateAwsS3Connection(
         values.s3,
+        values.connectionName,
         connectionId,
         account?.id ?? ''
       );
@@ -294,6 +295,7 @@ export default function AwsS3Form(props: Props) {
 
 async function updateAwsS3Connection(
   s3: AWSFormValues['s3'],
+  connectionName: string,
   connectionId: string,
   accountId: string
 ): Promise<UpdateConnectionResponse> {
@@ -307,6 +309,7 @@ async function updateAwsS3Connection(
       body: JSON.stringify(
         new UpdateConnectionRequest({
           id: connectionId,
+          name: connectionName,
           connectionConfig: new ConnectionConfig({
             config: {
               case: 'awsS3Config',

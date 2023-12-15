@@ -17,7 +17,7 @@ import {
   JobMappingTransformer,
   UserDefinedTransformerConfig,
 } from '@neosync/sdk';
-import { UpdateIcon } from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon, UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {
   CSSProperties,
@@ -225,7 +225,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
 
   return (
     <div style={style} className="border-t dark:border-gray-700">
-      <div className="grid grid-cols-5 gap-4 items-center p-2">
+      <div className="grid grid-cols-5 gap-2 items-center p-2">
         <div className="flex flex-row truncate ">
           <Checkbox
             id="select"
@@ -242,14 +242,28 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
         <div>
           <FormField<SchemaFormValues | SingleTableSchemaFormValues>
             name={`mappings.${index}.transformer`}
-            render={({ field }) => {
+            render={({ field, fieldState, formState }) => {
               // todo: we should really convert between the real field.value and the job mapping transformer
               const fv = field.value as unknown as JobMappingTransformer;
+              console.log(fieldState.error);
+
               return (
                 <FormItem>
                   <FormControl>
-                    <div className="flex flex-row space-x-2  ">
-                      <div className="w-[175px]">
+                    <div className="flex flex-row space-x-2">
+                      {formState.errors.mappings && (
+                        <div className="place-self-center">
+                          {fieldState.error ? (
+                            <div>
+                              <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
+                            </div>
+                          ) : (
+                            <div className="w-4"></div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="">
                         <TransformerSelect
                           transformers={transformers}
                           value={fv}
