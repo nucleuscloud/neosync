@@ -6,6 +6,7 @@ import {
 import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -46,6 +47,7 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { SchemaMap, getColumnMapping } from './DataSyncConnectionCard';
@@ -244,6 +246,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
         {formValues.schema && formValues.table && (
           <SchemaTable data={schemaTableData} excludeInputReqTransformers />
+        )}
+        {form.formState.errors.mappings && (
+          <Alert variant="destructive">
+            <AlertTitle className="flex flex-row space-x-2 justify-center">
+              <ExclamationTriangleIcon />
+              <p>Please fix form errors and try again.</p>
+            </AlertTitle>
+          </Alert>
         )}
         <div className="flex flex-row gap-1 justify-end">
           <Button key="submit" type="submit">

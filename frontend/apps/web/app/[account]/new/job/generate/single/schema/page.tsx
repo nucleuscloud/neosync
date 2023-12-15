@@ -9,6 +9,7 @@ import {
 } from '@/components/jobs/SchemaTable/schema-table';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -51,6 +52,7 @@ import {
   JobSourceOptions,
   TransformerConfig,
 } from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -378,6 +380,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
           {formValues.schema && formValues.table && (
             <SchemaTable data={schemaTableData} excludeInputReqTransformers />
+          )}
+          {form.formState.errors.mappings && (
+            <Alert variant="destructive">
+              <AlertTitle className="flex flex-row space-x-2 justify-center">
+                <ExclamationTriangleIcon />
+                <p>Please fix form errors and try again.</p>
+              </AlertTitle>
+            </Alert>
           )}
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
