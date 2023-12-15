@@ -70,13 +70,13 @@ export const {
       (session as any).accessToken = (token as any).accessToken;
       return session;
     },
-    jwt: async ({ token, account, profile }) => {
-      console.log('profile', profile);
+    jwt: async ({ token, account }) => {
       // Persist the OAuth access_token and or the user id to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
+        token.provider = account.provider;
       }
       if (
         !token.expiresAt ||
@@ -88,35 +88,56 @@ export const {
           // token can't be refreshed, fail
           throw new Error('session is expired, no refresh token available');
         }
-        const auth0Provider = getAuth0Config();
-        const response = await fetch(
-          `${auth0Provider?.issuer ?? ''}/oauth/token`,
-          {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-              client_id: auth0Provider?.clientId ?? '',
-              client_secret: auth0Provider?.clientSecret ?? '',
-              grant_type: 'refresh_token',
-              refresh_token: (token as any).refreshToken,
-            }),
-            method: 'POST',
-          }
-        );
-        const tokens: TokenSet = await response.json();
-        if (!response.ok) {
-          throw tokens;
-        }
-        token.accessToken = tokens.access_token;
-        // the refresh token may not always be returned. If it's not, don't update
-        if (tokens.refresh_token) {
-          token.refreshToken = tokens.refresh_token;
-        }
-        if (tokens.expires_at) {
-          token.expiresAt = tokens.expires_at;
-        } else if (tokens.expires_in) {
-          token.expiresAt = Math.floor(
-            addSeconds(new Date(), tokens.expires_in).getTime() / 1000
+        if (!token.provider) {
+          throw new Error(
+            'unable to find provider to be used to refresh token'
           );
+        }
+
+        switch ((token as any).provider) {
+          case 'auth0': {
+            const auth0Provider = getAuth0Config();
+            if (!auth0Provider) {
+              throw new Error('unable to find auth0 provider to refresh token');
+            }
+            const response = await fetch(
+              `${auth0Provider?.issuer ?? ''}/oauth/token`,
+              {
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                  client_id: auth0Provider?.clientId ?? '',
+                  client_secret: auth0Provider?.clientSecret ?? '',
+                  grant_type: 'refresh_token',
+                  refresh_token: (token as any).refreshToken,
+                }),
+                method: 'POST',
+              }
+            );
+            const tokens: TokenSet = await response.json();
+            if (!response.ok) {
+              throw tokens;
+            }
+            token.accessToken = tokens.access_token;
+            // the refresh token may not always be returned. If it's not, don't update
+            if (tokens.refresh_token) {
+              token.refreshToken = tokens.refresh_token;
+            }
+            if (tokens.expires_at) {
+              token.expiresAt = tokens.expires_at;
+            } else if (tokens.expires_in) {
+              token.expiresAt = Math.floor(
+                addSeconds(new Date(), tokens.expires_in).getTime() / 1000
+              );
+            }
+            break;
+          }
+          default: {
+            throw new Error(
+              'unknown or unsupported provider type, unable to refresh token'
+            );
+          }
         }
       }
       return token;
