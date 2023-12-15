@@ -124,7 +124,7 @@ message AwsS3ConnectionConfig {
   optional AwsS3Credentials credentials = 3;
   optional string region = 4;
   optional string endpoint = 5;
-  string bucket = 6;
+  string bucket = 6 [(buf.validate.field).string.min_len = 1];
 }
 
 // S3 Credentials that are used by the worker process.
