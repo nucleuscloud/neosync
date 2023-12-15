@@ -348,6 +348,19 @@ message PendingActivity {
   optional ActivityFailure last_failure = 3;
 }
 
+message GetJobDataStreamRequest {
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+  string connection_id = 2 [(buf.validate.field).string.uuid = true];
+  string schema = 3;
+  string table = 4;
+}
+
+// Each stream response is a single row in the requested schema and table
+message GetJobDataStreamResponse {
+  // A map of key to the bytes value of the data that was found
+  map<string, bytes> row = 1;
+}
+
 message JobRun {
   string id = 1;
   string job_id = 2;
@@ -436,6 +449,9 @@ service JobService {
   rpc GetJobNextRuns(GetJobNextRunsRequest) returns (GetJobNextRunsResponse) {}
   rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse) {}
   rpc GetJobStatuses(GetJobStatusesRequest) returns (GetJobStatusesResponse) {}
+  // Streaming endpoint that will stream the data available from the job to the client.
+  // Used primarily by the CLI sync command.
+  rpc GetJobDataStream(GetJobDataStreamRequest) returns (stream GetJobDataStreamResponse) {}
 
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}

@@ -541,7 +541,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					"activities",
 					resp.Name, // may need to do more here
 					"data",
-					`${!count("files")}.json.gz}`,
+					`${!count("files")}.json.gz`,
 				)
 
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{

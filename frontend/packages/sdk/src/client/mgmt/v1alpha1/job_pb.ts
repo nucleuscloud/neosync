@@ -3128,6 +3128,102 @@ export class PendingActivity extends Message<PendingActivity> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.GetJobDataStreamRequest
+ */
+export class GetJobDataStreamRequest extends Message<GetJobDataStreamRequest> {
+  /**
+   * @generated from field: string job_id = 1;
+   */
+  jobId = "";
+
+  /**
+   * @generated from field: string connection_id = 2;
+   */
+  connectionId = "";
+
+  /**
+   * @generated from field: string schema = 3;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: string table = 4;
+   */
+  table = "";
+
+  constructor(data?: PartialMessage<GetJobDataStreamRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetJobDataStreamRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobDataStreamRequest {
+    return new GetJobDataStreamRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetJobDataStreamRequest {
+    return new GetJobDataStreamRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetJobDataStreamRequest {
+    return new GetJobDataStreamRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetJobDataStreamRequest | PlainMessage<GetJobDataStreamRequest> | undefined, b: GetJobDataStreamRequest | PlainMessage<GetJobDataStreamRequest> | undefined): boolean {
+    return proto3.util.equals(GetJobDataStreamRequest, a, b);
+  }
+}
+
+/**
+ * Each stream response is a single row in the requested schema and table
+ *
+ * @generated from message mgmt.v1alpha1.GetJobDataStreamResponse
+ */
+export class GetJobDataStreamResponse extends Message<GetJobDataStreamResponse> {
+  /**
+   * A map of key to the bytes value of the data that was found
+   *
+   * @generated from field: map<string, bytes> row = 1;
+   */
+  row: { [key: string]: Uint8Array } = {};
+
+  constructor(data?: PartialMessage<GetJobDataStreamResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetJobDataStreamResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "row", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 12 /* ScalarType.BYTES */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobDataStreamResponse {
+    return new GetJobDataStreamResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetJobDataStreamResponse {
+    return new GetJobDataStreamResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetJobDataStreamResponse {
+    return new GetJobDataStreamResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetJobDataStreamResponse | PlainMessage<GetJobDataStreamResponse> | undefined, b: GetJobDataStreamResponse | PlainMessage<GetJobDataStreamResponse> | undefined): boolean {
+    return proto3.util.equals(GetJobDataStreamResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.JobRun
  */
 export class JobRun extends Message<JobRun> {

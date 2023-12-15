@@ -1,9 +1,12 @@
 package v1alpha1_jobservice
 
 import (
+	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"strings"
 
@@ -22,6 +25,11 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 func (s *Service) GetJobs(
@@ -1276,4 +1284,112 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 	}
 
 	return true, nil
+}
+
+type row struct {
+	key   string
+	value []byte
+}
+
+func (s *Service) GetJobDataStream(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobDataStreamRequest],
+	stream *connect.ServerStream[mgmtv1alpha1.GetJobDataStreamResponse],
+) error {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("JobId", req.Msg.JobId)
+
+	jobResp, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.JobId,
+	}))
+	if err != nil {
+		return err
+	}
+
+	connectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.ConnectionId,
+	}))
+	if err != nil {
+		return err
+	}
+
+	job := jobResp.Msg.Job
+	connection := connectionResp.Msg.Connection
+	_, err = s.verifyUserInAccount(ctx, job.AccountId)
+	if err != nil {
+		return err
+	}
+
+	// verify connection is a job destination
+	if !verifyConnectionIsJobDestination(connection.Id, job.Destinations) {
+		return nucleuserrors.NewBadRequest("must provide valid connection id")
+	}
+
+	switch config := connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		sess, err := session.NewSession(&aws.Config{
+			Region:      aws.String(*config.AwsS3Config.Region),
+			Credentials: credentials.NewStaticCredentials(*config.AwsS3Config.Credentials.AccessKeyId, *config.AwsS3Config.Credentials.SecretAccessKey, ""),
+		})
+		if err != nil {
+			return fmt.Errorf("error creating AWS session: %v", err)
+		}
+
+		svc := s3.New(sess)
+
+		key := "workflows/4df1d2de-a163-48ad-b8e7-f2b9e1ae7b1a-2023-12-15T23:10:17Z/activities/public.regions/data/1.json.gz"
+		result, err := svc.GetObject(&s3.GetObjectInput{
+			Bucket: aws.String(config.AwsS3Config.Bucket),
+			Key:    aws.String(key),
+		})
+		if err != nil {
+			return fmt.Errorf("error getting object from S3: %w", err)
+		}
+		defer result.Body.Close()
+
+		gzr, err := gzip.NewReader(result.Body)
+		if err != nil {
+			return fmt.Errorf("error creating gzip reader: %w", err)
+		}
+		defer gzr.Close()
+
+		content, err := io.ReadAll(gzr)
+		if err != nil {
+			return err
+		}
+
+		var data []map[string]interface{}
+		err = json.Unmarshal(content, &data)
+		if err != nil {
+			return err
+		}
+
+		for _, row := range data {
+			rowMap := make(map[string][]byte)
+			for key, value := range row {
+				byteValue, err := json.Marshal(value)
+				if err != nil {
+					return err
+				}
+				rowMap[key] = byteValue
+				if err := stream.Send(&mgmtv1alpha1.GetJobDataStreamResponse{Row: rowMap}); err != nil {
+					return err
+				}
+			}
+
+		}
+
+	default:
+		return nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+	}
+	return nil
+}
+
+func verifyConnectionIsJobDestination(connectionId string, destinations []*mgmtv1alpha1.JobDestination) bool {
+	for _, dest := range destinations {
+		if connectionId == dest.ConnectionId {
+			return true
+		}
+	}
+	return false
 }

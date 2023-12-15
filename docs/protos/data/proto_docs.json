@@ -5189,6 +5189,126 @@
           ]
         },
         {
+          "name": "GetJobDataStreamRequest",
+          "longName": "GetJobDataStreamRequest",
+          "fullName": "mgmt.v1alpha1.GetJobDataStreamRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetJobDataStreamResponse",
+          "longName": "GetJobDataStreamResponse",
+          "fullName": "mgmt.v1alpha1.GetJobDataStreamResponse",
+          "description": "Each stream response is a single row in the requested schema and table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "row",
+              "description": "A map of key to the bytes value of the data that was found",
+              "label": "repeated",
+              "type": "RowEntry",
+              "longType": "GetJobDataStreamResponse.RowEntry",
+              "fullType": "mgmt.v1alpha1.GetJobDataStreamResponse.RowEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "RowEntry",
+          "longName": "GetJobDataStreamResponse.RowEntry",
+          "fullName": "mgmt.v1alpha1.GetJobDataStreamResponse.RowEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetJobNextRunsRequest",
           "longName": "GetJobNextRunsRequest",
           "fullName": "mgmt.v1alpha1.GetJobNextRunsRequest",
@@ -7631,6 +7751,18 @@
               "responseLongType": "GetJobStatusesResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobStatusesResponse",
               "responseStreaming": false
+            },
+            {
+              "name": "GetJobDataStream",
+              "description": "Streaming endpoint that will stream the data available from the job to the client.\nUsed primarily by the CLI sync command.",
+              "requestType": "GetJobDataStreamRequest",
+              "requestLongType": "GetJobDataStreamRequest",
+              "requestFullType": "mgmt.v1alpha1.GetJobDataStreamRequest",
+              "requestStreaming": false,
+              "responseType": "GetJobDataStreamResponse",
+              "responseLongType": "GetJobDataStreamResponse",
+              "responseFullType": "mgmt.v1alpha1.GetJobDataStreamResponse",
+              "responseStreaming": true
             },
             {
               "name": "GetJobRuns",

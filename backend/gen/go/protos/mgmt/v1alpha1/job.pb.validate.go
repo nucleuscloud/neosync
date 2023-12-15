@@ -9255,6 +9255,220 @@ var _ interface {
 	ErrorName() string
 } = PendingActivityValidationError{}
 
+// Validate checks the field values on GetJobDataStreamRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetJobDataStreamRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetJobDataStreamRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetJobDataStreamRequestMultiError, or nil if none found.
+func (m *GetJobDataStreamRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetJobDataStreamRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for JobId
+
+	// no validation rules for ConnectionId
+
+	// no validation rules for Schema
+
+	// no validation rules for Table
+
+	if len(errors) > 0 {
+		return GetJobDataStreamRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetJobDataStreamRequestMultiError is an error wrapping multiple validation
+// errors returned by GetJobDataStreamRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetJobDataStreamRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetJobDataStreamRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetJobDataStreamRequestMultiError) AllErrors() []error { return m }
+
+// GetJobDataStreamRequestValidationError is the validation error returned by
+// GetJobDataStreamRequest.Validate if the designated constraints aren't met.
+type GetJobDataStreamRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetJobDataStreamRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetJobDataStreamRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetJobDataStreamRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetJobDataStreamRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetJobDataStreamRequestValidationError) ErrorName() string {
+	return "GetJobDataStreamRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetJobDataStreamRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetJobDataStreamRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetJobDataStreamRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetJobDataStreamRequestValidationError{}
+
+// Validate checks the field values on GetJobDataStreamResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetJobDataStreamResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetJobDataStreamResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetJobDataStreamResponseMultiError, or nil if none found.
+func (m *GetJobDataStreamResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetJobDataStreamResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Row
+
+	if len(errors) > 0 {
+		return GetJobDataStreamResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetJobDataStreamResponseMultiError is an error wrapping multiple validation
+// errors returned by GetJobDataStreamResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetJobDataStreamResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetJobDataStreamResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetJobDataStreamResponseMultiError) AllErrors() []error { return m }
+
+// GetJobDataStreamResponseValidationError is the validation error returned by
+// GetJobDataStreamResponse.Validate if the designated constraints aren't met.
+type GetJobDataStreamResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetJobDataStreamResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetJobDataStreamResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetJobDataStreamResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetJobDataStreamResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetJobDataStreamResponseValidationError) ErrorName() string {
+	return "GetJobDataStreamResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetJobDataStreamResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetJobDataStreamResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetJobDataStreamResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetJobDataStreamResponseValidationError{}
+
 // Validate checks the field values on JobRun with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
