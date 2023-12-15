@@ -37,7 +37,7 @@ export default function AwsS3Form() {
     defaultValues: {
       connectionName: '',
       s3: {
-        bucketArn: '',
+        bucket: '',
       },
     },
     context: { accountId: account?.id ?? '' },
@@ -114,16 +114,16 @@ export default function AwsS3Form() {
         />
         <FormField
           control={form.control}
-          name="s3.bucketArn"
+          name="s3.bucket"
           render={({ field }) => (
             <FormItem>
               <FormLabel>
                 <RequiredLabel />
-                Bucket ARN
+                Bucket
               </FormLabel>
-              <FormDescription>The bucket ARN</FormDescription>
+              <FormDescription>The bucket</FormDescription>
               <FormControl>
-                <Input placeholder="Bucket ARN" {...field} />
+                <Input placeholder="Bucket" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -314,7 +314,7 @@ async function createAwsS3Connection(
           config: {
             case: 'awsS3Config',
             value: new AwsS3ConnectionConfig({
-              bucketArn: s3.bucketArn,
+              bucket: s3.bucket,
               pathPrefix: s3.pathPrefix,
               region: s3.region,
               endpoint: s3.endpoint,

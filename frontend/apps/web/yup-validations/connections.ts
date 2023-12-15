@@ -108,7 +108,7 @@ export type PostgresFormValues = Yup.InferType<typeof POSTGRES_FORM_SCHEMA>;
 export const AWS_FORM_SCHEMA = Yup.object({
   connectionName: connectionNameSchema,
   s3: Yup.object({
-    bucketArn: Yup.string().required(),
+    bucket: Yup.string().required(),
     pathPrefix: Yup.string().optional(),
     region: Yup.string().optional(),
     endpoint: Yup.string().optional(),

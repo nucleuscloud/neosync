@@ -155,7 +155,7 @@ export function getConnectionComponentDetails(
             defaultValues={{
               connectionName: connection.name,
               s3: {
-                bucketArn: connection.connectionConfig.config.value.bucketArn,
+                bucket: connection.connectionConfig.config.value.bucket,
                 pathPrefix: connection.connectionConfig.config.value.pathPrefix,
                 credentials: {
                   accessKeyId:
