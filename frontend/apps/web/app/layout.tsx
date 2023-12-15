@@ -9,7 +9,7 @@ import { fontSans } from '@/libs/fonts';
 import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
 import { ReactElement } from 'react';
-import { auth } from './api/auth/[...nextauth]/auth';
+import { auth, signIn } from './api/auth/[...nextauth]/auth';
 import { getSystemAppConfig } from './api/config/config';
 
 export const metadata: Metadata = {
@@ -25,6 +25,10 @@ export default async function RootLayout({
 }): Promise<ReactElement> {
   const systemAppConfig = getSystemAppConfig();
   const session = systemAppConfig.isAuthEnabled ? await auth() : null;
+  // server side signin to automatically redirect user to login page if authentication is configured
+  if (systemAppConfig.isAuthEnabled && !session) {
+    await signIn();
+  }
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
@@ -40,10 +44,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SessionProvider
-            session={session}
-            isAuthEnabled={systemAppConfig.isAuthEnabled}
-          >
+          <SessionProvider session={session}>
             <AccountProvider>
               <div className="relative flex min-h-screen flex-col">
                 <SiteHeader />

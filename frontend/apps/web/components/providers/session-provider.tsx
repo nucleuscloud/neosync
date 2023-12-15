@@ -1,24 +1,15 @@
 'use client';
 
 import { Session } from 'next-auth';
-import {
-  SessionProvider as NextAuthSessionProvider,
-  signIn,
-} from 'next-auth/react';
-import { ReactNode, useEffect } from 'react';
+import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react';
+import { ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
   session: Session | null;
-  isAuthEnabled: boolean;
 }
 
-export function SessionProvider({ children, session, isAuthEnabled }: Props) {
-  useEffect(() => {
-    if (!session && isAuthEnabled) {
-      signIn();
-    }
-  }, [session?.expires, isAuthEnabled]);
+export function SessionProvider({ children, session }: Props) {
   return (
     <NextAuthSessionProvider session={session}>
       {children}
