@@ -145,8 +145,6 @@ func TransformEmailPreserveLength(e string, pl bool) (string, error) {
 
 	tld := transformer_utils.SliceString(splitGeneratedDomain[1], len(splitDomain[1]))
 
-	//un, err := transformer_utils.GenerateRandomString(int64(len(parsedEmail[0])))
-
 	un, err := transformer_utils.GenerateRandomString(min, max)
 	if err != nil {
 		return "", nil
@@ -167,8 +165,6 @@ func TransformEmailPreserveDomainAndLength(e string, pd, pl bool) (string, error
 	}
 
 	unLength := len(parsedEmail[0])
-
-	//un, err := transformer_utils.GenerateRandomString(int64(len(parsedEmail[0])))
 
 	min := int64(2)
 	max := int64(5)

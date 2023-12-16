@@ -133,6 +133,6 @@ func Test_GetFloatLength(t *testing.T) {
 	val := float64(3.14)
 	res := GetFloatLength(val)
 
-	assert.Equal(t, int64(1), GetInt64Length(int64(res.DigitsBeforeDecimalLength)), "The actual value should be the same length as the input value")
-	assert.Equal(t, int64(1), GetInt64Length(int64(res.DigitsAfterDecimalLength)), "The actual value should be the same length as the input value")
+	assert.Equal(t, int64(1), GetInt64Length(res.DigitsBeforeDecimalLength), "The actual value should be the same length as the input value")
+	assert.Equal(t, int64(1), GetInt64Length(res.DigitsAfterDecimalLength), "The actual value should be the same length as the input value")
 }

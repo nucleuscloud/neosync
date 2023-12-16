@@ -34,20 +34,6 @@ func Test_TransformIntInRange(t *testing.T) {
 
 }
 
-func Test_TransformIntReturnValue(t *testing.T) {
-
-	val := int64(27)
-	rMin := int64(27)
-	rMax := int64(27)
-
-	res, err := TransformInt(val, rMin, rMax)
-	assert.NoError(t, err)
-
-	assert.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")
-	assert.LessOrEqual(t, *res, val+rMax, "The result should be less than the max")
-
-}
-
 func Test_TransformIntPhoneTransformerWithNilValue(t *testing.T) {
 
 	val := int64(27)

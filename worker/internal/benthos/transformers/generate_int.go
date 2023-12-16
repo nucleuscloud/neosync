@@ -58,7 +58,7 @@ func GenerateRandomInt(randomizeSign bool, min, max int64) (int64, error) {
 		}
 
 		returnValue = res
-
+		//nolint:all
 		randInt := rand.Intn(2)
 		if randInt == 1 {
 			// return the positive value

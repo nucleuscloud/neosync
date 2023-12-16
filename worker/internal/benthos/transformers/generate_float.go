@@ -57,7 +57,7 @@ func GenerateRandomFloat(randomizeSign bool, min, max float64) (float64, error) 
 		}
 
 		returnValue = res
-
+		//nolint:all
 		randInt := rand.Intn(2)
 		//nolint:all
 		if randInt == 1 {

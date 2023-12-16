@@ -8,8 +8,6 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-const defaultIntLength = 4
-
 func init() {
 
 	spec := bloblang.NewPluginSpec().
@@ -66,10 +64,6 @@ func TransformInt(value, rMin, rMax int64) (*int64, error) {
 
 	minRange := value - rMin
 	maxRange := value + rMax
-
-	if value == rMin && value == rMax {
-		return &value, nil
-	}
 
 	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(minRange, maxRange)
 	if err != nil {

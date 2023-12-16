@@ -8,11 +8,6 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-var (
-	defaultMin = float64(1.0)
-	defaultMax = float64(99.1)
-)
-
 func init() {
 
 	spec := bloblang.NewPluginSpec().
@@ -69,10 +64,6 @@ func TransformFloat(value, rMin, rMax float64) (*float64, error) {
 
 	minRange := value - rMin
 	maxRange := value + rMax
-
-	if value == rMin && value == rMax {
-		return &value, nil
-	}
 
 	val, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(minRange, maxRange)
 	if err != nil {

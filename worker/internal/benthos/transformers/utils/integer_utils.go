@@ -20,6 +20,8 @@ func GenerateRandomInt64WithInclusiveBounds(min, max int64) (int64, error) {
 	}
 
 	rangeVal := max - min + 1
+
+	//nolint:all
 	return min + rand.Int63n(rangeVal), nil
 }
 

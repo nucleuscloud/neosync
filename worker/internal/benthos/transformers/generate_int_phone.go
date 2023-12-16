@@ -35,5 +35,5 @@ func GenerateRandomIntPhoneNumber() (int64, error) {
 		return 0, err
 	}
 
-	return int64(res), nil
+	return res, nil
 }

@@ -56,10 +56,8 @@ func TransformString(value string, preserveLength bool) (*string, error) {
 
 	if preserveLength {
 
-		//val, err := transformer_utils.GenerateRandomString(int64(len(value)))
-		min := int64(2)
-		max := int64(5)
-		val, err := transformer_utils.GenerateRandomString(min, max)
+		l := int64(len(value))
+		val, err := transformer_utils.GenerateRandomString(l, l)
 
 		if err != nil {
 			return nil, fmt.Errorf("unable to generate a random string with length")
@@ -68,10 +66,8 @@ func TransformString(value string, preserveLength bool) (*string, error) {
 		returnValue = val
 
 	} else {
-
-		min := int64(2)
-		max := int64(5)
-
+		min := int64(3)
+		max := int64(12)
 		val, err := transformer_utils.GenerateRandomString(min, max)
 
 		if err != nil {

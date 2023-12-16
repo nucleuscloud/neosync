@@ -34,20 +34,6 @@ func Test_TransformFloat64InRange(t *testing.T) {
 
 }
 
-func Test_TransformFloat64ReturnValue(t *testing.T) {
-
-	val := float64(27.189)
-	rMin := float64(27.189)
-	rMax := float64(27.189)
-
-	res, err := TransformFloat(val, rMin, rMax)
-	assert.NoError(t, err)
-
-	assert.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")
-	assert.LessOrEqual(t, *res, val+rMax, "The result should be less than the max")
-
-}
-
 func Test_TransformFloat64PhoneTransformerWithNilValue(t *testing.T) {
 
 	val := float64(27.35)

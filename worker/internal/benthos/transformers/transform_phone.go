@@ -116,7 +116,7 @@ func GeneratePhoneNumberPreserveLengthNoHyphensNotE164(number string) (string, e
 		return "", nil
 	}
 
-	returnValue := strconv.FormatInt(int64(val), 10)
+	returnValue := strconv.FormatInt(val, 10)
 
 	return returnValue, nil
 }
@@ -148,7 +148,7 @@ func GenerateRandomPhoneNumberWithNoHyphens() (string, error) {
 		return "", err
 	}
 
-	returnValue := strconv.FormatInt(int64(val), 10)
+	returnValue := strconv.FormatInt(val, 10)
 
 	return returnValue, nil
 }

@@ -82,7 +82,7 @@ func GenerateRandomPhoneNumberNoHyphens() (string, error) {
 		return "", err
 	}
 
-	returnValue := strconv.FormatInt(int64(val), 10)
+	returnValue := strconv.FormatInt(val, 10)
 
 	return returnValue, nil
 }

@@ -82,6 +82,6 @@ func GenerateIntPhoneNumberPreserveLength(number int64) (int64, error) {
 		return 0, err
 	}
 
-	return int64(val), err
+	return val, err
 
 }
