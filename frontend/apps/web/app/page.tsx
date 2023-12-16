@@ -1,4 +1,3 @@
-'use client';
 import { PageProps } from '@/components/types';
 import { ReactElement } from 'react';
 import AccountPage from './[account]/page';

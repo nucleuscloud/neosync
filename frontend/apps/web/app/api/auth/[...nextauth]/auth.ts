@@ -1,15 +1,6 @@
-import { BuiltInProviderType } from '@auth/core/providers';
 import { type TokenSet } from '@auth/core/types';
 import { addSeconds, isAfter } from 'date-fns';
 import NextAuth, { NextAuthConfig } from 'next-auth';
-
-export function getDefaultProvider(): BuiltInProviderType | string | undefined {
-  const providers = getProviders();
-  if (providers.length === 1) {
-    return (providers[0] as any)?.id ?? undefined; // eslint-disable-line @typescript-eslint/no-explicit-any
-  }
-  return undefined;
-}
 
 function getProviders(): NextAuthConfig['providers'] {
   const providers: NextAuthConfig['providers'] = [];
