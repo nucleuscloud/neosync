@@ -108,8 +108,9 @@ func GeneratePhoneNumberPreserveLengthNoHyphensNotE164(number string) (string, e
 	if strings.Contains(number, "-") { // checks if input phone number has hyphens
 		number = strings.ReplaceAll(number, "-", "")
 	}
+	length := int64(len(number))
 
-	val, err := transformer_utils.GenerateRandomInt(len(number))
+	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(length, length)
 
 	if err != nil {
 		return "", nil
@@ -125,7 +126,7 @@ func GenerateRandomPhoneNumberWithHyphens() (string, error) {
 
 	// only works with 10 digit-based phone numbers like in the US
 
-	val, err := transformer_utils.GenerateRandomInt(10)
+	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(defaultPhoneNumberLength, defaultPhoneNumberLength)
 
 	if err != nil {
 		return "", nil
@@ -142,7 +143,7 @@ func GenerateRandomPhoneNumberWithHyphens() (string, error) {
 func GenerateRandomPhoneNumberWithNoHyphens() (string, error) {
 
 	// returns a phone number with no hyphens
-	val, err := transformer_utils.GenerateRandomInt(10)
+	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(defaultPhoneNumberLength, defaultPhoneNumberLength)
 	if err != nil {
 		return "", err
 	}

@@ -6,6 +6,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
+var defaultPhoneNumberLength = int64(10)
+
 func init() {
 
 	spec := bloblang.NewPluginSpec()
@@ -27,7 +29,7 @@ func init() {
 // Generates a random 10 digit phone number and returns it as an int64
 func GenerateRandomIntPhoneNumber() (int64, error) {
 
-	res, err := transformer_utils.GenerateRandomInt(10)
+	res, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(defaultPhoneNumberLength, defaultPhoneNumberLength)
 
 	if err != nil {
 		return 0, err

@@ -1,7 +1,6 @@
 package transformer_utils
 
 import (
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,56 +22,6 @@ func Test_GetRandomValueFromSliceNonEmptySlice(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, arr, res, "Expected the response to be included in the input array")
 
-}
-
-func Test_GenerateRandomNumberWithBoundsMinError(t *testing.T) {
-
-	_, err := GenerateRandomIntWithInclusiveBounds(10, 1)
-	assert.Error(t, err, "Expected an error such that the min is greated than the max")
-}
-
-func Test_GenerateRandomNumberWithBoundsMinEqualMax(t *testing.T) {
-
-	minMax := int64(5)
-	val, err := GenerateRandomIntWithInclusiveBounds(minMax, minMax)
-	assert.NoError(t, err, "Did not expect an error when min == max")
-	assert.Equal(t, minMax, val, "actual value to be equal to min/max")
-
-}
-
-func Test_GenerateRandomNumberWithBoundsValid(t *testing.T) {
-
-	min := int64(2)
-	max := int64(9)
-	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
-	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val >= min && val <= max, "actual value to be within the range")
-}
-
-func Test_GenerateRandomNumberWithBoundsNegative(t *testing.T) {
-
-	min := int64(-2)
-	max := int64(-9)
-
-	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
-	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val <= min && val >= max, "actual value to be within the range")
-}
-
-func Test_GenerateRandomNumberWithBoundsNegativeToPositive(t *testing.T) {
-
-	min := int64(-2)
-	max := int64(9)
-
-	val, err := GenerateRandomIntWithInclusiveBounds(min, max)
-	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val >= min && val <= max, "actual value to be within the range")
-}
-
-func Test_GenerateRandomIntError(t *testing.T) {
-
-	_, err := GenerateRandomInt(-2)
-	assert.Error(t, err)
 }
 
 func Test_SliceStringEmptyString(t *testing.T) {
@@ -119,82 +68,46 @@ func Test_IntArryToStringArrEmptySlice(t *testing.T) {
 	assert.Equal(t, len(res), len(val), "The slices should be the same length")
 }
 
-func Test_GenerateRandomInt(t *testing.T) {
+func Test_GenerateRandomStringEqualMinMax(t *testing.T) {
 
-	expectedLength := 9
-
-	res, err := GenerateRandomInt(expectedLength)
-
-	assert.NoError(t, err)
-	numStr := strconv.FormatInt(int64(res), 10)
-	assert.Equal(t, len(numStr), expectedLength, "The length of the generated random int should be the same as the expectedLength")
-
-}
-
-func Test_FirstDigitIsNineTrue(t *testing.T) {
-
-	value := int64(9546789)
-
-	res := FirstDigitIsNine(value)
-	assert.Equal(t, res, true, "The first digit is nine.")
-}
-
-func Test_FirstDigitIsNineFalse(t *testing.T) {
-
-	value := int64(23546789)
-
-	res := FirstDigitIsNine(value)
-	assert.Equal(t, res, false, "The first digit is not nine.")
-}
-
-func Test_GetInt64Legth(t *testing.T) {
-
-	expected := 3
-
-	val := GetInt64Length(782)
-
-	assert.Equal(t, int64(expected), val, "The calculated length should match the expected length.")
-}
-
-func Test_GetFloat64Legth(t *testing.T) {
-
-	expected := 8
-
-	val := GetFloat64Length(7823.2332)
-
-	assert.Equal(t, int64(expected), val, "The calculated length should match the expected length.")
-}
-
-func Test_IsLastDigitZeroTrue(t *testing.T) {
-
-	value := int64(954670)
-
-	res := IsLastDigitZero(value)
-	assert.Equal(t, res, true, "The last digit is zero.")
-}
-
-func Test_IsLastDigitZeroFalse(t *testing.T) {
-
-	value := int64(23546789)
-
-	res := IsLastDigitZero(value)
-	assert.Equal(t, res, false, "The last digit is not zero.")
-}
-
-func Test_RandomStringGeneration(t *testing.T) {
-
-	expectedLength := 5
-	res, err := GenerateRandomStringWithLength(int64(expectedLength))
+	min := int64(4)
+	max := int64(4)
+	res, err := GenerateRandomString(min, max)
 
 	assert.NoError(t, err)
-	assert.Equal(t, len(res), expectedLength, "The output string should be as long as the input string")
+	assert.Equal(t, len(res), min, "The output string should be as long as the min or max since they're equal")
 
 }
 
-func Test_RandomStringGenerationError(t *testing.T) {
+func Test_GenerateRandomStringRange(t *testing.T) {
 
-	_, err := GenerateRandomStringWithLength(int64(-2))
-	assert.Error(t, err, "The length cannot be")
+	min := int64(2)
+	max := int64(4)
+
+	res, err := GenerateRandomString(min, max)
+	assert.NoError(t, err)
+	assert.GreaterOrEqual(t, len(res), min, "the string should be greater than or equal to the min value")
+	assert.LessOrEqual(t, len(res), max, "the string should be less than or equal to the max value")
+
+}
+
+func Test_GenerateRandomStringError(t *testing.T) {
+
+	min := int64(-2)
+	max := int64(4)
+
+	_, err := GenerateRandomString(min, max)
+	assert.Error(t, err, "The min or max cannot be less than 0")
+
+}
+
+func Test_GenerateRandomStringErrorMinGreaterThanMax(t *testing.T) {
+
+	min := int64(5)
+	max := int64(4)
+
+	_, err := GenerateRandomString(min, max)
+	assert.Error(t, err, "The min cannot be greater than the max")
 
 }
 
@@ -233,117 +146,4 @@ func Test_IsValidUsername(t *testing.T) {
 	assert.True(t, IsValidUsername("test-test"), "Username should be an alphanumeric value comprised of  a-z A-Z 0-9 . - _ and starting and ending in alphanumeric chars with a max length of 63")
 	assert.True(t, IsValidUsername("test-TEST"), "Username should be an alphanumeric value comprised of  a-z A-Z 0-9 . - _ and starting and ending in alphanumeric chars with a max length of 63")
 	assert.False(t, IsValidUsername("eger?45//"), "Username contains non-alphanumeric characters")
-}
-
-func Test_GetInt64Range(t *testing.T) {
-
-	min := int64(2)
-	max := int64(4)
-
-	val, err := GetInt64Range(min, max)
-	assert.NoError(t, err)
-
-	assert.Equal(t, max-min, val)
-
-}
-
-func Test_GetInt64RangeError(t *testing.T) {
-
-	min := int64(6)
-	max := int64(2)
-
-	_, err := GetInt64Range(min, max)
-	assert.Error(t, err)
-
-}
-
-func Test_GetInt64RangeMinEqualMax(t *testing.T) {
-
-	min := int64(2)
-	max := int64(2)
-
-	val, err := GetInt64Range(min, max)
-	assert.NoError(t, err)
-
-	assert.Equal(t, min, val)
-
-}
-
-func Test_GetFloat64Range(t *testing.T) {
-
-	min := float64(2.2)
-	max := float64(4.2)
-
-	val, err := GetFloat64Range(min, max)
-	assert.NoError(t, err)
-
-	assert.Equal(t, max-min, val)
-
-}
-
-func Test_GetFloat64RangeError(t *testing.T) {
-
-	min := float64(6.9)
-	max := float64(2.2)
-
-	_, err := GetFloat64Range(min, max)
-	assert.Error(t, err)
-
-}
-
-func Test_GetFloat64RangeMinEqualMax(t *testing.T) {
-
-	min := float64(2.2)
-	max := float64(2.2)
-
-	val, err := GetFloat64Range(min, max)
-	assert.NoError(t, err)
-
-	assert.Equal(t, min, val)
-}
-
-func Test_IsNegativeFloatTrue(t *testing.T) {
-
-	val := IsNegativeFloat64(-1.63)
-
-	assert.True(t, val, "The value should be negative")
-}
-
-func Test_IsNegativeFloatFalse(t *testing.T) {
-
-	val := IsNegativeFloat64(324.435)
-
-	assert.False(t, val, "The value should be positive")
-}
-
-func Test_AbsInt64Positive(t *testing.T) {
-
-	val := int64(7)
-
-	res := AbsInt64(val)
-	assert.Equal(t, int64(7), res)
-
-}
-
-func Test_AbsInt64Negative(t *testing.T) {
-
-	val := int64(-7)
-
-	res := AbsInt64(val)
-	assert.Equal(t, int64(7), res)
-
-}
-
-func Test_IsNegativeIntTrue(t *testing.T) {
-
-	val := IsNegativeInt64(-1)
-
-	assert.True(t, val, "The value should be negative")
-}
-
-func Test_IsNegativeIntFalse(t *testing.T) {
-
-	val := IsNegativeInt64(1)
-
-	assert.False(t, val, "The value should be positive")
 }

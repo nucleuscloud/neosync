@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -15,8 +14,8 @@ func init() {
 
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length")).
-		Param(bloblang.NewBoolParam("preserve_sign"))
+		Param(bloblang.NewInt64Param("randomization_range_min")).
+		Param(bloblang.NewInt64Param("randomization_range_max"))
 
 	err := bloblang.RegisterFunctionV2("transform_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
@@ -30,18 +29,17 @@ func init() {
 			value = *valuePtr
 		}
 
-		preserveLength, err := args.GetBool("preserve_length")
+		rMin, err := args.GetInt64("randomization_range_min")
 		if err != nil {
 			return nil, err
 		}
 
-		preserveSign, err := args.GetBool("preserve_sign")
+		rMax, err := args.GetInt64("randomization_range_max")
 		if err != nil {
 			return nil, err
 		}
-
 		return func() (any, error) {
-			res, err := TransformInt(value, preserveLength, preserveSign)
+			res, err := TransformInt(value, rMin, rMax)
 			return res, err
 		}, nil
 	})
@@ -52,62 +50,33 @@ func init() {
 
 }
 
-func TransformInt(value int64, preserveLength, preserveSign bool) (*int64, error) {
-
-	var returnValue int64
+func TransformInt(value, rMin, rMax int64) (*int64, error) {
 
 	if value == 0 {
 		return nil, nil
 	}
 
-	if transformer_utils.GetInt64Length(value) > 10 {
-		return nil, errors.New("the length of the input integer cannot be greater than 18 digits")
+	// require that the value is in the randomization range so that we can transform it
+	// otherwise, should use the generate_int transformer
+
+	if !transformer_utils.IsInt64InRandomizationRange(value, rMin, rMax) {
+		zeroVal := int64(0)
+		return &zeroVal, fmt.Errorf("the value is not the provided range")
 	}
 
-	if preserveLength {
+	minRange := value - rMin
+	maxRange := value + rMax
 
-		if value < 0 {
-			// if negative, subtract one from the legnth since GetLength will count the sign in the count
-			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetInt64Length(value) - 1))
+	if value == rMin && value == rMax {
+		return &value, nil
+	}
 
-			if err != nil {
-				return nil, fmt.Errorf("unable to generate a random string with length")
-			}
-			returnValue = int64(val)
+	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(minRange, maxRange)
+	if err != nil {
 
-		} else {
-
-			val, err := transformer_utils.GenerateRandomInt(int(transformer_utils.GetInt64Length(value)))
-
-			if err != nil {
-				return nil, fmt.Errorf("unable to generate a random string with length")
-			}
-			returnValue = int64(val)
-		}
-
-	} else {
-
-		val, err := transformer_utils.GenerateRandomInt(defaultIntLength)
-
-		if err != nil {
-			return nil, fmt.Errorf("unable to generate a random string with length")
-		}
-
-		returnValue = int64(val)
+		return nil, fmt.Errorf("unable to generate a random string with length")
 
 	}
 
-	if preserveSign {
-
-		if value < 0 {
-
-			res := returnValue * -1
-			return &res, nil
-		} else {
-			return &returnValue, nil
-		}
-	} else {
-		// return a positive integer by default
-		return &returnValue, nil
-	}
+	return &val, nil
 }

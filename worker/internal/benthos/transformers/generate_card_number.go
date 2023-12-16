@@ -51,7 +51,7 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 
 	} else {
 
-		val, err := transformer_utils.GenerateRandomInt(defaultCCLength)
+		val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(defaultCCLength, defaultCCLength)
 		if err != nil {
 			return 0, err
 		}
@@ -79,7 +79,7 @@ func GenerateValidLuhnCheckCardNumber() (int64, error) {
 	}
 
 	// Acc no (9 digits)
-	nineDigits, err := transformer_utils.GenerateRandomInt(9)
+	nineDigits, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(9, 9)
 	if err != nil {
 		return 0, err
 	}

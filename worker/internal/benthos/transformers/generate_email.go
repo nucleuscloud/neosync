@@ -10,13 +10,25 @@ var tld = []string{"com", "org", "net", "edu", "gov", "app", "dev"}
 
 func init() {
 
-	spec := bloblang.NewPluginSpec()
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewInt64Param("min")).
+		Param(bloblang.NewInt64Param("max"))
 
 	err := bloblang.RegisterFunctionV2("generate_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
+		min, err := args.GetInt64("min")
+		if err != nil {
+			return nil, err
+		}
+
+		max, err := args.GetInt64("max")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
 
-			res, err := GenerateRandomEmail()
+			res, err := GenerateRandomEmail(min, max)
 			return res, err
 		}, nil
 
@@ -29,14 +41,14 @@ func init() {
 }
 
 // Generates a random email comprised of randomly sampled alphanumeric characters and returned in the format <username@domaion.tld>
-func GenerateRandomEmail() (string, error) {
+func GenerateRandomEmail(min, max int64) (string, error) {
 
-	un, err := GenerateRandomUsername()
+	un, err := GenerateRandomUsername(min, max)
 	if err != nil {
 		return "", err
 	}
 
-	domain, err := GenerateRandomDomain()
+	domain, err := GenerateRandomDomain(min, max)
 	if err != nil {
 		return "", err
 	}
@@ -45,14 +57,9 @@ func GenerateRandomEmail() (string, error) {
 }
 
 // Generates a random username comprised of randomly sampled alphanumeric characters
-func GenerateRandomUsername() (string, error) {
+func GenerateRandomUsername(min, max int64) (string, error) {
 
-	randLength, err := transformer_utils.GenerateRandomIntWithInclusiveBounds(3, 8)
-	if err != nil {
-		return "", err
-	}
-
-	username, err := transformer_utils.GenerateRandomStringWithLength(int64(randLength))
+	username, err := transformer_utils.GenerateRandomString(min, max)
 	if err != nil {
 		return "", err
 	}
@@ -62,11 +69,11 @@ func GenerateRandomUsername() (string, error) {
 }
 
 // Generates a random domain comprised of randomly sampled alphanumeric characters in the format <@domain.tld>
-func GenerateRandomDomain() (string, error) {
+func GenerateRandomDomain(min, max int64) (string, error) {
 
 	var result string
 
-	domain, err := transformer_utils.GenerateRandomStringWithLength(6)
+	domain, err := transformer_utils.GenerateRandomString(min, max)
 	if err != nil {
 		return "", err
 	}

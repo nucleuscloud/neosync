@@ -8,6 +8,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
+var defaultSSNLength = int64(10)
+
 func init() {
 
 	spec := bloblang.NewPluginSpec()
@@ -31,7 +33,7 @@ func init() {
 
 func GenerateRandomSSN() (string, error) {
 
-	val, err := transformer_utils.GenerateRandomInt(9)
+	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(defaultSSNLength, defaultSSNLength)
 	if err != nil {
 		return "", err
 	}

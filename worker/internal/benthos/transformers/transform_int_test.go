@@ -9,113 +9,69 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_TransformIntPreserveLengthFalse(t *testing.T) {
+func Test_TransformIntErrorNotInRange(t *testing.T) {
 
-	val := int64(67543543)
+	val := int64(27)
+	rMin := int64(22)
+	rMax := int64(25)
 
-	res, err := TransformInt(val, false, true)
-
-	assert.NoError(t, err)
-	assert.Equal(t, transformer_utils.GetInt64Length(*res), int64(4), "The output int needs to be the same length as the input int")
-
-}
-
-func Test_TransformIntError(t *testing.T) {
-
-	val := int64(67567867843543)
-
-	_, err := TransformInt(val, false, true)
-
-	assert.Error(t, err)
+	res := transformer_utils.IsInt64InRandomizationRange(val, rMin, rMax)
+	assert.Equal(t, false, res, "The value should not be in the range")
 
 }
 
-func Test_TransformIntPreserveLengthTrue(t *testing.T) {
+func Test_TransformIntInRange(t *testing.T) {
 
-	val := int64(67543543)
+	val := int64(27)
+	rMin := int64(22)
+	rMax := int64(29)
 
-	res, err := TransformInt(val, true, true)
-
+	res, err := TransformInt(val, rMin, rMax)
 	assert.NoError(t, err)
-	assert.Equal(t, transformer_utils.GetInt64Length(*res), (transformer_utils.GetInt64Length((val))), "The output int needs to be the same length as the input int")
-	assert.Equal(t, transformer_utils.IsNegativeInt64(*res), false, "The value return should be positive")
+
+	assert.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")
+	assert.LessOrEqual(t, *res, val+rMax, "The result should be less than the max")
 
 }
 
-func Test_TransformIntPreserveSignTrue(t *testing.T) {
+func Test_TransformIntReturnValue(t *testing.T) {
 
-	val := int64(-367)
+	val := int64(27)
+	rMin := int64(27)
+	rMax := int64(27)
 
-	res, err := TransformInt(val, true, true)
-
-	assert.NoError(t, err)
-	assert.Equal(t, transformer_utils.IsNegativeInt64(*res), true, "The value return should be negative")
-
-	assert.Equal(t, transformer_utils.GetInt64Length(*res), transformer_utils.GetInt64Length((val)), "The output int needs to be the same length as the input int")
-
-}
-
-func Test_TransformIntTransformerWithPreserveLengthFalse(t *testing.T) {
-
-	val := 5
-	mapping := fmt.Sprintf(`root = transform_int(value:%d, preserve_length:false,preserve_sign: false)`, val)
-	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the random int transformer")
-
-	res, err := ex.Query(nil)
+	res, err := TransformInt(val, rMin, rMax)
 	assert.NoError(t, err)
 
-	assert.NotNil(t, res, "The response shouldn't be nil.")
+	assert.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")
+	assert.LessOrEqual(t, *res, val+rMax, "The result should be less than the max")
 
-	resInt, ok := res.(*int64)
-	if !ok {
-		t.Errorf("Expected *string, got %T", res)
-		return
-	}
-
-	if resInt != nil {
-
-		assert.Equal(t, int64(4), transformer_utils.GetInt64Length(*resInt), "The actual value should be 4 digits long")
-		assert.IsType(t, *resInt, int64(2), "The actual value should be an int64")
-
-	} else {
-		t.Error("Pointer is inl, expected a valid int64 pointer")
-	}
-}
-
-func Test_TransformIntTransformerWithPreserveLength(t *testing.T) {
-	val := 58223
-	mapping := fmt.Sprintf(`root = transform_int(value:%d, preserve_length:true,preserve_sign: true)`, val)
-	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the random int transformer")
-
-	res, err := ex.Query(nil)
-	assert.NoError(t, err)
-
-	assert.NotNil(t, res, "The response shouldn't be nil.")
-
-	resInt, ok := res.(*int64)
-	if !ok {
-		t.Errorf("Expected *string, got %T", res)
-		return
-	}
-
-	if resInt != nil {
-
-		assert.Equal(t, int64(5), transformer_utils.GetInt64Length(*resInt), "The actual value should be 5 digits long")
-		assert.IsType(t, *resInt, int64(2), "The actual value should be an int64")
-	} else {
-		t.Error("Pointer is nil, expected a valid int64 pointer")
-	}
 }
 
 func Test_TransformIntPhoneTransformerWithNilValue(t *testing.T) {
 
-	nilNum := 0
-	mapping := fmt.Sprintf(`root = transform_int(value:%d, preserve_length:true,preserve_sign: true)`, nilNum)
+	val := int64(27)
+	rMin := int64(22)
+	rMax := int64(29)
+
+	mapping := fmt.Sprintf(`root = transform_int(value:%d, randomization_range_min:%d,randomization_range_max: %d)`, val, rMin, rMax)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
-	_, err = ex.Query(nil)
+	res, err := ex.Query(nil)
 	assert.NoError(t, err)
+
+	resInt, ok := res.(*int64)
+	if !ok {
+		t.Errorf("Expected *int64, got %T", res)
+		return
+	}
+
+	if resInt != nil {
+		assert.GreaterOrEqual(t, *resInt, val-rMin, "The result should be greater than the min")
+		assert.LessOrEqual(t, *resInt, val+rMax, "The result should be less than the max")
+	} else {
+		assert.Error(t, err, "Expected the pointer to resolve to an int64")
+	}
+
 }

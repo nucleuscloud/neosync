@@ -47,7 +47,7 @@ func GenerateRandomE164Phone(min, max int64) (string, error) {
 		return "", errors.New("the length has between 9 and 15 characters long")
 	}
 
-	val, err := transformer_utils.GenerateRandomIntWithInclusiveBounds(min, max)
+	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(min, max)
 	if err != nil {
 		return "", nil
 	}

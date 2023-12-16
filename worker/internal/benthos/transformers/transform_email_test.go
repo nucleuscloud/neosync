@@ -78,7 +78,10 @@ func Test_GenerateEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
 
 func Test_GenerateEmailUsername(t *testing.T) {
 
-	res, err := GenerateRandomUsername()
+	min := int64(2)
+	max := int64(3)
+
+	res, err := GenerateRandomUsername(min, max)
 	assert.NoError(t, err)
 
 	assert.Equal(t, true, transformer_utils.IsValidUsername(res), "The expected email should have a valid username")

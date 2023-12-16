@@ -52,7 +52,7 @@ func GenerateRandomInt(randomizeSign bool, min, max int64) (int64, error) {
 
 	if randomizeSign {
 
-		res, err := transformer_utils.GenerateRandomIntWithInclusiveBounds(transformer_utils.AbsInt64(min), transformer_utils.AbsInt64(max))
+		res, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(transformer_utils.AbsInt64(min), transformer_utils.AbsInt64(max))
 		if err != nil {
 			return 0, err
 		}
@@ -70,7 +70,7 @@ func GenerateRandomInt(randomizeSign bool, min, max int64) (int64, error) {
 
 	} else {
 
-		res, err := transformer_utils.GenerateRandomIntWithInclusiveBounds(min, max)
+		res, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(min, max)
 		if err != nil {
 			return 0, err
 		}

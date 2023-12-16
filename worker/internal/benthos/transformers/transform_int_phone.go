@@ -75,7 +75,9 @@ func GenerateIntPhoneNumberPreserveLength(number int64) (int64, error) {
 
 	numStr := strconv.FormatInt(number, 10)
 
-	val, err := transformer_utils.GenerateRandomInt(len(numStr))
+	length := int64(len(numStr))
+
+	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(length, length)
 	if err != nil {
 		return 0, err
 	}

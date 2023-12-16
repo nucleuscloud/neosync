@@ -51,7 +51,7 @@ func GenerateRandomFloat(randomizeSign bool, min, max float64) (float64, error) 
 	var returnValue float64
 
 	if randomizeSign {
-		res, err := transformer_utils.GenerateRandomFloat64InRange(math.Abs(min), math.Abs(max))
+		res, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(math.Abs(min), math.Abs(max))
 		if err != nil {
 			return 0, err
 		}
@@ -69,7 +69,7 @@ func GenerateRandomFloat(randomizeSign bool, min, max float64) (float64, error) 
 		}
 
 	} else {
-		res, err := transformer_utils.GenerateRandomFloat64InRange(min, max)
+		res, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(min, max)
 		if err != nil {
 			return 0, err
 		}

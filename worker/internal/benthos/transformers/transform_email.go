@@ -84,7 +84,10 @@ func TransformEmail(email string, preserveLength, preserveDomain bool) (*string,
 		}
 
 	} else {
-		e, err := GenerateRandomEmail()
+
+		min := int64(2)
+		max := int64(5)
+		e, err := GenerateRandomEmail(min, max)
 		if err != nil {
 			return nil, nil
 		}
@@ -103,7 +106,10 @@ func TransformEmailPreserveDomain(e string, pd bool) (string, error) {
 		return "", fmt.Errorf("invalid email: %s", e)
 	}
 
-	un, err := GenerateRandomUsername()
+	min := int64(2)
+	max := int64(5)
+
+	un, err := GenerateRandomUsername(min, max)
 	if err != nil {
 		return "", nil
 	}
@@ -124,7 +130,10 @@ func TransformEmailPreserveLength(e string, pl bool) (string, error) {
 	// split the domain to account for different domain name lengths
 	splitDomain := strings.Split(parsedEmail[1], ".")
 
-	domain, err := GenerateRandomDomain()
+	min := int64(2)
+	max := int64(5)
+
+	domain, err := GenerateRandomDomain(min, max)
 	if err != nil {
 		return "", err
 	}
@@ -136,7 +145,9 @@ func TransformEmailPreserveLength(e string, pl bool) (string, error) {
 
 	tld := transformer_utils.SliceString(splitGeneratedDomain[1], len(splitDomain[1]))
 
-	un, err := transformer_utils.GenerateRandomStringWithLength(int64(len(parsedEmail[0])))
+	//un, err := transformer_utils.GenerateRandomString(int64(len(parsedEmail[0])))
+
+	un, err := transformer_utils.GenerateRandomString(min, max)
 	if err != nil {
 		return "", nil
 	}
@@ -157,7 +168,11 @@ func TransformEmailPreserveDomainAndLength(e string, pd, pl bool) (string, error
 
 	unLength := len(parsedEmail[0])
 
-	un, err := transformer_utils.GenerateRandomStringWithLength(int64(len(parsedEmail[0])))
+	//un, err := transformer_utils.GenerateRandomString(int64(len(parsedEmail[0])))
+
+	min := int64(2)
+	max := int64(5)
+	un, err := transformer_utils.GenerateRandomString(min, max)
 	if err != nil {
 		return "", err
 	}

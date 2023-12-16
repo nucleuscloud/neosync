@@ -3,7 +3,6 @@ package transformer_utils
 import (
 	"errors"
 	"fmt"
-	"math"
 	"math/rand"
 	"net/mail"
 	"regexp"
@@ -12,6 +11,8 @@ import (
 )
 
 var alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+
+/* SLICE MANIPULATION UTILS */
 
 // returns a random index from a one-dimensional slice
 func GetRandomValueFromSlice[T any](arr []T) (T, error) {
@@ -24,30 +25,6 @@ func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 	randomIndex := rand.Intn(len(arr))
 
 	return arr[randomIndex], nil
-}
-
-// generates a random int between two numbers inclusive of the boundaries
-func GenerateRandomIntWithInclusiveBounds(min, max int64) (int64, error) {
-
-	if !IsNegativeInt64(min) && !IsNegativeInt64(max) && min > max {
-		return 0, fmt.Errorf("the min can't be greater than the max if both the min and max are positive")
-	}
-	// If min is numerically larger (but less negative) than max, swap them
-	if min < max {
-		min, max = max, min
-	}
-
-	if min == max {
-		return min, nil
-	}
-
-	// Calculate the range. Since we are dealing with negative numbers,
-	// min is less negative than max.
-	rangeVal := min - max + 1
-
-	// Generate a random value within the range and subtract it from min
-	// This keeps the result within the original [max, min] bounds
-	return min - rand.Int63n(rangeVal), nil
 }
 
 // substrings a string using rune length to account for multi-byte characters
@@ -80,83 +57,30 @@ func IntSliceToStringSlice(ints []int64) []string {
 	return str
 }
 
-// generates a random integer of length l that is passed in as a int64 param i.e. an l of 3 will generate
-// an int64 of 3 digits such as 123 or 789.
-func GenerateRandomInt(l int) (int, error) {
-	if l <= 0 {
-		return 0, errors.New("the length has to be greater than zero") // Or handle this case as an error
-	}
-
-	// Calculate the range
-	min := int(math.Pow10(l - 1))
-	max := int(math.Pow10(l)) - 1
-
-	// Generate a random number in the range
-	//nolint:all
-	return rand.Intn(max-min+1) + min, nil
-}
-
-func FirstDigitIsNine(n int64) bool {
-	// Convert the int64 to a string
-	str := strconv.FormatInt(n, 10)
-
-	// Check if the string is empty or if the first character is '9'
-	if len(str) > 0 && str[0] == '9' {
-		return true
-	}
-
-	return false
-}
-
-// gets the number of digits in an int64
-func GetInt64Length(i int64) int64 {
-	// Convert the int64 to a string
-	str := strconv.FormatInt(i, 10)
-
-	length := int64(len(str))
-
-	return length
-}
-
-// GetFloatLength gets the number of digits in a float64
-func GetFloat64Length(i float64) int64 {
-	// Convert the float64 to a string with a specific format and precision
-	// Using 'g' format and a precision of -1 to automatically determine the best format
-	str := strconv.FormatFloat(i, 'g', -1, 64)
-
-	// Remove the minus sign if the number is negative
-	str = strings.Replace(str, "-", "", 1)
-
-	// Remove the decimal point
-	str = strings.Replace(str, ".", "", 1)
-
-	length := int64(len(str))
-
-	return length
-}
-
-func IsLastDigitZero(n int64) bool {
-	// Convert the int64 to a string
-	str := strconv.FormatInt(n, 10)
-
-	// Check if the string is empty or if the last character is '0'
-	if len(str) > 0 && str[len(str)-1] == '0' {
-		return true
-	}
-
-	return false
-}
-
 // generate a random string of length l
-func GenerateRandomStringWithLength(l int64) (string, error) {
+func GenerateRandomString(min, max int64) (string, error) {
 
-	if l <= 0 {
-		return "", fmt.Errorf("the length cannot be zero or negative")
+	if min < 0 && max < 0 && min > max {
+		return "", fmt.Errorf("the min and max can't be less than 0 and the min can't be greater than the max")
 	}
 
-	result := make([]byte, l)
+	var length int64
 
-	for i := int64(0); i < l; i++ {
+	if min == max {
+		length = min
+	} else {
+
+		randlength, err := GenerateRandomInt64WithInclusiveBounds(min, max)
+		if err != nil {
+			return "", fmt.Errorf("unable to generate a random length for the string")
+		}
+
+		length = randlength
+	}
+
+	result := make([]byte, length)
+
+	for i := int64(0); i < length; i++ {
 		// Generate a random index in the range [0, len(alphabet))
 		//nolint:all
 		index := rand.Intn(len(alphanumeric))
@@ -211,74 +135,4 @@ func IsValidUsername(username string) bool {
 	matched, _ := regexp.MatchString(rfcRegex, username)
 
 	return matched
-}
-
-// Generates a random float64 in the range of the min and max float64 values
-func GenerateRandomFloat64InRange(min, max float64) (float64, error) {
-
-	if !IsNegativeFloat64(min) && !IsNegativeFloat64(max) && min > max {
-		return 0, fmt.Errorf("the min can't be greater than the max if both the min and max are positive")
-	}
-
-	// generates a rand float64 value from [0.0,1.0)
-	//nolint:all
-	randValue := rand.Float64()
-
-	// Scale and shift the value to the range
-	returnValue := min + randValue*(max-min)
-
-	return returnValue, nil
-}
-
-// Returns the float64 range between the min and max
-func GetFloat64Range(min, max float64) (float64, error) {
-
-	if min > max {
-		return 0, fmt.Errorf("min cannot be greater than max")
-	}
-
-	if min == max {
-		return min, nil
-	}
-
-	return max - min, nil
-
-}
-
-func IsNegativeFloat64(val float64) bool {
-	if (val * -1) < 0 {
-		return false
-	} else {
-		return true
-	}
-}
-
-func IsNegativeInt64(val int64) bool {
-	if (val * -1) < 0 {
-		return false
-	} else {
-		return true
-	}
-}
-
-func AbsInt64(n int64) int64 {
-	if n < 0 {
-		return -n
-	}
-	return n
-}
-
-// Returns the int64 range between the min and max
-func GetInt64Range(min, max int64) (int64, error) {
-
-	if min > max {
-		return 0, fmt.Errorf("min cannot be greater than max")
-	}
-
-	if min == max {
-		return min, nil
-	}
-
-	return max - min, nil
-
 }
