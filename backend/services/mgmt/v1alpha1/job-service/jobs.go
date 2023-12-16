@@ -1,12 +1,12 @@
 package v1alpha1_jobservice
 
 import (
+	"bufio"
 	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log/slog"
 	"strings"
 
@@ -1327,6 +1327,7 @@ func (s *Service) GetJobDataStream(
 
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		// handle other auth types
 		sess, err := session.NewSession(&aws.Config{
 			Region:      aws.String(*config.AwsS3Config.Region),
 			Credentials: credentials.NewStaticCredentials(*config.AwsS3Config.Credentials.AccessKeyId, *config.AwsS3Config.Credentials.SecretAccessKey, ""),
@@ -1336,47 +1337,71 @@ func (s *Service) GetJobDataStream(
 		}
 
 		svc := s3.New(sess)
-
-		key := "workflows/4df1d2de-a163-48ad-b8e7-f2b9e1ae7b1a-2023-12-15T23:10:17Z/activities/public.regions/data/1.json.gz"
-		result, err := svc.GetObject(&s3.GetObjectInput{
-			Bucket: aws.String(config.AwsS3Config.Bucket),
-			Key:    aws.String(key),
-		})
-		if err != nil {
-			return fmt.Errorf("error getting object from S3: %w", err)
-		}
-		defer result.Body.Close()
-
-		gzr, err := gzip.NewReader(result.Body)
-		if err != nil {
-			return fmt.Errorf("error creating gzip reader: %w", err)
-		}
-		defer gzr.Close()
-
-		content, err := io.ReadAll(gzr)
+		// how should config look with s3
+		// need to use destination schema to parallelize s3 benthos runs
+		// how to fix cycles
+		//
+		tableName := fmt.Sprintf("%s.%s", req.Msg.Schema, req.Msg.Table)
+		path := fmt.Sprintf("workflows/%s/%s/activities/%s/data", job.Id, "4df1d2de-a163-48ad-b8e7-f2b9e1ae7b1a-2023-12-16T06:21:24Z", tableName)
+		files, err := svc.ListObjectsV2(&s3.ListObjectsV2Input{Bucket: aws.String(config.AwsS3Config.Bucket), Prefix: aws.String(path)})
 		if err != nil {
 			return err
 		}
 
-		var data []map[string]interface{}
-		err = json.Unmarshal(content, &data)
-		if err != nil {
-			return err
+		if len(files.Contents) == 0 {
+			return fmt.Errorf("no files found")
 		}
 
-		for _, row := range data {
-			rowMap := make(map[string][]byte)
-			for key, value := range row {
-				byteValue, err := json.Marshal(value)
-				if err != nil {
-					return err
-				}
-				rowMap[key] = byteValue
-				if err := stream.Send(&mgmtv1alpha1.GetJobDataStreamResponse{Row: rowMap}); err != nil {
-					return err
-				}
+		for _, item := range files.Contents {
+			result, err := svc.GetObject(&s3.GetObjectInput{
+				Bucket: aws.String(config.AwsS3Config.Bucket),
+				Key:    aws.String(*item.Key),
+			})
+			if err != nil {
+				return fmt.Errorf("error getting object from S3: %w", err)
 			}
 
+			gzr, err := gzip.NewReader(result.Body)
+			if err != nil {
+				result.Body.Close()
+				return fmt.Errorf("error creating gzip reader: %w", err)
+			}
+
+			scanner := bufio.NewScanner(gzr)
+			for scanner.Scan() {
+				line := scanner.Bytes()
+				var data map[string]interface{} // nolint
+				err = json.Unmarshal(line, &data)
+				if err != nil {
+					result.Body.Close()
+					gzr.Close()
+					return err
+				}
+
+				rowMap := make(map[string][]byte)
+				for key, value := range data {
+					byteValue, err := json.Marshal(value)
+					if err != nil {
+						result.Body.Close()
+						gzr.Close()
+						return err
+					}
+					rowMap[key] = byteValue
+				}
+				if err := stream.Send(&mgmtv1alpha1.GetJobDataStreamResponse{Row: rowMap}); err != nil {
+					result.Body.Close()
+					gzr.Close()
+					return err
+				}
+
+			}
+			if err := scanner.Err(); err != nil {
+				result.Body.Close()
+				gzr.Close()
+				return err
+			}
+			result.Body.Close()
+			gzr.Close()
 		}
 
 	default:

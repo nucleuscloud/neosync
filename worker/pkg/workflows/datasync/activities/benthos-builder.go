@@ -534,16 +534,19 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if connection.AwsS3Config.PathPrefix != nil && *connection.AwsS3Config.PathPrefix != "" {
 					s3pathpieces = append(s3pathpieces, strings.Trim(*connection.AwsS3Config.PathPrefix, "/"))
 				}
+
 				s3pathpieces = append(
 					s3pathpieces,
 					"workflows",
+					req.JobId,
 					req.WorkflowId,
 					"activities",
 					resp.Name, // may need to do more here
 					"data",
-					`${!count("files")}.json.gz`,
+					`${!count("files")}.txt.gz`,
 				)
 
+				// add job id here
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					AwsS3: &neosync_benthos.AwsS3Insert{
 						Bucket:      connection.AwsS3Config.Bucket,
@@ -553,7 +556,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							Count:  100,
 							Period: "1s",
 							Processors: []*neosync_benthos.BatchProcessor{
-								{Archive: &neosync_benthos.ArchiveProcessor{Format: "json_array"}},
+								{Archive: &neosync_benthos.ArchiveProcessor{Format: "lines"}},
 								{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
 							},
 						},
