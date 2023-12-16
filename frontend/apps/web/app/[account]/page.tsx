@@ -23,7 +23,7 @@ export default function AccountPage({ params }: PageProps): ReactElement {
   }, [isLoading, accountName, account?.id]);
 
   if (isLoading) {
-    return <Skeleton />;
+    return <Skeleton className="w-full h-full" />;
   }
 
   if (!account) {
