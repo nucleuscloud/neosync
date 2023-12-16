@@ -3,6 +3,7 @@ import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
+import { UserAccountType } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -17,7 +18,11 @@ export default function Settings() {
     if (isSystemAppConfigDataLoading || isAccountLoading) {
       return;
     }
-    if (systemAppConfigData?.isAuthEnabled && account?.name) {
+    if (
+      systemAppConfigData?.isAuthEnabled &&
+      account?.name &&
+      account.type === UserAccountType.TEAM
+    ) {
       return router.push(`/${account?.name}/settings/members`);
     } else {
       return router.push('/personal/settings/temporal');

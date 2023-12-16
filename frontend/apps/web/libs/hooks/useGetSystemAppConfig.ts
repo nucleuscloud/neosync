@@ -1,11 +1,12 @@
 import type { SystemAppConfig } from '@/app/config/app-config';
 import useSWR, { KeyedMutator } from 'swr';
+import { fetcher } from '../fetcher';
 import type { HookReply } from './types';
 import { useGenericErrorToast } from './useGenericErrorToast';
 
 export function useGetSystemAppConfig(): HookReply<SystemAppConfig> {
   const { data, error, mutate, isLoading, isValidating } =
-    useSWR(`/api/config`);
+    useSWR<SystemAppConfig>(`/api/config`, fetcher);
   useGenericErrorToast(error);
 
   if (isLoading) {
