@@ -69,8 +69,24 @@ func getToken(ctx context.Context) (string, error) {
 			slog.Info("unable to find refresh token")
 			return "", err
 		}
-		_ = refreshtoken
-		// todo
+		refreshResp, err := authclient.RefreshCli(ctx, connect.NewRequest(&mgmtv1alpha1.RefreshCliRequest{
+			RefreshToken: refreshtoken,
+		}))
+		if err != nil {
+			slog.Info("unable to refresh token")
+			return "", err
+		}
+		err = userconfig.SetAccessToken(refreshResp.Msg.AccessToken.AccessToken)
+		if err != nil {
+			slog.Warn("unable to write refreshed access token back to user config", "error", err.Error())
+		}
+		if refreshResp.Msg.AccessToken.RefreshToken != nil {
+			err = userconfig.SetRefreshToken(*refreshResp.Msg.AccessToken.RefreshToken)
+			if err != nil {
+				slog.Warn("unable to write refreshed refresh token back to user config", "error", err.Error())
+			}
+		}
+		return refreshResp.Msg.AccessToken.AccessToken, nil
 	}
 	return accessToken, nil
 }
