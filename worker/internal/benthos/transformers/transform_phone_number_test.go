@@ -62,7 +62,7 @@ func Test_GeneratePhoneNumberPreserveLengthFalseHyphensFalse(t *testing.T) {
 }
 
 func Test_PhoneNumberTransformerWithValue(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_phone(value:%q, preserve_length:true, include_hyphens:false,)`, testPhoneNumberNoHyphens)
+	mapping := fmt.Sprintf(`root = transform_phone_number(value:%q, preserve_length:true, include_hyphens:false,)`, testPhoneNumberNoHyphens)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
@@ -88,7 +88,7 @@ func Test_PhoneNumberTransformerWithValue(t *testing.T) {
 func Test_TransformPhoneTransformerWithEmptyValue(t *testing.T) {
 
 	nilNum := ""
-	mapping := fmt.Sprintf(`root = transform_phone(value:%q, preserve_length:true, include_hyphens:false,)`, nilNum)
+	mapping := fmt.Sprintf(`root = transform_phone_number(value:%q, preserve_length:true, include_hyphens:false,)`, nilNum)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 

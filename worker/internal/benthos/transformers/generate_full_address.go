@@ -25,7 +25,7 @@ func init() {
 	}
 }
 
-// generates a random full address from the US including street address, city, state and zipcode
+/* Generates a random full address from the US including street address, city, state and zipcode */
 func GenerateRandomFullAddress() string {
 
 	addresses := transformers_dataset.Addresses

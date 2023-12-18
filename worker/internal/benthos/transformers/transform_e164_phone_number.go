@@ -9,15 +9,13 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-var defaultE164Length = 12
-
 func init() {
 
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
-	err := bloblang.RegisterFunctionV2("transform_e164_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
@@ -35,7 +33,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := TransformE164Number(value, preserveLength)
+			res, err := TransformE164PhoneNumber(value, preserveLength)
 			return res, err
 		}, nil
 	})
@@ -47,7 +45,7 @@ func init() {
 }
 
 // Generates a random phone number and returns it as a string
-func TransformE164Number(phone string, preserveLength bool) (*string, error) {
+func TransformE164PhoneNumber(phone string, preserveLength bool) (*string, error) {
 
 	var returnValue string
 
@@ -68,7 +66,7 @@ func TransformE164Number(phone string, preserveLength bool) (*string, error) {
 		min := int64(9)
 		max := int64(15)
 
-		res, err := GenerateRandomE164Phone(min, max)
+		res, err := GenerateRandomE164PhoneNumber(min, max)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +84,7 @@ func GenerateE164FormatPhoneNumberPreserveLength(number string) (string, error) 
 
 	length := int64(len(val[1]))
 
-	vals, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(length, length)
+	vals, err := transformer_utils.GenerateRandomInt64FixedLength(length)
 	if err != nil {
 		return "", nil
 	}

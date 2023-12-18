@@ -8,8 +8,6 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-const defaultStrLength = 10
-
 func init() {
 
 	spec := bloblang.NewPluginSpec().
@@ -57,7 +55,7 @@ func TransformString(value string, preserveLength bool) (*string, error) {
 	if preserveLength {
 
 		l := int64(len(value))
-		val, err := transformer_utils.GenerateRandomString(l, l)
+		val, err := transformer_utils.GenerateRandomStringWithDefinedLength(l)
 
 		if err != nil {
 			return nil, fmt.Errorf("unable to generate a random string with length")
@@ -68,7 +66,7 @@ func TransformString(value string, preserveLength bool) (*string, error) {
 	} else {
 		min := int64(3)
 		max := int64(12)
-		val, err := transformer_utils.GenerateRandomString(min, max)
+		val, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, max)
 
 		if err != nil {
 			return nil, fmt.Errorf("unable to generate a random string with length")

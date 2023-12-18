@@ -15,7 +15,7 @@ func init() {
 		Param(bloblang.NewInt64Param("min")).
 		Param(bloblang.NewInt64Param("max"))
 
-	err := bloblang.RegisterFunctionV2("generate_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		randomizeSign, err := args.GetBool("randomize_sign")
 		if err != nil {
@@ -33,7 +33,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateRandomInt(randomizeSign, min, max)
+			res, err := GenerateRandomInt64(randomizeSign, min, max)
 			return res, err
 		}, nil
 	})
@@ -44,15 +44,16 @@ func init() {
 
 }
 
-// Generates a random integer up to 18 digits in length
-// The sign param determines either a positive, negative or randomly assigned sign
-func GenerateRandomInt(randomizeSign bool, min, max int64) (int64, error) {
+/*
+Generates a random int64 up to 18 digits in the interval [min, max].
+*/
+func GenerateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
 
 	var returnValue int64
 
 	if randomizeSign {
 
-		res, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(transformer_utils.AbsInt64(min), transformer_utils.AbsInt64(max))
+		res, err := transformer_utils.GenerateRandomInt64InValueRange(transformer_utils.AbsInt64(min), transformer_utils.AbsInt64(max))
 		if err != nil {
 			return 0, err
 		}
@@ -70,7 +71,7 @@ func GenerateRandomInt(randomizeSign bool, min, max int64) (int64, error) {
 
 	} else {
 
-		res, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(min, max)
+		res, err := transformer_utils.GenerateRandomInt64InValueRange(min, max)
 		if err != nil {
 			return 0, err
 		}

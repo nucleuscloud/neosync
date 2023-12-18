@@ -37,7 +37,6 @@ func Test_GenerateEmailPreserveLengthTruePreserveDomainFalse(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(email), len(*res), "The expected email should be have a valid email structure")
-
 }
 
 func Test_GenerateEmail(t *testing.T) {
@@ -61,7 +60,7 @@ func Test_GenerateEmailPreserveDomain(t *testing.T) {
 
 func Test_GenerateEmailPreserveLength(t *testing.T) {
 
-	res, err := TransformEmailPreserveLength(email, true)
+	res, err := TransformEmailPreserveLength(email)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(email), len(res), "The length of the emails should be the same")
@@ -69,7 +68,7 @@ func Test_GenerateEmailPreserveLength(t *testing.T) {
 
 func Test_GenerateEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
 
-	res, err := TransformEmailPreserveDomainAndLength(email, true, true)
+	res, err := TransformEmailPreserveDomainAndLength(email)
 
 	assert.NoError(t, err)
 	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email structure")
@@ -78,10 +77,7 @@ func Test_GenerateEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
 
 func Test_GenerateEmailUsername(t *testing.T) {
 
-	min := int64(2)
-	max := int64(3)
-
-	res, err := GenerateRandomUsername(min, max)
+	res, err := GenerateEmailUsername()
 	assert.NoError(t, err)
 
 	assert.Equal(t, true, transformer_utils.IsValidUsername(res), "The expected email should have a valid username")
@@ -89,7 +85,7 @@ func Test_GenerateEmailUsername(t *testing.T) {
 }
 
 func Test_TransformEmailTransformerWithValue(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true)`, email)
+	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true)`, email)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
@@ -116,7 +112,7 @@ func Test_TransformEmailTransformerWithValue(t *testing.T) {
 func Test_TransformEmailTransformerWithEmptyValue(t *testing.T) {
 
 	nilEmail := ""
-	mapping := fmt.Sprintf(`root = transform_email(value:%q,preserve_domain:true,preserve_length:true)`, nilEmail)
+	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true)`, nilEmail)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 

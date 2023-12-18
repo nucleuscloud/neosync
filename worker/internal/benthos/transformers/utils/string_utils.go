@@ -1,31 +1,12 @@
 package transformer_utils
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"net/mail"
 	"regexp"
-	"strconv"
 	"strings"
 )
-
-var alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
-
-/* SLICE MANIPULATION UTILS */
-
-// returns a random index from a one-dimensional slice
-func GetRandomValueFromSlice[T any](arr []T) (T, error) {
-	if len(arr) == 0 {
-		var zeroValue T
-		return zeroValue, errors.New("slice is empty")
-	}
-
-	//nolint:all
-	randomIndex := rand.Intn(len(arr))
-
-	return arr[randomIndex], nil
-}
 
 // substrings a string using rune length to account for multi-byte characters
 func SliceString(s string, l int) string {
@@ -40,27 +21,31 @@ func SliceString(s string, l int) string {
 	return string(runes[:l])
 }
 
-// converts a slice of int to a slice of strings
-func IntSliceToStringSlice(ints []int64) []string {
+// Generate a random alphanumeric string of length l
+func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 
-	var str []string
-
-	if len(ints) == 0 {
-		return []string{}
+	if length < 1 {
+		return "", fmt.Errorf("the length of the string can't be less than 1")
 	}
 
-	for i := range ints {
-		str = append(str, strconv.Itoa((i)))
+	result := make([]byte, length)
 
+	for i := int64(0); i < length; i++ {
+		// Generate a random index in the range [0, len(alphabet))
+		//nolint:all
+		index := rand.Intn(len(alphanumeric))
+
+		// Get the character at the generated index and append it to the result
+		result[i] = alphanumeric[index]
 	}
 
-	return str
+	return strings.ToLower(string(result)), nil
 }
 
-// generate a random string of length l
-func GenerateRandomString(min, max int64) (string, error) {
+// Generate a random alphanumeric string within the interval [min, max]
+func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 
-	if min < 0 && max < 0 && min > max {
+	if min < 0 || max < 0 || min > max {
 		return "", fmt.Errorf("the min and max can't be less than 0 and the min can't be greater than the max")
 	}
 
@@ -70,7 +55,7 @@ func GenerateRandomString(min, max int64) (string, error) {
 		length = min
 	} else {
 
-		randlength, err := GenerateRandomInt64WithInclusiveBounds(min, max)
+		randlength, err := GenerateRandomInt64InValueRange(min, max)
 		if err != nil {
 			return "", fmt.Errorf("unable to generate a random length for the string")
 		}

@@ -727,229 +727,223 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "generateEmailConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateRealisticEmail generate_realistic_email_config = 2;
-     */
-    value: GenerateRealisticEmail;
-    case: "generateRealisticEmailConfig";
-  } | {
-    /**
-     * @generated from field: mgmt.v1alpha1.TransformEmail transform_email_config = 3;
+     * @generated from field: mgmt.v1alpha1.TransformEmail transform_email_config = 2;
      */
     value: TransformEmail;
     case: "transformEmailConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateBool generate_bool_config = 4;
+     * @generated from field: mgmt.v1alpha1.GenerateBool generate_bool_config = 3;
      */
     value: GenerateBool;
     case: "generateBoolConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateCardNumber generate_card_number_config = 5;
+     * @generated from field: mgmt.v1alpha1.GenerateCardNumber generate_card_number_config = 4;
      */
     value: GenerateCardNumber;
     case: "generateCardNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateCity generate_city_config = 6;
+     * @generated from field: mgmt.v1alpha1.GenerateCity generate_city_config = 5;
      */
     value: GenerateCity;
     case: "generateCityConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateE164Number generate_e164_number_config = 7;
+     * @generated from field: mgmt.v1alpha1.GenerateE164PhoneNumber generate_e164_phone_number_config = 6;
      */
-    value: GenerateE164Number;
-    case: "generateE164NumberConfig";
+    value: GenerateE164PhoneNumber;
+    case: "generateE164PhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateFirstName generate_first_name_config = 8;
+     * @generated from field: mgmt.v1alpha1.GenerateFirstName generate_first_name_config = 7;
      */
     value: GenerateFirstName;
     case: "generateFirstNameConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateFloat generate_float_config = 9;
+     * @generated from field: mgmt.v1alpha1.GenerateFloat64 generate_float64_config = 8;
      */
-    value: GenerateFloat;
-    case: "generateFloatConfig";
+    value: GenerateFloat64;
+    case: "generateFloat64Config";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateFullAddress generate_full_address_config = 10;
+     * @generated from field: mgmt.v1alpha1.GenerateFullAddress generate_full_address_config = 9;
      */
     value: GenerateFullAddress;
     case: "generateFullAddressConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateFullName generate_full_name_config = 11;
+     * @generated from field: mgmt.v1alpha1.GenerateFullName generate_full_name_config = 10;
      */
     value: GenerateFullName;
     case: "generateFullNameConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateGender generate_gender_config = 12;
+     * @generated from field: mgmt.v1alpha1.GenerateGender generate_gender_config = 11;
      */
     value: GenerateGender;
     case: "generateGenderConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateInt64Phone generate_int64_phone_config = 13;
+     * @generated from field: mgmt.v1alpha1.GenerateInt64Phone generate_int64_phone_config = 12;
      */
     value: GenerateInt64Phone;
     case: "generateInt64PhoneConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateInt generate_int_config = 14;
+     * @generated from field: mgmt.v1alpha1.GenerateInt64 generate_int64_config = 13;
      */
-    value: GenerateInt;
-    case: "generateIntConfig";
+    value: GenerateInt64;
+    case: "generateInt64Config";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateLastName generate_last_name_config = 15;
+     * @generated from field: mgmt.v1alpha1.GenerateLastName generate_last_name_config = 14;
      */
     value: GenerateLastName;
     case: "generateLastNameConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateSha256Hash generate_sha256hash_config = 16;
+     * @generated from field: mgmt.v1alpha1.GenerateSha256Hash generate_sha256hash_config = 15;
      */
     value: GenerateSha256Hash;
     case: "generateSha256hashConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateSSN generate_ssn_config = 17;
+     * @generated from field: mgmt.v1alpha1.GenerateSSN generate_ssn_config = 16;
      */
     value: GenerateSSN;
     case: "generateSsnConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateState generate_state_config = 18;
+     * @generated from field: mgmt.v1alpha1.GenerateState generate_state_config = 17;
      */
     value: GenerateState;
     case: "generateStateConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateStreetAddress generate_street_address_config = 19;
+     * @generated from field: mgmt.v1alpha1.GenerateStreetAddress generate_street_address_config = 18;
      */
     value: GenerateStreetAddress;
     case: "generateStreetAddressConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateStringPhone generate_string_phone_config = 20;
+     * @generated from field: mgmt.v1alpha1.GenerateStringPhoneNumber generate_string_phone_number_config = 19;
      */
-    value: GenerateStringPhone;
-    case: "generateStringPhoneConfig";
+    value: GenerateStringPhoneNumber;
+    case: "generateStringPhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateString generate_string_config = 21;
+     * @generated from field: mgmt.v1alpha1.GenerateString generate_string_config = 20;
      */
     value: GenerateString;
     case: "generateStringConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateUnixTimestamp generate_unixtimestamp_config = 22;
+     * @generated from field: mgmt.v1alpha1.GenerateUnixTimestamp generate_unixtimestamp_config = 21;
      */
     value: GenerateUnixTimestamp;
     case: "generateUnixtimestampConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateUsername generate_username_config = 23;
+     * @generated from field: mgmt.v1alpha1.GenerateUsername generate_username_config = 22;
      */
     value: GenerateUsername;
     case: "generateUsernameConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateUtcTimestamp generate_utctimestamp_config = 24;
+     * @generated from field: mgmt.v1alpha1.GenerateUtcTimestamp generate_utctimestamp_config = 23;
      */
     value: GenerateUtcTimestamp;
     case: "generateUtctimestampConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateUuid generate_uuid_config = 25;
+     * @generated from field: mgmt.v1alpha1.GenerateUuid generate_uuid_config = 24;
      */
     value: GenerateUuid;
     case: "generateUuidConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateZipcode generate_zipcode_config = 26;
+     * @generated from field: mgmt.v1alpha1.GenerateZipcode generate_zipcode_config = 25;
      */
     value: GenerateZipcode;
     case: "generateZipcodeConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformE164Phone transform_e164_phone_config = 27;
+     * @generated from field: mgmt.v1alpha1.TransformE164PhoneNumber transform_e164_phone_number_config = 26;
      */
-    value: TransformE164Phone;
-    case: "transformE164PhoneConfig";
+    value: TransformE164PhoneNumber;
+    case: "transformE164PhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformFirstName transform_first_name_config = 28;
+     * @generated from field: mgmt.v1alpha1.TransformFirstName transform_first_name_config = 27;
      */
     value: TransformFirstName;
     case: "transformFirstNameConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformFloat transform_float_config = 29;
+     * @generated from field: mgmt.v1alpha1.TransformFloat64 transform_float64_config = 28;
      */
-    value: TransformFloat;
-    case: "transformFloatConfig";
+    value: TransformFloat64;
+    case: "transformFloat64Config";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformFullName transform_full_name_config = 30;
+     * @generated from field: mgmt.v1alpha1.TransformFullName transform_full_name_config = 29;
      */
     value: TransformFullName;
     case: "transformFullNameConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformIntPhone transform_int_phone_config = 31;
+     * @generated from field: mgmt.v1alpha1.TransformInt64PhoneNumber transform_int64_phone_number_config = 30;
      */
-    value: TransformIntPhone;
-    case: "transformIntPhoneConfig";
+    value: TransformInt64PhoneNumber;
+    case: "transformInt64PhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformInt transform_int_config = 32;
+     * @generated from field: mgmt.v1alpha1.TransformInt64 transform_int64_config = 31;
      */
-    value: TransformInt;
-    case: "transformIntConfig";
+    value: TransformInt64;
+    case: "transformInt64Config";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformLastName transform_last_name_config = 33;
+     * @generated from field: mgmt.v1alpha1.TransformLastName transform_last_name_config = 32;
      */
     value: TransformLastName;
     case: "transformLastNameConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformPhone transform_phone_config = 34;
+     * @generated from field: mgmt.v1alpha1.TransformPhoneNumber transform_phone_number_config = 33;
      */
-    value: TransformPhone;
-    case: "transformPhoneConfig";
+    value: TransformPhoneNumber;
+    case: "transformPhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformString transform_string_config = 35;
+     * @generated from field: mgmt.v1alpha1.TransformString transform_string_config = 34;
      */
     value: TransformString;
     case: "transformStringConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Passthrough passthrough_config = 36;
+     * @generated from field: mgmt.v1alpha1.Passthrough passthrough_config = 35;
      */
     value: Passthrough;
     case: "passthroughConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Null nullconfig = 37;
+     * @generated from field: mgmt.v1alpha1.Null nullconfig = 36;
      */
     value: Null;
     case: "nullconfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.UserDefinedTransformerConfig user_defined_transformer_config = 38;
+     * @generated from field: mgmt.v1alpha1.UserDefinedTransformerConfig user_defined_transformer_config = 37;
      */
     value: UserDefinedTransformerConfig;
     case: "userDefinedTransformerConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateDefault generate_default_config = 39;
+     * @generated from field: mgmt.v1alpha1.GenerateDefault generate_default_config = 38;
      */
     value: GenerateDefault;
     case: "generateDefaultConfig";
@@ -964,44 +958,43 @@ export class TransformerConfig extends Message<TransformerConfig> {
   static readonly typeName = "mgmt.v1alpha1.TransformerConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "generate_email_config", kind: "message", T: GenerateEmail, oneof: "config" },
-    { no: 2, name: "generate_realistic_email_config", kind: "message", T: GenerateRealisticEmail, oneof: "config" },
-    { no: 3, name: "transform_email_config", kind: "message", T: TransformEmail, oneof: "config" },
-    { no: 4, name: "generate_bool_config", kind: "message", T: GenerateBool, oneof: "config" },
-    { no: 5, name: "generate_card_number_config", kind: "message", T: GenerateCardNumber, oneof: "config" },
-    { no: 6, name: "generate_city_config", kind: "message", T: GenerateCity, oneof: "config" },
-    { no: 7, name: "generate_e164_number_config", kind: "message", T: GenerateE164Number, oneof: "config" },
-    { no: 8, name: "generate_first_name_config", kind: "message", T: GenerateFirstName, oneof: "config" },
-    { no: 9, name: "generate_float_config", kind: "message", T: GenerateFloat, oneof: "config" },
-    { no: 10, name: "generate_full_address_config", kind: "message", T: GenerateFullAddress, oneof: "config" },
-    { no: 11, name: "generate_full_name_config", kind: "message", T: GenerateFullName, oneof: "config" },
-    { no: 12, name: "generate_gender_config", kind: "message", T: GenerateGender, oneof: "config" },
-    { no: 13, name: "generate_int64_phone_config", kind: "message", T: GenerateInt64Phone, oneof: "config" },
-    { no: 14, name: "generate_int_config", kind: "message", T: GenerateInt, oneof: "config" },
-    { no: 15, name: "generate_last_name_config", kind: "message", T: GenerateLastName, oneof: "config" },
-    { no: 16, name: "generate_sha256hash_config", kind: "message", T: GenerateSha256Hash, oneof: "config" },
-    { no: 17, name: "generate_ssn_config", kind: "message", T: GenerateSSN, oneof: "config" },
-    { no: 18, name: "generate_state_config", kind: "message", T: GenerateState, oneof: "config" },
-    { no: 19, name: "generate_street_address_config", kind: "message", T: GenerateStreetAddress, oneof: "config" },
-    { no: 20, name: "generate_string_phone_config", kind: "message", T: GenerateStringPhone, oneof: "config" },
-    { no: 21, name: "generate_string_config", kind: "message", T: GenerateString, oneof: "config" },
-    { no: 22, name: "generate_unixtimestamp_config", kind: "message", T: GenerateUnixTimestamp, oneof: "config" },
-    { no: 23, name: "generate_username_config", kind: "message", T: GenerateUsername, oneof: "config" },
-    { no: 24, name: "generate_utctimestamp_config", kind: "message", T: GenerateUtcTimestamp, oneof: "config" },
-    { no: 25, name: "generate_uuid_config", kind: "message", T: GenerateUuid, oneof: "config" },
-    { no: 26, name: "generate_zipcode_config", kind: "message", T: GenerateZipcode, oneof: "config" },
-    { no: 27, name: "transform_e164_phone_config", kind: "message", T: TransformE164Phone, oneof: "config" },
-    { no: 28, name: "transform_first_name_config", kind: "message", T: TransformFirstName, oneof: "config" },
-    { no: 29, name: "transform_float_config", kind: "message", T: TransformFloat, oneof: "config" },
-    { no: 30, name: "transform_full_name_config", kind: "message", T: TransformFullName, oneof: "config" },
-    { no: 31, name: "transform_int_phone_config", kind: "message", T: TransformIntPhone, oneof: "config" },
-    { no: 32, name: "transform_int_config", kind: "message", T: TransformInt, oneof: "config" },
-    { no: 33, name: "transform_last_name_config", kind: "message", T: TransformLastName, oneof: "config" },
-    { no: 34, name: "transform_phone_config", kind: "message", T: TransformPhone, oneof: "config" },
-    { no: 35, name: "transform_string_config", kind: "message", T: TransformString, oneof: "config" },
-    { no: 36, name: "passthrough_config", kind: "message", T: Passthrough, oneof: "config" },
-    { no: 37, name: "nullconfig", kind: "message", T: Null, oneof: "config" },
-    { no: 38, name: "user_defined_transformer_config", kind: "message", T: UserDefinedTransformerConfig, oneof: "config" },
-    { no: 39, name: "generate_default_config", kind: "message", T: GenerateDefault, oneof: "config" },
+    { no: 2, name: "transform_email_config", kind: "message", T: TransformEmail, oneof: "config" },
+    { no: 3, name: "generate_bool_config", kind: "message", T: GenerateBool, oneof: "config" },
+    { no: 4, name: "generate_card_number_config", kind: "message", T: GenerateCardNumber, oneof: "config" },
+    { no: 5, name: "generate_city_config", kind: "message", T: GenerateCity, oneof: "config" },
+    { no: 6, name: "generate_e164_phone_number_config", kind: "message", T: GenerateE164PhoneNumber, oneof: "config" },
+    { no: 7, name: "generate_first_name_config", kind: "message", T: GenerateFirstName, oneof: "config" },
+    { no: 8, name: "generate_float64_config", kind: "message", T: GenerateFloat64, oneof: "config" },
+    { no: 9, name: "generate_full_address_config", kind: "message", T: GenerateFullAddress, oneof: "config" },
+    { no: 10, name: "generate_full_name_config", kind: "message", T: GenerateFullName, oneof: "config" },
+    { no: 11, name: "generate_gender_config", kind: "message", T: GenerateGender, oneof: "config" },
+    { no: 12, name: "generate_int64_phone_config", kind: "message", T: GenerateInt64Phone, oneof: "config" },
+    { no: 13, name: "generate_int64_config", kind: "message", T: GenerateInt64, oneof: "config" },
+    { no: 14, name: "generate_last_name_config", kind: "message", T: GenerateLastName, oneof: "config" },
+    { no: 15, name: "generate_sha256hash_config", kind: "message", T: GenerateSha256Hash, oneof: "config" },
+    { no: 16, name: "generate_ssn_config", kind: "message", T: GenerateSSN, oneof: "config" },
+    { no: 17, name: "generate_state_config", kind: "message", T: GenerateState, oneof: "config" },
+    { no: 18, name: "generate_street_address_config", kind: "message", T: GenerateStreetAddress, oneof: "config" },
+    { no: 19, name: "generate_string_phone_number_config", kind: "message", T: GenerateStringPhoneNumber, oneof: "config" },
+    { no: 20, name: "generate_string_config", kind: "message", T: GenerateString, oneof: "config" },
+    { no: 21, name: "generate_unixtimestamp_config", kind: "message", T: GenerateUnixTimestamp, oneof: "config" },
+    { no: 22, name: "generate_username_config", kind: "message", T: GenerateUsername, oneof: "config" },
+    { no: 23, name: "generate_utctimestamp_config", kind: "message", T: GenerateUtcTimestamp, oneof: "config" },
+    { no: 24, name: "generate_uuid_config", kind: "message", T: GenerateUuid, oneof: "config" },
+    { no: 25, name: "generate_zipcode_config", kind: "message", T: GenerateZipcode, oneof: "config" },
+    { no: 26, name: "transform_e164_phone_number_config", kind: "message", T: TransformE164PhoneNumber, oneof: "config" },
+    { no: 27, name: "transform_first_name_config", kind: "message", T: TransformFirstName, oneof: "config" },
+    { no: 28, name: "transform_float64_config", kind: "message", T: TransformFloat64, oneof: "config" },
+    { no: 29, name: "transform_full_name_config", kind: "message", T: TransformFullName, oneof: "config" },
+    { no: 30, name: "transform_int64_phone_number_config", kind: "message", T: TransformInt64PhoneNumber, oneof: "config" },
+    { no: 31, name: "transform_int64_config", kind: "message", T: TransformInt64, oneof: "config" },
+    { no: 32, name: "transform_last_name_config", kind: "message", T: TransformLastName, oneof: "config" },
+    { no: 33, name: "transform_phone_number_config", kind: "message", T: TransformPhoneNumber, oneof: "config" },
+    { no: 34, name: "transform_string_config", kind: "message", T: TransformString, oneof: "config" },
+    { no: 35, name: "passthrough_config", kind: "message", T: Passthrough, oneof: "config" },
+    { no: 36, name: "nullconfig", kind: "message", T: Null, oneof: "config" },
+    { no: 37, name: "user_defined_transformer_config", kind: "message", T: UserDefinedTransformerConfig, oneof: "config" },
+    { no: 38, name: "generate_default_config", kind: "message", T: GenerateDefault, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -1049,37 +1042,6 @@ export class GenerateEmail extends Message<GenerateEmail> {
 
   static equals(a: GenerateEmail | PlainMessage<GenerateEmail> | undefined, b: GenerateEmail | PlainMessage<GenerateEmail> | undefined): boolean {
     return proto3.util.equals(GenerateEmail, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.GenerateRealisticEmail
- */
-export class GenerateRealisticEmail extends Message<GenerateRealisticEmail> {
-  constructor(data?: PartialMessage<GenerateRealisticEmail>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateRealisticEmail";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateRealisticEmail {
-    return new GenerateRealisticEmail().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateRealisticEmail {
-    return new GenerateRealisticEmail().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateRealisticEmail {
-    return new GenerateRealisticEmail().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GenerateRealisticEmail | PlainMessage<GenerateRealisticEmail> | undefined, b: GenerateRealisticEmail | PlainMessage<GenerateRealisticEmail> | undefined): boolean {
-    return proto3.util.equals(GenerateRealisticEmail, a, b);
   }
 }
 
@@ -1257,39 +1219,45 @@ export class GenerateDefault extends Message<GenerateDefault> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GenerateE164Number
+ * @generated from message mgmt.v1alpha1.GenerateE164PhoneNumber
  */
-export class GenerateE164Number extends Message<GenerateE164Number> {
+export class GenerateE164PhoneNumber extends Message<GenerateE164PhoneNumber> {
   /**
-   * @generated from field: int64 length = 1;
+   * @generated from field: int64 min = 1;
    */
-  length = protoInt64.zero;
+  min = protoInt64.zero;
 
-  constructor(data?: PartialMessage<GenerateE164Number>) {
+  /**
+   * @generated from field: int64 max = 2;
+   */
+  max = protoInt64.zero;
+
+  constructor(data?: PartialMessage<GenerateE164PhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateE164Number";
+  static readonly typeName = "mgmt.v1alpha1.GenerateE164PhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "length", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateE164Number {
-    return new GenerateE164Number().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateE164PhoneNumber {
+    return new GenerateE164PhoneNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateE164Number {
-    return new GenerateE164Number().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateE164PhoneNumber {
+    return new GenerateE164PhoneNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateE164Number {
-    return new GenerateE164Number().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateE164PhoneNumber {
+    return new GenerateE164PhoneNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GenerateE164Number | PlainMessage<GenerateE164Number> | undefined, b: GenerateE164Number | PlainMessage<GenerateE164Number> | undefined): boolean {
-    return proto3.util.equals(GenerateE164Number, a, b);
+  static equals(a: GenerateE164PhoneNumber | PlainMessage<GenerateE164PhoneNumber> | undefined, b: GenerateE164PhoneNumber | PlainMessage<GenerateE164PhoneNumber> | undefined): boolean {
+    return proto3.util.equals(GenerateE164PhoneNumber, a, b);
   }
 }
 
@@ -1325,51 +1293,51 @@ export class GenerateFirstName extends Message<GenerateFirstName> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GenerateFloat
+ * @generated from message mgmt.v1alpha1.GenerateFloat64
  */
-export class GenerateFloat extends Message<GenerateFloat> {
+export class GenerateFloat64 extends Message<GenerateFloat64> {
   /**
-   * @generated from field: string sign = 1;
+   * @generated from field: bool randomize_sign = 1;
    */
-  sign = "";
+  randomizeSign = false;
 
   /**
-   * @generated from field: int64 digits_before_decimal = 2;
+   * @generated from field: double min = 2;
    */
-  digitsBeforeDecimal = protoInt64.zero;
+  min = 0;
 
   /**
-   * @generated from field: int64 digits_after_decimal = 3;
+   * @generated from field: double max = 3;
    */
-  digitsAfterDecimal = protoInt64.zero;
+  max = 0;
 
-  constructor(data?: PartialMessage<GenerateFloat>) {
+  constructor(data?: PartialMessage<GenerateFloat64>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateFloat";
+  static readonly typeName = "mgmt.v1alpha1.GenerateFloat64";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "sign", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "digits_before_decimal", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 3, name: "digits_after_decimal", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "randomize_sign", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "min", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 3, name: "max", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateFloat {
-    return new GenerateFloat().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateFloat64 {
+    return new GenerateFloat64().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateFloat {
-    return new GenerateFloat().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateFloat64 {
+    return new GenerateFloat64().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateFloat {
-    return new GenerateFloat().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateFloat64 {
+    return new GenerateFloat64().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GenerateFloat | PlainMessage<GenerateFloat> | undefined, b: GenerateFloat | PlainMessage<GenerateFloat> | undefined): boolean {
-    return proto3.util.equals(GenerateFloat, a, b);
+  static equals(a: GenerateFloat64 | PlainMessage<GenerateFloat64> | undefined, b: GenerateFloat64 | PlainMessage<GenerateFloat64> | undefined): boolean {
+    return proto3.util.equals(GenerateFloat64, a, b);
   }
 }
 
@@ -1504,45 +1472,51 @@ export class GenerateInt64Phone extends Message<GenerateInt64Phone> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GenerateInt
+ * @generated from message mgmt.v1alpha1.GenerateInt64
  */
-export class GenerateInt extends Message<GenerateInt> {
+export class GenerateInt64 extends Message<GenerateInt64> {
   /**
-   * @generated from field: int64 length = 1;
+   * @generated from field: bool randomize_sign = 1;
    */
-  length = protoInt64.zero;
+  randomizeSign = false;
 
   /**
-   * @generated from field: string sign = 2;
+   * @generated from field: int64 min = 2;
    */
-  sign = "";
+  min = protoInt64.zero;
 
-  constructor(data?: PartialMessage<GenerateInt>) {
+  /**
+   * @generated from field: int64 max = 3;
+   */
+  max = protoInt64.zero;
+
+  constructor(data?: PartialMessage<GenerateInt64>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateInt";
+  static readonly typeName = "mgmt.v1alpha1.GenerateInt64";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "length", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 2, name: "sign", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "randomize_sign", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateInt {
-    return new GenerateInt().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateInt64 {
+    return new GenerateInt64().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateInt {
-    return new GenerateInt().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateInt64 {
+    return new GenerateInt64().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateInt {
-    return new GenerateInt().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateInt64 {
+    return new GenerateInt64().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GenerateInt | PlainMessage<GenerateInt> | undefined, b: GenerateInt | PlainMessage<GenerateInt> | undefined): boolean {
-    return proto3.util.equals(GenerateInt, a, b);
+  static equals(a: GenerateInt64 | PlainMessage<GenerateInt64> | undefined, b: GenerateInt64 | PlainMessage<GenerateInt64> | undefined): boolean {
+    return proto3.util.equals(GenerateInt64, a, b);
   }
 }
 
@@ -1702,39 +1676,39 @@ export class GenerateStreetAddress extends Message<GenerateStreetAddress> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GenerateStringPhone
+ * @generated from message mgmt.v1alpha1.GenerateStringPhoneNumber
  */
-export class GenerateStringPhone extends Message<GenerateStringPhone> {
+export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber> {
   /**
    * @generated from field: bool include_hyphens = 2;
    */
   includeHyphens = false;
 
-  constructor(data?: PartialMessage<GenerateStringPhone>) {
+  constructor(data?: PartialMessage<GenerateStringPhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateStringPhone";
+  static readonly typeName = "mgmt.v1alpha1.GenerateStringPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 2, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateStringPhone {
-    return new GenerateStringPhone().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateStringPhoneNumber {
+    return new GenerateStringPhoneNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateStringPhone {
-    return new GenerateStringPhone().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateStringPhoneNumber {
+    return new GenerateStringPhoneNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateStringPhone {
-    return new GenerateStringPhone().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateStringPhoneNumber {
+    return new GenerateStringPhoneNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GenerateStringPhone | PlainMessage<GenerateStringPhone> | undefined, b: GenerateStringPhone | PlainMessage<GenerateStringPhone> | undefined): boolean {
-    return proto3.util.equals(GenerateStringPhone, a, b);
+  static equals(a: GenerateStringPhoneNumber | PlainMessage<GenerateStringPhoneNumber> | undefined, b: GenerateStringPhoneNumber | PlainMessage<GenerateStringPhoneNumber> | undefined): boolean {
+    return proto3.util.equals(GenerateStringPhoneNumber, a, b);
   }
 }
 
@@ -1743,9 +1717,14 @@ export class GenerateStringPhone extends Message<GenerateStringPhone> {
  */
 export class GenerateString extends Message<GenerateString> {
   /**
-   * @generated from field: int64 length = 1;
+   * @generated from field: int64 min = 1;
    */
-  length = protoInt64.zero;
+  min = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 max = 2;
+   */
+  max = protoInt64.zero;
 
   constructor(data?: PartialMessage<GenerateString>) {
     super();
@@ -1755,7 +1734,8 @@ export class GenerateString extends Message<GenerateString> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateString";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "length", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateString {
@@ -1937,39 +1917,39 @@ export class GenerateZipcode extends Message<GenerateZipcode> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.TransformE164Phone
+ * @generated from message mgmt.v1alpha1.TransformE164PhoneNumber
  */
-export class TransformE164Phone extends Message<TransformE164Phone> {
+export class TransformE164PhoneNumber extends Message<TransformE164PhoneNumber> {
   /**
    * @generated from field: bool preserve_length = 1;
    */
   preserveLength = false;
 
-  constructor(data?: PartialMessage<TransformE164Phone>) {
+  constructor(data?: PartialMessage<TransformE164PhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.TransformE164Phone";
+  static readonly typeName = "mgmt.v1alpha1.TransformE164PhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformE164Phone {
-    return new TransformE164Phone().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformE164PhoneNumber {
+    return new TransformE164PhoneNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformE164Phone {
-    return new TransformE164Phone().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformE164PhoneNumber {
+    return new TransformE164PhoneNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformE164Phone {
-    return new TransformE164Phone().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformE164PhoneNumber {
+    return new TransformE164PhoneNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: TransformE164Phone | PlainMessage<TransformE164Phone> | undefined, b: TransformE164Phone | PlainMessage<TransformE164Phone> | undefined): boolean {
-    return proto3.util.equals(TransformE164Phone, a, b);
+  static equals(a: TransformE164PhoneNumber | PlainMessage<TransformE164PhoneNumber> | undefined, b: TransformE164PhoneNumber | PlainMessage<TransformE164PhoneNumber> | undefined): boolean {
+    return proto3.util.equals(TransformE164PhoneNumber, a, b);
   }
 }
 
@@ -2011,45 +1991,45 @@ export class TransformFirstName extends Message<TransformFirstName> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.TransformFloat
+ * @generated from message mgmt.v1alpha1.TransformFloat64
  */
-export class TransformFloat extends Message<TransformFloat> {
+export class TransformFloat64 extends Message<TransformFloat64> {
   /**
-   * @generated from field: bool preserve_length = 1;
+   * @generated from field: double randomization_range_min = 1;
    */
-  preserveLength = false;
+  randomizationRangeMin = 0;
 
   /**
-   * @generated from field: bool preserve_sign = 2;
+   * @generated from field: double randomization_range_max = 2;
    */
-  preserveSign = false;
+  randomizationRangeMax = 0;
 
-  constructor(data?: PartialMessage<TransformFloat>) {
+  constructor(data?: PartialMessage<TransformFloat64>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.TransformFloat";
+  static readonly typeName = "mgmt.v1alpha1.TransformFloat64";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "preserve_sign", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "randomization_range_min", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 2, name: "randomization_range_max", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformFloat {
-    return new TransformFloat().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformFloat64 {
+    return new TransformFloat64().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformFloat {
-    return new TransformFloat().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformFloat64 {
+    return new TransformFloat64().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformFloat {
-    return new TransformFloat().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformFloat64 {
+    return new TransformFloat64().fromJsonString(jsonString, options);
   }
 
-  static equals(a: TransformFloat | PlainMessage<TransformFloat> | undefined, b: TransformFloat | PlainMessage<TransformFloat> | undefined): boolean {
-    return proto3.util.equals(TransformFloat, a, b);
+  static equals(a: TransformFloat64 | PlainMessage<TransformFloat64> | undefined, b: TransformFloat64 | PlainMessage<TransformFloat64> | undefined): boolean {
+    return proto3.util.equals(TransformFloat64, a, b);
   }
 }
 
@@ -2091,82 +2071,82 @@ export class TransformFullName extends Message<TransformFullName> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.TransformIntPhone
+ * @generated from message mgmt.v1alpha1.TransformInt64PhoneNumber
  */
-export class TransformIntPhone extends Message<TransformIntPhone> {
+export class TransformInt64PhoneNumber extends Message<TransformInt64PhoneNumber> {
   /**
    * @generated from field: bool preserve_length = 1;
    */
   preserveLength = false;
 
-  constructor(data?: PartialMessage<TransformIntPhone>) {
+  constructor(data?: PartialMessage<TransformInt64PhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.TransformIntPhone";
+  static readonly typeName = "mgmt.v1alpha1.TransformInt64PhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformIntPhone {
-    return new TransformIntPhone().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformInt64PhoneNumber {
+    return new TransformInt64PhoneNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformIntPhone {
-    return new TransformIntPhone().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformInt64PhoneNumber {
+    return new TransformInt64PhoneNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformIntPhone {
-    return new TransformIntPhone().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformInt64PhoneNumber {
+    return new TransformInt64PhoneNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: TransformIntPhone | PlainMessage<TransformIntPhone> | undefined, b: TransformIntPhone | PlainMessage<TransformIntPhone> | undefined): boolean {
-    return proto3.util.equals(TransformIntPhone, a, b);
+  static equals(a: TransformInt64PhoneNumber | PlainMessage<TransformInt64PhoneNumber> | undefined, b: TransformInt64PhoneNumber | PlainMessage<TransformInt64PhoneNumber> | undefined): boolean {
+    return proto3.util.equals(TransformInt64PhoneNumber, a, b);
   }
 }
 
 /**
- * @generated from message mgmt.v1alpha1.TransformInt
+ * @generated from message mgmt.v1alpha1.TransformInt64
  */
-export class TransformInt extends Message<TransformInt> {
+export class TransformInt64 extends Message<TransformInt64> {
   /**
-   * @generated from field: bool preserve_length = 1;
+   * @generated from field: int64 randomization_range_min = 1;
    */
-  preserveLength = false;
+  randomizationRangeMin = protoInt64.zero;
 
   /**
-   * @generated from field: bool preserve_sign = 2;
+   * @generated from field: int64 randomization_range_max = 2;
    */
-  preserveSign = false;
+  randomizationRangeMax = protoInt64.zero;
 
-  constructor(data?: PartialMessage<TransformInt>) {
+  constructor(data?: PartialMessage<TransformInt64>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.TransformInt";
+  static readonly typeName = "mgmt.v1alpha1.TransformInt64";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "preserve_sign", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 1, name: "randomization_range_min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 2, name: "randomization_range_max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformInt {
-    return new TransformInt().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformInt64 {
+    return new TransformInt64().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformInt {
-    return new TransformInt().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformInt64 {
+    return new TransformInt64().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformInt {
-    return new TransformInt().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformInt64 {
+    return new TransformInt64().fromJsonString(jsonString, options);
   }
 
-  static equals(a: TransformInt | PlainMessage<TransformInt> | undefined, b: TransformInt | PlainMessage<TransformInt> | undefined): boolean {
-    return proto3.util.equals(TransformInt, a, b);
+  static equals(a: TransformInt64 | PlainMessage<TransformInt64> | undefined, b: TransformInt64 | PlainMessage<TransformInt64> | undefined): boolean {
+    return proto3.util.equals(TransformInt64, a, b);
   }
 }
 
@@ -2208,9 +2188,9 @@ export class TransformLastName extends Message<TransformLastName> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.TransformPhone
+ * @generated from message mgmt.v1alpha1.TransformPhoneNumber
  */
-export class TransformPhone extends Message<TransformPhone> {
+export class TransformPhoneNumber extends Message<TransformPhoneNumber> {
   /**
    * @generated from field: bool preserve_length = 1;
    */
@@ -2221,32 +2201,32 @@ export class TransformPhone extends Message<TransformPhone> {
    */
   includeHyphens = false;
 
-  constructor(data?: PartialMessage<TransformPhone>) {
+  constructor(data?: PartialMessage<TransformPhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.TransformPhone";
+  static readonly typeName = "mgmt.v1alpha1.TransformPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPhone {
-    return new TransformPhone().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPhoneNumber {
+    return new TransformPhoneNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformPhone {
-    return new TransformPhone().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformPhoneNumber {
+    return new TransformPhoneNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformPhone {
-    return new TransformPhone().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformPhoneNumber {
+    return new TransformPhoneNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: TransformPhone | PlainMessage<TransformPhone> | undefined, b: TransformPhone | PlainMessage<TransformPhone> | undefined): boolean {
-    return proto3.util.equals(TransformPhone, a, b);
+  static equals(a: TransformPhoneNumber | PlainMessage<TransformPhoneNumber> | undefined, b: TransformPhoneNumber | PlainMessage<TransformPhoneNumber> | undefined): boolean {
+    return proto3.util.equals(TransformPhoneNumber, a, b);
   }
 }
 

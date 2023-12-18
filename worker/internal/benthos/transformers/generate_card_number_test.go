@@ -13,7 +13,7 @@ func Test_GenerateValidLuhnCardNumber(t *testing.T) {
 	val, err := GenerateValidLuhnCheckCardNumber()
 
 	assert.NoError(t, err)
-	assert.Len(t, strconv.FormatInt(val, 10), 16, "The output card should be 16 characters long")
+	assert.Equal(t, len(strconv.FormatInt(val, 10)), 16, "The output card should be 16 characters long")
 	assert.Equal(t, true, isValidLuhn(val), "The card number should pass luhn validation")
 }
 

@@ -43,7 +43,7 @@ func GenerateRandomString(min, max int64) (string, error) {
 
 	var returnValue string
 
-	val, err := transformer_utils.GenerateRandomString(min, max)
+	val, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, max)
 
 	if err != nil {
 		return "", fmt.Errorf("unable to generate a random string with length")

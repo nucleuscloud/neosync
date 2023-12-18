@@ -6,21 +6,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// returns a random index from a one-dimensional slice
-func Test_GetRandomValueFromSliceEmptySlice(t *testing.T) {
+func Test_GenerateRandomStringWithDefinedLength(t *testing.T) {
 
-	arr := []string{}
-	_, err := GetRandomValueFromSlice(arr)
-	assert.Error(t, err, "Expected an error for the empty slice")
+	val := int64(6)
 
+	res, err := GenerateRandomStringWithDefinedLength(val)
+	assert.NoError(t, err)
+
+	assert.Equal(t, val, int64(len(res)), "The output string should be the same length as the input length")
 }
 
-func Test_GetRandomValueFromSliceNonEmptySlice(t *testing.T) {
+func Test_GenerateRandomStringWithDefinedLengthError(t *testing.T) {
 
-	arr := []string{"a", "b", "c"}
-	res, err := GetRandomValueFromSlice(arr)
-	assert.NoError(t, err)
-	assert.Contains(t, arr, res, "Expected the response to be included in the input array")
+	val := int64(0)
+
+	_, err := GenerateRandomStringWithDefinedLength(val)
+	assert.Error(t, err)
 
 }
 
@@ -47,35 +48,14 @@ func Test_SliceStringValidSlice(t *testing.T) {
 	assert.Equal(t, expected, res, "Expected result to be a substring of the input string with the specified length")
 }
 
-func Test_IntArryToStringArr(t *testing.T) {
-
-	val := []int64{1, 2, 3, 4}
-
-	res := IntSliceToStringSlice(val)
-
-	assert.IsType(t, res, []string{})
-	assert.Equal(t, len(res), len(val), "The slices should be the same length")
-
-}
-
-func Test_IntArryToStringArrEmptySlice(t *testing.T) {
-
-	val := []int64{}
-
-	res := IntSliceToStringSlice(val)
-
-	assert.IsType(t, res, []string{})
-	assert.Equal(t, len(res), len(val), "The slices should be the same length")
-}
-
 func Test_GenerateRandomStringEqualMinMax(t *testing.T) {
 
 	min := int64(4)
 	max := int64(4)
-	res, err := GenerateRandomString(min, max)
+	res, err := GenerateRandomStringWithInclusiveBounds(min, max)
 
 	assert.NoError(t, err)
-	assert.Equal(t, len(res), min, "The output string should be as long as the min or max since they're equal")
+	assert.Equal(t, int64(len(res)), min, "The output string should be as long as the min or max since they're equal")
 
 }
 
@@ -84,10 +64,10 @@ func Test_GenerateRandomStringRange(t *testing.T) {
 	min := int64(2)
 	max := int64(4)
 
-	res, err := GenerateRandomString(min, max)
+	res, err := GenerateRandomStringWithInclusiveBounds(min, max)
 	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, len(res), min, "the string should be greater than or equal to the min value")
-	assert.LessOrEqual(t, len(res), max, "the string should be less than or equal to the max value")
+	assert.GreaterOrEqual(t, int64(len(res)), min, "the string should be greater than or equal to the min value")
+	assert.LessOrEqual(t, int64(len(res)), max, "the string should be less than or equal to the max value")
 
 }
 
@@ -96,9 +76,8 @@ func Test_GenerateRandomStringError(t *testing.T) {
 	min := int64(-2)
 	max := int64(4)
 
-	_, err := GenerateRandomString(min, max)
+	_, err := GenerateRandomStringWithInclusiveBounds(min, max)
 	assert.Error(t, err, "The min or max cannot be less than 0")
-
 }
 
 func Test_GenerateRandomStringErrorMinGreaterThanMax(t *testing.T) {
@@ -106,7 +85,7 @@ func Test_GenerateRandomStringErrorMinGreaterThanMax(t *testing.T) {
 	min := int64(5)
 	max := int64(4)
 
-	_, err := GenerateRandomString(min, max)
+	_, err := GenerateRandomStringWithInclusiveBounds(min, max)
 	assert.Error(t, err, "The min cannot be greater than the max")
 
 }

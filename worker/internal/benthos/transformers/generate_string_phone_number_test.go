@@ -44,7 +44,7 @@ func Test_GenerateRandomPhoneNumberNoHyphens(t *testing.T) {
 }
 
 func Test_PhoneNumberTransformer(t *testing.T) {
-	mapping := `root = generate_string_phone(include_hyphens:false)`
+	mapping := `root = generate_string_phone_number(include_hyphens:false)`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 

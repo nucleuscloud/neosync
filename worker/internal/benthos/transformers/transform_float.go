@@ -15,7 +15,7 @@ func init() {
 		Param(bloblang.NewFloat64Param("randomization_range_min")).
 		Param(bloblang.NewFloat64Param("randomization_range_max"))
 
-	err := bloblang.RegisterFunctionV2("transform_float", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_float64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		valuePtr, err := args.GetOptionalFloat64("value")
 		if err != nil {
@@ -54,8 +54,7 @@ func TransformFloat(value, rMin, rMax float64) (*float64, error) {
 		return nil, nil
 	}
 
-	// require that the value is in the randomization range so that we can transform it
-	// otherwise, should use the generate_int transformer
+	// require that the value is in the randomization range so that we can transform it otherwise, should use the generate_int transformer
 
 	if !transformer_utils.IsFloat64InRandomizationRange(value, rMin, rMax) {
 		zeroVal := float64(0)

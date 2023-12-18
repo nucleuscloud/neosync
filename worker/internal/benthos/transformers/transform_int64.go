@@ -15,7 +15,7 @@ func init() {
 		Param(bloblang.NewInt64Param("randomization_range_min")).
 		Param(bloblang.NewInt64Param("randomization_range_max"))
 
-	err := bloblang.RegisterFunctionV2("transform_int", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		valuePtr, err := args.GetOptionalInt64("value")
 		if err != nil {
@@ -65,7 +65,7 @@ func TransformInt(value, rMin, rMax int64) (*int64, error) {
 	minRange := value - rMin
 	maxRange := value + rMax
 
-	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(minRange, maxRange)
+	val, err := transformer_utils.GenerateRandomInt64InValueRange(minRange, maxRange)
 	if err != nil {
 
 		return nil, fmt.Errorf("unable to generate a random string with length")

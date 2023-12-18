@@ -1,10 +1,9 @@
 package transformers
 
 import (
-	"strconv"
-
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
@@ -14,7 +13,7 @@ func init() {
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
-	err := bloblang.RegisterFunctionV2("transform_int_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		valuePtr, err := args.GetOptionalInt64("value")
 		if err != nil {
@@ -32,7 +31,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := TransformIntPhoneNumber(value, preserveLength)
+			res, err := TransformInt64PhoneNumber(value, preserveLength)
 			return res, err
 		}, nil
 	})
@@ -44,7 +43,7 @@ func init() {
 }
 
 // generates a random phone number and returns it as an int64
-func TransformIntPhoneNumber(number int64, preserveLength bool) (*int64, error) {
+func TransformInt64PhoneNumber(number int64, preserveLength bool) (*int64, error) {
 
 	if number == 0 {
 		return nil, nil
@@ -60,7 +59,7 @@ func TransformIntPhoneNumber(number int64, preserveLength bool) (*int64, error) 
 
 	} else {
 
-		res, err := GenerateRandomIntPhoneNumber()
+		res, err := GenerateRandomInt64PhoneNumber()
 		if err != nil {
 			return nil, err
 		}
@@ -73,15 +72,19 @@ func TransformIntPhoneNumber(number int64, preserveLength bool) (*int64, error) 
 
 func GenerateIntPhoneNumberPreserveLength(number int64) (int64, error) {
 
-	numStr := strconv.FormatInt(number, 10)
+	ac := transformers_dataset.AreaCodes
 
-	length := int64(len(numStr))
-
-	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(length, length)
+	// get a random area code from the areacodes data set
+	randAreaCode, err := transformer_utils.GetRandomValueFromSlice[int64](ac)
 	if err != nil {
 		return 0, err
 	}
 
-	return val, err
+	pn, err := transformer_utils.GenerateRandomInt64FixedLength(transformer_utils.GetInt64Length(number) - 3)
+	if err != nil {
+		return 0, err
+	}
+
+	return randAreaCode*1e7 + pn, nil
 
 }

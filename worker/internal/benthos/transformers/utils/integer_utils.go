@@ -2,14 +2,62 @@ package transformer_utils
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"strconv"
 )
 
-/* INTEGER MANIPULATION UTILS */
+/* Generates a random int64 of length l. For example, given a length of 4, possible values will always have a length of 4 digits. */
 
-// Generates a random int between two integers inclusive of the boundaries
-func GenerateRandomInt64WithInclusiveBounds(min, max int64) (int64, error) {
+func GenerateRandomInt64FixedLength(l int64) (int64, error) {
+	if l <= 0 {
+		return 0, fmt.Errorf("the length has to be greater than zero")
+	}
+
+	// Ensure the length doesn't exceed the limit for int64
+	if l > 19 {
+		return 0, fmt.Errorf("length is too large")
+	}
+
+	min := int64(math.Pow10(int(l - 1)))
+	max := int64(math.Pow10(int(l))) - 1
+
+	// Generate a random number in the range
+	//nolint:all
+	return min + rand.Int63n(max-min+1), nil
+}
+
+/*
+Generates a random int64 with length in the inclusive range of [min, max]. For example, given a length range of [4, 7], possible values will have a length ranging from 4 -> 7 digits.
+*/
+func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
+
+	if min > max {
+		min, max = max, min
+	}
+
+	// Ensure the length doesn't exceed the limit for int64
+	if min > 19 || max > 19 {
+		return 0, fmt.Errorf("length is too large")
+	}
+
+	val, err := GenerateRandomInt64InValueRange(min, max)
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate a value in the range provided")
+	}
+
+	res, err := GenerateRandomInt64FixedLength(val)
+	if err != nil {
+		return 0, fmt.Errorf("unable to generate a value in the range provided")
+	}
+
+	//nolint:all
+	return res, nil
+
+}
+
+/* Generates a random int64 in the inclusive range of [min, max]. For example, given a range of [40, 50], possible values range from 40 -> 50, inclusive. */
+func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
 
 	if min > max {
 		min, max = max, min

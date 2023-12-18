@@ -31,9 +31,10 @@ func init() {
 	}
 }
 
+/* Generates a random social security number in the format XXX-XX-XXXX */
 func GenerateRandomSSN() (string, error) {
 
-	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(defaultSSNLength, defaultSSNLength)
+	val, err := transformer_utils.GenerateRandomInt64InValueRange(defaultSSNLength, defaultSSNLength)
 	if err != nil {
 		return "", err
 	}

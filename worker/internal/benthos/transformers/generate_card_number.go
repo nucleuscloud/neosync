@@ -36,7 +36,7 @@ func init() {
 
 }
 
-// Generates a 16 digit card number that can pass a luhn check if a true param is passed. Otherwise will generate a random 16 digit card number.
+// Generates a 16 digit card number that can pass a luhn check if the validLuhn param is set to true. Otherwise will generate a random 16 digit card number.
 func GenerateCardNumber(luhn bool) (int64, error) {
 	var returnValue int64
 
@@ -51,7 +51,7 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 
 	} else {
 
-		val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(defaultCCLength, defaultCCLength)
+		val, err := transformer_utils.GenerateRandomInt64FixedLength(defaultCCLength)
 		if err != nil {
 			return 0, err
 		}
@@ -79,7 +79,7 @@ func GenerateValidLuhnCheckCardNumber() (int64, error) {
 	}
 
 	// Acc no (9 digits)
-	nineDigits, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(9, 9)
+	nineDigits, err := transformer_utils.GenerateRandomInt64FixedLength(9)
 	if err != nil {
 		return 0, err
 	}

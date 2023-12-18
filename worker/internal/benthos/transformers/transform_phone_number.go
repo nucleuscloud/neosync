@@ -17,7 +17,7 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("include_hyphens"))
 
-	err := bloblang.RegisterFunctionV2("transform_phone", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
@@ -110,7 +110,7 @@ func GeneratePhoneNumberPreserveLengthNoHyphensNotE164(number string) (string, e
 	}
 	length := int64(len(number))
 
-	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(length, length)
+	val, err := transformer_utils.GenerateRandomInt64InLengthRange(length, length)
 
 	if err != nil {
 		return "", nil
@@ -126,7 +126,7 @@ func GenerateRandomPhoneNumberWithHyphens() (string, error) {
 
 	// only works with 10 digit-based phone numbers like in the US
 
-	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(defaultPhoneNumberLength, defaultPhoneNumberLength)
+	val, err := transformer_utils.GenerateRandomInt64InValueRange(defaultPhoneNumberLength, defaultPhoneNumberLength)
 
 	if err != nil {
 		return "", nil
@@ -143,7 +143,7 @@ func GenerateRandomPhoneNumberWithHyphens() (string, error) {
 func GenerateRandomPhoneNumberWithNoHyphens() (string, error) {
 
 	// returns a phone number with no hyphens
-	val, err := transformer_utils.GenerateRandomInt64WithInclusiveBounds(defaultPhoneNumberLength, defaultPhoneNumberLength)
+	val, err := transformer_utils.GenerateRandomInt64InLengthRange(defaultPhoneNumberLength, defaultPhoneNumberLength)
 	if err != nil {
 		return "", err
 	}

@@ -15,7 +15,7 @@ var testValue = int64(8384928322)
 
 func Test_GenerateIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 
-	res, err := TransformIntPhoneNumber(testValue, true)
+	res, err := TransformInt64PhoneNumber(testValue, true)
 	assert.NoError(t, err)
 
 	numStr := strconv.FormatInt(*res, 10)
@@ -25,7 +25,7 @@ func Test_GenerateIntPhoneNumberPreserveLengthTrue(t *testing.T) {
 
 func Test_GenerateIntPhoneNumberPreserveLengthFalse(t *testing.T) {
 
-	res, err := TransformIntPhoneNumber(testValue, false)
+	res, err := TransformInt64PhoneNumber(testValue, false)
 	assert.NoError(t, err)
 
 	numStr := strconv.FormatInt(*res, 10)
@@ -43,7 +43,7 @@ func Test_GenerateIntPhoneNumberPreserveLengthFunction(t *testing.T) {
 }
 
 func Test_IntPhoneNumberTransformer(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_int_phone(value:%d,preserve_length:true)`, testValue)
+	mapping := fmt.Sprintf(`root = transform_int64_phone_number(value:%d,preserve_length:true)`, testValue)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the int64 phone transformer")
 
@@ -74,7 +74,7 @@ func Test_IntPhoneNumberTransformer(t *testing.T) {
 func Test_TransformIntPhoneTransformerWithEmptyValue(t *testing.T) {
 
 	nilNum := 0
-	mapping := fmt.Sprintf(`root = transform_int_phone(value:%d,preserve_length:true)`, nilNum)
+	mapping := fmt.Sprintf(`root = transform_int64_phone_number(value:%d,preserve_length:true)`, nilNum)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 

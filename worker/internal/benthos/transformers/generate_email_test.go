@@ -11,52 +11,32 @@ import (
 
 func Test_GenerateRandomEmail(t *testing.T) {
 
-	min := int64(3)
-	max := int64(7)
-
-	res, err := GenerateRandomEmail(min, max)
+	res, err := GenerateEmail()
 
 	assert.NoError(t, err)
-	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email format")
-	assert.GreaterOrEqual(t, len(res), min, "the string should be greater than or equal to the min value")
-	assert.LessOrEqual(t, len(res), max, "the string should be less than or equal to the max value")
-
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
 }
 
 func Test_GenerateRandomDomain(t *testing.T) {
 
-	min := int64(3)
-	max := int64(7)
-
-	res, err := GenerateRandomDomain(min, max)
+	res, err := GenerateEmailDomain()
 	assert.NoError(t, err)
 
 	assert.Equal(t, true, transformer_utils.IsValidDomain(res), "The expected email should have a valid domain")
-	assert.GreaterOrEqual(t, len(res), min, "the string should be greater than or equal to the min value")
-	assert.LessOrEqual(t, len(res), max, "the string should be less than or equal to the max value")
 
 }
 
 func Test_GenerateRandomUsername(t *testing.T) {
 
-	min := int64(3)
-	max := int64(7)
-
-	res, err := GenerateRandomUsername(min, max)
+	res, err := GenerateEmailUsername()
 	assert.NoError(t, err)
 
 	assert.Equal(t, true, transformer_utils.IsValidUsername(res), "The expected email should have a valid username")
-	assert.GreaterOrEqual(t, len(res), min, "the string should be greater than or equal to the min value")
-	assert.LessOrEqual(t, len(res), max, "the string should be less than or equal to the max value")
 
 }
 
 func Test_RandomEmailTransformer(t *testing.T) {
-
-	min := int64(3)
-	max := int64(7)
-
-	mapping := fmt.Sprintf(`root = generate_email(min:%d, %d)`, min, max)
+	mapping := `root = generate_email()`
 	ex, err := bloblang.Parse(mapping)
 
 	assert.NoError(t, err, "failed to parse the email transformer")
@@ -64,8 +44,5 @@ func Test_RandomEmailTransformer(t *testing.T) {
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, true, transformer_utils.IsValidEmail(res.(string)), " The expected email should have a valid format")
-	assert.GreaterOrEqual(t, len(res.(string)), min, "the string should be greater than or equal to the min value")
-	assert.LessOrEqual(t, len(res.(string)), max, "the string should be less than or equal to the max value")
-
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res.(string)), "The expected email should have a valid email format")
 }

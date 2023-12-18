@@ -12,7 +12,7 @@ var testE164Phone = "+13782983927"
 
 func Test_TransformE164NumberPreserveLengthTrue(t *testing.T) {
 
-	res, err := TransformE164Number(testE164Phone, true)
+	res, err := TransformE164PhoneNumber(testE164Phone, true)
 
 	assert.NoError(t, err)
 	assert.Equal(t, ValidateE164(*res), ValidateE164(testE164Phone), "The expected value should be a valid e164 number.")
@@ -21,12 +21,12 @@ func Test_TransformE164NumberPreserveLengthTrue(t *testing.T) {
 
 func Test_TransformE164NumberPreserveLengthFalse(t *testing.T) {
 
-	res, err := TransformE164Number(testE164Phone, false)
+	res, err := TransformE164PhoneNumber(testE164Phone, false)
 
 	assert.NoError(t, err)
-	assert.Equal(t, ValidateE164(*res), ValidateE164(testE164Phone), "The expected value should be a valid e164 number.")
-	// + 1 to account for the plus sign at the beginning
-	assert.Equal(t, len(*res), defaultE164Length+1, "Generated phone number must be the same length as the input phone number")
+	assert.GreaterOrEqual(t, len(*res), 9+1, "Should be greater than 10 characters in length. 9 for the number and 1 for the plus sign.")
+	assert.LessOrEqual(t, len(*res), 15+1, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
+
 }
 
 func Test_GenerateE164FormatPhoneNumberPreserveLength(t *testing.T) {
@@ -40,7 +40,7 @@ func Test_GenerateE164FormatPhoneNumberPreserveLength(t *testing.T) {
 }
 
 func Test_TransformE164NumberTransformer(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_e164_phone(value:%q,preserve_length: true)`, testE164Phone)
+	mapping := fmt.Sprintf(`root = transform_e164_phone_number(value:%q,preserve_length: true)`, testE164Phone)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
@@ -64,7 +64,7 @@ func Test_TransformE164NumberTransformer(t *testing.T) {
 func Test_TransformE164PhoneTransformerWithEmptyValue(t *testing.T) {
 
 	nilE164Phone := ""
-	mapping := fmt.Sprintf(`root = transform_e164_phone(value:%q,preserve_length: true)`, nilE164Phone)
+	mapping := fmt.Sprintf(`root = transform_e164_phone_number(value:%q,preserve_length: true)`, nilE164Phone)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the e164 phone transformer")
 

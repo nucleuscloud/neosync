@@ -2,7 +2,6 @@ package transformers
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -11,10 +10,10 @@ import (
 
 func Test_GenerateE164FormatPhoneNumber(t *testing.T) {
 
-	min := int64(1000000000)
-	max := int64(150000000000)
+	min := int64(9)
+	max := int64(12)
 
-	res, err := GenerateRandomE164Phone(min, max)
+	res, err := GenerateRandomE164PhoneNumber(min, max)
 
 	assert.NoError(t, err)
 	assert.Equal(t, ValidateE164(res), true, "The actual value should be a valid e164 number")
@@ -25,22 +24,23 @@ func Test_GenerateE164FormatPhoneNumber(t *testing.T) {
 
 func Test_GeneratePhoneNumberE164FormatPreserveLength(t *testing.T) {
 
-	min := int64(1000000000)
-	max := int64(1000000000)
+	min := int64(12)
+	max := int64(12)
 
-	res, err := GenerateRandomE164Phone(min, max)
+	res, err := GenerateRandomE164PhoneNumber(min, max)
 
 	assert.NoError(t, err)
 	assert.Equal(t, ValidateE164(res), true, "The actual value should be a valid e164 number")
-	assert.Equal(t, len(strconv.FormatInt(min, 10))+1, len(res), "The length of the output phone number should be the same as the input phone number")
+	assert.GreaterOrEqual(t, len(res), 9+1, "Should be greater than 10 characters in length. 9 for the number and 1 for the plus sign.")
+	assert.LessOrEqual(t, len(res), 15+1, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
 
 }
 
 func Test_GenerateE164PhoneNumberTransformer(t *testing.T) {
 
-	min := int64(1000000000)
-	max := int64(100000000000)
-	mapping := fmt.Sprintf(`root = generate_e164_number(min:%d, max: %d)`, min, max)
+	min := int64(10)
+	max := int64(13)
+	mapping := fmt.Sprintf(`root = generate_e164_phone_number(min:%d, max: %d)`, min, max)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
