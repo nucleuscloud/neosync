@@ -35,7 +35,7 @@ func GetAuthHeaderTokenFn(
 func getAuthHeaderToken(ctx context.Context) (string, error) {
 	token, err := getToken(ctx)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("unable to get access token, try running neosync login again or provide an API Key: %w", err)
 	}
 	return fmt.Sprintf("Bearer %s", token), nil
 }

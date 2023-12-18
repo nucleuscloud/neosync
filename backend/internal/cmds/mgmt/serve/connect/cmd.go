@@ -176,6 +176,7 @@ func serve(ctx context.Context) error {
 					mgmtv1alpha1connect.AuthServiceGetAuthorizeUrlProcedure,
 					mgmtv1alpha1connect.AuthServiceGetCliIssuerProcedure,
 					mgmtv1alpha1connect.AuthServiceLoginCliProcedure,
+					mgmtv1alpha1connect.AuthServiceRefreshCliProcedure,
 				},
 			),
 		)
