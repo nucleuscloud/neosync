@@ -21,7 +21,7 @@ import { GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword, MdStart } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
-import { SiGo, SiKubernetes } from 'react-icons/si';
+import { SiGo, SiKubernetes, SiTypescript } from 'react-icons/si';
 import { TbSdk, TbVariable } from 'react-icons/tb';
 
 export function IconHandler(name: string): ReactElement {
@@ -93,6 +93,11 @@ export function IconHandler(name: string): ReactElement {
     case 'Go':
     case 'Golang':
       return <SiGo />;
+    case 'TypeScript':
+    case 'Typescript':
+    case 'ts':
+    case 'TS':
+      return <SiTypescript />;
     case 'Protos':
     case '/mgmt/v1alpha1':
       return <FaFolder />;
