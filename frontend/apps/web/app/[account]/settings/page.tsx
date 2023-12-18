@@ -2,43 +2,26 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
-import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { UserAccountType } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { ReactElement, useEffect } from 'react';
 
-export default function Settings() {
-  const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
-    useGetSystemAppConfig();
+export default function Settings(): ReactElement {
   const { account, isLoading: isAccountLoading } = useAccount();
-
   const router = useRouter();
-
   useEffect(() => {
-    if (isSystemAppConfigDataLoading || isAccountLoading) {
+    if (isAccountLoading) {
       return;
     }
-    if (
-      systemAppConfigData?.isAuthEnabled &&
-      account?.name &&
-      account.type === UserAccountType.TEAM
-    ) {
-      return router.push(`/${account?.name}/settings/members`);
-    } else {
-      return router.push('/personal/settings/temporal');
-    }
-  }, [
-    account?.id,
-    isAccountLoading,
-    systemAppConfigData?.isAuthEnabled,
-    isSystemAppConfigDataLoading,
-  ]);
+    const accountName = account?.name ?? 'personal';
+    return router.push(`/${accountName}/settings/temporal`);
+  }, [account?.name, isAccountLoading]);
+
   return (
     <OverviewContainer
       Header={<PageHeader header="Settings" />}
       containerClassName="settings-page"
     >
-      <div></div>
+      <div />
     </OverviewContainer>
   );
 }
