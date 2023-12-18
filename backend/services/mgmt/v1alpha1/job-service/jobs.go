@@ -14,6 +14,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	aws_s3 "github.com/nucleuscloud/neosync/backend/internal/aws/s3"
+	aws_session "github.com/nucleuscloud/neosync/backend/internal/aws/session"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
@@ -27,8 +29,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
@@ -1286,25 +1286,13 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 	return true, nil
 }
 
-type row struct {
-	key   string
-	value []byte
-}
-
 func (s *Service) GetJobDataStream(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobDataStreamRequest],
 	stream *connect.ServerStream[mgmtv1alpha1.GetJobDataStreamResponse],
 ) error {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("JobId", req.Msg.JobId)
-
-	jobResp, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-		Id: req.Msg.JobId,
-	}))
-	if err != nil {
-		return err
-	}
+	logger = logger.With("JobId", req.Msg.JobId, "connectionId", req.Msg.ConnectionId)
 
 	connectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
@@ -1312,96 +1300,107 @@ func (s *Service) GetJobDataStream(
 	if err != nil {
 		return err
 	}
-
-	job := jobResp.Msg.Job
 	connection := connectionResp.Msg.Connection
+
+	jobResp, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.JobId,
+	}))
+	if err != nil {
+		return err
+	}
+	job := jobResp.Msg.Job
+
 	_, err = s.verifyUserInAccount(ctx, job.AccountId)
 	if err != nil {
 		return err
 	}
 
-	// verify connection is a job destination
 	if !verifyConnectionIsJobDestination(connection.Id, job.Destinations) {
 		return nucleuserrors.NewBadRequest("must provide valid connection id")
 	}
 
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		// handle other auth types
-		sess, err := session.NewSession(&aws.Config{
-			Region:      aws.String(*config.AwsS3Config.Region),
-			Credentials: credentials.NewStaticCredentials(*config.AwsS3Config.Credentials.AccessKeyId, *config.AwsS3Config.Credentials.SecretAccessKey, ""),
-		})
+		sess, err := aws_session.NewSession(config.AwsS3Config)
 		if err != nil {
-			return fmt.Errorf("error creating AWS session: %v", err)
-		}
-
-		svc := s3.New(sess)
-		// how should config look with s3
-		// need to use destination schema to parallelize s3 benthos runs
-		// how to fix cycles
-		//
-		tableName := fmt.Sprintf("%s.%s", req.Msg.Schema, req.Msg.Table)
-		path := fmt.Sprintf("workflows/%s/%s/activities/%s/data", job.Id, "4df1d2de-a163-48ad-b8e7-f2b9e1ae7b1a-2023-12-16T06:21:24Z", tableName)
-		files, err := svc.ListObjectsV2(&s3.ListObjectsV2Input{Bucket: aws.String(config.AwsS3Config.Bucket), Prefix: aws.String(path)})
-		if err != nil {
+			logger.Error("unable to create AWS session")
 			return err
 		}
+		logger.Info("created AWS session")
 
-		if len(files.Contents) == 0 {
-			return fmt.Errorf("no files found")
-		}
-
-		for _, item := range files.Contents {
-			result, err := svc.GetObject(&s3.GetObjectInput{
-				Bucket: aws.String(config.AwsS3Config.Bucket),
-				Key:    aws.String(*item.Key),
+		svc := s3.New(sess)
+		tableName := fmt.Sprintf("%s.%s", req.Msg.Schema, req.Msg.Table)
+		path := fmt.Sprintf("workflows/%s/%s/activities/%s/data", job.Id, req.Msg.JobRunId, tableName)
+		var pageToken *string
+		for {
+			var output *s3.ListObjectsV2Output
+			output, err = svc.ListObjectsV2(&s3.ListObjectsV2Input{
+				Bucket:            aws.String(config.AwsS3Config.Bucket),
+				Prefix:            aws.String(path),
+				ContinuationToken: pageToken,
 			})
-			if err != nil {
-				return fmt.Errorf("error getting object from S3: %w", err)
+			if err != nil && !aws_s3.IsNotFound(err) {
+				return err
 			}
-
-			gzr, err := gzip.NewReader(result.Body)
-			if err != nil {
-				result.Body.Close()
-				return fmt.Errorf("error creating gzip reader: %w", err)
+			if err != nil || *output.KeyCount == 0 {
+				break
 			}
-
-			scanner := bufio.NewScanner(gzr)
-			for scanner.Scan() {
-				line := scanner.Bytes()
-				var data map[string]interface{} // nolint
-				err = json.Unmarshal(line, &data)
+			for _, item := range output.Contents {
+				result, err := svc.GetObject(&s3.GetObjectInput{
+					Bucket: aws.String(config.AwsS3Config.Bucket),
+					Key:    aws.String(*item.Key),
+				})
 				if err != nil {
-					result.Body.Close()
-					gzr.Close()
-					return err
+					return fmt.Errorf("error getting object from S3: %w", err)
 				}
 
-				rowMap := make(map[string][]byte)
-				for key, value := range data {
-					byteValue, err := json.Marshal(value)
+				gzr, err := gzip.NewReader(result.Body)
+				if err != nil {
+					result.Body.Close()
+					return fmt.Errorf("error creating gzip reader: %w", err)
+				}
+
+				scanner := bufio.NewScanner(gzr)
+				for scanner.Scan() {
+					line := scanner.Bytes()
+					var data map[string]interface{} // nolint
+					err = json.Unmarshal(line, &data)
 					if err != nil {
 						result.Body.Close()
 						gzr.Close()
 						return err
 					}
-					rowMap[key] = byteValue
+
+					rowMap := make(map[string][]byte)
+					for key, value := range data {
+						byteValue, err := json.Marshal(value)
+						if err != nil {
+							result.Body.Close()
+							gzr.Close()
+							return err
+						}
+						rowMap[key] = byteValue
+					}
+					if err := stream.Send(&mgmtv1alpha1.GetJobDataStreamResponse{Row: rowMap}); err != nil {
+						result.Body.Close()
+						gzr.Close()
+						return err
+					}
+
 				}
-				if err := stream.Send(&mgmtv1alpha1.GetJobDataStreamResponse{Row: rowMap}); err != nil {
+				if err := scanner.Err(); err != nil {
 					result.Body.Close()
 					gzr.Close()
 					return err
 				}
-
-			}
-			if err := scanner.Err(); err != nil {
 				result.Body.Close()
 				gzr.Close()
-				return err
 			}
-			result.Body.Close()
-			gzr.Close()
+			if *output.IsTruncated {
+				pageToken = output.NextContinuationToken
+				continue
+			}
+			break
 		}
 
 	default:

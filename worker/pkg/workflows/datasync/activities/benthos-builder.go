@@ -553,7 +553,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						MaxInFlight: 64,
 						Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
 						Batching: &neosync_benthos.Batching{
-							Count:  100,
+							Count:  2,
 							Period: "1s",
 							Processors: []*neosync_benthos.BatchProcessor{
 								{Archive: &neosync_benthos.ArchiveProcessor{Format: "lines"}},

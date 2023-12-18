@@ -2384,6 +2384,80 @@ export class GetJobRunResponse extends Message<GetJobRunResponse> {
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.GetLatestJobRunRequest
+ */
+export class GetLatestJobRunRequest extends Message<GetLatestJobRunRequest> {
+  /**
+   * @generated from field: string job_id = 1;
+   */
+  jobId = "";
+
+  constructor(data?: PartialMessage<GetLatestJobRunRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetLatestJobRunRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetLatestJobRunRequest {
+    return new GetLatestJobRunRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetLatestJobRunRequest {
+    return new GetLatestJobRunRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetLatestJobRunRequest {
+    return new GetLatestJobRunRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetLatestJobRunRequest | PlainMessage<GetLatestJobRunRequest> | undefined, b: GetLatestJobRunRequest | PlainMessage<GetLatestJobRunRequest> | undefined): boolean {
+    return proto3.util.equals(GetLatestJobRunRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetLatestJobRunResponse
+ */
+export class GetLatestJobRunResponse extends Message<GetLatestJobRunResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.JobRun job_run = 1;
+   */
+  jobRun?: JobRun;
+
+  constructor(data?: PartialMessage<GetLatestJobRunResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetLatestJobRunResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_run", kind: "message", T: JobRun },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetLatestJobRunResponse {
+    return new GetLatestJobRunResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetLatestJobRunResponse {
+    return new GetLatestJobRunResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetLatestJobRunResponse {
+    return new GetLatestJobRunResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetLatestJobRunResponse | PlainMessage<GetLatestJobRunResponse> | undefined, b: GetLatestJobRunResponse | PlainMessage<GetLatestJobRunResponse> | undefined): boolean {
+    return proto3.util.equals(GetLatestJobRunResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.CreateJobRunRequest
  */
 export class CreateJobRunRequest extends Message<CreateJobRunRequest> {
@@ -3142,12 +3216,17 @@ export class GetJobDataStreamRequest extends Message<GetJobDataStreamRequest> {
   connectionId = "";
 
   /**
-   * @generated from field: string schema = 3;
+   * @generated from field: string job_run_id = 3;
+   */
+  jobRunId = "";
+
+  /**
+   * @generated from field: string schema = 4;
    */
   schema = "";
 
   /**
-   * @generated from field: string table = 4;
+   * @generated from field: string table = 5;
    */
   table = "";
 
@@ -3161,8 +3240,9 @@ export class GetJobDataStreamRequest extends Message<GetJobDataStreamRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobDataStreamRequest {

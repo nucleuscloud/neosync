@@ -257,6 +257,13 @@ message GetJobRunResponse {
   JobRun job_run = 1;
 }
 
+message GetLatestJobRunRequest {
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetLatestJobRunResponse {
+  JobRun job_run = 1;
+}
+
 message CreateJobRunRequest {
   string job_id = 1;
 }
@@ -351,8 +358,9 @@ message PendingActivity {
 message GetJobDataStreamRequest {
   string job_id = 1 [(buf.validate.field).string.uuid = true];
   string connection_id = 2 [(buf.validate.field).string.uuid = true];
-  string schema = 3;
-  string table = 4;
+  string job_run_id = 3 [(buf.validate.field).string.min_len = 1];
+  string schema = 4;
+  string table = 5;
 }
 
 // Each stream response is a single row in the requested schema and table
@@ -456,6 +464,7 @@ service JobService {
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}
+  rpc GetLatestJobRun(GetLatestJobRunRequest) returns (GetLatestJobRunResponse) {}
   rpc DeleteJobRun(DeleteJobRunRequest) returns (DeleteJobRunResponse) {}
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
   rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}

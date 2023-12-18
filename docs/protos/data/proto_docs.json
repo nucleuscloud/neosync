@@ -5223,6 +5223,18 @@
               "defaultValue": ""
             },
             {
+              "name": "job_run_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
               "name": "schema",
               "description": "",
               "label": "",
@@ -5781,6 +5793,54 @@
               "type": "Job",
               "longType": "Job",
               "fullType": "mgmt.v1alpha1.Job",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetLatestJobRunRequest",
+          "longName": "GetLatestJobRunRequest",
+          "fullName": "mgmt.v1alpha1.GetLatestJobRunRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetLatestJobRunResponse",
+          "longName": "GetLatestJobRunResponse",
+          "fullName": "mgmt.v1alpha1.GetLatestJobRunResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_run",
+              "description": "",
+              "label": "",
+              "type": "JobRun",
+              "longType": "JobRun",
+              "fullType": "mgmt.v1alpha1.JobRun",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -7798,6 +7858,18 @@
               "responseType": "GetJobRunResponse",
               "responseLongType": "GetJobRunResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobRunResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetLatestJobRun",
+              "description": "",
+              "requestType": "GetLatestJobRunRequest",
+              "requestLongType": "GetLatestJobRunRequest",
+              "requestFullType": "mgmt.v1alpha1.GetLatestJobRunRequest",
+              "requestStreaming": false,
+              "responseType": "GetLatestJobRunResponse",
+              "responseLongType": "GetLatestJobRunResponse",
+              "responseFullType": "mgmt.v1alpha1.GetLatestJobRunResponse",
               "responseStreaming": false
             },
             {
