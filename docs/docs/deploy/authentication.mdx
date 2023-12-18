@@ -45,6 +45,10 @@ In Auth0's case, this client should be a service account.
 
 If using Auth0, the required scope for the `Auth0 Management API` is `read:users`.
 
+#### How to Authenticate against the API
+
+The API expects the standard `Authorization` header to come in via the HTTP request. The format should be `Bearer <token>`. This is true for both API Keys as well as user JWTs.
+
 ### APP Auth Configuration
 
 The app requires a bit more configuration since there is also session management that occurs with the help of `next-auth`.
