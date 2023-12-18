@@ -170,31 +170,44 @@ export class GetAuthStatusResponse extends Message<GetAuthStatusResponse> {
  */
 export class AccessToken extends Message<AccessToken> {
   /**
+   * The access token that will be provided in subsequent requests to provide authenticated access to the Api
+   *
    * @generated from field: string access_token = 1;
    */
   accessToken = "";
 
   /**
+   * Token that can be used to retrieve a refreshed access token.
+   * Will not be provided if the offline_access scope is not provided in the initial login flow.
+   *
    * @generated from field: optional string refresh_token = 2;
    */
   refreshToken?: string;
 
   /**
+   * Relative time in seconds that the access token will expire. Combine with the current time to get the expires_at time.
+   *
    * @generated from field: int64 expires_in = 3;
    */
   expiresIn = protoInt64.zero;
 
   /**
+   * The scopes that the access token have
+   *
    * @generated from field: string scope = 4;
    */
   scope = "";
 
   /**
+   * The identity token of the authenticated user
+   *
    * @generated from field: optional string id_token = 5;
    */
   idToken?: string;
 
   /**
+   * The token type. For JWTs, this will be `Bearer`
+   *
    * @generated from field: string token_type = 6;
    */
   tokenType = "";
@@ -401,6 +414,84 @@ export class GetCliIssuerResponse extends Message<GetCliIssuerResponse> {
 
   static equals(a: GetCliIssuerResponse | PlainMessage<GetCliIssuerResponse> | undefined, b: GetCliIssuerResponse | PlainMessage<GetCliIssuerResponse> | undefined): boolean {
     return proto3.util.equals(GetCliIssuerResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RefreshCliRequest
+ */
+export class RefreshCliRequest extends Message<RefreshCliRequest> {
+  /**
+   * The token used to retrieve a new access token.
+   *
+   * @generated from field: string refresh_token = 1;
+   */
+  refreshToken = "";
+
+  constructor(data?: PartialMessage<RefreshCliRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RefreshCliRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "refresh_token", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RefreshCliRequest {
+    return new RefreshCliRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RefreshCliRequest {
+    return new RefreshCliRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RefreshCliRequest {
+    return new RefreshCliRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RefreshCliRequest | PlainMessage<RefreshCliRequest> | undefined, b: RefreshCliRequest | PlainMessage<RefreshCliRequest> | undefined): boolean {
+    return proto3.util.equals(RefreshCliRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.RefreshCliResponse
+ */
+export class RefreshCliResponse extends Message<RefreshCliResponse> {
+  /**
+   * The access token that is returned on successful refresh
+   *
+   * @generated from field: mgmt.v1alpha1.AccessToken access_token = 1;
+   */
+  accessToken?: AccessToken;
+
+  constructor(data?: PartialMessage<RefreshCliResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RefreshCliResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "access_token", kind: "message", T: AccessToken },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RefreshCliResponse {
+    return new RefreshCliResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RefreshCliResponse {
+    return new RefreshCliResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RefreshCliResponse {
+    return new RefreshCliResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RefreshCliResponse | PlainMessage<RefreshCliResponse> | undefined, b: RefreshCliResponse | PlainMessage<RefreshCliResponse> | undefined): boolean {
+    return proto3.util.equals(RefreshCliResponse, a, b);
   }
 }
 
