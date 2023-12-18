@@ -117,17 +117,3 @@ func (s *Service) GetCliIssuer(
 		IssuerUrl: s.cfg.IssuerUrl,
 	}), nil
 }
-
-// func (s *Service) GetAccessToken(
-// 	ctx context.Context,
-// 	req *connect.Request[mgmtv1alpha1.GetAccessTokenRequest],
-// ) (*connect.Response[mgmtv1alpha1.GetAccessTokenResponse], error) {
-// 	return nil, nucleuserrors.NewNotImplemented("method is not yet implemented")
-// }
-
-// func (s *Service) RefreshAccessToken(
-// 	ctx context.Context,
-// 	req *connect.Request[mgmtv1alpha1.RefreshAccessTokenRequest],
-// ) (*connect.Response[mgmtv1alpha1.RefreshAccessTokenResponse], error) {
-// 	return nil, nucleuserrors.NewNotImplemented("method is not yet implemented")
-// }
