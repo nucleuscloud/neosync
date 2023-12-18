@@ -111,7 +111,7 @@ func Test_GenerateRandomIntRandomSign(t *testing.T) {
 	max := int64(9)
 	randomizeSign := false
 
-	mapping := fmt.Sprintf(`root = generate_int(randomize_sign:%t, min:%d, max:%d)`, randomizeSign, min, max)
+	mapping := fmt.Sprintf(`root = generate_int64(randomize_sign:%t, min:%d, max:%d)`, randomizeSign, min, max)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 

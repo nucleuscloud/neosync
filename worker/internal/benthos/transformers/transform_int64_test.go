@@ -40,7 +40,7 @@ func Test_TransformIntPhoneTransformerWithNilValue(t *testing.T) {
 	rMin := int64(22)
 	rMax := int64(29)
 
-	mapping := fmt.Sprintf(`root = transform_int(value:%d, randomization_range_min:%d,randomization_range_max: %d)`, val, rMin, rMax)
+	mapping := fmt.Sprintf(`root = transform_int64(value:%d, randomization_range_min:%d,randomization_range_max: %d)`, val, rMin, rMax)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
