@@ -501,7 +501,7 @@
           "fields": [
             {
               "name": "access_token",
-              "description": "",
+              "description": "The access token that will be provided in subsequent requests to provide authenticated access to the Api",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -513,7 +513,7 @@
             },
             {
               "name": "refresh_token",
-              "description": "",
+              "description": "Token that can be used to retrieve a refreshed access token.\nWill not be provided if the offline_access scope is not provided in the initial login flow.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -525,7 +525,7 @@
             },
             {
               "name": "expires_in",
-              "description": "",
+              "description": "Relative time in seconds that the access token will expire. Combine with the current time to get the expires_at time.",
               "label": "",
               "type": "int64",
               "longType": "int64",
@@ -537,7 +537,7 @@
             },
             {
               "name": "scope",
-              "description": "",
+              "description": "The scopes that the access token have",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -549,7 +549,7 @@
             },
             {
               "name": "id_token",
-              "description": "",
+              "description": "The identity token of the authenticated user",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -561,7 +561,7 @@
             },
             {
               "name": "token_type",
-              "description": "",
+              "description": "The token type. For JWTs, this will be `Bearer`",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -786,6 +786,54 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "RefreshCliRequest",
+          "longName": "RefreshCliRequest",
+          "fullName": "mgmt.v1alpha1.RefreshCliRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "refresh_token",
+              "description": "The token used to retrieve a new access token.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "RefreshCliResponse",
+          "longName": "RefreshCliResponse",
+          "fullName": "mgmt.v1alpha1.RefreshCliResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "access_token",
+              "description": "The access token that is returned on successful refresh",
+              "label": "",
+              "type": "AccessToken",
+              "longType": "AccessToken",
+              "fullType": "mgmt.v1alpha1.AccessToken",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         }
       ],
       "services": [
@@ -805,6 +853,18 @@
               "responseType": "LoginCliResponse",
               "responseLongType": "LoginCliResponse",
               "responseFullType": "mgmt.v1alpha1.LoginCliResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "RefreshCli",
+              "description": "Used by the CLI to refresh an expired Neosync accesss token.\nThis should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.",
+              "requestType": "RefreshCliRequest",
+              "requestLongType": "RefreshCliRequest",
+              "requestFullType": "mgmt.v1alpha1.RefreshCliRequest",
+              "requestStreaming": false,
+              "responseType": "RefreshCliResponse",
+              "responseLongType": "RefreshCliResponse",
+              "responseFullType": "mgmt.v1alpha1.RefreshCliResponse",
               "responseStreaming": false
             },
             {

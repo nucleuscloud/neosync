@@ -66,6 +66,7 @@ func getToken(ctx context.Context) (string, error) {
 		slog.Info("access token is no longer valid. attempting to refresh...")
 		refreshtoken, err := userconfig.GetRefreshToken()
 		if err != nil {
+			slog.Info("unable to find refresh token")
 			return "", err
 		}
 		_ = refreshtoken
