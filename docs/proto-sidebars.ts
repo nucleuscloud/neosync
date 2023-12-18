@@ -11,6 +11,7 @@ const protodocs = protosidebar.protodocs.map((item) => {
 const all = [
   { type: 'doc', label: 'Introduction', id: 'home' },
   { type: 'doc', label: 'Go', id: 'go' },
+  { type: 'doc', label: 'Typescript', id: 'typescript' },
   ...protodocs,
 ];
 
