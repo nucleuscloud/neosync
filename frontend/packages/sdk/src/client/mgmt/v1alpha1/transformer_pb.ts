@@ -787,10 +787,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "generateGenderConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateInt64Phone generate_int64_phone_config = 12;
+     * @generated from field: mgmt.v1alpha1.GenerateInt64PhoneNumber generate_int64_phone_number_config = 12;
      */
-    value: GenerateInt64Phone;
-    case: "generateInt64PhoneConfig";
+    value: GenerateInt64PhoneNumber;
+    case: "generateInt64PhoneNumberConfig";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.GenerateInt64 generate_int64_config = 13;
@@ -968,7 +968,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 9, name: "generate_full_address_config", kind: "message", T: GenerateFullAddress, oneof: "config" },
     { no: 10, name: "generate_full_name_config", kind: "message", T: GenerateFullName, oneof: "config" },
     { no: 11, name: "generate_gender_config", kind: "message", T: GenerateGender, oneof: "config" },
-    { no: 12, name: "generate_int64_phone_config", kind: "message", T: GenerateInt64Phone, oneof: "config" },
+    { no: 12, name: "generate_int64_phone_number_config", kind: "message", T: GenerateInt64PhoneNumber, oneof: "config" },
     { no: 13, name: "generate_int64_config", kind: "message", T: GenerateInt64, oneof: "config" },
     { no: 14, name: "generate_last_name_config", kind: "message", T: GenerateLastName, oneof: "config" },
     { no: 15, name: "generate_sha256hash_config", kind: "message", T: GenerateSha256Hash, oneof: "config" },
@@ -1441,33 +1441,33 @@ export class GenerateGender extends Message<GenerateGender> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GenerateInt64Phone
+ * @generated from message mgmt.v1alpha1.GenerateInt64PhoneNumber
  */
-export class GenerateInt64Phone extends Message<GenerateInt64Phone> {
-  constructor(data?: PartialMessage<GenerateInt64Phone>) {
+export class GenerateInt64PhoneNumber extends Message<GenerateInt64PhoneNumber> {
+  constructor(data?: PartialMessage<GenerateInt64PhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateInt64Phone";
+  static readonly typeName = "mgmt.v1alpha1.GenerateInt64PhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateInt64Phone {
-    return new GenerateInt64Phone().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateInt64PhoneNumber {
+    return new GenerateInt64PhoneNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateInt64Phone {
-    return new GenerateInt64Phone().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateInt64PhoneNumber {
+    return new GenerateInt64PhoneNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateInt64Phone {
-    return new GenerateInt64Phone().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateInt64PhoneNumber {
+    return new GenerateInt64PhoneNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GenerateInt64Phone | PlainMessage<GenerateInt64Phone> | undefined, b: GenerateInt64Phone | PlainMessage<GenerateInt64Phone> | undefined): boolean {
-    return proto3.util.equals(GenerateInt64Phone, a, b);
+  static equals(a: GenerateInt64PhoneNumber | PlainMessage<GenerateInt64PhoneNumber> | undefined, b: GenerateInt64PhoneNumber | PlainMessage<GenerateInt64PhoneNumber> | undefined): boolean {
+    return proto3.util.equals(GenerateInt64PhoneNumber, a, b);
   }
 }
 

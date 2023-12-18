@@ -101,7 +101,7 @@ message TransformerConfig {
     GenerateFullAddress generate_full_address_config = 9;
     GenerateFullName generate_full_name_config = 10;
     GenerateGender generate_gender_config = 11;
-    GenerateInt64Phone generate_int64_phone_config = 12;
+    GenerateInt64PhoneNumber generate_int64_phone_number_config = 12;
     GenerateInt64 generate_int64_config = 13;
     GenerateLastName generate_last_name_config = 14;
     GenerateSha256Hash generate_sha256hash_config = 15;
@@ -169,7 +169,7 @@ message GenerateGender {
   bool abbreviate = 1;
 }
 
-message GenerateInt64Phone {}
+message GenerateInt64PhoneNumber {}
 
 message GenerateInt64 {
   bool randomize_sign = 1;

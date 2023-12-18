@@ -2940,9 +2940,9 @@
           ]
         },
         {
-          "name": "GenerateInt64Phone",
-          "longName": "GenerateInt64Phone",
-          "fullName": "mgmt.v1alpha1.GenerateInt64Phone",
+          "name": "GenerateInt64PhoneNumber",
+          "longName": "GenerateInt64PhoneNumber",
+          "fullName": "mgmt.v1alpha1.GenerateInt64PhoneNumber",
           "description": "",
           "hasExtensions": false,
           "hasFields": false,
@@ -3849,12 +3849,12 @@
               "defaultValue": ""
             },
             {
-              "name": "generate_int64_phone_config",
+              "name": "generate_int64_phone_number_config",
               "description": "",
               "label": "",
-              "type": "GenerateInt64Phone",
-              "longType": "GenerateInt64Phone",
-              "fullType": "mgmt.v1alpha1.GenerateInt64Phone",
+              "type": "GenerateInt64PhoneNumber",
+              "longType": "GenerateInt64PhoneNumber",
+              "fullType": "mgmt.v1alpha1.GenerateInt64PhoneNumber",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

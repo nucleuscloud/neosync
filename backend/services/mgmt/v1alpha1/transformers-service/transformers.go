@@ -28,7 +28,7 @@ const (
 	GenerateFullAddress       Transformation = "generate_full_address"
 	GenerateFullName          Transformation = "generate_full_name"
 	GenerateGender            Transformation = "generate_gender"
-	GenerateInt64Phone        Transformation = "generate_int64_phone"
+	GenerateInt64PhoneNumber  Transformation = "generate_int64_phone_number"
 	GenerateInt64             Transformation = "generate_int64"
 	GenerateLastName          Transformation = "generate_last_name"
 	GenerateShaHash256        Transformation = "generate_sha256hash"
@@ -214,10 +214,10 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Generate int64 Phone Number",
 				Description: "Generates a new phone number of type int64 with a default length of 10.",
 				DataType:    "int64",
-				Source:      string(GenerateInt64Phone),
+				Source:      string(GenerateInt64PhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig{
-						GenerateInt64PhoneConfig: &mgmtv1alpha1.GenerateInt64Phone{},
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
+						GenerateInt64PhoneNumberConfig: &mgmtv1alpha1.GenerateInt64PhoneNumber{},
 					},
 				},
 			},
