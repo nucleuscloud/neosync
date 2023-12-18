@@ -16,13 +16,18 @@ Neosync, like many web services these days, is a full-fledged API. Check out the
 All of our APIs are generated from Protobuf files. For this reason, a client can easily be generated in any of the many supported languages.
 Internally, we make great use of the Go SDK as well as the TypeScript SDK.
 
-## Generating a client
+## Clients
 
 ### Go
 
-The Go SDK can be easily generated, or the SDK that is committed to the Neosync repo may be freely imported and utilized.
-See the [Go SDK](./go.mdx) page for more information on how to do this.
+The Go SDK that is committed to the Neosync repo may be freely imported and utilized.
+See the [Go SDK](./go.mdx) page for more information on how to use the SDK.
 
-### Other languages
+All of the generated code lives [here](https://github.com/nucleuscloud/neosync/tree/main/backend/gen/go/protos/mgmt/v1alpha1).
 
-We are working on publishing Neosync SDKs in a few other languages, but as the Neosync protos are public, they can be downloaded separately and used to generate a client in the chosen language using `protoc` or `buf`.
+### TypeScript
+
+The TypeScript SDK is published to the `npm` registry. It is generated from Neosync protos and is used by the Neosync App.
+See the [TS SDK](./typescript.mdx) page for more information on how to use the SDK.
+
+All of the generated code lives [here](https://github.com/nucleuscloud/neosync/tree/main/frontend/packages/sdk).
