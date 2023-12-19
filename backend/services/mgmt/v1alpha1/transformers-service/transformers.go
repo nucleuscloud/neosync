@@ -168,7 +168,7 @@ func (s *Service) GetSystemTransformers(
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 						GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
-							RandomizeSign: true,
+							RandomizeSign: false,
 							Min:           1.00,
 							Max:           100.00,
 						},
@@ -211,8 +211,8 @@ func (s *Service) GetSystemTransformers(
 				},
 			},
 			{
-				Name:        "Generate int64 Phone Number",
-				Description: "Generates a new phone number of type int64 with a default length of 10.",
+				Name:        "Generate Int64 Phone Number",
+				Description: "Generates a new phone number with a default length of 10.",
 				DataType:    "int64",
 				Source:      string(GenerateInt64PhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -228,7 +228,7 @@ func (s *Service) GetSystemTransformers(
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 						GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
-							RandomizeSign: true,
+							RandomizeSign: false,
 							Min:           1,
 							Max:           4,
 						},

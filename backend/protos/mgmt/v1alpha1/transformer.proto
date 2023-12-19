@@ -79,11 +79,11 @@ message UserDefinedTransformer {
 }
 
 message SystemTransformer {
-  string name = 2;
-  string description = 3;
-  string data_type = 5;
-  string source = 6;
-  TransformerConfig config = 7;
+  string name = 1;
+  string description = 2;
+  string data_type = 3;
+  string source = 4;
+  TransformerConfig config = 5;
 }
 
 message TransformerConfig {
