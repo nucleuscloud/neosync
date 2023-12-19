@@ -28,7 +28,7 @@ export default function UserDefinedGenerateUuidForm(
         control={fc.control}
         disabled={isDisabled}
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Include hyphens</FormLabel>
               <FormDescription className="w-[90%]">

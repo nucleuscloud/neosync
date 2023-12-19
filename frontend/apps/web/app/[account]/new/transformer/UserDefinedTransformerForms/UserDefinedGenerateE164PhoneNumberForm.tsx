@@ -28,7 +28,7 @@ export default function UserDefinedGenerateE164NumberForm(
         name={`config.config.value.min`}
         control={fc.control}
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Minimum Length</FormLabel>
               <FormDescription>
@@ -62,7 +62,7 @@ export default function UserDefinedGenerateE164NumberForm(
         name={`config.config.value.max`}
         control={fc.control}
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5 ">
               <FormLabel>Maximum Length</FormLabel>
               <FormDescription>

@@ -53,6 +53,12 @@ module.exports = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+          border: 'hsl(var(--card-border))',
+        },
+        badge: {
+          DEFAULT: 'hsl(var(--badge))',
+          foreground: 'hsl(var(--badge-foreground))',
+          border: 'hsl(var(--badge-border))',
         },
       },
       borderRadius: {
