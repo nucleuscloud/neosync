@@ -3611,3 +3611,77 @@ export class DeleteJobRunResponse extends Message<DeleteJobRunResponse> {
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.TerminateJobRunRequest
+ */
+export class TerminateJobRunRequest extends Message<TerminateJobRunRequest> {
+  /**
+   * @generated from field: string job_run_id = 1;
+   */
+  jobRunId = "";
+
+  /**
+   * @generated from field: string account_id = 2;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<TerminateJobRunRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.TerminateJobRunRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TerminateJobRunRequest {
+    return new TerminateJobRunRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TerminateJobRunRequest {
+    return new TerminateJobRunRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TerminateJobRunRequest {
+    return new TerminateJobRunRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TerminateJobRunRequest | PlainMessage<TerminateJobRunRequest> | undefined, b: TerminateJobRunRequest | PlainMessage<TerminateJobRunRequest> | undefined): boolean {
+    return proto3.util.equals(TerminateJobRunRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.TerminateJobRunResponse
+ */
+export class TerminateJobRunResponse extends Message<TerminateJobRunResponse> {
+  constructor(data?: PartialMessage<TerminateJobRunResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.TerminateJobRunResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TerminateJobRunResponse {
+    return new TerminateJobRunResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TerminateJobRunResponse {
+    return new TerminateJobRunResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TerminateJobRunResponse {
+    return new TerminateJobRunResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TerminateJobRunResponse | PlainMessage<TerminateJobRunResponse> | undefined, b: TerminateJobRunResponse | PlainMessage<TerminateJobRunResponse> | undefined): boolean {
+    return proto3.util.equals(TerminateJobRunResponse, a, b);
+  }
+}
+

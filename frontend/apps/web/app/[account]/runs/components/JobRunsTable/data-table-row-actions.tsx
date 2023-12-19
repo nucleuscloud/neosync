@@ -3,6 +3,8 @@
 import { Cross2Icon, DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
+import ConfirmationDialog from '@/components/ConfirmationDialog';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,11 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { JobRun } from '@neosync/sdk';
+import { JobRun, JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
-import ConfirmationDialog from '@/components/ConfirmationDialog';
-import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -70,6 +69,23 @@ export function DataTableRowActions<TData>({
     }
   }
 
+  async function onTerminate(): Promise<void> {
+    try {
+      await terminateJobRun(run.id, accountId);
+      toast({
+        title: 'Job run terminated successfully!',
+      });
+      onDeleted();
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to terminate job run',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -89,29 +105,46 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <ConfirmationDialog
-          trigger={
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onSelect={(e) => e.preventDefault()}
-              disabled={
-                !(
-                  run.status == JobRunStatusEnum.RUNNING ||
-                  run.status == JobRunStatusEnum.PENDING
-                )
+        {(run.status == JobRunStatusEnum.RUNNING ||
+          run.status == JobRunStatusEnum.PENDING) && (
+          <div>
+            <ConfirmationDialog
+              trigger={
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  Cancel
+                </DropdownMenuItem>
               }
-            >
-              Cancel
-            </DropdownMenuItem>
-          }
-          headerText="Are you sure you want to cancel this job run?"
-          description=""
-          onConfirm={async () => onCancel()}
-          buttonText="Cancel"
-          buttonVariant="default"
-          buttonIcon={<Cross2Icon />}
-        />
-        <DropdownMenuSeparator />
+              headerText="Are you sure you want to cancel this job run?"
+              description=""
+              onConfirm={async () => onCancel()}
+              buttonText="Cancel"
+              buttonVariant="default"
+              buttonIcon={<Cross2Icon />}
+            />
+            <DropdownMenuSeparator />
+            <ConfirmationDialog
+              trigger={
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  Terminate
+                </DropdownMenuItem>
+              }
+              headerText="Are you sure you want to terminate this job run?"
+              description=""
+              onConfirm={async () => onTerminate()}
+              buttonText="Terminate"
+              buttonVariant="default"
+              buttonIcon={<Cross2Icon />}
+            />
+            <DropdownMenuSeparator />
+          </div>
+        )}
+
         <DeleteConfirmationDialog
           trigger={
             <DropdownMenuItem
@@ -150,6 +183,23 @@ async function cancelJobRun(
 ): Promise<void> {
   const res = await fetch(
     `/api/accounts/${accountId}/runs/${jobRunId}/cancel`,
+    {
+      method: 'PUT',
+    }
+  );
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  await res.json();
+}
+
+async function terminateJobRun(
+  jobRunId: string,
+  accountId: string
+): Promise<void> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/runs/${jobRunId}/terminate`,
     {
       method: 'PUT',
     }

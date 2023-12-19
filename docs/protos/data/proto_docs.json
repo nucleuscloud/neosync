@@ -7290,6 +7290,53 @@
           ]
         },
         {
+          "name": "TerminateJobRunRequest",
+          "longName": "TerminateJobRunRequest",
+          "fullName": "mgmt.v1alpha1.TerminateJobRunRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_run_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TerminateJobRunResponse",
+          "longName": "TerminateJobRunResponse",
+          "fullName": "mgmt.v1alpha1.TerminateJobRunResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "UpdateJobDestinationConnectionRequest",
           "longName": "UpdateJobDestinationConnectionRequest",
           "fullName": "mgmt.v1alpha1.UpdateJobDestinationConnectionRequest",
@@ -7775,6 +7822,18 @@
               "responseType": "CancelJobRunResponse",
               "responseLongType": "CancelJobRunResponse",
               "responseFullType": "mgmt.v1alpha1.CancelJobRunResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "TerminateJobRun",
+              "description": "",
+              "requestType": "TerminateJobRunRequest",
+              "requestLongType": "TerminateJobRunRequest",
+              "requestFullType": "mgmt.v1alpha1.TerminateJobRunRequest",
+              "requestStreaming": false,
+              "responseType": "TerminateJobRunResponse",
+              "responseLongType": "TerminateJobRunResponse",
+              "responseFullType": "mgmt.v1alpha1.TerminateJobRunResponse",
               "responseStreaming": false
             }
           ]
