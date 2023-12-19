@@ -419,6 +419,12 @@ message DeleteJobRunRequest {
 }
 message DeleteJobRunResponse {}
 
+message TerminateJobRunRequest {
+  string job_run_id = 1;
+  string account_id = 2 [(buf.validate.field).string.uuid = true];
+}
+message TerminateJobRunResponse {}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -443,4 +449,5 @@ service JobService {
   rpc DeleteJobRun(DeleteJobRunRequest) returns (DeleteJobRunResponse) {}
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
   rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}
+  rpc TerminateJobRun(TerminateJobRunRequest) returns (TerminateJobRunResponse) {}
 }
