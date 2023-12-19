@@ -47,7 +47,7 @@ import {
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { SchemaMap, getColumnMapping } from './DataSyncConnectionCard';
 import { getFkIdFromGenerateSource } from './util';
@@ -66,8 +66,21 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     isLoading: isJobLoading,
   } = useGetJob(account?.id ?? '', jobId);
   const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
-  const { data: schema, isLoading: isGetConnectionsSchemaLoading } =
-    useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
+  const {
+    data: schema,
+    isLoading: isGetConnectionsSchemaLoading,
+    error,
+  } = useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Unable to get connection schema',
+        description: getErrorMessage(error),
+        variant: 'destructive',
+      });
+    }
+  }, [error]);
 
   const allJobMappings =
     schema?.schemas.map((r) => {
