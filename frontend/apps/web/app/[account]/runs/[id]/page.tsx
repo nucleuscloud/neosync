@@ -101,7 +101,8 @@ export default function Page({ params }: PageProps): ReactElement {
                 description=""
                 onConfirm={async () => onDelete()}
               />
-              {jobRun?.status == JobRunStatusEnum.RUNNING && (
+              {(jobRun?.status == JobRunStatusEnum.RUNNING ||
+                jobRun?.status == JobRunStatusEnum.PENDING) && (
                 <ConfirmationDialog
                   trigger={
                     <Button>
