@@ -25,6 +25,7 @@ import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
+import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 
 export default function Page({ params }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -100,19 +101,21 @@ export default function Page({ params }: PageProps): ReactElement {
                 description=""
                 onConfirm={async () => onDelete()}
               />
-              <ConfirmationDialog
-                trigger={
-                  <Button>
-                    <ButtonText leftIcon={<Cross2Icon />} text="Cancel Run" />
-                  </Button>
-                }
-                headerText="Are you sure you want to cancel this job run?"
-                description=""
-                onConfirm={async () => onCancel()}
-                buttonText="Cancel"
-                buttonVariant="default"
-                buttonIcon={<Cross2Icon />}
-              />
+              {jobRun?.status == JobRunStatusEnum.RUNNING && (
+                <ConfirmationDialog
+                  trigger={
+                    <Button>
+                      <ButtonText leftIcon={<Cross2Icon />} text="Cancel Run" />
+                    </Button>
+                  }
+                  headerText="Are you sure you want to cancel this job run?"
+                  description=""
+                  onConfirm={async () => onCancel()}
+                  buttonText="Cancel"
+                  buttonVariant="default"
+                  buttonIcon={<Cross2Icon />}
+                />
+              )}
               <ButtonLink jobId={jobRun?.jobId} />
             </div>
           }
