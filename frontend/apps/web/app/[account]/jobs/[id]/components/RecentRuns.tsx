@@ -2,6 +2,7 @@
 import JobRunStatus from '@/app/[account]/runs/components/JobRunStatus';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -103,12 +104,16 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                 return (
                   <TableRow key={r.jobRunId}>
                     <TableCell>
-                      <Link
-                        className="hover:underline"
-                        href={`/${account?.name}/runs/${r.jobRunId}`}
-                      >
+                      {jobRun ? (
+                        <Link
+                          className="hover:underline"
+                          href={`/${account?.name}/runs/${r.jobRunId}`}
+                        >
+                          <span className="font-medium">{r.jobRunId}</span>
+                        </Link>
+                      ) : (
                         <span className="font-medium">{r.jobRunId}</span>
-                      </Link>
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">
@@ -122,7 +127,11 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">
-                        {jobRun && <JobRunStatus status={jobRun.status} />}
+                        {jobRun ? (
+                          <JobRunStatus status={jobRun.status} />
+                        ) : (
+                          <Badge className="bg-gray-600">Archived</Badge>
+                        )}
                       </span>
                     </TableCell>
                     <TableCell>
