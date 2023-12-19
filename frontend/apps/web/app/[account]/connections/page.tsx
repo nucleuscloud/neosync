@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { getColumns } from './components/ConnectionsTable/columns';
 import { DataTable } from './components/ConnectionsTable/data-table';
 
@@ -35,18 +35,22 @@ function ConnectionTable(props: ConnectionTableProps): ReactElement {
   const { account } = useAccount();
   const { isLoading, data, mutate } = useGetConnections(account?.id ?? '');
 
+  const columns = useMemo(
+    () =>
+      getColumns({
+        accountName: account?.name ?? '',
+        onConnectionDeleted() {
+          mutate();
+        },
+      }),
+    [account?.name ?? '']
+  );
+
   if (isLoading) {
     return <SkeletonTable />;
   }
 
   const connections = data?.connections ?? [];
-
-  const columns = getColumns({
-    accountName: account?.name ?? '',
-    onConnectionDeleted() {
-      mutate();
-    },
-  });
 
   return (
     <div>

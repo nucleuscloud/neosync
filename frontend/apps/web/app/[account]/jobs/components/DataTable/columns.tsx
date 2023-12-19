@@ -78,7 +78,7 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
               className="hover:underline"
               href={`/${accountName}/jobs/${row.getValue('id')}`}
             >
-              <span>{row.getValue('id')}</span>
+              {row.getValue('id')}
             </NextLink>
           </div>
         );
