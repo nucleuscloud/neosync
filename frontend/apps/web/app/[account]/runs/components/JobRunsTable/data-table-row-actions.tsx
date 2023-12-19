@@ -97,7 +97,7 @@ export function DataTableRowActions<TData>({
               disabled={
                 !(
                   run.status == JobRunStatusEnum.RUNNING ||
-                  run.status == JobRunStatusEnum.Pending
+                  run.status == JobRunStatusEnum.PENDING
                 )
               }
             >
@@ -125,7 +125,6 @@ export function DataTableRowActions<TData>({
           description=""
           onConfirm={async () => onDelete()}
         />
-        {/* </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );
