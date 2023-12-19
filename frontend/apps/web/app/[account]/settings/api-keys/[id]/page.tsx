@@ -107,16 +107,18 @@ function ApiKeyDetails(props: ApiKeyDetailsProps): ReactElement {
           </div>
         </Alert>
       )}
-      <div className=" flex flex-col gap-6 rounded-xl border border-gray-200 p-4">
-        <div className="flex flex-row">
-          <Input value={keyValue} disabled={true} className="mr-3" />
-          <CopyButton
-            buttonVariant="outline"
-            textToCopy={keyValue ?? ''}
-            onCopiedText="Success!"
-            onHoverText="Copy the API key"
-          />
-        </div>
+      <div className="flex flex-col gap-6 rounded-xl border border-gray-200 p-4">
+        {keyValue && (
+          <div className="flex flex-row gap-3">
+            <Input value={keyValue} disabled={true} />
+            <CopyButton
+              buttonVariant="outline"
+              textToCopy={keyValue ?? ''}
+              onCopiedText="Success!"
+              onHoverText="Copy the API key"
+            />
+          </div>
+        )}
         <div className="flex flex-col gap-4">
           <div className="flex flex-row gap-2">
             <p className=" text-sm tracking-tight w-[100px]">Created At:</p>

@@ -6,10 +6,9 @@ import (
 	"net/url"
 
 	"connectrpc.com/connect"
-	"github.com/gogo/status"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
-	"google.golang.org/grpc/codes"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
 func (s *Service) GetAuthStatus(
@@ -34,7 +33,7 @@ func (s *Service) LoginCli(
 		logger.Error(
 			fmt.Sprintf("Unable to get access token. Title: %s -- Description: %s", resp.Error.Error, resp.Error.ErrorDescription),
 		)
-		return nil, status.Errorf(codes.Unauthenticated, "Request unauthenticated")
+		return nil, nucleuserrors.NewUnauthenticated("Request unauthenticated")
 	}
 	var refreshToken *string
 	if resp.Result.RefreshToken != "" {
@@ -45,6 +44,41 @@ func (s *Service) LoginCli(
 		idToken = &resp.Result.IdToken
 	}
 	return connect.NewResponse(&mgmtv1alpha1.LoginCliResponse{
+		AccessToken: &mgmtv1alpha1.AccessToken{
+			AccessToken:  resp.Result.AccessToken,
+			RefreshToken: refreshToken,
+			ExpiresIn:    int64(resp.Result.ExpiresIn),
+			Scope:        resp.Result.Scope,
+			IdToken:      idToken,
+			TokenType:    resp.Result.TokenType,
+		},
+	}), nil
+}
+
+func (s *Service) RefreshCli(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.RefreshCliRequest],
+) (*connect.Response[mgmtv1alpha1.RefreshCliResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	resp, err := s.authclient.GetRefreshedAccessToken(ctx, s.cfg.CliClientId, req.Msg.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Error != nil {
+		logger.Error(
+			fmt.Sprintf("Unable to get refreshed token. Title: %s -- Description: %s", resp.Error.Error, resp.Error.ErrorDescription),
+		)
+		return nil, nucleuserrors.NewUnauthenticated("Unable to refresh access token")
+	}
+	var refreshToken *string
+	if resp.Result.RefreshToken != "" {
+		refreshToken = &resp.Result.RefreshToken
+	}
+	var idToken *string
+	if resp.Result.IdToken != "" {
+		idToken = &resp.Result.IdToken
+	}
+	return connect.NewResponse(&mgmtv1alpha1.RefreshCliResponse{
 		AccessToken: &mgmtv1alpha1.AccessToken{
 			AccessToken:  resp.Result.AccessToken,
 			RefreshToken: refreshToken,
@@ -83,17 +117,3 @@ func (s *Service) GetCliIssuer(
 		IssuerUrl: s.cfg.IssuerUrl,
 	}), nil
 }
-
-// func (s *Service) GetAccessToken(
-// 	ctx context.Context,
-// 	req *connect.Request[mgmtv1alpha1.GetAccessTokenRequest],
-// ) (*connect.Response[mgmtv1alpha1.GetAccessTokenResponse], error) {
-// 	return nil, nucleuserrors.NewNotImplemented("method is not yet implemented")
-// }
-
-// func (s *Service) RefreshAccessToken(
-// 	ctx context.Context,
-// 	req *connect.Request[mgmtv1alpha1.RefreshAccessTokenRequest],
-// ) (*connect.Response[mgmtv1alpha1.RefreshAccessTokenResponse], error) {
-// 	return nil, nucleuserrors.NewNotImplemented("method is not yet implemented")
-// }

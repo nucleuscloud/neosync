@@ -38,10 +38,11 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { handleCustomTransformerForm } from './UserDefinedTransformerForms/HandleCustomTransformersForm';
+import { handleUserDefinedTransformerForm } from './UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
 import {
   CREATE_USER_DEFINED_TRANSFORMER_SCHEMA,
   CreateUserDefinedTransformerSchema,
+  YupTransformerConfig,
 } from './schema';
 
 export default function NewTransformer(): ReactElement {
@@ -49,20 +50,22 @@ export default function NewTransformer(): ReactElement {
     new SystemTransformer({})
   );
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
+  const { account } = useAccount();
 
   const form = useForm<CreateUserDefinedTransformerSchema>({
     resolver: yupResolver(CREATE_USER_DEFINED_TRANSFORMER_SCHEMA),
+    mode: 'onChange',
     defaultValues: {
       name: '',
       source: '',
       type: '',
-      config: {},
+      config: new TransformerConfig(),
       description: '',
     },
+    context: { accountId: account?.id ?? '' },
   });
 
   const router = useRouter();
-  const { account } = useAccount();
 
   async function onSubmit(
     values: CreateUserDefinedTransformerSchema
@@ -125,33 +128,17 @@ export default function NewTransformer(): ReactElement {
                         <CommandInput placeholder="Search transformers..." />
                         <CommandEmpty>No transformers found.</CommandEmpty>
                         <CommandGroup className="overflow-auto h-[200px]">
-                          {transformers.map((t, index) => (
+                          {transformers.map((t) => (
                             <CommandItem
-                              key={`${t.source}-${index}`}
-                              onSelect={(value: string) => {
-                                const selectedTransformer = transformers.find(
-                                  (item) => item.source == value
-                                );
-
-                                field.onChange(selectedTransformer?.source);
-                                const selectedValues = {
-                                  config: {
-                                    case: selectedTransformer?.config?.config
-                                      .case,
-                                    value:
-                                      selectedTransformer?.config?.config
-                                        .value || {},
-                                  },
-                                };
-                                form.setValue('config', selectedValues);
+                              key={`${t.source}`}
+                              onSelect={() => {
+                                field.onChange(t.source);
                                 form.setValue(
-                                  'type',
-                                  selectedTransformer?.dataType ?? ''
+                                  'config',
+                                  t.config as YupTransformerConfig
                                 );
-                                setBase(
-                                  selectedTransformer ??
-                                    new SystemTransformer({})
-                                );
+                                form.setValue('type', t.dataType);
+                                setBase(t ?? new SystemTransformer({}));
                                 setOpenBaseSelect(false);
                               }}
                               value={t.source}
@@ -227,7 +214,9 @@ export default function NewTransformer(): ReactElement {
               </div>
             </div>
           )}
-          <div>{handleCustomTransformerForm(form.getValues('source'))}</div>
+          <div>
+            {handleUserDefinedTransformerForm(form.getValues('source'))}
+          </div>
           <div className="flex flex-row justify-end">
             <Button type="submit" disabled={!form.formState.isValid}>
               Submit

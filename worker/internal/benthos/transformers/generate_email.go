@@ -1,12 +1,34 @@
 package transformers
 
 import (
+	"math/rand"
+
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-var tld = []string{"com", "org", "net", "edu", "gov", "app", "dev"}
+var emailDomains = []string{
+	"gmail.com",
+	"yahoo.com",
+	"hotmail.com",
+	"aol.com",
+	"hotmail.co",
+	"hotmail.fr",
+	"msn.com",
+	"yahoo.fr",
+	"wanadoo.fr",
+	"orange.fr",
+	"comcast.net",
+	"yahoo.co.uk",
+	"yahoo.com.br",
+	"yahoo.co.in",
+	"live.com",
+	"rediffmail.com",
+	"free.fr",
+	"gmx.de",
+	"web.de",
+	"yandex.ru",
+}
 
 func init() {
 
@@ -16,7 +38,7 @@ func init() {
 
 		return func() (any, error) {
 
-			res, err := GenerateRandomEmail()
+			res, err := GenerateEmail()
 			return res, err
 		}, nil
 
@@ -28,15 +50,15 @@ func init() {
 
 }
 
-// Generates a random email comprised of randomly sampled alphanumeric characters and returned in the format <username@domaion.tld>
-func GenerateRandomEmail() (string, error) {
+/* Generates an email in the format <username@domaion.tld> such as jdoe@gmail.com */
+func GenerateEmail() (string, error) {
 
-	un, err := GenerateRandomUsername()
+	un, err := GenerateEmailUsername()
 	if err != nil {
 		return "", err
 	}
 
-	domain, err := GenerateRandomDomain()
+	domain, err := GenerateEmailDomain()
 	if err != nil {
 		return "", err
 	}
@@ -44,40 +66,39 @@ func GenerateRandomEmail() (string, error) {
 	return un + domain, nil
 }
 
-// Generates a random username comprised of randomly sampled alphanumeric characters
-func GenerateRandomUsername() (string, error) {
+// Generates an email username for an email address either as <firstinitial><lastName> for ex. jdoe or <firstname>.<lastname> such as john.doe
+func GenerateEmailUsername() (string, error) {
 
-	randLength, err := transformer_utils.GenerateRandomIntWithInclusiveBounds(3, 8)
-	if err != nil {
-		return "", err
+	//nolint
+	// randomly generate a 0 or 1 in order to pick an email username format
+	randValue := rand.Intn(2)
+
+	if randValue == 1 {
+		val, err := GenerateUsername()
+		if err != nil {
+			return "", err
+		}
+
+		return val, nil
+	} else {
+		fn, err := GenerateRandomFirstName()
+		if err != nil {
+			return "", err
+		}
+		ln, err := GenerateRandomLastName()
+		if err != nil {
+			return "", err
+		}
+		return fn + "." + ln, nil
 	}
-
-	username, err := transformer_utils.GenerateRandomStringWithLength(int64(randLength))
-	if err != nil {
-		return "", err
-	}
-
-	return username, nil
 
 }
 
-// Generates a random domain comprised of randomly sampled alphanumeric characters in the format <@domain.tld>
-func GenerateRandomDomain() (string, error) {
+// Generates a realistic looking domain such as @gmail.com
+func GenerateEmailDomain() (string, error) {
+	//nolint
+	randValue := rand.Intn(len(emailDomains))
 
-	var result string
-
-	domain, err := transformer_utils.GenerateRandomStringWithLength(6)
-	if err != nil {
-		return "", err
-	}
-
-	tld, err := transformer_utils.GetRandomValueFromSlice(tld)
-	if err != nil {
-		return "", err
-	}
-
-	result = "@" + domain + "." + tld
-
-	return result, nil
+	return "@" + emailDomains[randValue], nil
 
 }

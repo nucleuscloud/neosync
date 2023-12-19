@@ -6,7 +6,7 @@ import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 export function useGetUserAccounts(): HookReply<GetUserAccountsResponse> {
   return useNucleusAuthenticatedFetch<GetUserAccountsResponse, JsonValue>(
     `/api/users/accounts`,
-    undefined,
+    true,
     undefined,
     (data) => GetUserAccountsResponse.fromJson(data)
   );

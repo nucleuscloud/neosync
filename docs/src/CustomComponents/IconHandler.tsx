@@ -13,7 +13,7 @@ import React, { ReactElement } from 'react';
 import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
 import { BiLogInCircle, BiLogoPostgresql, BiTerminal } from 'react-icons/bi';
 import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
-import { FaAws, FaDocker, FaFolder } from 'react-icons/fa';
+import { FaAws, FaDocker, FaFolder, FaKey } from 'react-icons/fa';
 import { GoLightBulb, GoSync } from 'react-icons/go';
 
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
@@ -21,7 +21,7 @@ import { GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword, MdStart } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
-import { SiGo, SiKubernetes } from 'react-icons/si';
+import { SiGo, SiKubernetes, SiTypescript } from 'react-icons/si';
 import { TbSdk, TbVariable } from 'react-icons/tb';
 
 export function IconHandler(name: string): ReactElement {
@@ -93,9 +93,16 @@ export function IconHandler(name: string): ReactElement {
     case 'Go':
     case 'Golang':
       return <SiGo />;
+    case 'TypeScript':
+    case 'Typescript':
+    case 'ts':
+    case 'TS':
+      return <SiTypescript />;
     case 'Protos':
     case '/mgmt/v1alpha1':
       return <FaFolder />;
+    case 'Authentication':
+      return <FaKey />;
     default:
       return <LayersIcon />;
   }

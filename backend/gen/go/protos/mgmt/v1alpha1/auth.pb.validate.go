@@ -1008,3 +1008,238 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetCliIssuerResponseValidationError{}
+
+// Validate checks the field values on RefreshCliRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *RefreshCliRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RefreshCliRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RefreshCliRequestMultiError, or nil if none found.
+func (m *RefreshCliRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RefreshCliRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for RefreshToken
+
+	if len(errors) > 0 {
+		return RefreshCliRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// RefreshCliRequestMultiError is an error wrapping multiple validation errors
+// returned by RefreshCliRequest.ValidateAll() if the designated constraints
+// aren't met.
+type RefreshCliRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RefreshCliRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RefreshCliRequestMultiError) AllErrors() []error { return m }
+
+// RefreshCliRequestValidationError is the validation error returned by
+// RefreshCliRequest.Validate if the designated constraints aren't met.
+type RefreshCliRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RefreshCliRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RefreshCliRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RefreshCliRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RefreshCliRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RefreshCliRequestValidationError) ErrorName() string {
+	return "RefreshCliRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RefreshCliRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRefreshCliRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RefreshCliRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RefreshCliRequestValidationError{}
+
+// Validate checks the field values on RefreshCliResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RefreshCliResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RefreshCliResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RefreshCliResponseMultiError, or nil if none found.
+func (m *RefreshCliResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RefreshCliResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetAccessToken()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, RefreshCliResponseValidationError{
+					field:  "AccessToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, RefreshCliResponseValidationError{
+					field:  "AccessToken",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAccessToken()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return RefreshCliResponseValidationError{
+				field:  "AccessToken",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return RefreshCliResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RefreshCliResponseMultiError is an error wrapping multiple validation errors
+// returned by RefreshCliResponse.ValidateAll() if the designated constraints
+// aren't met.
+type RefreshCliResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RefreshCliResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RefreshCliResponseMultiError) AllErrors() []error { return m }
+
+// RefreshCliResponseValidationError is the validation error returned by
+// RefreshCliResponse.Validate if the designated constraints aren't met.
+type RefreshCliResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RefreshCliResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RefreshCliResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RefreshCliResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RefreshCliResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RefreshCliResponseValidationError) ErrorName() string {
+	return "RefreshCliResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RefreshCliResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRefreshCliResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RefreshCliResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RefreshCliResponseValidationError{}

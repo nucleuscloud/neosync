@@ -32,6 +32,7 @@ func init() {
 	}
 }
 
+/* Generates a random street address in the United States in the format <house_number> <street name> <street ending>*/
 func GenerateRandomStreetAddress() string {
 
 	addresses := transformers_dataset.Addresses

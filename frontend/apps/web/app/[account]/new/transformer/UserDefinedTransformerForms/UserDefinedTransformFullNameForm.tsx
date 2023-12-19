@@ -13,7 +13,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomTransformFullNameForm(
+export default function UserDefinedTransformFullNameForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext();

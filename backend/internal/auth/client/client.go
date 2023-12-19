@@ -112,3 +112,63 @@ func (c *Client) GetTokenResponse(
 		Error:  nil,
 	}, nil
 }
+
+func (c *Client) GetRefreshedAccessToken(
+	ctx context.Context,
+	clientId string,
+	refreshToken string,
+) (*AuthTokenResponse, error) {
+	if _, ok := c.clientIdSecretMap[clientId]; !ok {
+		return nil, errors.New("unknown client id, requested client was not in safelist")
+	}
+
+	clientSecret := c.clientIdSecretMap[clientId]
+	payload := strings.NewReader(
+		fmt.Sprintf(
+			"grant_type=refresh_token&client_id=%s&client_secret=%s&refresh_token=%s", clientId, clientSecret, refreshToken,
+		),
+	)
+	req, err := http.NewRequestWithContext(ctx, "POST", c.tokenurl, payload)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to initiate refresh token request: %w", err)
+	}
+
+	req.Header.Add("content-type", "application/x-www-form-urlencoded")
+
+	res, err := getHttpClient().Do(req)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to fulfill refresh token request: %w", err)
+	}
+
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to read body from refresh token request: %w", err)
+	}
+
+	var tokenResponse *AuthTokenResponseData
+	err = json.Unmarshal(body, &tokenResponse)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal token response from refresh token request: %w", err)
+	}
+
+	if tokenResponse.AccessToken == "" {
+		var errorResponse AuthTokenErrorData
+		err = json.Unmarshal(body, &errorResponse)
+		if err != nil {
+			return nil, fmt.Errorf("unable to unmarshal error response from refresh token request: %w", err)
+		}
+		return &AuthTokenResponse{
+			Result: nil,
+			Error:  &errorResponse,
+		}, nil
+	}
+	return &AuthTokenResponse{
+		Result: tokenResponse,
+		Error:  nil,
+	}, nil
+}

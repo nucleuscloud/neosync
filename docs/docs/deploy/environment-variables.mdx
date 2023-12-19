@@ -133,7 +133,7 @@ These environment variables are loaded when running the `mgmt serve connect` com
         'AUTH_AUDIENCE',
         'The audience that is to be used for validating JWT tokens. This corresponds with the "aud" in a JWT token. Can pass multiple values using a comma separator',
         '',
-        '',
+        'false',
       ],
     },
     {
@@ -325,6 +325,14 @@ These environment variables are loaded when running the `mgmt migrate up` comman
     },
     {
       data: [
+        'NEXTAUTH_SECRET',
+        'This is a secret value that is used to encrypt the next-auth cookie that is stored in the browser. This should change per environment.',
+        'true',
+        '',
+      ],
+    },
+    {
+      data: [
         'AUTH0_CLIENT_ID',
         'The client id that will be used to authenticate via auth0. Required if AUTH_ENABLED is true',
         'false',
@@ -369,6 +377,14 @@ These environment variables are loaded when running the `mgmt migrate up` comman
         'The url of the app. This is typically the same as NEXTAUTH_URL. Used for generating invite urls, among other things. This is not baked into the HTML or the image.',
         'false',
         '',
+      ],
+    },
+    {
+      data: [
+        'NEOSYNC_API_BASE_URL',
+        'The base url of the Neosync API. This can be overridden to connect to different Neosync API environments',
+        'false',
+        'http://localhost:8080',
       ],
     },
   ]}
