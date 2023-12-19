@@ -1,7 +1,6 @@
 'use client';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
