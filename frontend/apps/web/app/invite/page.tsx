@@ -25,15 +25,14 @@ export default function InvitePage(): ReactElement {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      signIn()
-        .then(() => console.log('signin success'))
-        .catch((err) => {
-          toast({
-            title: 'Unable to redirect to signin page',
-            variant: 'destructive',
-            description: err,
-          });
+      // signin must be called on the client for this page so the redirectUrl is properly set
+      signIn().catch((err) => {
+        toast({
+          title: 'Unable to redirect to signin page',
+          variant: 'destructive',
+          description: err,
         });
+      });
       return;
     }
     // Don't accept invite until we know the user is authenticated and the user has been loaded
