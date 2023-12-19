@@ -1,16 +1,9 @@
 import '@/app/globals.css';
-import SiteFooter from '@/components/SiteFooter';
-import SiteHeader from '@/components/SiteHeader';
-import AccountProvider from '@/components/providers/account-provider';
-import { SessionProvider } from '@/components/providers/session-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
-import { Toaster } from '@/components/ui/toaster';
 import { fontSans } from '@/libs/fonts';
 import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
 import { ReactElement } from 'react';
-import { auth, signIn } from './api/auth/[...nextauth]/auth';
-import { getSystemAppConfig } from './api/config/config';
 
 export const metadata: Metadata = {
   title: 'Neosync',
@@ -23,11 +16,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }): Promise<ReactElement> {
-  const systemAppConfig = getSystemAppConfig();
-  const session = systemAppConfig.isAuthEnabled ? await auth() : null;
-  if (systemAppConfig.isAuthEnabled && !session) {
-    await signIn();
-  }
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
@@ -43,18 +31,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SessionProvider session={session}>
-            <AccountProvider>
-              <div className="relative flex min-h-screen flex-col">
-                <SiteHeader />
-                <div className="flex-1 container" id="top-level-layout">
-                  {children}
-                </div>
-                <SiteFooter />
-                <Toaster />
-              </div>
-            </AccountProvider>
-          </SessionProvider>
+          {children}
         </ThemeProvider>
       </body>
     </html>
