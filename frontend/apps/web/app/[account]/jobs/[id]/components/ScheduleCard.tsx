@@ -14,7 +14,6 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -94,7 +93,6 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
               name="cronSchedule"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Schedule</FormLabel>
                   <FormDescription>
                     The schedule to run the job against if not a oneoff.
                   </FormDescription>
