@@ -87,7 +87,7 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent>
+          <CardContent className="p-5">
             <FormField
               control={form.control}
               name="cronSchedule"
