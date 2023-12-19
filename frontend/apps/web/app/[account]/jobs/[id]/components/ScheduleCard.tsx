@@ -108,8 +108,8 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
               )}
             />
           </CardContent>
-          <CardFooter className="bg-muted">
-            <div className="flex flex-row items-center justify-between w-full mt-4">
+          <CardFooter className="bg-muted flex py-2 justify-center">
+            <div className="flex flex-row items-center justify-between w-full">
               <p className="text-muted-foreground text-sm">{msg}</p>
               <Button type="submit" disabled={!form.formState.isDirty}>
                 Save

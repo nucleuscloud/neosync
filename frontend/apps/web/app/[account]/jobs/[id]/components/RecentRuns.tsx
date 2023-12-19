@@ -75,7 +75,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
       ) : (
         <div>
           <div className="flex flex-row items-center px-2">
-            <CardTitle className="py-6">Recent Job Runs</CardTitle>
+            <CardTitle className="py-6 pl-4">Recent Job Runs</CardTitle>
             <Button
               className={
                 isValidating || jobRunsValidating ? 'animate-spin' : ''
@@ -89,9 +89,9 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
             </Button>
           </div>
           <Table className="pt-5">
-            <TableHeader className="bg-gray-100 dark:bg-gray-800">
+            <TableHeader className="bg-gray-100 dark:bg-gray-800 ">
               <TableRow>
-                <TableHead>Run Id</TableHead>
+                <TableHead className="pl-6">Run Id</TableHead>
                 <TableHead>Start At</TableHead>
                 <TableHead>Completed At</TableHead>
                 <TableHead>Status</TableHead>
@@ -103,7 +103,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                 const jobRun = jobRunsIdMap[r.jobRunId];
                 return (
                   <TableRow key={r.jobRunId}>
-                    <TableCell>
+                    <TableCell className="pl-6">
                       {jobRun ? (
                         <Link
                           className="hover:underline"

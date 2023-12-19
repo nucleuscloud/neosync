@@ -50,7 +50,9 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
               data?.nextRuns?.nextRunTimes.length == 0 ? (
                 <TableRow>
                   <TableCell>
-                    <span className="font-medium">No upcoming runs</span>
+                    <span className="font-medium justify-center flex pt-20">
+                      No upcoming runs
+                    </span>
                   </TableCell>
                 </TableRow>
               ) : (
