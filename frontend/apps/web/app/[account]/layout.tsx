@@ -6,5 +6,5 @@ export default async function AccountLayout({
 }: {
   children: ReactNode;
 }): Promise<ReactElement> {
-  return <BaseLayout autoServerSignIn>{children}</BaseLayout>;
+  return <BaseLayout>{children}</BaseLayout>;
 }

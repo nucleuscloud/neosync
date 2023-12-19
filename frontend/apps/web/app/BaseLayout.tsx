@@ -9,7 +9,7 @@ import { getSystemAppConfig } from './api/config/config';
 
 interface Props {
   children: ReactNode;
-  // If true, will call signIn on the server if auth is enabled and there is no session
+  // If true, will disable signIn on the server if auth is enabled and there is no session
   disableServerSignin?: boolean;
 }
 
