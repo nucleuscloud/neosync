@@ -79,11 +79,11 @@ message UserDefinedTransformer {
 }
 
 message SystemTransformer {
-  string name = 2;
-  string description = 3;
-  string data_type = 5;
-  string source = 6;
-  TransformerConfig config = 7;
+  string name = 1;
+  string description = 2;
+  string data_type = 3;
+  string source = 4;
+  TransformerConfig config = 5;
 }
 
 message TransformerConfig {
@@ -91,52 +91,47 @@ message TransformerConfig {
     option (buf.validate.oneof).required = true;
 
     GenerateEmail generate_email_config = 1;
-    GenerateRealisticEmail generate_realistic_email_config = 2;
-    TransformEmail transform_email_config = 3;
-    GenerateBool generate_bool_config = 4;
-    GenerateCardNumber generate_card_number_config = 5;
-    GenerateCity generate_city_config = 6;
-    GenerateE164Number generate_e164_number_config = 7;
-    GenerateFirstName generate_first_name_config = 8;
-    GenerateFloat generate_float_config = 9;
-    GenerateFullAddress generate_full_address_config = 10;
-    GenerateFullName generate_full_name_config = 11;
-    GenerateGender generate_gender_config = 12;
-    GenerateInt64Phone generate_int64_phone_config = 13;
-    GenerateInt generate_int_config = 14;
-    GenerateLastName generate_last_name_config = 15;
-    GenerateSha256Hash generate_sha256hash_config = 16;
-    GenerateSSN generate_ssn_config = 17;
-    GenerateState generate_state_config = 18;
-    GenerateStreetAddress generate_street_address_config = 19;
-    GenerateStringPhone generate_string_phone_config = 20;
-    GenerateString generate_string_config = 21;
-    GenerateUnixTimestamp generate_unixtimestamp_config = 22;
-    GenerateUsername generate_username_config = 23;
-    GenerateUtcTimestamp generate_utctimestamp_config = 24;
-    GenerateUuid generate_uuid_config = 25;
-    GenerateZipcode generate_zipcode_config = 26;
-    TransformE164Phone transform_e164_phone_config = 27;
-    TransformFirstName transform_first_name_config = 28;
-    TransformFloat transform_float_config = 29;
-    TransformFullName transform_full_name_config = 30;
-    TransformIntPhone transform_int_phone_config = 31;
-    TransformInt transform_int_config = 32;
-    TransformLastName transform_last_name_config = 33;
-    TransformPhone transform_phone_config = 34;
-    TransformString transform_string_config = 35;
-    Passthrough passthrough_config = 36;
-    Null nullconfig = 37;
-
-    UserDefinedTransformerConfig user_defined_transformer_config = 38;
-
-    GenerateDefault generate_default_config = 39;
+    TransformEmail transform_email_config = 2;
+    GenerateBool generate_bool_config = 3;
+    GenerateCardNumber generate_card_number_config = 4;
+    GenerateCity generate_city_config = 5;
+    GenerateE164PhoneNumber generate_e164_phone_number_config = 6;
+    GenerateFirstName generate_first_name_config = 7;
+    GenerateFloat64 generate_float64_config = 8;
+    GenerateFullAddress generate_full_address_config = 9;
+    GenerateFullName generate_full_name_config = 10;
+    GenerateGender generate_gender_config = 11;
+    GenerateInt64PhoneNumber generate_int64_phone_number_config = 12;
+    GenerateInt64 generate_int64_config = 13;
+    GenerateLastName generate_last_name_config = 14;
+    GenerateSha256Hash generate_sha256hash_config = 15;
+    GenerateSSN generate_ssn_config = 16;
+    GenerateState generate_state_config = 17;
+    GenerateStreetAddress generate_street_address_config = 18;
+    GenerateStringPhoneNumber generate_string_phone_number_config = 19;
+    GenerateString generate_string_config = 20;
+    GenerateUnixTimestamp generate_unixtimestamp_config = 21;
+    GenerateUsername generate_username_config = 22;
+    GenerateUtcTimestamp generate_utctimestamp_config = 23;
+    GenerateUuid generate_uuid_config = 24;
+    GenerateZipcode generate_zipcode_config = 25;
+    TransformE164PhoneNumber transform_e164_phone_number_config = 26;
+    TransformFirstName transform_first_name_config = 27;
+    TransformFloat64 transform_float64_config = 28;
+    TransformFullName transform_full_name_config = 29;
+    TransformInt64PhoneNumber transform_int64_phone_number_config = 30;
+    TransformInt64 transform_int64_config = 31;
+    TransformLastName transform_last_name_config = 32;
+    TransformPhoneNumber transform_phone_number_config = 33;
+    TransformString transform_string_config = 34;
+    Passthrough passthrough_config = 35;
+    Null nullconfig = 36;
+    UserDefinedTransformerConfig user_defined_transformer_config = 37;
+    GenerateDefault generate_default_config = 38;
   }
 }
 
 message GenerateEmail {}
-
-message GenerateRealisticEmail {}
 
 message TransformEmail {
   bool preserve_domain = 1;
@@ -153,16 +148,17 @@ message GenerateCity {}
 
 message GenerateDefault {}
 
-message GenerateE164Number {
-  int64 length = 1;
+message GenerateE164PhoneNumber {
+  int64 min = 1;
+  int64 max = 2;
 }
 
 message GenerateFirstName {}
 
-message GenerateFloat {
-  string sign = 1;
-  int64 digits_before_decimal = 2;
-  int64 digits_after_decimal = 3;
+message GenerateFloat64 {
+  bool randomize_sign = 1;
+  double min = 2;
+  double max = 3;
 }
 
 message GenerateFullAddress {}
@@ -173,11 +169,12 @@ message GenerateGender {
   bool abbreviate = 1;
 }
 
-message GenerateInt64Phone {}
+message GenerateInt64PhoneNumber {}
 
-message GenerateInt {
-  int64 length = 1;
-  string sign = 2;
+message GenerateInt64 {
+  bool randomize_sign = 1;
+  int64 min = 2;
+  int64 max = 3;
 }
 
 message GenerateLastName {}
@@ -190,12 +187,13 @@ message GenerateState {}
 
 message GenerateStreetAddress {}
 
-message GenerateStringPhone {
+message GenerateStringPhoneNumber {
   bool include_hyphens = 2;
 }
 
 message GenerateString {
-  int64 length = 1;
+  int64 min = 1;
+  int64 max = 2;
 }
 
 message GenerateUnixTimestamp {}
@@ -210,7 +208,7 @@ message GenerateUuid {
 
 message GenerateZipcode {}
 
-message TransformE164Phone {
+message TransformE164PhoneNumber {
   bool preserve_length = 1;
 }
 
@@ -218,29 +216,29 @@ message TransformFirstName {
   bool preserve_length = 1;
 }
 
-message TransformFloat {
-  bool preserve_length = 1;
-  bool preserve_sign = 2;
+message TransformFloat64 {
+  double randomization_range_min = 1;
+  double randomization_range_max = 2;
 }
 
 message TransformFullName {
   bool preserve_length = 1;
 }
 
-message TransformIntPhone {
+message TransformInt64PhoneNumber {
   bool preserve_length = 1;
 }
 
-message TransformInt {
-  bool preserve_length = 1;
-  bool preserve_sign = 2;
+message TransformInt64 {
+  int64 randomization_range_min = 1;
+  int64 randomization_range_max = 2;
 }
 
 message TransformLastName {
   bool preserve_length = 1;
 }
 
-message TransformPhone {
+message TransformPhoneNumber {
   bool preserve_length = 1;
   bool include_hyphens = 2;
 }

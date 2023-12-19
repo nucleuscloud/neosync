@@ -10,50 +10,47 @@ type JobMappingTransformerModel struct {
 }
 
 type TransformerConfigs struct {
-	GenerateEmail          *GenerateEmailConfig          `json:"generateEmailConfig,omitempty"`
-	GenerateRealisticEmail *GenerateRealisticEmailConfig `json:"generateRealisticEmailConfig,omitempty"`
-	TransformEmail         *TransformEmailConfig         `json:"transformEmail,omitempty"`
-	GenerateBool           *GenerateBoolConfig           `json:"generateBool,omitempty"`
-	GenerateCardNumber     *GenerateCardNumberConfig     `json:"generateCardNumber,omitempty"`
-	GenerateCity           *GenerateCityConfig           `json:"generateCity,omitempty"`
-	GenerateDefault        *GenerateDefaultConfig        `json:"generateDefault,omitempty"`
-	GenerateE164Number     *GenerateE164NumberConfig     `json:"generateE164Number,omitempty"`
-	GenerateFirstName      *GenerateFirstNameConfig      `json:"generateFirstName,omitempty"`
-	GenerateFloat          *GenerateFloatConfig          `json:"generateFloat,omitempty"`
-	GenerateFullAddress    *GenerateFullAddressConfig    `json:"generateFullAddress,omitempty"`
-	GenerateFullName       *GenerateFullNameConfig       `json:"generateFullName,omitempty"`
-	GenerateGender         *GenerateGenderConfig         `json:"generateGender,omitempty"`
-	GenerateInt64Phone     *GenerateInt64PhoneConfig     `json:"generateInt64Phone,omitempty"`
-	GenerateInt            *GenerateIntConfig            `json:"GenerateInt,omitempty"`
-	GenerateLastName       *GenerateLastNameConfig       `json:"generateLastName,omitempty"`
-	GenerateSha256Hash     *GenerateSha256HashConfig     `json:"generateSha256Hash,omitempty"`
-	GenerateSsn            *GenerateSsnConfig            `json:"generateSsnConfig,omitempty"`
-	GenerateState          *GenerateStateConfig          `json:"generateStateConfig,omitempty"`
-	GenerateStreetAddress  *GenerateStreetAddressConfig  `json:"generateStreetAddressConfig,omitempty"`
-	GenerateStringPhone    *GenerateStringPhoneConfig    `json:"generateStringPhone,omitempty"`
-	GenerateString         *GenerateStringConfig         `json:"generateString,omitempty"`
-	GenerateUnixTimestamp  *GenerateUnixTimestampConfig  `json:"generateUnixTimestamp,omitempty"`
-	GenerateUsername       *GenerateUsernameConfig       `json:"generateUsername,omitempty"`
-	GenerateUtcTimestamp   *GenerateUtcTimestampConfig   `json:"generateUtcTimestamp,omitempty"`
-	GenerateUuid           *GenerateUuidConfig           `json:"generateUuid,omitempty"`
-	GenerateZipcode        *GenerateZipcodeConfig        `json:"generateZipcode,omitempty"`
-	TransformE164Phone     *TransformE164PhoneConfig     `json:"transformE164Phone,omitempty"`
-	TransformFirstname     *TransformFirstNameConfig     `json:"transformFirstName,omitempty"`
-	TransformFloat         *TransformFloatConfig         `json:"transformFloat,omitempty"`
-	TransformFullName      *TransformFullNameConfig      `json:"transformFullName,,omitempty"`
-	TransformIntPhone      *TransformIntPhoneConfig      `json:"transformIntPhone,omitempty"`
-	TransformInt           *TransformIntConfig           `json:"transformInt,omitempty"`
-	TransformLastName      *TransformLastNameConfig      `json:"transformLastName,omitempty"`
-	TransformPhone         *TransformPhoneConfig         `json:"transformPhone,omitempty"`
-	TransformString        *TransformStringConfig        `json:"transformString,omitempty"`
-	Passthrough            *PassthroughConfig            `json:"passthrough,omitempty"`
-	Null                   *NullConfig                   `json:"null,omitempty"`
-	UserDefinedTransformer *UserDefinedTransformerConfig `json:"userDefinedTransformer,omitempty"`
+	GenerateEmail             *GenerateEmailConfig             `json:"generateEmailConfig,omitempty"`
+	TransformEmail            *TransformEmailConfig            `json:"transformEmail,omitempty"`
+	GenerateBool              *GenerateBoolConfig              `json:"generateBool,omitempty"`
+	GenerateCardNumber        *GenerateCardNumberConfig        `json:"generateCardNumber,omitempty"`
+	GenerateCity              *GenerateCityConfig              `json:"generateCity,omitempty"`
+	GenerateDefault           *GenerateDefaultConfig           `json:"generateDefault,omitempty"`
+	GenerateE164PhoneNumber   *GenerateE164PhoneNumberConfig   `json:"generateE164PhoneNumber,omitempty"`
+	GenerateFirstName         *GenerateFirstNameConfig         `json:"generateFirstName,omitempty"`
+	GenerateFloat64           *GenerateFloat64Config           `json:"generateFloat64,omitempty"`
+	GenerateFullAddress       *GenerateFullAddressConfig       `json:"generateFullAddress,omitempty"`
+	GenerateFullName          *GenerateFullNameConfig          `json:"generateFullName,omitempty"`
+	GenerateGender            *GenerateGenderConfig            `json:"generateGender,omitempty"`
+	GenerateInt64PhoneNumber  *GenerateInt64PhoneNumberConfig  `json:"generateInt64PhoneNumber,omitempty"`
+	GenerateInt64             *GenerateInt64Config             `json:"GenerateInt64,omitempty"`
+	GenerateLastName          *GenerateLastNameConfig          `json:"generateLastName,omitempty"`
+	GenerateSha256Hash        *GenerateSha256HashConfig        `json:"generateSha256Hash,omitempty"`
+	GenerateSsn               *GenerateSsnConfig               `json:"generateSsnConfig,omitempty"`
+	GenerateState             *GenerateStateConfig             `json:"generateStateConfig,omitempty"`
+	GenerateStreetAddress     *GenerateStreetAddressConfig     `json:"generateStreetAddressConfig,omitempty"`
+	GenerateStringPhoneNumber *GenerateStringPhoneNumberConfig `json:"generateStringPhoneNumber,omitempty"`
+	GenerateString            *GenerateStringConfig            `json:"generateString,omitempty"`
+	GenerateUnixTimestamp     *GenerateUnixTimestampConfig     `json:"generateUnixTimestamp,omitempty"`
+	GenerateUsername          *GenerateUsernameConfig          `json:"generateUsername,omitempty"`
+	GenerateUtcTimestamp      *GenerateUtcTimestampConfig      `json:"generateUtcTimestamp,omitempty"`
+	GenerateUuid              *GenerateUuidConfig              `json:"generateUuid,omitempty"`
+	GenerateZipcode           *GenerateZipcodeConfig           `json:"generateZipcode,omitempty"`
+	TransformE164PhoneNumber  *TransformE164PhoneNumberConfig  `json:"transformE164PhoneNumber,omitempty"`
+	TransformFirstname        *TransformFirstNameConfig        `json:"transformFirstName,omitempty"`
+	TransformFloat64          *TransformFloat64Config          `json:"transformFloat64,omitempty"`
+	TransformFullName         *TransformFullNameConfig         `json:"transformFullName,,omitempty"`
+	TransformInt64PhoneNumber *TransformInt64PhoneNumberConfig `json:"transformInt64PhoneNumber,omitempty"`
+	TransformInt64            *TransformInt64Config            `json:"transformInt64,omitempty"`
+	TransformLastName         *TransformLastNameConfig         `json:"transformLastName,omitempty"`
+	TransformPhoneNumber      *TransformPhoneNumberConfig      `json:"transformPhoneNumber,omitempty"`
+	TransformString           *TransformStringConfig           `json:"transformString,omitempty"`
+	Passthrough               *PassthroughConfig               `json:"passthrough,omitempty"`
+	Null                      *NullConfig                      `json:"null,omitempty"`
+	UserDefinedTransformer    *UserDefinedTransformerConfig    `json:"userDefinedTransformer,omitempty"`
 }
 
 type GenerateEmailConfig struct{}
-
-type GenerateRealisticEmailConfig struct{}
 
 type TransformEmailConfig struct {
 	PreserveLength bool `json:"preserveLength"`
@@ -70,16 +67,17 @@ type GenerateCityConfig struct{}
 
 type GenerateDefaultConfig struct{}
 
-type GenerateE164NumberConfig struct {
-	Length int64 `json:"length"`
+type GenerateE164PhoneNumberConfig struct {
+	Min int64 `json:"min"`
+	Max int64 `json:"max"`
 }
 
 type GenerateFirstNameConfig struct{}
 
-type GenerateFloatConfig struct {
-	Sign                string `json:"sign"`
-	DigitsBeforeDecimal int64  `json:"digitsBeforeDecimal"`
-	DigitsAfterDecimal  int64  `json:"digitsAfterDecimal"`
+type GenerateFloat64Config struct {
+	RandomizeSign bool    `json:"randomizeSign"`
+	Min           float64 `json:"min"`
+	Max           float64 `json:"max"`
 }
 
 type GenerateFullAddressConfig struct{}
@@ -90,11 +88,12 @@ type GenerateGenderConfig struct {
 	Abbreviate bool `json:"abbreviate"`
 }
 
-type GenerateInt64PhoneConfig struct{}
+type GenerateInt64PhoneNumberConfig struct{}
 
-type GenerateIntConfig struct {
-	Length int64  `json:"length"`
-	Sign   string `json:"sign"`
+type GenerateInt64Config struct {
+	RandomizeSign bool  `json:"randomizeSign"`
+	Min           int64 `json:"min"`
+	Max           int64 `json:"max"`
 }
 
 type GenerateLastNameConfig struct{}
@@ -107,12 +106,13 @@ type GenerateStateConfig struct{}
 
 type GenerateStreetAddressConfig struct{}
 
-type GenerateStringPhoneConfig struct {
+type GenerateStringPhoneNumberConfig struct {
 	IncludeHyphens bool `json:"includeHyphens"`
 }
 
 type GenerateStringConfig struct {
-	Length int64 `json:"length"`
+	Min int64 `json:"min"`
+	Max int64 `json:"max"`
 }
 
 type GenerateUnixTimestampConfig struct{}
@@ -127,7 +127,7 @@ type GenerateUuidConfig struct {
 
 type GenerateZipcodeConfig struct{}
 
-type TransformE164PhoneConfig struct {
+type TransformE164PhoneNumberConfig struct {
 	PreserveLength bool `json:"preserveLength"`
 }
 
@@ -135,29 +135,29 @@ type TransformFirstNameConfig struct {
 	PreserveLength bool `json:"preserveLength"`
 }
 
-type TransformFloatConfig struct {
-	PreserveLength bool `json:"preserveLength"`
-	PreserveSign   bool `json:"preserveSign"`
+type TransformFloat64Config struct {
+	RandomizationRangeMin float64 `json:"randomizationRangeMin"`
+	RandomizationRangeMax float64 `json:"randomizationRangeMax"`
 }
 
 type TransformFullNameConfig struct {
 	PreserveLength bool `json:"preserveLength"`
 }
 
-type TransformIntPhoneConfig struct {
+type TransformInt64PhoneNumberConfig struct {
 	PreserveLength bool `json:"preserveLength"`
 }
 
-type TransformIntConfig struct {
-	PreserveLength bool `json:"preserveLength"`
-	PreserveSign   bool `json:"preserveSign"`
+type TransformInt64Config struct {
+	RandomizationRangeMin int64 `json:"randomizationRangeMin"`
+	RandomizationRangeMax int64 `json:"randomizationRangeMax"`
 }
 
 type TransformLastNameConfig struct {
 	PreserveLength bool `json:"preserveLength"`
 }
 
-type TransformPhoneConfig struct {
+type TransformPhoneNumberConfig struct {
 	PreserveLength bool `json:"preserveLength"`
 	IncludeHyphens bool `json:"includeHyphens"`
 }
@@ -195,8 +195,6 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 	switch tr.Config.(type) {
 	case *mgmtv1alpha1.TransformerConfig_GenerateEmailConfig:
 		t.GenerateEmail = &GenerateEmailConfig{}
-	case *mgmtv1alpha1.TransformerConfig_GenerateRealisticEmailConfig:
-		t.GenerateRealisticEmail = &GenerateRealisticEmailConfig{}
 	case *mgmtv1alpha1.TransformerConfig_TransformEmailConfig:
 		t.TransformEmail = &TransformEmailConfig{
 			PreserveLength: tr.GetTransformEmailConfig().PreserveLength,
@@ -212,17 +210,18 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateCity = &GenerateCityConfig{}
 	case *mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig:
 		t.GenerateDefault = &GenerateDefaultConfig{}
-	case *mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig:
-		t.GenerateE164Number = &GenerateE164NumberConfig{
-			Length: tr.GetGenerateE164NumberConfig().Length,
+	case *mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig:
+		t.GenerateE164PhoneNumber = &GenerateE164PhoneNumberConfig{
+			Min: tr.GetGenerateE164PhoneNumberConfig().Min,
+			Max: tr.GetGenerateE164PhoneNumberConfig().Max,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig:
 		t.GenerateFirstName = &GenerateFirstNameConfig{}
-	case *mgmtv1alpha1.TransformerConfig_GenerateFloatConfig:
-		t.GenerateFloat = &GenerateFloatConfig{
-			Sign:                tr.GetGenerateFloatConfig().Sign,
-			DigitsBeforeDecimal: tr.GetGenerateFloatConfig().DigitsBeforeDecimal,
-			DigitsAfterDecimal:  tr.GetGenerateFloatConfig().DigitsAfterDecimal,
+	case *mgmtv1alpha1.TransformerConfig_GenerateFloat64Config:
+		t.GenerateFloat64 = &GenerateFloat64Config{
+			RandomizeSign: tr.GetGenerateFloat64Config().RandomizeSign,
+			Min:           tr.GetGenerateFloat64Config().Min,
+			Max:           tr.GetGenerateFloat64Config().Max,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig:
 		t.GenerateFullAddress = &GenerateFullAddressConfig{}
@@ -232,12 +231,13 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateGender = &GenerateGenderConfig{
 			Abbreviate: tr.GetGenerateGenderConfig().Abbreviate,
 		}
-	case *mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig:
-		t.GenerateInt64Phone = &GenerateInt64PhoneConfig{}
-	case *mgmtv1alpha1.TransformerConfig_GenerateIntConfig:
-		t.GenerateInt = &GenerateIntConfig{
-			Length: tr.GetGenerateIntConfig().Length,
-			Sign:   tr.GetGenerateIntConfig().Sign,
+	case *mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig:
+		t.GenerateInt64PhoneNumber = &GenerateInt64PhoneNumberConfig{}
+	case *mgmtv1alpha1.TransformerConfig_GenerateInt64Config:
+		t.GenerateInt64 = &GenerateInt64Config{
+			RandomizeSign: tr.GetGenerateInt64Config().RandomizeSign,
+			Min:           tr.GetGenerateInt64Config().Min,
+			Max:           tr.GetGenerateInt64Config().Max,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig:
 		t.GenerateLastName = &GenerateLastNameConfig{}
@@ -249,13 +249,14 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateState = &GenerateStateConfig{}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig:
 		t.GenerateStreetAddress = &GenerateStreetAddressConfig{}
-	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig:
-		t.GenerateStringPhone = &GenerateStringPhoneConfig{
-			IncludeHyphens: tr.GetGenerateStringPhoneConfig().IncludeHyphens,
+	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig:
+		t.GenerateStringPhoneNumber = &GenerateStringPhoneNumberConfig{
+			IncludeHyphens: tr.GetGenerateStringPhoneNumberConfig().IncludeHyphens,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
 		t.GenerateString = &GenerateStringConfig{
-			Length: tr.GetGenerateStringConfig().Length,
+			Min: tr.GetGenerateStringConfig().Min,
+			Max: tr.GetGenerateStringConfig().Max,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig:
 		t.GenerateUnixTimestamp = &GenerateUnixTimestampConfig{}
@@ -269,40 +270,40 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig:
 		t.GenerateZipcode = &GenerateZipcodeConfig{}
-	case *mgmtv1alpha1.TransformerConfig_TransformE164PhoneConfig:
-		t.TransformE164Phone = &TransformE164PhoneConfig{
-			PreserveLength: tr.GetTransformE164PhoneConfig().PreserveLength,
+	case *mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig:
+		t.TransformE164PhoneNumber = &TransformE164PhoneNumberConfig{
+			PreserveLength: tr.GetTransformE164PhoneNumberConfig().PreserveLength,
 		}
 	case *mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig:
 		t.TransformFirstname = &TransformFirstNameConfig{
 			PreserveLength: tr.GetTransformFirstNameConfig().PreserveLength,
 		}
-	case *mgmtv1alpha1.TransformerConfig_TransformFloatConfig:
-		t.TransformFloat = &TransformFloatConfig{
-			PreserveLength: tr.GetTransformFloatConfig().PreserveLength,
-			PreserveSign:   tr.GetTransformFloatConfig().PreserveSign,
+	case *mgmtv1alpha1.TransformerConfig_TransformFloat64Config:
+		t.TransformFloat64 = &TransformFloat64Config{
+			RandomizationRangeMin: tr.GetTransformFloat64Config().RandomizationRangeMin,
+			RandomizationRangeMax: tr.GetTransformFloat64Config().RandomizationRangeMax,
 		}
 	case *mgmtv1alpha1.TransformerConfig_TransformFullNameConfig:
 		t.TransformFullName = &TransformFullNameConfig{
 			PreserveLength: tr.GetTransformFullNameConfig().PreserveLength,
 		}
-	case *mgmtv1alpha1.TransformerConfig_TransformIntPhoneConfig:
-		t.TransformIntPhone = &TransformIntPhoneConfig{
-			PreserveLength: tr.GetTransformIntConfig().PreserveLength,
+	case *mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig:
+		t.TransformInt64PhoneNumber = &TransformInt64PhoneNumberConfig{
+			PreserveLength: tr.GetTransformInt64PhoneNumberConfig().PreserveLength,
 		}
-	case *mgmtv1alpha1.TransformerConfig_TransformIntConfig:
-		t.TransformInt = &TransformIntConfig{
-			PreserveLength: tr.GetTransformIntConfig().PreserveLength,
-			PreserveSign:   tr.GetTransformIntConfig().PreserveSign,
+	case *mgmtv1alpha1.TransformerConfig_TransformInt64Config:
+		t.TransformInt64 = &TransformInt64Config{
+			RandomizationRangeMin: tr.GetTransformInt64Config().RandomizationRangeMin,
+			RandomizationRangeMax: tr.GetTransformInt64Config().RandomizationRangeMax,
 		}
 	case *mgmtv1alpha1.TransformerConfig_TransformLastNameConfig:
 		t.TransformLastName = &TransformLastNameConfig{
 			PreserveLength: tr.GetTransformLastNameConfig().PreserveLength,
 		}
-	case *mgmtv1alpha1.TransformerConfig_TransformPhoneConfig:
-		t.TransformPhone = &TransformPhoneConfig{
-			PreserveLength: tr.GetTransformPhoneConfig().PreserveLength,
-			IncludeHyphens: tr.GetTransformPhoneConfig().IncludeHyphens,
+	case *mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig:
+		t.TransformPhoneNumber = &TransformPhoneNumberConfig{
+			PreserveLength: tr.GetTransformPhoneNumberConfig().PreserveLength,
+			IncludeHyphens: tr.GetTransformPhoneNumberConfig().IncludeHyphens,
 		}
 	case *mgmtv1alpha1.TransformerConfig_TransformStringConfig:
 		t.TransformString = &TransformStringConfig{
@@ -340,12 +341,6 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
 			},
 		}
-	case t.GenerateRealisticEmail != nil:
-		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_GenerateRealisticEmailConfig{
-				GenerateRealisticEmailConfig: &mgmtv1alpha1.GenerateRealisticEmail{},
-			},
-		}
 	case t.TransformEmail != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
@@ -379,11 +374,12 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{},
 		}
-	case t.GenerateE164Number != nil:
+	case t.GenerateE164PhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig{
-				GenerateE164NumberConfig: &mgmtv1alpha1.GenerateE164Number{
-					Length: t.GenerateE164Number.Length,
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
+				GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
+					Min: t.GenerateE164PhoneNumber.Min,
+					Max: t.GenerateE164PhoneNumber.Max,
 				},
 			},
 		}
@@ -393,13 +389,13 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
 			},
 		}
-	case t.GenerateFloat != nil:
+	case t.GenerateFloat64 != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_GenerateFloatConfig{
-				GenerateFloatConfig: &mgmtv1alpha1.GenerateFloat{
-					Sign:                t.GenerateFloat.Sign,
-					DigitsBeforeDecimal: t.GenerateFloat.DigitsBeforeDecimal,
-					DigitsAfterDecimal:  t.GenerateFloat.DigitsAfterDecimal,
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
+				GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
+					RandomizeSign: t.GenerateFloat64.RandomizeSign,
+					Min:           t.GenerateFloat64.Min,
+					Max:           t.GenerateFloat64.Max,
 				},
 			},
 		}
@@ -423,18 +419,19 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				},
 			},
 		}
-	case t.GenerateInt64Phone != nil:
+	case t.GenerateInt64PhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig{
-				GenerateInt64PhoneConfig: &mgmtv1alpha1.GenerateInt64Phone{},
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
+				GenerateInt64PhoneNumberConfig: &mgmtv1alpha1.GenerateInt64PhoneNumber{},
 			},
 		}
-	case t.GenerateInt != nil:
+	case t.GenerateInt64 != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{
-				GenerateIntConfig: &mgmtv1alpha1.GenerateInt{
-					Length: t.GenerateInt.Length,
-					Sign:   t.GenerateInt.Sign,
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+				GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+					RandomizeSign: t.GenerateInt64.RandomizeSign,
+					Min:           t.GenerateInt64.Min,
+					Max:           t.GenerateInt64.Max,
 				},
 			},
 		}
@@ -468,11 +465,11 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
 			},
 		}
-	case t.GenerateStringPhone != nil:
+	case t.GenerateStringPhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
-				GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
-					IncludeHyphens: t.GenerateStringPhone.IncludeHyphens,
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
+				GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
+					IncludeHyphens: t.GenerateStringPhoneNumber.IncludeHyphens,
 				},
 			},
 		}
@@ -480,7 +477,8 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 				GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-					Length: t.GenerateString.Length,
+					Min: t.GenerateString.Min,
+					Max: t.GenerateString.Max,
 				},
 			},
 		}
@@ -516,11 +514,11 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
 			},
 		}
-	case t.TransformE164Phone != nil:
+	case t.TransformE164PhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneConfig{
-				TransformE164PhoneConfig: &mgmtv1alpha1.TransformE164Phone{
-					PreserveLength: t.TransformE164Phone.PreserveLength,
+			Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
+				TransformE164PhoneNumberConfig: &mgmtv1alpha1.TransformE164PhoneNumber{
+					PreserveLength: t.TransformE164PhoneNumber.PreserveLength,
 				},
 			},
 		}
@@ -532,12 +530,12 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				},
 			},
 		}
-	case t.TransformFloat != nil:
+	case t.TransformFloat64 != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_TransformFloatConfig{
-				TransformFloatConfig: &mgmtv1alpha1.TransformFloat{
-					PreserveLength: t.TransformFloat.PreserveLength,
-					PreserveSign:   t.TransformFloat.PreserveSign,
+			Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
+				TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
+					RandomizationRangeMin: t.TransformFloat64.RandomizationRangeMin,
+					RandomizationRangeMax: t.TransformFloat64.RandomizationRangeMin,
 				},
 			},
 		}
@@ -549,20 +547,20 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				},
 			},
 		}
-	case t.TransformIntPhone != nil:
+	case t.TransformInt64PhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_TransformIntPhoneConfig{
-				TransformIntPhoneConfig: &mgmtv1alpha1.TransformIntPhone{
-					PreserveLength: t.TransformInt.PreserveLength,
+			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
+				TransformInt64PhoneNumberConfig: &mgmtv1alpha1.TransformInt64PhoneNumber{
+					PreserveLength: t.TransformInt64PhoneNumber.PreserveLength,
 				},
 			},
 		}
-	case t.TransformInt != nil:
+	case t.TransformInt64 != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_TransformIntConfig{
-				TransformIntConfig: &mgmtv1alpha1.TransformInt{
-					PreserveLength: t.TransformInt.PreserveLength,
-					PreserveSign:   t.TransformInt.PreserveSign,
+			Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
+				TransformInt64Config: &mgmtv1alpha1.TransformInt64{
+					RandomizationRangeMin: t.TransformInt64.RandomizationRangeMin,
+					RandomizationRangeMax: t.TransformInt64.RandomizationRangeMax,
 				},
 			},
 		}
@@ -574,12 +572,12 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				},
 			},
 		}
-	case t.TransformPhone != nil:
+	case t.TransformPhoneNumber != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneConfig{
-				TransformPhoneConfig: &mgmtv1alpha1.TransformPhone{
-					PreserveLength: t.TransformPhone.PreserveLength,
-					IncludeHyphens: t.TransformPhone.IncludeHyphens,
+			Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
+				TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
+					PreserveLength: t.TransformPhoneNumber.PreserveLength,
+					IncludeHyphens: t.TransformPhoneNumber.IncludeHyphens,
 				},
 			},
 		}

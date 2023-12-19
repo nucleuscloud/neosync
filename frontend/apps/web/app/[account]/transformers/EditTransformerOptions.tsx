@@ -19,22 +19,22 @@ import {
 } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import GenerateCardNumberForm from './Sheetforms/GenerateCardNumberForm';
-import GenerateE164NumberForm from './Sheetforms/GenerateE164NumberForm';
-import GenerateFloatForm from './Sheetforms/GenerateFloatForm';
+import GenerateE164PhoneNumberForm from './Sheetforms/GenerateE164PhoneNumberForm';
+import GenerateFloatForm from './Sheetforms/GenerateFloat64Form';
 import GenerateGenderForm from './Sheetforms/GenerateGenderForm';
-import GenerateIntForm from './Sheetforms/GenerateIntForm';
+import GenerateIntForm from './Sheetforms/GenerateInt64Form';
 import GenerateStringForm from './Sheetforms/GenerateStringForm';
-import GenerateStringPhoneForm from './Sheetforms/GenerateStringPhoneForm';
+import GenerateStringPhoneForm from './Sheetforms/GenerateStringPhoneNumberForm';
 import GenerateUuidForm from './Sheetforms/GenerateUuidForm';
-import TransformE164NumberForm from './Sheetforms/TransformE164NumberForm';
+import TransformE164NumberForm from './Sheetforms/TransformE164PhoneNumberForm';
 import TransformEmailForm from './Sheetforms/TransformEmailForm';
 import TransformFirstNameForm from './Sheetforms/TransformFirstNameForm';
-import TransformFloatForm from './Sheetforms/TransformFloatForm';
+import TransformFloatForm from './Sheetforms/TransformFloat64Form';
 import TransformFullNameForm from './Sheetforms/TransformFullNameForm';
-import TransformIntForm from './Sheetforms/TransformIntForm';
-import TransformIntPhoneForm from './Sheetforms/TransformIntPhoneForm';
+import TransformInt64Form from './Sheetforms/TransformInt64Form';
+import TransformInt64PhoneForm from './Sheetforms/TransformInt64PhoneForm';
 import TransformLastNameForm from './Sheetforms/TransformLastNameForm';
-import TransformPhoneForm from './Sheetforms/TransformPhoneForm';
+import TransformPhoneNumberForm from './Sheetforms/TransformPhoneNumberForm';
 import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
@@ -134,11 +134,14 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    case 'generate_e164_number':
+    case 'generate_e164_phone_number':
       return (
-        <GenerateE164NumberForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <GenerateE164PhoneNumberForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+        />
       );
-    case 'generate_float':
+    case 'generate_float64':
       return (
         <GenerateFloatForm index={index} setIsSheetOpen={setIsSheetOpen} />
       );
@@ -146,7 +149,7 @@ function handleTransformerForm(
       return (
         <GenerateGenderForm index={index} setIsSheetOpen={setIsSheetOpen} />
       );
-    case 'generate_int':
+    case 'generate_int64':
       return <GenerateIntForm index={index} setIsSheetOpen={setIsSheetOpen} />;
     case 'generate_string':
       return (
@@ -161,7 +164,7 @@ function handleTransformerForm(
       );
     case 'generate_uuid':
       return <GenerateUuidForm index={index} setIsSheetOpen={setIsSheetOpen} />;
-    case 'transform_e164_phone':
+    case 'transform_e164_phone_number':
       return (
         <TransformE164NumberForm
           index={index}
@@ -185,7 +188,7 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    case 'transform_float':
+    case 'transform_float64':
       return (
         <TransformFloatForm
           index={index}
@@ -201,17 +204,17 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    case 'transform_int':
+    case 'transform_int64':
       return (
-        <TransformIntForm
+        <TransformInt64Form
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
         />
       );
-    case 'transform_int_phone':
+    case 'transform_int64_phone_number':
       return (
-        <TransformIntPhoneForm
+        <TransformInt64PhoneForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
@@ -225,9 +228,9 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
-    case 'transform_phone':
+    case 'transform_phone_number':
       return (
-        <TransformPhoneForm
+        <TransformPhoneNumberForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}

@@ -25,7 +25,7 @@ func init() {
 	}
 }
 
-// Generates a random first name with a randomly selected length between [2,12] characters
+/* Generates a random first name with a randomly selected length between [2,12] characters */
 func GenerateRandomFirstName() (string, error) {
 
 	var returnValue string

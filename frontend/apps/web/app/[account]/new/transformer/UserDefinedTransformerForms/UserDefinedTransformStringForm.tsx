@@ -15,7 +15,9 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomTransformStringForm(props: Props): ReactElement {
+export default function UserDefinedTransformStringForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
 
   const { isDisabled } = props;

@@ -34,7 +34,7 @@ func init() {
 	}
 }
 
-// generates a randomly selected gender
+/* Generates a randomly selected gender from a predefined list */
 func GenerateRandomGender(ab bool) (string, error) {
 
 	//nolint:all

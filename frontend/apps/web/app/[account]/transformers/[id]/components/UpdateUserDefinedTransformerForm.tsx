@@ -1,5 +1,5 @@
 'use client';
-import { handleCustomTransformerForm } from '@/app/[account]/new/transformer/UserDefinedTransformerForms/HandleCustomTransformersForm';
+import { handleUserDefinedTransformerForm } from '@/app/[account]/new/transformer/UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
 import {
   UPDATE_USER_DEFINED_TRANSFORMER,
   UpdateUserDefinedTransformer,
@@ -158,7 +158,9 @@ export default function UpdateUserDefinedTransformerForm(
             />
           </div>
         </div>
-        <div>{handleCustomTransformerForm(currentTransformer?.source)}</div>
+        <div>
+          {handleUserDefinedTransformerForm(currentTransformer?.source)}
+        </div>
         <div className="flex flex-row justify-end">
           <Button type="submit">Save</Button>
         </div>

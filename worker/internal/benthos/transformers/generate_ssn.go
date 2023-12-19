@@ -8,6 +8,8 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
+var defaultSSNLength = int64(10)
+
 func init() {
 
 	spec := bloblang.NewPluginSpec()
@@ -29,9 +31,10 @@ func init() {
 	}
 }
 
+/* Generates a random social security number in the format XXX-XX-XXXX */
 func GenerateRandomSSN() (string, error) {
 
-	val, err := transformer_utils.GenerateRandomInt(9)
+	val, err := transformer_utils.GenerateRandomInt64InValueRange(defaultSSNLength, defaultSSNLength)
 	if err != nil {
 		return "", err
 	}

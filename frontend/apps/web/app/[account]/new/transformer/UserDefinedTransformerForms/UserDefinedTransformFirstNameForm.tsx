@@ -14,7 +14,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomTransformFirstNameForm(
+export default function UserDefinedTransformFirstNameForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext();

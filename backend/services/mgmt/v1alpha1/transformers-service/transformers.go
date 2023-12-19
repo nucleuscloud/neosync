@@ -16,45 +16,44 @@ import (
 type Transformation string
 
 const (
-	GenerateEmail          Transformation = "generate_email"
-	GenerateRealisticEmail Transformation = "generate_realistic_email"
-	TransformEmail         Transformation = "transform_email"
-	GenerateBool           Transformation = "generate_bool"
-	GenerateCardNumber     Transformation = "generate_card_number"
-	GenerateCity           Transformation = "generate_city"
-	GenerateDefault        Transformation = "generate_default"
-	GenerateE164Number     Transformation = "generate_e164_number"
-	GenerateFirstName      Transformation = "generate_first_name"
-	GenerateFloat          Transformation = "generate_float"
-	GenerateFullAddress    Transformation = "generate_full_address"
-	GenerateFullName       Transformation = "generate_full_name"
-	GenerateGender         Transformation = "generate_gender"
-	GenerateInt64Phone     Transformation = "generate_int64_phone"
-	GenerateInt            Transformation = "generate_int"
-	GenerateLastName       Transformation = "generate_last_name"
-	GenerateShaHash256     Transformation = "generate_sha256hash"
-	GenerateSSN            Transformation = "generate_ssn"
-	GenerateState          Transformation = "generate_state"
-	GenerateStreetAddress  Transformation = "generate_street_address"
-	GenerateStringPhone    Transformation = "generate_string_phone"
-	GenerateString         Transformation = "generate_string"
-	GenerateUnixTimestamp  Transformation = "generate_unixtimestamp"
-	GenerateUsername       Transformation = "generate_username"
-	GenerateUtcTimestamp   Transformation = "generate_utctimestamp"
-	GenerateUuid           Transformation = "generate_uuid"
-	GenerateZipcode        Transformation = "generate_zipcode"
-	TransformE164Phone     Transformation = "transform_e164_phone"
-	TransformFirstName     Transformation = "transform_first_name"
-	TransformFloat         Transformation = "transform_float"
-	TransformFullName      Transformation = "transform_full_name"
-	TransformIntPhone      Transformation = "transform_int_phone"
-	TransformInt           Transformation = "transform_int"
-	TransformLastName      Transformation = "transform_last_name"
-	TransformPhone         Transformation = "transform_phone"
-	TransformString        Transformation = "transform_string"
-	Passthrough            Transformation = "passthrough"
-	Null                   Transformation = "null"
-	Invalid                Transformation = "invalid"
+	GenerateEmail             Transformation = "generate_email"
+	TransformEmail            Transformation = "transform_email"
+	GenerateBool              Transformation = "generate_bool"
+	GenerateCardNumber        Transformation = "generate_card_number"
+	GenerateCity              Transformation = "generate_city"
+	GenerateDefault           Transformation = "generate_default"
+	GenerateE164PhoneNumber   Transformation = "generate_e164_phone_number"
+	GenerateFirstName         Transformation = "generate_first_name"
+	GenerateFloat64           Transformation = "generate_float64"
+	GenerateFullAddress       Transformation = "generate_full_address"
+	GenerateFullName          Transformation = "generate_full_name"
+	GenerateGender            Transformation = "generate_gender"
+	GenerateInt64PhoneNumber  Transformation = "generate_int64_phone_number"
+	GenerateInt64             Transformation = "generate_int64"
+	GenerateLastName          Transformation = "generate_last_name"
+	GenerateShaHash256        Transformation = "generate_sha256hash"
+	GenerateSSN               Transformation = "generate_ssn"
+	GenerateState             Transformation = "generate_state"
+	GenerateStreetAddress     Transformation = "generate_street_address"
+	GenerateStringPhoneNumber Transformation = "generate_string_phone_number"
+	GenerateString            Transformation = "generate_string"
+	GenerateUnixTimestamp     Transformation = "generate_unixtimestamp"
+	GenerateUsername          Transformation = "generate_username"
+	GenerateUtcTimestamp      Transformation = "generate_utctimestamp"
+	GenerateUuid              Transformation = "generate_uuid"
+	GenerateZipcode           Transformation = "generate_zipcode"
+	TransformE164PhoneNumber  Transformation = "transform_e164_phone_number"
+	TransformFirstName        Transformation = "transform_first_name"
+	TransformFloat64          Transformation = "transform_float64"
+	TransformFullName         Transformation = "transform_full_name"
+	TransformInt64PhoneNumber Transformation = "transform_int64_phone_number"
+	TransformInt64            Transformation = "transform_int64"
+	TransformLastName         Transformation = "transform_last_name"
+	TransformPhoneNumber      Transformation = "transform_phone_number"
+	TransformString           Transformation = "transform_string"
+	Passthrough               Transformation = "passthrough"
+	Null                      Transformation = "null"
+	Invalid                   Transformation = "invalid"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -73,17 +72,6 @@ func (s *Service) GetSystemTransformers(
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
 						GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
-					},
-				},
-			},
-			{
-				Name:        "Generate Realistic Email",
-				Description: "Generates a new realistic email address.",
-				DataType:    "string",
-				Source:      string(GenerateRealisticEmail),
-				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateRealisticEmailConfig{
-						GenerateRealisticEmailConfig: &mgmtv1alpha1.GenerateRealisticEmail{},
 					},
 				},
 			},
@@ -151,11 +139,12 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Generate E164 Phone Number",
 				Description: "Generates a Generate phone number in e164 format.",
 				DataType:    "string",
-				Source:      string(GenerateE164Number),
+				Source:      string(GenerateE164PhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig{
-						GenerateE164NumberConfig: &mgmtv1alpha1.GenerateE164Number{
-							Length: 12,
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
+						GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
+							Min: 9,
+							Max: 15,
 						},
 					},
 				},
@@ -175,13 +164,13 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Generate Float64",
 				Description: "Generates a random float64 value.",
 				DataType:    "float64",
-				Source:      string(GenerateFloat),
+				Source:      string(GenerateFloat64),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateFloatConfig{
-						GenerateFloatConfig: &mgmtv1alpha1.GenerateFloat{
-							Sign:                "positive",
-							DigitsBeforeDecimal: 3,
-							DigitsAfterDecimal:  3,
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
+						GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
+							RandomizeSign: false,
+							Min:           1.00,
+							Max:           100.00,
 						},
 					},
 				},
@@ -222,25 +211,26 @@ func (s *Service) GetSystemTransformers(
 				},
 			},
 			{
-				Name:        "Generate int64 Phone Number",
-				Description: "Generates a new phone number of type int64 with a default length of 10.",
+				Name:        "Generate Int64 Phone Number",
+				Description: "Generates a new phone number with a default length of 10.",
 				DataType:    "int64",
-				Source:      string(GenerateInt64Phone),
+				Source:      string(GenerateInt64PhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig{
-						GenerateInt64PhoneConfig: &mgmtv1alpha1.GenerateInt64Phone{},
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
+						GenerateInt64PhoneNumberConfig: &mgmtv1alpha1.GenerateInt64PhoneNumber{},
 					},
 				},
 			},
 			{
 				Name:        "Generate Random Int64",
-				Description: "Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.", DataType: "int64",
-				Source: string(GenerateInt),
+				Description: "Generates a random int64 value.", DataType: "int64",
+				Source: string(GenerateInt64),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{
-						GenerateIntConfig: &mgmtv1alpha1.GenerateInt{
-							Length: 4,
-							Sign:   "positive",
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+						GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+							RandomizeSign: false,
+							Min:           1,
+							Max:           4,
 						},
 					},
 				},
@@ -303,10 +293,10 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Generate String Phone Number",
 				Description: "Generates a Generate phone number and returns it as a string.",
 				DataType:    "string",
-				Source:      string(GenerateStringPhone),
+				Source:      string(GenerateStringPhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
-						GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
+						GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
 							IncludeHyphens: false,
 						},
 					},
@@ -320,7 +310,8 @@ func (s *Service) GetSystemTransformers(
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 						GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-							Length: 6,
+							Min: 2,
+							Max: 7,
 						},
 					},
 				},
@@ -386,10 +377,10 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Transform E164 Phone Number",
 				Description: "Transforms an existing E164 formatted phone number.",
 				DataType:    "string",
-				Source:      string(TransformE164Phone),
+				Source:      string(TransformE164PhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneConfig{
-						TransformE164PhoneConfig: &mgmtv1alpha1.TransformE164Phone{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
+						TransformE164PhoneNumberConfig: &mgmtv1alpha1.TransformE164PhoneNumber{
 							PreserveLength: false,
 						},
 					},
@@ -412,12 +403,12 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Transform Float64",
 				Description: "Transforms an existing float value.",
 				DataType:    "float64",
-				Source:      string(TransformFloat),
+				Source:      string(TransformFloat64),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_TransformFloatConfig{
-						TransformFloatConfig: &mgmtv1alpha1.TransformFloat{
-							PreserveLength: false,
-							PreserveSign:   true,
+					Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
+						TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
+							RandomizationRangeMin: 20.00,
+							RandomizationRangeMax: 50.00,
 						},
 					},
 				},
@@ -439,10 +430,10 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Transform Int64 Phone Number",
 				Description: "Transforms an existing phone number that is typed as an integer",
 				DataType:    "int64",
-				Source:      string(TransformIntPhone),
+				Source:      string(TransformInt64PhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_TransformIntPhoneConfig{
-						TransformIntPhoneConfig: &mgmtv1alpha1.TransformIntPhone{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
+						TransformInt64PhoneNumberConfig: &mgmtv1alpha1.TransformInt64PhoneNumber{
 							PreserveLength: false,
 						},
 					},
@@ -452,12 +443,12 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Transform Int64",
 				Description: "Transforms an existing integer value.",
 				DataType:    "int64",
-				Source:      string(TransformInt),
+				Source:      string(TransformInt64),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_TransformIntConfig{
-						TransformIntConfig: &mgmtv1alpha1.TransformInt{
-							PreserveLength: false,
-							PreserveSign:   true,
+					Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
+						TransformInt64Config: &mgmtv1alpha1.TransformInt64{
+							RandomizationRangeMin: 20,
+							RandomizationRangeMax: 50,
 						},
 					},
 				},
@@ -479,10 +470,10 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Transform Phone Number",
 				Description: "Transforms an existing phone number that is typed as a string.",
 				DataType:    "string",
-				Source:      string(TransformPhone),
+				Source:      string(TransformPhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneConfig{
-						TransformPhoneConfig: &mgmtv1alpha1.TransformPhone{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
+						TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
 							PreserveLength: false,
 							IncludeHyphens: false,
 						},

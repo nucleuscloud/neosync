@@ -14,7 +14,9 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomTransformEmailForm(props: Props): ReactElement {
+export default function UserDefinedTransformEmailForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
 
   const { isDisabled } = props;

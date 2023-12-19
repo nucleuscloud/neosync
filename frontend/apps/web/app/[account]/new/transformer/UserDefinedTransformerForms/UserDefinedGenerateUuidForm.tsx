@@ -14,7 +14,9 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomGenerateUuidForm(props: Props): ReactElement {
+export default function UserDefinedGenerateUuidForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
 
   const { isDisabled } = props;
