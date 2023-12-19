@@ -46,14 +46,8 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {status && data?.nextRuns?.nextRunTimes.length == 0 && (
-                <TableRow>
-                  <TableCell>
-                    <span className="font-medium">No upcoming runs</span>
-                  </TableCell>
-                </TableRow>
-              )}
-              {status && status == JobStatus.PAUSED ? (
+              {(status && status == JobStatus.PAUSED) ||
+              data?.nextRuns?.nextRunTimes.length == 0 ? (
                 <TableRow>
                   <TableCell>
                     <span className="font-medium">No upcoming runs</span>

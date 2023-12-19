@@ -42,7 +42,6 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
-  Passthrough,
   TransformerConfig,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
@@ -298,49 +297,19 @@ function getJobSource(
       schemaMap[c.schema] = {
         [c.table]: {
           [c.column]: {
-            transformer:
-              c?.transformer ??
-              new JobMappingTransformer({
-                source: 'passthrough',
-                config: new TransformerConfig({
-                  config: {
-                    case: 'passthroughConfig',
-                    value: new Passthrough({}),
-                  },
-                }),
-              }),
+            transformer: c?.transformer ?? new JobMappingTransformer({}),
           },
         },
       };
     } else if (!schemaMap[c.schema][c.table]) {
       schemaMap[c.schema][c.table] = {
         [c.column]: {
-          transformer:
-            c?.transformer ??
-            new JobMappingTransformer({
-              source: 'passthrough',
-              config: new TransformerConfig({
-                config: {
-                  case: 'passthroughConfig',
-                  value: new Passthrough({}),
-                },
-              }),
-            }),
+          transformer: c?.transformer ?? new JobMappingTransformer({}),
         },
       };
     } else {
       schemaMap[c.schema][c.table][c.column] = {
-        transformer:
-          c.transformer ??
-          new JobMappingTransformer({
-            source: 'passthrough',
-            config: new TransformerConfig({
-              config: {
-                case: 'passthroughConfig',
-                value: new Passthrough({}),
-              },
-            }),
-          }),
+        transformer: c.transformer ?? new JobMappingTransformer({}),
       };
     }
   });
@@ -355,16 +324,7 @@ function getJobSource(
         c.column
       );
       const transformer =
-        colMapping?.transformer ??
-        new JobMappingTransformer({
-          source: 'passthrough',
-          config: new TransformerConfig({
-            config: {
-              case: 'passthroughConfig',
-              value: new Passthrough({}),
-            },
-          }),
-        });
+        colMapping?.transformer ?? new JobMappingTransformer({});
 
       return {
         column: c.column,
