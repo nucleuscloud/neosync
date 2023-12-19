@@ -50,7 +50,7 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { getConnection } from '../../util';
@@ -93,7 +93,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const { account } = useAccount();
   const { data, mutate } = useGetJob(account?.id ?? '', jobId);
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
-  const { data: schema } = useGetConnectionSchema(
+  const { data: schema, error } = useGetConnectionSchema(
     account?.id ?? '',
     sourceConnectionId
   );
@@ -101,6 +101,16 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     useGetConnections(account?.id ?? '');
 
   const connections = connectionsData?.connections ?? [];
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Unable to get connection schema',
+        description: getErrorMessage(error),
+        variant: 'destructive',
+      });
+    }
+  }, [error]);
 
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
