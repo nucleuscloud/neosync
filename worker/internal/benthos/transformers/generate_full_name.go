@@ -23,7 +23,7 @@ func init() {
 
 }
 
-// Generates a random full name
+/* Generates a random full name */
 func GenerateRandomFullName() (string, error) {
 
 	fn, err := GenerateRandomFirstName()

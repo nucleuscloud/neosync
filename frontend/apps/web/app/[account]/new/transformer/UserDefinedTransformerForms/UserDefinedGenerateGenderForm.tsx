@@ -15,7 +15,9 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomGenerateGenderForm(props: Props): ReactElement {
+export default function UserDefinedGenerateGenderForm(
+  props: Props
+): ReactElement {
   const fc = useFormContext();
 
   const { isDisabled } = props;

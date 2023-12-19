@@ -162,6 +162,11 @@ const sidebars: SidebarsConfig = {
       label: 'Docker Compose',
     },
     {
+      type: 'doc',
+      id: 'deploy/auth',
+      label: 'Authentication',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',

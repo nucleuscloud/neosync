@@ -1,7 +1,6 @@
 'use client';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -33,7 +32,7 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
   }
 
   return (
-    <Card>
+    <div>
       {!data?.nextRuns || error ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
@@ -77,6 +76,6 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
           </Table>
         </div>
       )}
-    </Card>
+    </div>
   );
 }

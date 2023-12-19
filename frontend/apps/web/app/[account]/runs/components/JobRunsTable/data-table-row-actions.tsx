@@ -1,6 +1,6 @@
 'use client';
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { Cross2Icon, DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
 
 import { useAccount } from '@/components/providers/account-provider';
@@ -16,6 +16,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { JobRun } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import ConfirmationDialog from '@/components/ConfirmationDialog';
+import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -86,13 +89,42 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => onCancel()}>
-          Cancel
-        </DropdownMenuItem>
+        <ConfirmationDialog
+          trigger={
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => e.preventDefault()}
+              disabled={
+                !(
+                  run.status == JobRunStatusEnum.RUNNING ||
+                  run.status == JobRunStatusEnum.PENDING
+                )
+              }
+            >
+              Cancel
+            </DropdownMenuItem>
+          }
+          headerText="Are you sure you want to cancel this job run?"
+          description=""
+          onConfirm={async () => onCancel()}
+          buttonText="Cancel"
+          buttonVariant="default"
+          buttonIcon={<Cross2Icon />}
+        />
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer" onClick={() => onDelete()}>
-          Delete
-        </DropdownMenuItem>
+        <DeleteConfirmationDialog
+          trigger={
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => e.preventDefault()}
+            >
+              Delete
+            </DropdownMenuItem>
+          }
+          headerText="Are you sure you want to delete this job run?"
+          description=""
+          onConfirm={async () => onDelete()}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );

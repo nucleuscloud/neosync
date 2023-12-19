@@ -2,220 +2,203 @@ import { IsTransformerNameAvailableResponse } from '@neosync/sdk';
 import * as Yup from 'yup';
 
 const transformEmailConfig = Yup.object().shape({
-  preserveDomain: Yup.boolean().notRequired(),
-  preserveLength: Yup.boolean().notRequired(),
+  preserveDomain: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean().required('This field is required.'),
 });
 
 const generateCardNumberConfig = Yup.object().shape({
-  validLuhn: Yup.boolean().notRequired(),
+  validLuhn: Yup.boolean().required('This field is required.'),
 });
 
-const generateE164NumberConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-  e164Format: Yup.boolean().notRequired(),
-  includeHyphens: Yup.boolean().notRequired(),
+const generateE164PhoneNumberConfig = Yup.object().shape({
+  min: Yup.number()
+    .min(9, 'The value must be greater than or equal to 9.')
+    .max(15, 'The value must be less than or equal 15.')
+    .required('This field is required.')
+    .test('is-less-than-max', 'Min must be less than Max', function (value) {
+      const { max } = this.parent;
+      return !max || !value || value <= max;
+    }),
+  max: Yup.number()
+    .min(9, 'The value must be greater than or equal to 9.')
+    .max(15, 'The value must be less than or equal 15.')
+    .required('This field is required.')
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { min } = this.parent;
+        return !min || !value || value >= min;
+      }
+    ),
 });
-
-const generateFloatConfig = Yup.object().shape({
-  sign: Yup.string().notRequired(),
-  digitsAfterDecimal: Yup.number().notRequired(),
-  digitsBeforeDecimal: Yup.number().notRequired(),
+const generateFloat64Config = Yup.object().shape({
+  randomizeSign: Yup.bool(),
+  min: Yup.number().required('This field is required.'),
+  max: Yup.number().required('This field is required.'),
 });
 
 const generateGenderConfig = Yup.object().shape({
-  abbreviate: Yup.boolean().notRequired(),
+  abbreviate: Yup.boolean().required('This field is required.'),
 });
 
-const generateIntConfig = Yup.object().shape({
-  sign: Yup.string().notRequired(),
-  length: Yup.number().notRequired(),
+const generateInt64Config = Yup.object().shape({
+  randomizeSign: Yup.bool().required('This field is required.'),
+  min: Yup.number().required('This field is required.'),
+  max: Yup.number().required('This field is required.'),
 });
 
-const generateStringPhoneConfig = Yup.object().shape({
-  e164Format: Yup.boolean().notRequired(),
-  includeHyphens: Yup.boolean().notRequired(),
+const generateStringPhoneNumberConfig = Yup.object().shape({
+  includeHyphens: Yup.boolean().required('This field is required.'),
 });
 
 const generateStringConfig = Yup.object().shape({
-  length: Yup.number().notRequired(),
+  min: Yup.number()
+    .min(1, 'The value must be greater than or equal to 1.')
+    .required('This field is required.')
+    .test('is-less-than-max', 'Min must be less than Max', function (value) {
+      const { max } = this.parent;
+      return !max || !value || value <= max;
+    }),
+  max: Yup.number()
+    .min(1, 'The value must be greater than or equal to 1.')
+    .required('This field is required.')
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { min } = this.parent;
+        return !min || !value || value >= min;
+      }
+    ),
 });
 
 const generateUuidConfig = Yup.object().shape({
-  includeHyphens: Yup.boolean().notRequired(),
+  includeHyphens: Yup.boolean().required('This field is required.'),
 });
 
-const transformE164Phone = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
+const transformE164PhoneNumber = Yup.object().shape({
+  preserveLength: Yup.boolean().required('This field is required.'),
 });
 
 const transformFirstNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
+  preserveLength: Yup.boolean().required('This field is required.'),
 });
 
-const transformFloatConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-  preserveSign: Yup.string().notRequired(),
+const transformFloat64Config = Yup.object().shape({
+  randomizationRangeMin: Yup.number()
+    .required('This field is required.')
+    .test('is-less-than-max', 'Min must be less than Max', function (value) {
+      const { randomizationRangeMax } = this.parent;
+      return !randomizationRangeMax || !value || value <= randomizationRangeMax;
+    }),
+  randomizationRangeMax: Yup.number()
+    .required('This field is required.')
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { randomizationRangeMin } = this.parent;
+        return (
+          !randomizationRangeMin || !value || value >= randomizationRangeMin
+        );
+      }
+    ),
 });
 
 const transformFullNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
+  preserveLength: Yup.boolean().required('This field is required.'),
 });
 
-const transformIntPhoneConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
+const transformInt64PhoneNumberConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().required('This field is required.'),
 });
 
-const transformIntConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-  preserveSign: Yup.boolean().notRequired(),
+const transformInt64Config = Yup.object().shape({
+  randomizationRangeMin: Yup.number()
+    .required('This field is required.')
+    .test('is-less-than-max', 'Min must be less than Max', function (value) {
+      const { randomizationRangeMax } = this.parent;
+      return !randomizationRangeMax || !value || value <= randomizationRangeMax;
+    }),
+  randomizationRangeMax: Yup.number()
+    .required('This field is required.')
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { randomizationRangeMin } = this.parent;
+        return (
+          !randomizationRangeMin || !value || value >= randomizationRangeMin
+        );
+      }
+    ),
 });
 
 const transformLastNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
+  preserveLength: Yup.boolean().required('This field is required.'),
 });
 
-const transformPhoneConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
-  includeHyphens: Yup.boolean().notRequired(),
+const transformPhoneNumberConfig = Yup.object().shape({
+  preserveLength: Yup.boolean().required('This field is required.'),
+  includeHyphens: Yup.boolean().required('This field is required.'),
 });
 
 const transformStringConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().notRequired(),
+  preserveLength: Yup.boolean().required('This field is required.'),
 });
 
 const userDefinedTransformerConfig = Yup.object().shape({
-  id: Yup.string().required(),
+  id: Yup.string().required('This field is required.'),
 });
 
-export const transformerConfig = Yup.object().shape({
-  config: Yup.object().shape({
-    value: Yup.lazy((value) => {
-      switch (value?.case) {
-        case 'generateEmailConfig':
-          return Yup.object().shape({});
-        case 'generateRealisticEmailConfig':
-          return Yup.object().shape({});
-        case 'transformEmailConfig':
-          return transformEmailConfig;
-        case 'generateBoolConfig':
-          return Yup.object().shape({});
-        case 'generateCardNumberConfig':
-          return generateCardNumberConfig;
-        case 'generateCityConfig':
-          return Yup.object().shape({});
-        case 'generateDefaultConfig':
-          return Yup.object().shape({});
-        case 'generateE164NumberConfig':
-          return generateE164NumberConfig;
-        case 'generateFirstNameConfig':
-          return Yup.object().shape({});
-        case 'generateFloatConfig':
-          return generateFloatConfig;
-        case 'generateFullAddressConfig':
-          return Yup.object().shape({});
-        case 'generateFullNameConfig':
-          return Yup.object().shape({});
-        case 'generateGenderConfig':
-          return generateGenderConfig;
-        case 'generateInt64PhoneConfig':
-          return Yup.object().shape({});
-        case 'generateIntConfig':
-          return generateIntConfig;
-        case 'generateLastNameConfig':
-          return Yup.object().shape({});
-        case 'generateSha256hashConfig':
-          return Yup.object().shape({});
-        case 'generateSsnConfig':
-          return Yup.object().shape({});
-        case 'generateStateConfig':
-          return Yup.object().shape({});
-        case 'generateStreetAddressConfig':
-          return Yup.object().shape({});
-        case 'generateStringPhoneConfig':
-          return generateStringPhoneConfig;
-        case 'generateStringConfig':
-          return generateStringConfig;
-        case 'generateUnixtimestampConfig':
-          return Yup.object().shape({});
-        case 'generateUsernameConfig':
-          return Yup.object().shape({});
-        case 'generateUtctimestampConfig':
-          return Yup.object().shape({});
-        case 'generateUuidConfig':
-          return generateUuidConfig;
-        case 'generateZipcodeConfig':
-          return Yup.object().shape({});
-        case 'transformE164PhoneConfig':
-          return transformE164Phone;
-        case 'transformFirstNameConfig':
-          return transformFirstNameConfig;
-        case 'transformFloatConfig':
-          return transformFloatConfig;
-        case 'transformFullNameConfig':
-          return transformFullNameConfig;
-        case 'transformIntPhoneConfig':
-          return transformIntPhoneConfig;
-        case 'transformIntConfig':
-          return transformIntConfig;
-        case 'transformLastNameConfig':
-          return transformLastNameConfig;
-        case 'transformPhoneConfig':
-          return transformPhoneConfig;
-        case 'transformStringConfig':
-          return transformStringConfig;
-        case 'passthroughConfig':
-          return Yup.object().shape({});
-        case 'userDefinedTransformerConfig':
-          return userDefinedTransformerConfig;
-        case 'nullconfig':
-          return Yup.object().shape({});
-        default:
-          return Yup.object().shape({});
-      }
-    }),
-    case: Yup.string().oneOf([
-      'generateEmailConfig',
-      'generateRealisticEmailConfig',
-      'transformEmailConfig',
-      'generateBoolConfig',
-      'generateCardNumberConfig',
-      'generateCityConfig',
-      'generateDefaultConfig',
-      'generateE164NumberConfig',
-      'generateFirstNameConfig',
-      'generateFloatConfig',
-      'generateFullAddressConfig',
-      'generateFullNameConfig',
-      'generateGenderConfig',
-      'generateInt64PhoneConfig',
-      'generateIntConfig',
-      'generateLastNameConfig',
-      'generateSha256hashConfig',
-      'generateSsnConfig',
-      'generateStateConfig',
-      'generateStreetAddressConfig',
-      'generateStringPhoneConfig',
-      'generateStringConfig',
-      'generateUnixtimestampConfig',
-      'generateUsernameConfig',
-      'generateUtctimestampConfig',
-      'generateUuidConfig',
-      'generateZipcodeConfig',
-      'transformE164PhoneConfig',
-      'transformFirstNameConfig',
-      'transformFloatConfig',
-      'transformFullNameConfig',
-      'transformIntPhoneConfig',
-      'transformIntConfig',
-      'transformLastNameConfig',
-      'transformPhoneConfig',
-      'transformStringConfig',
-      'passthroughConfig',
-      'userDefinedTransformerConfig',
-      'nullconfig',
-    ]),
+type ConfigCase = keyof typeof customConfigs;
+
+const emptyConfig = () =>
+  Yup.object({
+    value: Yup.object().shape({}),
+    case: Yup.string(),
+  });
+
+const customConfigs = {
+  transformEmailConfig: transformEmailConfig,
+  generateCardNumberConfig: generateCardNumberConfig,
+  generateE164PhoneNumberConfig: generateE164PhoneNumberConfig,
+  generateFloat64Config: generateFloat64Config,
+  generateGenderConfig: generateGenderConfig,
+  generateInt64Config: generateInt64Config,
+  generateStringPhoneNumberConfig: generateStringPhoneNumberConfig,
+  generateStringConfig: generateStringConfig,
+  generateUuidConfig: generateUuidConfig,
+  transformE164PhoneNumberConfig: transformE164PhoneNumber,
+  transformFirstNameConfig: transformFirstNameConfig,
+  transformFloat64Config: transformFloat64Config,
+  transformFullNameConfig: transformFullNameConfig,
+  transformInt64PhoneNumberConfig: transformInt64PhoneNumberConfig,
+  transformInt64Config: transformInt64Config,
+  transformLastNameConfig: transformLastNameConfig,
+  transformPhoneNumberConfig: transformPhoneNumberConfig,
+  transformStringConfig: transformStringConfig,
+  userDefinedTransformerConfig: userDefinedTransformerConfig,
+};
+
+export const transformerConfig = Yup.object({
+  config: Yup.lazy((value) => {
+    const configCase = value?.case as ConfigCase;
+    const customConfig = customConfigs[configCase];
+
+    if (customConfig) {
+      return Yup.object({
+        value: customConfig,
+        case: Yup.string().oneOf([configCase]),
+      });
+    } else {
+      return emptyConfig();
+    }
   }),
 });
+
+export type YupTransformerConfig = Yup.InferType<typeof transformerConfig>;
 
 const transformerNameSchema = Yup.string()
   .required()
@@ -226,7 +209,7 @@ const transformerNameSchema = Yup.string()
       if (!value || value.length < 3) {
         return context.createError({
           message:
-            'Transformer is too short. Must be at least 3 characters long.',
+            'Transformer name is too short. Must be at least 3 characters long.',
         });
       }
 
@@ -237,7 +220,6 @@ const transformerNameSchema = Yup.string()
             'Transformer name Name can only include lowercase letters, numbers, and hyphens.',
         });
       }
-
       const accountId = context?.options?.context?.accountId;
       if (!accountId) {
         return context.createError({

@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetAuthorizeUrlRequest, GetAuthorizeUrlResponse, GetAuthStatusRequest, GetAuthStatusResponse, GetCliIssuerRequest, GetCliIssuerResponse, LoginCliRequest, LoginCliResponse } from "./auth_pb.js";
+import { GetAuthorizeUrlRequest, GetAuthorizeUrlResponse, GetAuthStatusRequest, GetAuthStatusResponse, GetCliIssuerRequest, GetCliIssuerResponse, LoginCliRequest, LoginCliResponse, RefreshCliRequest, RefreshCliResponse } from "./auth_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -24,6 +24,18 @@ export const AuthService = {
       name: "LoginCli",
       I: LoginCliRequest,
       O: LoginCliResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Used by the CLI to refresh an expired Neosync accesss token.
+     * This should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.
+     *
+     * @generated from rpc mgmt.v1alpha1.AuthService.RefreshCli
+     */
+    refreshCli: {
+      name: "RefreshCli",
+      I: RefreshCliRequest,
+      O: RefreshCliResponse,
       kind: MethodKind.Unary,
     },
     /**

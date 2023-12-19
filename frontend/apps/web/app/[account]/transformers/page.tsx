@@ -47,7 +47,6 @@ function TransformersTable(): ReactElement {
   if (transformersIsLoading || userDefinedTransformersLoading) {
     return <SkeletonTable />;
   }
-
   const systemTransformerColumns = getSystemTransformerColumns();
   const userDefinedTransformerColumns = getUserDefinedTransformerColumns({
     onTransformerDeleted() {

@@ -245,7 +245,6 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
             render={({ field, fieldState, formState }) => {
               // todo: we should really convert between the real field.value and the job mapping transformer
               const fv = field.value as unknown as JobMappingTransformer;
-              console.log(fieldState.error);
 
               return (
                 <FormItem>
@@ -366,7 +365,7 @@ function VirtualizedSchemaList({
     <div
       className={cn(`grid grid-col-1 border rounded-md dark:border-gray-700`)}
     >
-      <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 pb-1 bg-muted`}>
+      <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 bg-muted `}>
         <div className="flex flex-row">
           <Checkbox
             id="select"

@@ -23,7 +23,8 @@ func Test_TransformStringPreserveLengthFalse(t *testing.T) {
 	res, err := TransformString(testStringValue, false)
 
 	assert.NoError(t, err)
-	assert.Equal(t, defaultStrLength, len(*res), "The output string should be as long as the input string")
+	assert.GreaterOrEqual(t, len(*res), 3, "The expected value should be greater than or equal to 3")
+	assert.LessOrEqual(t, len(*res), 12, "The expected value should be less than or equal to 12. ")
 }
 
 func Test_TransformStringTransformer(t *testing.T) {

@@ -2146,47 +2146,6 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_GenerateRealisticEmailConfig:
-		if v == nil {
-			err := TransformerConfigValidationError{
-				field:  "Config",
-				reason: "oneof value cannot be a typed-nil",
-			}
-			if !all {
-				return err
-			}
-			errors = append(errors, err)
-		}
-
-		if all {
-			switch v := interface{}(m.GetGenerateRealisticEmailConfig()).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateRealisticEmailConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateRealisticEmailConfig",
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(m.GetGenerateRealisticEmailConfig()).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return TransformerConfigValidationError{
-					field:  "GenerateRealisticEmailConfig",
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
 	case *TransformerConfig_TransformEmailConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
@@ -2351,7 +2310,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_GenerateE164NumberConfig:
+	case *TransformerConfig_GenerateE164PhoneNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -2364,11 +2323,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGenerateE164NumberConfig()).(type) {
+			switch v := interface{}(m.GetGenerateE164PhoneNumberConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateE164NumberConfig",
+						field:  "GenerateE164PhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2376,16 +2335,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateE164NumberConfig",
+						field:  "GenerateE164PhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGenerateE164NumberConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetGenerateE164PhoneNumberConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "GenerateE164NumberConfig",
+					field:  "GenerateE164PhoneNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -2433,7 +2392,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_GenerateFloatConfig:
+	case *TransformerConfig_GenerateFloat64Config:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -2446,11 +2405,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGenerateFloatConfig()).(type) {
+			switch v := interface{}(m.GetGenerateFloat64Config()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateFloatConfig",
+						field:  "GenerateFloat64Config",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2458,16 +2417,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateFloatConfig",
+						field:  "GenerateFloat64Config",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGenerateFloatConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetGenerateFloat64Config()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "GenerateFloatConfig",
+					field:  "GenerateFloat64Config",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -2597,7 +2556,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_GenerateInt64PhoneConfig:
+	case *TransformerConfig_GenerateInt64PhoneNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -2610,11 +2569,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGenerateInt64PhoneConfig()).(type) {
+			switch v := interface{}(m.GetGenerateInt64PhoneNumberConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateInt64PhoneConfig",
+						field:  "GenerateInt64PhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2622,23 +2581,23 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateInt64PhoneConfig",
+						field:  "GenerateInt64PhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGenerateInt64PhoneConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetGenerateInt64PhoneNumberConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "GenerateInt64PhoneConfig",
+					field:  "GenerateInt64PhoneNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
 			}
 		}
 
-	case *TransformerConfig_GenerateIntConfig:
+	case *TransformerConfig_GenerateInt64Config:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -2651,11 +2610,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGenerateIntConfig()).(type) {
+			switch v := interface{}(m.GetGenerateInt64Config()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateIntConfig",
+						field:  "GenerateInt64Config",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2663,16 +2622,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateIntConfig",
+						field:  "GenerateInt64Config",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGenerateIntConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetGenerateInt64Config()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "GenerateIntConfig",
+					field:  "GenerateInt64Config",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -2884,7 +2843,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_GenerateStringPhoneConfig:
+	case *TransformerConfig_GenerateStringPhoneNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -2897,11 +2856,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGenerateStringPhoneConfig()).(type) {
+			switch v := interface{}(m.GetGenerateStringPhoneNumberConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateStringPhoneConfig",
+						field:  "GenerateStringPhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2909,16 +2868,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateStringPhoneConfig",
+						field:  "GenerateStringPhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGenerateStringPhoneConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetGenerateStringPhoneNumberConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "GenerateStringPhoneConfig",
+					field:  "GenerateStringPhoneNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -3171,7 +3130,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_TransformE164PhoneConfig:
+	case *TransformerConfig_TransformE164PhoneNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -3184,11 +3143,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetTransformE164PhoneConfig()).(type) {
+			switch v := interface{}(m.GetTransformE164PhoneNumberConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformE164PhoneConfig",
+						field:  "TransformE164PhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -3196,16 +3155,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformE164PhoneConfig",
+						field:  "TransformE164PhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetTransformE164PhoneConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetTransformE164PhoneNumberConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "TransformE164PhoneConfig",
+					field:  "TransformE164PhoneNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -3253,7 +3212,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_TransformFloatConfig:
+	case *TransformerConfig_TransformFloat64Config:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -3266,11 +3225,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetTransformFloatConfig()).(type) {
+			switch v := interface{}(m.GetTransformFloat64Config()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformFloatConfig",
+						field:  "TransformFloat64Config",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -3278,16 +3237,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformFloatConfig",
+						field:  "TransformFloat64Config",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetTransformFloatConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetTransformFloat64Config()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "TransformFloatConfig",
+					field:  "TransformFloat64Config",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -3335,7 +3294,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_TransformIntPhoneConfig:
+	case *TransformerConfig_TransformInt64PhoneNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -3348,11 +3307,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetTransformIntPhoneConfig()).(type) {
+			switch v := interface{}(m.GetTransformInt64PhoneNumberConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformIntPhoneConfig",
+						field:  "TransformInt64PhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -3360,23 +3319,23 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformIntPhoneConfig",
+						field:  "TransformInt64PhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetTransformIntPhoneConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetTransformInt64PhoneNumberConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "TransformIntPhoneConfig",
+					field:  "TransformInt64PhoneNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
 			}
 		}
 
-	case *TransformerConfig_TransformIntConfig:
+	case *TransformerConfig_TransformInt64Config:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -3389,11 +3348,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetTransformIntConfig()).(type) {
+			switch v := interface{}(m.GetTransformInt64Config()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformIntConfig",
+						field:  "TransformInt64Config",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -3401,16 +3360,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformIntConfig",
+						field:  "TransformInt64Config",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetTransformIntConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetTransformInt64Config()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "TransformIntConfig",
+					field:  "TransformInt64Config",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -3458,7 +3417,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_TransformPhoneConfig:
+	case *TransformerConfig_TransformPhoneNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -3471,11 +3430,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetTransformPhoneConfig()).(type) {
+			switch v := interface{}(m.GetTransformPhoneNumberConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformPhoneConfig",
+						field:  "TransformPhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -3483,16 +3442,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformPhoneConfig",
+						field:  "TransformPhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetTransformPhoneConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetTransformPhoneNumberConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "TransformPhoneConfig",
+					field:  "TransformPhoneNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -3887,108 +3846,6 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GenerateEmailValidationError{}
-
-// Validate checks the field values on GenerateRealisticEmail with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GenerateRealisticEmail) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on GenerateRealisticEmail with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// GenerateRealisticEmailMultiError, or nil if none found.
-func (m *GenerateRealisticEmail) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *GenerateRealisticEmail) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if len(errors) > 0 {
-		return GenerateRealisticEmailMultiError(errors)
-	}
-
-	return nil
-}
-
-// GenerateRealisticEmailMultiError is an error wrapping multiple validation
-// errors returned by GenerateRealisticEmail.ValidateAll() if the designated
-// constraints aren't met.
-type GenerateRealisticEmailMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m GenerateRealisticEmailMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m GenerateRealisticEmailMultiError) AllErrors() []error { return m }
-
-// GenerateRealisticEmailValidationError is the validation error returned by
-// GenerateRealisticEmail.Validate if the designated constraints aren't met.
-type GenerateRealisticEmailValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e GenerateRealisticEmailValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e GenerateRealisticEmailValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e GenerateRealisticEmailValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e GenerateRealisticEmailValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e GenerateRealisticEmailValidationError) ErrorName() string {
-	return "GenerateRealisticEmailValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e GenerateRealisticEmailValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sGenerateRealisticEmail.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = GenerateRealisticEmailValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = GenerateRealisticEmailValidationError{}
 
 // Validate checks the field values on TransformEmail with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -4496,44 +4353,46 @@ var _ interface {
 	ErrorName() string
 } = GenerateDefaultValidationError{}
 
-// Validate checks the field values on GenerateE164Number with the rules
+// Validate checks the field values on GenerateE164PhoneNumber with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GenerateE164Number) Validate() error {
+func (m *GenerateE164PhoneNumber) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GenerateE164Number with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on GenerateE164PhoneNumber with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GenerateE164NumberMultiError, or nil if none found.
-func (m *GenerateE164Number) ValidateAll() error {
+// GenerateE164PhoneNumberMultiError, or nil if none found.
+func (m *GenerateE164PhoneNumber) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GenerateE164Number) validate(all bool) error {
+func (m *GenerateE164PhoneNumber) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Length
+	// no validation rules for Min
+
+	// no validation rules for Max
 
 	if len(errors) > 0 {
-		return GenerateE164NumberMultiError(errors)
+		return GenerateE164PhoneNumberMultiError(errors)
 	}
 
 	return nil
 }
 
-// GenerateE164NumberMultiError is an error wrapping multiple validation errors
-// returned by GenerateE164Number.ValidateAll() if the designated constraints
-// aren't met.
-type GenerateE164NumberMultiError []error
+// GenerateE164PhoneNumberMultiError is an error wrapping multiple validation
+// errors returned by GenerateE164PhoneNumber.ValidateAll() if the designated
+// constraints aren't met.
+type GenerateE164PhoneNumberMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GenerateE164NumberMultiError) Error() string {
+func (m GenerateE164PhoneNumberMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -4542,11 +4401,11 @@ func (m GenerateE164NumberMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GenerateE164NumberMultiError) AllErrors() []error { return m }
+func (m GenerateE164PhoneNumberMultiError) AllErrors() []error { return m }
 
-// GenerateE164NumberValidationError is the validation error returned by
-// GenerateE164Number.Validate if the designated constraints aren't met.
-type GenerateE164NumberValidationError struct {
+// GenerateE164PhoneNumberValidationError is the validation error returned by
+// GenerateE164PhoneNumber.Validate if the designated constraints aren't met.
+type GenerateE164PhoneNumberValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -4554,24 +4413,24 @@ type GenerateE164NumberValidationError struct {
 }
 
 // Field function returns field value.
-func (e GenerateE164NumberValidationError) Field() string { return e.field }
+func (e GenerateE164PhoneNumberValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GenerateE164NumberValidationError) Reason() string { return e.reason }
+func (e GenerateE164PhoneNumberValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GenerateE164NumberValidationError) Cause() error { return e.cause }
+func (e GenerateE164PhoneNumberValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GenerateE164NumberValidationError) Key() bool { return e.key }
+func (e GenerateE164PhoneNumberValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GenerateE164NumberValidationError) ErrorName() string {
-	return "GenerateE164NumberValidationError"
+func (e GenerateE164PhoneNumberValidationError) ErrorName() string {
+	return "GenerateE164PhoneNumberValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GenerateE164NumberValidationError) Error() string {
+func (e GenerateE164PhoneNumberValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -4583,14 +4442,14 @@ func (e GenerateE164NumberValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGenerateE164Number.%s: %s%s",
+		"invalid %sGenerateE164PhoneNumber.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GenerateE164NumberValidationError{}
+var _ error = GenerateE164PhoneNumberValidationError{}
 
 var _ interface {
 	Field() string
@@ -4598,7 +4457,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GenerateE164NumberValidationError{}
+} = GenerateE164PhoneNumberValidationError{}
 
 // Validate checks the field values on GenerateFirstName with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -4702,48 +4561,48 @@ var _ interface {
 	ErrorName() string
 } = GenerateFirstNameValidationError{}
 
-// Validate checks the field values on GenerateFloat with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *GenerateFloat) Validate() error {
+// Validate checks the field values on GenerateFloat64 with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *GenerateFloat64) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GenerateFloat with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in GenerateFloatMultiError, or
-// nil if none found.
-func (m *GenerateFloat) ValidateAll() error {
+// ValidateAll checks the field values on GenerateFloat64 with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GenerateFloat64MultiError, or nil if none found.
+func (m *GenerateFloat64) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GenerateFloat) validate(all bool) error {
+func (m *GenerateFloat64) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Sign
+	// no validation rules for RandomizeSign
 
-	// no validation rules for DigitsBeforeDecimal
+	// no validation rules for Min
 
-	// no validation rules for DigitsAfterDecimal
+	// no validation rules for Max
 
 	if len(errors) > 0 {
-		return GenerateFloatMultiError(errors)
+		return GenerateFloat64MultiError(errors)
 	}
 
 	return nil
 }
 
-// GenerateFloatMultiError is an error wrapping multiple validation errors
-// returned by GenerateFloat.ValidateAll() if the designated constraints
+// GenerateFloat64MultiError is an error wrapping multiple validation errors
+// returned by GenerateFloat64.ValidateAll() if the designated constraints
 // aren't met.
-type GenerateFloatMultiError []error
+type GenerateFloat64MultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GenerateFloatMultiError) Error() string {
+func (m GenerateFloat64MultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -4752,11 +4611,11 @@ func (m GenerateFloatMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GenerateFloatMultiError) AllErrors() []error { return m }
+func (m GenerateFloat64MultiError) AllErrors() []error { return m }
 
-// GenerateFloatValidationError is the validation error returned by
-// GenerateFloat.Validate if the designated constraints aren't met.
-type GenerateFloatValidationError struct {
+// GenerateFloat64ValidationError is the validation error returned by
+// GenerateFloat64.Validate if the designated constraints aren't met.
+type GenerateFloat64ValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -4764,22 +4623,22 @@ type GenerateFloatValidationError struct {
 }
 
 // Field function returns field value.
-func (e GenerateFloatValidationError) Field() string { return e.field }
+func (e GenerateFloat64ValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GenerateFloatValidationError) Reason() string { return e.reason }
+func (e GenerateFloat64ValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GenerateFloatValidationError) Cause() error { return e.cause }
+func (e GenerateFloat64ValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GenerateFloatValidationError) Key() bool { return e.key }
+func (e GenerateFloat64ValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GenerateFloatValidationError) ErrorName() string { return "GenerateFloatValidationError" }
+func (e GenerateFloat64ValidationError) ErrorName() string { return "GenerateFloat64ValidationError" }
 
 // Error satisfies the builtin error interface
-func (e GenerateFloatValidationError) Error() string {
+func (e GenerateFloat64ValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -4791,14 +4650,14 @@ func (e GenerateFloatValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGenerateFloat.%s: %s%s",
+		"invalid %sGenerateFloat64.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GenerateFloatValidationError{}
+var _ error = GenerateFloat64ValidationError{}
 
 var _ interface {
 	Field() string
@@ -4806,7 +4665,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GenerateFloatValidationError{}
+} = GenerateFloat64ValidationError{}
 
 // Validate checks the field values on GenerateFullAddress with the rules
 // defined in the proto definition for this message. If any rules are
@@ -5112,22 +4971,22 @@ var _ interface {
 	ErrorName() string
 } = GenerateGenderValidationError{}
 
-// Validate checks the field values on GenerateInt64Phone with the rules
+// Validate checks the field values on GenerateInt64PhoneNumber with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GenerateInt64Phone) Validate() error {
+func (m *GenerateInt64PhoneNumber) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GenerateInt64Phone with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on GenerateInt64PhoneNumber with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GenerateInt64PhoneMultiError, or nil if none found.
-func (m *GenerateInt64Phone) ValidateAll() error {
+// GenerateInt64PhoneNumberMultiError, or nil if none found.
+func (m *GenerateInt64PhoneNumber) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GenerateInt64Phone) validate(all bool) error {
+func (m *GenerateInt64PhoneNumber) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -5135,19 +4994,19 @@ func (m *GenerateInt64Phone) validate(all bool) error {
 	var errors []error
 
 	if len(errors) > 0 {
-		return GenerateInt64PhoneMultiError(errors)
+		return GenerateInt64PhoneNumberMultiError(errors)
 	}
 
 	return nil
 }
 
-// GenerateInt64PhoneMultiError is an error wrapping multiple validation errors
-// returned by GenerateInt64Phone.ValidateAll() if the designated constraints
-// aren't met.
-type GenerateInt64PhoneMultiError []error
+// GenerateInt64PhoneNumberMultiError is an error wrapping multiple validation
+// errors returned by GenerateInt64PhoneNumber.ValidateAll() if the designated
+// constraints aren't met.
+type GenerateInt64PhoneNumberMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GenerateInt64PhoneMultiError) Error() string {
+func (m GenerateInt64PhoneNumberMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5156,11 +5015,11 @@ func (m GenerateInt64PhoneMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GenerateInt64PhoneMultiError) AllErrors() []error { return m }
+func (m GenerateInt64PhoneNumberMultiError) AllErrors() []error { return m }
 
-// GenerateInt64PhoneValidationError is the validation error returned by
-// GenerateInt64Phone.Validate if the designated constraints aren't met.
-type GenerateInt64PhoneValidationError struct {
+// GenerateInt64PhoneNumberValidationError is the validation error returned by
+// GenerateInt64PhoneNumber.Validate if the designated constraints aren't met.
+type GenerateInt64PhoneNumberValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5168,24 +5027,24 @@ type GenerateInt64PhoneValidationError struct {
 }
 
 // Field function returns field value.
-func (e GenerateInt64PhoneValidationError) Field() string { return e.field }
+func (e GenerateInt64PhoneNumberValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GenerateInt64PhoneValidationError) Reason() string { return e.reason }
+func (e GenerateInt64PhoneNumberValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GenerateInt64PhoneValidationError) Cause() error { return e.cause }
+func (e GenerateInt64PhoneNumberValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GenerateInt64PhoneValidationError) Key() bool { return e.key }
+func (e GenerateInt64PhoneNumberValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GenerateInt64PhoneValidationError) ErrorName() string {
-	return "GenerateInt64PhoneValidationError"
+func (e GenerateInt64PhoneNumberValidationError) ErrorName() string {
+	return "GenerateInt64PhoneNumberValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GenerateInt64PhoneValidationError) Error() string {
+func (e GenerateInt64PhoneNumberValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5197,14 +5056,14 @@ func (e GenerateInt64PhoneValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGenerateInt64Phone.%s: %s%s",
+		"invalid %sGenerateInt64PhoneNumber.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GenerateInt64PhoneValidationError{}
+var _ error = GenerateInt64PhoneNumberValidationError{}
 
 var _ interface {
 	Field() string
@@ -5212,47 +5071,50 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GenerateInt64PhoneValidationError{}
+} = GenerateInt64PhoneNumberValidationError{}
 
-// Validate checks the field values on GenerateInt with the rules defined in
+// Validate checks the field values on GenerateInt64 with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *GenerateInt) Validate() error {
+func (m *GenerateInt64) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GenerateInt with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in GenerateIntMultiError, or
+// ValidateAll checks the field values on GenerateInt64 with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in GenerateInt64MultiError, or
 // nil if none found.
-func (m *GenerateInt) ValidateAll() error {
+func (m *GenerateInt64) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GenerateInt) validate(all bool) error {
+func (m *GenerateInt64) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Length
+	// no validation rules for RandomizeSign
 
-	// no validation rules for Sign
+	// no validation rules for Min
+
+	// no validation rules for Max
 
 	if len(errors) > 0 {
-		return GenerateIntMultiError(errors)
+		return GenerateInt64MultiError(errors)
 	}
 
 	return nil
 }
 
-// GenerateIntMultiError is an error wrapping multiple validation errors
-// returned by GenerateInt.ValidateAll() if the designated constraints aren't met.
-type GenerateIntMultiError []error
+// GenerateInt64MultiError is an error wrapping multiple validation errors
+// returned by GenerateInt64.ValidateAll() if the designated constraints
+// aren't met.
+type GenerateInt64MultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GenerateIntMultiError) Error() string {
+func (m GenerateInt64MultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5261,11 +5123,11 @@ func (m GenerateIntMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GenerateIntMultiError) AllErrors() []error { return m }
+func (m GenerateInt64MultiError) AllErrors() []error { return m }
 
-// GenerateIntValidationError is the validation error returned by
-// GenerateInt.Validate if the designated constraints aren't met.
-type GenerateIntValidationError struct {
+// GenerateInt64ValidationError is the validation error returned by
+// GenerateInt64.Validate if the designated constraints aren't met.
+type GenerateInt64ValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5273,22 +5135,22 @@ type GenerateIntValidationError struct {
 }
 
 // Field function returns field value.
-func (e GenerateIntValidationError) Field() string { return e.field }
+func (e GenerateInt64ValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GenerateIntValidationError) Reason() string { return e.reason }
+func (e GenerateInt64ValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GenerateIntValidationError) Cause() error { return e.cause }
+func (e GenerateInt64ValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GenerateIntValidationError) Key() bool { return e.key }
+func (e GenerateInt64ValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GenerateIntValidationError) ErrorName() string { return "GenerateIntValidationError" }
+func (e GenerateInt64ValidationError) ErrorName() string { return "GenerateInt64ValidationError" }
 
 // Error satisfies the builtin error interface
-func (e GenerateIntValidationError) Error() string {
+func (e GenerateInt64ValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5300,14 +5162,14 @@ func (e GenerateIntValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGenerateInt.%s: %s%s",
+		"invalid %sGenerateInt64.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GenerateIntValidationError{}
+var _ error = GenerateInt64ValidationError{}
 
 var _ interface {
 	Field() string
@@ -5315,7 +5177,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GenerateIntValidationError{}
+} = GenerateInt64ValidationError{}
 
 // Validate checks the field values on GenerateLastName with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -5820,22 +5682,22 @@ var _ interface {
 	ErrorName() string
 } = GenerateStreetAddressValidationError{}
 
-// Validate checks the field values on GenerateStringPhone with the rules
+// Validate checks the field values on GenerateStringPhoneNumber with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GenerateStringPhone) Validate() error {
+func (m *GenerateStringPhoneNumber) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GenerateStringPhone with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on GenerateStringPhoneNumber with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GenerateStringPhoneMultiError, or nil if none found.
-func (m *GenerateStringPhone) ValidateAll() error {
+// GenerateStringPhoneNumberMultiError, or nil if none found.
+func (m *GenerateStringPhoneNumber) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GenerateStringPhone) validate(all bool) error {
+func (m *GenerateStringPhoneNumber) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -5845,19 +5707,19 @@ func (m *GenerateStringPhone) validate(all bool) error {
 	// no validation rules for IncludeHyphens
 
 	if len(errors) > 0 {
-		return GenerateStringPhoneMultiError(errors)
+		return GenerateStringPhoneNumberMultiError(errors)
 	}
 
 	return nil
 }
 
-// GenerateStringPhoneMultiError is an error wrapping multiple validation
-// errors returned by GenerateStringPhone.ValidateAll() if the designated
-// constraints aren't met.
-type GenerateStringPhoneMultiError []error
+// GenerateStringPhoneNumberMultiError is an error wrapping multiple validation
+// errors returned by GenerateStringPhoneNumber.ValidateAll() if the
+// designated constraints aren't met.
+type GenerateStringPhoneNumberMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GenerateStringPhoneMultiError) Error() string {
+func (m GenerateStringPhoneNumberMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5866,11 +5728,11 @@ func (m GenerateStringPhoneMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GenerateStringPhoneMultiError) AllErrors() []error { return m }
+func (m GenerateStringPhoneNumberMultiError) AllErrors() []error { return m }
 
-// GenerateStringPhoneValidationError is the validation error returned by
-// GenerateStringPhone.Validate if the designated constraints aren't met.
-type GenerateStringPhoneValidationError struct {
+// GenerateStringPhoneNumberValidationError is the validation error returned by
+// GenerateStringPhoneNumber.Validate if the designated constraints aren't met.
+type GenerateStringPhoneNumberValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5878,24 +5740,24 @@ type GenerateStringPhoneValidationError struct {
 }
 
 // Field function returns field value.
-func (e GenerateStringPhoneValidationError) Field() string { return e.field }
+func (e GenerateStringPhoneNumberValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GenerateStringPhoneValidationError) Reason() string { return e.reason }
+func (e GenerateStringPhoneNumberValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GenerateStringPhoneValidationError) Cause() error { return e.cause }
+func (e GenerateStringPhoneNumberValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GenerateStringPhoneValidationError) Key() bool { return e.key }
+func (e GenerateStringPhoneNumberValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GenerateStringPhoneValidationError) ErrorName() string {
-	return "GenerateStringPhoneValidationError"
+func (e GenerateStringPhoneNumberValidationError) ErrorName() string {
+	return "GenerateStringPhoneNumberValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GenerateStringPhoneValidationError) Error() string {
+func (e GenerateStringPhoneNumberValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5907,14 +5769,14 @@ func (e GenerateStringPhoneValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGenerateStringPhone.%s: %s%s",
+		"invalid %sGenerateStringPhoneNumber.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GenerateStringPhoneValidationError{}
+var _ error = GenerateStringPhoneNumberValidationError{}
 
 var _ interface {
 	Field() string
@@ -5922,7 +5784,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GenerateStringPhoneValidationError{}
+} = GenerateStringPhoneNumberValidationError{}
 
 // Validate checks the field values on GenerateString with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -5946,7 +5808,9 @@ func (m *GenerateString) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Length
+	// no validation rules for Min
+
+	// no validation rules for Max
 
 	if len(errors) > 0 {
 		return GenerateStringMultiError(errors)
@@ -6531,22 +6395,22 @@ var _ interface {
 	ErrorName() string
 } = GenerateZipcodeValidationError{}
 
-// Validate checks the field values on TransformE164Phone with the rules
+// Validate checks the field values on TransformE164PhoneNumber with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *TransformE164Phone) Validate() error {
+func (m *TransformE164PhoneNumber) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TransformE164Phone with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on TransformE164PhoneNumber with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// TransformE164PhoneMultiError, or nil if none found.
-func (m *TransformE164Phone) ValidateAll() error {
+// TransformE164PhoneNumberMultiError, or nil if none found.
+func (m *TransformE164PhoneNumber) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TransformE164Phone) validate(all bool) error {
+func (m *TransformE164PhoneNumber) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -6556,19 +6420,19 @@ func (m *TransformE164Phone) validate(all bool) error {
 	// no validation rules for PreserveLength
 
 	if len(errors) > 0 {
-		return TransformE164PhoneMultiError(errors)
+		return TransformE164PhoneNumberMultiError(errors)
 	}
 
 	return nil
 }
 
-// TransformE164PhoneMultiError is an error wrapping multiple validation errors
-// returned by TransformE164Phone.ValidateAll() if the designated constraints
-// aren't met.
-type TransformE164PhoneMultiError []error
+// TransformE164PhoneNumberMultiError is an error wrapping multiple validation
+// errors returned by TransformE164PhoneNumber.ValidateAll() if the designated
+// constraints aren't met.
+type TransformE164PhoneNumberMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TransformE164PhoneMultiError) Error() string {
+func (m TransformE164PhoneNumberMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -6577,11 +6441,11 @@ func (m TransformE164PhoneMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TransformE164PhoneMultiError) AllErrors() []error { return m }
+func (m TransformE164PhoneNumberMultiError) AllErrors() []error { return m }
 
-// TransformE164PhoneValidationError is the validation error returned by
-// TransformE164Phone.Validate if the designated constraints aren't met.
-type TransformE164PhoneValidationError struct {
+// TransformE164PhoneNumberValidationError is the validation error returned by
+// TransformE164PhoneNumber.Validate if the designated constraints aren't met.
+type TransformE164PhoneNumberValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -6589,24 +6453,24 @@ type TransformE164PhoneValidationError struct {
 }
 
 // Field function returns field value.
-func (e TransformE164PhoneValidationError) Field() string { return e.field }
+func (e TransformE164PhoneNumberValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TransformE164PhoneValidationError) Reason() string { return e.reason }
+func (e TransformE164PhoneNumberValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TransformE164PhoneValidationError) Cause() error { return e.cause }
+func (e TransformE164PhoneNumberValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TransformE164PhoneValidationError) Key() bool { return e.key }
+func (e TransformE164PhoneNumberValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TransformE164PhoneValidationError) ErrorName() string {
-	return "TransformE164PhoneValidationError"
+func (e TransformE164PhoneNumberValidationError) ErrorName() string {
+	return "TransformE164PhoneNumberValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e TransformE164PhoneValidationError) Error() string {
+func (e TransformE164PhoneNumberValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -6618,14 +6482,14 @@ func (e TransformE164PhoneValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTransformE164Phone.%s: %s%s",
+		"invalid %sTransformE164PhoneNumber.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TransformE164PhoneValidationError{}
+var _ error = TransformE164PhoneNumberValidationError{}
 
 var _ interface {
 	Field() string
@@ -6633,7 +6497,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TransformE164PhoneValidationError{}
+} = TransformE164PhoneNumberValidationError{}
 
 // Validate checks the field values on TransformFirstName with the rules
 // defined in the proto definition for this message. If any rules are
@@ -6739,46 +6603,46 @@ var _ interface {
 	ErrorName() string
 } = TransformFirstNameValidationError{}
 
-// Validate checks the field values on TransformFloat with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *TransformFloat) Validate() error {
+// Validate checks the field values on TransformFloat64 with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *TransformFloat64) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TransformFloat with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in TransformFloatMultiError,
-// or nil if none found.
-func (m *TransformFloat) ValidateAll() error {
+// ValidateAll checks the field values on TransformFloat64 with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TransformFloat64MultiError, or nil if none found.
+func (m *TransformFloat64) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TransformFloat) validate(all bool) error {
+func (m *TransformFloat64) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for PreserveLength
+	// no validation rules for RandomizationRangeMin
 
-	// no validation rules for PreserveSign
+	// no validation rules for RandomizationRangeMax
 
 	if len(errors) > 0 {
-		return TransformFloatMultiError(errors)
+		return TransformFloat64MultiError(errors)
 	}
 
 	return nil
 }
 
-// TransformFloatMultiError is an error wrapping multiple validation errors
-// returned by TransformFloat.ValidateAll() if the designated constraints
+// TransformFloat64MultiError is an error wrapping multiple validation errors
+// returned by TransformFloat64.ValidateAll() if the designated constraints
 // aren't met.
-type TransformFloatMultiError []error
+type TransformFloat64MultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TransformFloatMultiError) Error() string {
+func (m TransformFloat64MultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -6787,11 +6651,11 @@ func (m TransformFloatMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TransformFloatMultiError) AllErrors() []error { return m }
+func (m TransformFloat64MultiError) AllErrors() []error { return m }
 
-// TransformFloatValidationError is the validation error returned by
-// TransformFloat.Validate if the designated constraints aren't met.
-type TransformFloatValidationError struct {
+// TransformFloat64ValidationError is the validation error returned by
+// TransformFloat64.Validate if the designated constraints aren't met.
+type TransformFloat64ValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -6799,22 +6663,22 @@ type TransformFloatValidationError struct {
 }
 
 // Field function returns field value.
-func (e TransformFloatValidationError) Field() string { return e.field }
+func (e TransformFloat64ValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TransformFloatValidationError) Reason() string { return e.reason }
+func (e TransformFloat64ValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TransformFloatValidationError) Cause() error { return e.cause }
+func (e TransformFloat64ValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TransformFloatValidationError) Key() bool { return e.key }
+func (e TransformFloat64ValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TransformFloatValidationError) ErrorName() string { return "TransformFloatValidationError" }
+func (e TransformFloat64ValidationError) ErrorName() string { return "TransformFloat64ValidationError" }
 
 // Error satisfies the builtin error interface
-func (e TransformFloatValidationError) Error() string {
+func (e TransformFloat64ValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -6826,14 +6690,14 @@ func (e TransformFloatValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTransformFloat.%s: %s%s",
+		"invalid %sTransformFloat64.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TransformFloatValidationError{}
+var _ error = TransformFloat64ValidationError{}
 
 var _ interface {
 	Field() string
@@ -6841,7 +6705,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TransformFloatValidationError{}
+} = TransformFloat64ValidationError{}
 
 // Validate checks the field values on TransformFullName with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -6947,22 +6811,22 @@ var _ interface {
 	ErrorName() string
 } = TransformFullNameValidationError{}
 
-// Validate checks the field values on TransformIntPhone with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *TransformIntPhone) Validate() error {
+// Validate checks the field values on TransformInt64PhoneNumber with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TransformInt64PhoneNumber) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TransformIntPhone with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on TransformInt64PhoneNumber with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// TransformIntPhoneMultiError, or nil if none found.
-func (m *TransformIntPhone) ValidateAll() error {
+// TransformInt64PhoneNumberMultiError, or nil if none found.
+func (m *TransformInt64PhoneNumber) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TransformIntPhone) validate(all bool) error {
+func (m *TransformInt64PhoneNumber) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -6972,19 +6836,19 @@ func (m *TransformIntPhone) validate(all bool) error {
 	// no validation rules for PreserveLength
 
 	if len(errors) > 0 {
-		return TransformIntPhoneMultiError(errors)
+		return TransformInt64PhoneNumberMultiError(errors)
 	}
 
 	return nil
 }
 
-// TransformIntPhoneMultiError is an error wrapping multiple validation errors
-// returned by TransformIntPhone.ValidateAll() if the designated constraints
-// aren't met.
-type TransformIntPhoneMultiError []error
+// TransformInt64PhoneNumberMultiError is an error wrapping multiple validation
+// errors returned by TransformInt64PhoneNumber.ValidateAll() if the
+// designated constraints aren't met.
+type TransformInt64PhoneNumberMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TransformIntPhoneMultiError) Error() string {
+func (m TransformInt64PhoneNumberMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -6993,11 +6857,11 @@ func (m TransformIntPhoneMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TransformIntPhoneMultiError) AllErrors() []error { return m }
+func (m TransformInt64PhoneNumberMultiError) AllErrors() []error { return m }
 
-// TransformIntPhoneValidationError is the validation error returned by
-// TransformIntPhone.Validate if the designated constraints aren't met.
-type TransformIntPhoneValidationError struct {
+// TransformInt64PhoneNumberValidationError is the validation error returned by
+// TransformInt64PhoneNumber.Validate if the designated constraints aren't met.
+type TransformInt64PhoneNumberValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -7005,24 +6869,24 @@ type TransformIntPhoneValidationError struct {
 }
 
 // Field function returns field value.
-func (e TransformIntPhoneValidationError) Field() string { return e.field }
+func (e TransformInt64PhoneNumberValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TransformIntPhoneValidationError) Reason() string { return e.reason }
+func (e TransformInt64PhoneNumberValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TransformIntPhoneValidationError) Cause() error { return e.cause }
+func (e TransformInt64PhoneNumberValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TransformIntPhoneValidationError) Key() bool { return e.key }
+func (e TransformInt64PhoneNumberValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TransformIntPhoneValidationError) ErrorName() string {
-	return "TransformIntPhoneValidationError"
+func (e TransformInt64PhoneNumberValidationError) ErrorName() string {
+	return "TransformInt64PhoneNumberValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e TransformIntPhoneValidationError) Error() string {
+func (e TransformInt64PhoneNumberValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -7034,14 +6898,14 @@ func (e TransformIntPhoneValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTransformIntPhone.%s: %s%s",
+		"invalid %sTransformInt64PhoneNumber.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TransformIntPhoneValidationError{}
+var _ error = TransformInt64PhoneNumberValidationError{}
 
 var _ interface {
 	Field() string
@@ -7049,47 +6913,48 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TransformIntPhoneValidationError{}
+} = TransformInt64PhoneNumberValidationError{}
 
-// Validate checks the field values on TransformInt with the rules defined in
+// Validate checks the field values on TransformInt64 with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *TransformInt) Validate() error {
+func (m *TransformInt64) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TransformInt with the rules defined
+// ValidateAll checks the field values on TransformInt64 with the rules defined
 // in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in TransformIntMultiError, or
-// nil if none found.
-func (m *TransformInt) ValidateAll() error {
+// result is a list of violation errors wrapped in TransformInt64MultiError,
+// or nil if none found.
+func (m *TransformInt64) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TransformInt) validate(all bool) error {
+func (m *TransformInt64) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for PreserveLength
+	// no validation rules for RandomizationRangeMin
 
-	// no validation rules for PreserveSign
+	// no validation rules for RandomizationRangeMax
 
 	if len(errors) > 0 {
-		return TransformIntMultiError(errors)
+		return TransformInt64MultiError(errors)
 	}
 
 	return nil
 }
 
-// TransformIntMultiError is an error wrapping multiple validation errors
-// returned by TransformInt.ValidateAll() if the designated constraints aren't met.
-type TransformIntMultiError []error
+// TransformInt64MultiError is an error wrapping multiple validation errors
+// returned by TransformInt64.ValidateAll() if the designated constraints
+// aren't met.
+type TransformInt64MultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TransformIntMultiError) Error() string {
+func (m TransformInt64MultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -7098,11 +6963,11 @@ func (m TransformIntMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TransformIntMultiError) AllErrors() []error { return m }
+func (m TransformInt64MultiError) AllErrors() []error { return m }
 
-// TransformIntValidationError is the validation error returned by
-// TransformInt.Validate if the designated constraints aren't met.
-type TransformIntValidationError struct {
+// TransformInt64ValidationError is the validation error returned by
+// TransformInt64.Validate if the designated constraints aren't met.
+type TransformInt64ValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -7110,22 +6975,22 @@ type TransformIntValidationError struct {
 }
 
 // Field function returns field value.
-func (e TransformIntValidationError) Field() string { return e.field }
+func (e TransformInt64ValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TransformIntValidationError) Reason() string { return e.reason }
+func (e TransformInt64ValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TransformIntValidationError) Cause() error { return e.cause }
+func (e TransformInt64ValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TransformIntValidationError) Key() bool { return e.key }
+func (e TransformInt64ValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TransformIntValidationError) ErrorName() string { return "TransformIntValidationError" }
+func (e TransformInt64ValidationError) ErrorName() string { return "TransformInt64ValidationError" }
 
 // Error satisfies the builtin error interface
-func (e TransformIntValidationError) Error() string {
+func (e TransformInt64ValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -7137,14 +7002,14 @@ func (e TransformIntValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTransformInt.%s: %s%s",
+		"invalid %sTransformInt64.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TransformIntValidationError{}
+var _ error = TransformInt64ValidationError{}
 
 var _ interface {
 	Field() string
@@ -7152,7 +7017,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TransformIntValidationError{}
+} = TransformInt64ValidationError{}
 
 // Validate checks the field values on TransformLastName with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -7258,22 +7123,22 @@ var _ interface {
 	ErrorName() string
 } = TransformLastNameValidationError{}
 
-// Validate checks the field values on TransformPhone with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *TransformPhone) Validate() error {
+// Validate checks the field values on TransformPhoneNumber with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TransformPhoneNumber) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TransformPhone with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in TransformPhoneMultiError,
-// or nil if none found.
-func (m *TransformPhone) ValidateAll() error {
+// ValidateAll checks the field values on TransformPhoneNumber with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TransformPhoneNumberMultiError, or nil if none found.
+func (m *TransformPhoneNumber) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TransformPhone) validate(all bool) error {
+func (m *TransformPhoneNumber) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -7285,19 +7150,19 @@ func (m *TransformPhone) validate(all bool) error {
 	// no validation rules for IncludeHyphens
 
 	if len(errors) > 0 {
-		return TransformPhoneMultiError(errors)
+		return TransformPhoneNumberMultiError(errors)
 	}
 
 	return nil
 }
 
-// TransformPhoneMultiError is an error wrapping multiple validation errors
-// returned by TransformPhone.ValidateAll() if the designated constraints
-// aren't met.
-type TransformPhoneMultiError []error
+// TransformPhoneNumberMultiError is an error wrapping multiple validation
+// errors returned by TransformPhoneNumber.ValidateAll() if the designated
+// constraints aren't met.
+type TransformPhoneNumberMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TransformPhoneMultiError) Error() string {
+func (m TransformPhoneNumberMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -7306,11 +7171,11 @@ func (m TransformPhoneMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TransformPhoneMultiError) AllErrors() []error { return m }
+func (m TransformPhoneNumberMultiError) AllErrors() []error { return m }
 
-// TransformPhoneValidationError is the validation error returned by
-// TransformPhone.Validate if the designated constraints aren't met.
-type TransformPhoneValidationError struct {
+// TransformPhoneNumberValidationError is the validation error returned by
+// TransformPhoneNumber.Validate if the designated constraints aren't met.
+type TransformPhoneNumberValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -7318,22 +7183,24 @@ type TransformPhoneValidationError struct {
 }
 
 // Field function returns field value.
-func (e TransformPhoneValidationError) Field() string { return e.field }
+func (e TransformPhoneNumberValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TransformPhoneValidationError) Reason() string { return e.reason }
+func (e TransformPhoneNumberValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TransformPhoneValidationError) Cause() error { return e.cause }
+func (e TransformPhoneNumberValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TransformPhoneValidationError) Key() bool { return e.key }
+func (e TransformPhoneNumberValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TransformPhoneValidationError) ErrorName() string { return "TransformPhoneValidationError" }
+func (e TransformPhoneNumberValidationError) ErrorName() string {
+	return "TransformPhoneNumberValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e TransformPhoneValidationError) Error() string {
+func (e TransformPhoneNumberValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -7345,14 +7212,14 @@ func (e TransformPhoneValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTransformPhone.%s: %s%s",
+		"invalid %sTransformPhoneNumber.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TransformPhoneValidationError{}
+var _ error = TransformPhoneNumberValidationError{}
 
 var _ interface {
 	Field() string
@@ -7360,7 +7227,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TransformPhoneValidationError{}
+} = TransformPhoneNumberValidationError{}
 
 // Validate checks the field values on TransformString with the rules defined
 // in the proto definition for this message. If any rules are violated, the
