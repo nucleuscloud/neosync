@@ -38,11 +38,11 @@ export default function Page({ params }: PageProps): ReactElement {
   return (
     <div className="job-details-container">
       <div className="flex flex-col gap-5">
-        <div className="flex flex-row gap-4">
-          <div className="flex-grow basis-3/4 h-60">
+        <div className="flex flex-row gap-5">
+          <div className="flex-grow basis-3/4">
             <JobScheduleCard job={data?.job} mutate={mutate} />
           </div>
-          <div className="flex-grow basis-1/4 overflow-y-auto h-60 rounded-xl border border-gray-300 dark:border-gray-700">
+          <div className="flex-grow basis-1/4 overflow-y-auto rounded-xl border border-card-border">
             <JobNextRuns jobId={id} status={jobStatus?.status} />
           </div>
         </div>
