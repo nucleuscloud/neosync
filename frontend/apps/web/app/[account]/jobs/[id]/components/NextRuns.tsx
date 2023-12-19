@@ -33,7 +33,7 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
   }
 
   return (
-    <Card>
+    <div>
       {!data?.nextRuns || error ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
@@ -77,6 +77,6 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
           </Table>
         </div>
       )}
-    </Card>
+    </div>
   );
 }
