@@ -10,7 +10,7 @@ import { useGetJobs } from '@/libs/hooks/useGetJobs';
 import { JobStatus } from '@neosync/sdk';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { getColumns } from './components/DataTable/columns';
 import { DataTable } from './components/DataTable/data-table';
 
@@ -34,6 +34,16 @@ function JobTable(props: JobTableProps): ReactElement {
   const { account } = useAccount();
   const { isLoading, data, mutate } = useGetJobs(account?.id ?? '');
   const { data: statusData } = useGetJobStatuses(account?.id ?? '');
+  const columns = useMemo(
+    () =>
+      getColumns({
+        accountName: account?.name ?? '',
+        onDeleted() {
+          mutate();
+        },
+      }),
+    [account?.name ?? '']
+  );
 
   if (isLoading) {
     return <SkeletonTable />;
@@ -54,13 +64,6 @@ function JobTable(props: JobTableProps): ReactElement {
       status: statusJobMap[j.id] || JobStatus.UNSPECIFIED,
       type: j.source?.options?.config.case == 'generate' ? 'Generate' : 'Sync',
     };
-  });
-
-  const columns = getColumns({
-    accountName: account?.name ?? '',
-    onDeleted() {
-      mutate();
-    },
   });
 
   return (

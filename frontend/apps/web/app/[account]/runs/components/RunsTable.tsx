@@ -6,7 +6,7 @@ import {
   onJobRunsPaused,
   useGetJobRuns,
 } from '@/libs/hooks/useGetJobRuns';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useMemo, useState } from 'react';
 import { getColumns } from './JobRunsTable/columns';
 import { DataTable } from './JobRunsTable/data-table';
 
@@ -33,19 +33,23 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
     }
   );
 
+  const columns = useMemo(
+    () =>
+      getColumns({
+        onDeleted() {
+          mutate();
+        },
+        accountId: account?.id ?? '',
+        accountName: account?.name ?? '',
+      }),
+    [account?.id ?? '', account?.name ?? '']
+  );
+
   if (isLoading) {
     return <SkeletonTable />;
   }
 
   const runs = data?.jobRuns ?? [];
-
-  const columns = getColumns({
-    onDeleted() {
-      mutate();
-    },
-    accountId: account?.id || '',
-    accountName: account?.name ?? '',
-  });
 
   function refreshClick(): void {
     mutate();
