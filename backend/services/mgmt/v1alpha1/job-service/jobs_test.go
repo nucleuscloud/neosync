@@ -928,7 +928,7 @@ type serviceMocks struct {
 	DbtxMock                    *nucleusdb.MockDBTX
 	QuerierMock                 *db_queries.MockQuerier
 	UserAccountServiceMock      *mgmtv1alpha1connect.MockUserAccountServiceClient
-	ConnectionServiceClientMock *mgmtv1alpha1connect.MockConnectionServiceHandler
+	ConnectionServiceClientMock *mgmtv1alpha1connect.MockConnectionServiceClient
 	TemporalWfManagerMock       *clientmanager.MockTemporalClientManagerClient
 }
 
@@ -936,7 +936,7 @@ func createServiceMock(t *testing.T, config *Config) *serviceMocks {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
-	mockConnectionService := mgmtv1alpha1connect.NewMockConnectionServiceHandler(t)
+	mockConnectionService := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTemporalWfManager := clientmanager.NewMockTemporalClientManagerClient(t)
 
 	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockTemporalWfManager, mockConnectionService, mockUserAccountService)

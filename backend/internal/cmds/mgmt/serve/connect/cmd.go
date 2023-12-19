@@ -31,6 +31,7 @@ import (
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
+	v1alpha1_connectiondataservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
@@ -82,6 +83,7 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.JobServiceName,
 		mgmtv1alpha1connect.TransformersServiceName,
 		mgmtv1alpha1connect.ApiKeyServiceName,
+		mgmtv1alpha1connect.ConnectionDataServiceName,
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
@@ -291,6 +293,15 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
+		),
+	)
+
+	connectionDataService := v1alpha1_connectiondataservice.New(&v1alpha1_connectiondataservice.Config{}, useraccountService, connectionService, jobService, nil)
+	api.Handle(
+		mgmtv1alpha1connect.NewConnectionDataServiceHandler(
+			connectionDataService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
 		),

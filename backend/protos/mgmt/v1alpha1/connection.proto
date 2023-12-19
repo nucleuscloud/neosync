@@ -180,18 +180,6 @@ message CheckSqlQueryResponse {
   optional string erorr_message = 2;
 }
 
-message GetConnectionDataStreamRequest {
-  string connection_id = 1 [(buf.validate.field).string.uuid = true];
-  string schema = 2;
-  string table = 3;
-}
-
-// Each stream response is a single row in the requested schema and table
-message GetConnectionDataStreamResponse {
-  // A map of column name to the bytes value of the data that was found for that column and row
-  map<string, bytes> row = 1;
-}
-
 message GetConnectionForeignConstraintsRequest {
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
 }
@@ -246,9 +234,6 @@ service ConnectionService {
   // This is useful when constructing subsets to see if the WHERE clause is correct
   rpc CheckSqlQuery(CheckSqlQueryRequest) returns (CheckSqlQueryResponse) {}
 
-  // Streaming endpoint that will stream the data available from the Connection to the client.
-  // Used primarily by the CLI sync command.
-  rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns (stream GetConnectionDataStreamResponse) {}
   // For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
   // Used primarily by the CLI sync command to determine stream order.
   rpc GetConnectionForeignConstraints(GetConnectionForeignConstraintsRequest) returns (GetConnectionForeignConstraintsResponse) {}

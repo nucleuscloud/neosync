@@ -1,10 +1,7 @@
 package v1alpha1_jobservice
 
 import (
-	"bufio"
-	"compress/gzip"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -14,8 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	aws_s3 "github.com/nucleuscloud/neosync/backend/internal/aws/s3"
-	aws_session "github.com/nucleuscloud/neosync/backend/internal/aws/session"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
@@ -27,9 +22,6 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"golang.org/x/sync/errgroup"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 func (s *Service) GetJobs(
@@ -1284,136 +1276,4 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 	}
 
 	return true, nil
-}
-
-func (s *Service) GetJobDataStream(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetJobDataStreamRequest],
-	stream *connect.ServerStream[mgmtv1alpha1.GetJobDataStreamResponse],
-) error {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("JobId", req.Msg.JobId, "connectionId", req.Msg.ConnectionId)
-
-	connectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: req.Msg.ConnectionId,
-	}))
-	if err != nil {
-		return err
-	}
-	connection := connectionResp.Msg.Connection
-
-	jobResp, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-		Id: req.Msg.JobId,
-	}))
-	if err != nil {
-		return err
-	}
-	job := jobResp.Msg.Job
-
-	_, err = s.verifyUserInAccount(ctx, job.AccountId)
-	if err != nil {
-		return err
-	}
-
-	if !verifyConnectionIsJobDestination(connection.Id, job.Destinations) {
-		return nucleuserrors.NewBadRequest("must provide valid connection id")
-	}
-
-	switch config := connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		sess, err := aws_session.NewSession(config.AwsS3Config)
-		if err != nil {
-			logger.Error("unable to create AWS session")
-			return err
-		}
-		logger.Info("created AWS session")
-
-		svc := s3.New(sess)
-		tableName := fmt.Sprintf("%s.%s", req.Msg.Schema, req.Msg.Table)
-		path := fmt.Sprintf("workflows/%s/%s/activities/%s/data", job.Id, req.Msg.JobRunId, tableName)
-		var pageToken *string
-		for {
-			var output *s3.ListObjectsV2Output
-			output, err = svc.ListObjectsV2(&s3.ListObjectsV2Input{
-				Bucket:            aws.String(config.AwsS3Config.Bucket),
-				Prefix:            aws.String(path),
-				ContinuationToken: pageToken,
-			})
-			if err != nil && !aws_s3.IsNotFound(err) {
-				return err
-			}
-			if err != nil || *output.KeyCount == 0 {
-				break
-			}
-			for _, item := range output.Contents {
-				result, err := svc.GetObject(&s3.GetObjectInput{
-					Bucket: aws.String(config.AwsS3Config.Bucket),
-					Key:    aws.String(*item.Key),
-				})
-				if err != nil {
-					return fmt.Errorf("error getting object from S3: %w", err)
-				}
-
-				gzr, err := gzip.NewReader(result.Body)
-				if err != nil {
-					result.Body.Close()
-					return fmt.Errorf("error creating gzip reader: %w", err)
-				}
-
-				scanner := bufio.NewScanner(gzr)
-				for scanner.Scan() {
-					line := scanner.Bytes()
-					var data map[string]interface{} // nolint
-					err = json.Unmarshal(line, &data)
-					if err != nil {
-						result.Body.Close()
-						gzr.Close()
-						return err
-					}
-
-					rowMap := make(map[string][]byte)
-					for key, value := range data {
-						byteValue, err := json.Marshal(value)
-						if err != nil {
-							result.Body.Close()
-							gzr.Close()
-							return err
-						}
-						rowMap[key] = byteValue
-					}
-					if err := stream.Send(&mgmtv1alpha1.GetJobDataStreamResponse{Row: rowMap}); err != nil {
-						result.Body.Close()
-						gzr.Close()
-						return err
-					}
-
-				}
-				if err := scanner.Err(); err != nil {
-					result.Body.Close()
-					gzr.Close()
-					return err
-				}
-				result.Body.Close()
-				gzr.Close()
-			}
-			if *output.IsTruncated {
-				pageToken = output.NextContinuationToken
-				continue
-			}
-			break
-		}
-
-	default:
-		return nucleuserrors.NewNotImplemented("this connection config is not currently supported")
-	}
-	return nil
-}
-
-func verifyConnectionIsJobDestination(connectionId string, destinations []*mgmtv1alpha1.JobDestination) bool {
-	for _, dest := range destinations {
-		if connectionId == dest.ConnectionId {
-			return true
-		}
-	}
-	return false
 }

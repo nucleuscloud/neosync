@@ -538,7 +538,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				s3pathpieces = append(
 					s3pathpieces,
 					"workflows",
-					req.JobId,
 					req.WorkflowId,
 					"activities",
 					resp.Name, // may need to do more here

@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CancelJobRunRequest, CancelJobRunResponse, CreateJobDestinationConnectionsRequest, CreateJobDestinationConnectionsResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobDestinationConnectionRequest, DeleteJobDestinationConnectionResponse, DeleteJobRequest, DeleteJobResponse, DeleteJobRunRequest, DeleteJobRunResponse, GetJobDataStreamRequest, GetJobDataStreamResponse, GetJobNextRunsRequest, GetJobNextRunsResponse, GetJobRecentRunsRequest, GetJobRecentRunsResponse, GetJobRequest, GetJobResponse, GetJobRunEventsRequest, GetJobRunEventsResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetJobStatusesRequest, GetJobStatusesResponse, GetJobStatusRequest, GetJobStatusResponse, GetLatestJobRunRequest, GetLatestJobRunResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, PauseJobRequest, PauseJobResponse, SetJobSourceSqlConnectionSubsetsRequest, SetJobSourceSqlConnectionSubsetsResponse, UpdateJobDestinationConnectionRequest, UpdateJobDestinationConnectionResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse } from "./job_pb.js";
+import { CancelJobRunRequest, CancelJobRunResponse, CreateJobDestinationConnectionsRequest, CreateJobDestinationConnectionsResponse, CreateJobRequest, CreateJobResponse, CreateJobRunRequest, CreateJobRunResponse, DeleteJobDestinationConnectionRequest, DeleteJobDestinationConnectionResponse, DeleteJobRequest, DeleteJobResponse, DeleteJobRunRequest, DeleteJobRunResponse, GetJobNextRunsRequest, GetJobNextRunsResponse, GetJobRecentRunsRequest, GetJobRecentRunsResponse, GetJobRequest, GetJobResponse, GetJobRunEventsRequest, GetJobRunEventsResponse, GetJobRunRequest, GetJobRunResponse, GetJobRunsRequest, GetJobRunsResponse, GetJobsRequest, GetJobsResponse, GetJobStatusesRequest, GetJobStatusesResponse, GetJobStatusRequest, GetJobStatusResponse, GetLatestJobRunRequest, GetLatestJobRunResponse, IsJobNameAvailableRequest, IsJobNameAvailableResponse, PauseJobRequest, PauseJobResponse, SetJobSourceSqlConnectionSubsetsRequest, SetJobSourceSqlConnectionSubsetsResponse, UpdateJobDestinationConnectionRequest, UpdateJobDestinationConnectionResponse, UpdateJobScheduleRequest, UpdateJobScheduleResponse, UpdateJobSourceConnectionRequest, UpdateJobSourceConnectionResponse } from "./job_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -155,18 +155,6 @@ export const JobService = {
       I: GetJobStatusesRequest,
       O: GetJobStatusesResponse,
       kind: MethodKind.Unary,
-    },
-    /**
-     * Streaming endpoint that will stream the data available from the job to the client.
-     * Used primarily by the CLI sync command.
-     *
-     * @generated from rpc mgmt.v1alpha1.JobService.GetJobDataStream
-     */
-    getJobDataStream: {
-      name: "GetJobDataStream",
-      I: GetJobDataStreamRequest,
-      O: GetJobDataStreamResponse,
-      kind: MethodKind.ServerStreaming,
     },
     /**
      * @generated from rpc mgmt.v1alpha1.JobService.GetJobRuns

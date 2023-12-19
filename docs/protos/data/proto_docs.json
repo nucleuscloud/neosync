@@ -1521,114 +1521,6 @@
           ]
         },
         {
-          "name": "GetConnectionDataStreamRequest",
-          "longName": "GetConnectionDataStreamRequest",
-          "fullName": "mgmt.v1alpha1.GetConnectionDataStreamRequest",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "connection_id",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "schema",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "table",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "GetConnectionDataStreamResponse",
-          "longName": "GetConnectionDataStreamResponse",
-          "fullName": "mgmt.v1alpha1.GetConnectionDataStreamResponse",
-          "description": "Each stream response is a single row in the requested schema and table",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "row",
-              "description": "A map of column name to the bytes value of the data that was found for that column and row",
-              "label": "repeated",
-              "type": "RowEntry",
-              "longType": "GetConnectionDataStreamResponse.RowEntry",
-              "fullType": "mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry",
-              "ismap": true,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "RowEntry",
-          "longName": "GetConnectionDataStreamResponse.RowEntry",
-          "fullName": "mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
           "name": "GetConnectionForeignConstraintsRequest",
           "longName": "GetConnectionForeignConstraintsRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionForeignConstraintsRequest",
@@ -2489,18 +2381,6 @@
               "responseStreaming": false
             },
             {
-              "name": "GetConnectionDataStream",
-              "description": "Streaming endpoint that will stream the data available from the Connection to the client.\nUsed primarily by the CLI sync command.",
-              "requestType": "GetConnectionDataStreamRequest",
-              "requestLongType": "GetConnectionDataStreamRequest",
-              "requestFullType": "mgmt.v1alpha1.GetConnectionDataStreamRequest",
-              "requestStreaming": false,
-              "responseType": "GetConnectionDataStreamResponse",
-              "responseLongType": "GetConnectionDataStreamResponse",
-              "responseFullType": "mgmt.v1alpha1.GetConnectionDataStreamResponse",
-              "responseStreaming": true
-            },
-            {
               "name": "GetConnectionForeignConstraints",
               "description": "For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to determine stream order.",
               "requestType": "GetConnectionForeignConstraintsRequest",
@@ -2522,6 +2402,505 @@
               "responseType": "GetConnectionInitStatementsResponse",
               "responseLongType": "GetConnectionInitStatementsResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionInitStatementsResponse",
+              "responseStreaming": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mgmt/v1alpha1/connection_data.proto",
+      "description": "",
+      "package": "mgmt.v1alpha1",
+      "hasEnums": false,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": true,
+      "enums": [],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "AwsS3SchemaConfig",
+          "longName": "AwsS3SchemaConfig",
+          "fullName": "mgmt.v1alpha1.AwsS3SchemaConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "id",
+              "defaultValue": ""
+            },
+            {
+              "name": "job_run_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "id",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AwsS3StreamConfig",
+          "longName": "AwsS3StreamConfig",
+          "fullName": "mgmt.v1alpha1.AwsS3StreamConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "id",
+              "defaultValue": ""
+            },
+            {
+              "name": "job_run_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "id",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "Column",
+          "longName": "Column",
+          "fullName": "mgmt.v1alpha1.Column",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "The database schema. Ex: public",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The name of the table in the schema",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column",
+              "description": "The name of the column",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "data_type",
+              "description": "The datatype of the column",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ConnectionSchemaConfig",
+          "longName": "ConnectionSchemaConfig",
+          "fullName": "mgmt.v1alpha1.ConnectionSchemaConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "pg_config",
+              "description": "",
+              "label": "",
+              "type": "PostgresStreamConfig",
+              "longType": "PostgresStreamConfig",
+              "fullType": "mgmt.v1alpha1.PostgresStreamConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "aws_s3_config",
+              "description": "",
+              "label": "",
+              "type": "AwsS3StreamConfig",
+              "longType": "AwsS3StreamConfig",
+              "fullType": "mgmt.v1alpha1.AwsS3StreamConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "mysql_config",
+              "description": "",
+              "label": "",
+              "type": "MysqlStreamConfig",
+              "longType": "MysqlStreamConfig",
+              "fullType": "mgmt.v1alpha1.MysqlStreamConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ConnectionStreamConfig",
+          "longName": "ConnectionStreamConfig",
+          "fullName": "mgmt.v1alpha1.ConnectionStreamConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "pg_config",
+              "description": "",
+              "label": "",
+              "type": "PostgresStreamConfig",
+              "longType": "PostgresStreamConfig",
+              "fullType": "mgmt.v1alpha1.PostgresStreamConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "aws_s3_config",
+              "description": "",
+              "label": "",
+              "type": "AwsS3StreamConfig",
+              "longType": "AwsS3StreamConfig",
+              "fullType": "mgmt.v1alpha1.AwsS3StreamConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "mysql_config",
+              "description": "",
+              "label": "",
+              "type": "MysqlStreamConfig",
+              "longType": "MysqlStreamConfig",
+              "fullType": "mgmt.v1alpha1.MysqlStreamConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionDataSchemaRequest",
+          "longName": "GetConnectionDataSchemaRequest",
+          "fullName": "mgmt.v1alpha1.GetConnectionDataSchemaRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema_config",
+              "description": "",
+              "label": "",
+              "type": "ConnectionSchemaConfig",
+              "longType": "ConnectionSchemaConfig",
+              "fullType": "mgmt.v1alpha1.ConnectionSchemaConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionDataSchemaResponse",
+          "longName": "GetConnectionDataSchemaResponse",
+          "fullName": "mgmt.v1alpha1.GetConnectionDataSchemaResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schemas",
+              "description": "",
+              "label": "repeated",
+              "type": "Column",
+              "longType": "Column",
+              "fullType": "mgmt.v1alpha1.Column",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionDataStreamRequest",
+          "longName": "GetConnectionDataStreamRequest",
+          "fullName": "mgmt.v1alpha1.GetConnectionDataStreamRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "stream_config",
+              "description": "",
+              "label": "",
+              "type": "ConnectionStreamConfig",
+              "longType": "ConnectionStreamConfig",
+              "fullType": "mgmt.v1alpha1.ConnectionStreamConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionDataStreamResponse",
+          "longName": "GetConnectionDataStreamResponse",
+          "fullName": "mgmt.v1alpha1.GetConnectionDataStreamResponse",
+          "description": "Each stream response is a single row in the requested schema and table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "row",
+              "description": "A map of column name to the bytes value of the data that was found for that column and row",
+              "label": "repeated",
+              "type": "RowEntry",
+              "longType": "GetConnectionDataStreamResponse.RowEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "RowEntry",
+          "longName": "GetConnectionDataStreamResponse.RowEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "bytes",
+              "longType": "bytes",
+              "fullType": "bytes",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MysqlSchemaConfig",
+          "longName": "MysqlSchemaConfig",
+          "fullName": "mgmt.v1alpha1.MysqlSchemaConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "MysqlStreamConfig",
+          "longName": "MysqlStreamConfig",
+          "fullName": "mgmt.v1alpha1.MysqlStreamConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "PostgresSchemaConfig",
+          "longName": "PostgresSchemaConfig",
+          "fullName": "mgmt.v1alpha1.PostgresSchemaConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "PostgresStreamConfig",
+          "longName": "PostgresStreamConfig",
+          "fullName": "mgmt.v1alpha1.PostgresStreamConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        }
+      ],
+      "services": [
+        {
+          "name": "ConnectionDataService",
+          "longName": "ConnectionDataService",
+          "fullName": "mgmt.v1alpha1.ConnectionDataService",
+          "description": "Service for managing connection data.\nThis is used in handle data from a connection",
+          "methods": [
+            {
+              "name": "GetConnectionDataStream",
+              "description": "Streaming endpoint that will stream the data available from the Connection to the client.\nUsed primarily by the CLI sync command.",
+              "requestType": "GetConnectionDataStreamRequest",
+              "requestLongType": "GetConnectionDataStreamRequest",
+              "requestFullType": "mgmt.v1alpha1.GetConnectionDataStreamRequest",
+              "requestStreaming": false,
+              "responseType": "GetConnectionDataStreamResponse",
+              "responseLongType": "GetConnectionDataStreamResponse",
+              "responseFullType": "mgmt.v1alpha1.GetConnectionDataStreamResponse",
+              "responseStreaming": true
+            },
+            {
+              "name": "GetConnectionDataSchema",
+              "description": "",
+              "requestType": "GetConnectionDataSchemaRequest",
+              "requestLongType": "GetConnectionDataSchemaRequest",
+              "requestFullType": "mgmt.v1alpha1.GetConnectionDataSchemaRequest",
+              "requestStreaming": false,
+              "responseType": "GetConnectionDataSchemaResponse",
+              "responseLongType": "GetConnectionDataSchemaResponse",
+              "responseFullType": "mgmt.v1alpha1.GetConnectionDataSchemaResponse",
               "responseStreaming": false
             }
           ]
@@ -5189,138 +5568,6 @@
           ]
         },
         {
-          "name": "GetJobDataStreamRequest",
-          "longName": "GetJobDataStreamRequest",
-          "fullName": "mgmt.v1alpha1.GetJobDataStreamRequest",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "job_id",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "connection_id",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "job_run_id",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "schema",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "table",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "GetJobDataStreamResponse",
-          "longName": "GetJobDataStreamResponse",
-          "fullName": "mgmt.v1alpha1.GetJobDataStreamResponse",
-          "description": "Each stream response is a single row in the requested schema and table",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "row",
-              "description": "A map of key to the bytes value of the data that was found",
-              "label": "repeated",
-              "type": "RowEntry",
-              "longType": "GetJobDataStreamResponse.RowEntry",
-              "fullType": "mgmt.v1alpha1.GetJobDataStreamResponse.RowEntry",
-              "ismap": true,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
-          "name": "RowEntry",
-          "longName": "GetJobDataStreamResponse.RowEntry",
-          "fullName": "mgmt.v1alpha1.GetJobDataStreamResponse.RowEntry",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "key",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "value",
-              "description": "",
-              "label": "",
-              "type": "bytes",
-              "longType": "bytes",
-              "fullType": "bytes",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
           "name": "GetJobNextRunsRequest",
           "longName": "GetJobNextRunsRequest",
           "fullName": "mgmt.v1alpha1.GetJobNextRunsRequest",
@@ -7811,18 +8058,6 @@
               "responseLongType": "GetJobStatusesResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobStatusesResponse",
               "responseStreaming": false
-            },
-            {
-              "name": "GetJobDataStream",
-              "description": "Streaming endpoint that will stream the data available from the job to the client.\nUsed primarily by the CLI sync command.",
-              "requestType": "GetJobDataStreamRequest",
-              "requestLongType": "GetJobDataStreamRequest",
-              "requestFullType": "mgmt.v1alpha1.GetJobDataStreamRequest",
-              "requestStreaming": false,
-              "responseType": "GetJobDataStreamResponse",
-              "responseLongType": "GetJobDataStreamResponse",
-              "responseFullType": "mgmt.v1alpha1.GetJobDataStreamResponse",
-              "responseStreaming": true
             },
             {
               "name": "GetJobRuns",

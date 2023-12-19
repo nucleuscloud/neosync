@@ -75,9 +75,6 @@ const (
 	// JobServiceGetJobStatusesProcedure is the fully-qualified name of the JobService's GetJobStatuses
 	// RPC.
 	JobServiceGetJobStatusesProcedure = "/mgmt.v1alpha1.JobService/GetJobStatuses"
-	// JobServiceGetJobDataStreamProcedure is the fully-qualified name of the JobService's
-	// GetJobDataStream RPC.
-	JobServiceGetJobDataStreamProcedure = "/mgmt.v1alpha1.JobService/GetJobDataStream"
 	// JobServiceGetJobRunsProcedure is the fully-qualified name of the JobService's GetJobRuns RPC.
 	JobServiceGetJobRunsProcedure = "/mgmt.v1alpha1.JobService/GetJobRuns"
 	// JobServiceGetJobRunEventsProcedure is the fully-qualified name of the JobService's
@@ -114,9 +111,6 @@ type JobServiceClient interface {
 	GetJobNextRuns(context.Context, *connect.Request[v1alpha1.GetJobNextRunsRequest]) (*connect.Response[v1alpha1.GetJobNextRunsResponse], error)
 	GetJobStatus(context.Context, *connect.Request[v1alpha1.GetJobStatusRequest]) (*connect.Response[v1alpha1.GetJobStatusResponse], error)
 	GetJobStatuses(context.Context, *connect.Request[v1alpha1.GetJobStatusesRequest]) (*connect.Response[v1alpha1.GetJobStatusesResponse], error)
-	// Streaming endpoint that will stream the data available from the job to the client.
-	// Used primarily by the CLI sync command.
-	GetJobDataStream(context.Context, *connect.Request[v1alpha1.GetJobDataStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetJobDataStreamResponse], error)
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
@@ -216,11 +210,6 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			baseURL+JobServiceGetJobStatusesProcedure,
 			opts...,
 		),
-		getJobDataStream: connect.NewClient[v1alpha1.GetJobDataStreamRequest, v1alpha1.GetJobDataStreamResponse](
-			httpClient,
-			baseURL+JobServiceGetJobDataStreamProcedure,
-			opts...,
-		),
 		getJobRuns: connect.NewClient[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunsProcedure,
@@ -277,7 +266,6 @@ type jobServiceClient struct {
 	getJobNextRuns                   *connect.Client[v1alpha1.GetJobNextRunsRequest, v1alpha1.GetJobNextRunsResponse]
 	getJobStatus                     *connect.Client[v1alpha1.GetJobStatusRequest, v1alpha1.GetJobStatusResponse]
 	getJobStatuses                   *connect.Client[v1alpha1.GetJobStatusesRequest, v1alpha1.GetJobStatusesResponse]
-	getJobDataStream                 *connect.Client[v1alpha1.GetJobDataStreamRequest, v1alpha1.GetJobDataStreamResponse]
 	getJobRuns                       *connect.Client[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse]
 	getJobRunEvents                  *connect.Client[v1alpha1.GetJobRunEventsRequest, v1alpha1.GetJobRunEventsResponse]
 	getJobRun                        *connect.Client[v1alpha1.GetJobRunRequest, v1alpha1.GetJobRunResponse]
@@ -367,11 +355,6 @@ func (c *jobServiceClient) GetJobStatuses(ctx context.Context, req *connect.Requ
 	return c.getJobStatuses.CallUnary(ctx, req)
 }
 
-// GetJobDataStream calls mgmt.v1alpha1.JobService.GetJobDataStream.
-func (c *jobServiceClient) GetJobDataStream(ctx context.Context, req *connect.Request[v1alpha1.GetJobDataStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetJobDataStreamResponse], error) {
-	return c.getJobDataStream.CallServerStream(ctx, req)
-}
-
 // GetJobRuns calls mgmt.v1alpha1.JobService.GetJobRuns.
 func (c *jobServiceClient) GetJobRuns(ctx context.Context, req *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error) {
 	return c.getJobRuns.CallUnary(ctx, req)
@@ -425,9 +408,6 @@ type JobServiceHandler interface {
 	GetJobNextRuns(context.Context, *connect.Request[v1alpha1.GetJobNextRunsRequest]) (*connect.Response[v1alpha1.GetJobNextRunsResponse], error)
 	GetJobStatus(context.Context, *connect.Request[v1alpha1.GetJobStatusRequest]) (*connect.Response[v1alpha1.GetJobStatusResponse], error)
 	GetJobStatuses(context.Context, *connect.Request[v1alpha1.GetJobStatusesRequest]) (*connect.Response[v1alpha1.GetJobStatusesResponse], error)
-	// Streaming endpoint that will stream the data available from the job to the client.
-	// Used primarily by the CLI sync command.
-	GetJobDataStream(context.Context, *connect.Request[v1alpha1.GetJobDataStreamRequest], *connect.ServerStream[v1alpha1.GetJobDataStreamResponse]) error
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
@@ -523,11 +503,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		svc.GetJobStatuses,
 		opts...,
 	)
-	jobServiceGetJobDataStreamHandler := connect.NewServerStreamHandler(
-		JobServiceGetJobDataStreamProcedure,
-		svc.GetJobDataStream,
-		opts...,
-	)
 	jobServiceGetJobRunsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunsProcedure,
 		svc.GetJobRuns,
@@ -597,8 +572,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceGetJobStatusHandler.ServeHTTP(w, r)
 		case JobServiceGetJobStatusesProcedure:
 			jobServiceGetJobStatusesHandler.ServeHTTP(w, r)
-		case JobServiceGetJobDataStreamProcedure:
-			jobServiceGetJobDataStreamHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunsProcedure:
 			jobServiceGetJobRunsHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunEventsProcedure:
@@ -684,10 +657,6 @@ func (UnimplementedJobServiceHandler) GetJobStatus(context.Context, *connect.Req
 
 func (UnimplementedJobServiceHandler) GetJobStatuses(context.Context, *connect.Request[v1alpha1.GetJobStatusesRequest]) (*connect.Response[v1alpha1.GetJobStatusesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetJobStatuses is not implemented"))
-}
-
-func (UnimplementedJobServiceHandler) GetJobDataStream(context.Context, *connect.Request[v1alpha1.GetJobDataStreamRequest], *connect.ServerStream[v1alpha1.GetJobDataStreamResponse]) error {
-	return connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetJobDataStream is not implemented"))
 }
 
 func (UnimplementedJobServiceHandler) GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error) {

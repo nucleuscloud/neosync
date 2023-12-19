@@ -41,9 +41,24 @@ import (
 
 const (
 	maxPgParamLimit = 65535
-	postgresDriver  = "postgres"
-	mysqlDriver     = "mysql"
+
+	postgresDriver DriverType = "postgres"
+	mysqlDriver    DriverType = "mysql"
+
+	s3Connection       ConnectionType = "s3"
+	postgresConnection ConnectionType = "postgres"
+	mysqlConnection    ConnectionType = "mysql"
 )
+
+var (
+	driverMap = map[string]DriverType{
+		string(postgresDriver): postgresDriver,
+		string(mysqlDriver):    mysqlDriver,
+	}
+)
+
+type ConnectionType string
+type DriverType string
 
 type model struct {
 	groupedConfigs [][]*benthosConfigResponse
@@ -66,16 +81,22 @@ var (
 )
 
 type cmdConfig struct {
-	ConnectionId string            `yaml:"connection-id"`
-	Destination  destinationConfig `yaml:"destination"`
+	Source      *sourceConfig      `yaml:"source"`
+	Destination *destinationConfig `yaml:"destination"`
+}
+
+type sourceConfig struct {
+	ConnectionId string  `yaml:"connection-id"`
+	JobId        *string `yaml:"job-id,omitempty"`
+	JobRunId     *string `yaml:"job-run-id,omitempty"`
 }
 
 type destinationConfig struct {
-	ConnectionUrl        string `yaml:"connection-url"`
-	Driver               string `yaml:"driver"`
-	InitSchema           bool   `yaml:"init-table-schema,omitempty"`
-	TruncateBeforeInsert bool   `yaml:"truncate-before-insert,omitempty"`
-	TruncateCascade      bool   `yaml:"truncate-cascade,omitempty"`
+	ConnectionUrl        string     `yaml:"connection-url"`
+	Driver               DriverType `yaml:"driver"`
+	InitSchema           bool       `yaml:"init-table-schema,omitempty"`
+	TruncateBeforeInsert bool       `yaml:"truncate-before-insert,omitempty"`
+	TruncateCascade      bool       `yaml:"truncate-cascade,omitempty"`
 }
 
 func NewCmd() *cobra.Command {
@@ -115,7 +136,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 			if connectionId != "" {
-				config.ConnectionId = connectionId
+				config.Source.ConnectionId = connectionId
 			}
 
 			destConnUrl, err := cmd.Flags().GetString("destination-connection-url")
@@ -130,8 +151,9 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if driver != "" {
-				config.Destination.Driver = driver
+			pDriver, ok := parseDriverString(driver)
+			if ok {
+				config.Destination.Driver = pDriver
 			}
 
 			initSchema, err := cmd.Flags().GetBool("init-schema")
@@ -158,7 +180,7 @@ func NewCmd() *cobra.Command {
 				config.Destination.TruncateCascade = truncateCascade
 			}
 
-			if config.ConnectionId == "" {
+			if config.Source.ConnectionId == "" {
 				return fmt.Errorf("must provide connection-id")
 			}
 			if config.Destination.Driver == "" {
@@ -222,11 +244,21 @@ func sync(
 		),
 	)
 
-	connection, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: cmd.ConnectionId,
+	connResp, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: cmd.Source.ConnectionId,
 	}))
 	if err != nil {
 		return err
+	}
+	connection := connResp.Msg.GetConnection()
+	connectionType, err := getConnectionType(connection)
+	if err != nil {
+		return err
+	}
+
+	// if connection type s3 must provide job-id
+	if connectionType == s3Connection && (cmd.Source.JobId == nil || *cmd.Source.JobId == "") {
+		return errors.New("S3 source connection type requires job-id.")
 	}
 
 	var token *string
@@ -254,13 +286,13 @@ func sync(
 				return errors.New("Account Id not found. Please use account switch command to set account.")
 			}
 
-			if connection.Msg.Connection.AccountId != *accountId {
+			if connection.AccountId != *accountId {
 				return errors.New(fmt.Sprintf("Connection not found. AccountId: %s", *accountId)) // nolint
 			}
 		}
 	}
 
-	err = areSourceAndDestCompatible(connection.Msg.Connection, cmd.Destination.Driver)
+	err = areSourceAndDestCompatible(connection, cmd.Destination.Driver)
 	if err != nil {
 		return err
 	}
@@ -268,7 +300,7 @@ func sync(
 	fmt.Println(header.Render("\n── Preparing ─────────────────────────────────────")) // nolint
 	fmt.Println(printlog.Render("Retrieving connection schema..."))                    // nolint
 	schemaResp, err := connectionclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
-		Id: cmd.ConnectionId,
+		Id: connection.Id,
 	}))
 	if err != nil {
 		return err
@@ -285,13 +317,13 @@ func sync(
 	}
 
 	fmt.Println(printlog.Render("Building foreign table constraints...")) // nolint
-	fkConnectionResp, err := connectionclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: cmd.ConnectionId}))
+	fkConnectionResp, err := connectionclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
 	if err != nil {
 		return err
 	}
 	tableConstraints := fkConnectionResp.Msg.GetTableConstraints()
 
-	initTableStatementsMap, err := getTableInitStatementMap(ctx, connectionclient, cmd.ConnectionId, cmd.Destination)
+	initTableStatementsMap, err := getTableInitStatementMap(ctx, connectionclient, cmd.Source.ConnectionId, cmd.Destination)
 	if err != nil {
 		return err
 	}
@@ -333,7 +365,7 @@ func sync(
 	return nil
 }
 
-func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver string) error {
+func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver DriverType) error {
 	switch connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if destinationDriver != postgresDriver {
@@ -401,7 +433,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	return nil
 }
 
-func getTableInitStatementMap(ctx context.Context, connectionclient mgmtv1alpha1connect.ConnectionServiceClient, connectionId string, opts destinationConfig) (map[string]string, error) {
+func getTableInitStatementMap(ctx context.Context, connectionclient mgmtv1alpha1connect.ConnectionServiceClient, connectionId string, opts *destinationConfig) (map[string]string, error) {
 	if opts.InitSchema || opts.TruncateBeforeInsert || opts.TruncateCascade {
 		fmt.Println(printlog.Render("Creating init statements...")) // nolint
 		initStatementResp, err := connectionclient.GetConnectionInitStatements(ctx,
@@ -473,7 +505,7 @@ func generateBenthosConfig(
 					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
 						ApiKey:       authToken,
 						ApiUrl:       apiUrl,
-						ConnectionId: cmd.ConnectionId,
+						ConnectionId: cmd.Source.ConnectionId,
 						Schema:       schema,
 						Table:        table,
 					},
@@ -483,7 +515,7 @@ func generateBenthosConfig(
 			Output: &neosync_benthos.OutputConfig{
 				Outputs: neosync_benthos.Outputs{
 					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver:        cmd.Destination.Driver,
+						Driver:        string(cmd.Destination.Driver),
 						Dsn:           cmd.Destination.ConnectionUrl,
 						InitStatement: initStatement,
 						Table:         tableName,
@@ -734,4 +766,22 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func parseDriverString(str string) (DriverType, bool) {
+	p, ok := driverMap[strings.ToLower(str)]
+	return p, ok
+}
+
+func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, error) {
+	if connection.ConnectionConfig.GetAwsS3Config() != nil {
+		return s3Connection, nil
+	}
+	if connection.ConnectionConfig.GetMysqlConfig() != nil {
+		return mysqlConnection, nil
+	}
+	if connection.ConnectionConfig.GetPgConfig() != nil {
+		return postgresConnection, nil
+	}
+	return "", errors.New("unsupported connection type")
 }

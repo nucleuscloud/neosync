@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb.js";
+import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -115,18 +115,6 @@ export const ConnectionService = {
       I: CheckSqlQueryRequest,
       O: CheckSqlQueryResponse,
       kind: MethodKind.Unary,
-    },
-    /**
-     * Streaming endpoint that will stream the data available from the Connection to the client.
-     * Used primarily by the CLI sync command.
-     *
-     * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionDataStream
-     */
-    getConnectionDataStream: {
-      name: "GetConnectionDataStream",
-      I: GetConnectionDataStreamRequest,
-      O: GetConnectionDataStreamResponse,
-      kind: MethodKind.ServerStreaming,
     },
     /**
      * For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.

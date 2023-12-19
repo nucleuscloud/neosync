@@ -60,9 +60,6 @@ const (
 	// ConnectionServiceCheckSqlQueryProcedure is the fully-qualified name of the ConnectionService's
 	// CheckSqlQuery RPC.
 	ConnectionServiceCheckSqlQueryProcedure = "/mgmt.v1alpha1.ConnectionService/CheckSqlQuery"
-	// ConnectionServiceGetConnectionDataStreamProcedure is the fully-qualified name of the
-	// ConnectionService's GetConnectionDataStream RPC.
-	ConnectionServiceGetConnectionDataStreamProcedure = "/mgmt.v1alpha1.ConnectionService/GetConnectionDataStream"
 	// ConnectionServiceGetConnectionForeignConstraintsProcedure is the fully-qualified name of the
 	// ConnectionService's GetConnectionForeignConstraints RPC.
 	ConnectionServiceGetConnectionForeignConstraintsProcedure = "/mgmt.v1alpha1.ConnectionService/GetConnectionForeignConstraints"
@@ -93,9 +90,6 @@ type ConnectionServiceClient interface {
 	// Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
 	// This is useful when constructing subsets to see if the WHERE clause is correct
 	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
-	// Streaming endpoint that will stream the data available from the Connection to the client.
-	// Used primarily by the CLI sync command.
-	GetConnectionDataStream(context.Context, *connect.Request[v1alpha1.GetConnectionDataStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetConnectionDataStreamResponse], error)
 	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to determine stream order.
 	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
@@ -159,11 +153,6 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			baseURL+ConnectionServiceCheckSqlQueryProcedure,
 			opts...,
 		),
-		getConnectionDataStream: connect.NewClient[v1alpha1.GetConnectionDataStreamRequest, v1alpha1.GetConnectionDataStreamResponse](
-			httpClient,
-			baseURL+ConnectionServiceGetConnectionDataStreamProcedure,
-			opts...,
-		),
 		getConnectionForeignConstraints: connect.NewClient[v1alpha1.GetConnectionForeignConstraintsRequest, v1alpha1.GetConnectionForeignConstraintsResponse](
 			httpClient,
 			baseURL+ConnectionServiceGetConnectionForeignConstraintsProcedure,
@@ -188,7 +177,6 @@ type connectionServiceClient struct {
 	checkConnectionConfig           *connect.Client[v1alpha1.CheckConnectionConfigRequest, v1alpha1.CheckConnectionConfigResponse]
 	getConnectionSchema             *connect.Client[v1alpha1.GetConnectionSchemaRequest, v1alpha1.GetConnectionSchemaResponse]
 	checkSqlQuery                   *connect.Client[v1alpha1.CheckSqlQueryRequest, v1alpha1.CheckSqlQueryResponse]
-	getConnectionDataStream         *connect.Client[v1alpha1.GetConnectionDataStreamRequest, v1alpha1.GetConnectionDataStreamResponse]
 	getConnectionForeignConstraints *connect.Client[v1alpha1.GetConnectionForeignConstraintsRequest, v1alpha1.GetConnectionForeignConstraintsResponse]
 	getConnectionInitStatements     *connect.Client[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse]
 }
@@ -238,11 +226,6 @@ func (c *connectionServiceClient) CheckSqlQuery(ctx context.Context, req *connec
 	return c.checkSqlQuery.CallUnary(ctx, req)
 }
 
-// GetConnectionDataStream calls mgmt.v1alpha1.ConnectionService.GetConnectionDataStream.
-func (c *connectionServiceClient) GetConnectionDataStream(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionDataStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetConnectionDataStreamResponse], error) {
-	return c.getConnectionDataStream.CallServerStream(ctx, req)
-}
-
 // GetConnectionForeignConstraints calls
 // mgmt.v1alpha1.ConnectionService.GetConnectionForeignConstraints.
 func (c *connectionServiceClient) GetConnectionForeignConstraints(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error) {
@@ -276,9 +259,6 @@ type ConnectionServiceHandler interface {
 	// Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
 	// This is useful when constructing subsets to see if the WHERE clause is correct
 	CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error)
-	// Streaming endpoint that will stream the data available from the Connection to the client.
-	// Used primarily by the CLI sync command.
-	GetConnectionDataStream(context.Context, *connect.Request[v1alpha1.GetConnectionDataStreamRequest], *connect.ServerStream[v1alpha1.GetConnectionDataStreamResponse]) error
 	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to determine stream order.
 	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
@@ -338,11 +318,6 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 		svc.CheckSqlQuery,
 		opts...,
 	)
-	connectionServiceGetConnectionDataStreamHandler := connect.NewServerStreamHandler(
-		ConnectionServiceGetConnectionDataStreamProcedure,
-		svc.GetConnectionDataStream,
-		opts...,
-	)
 	connectionServiceGetConnectionForeignConstraintsHandler := connect.NewUnaryHandler(
 		ConnectionServiceGetConnectionForeignConstraintsProcedure,
 		svc.GetConnectionForeignConstraints,
@@ -373,8 +348,6 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 			connectionServiceGetConnectionSchemaHandler.ServeHTTP(w, r)
 		case ConnectionServiceCheckSqlQueryProcedure:
 			connectionServiceCheckSqlQueryHandler.ServeHTTP(w, r)
-		case ConnectionServiceGetConnectionDataStreamProcedure:
-			connectionServiceGetConnectionDataStreamHandler.ServeHTTP(w, r)
 		case ConnectionServiceGetConnectionForeignConstraintsProcedure:
 			connectionServiceGetConnectionForeignConstraintsHandler.ServeHTTP(w, r)
 		case ConnectionServiceGetConnectionInitStatementsProcedure:
@@ -422,10 +395,6 @@ func (UnimplementedConnectionServiceHandler) GetConnectionSchema(context.Context
 
 func (UnimplementedConnectionServiceHandler) CheckSqlQuery(context.Context, *connect.Request[v1alpha1.CheckSqlQueryRequest]) (*connect.Response[v1alpha1.CheckSqlQueryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.CheckSqlQuery is not implemented"))
-}
-
-func (UnimplementedConnectionServiceHandler) GetConnectionDataStream(context.Context, *connect.Request[v1alpha1.GetConnectionDataStreamRequest], *connect.ServerStream[v1alpha1.GetConnectionDataStreamResponse]) error {
-	return connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionService.GetConnectionDataStream is not implemented"))
 }
 
 func (UnimplementedConnectionServiceHandler) GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error) {
