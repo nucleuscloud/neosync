@@ -14,12 +14,13 @@ interface GetColumnsProps {
   onDeleted(id: string): void;
   accountId: string;
   accountName: string;
+  jobNameMap: Record<string, string>;
 }
 
 export function getColumns(
   props: GetColumnsProps
 ): ColumnDef<PlainMessage<JobRun>>[] {
-  const { onDeleted, accountId, accountName } = props;
+  const { onDeleted, accountId, accountName, jobNameMap } = props;
   return [
     {
       accessorKey: 'status',
@@ -44,7 +45,7 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div>
+          <div className="font-medium">
             <NextLink
               className="hover:underline"
               href={`/${accountName}/runs/${row.getValue('id')}`}
@@ -58,15 +59,15 @@ export function getColumns(
       enableHiding: false,
     },
     {
-      accessorKey: 'name',
+      accessorKey: 'jobName',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Name" />
+        <DataTableColumnHeader column={column} title="Job Name" />
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
-              {row.getValue('name')}
+          <div>
+            <span className="font-medium">
+              {jobNameMap[row.original.jobId]}
             </span>
           </div>
         );
@@ -79,14 +80,12 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2">
+          <div className="font-medium">
             <NextLink
               className="hover:underline"
               href={`/${accountName}/jobs/${row.getValue('jobId')}`}
             >
-              <span className="max-w-[500px] truncate font-medium">
-                {row.getValue('jobId')}
-              </span>
+              <span>{row.getValue('jobId')}</span>
             </NextLink>
           </div>
         );
@@ -99,8 +98,8 @@ export function getColumns(
       ),
       cell: ({ row }) => {
         return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
+          <div>
+            <span className="font-medium">
               {formatDateTime(row.getValue<Timestamp>('startedAt').toDate())}
             </span>
           </div>
@@ -120,10 +119,8 @@ export function getColumns(
           ? formatDateTime(row.getValue<Timestamp>('completedAt').toDate())
           : undefined;
         return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
-              {completedAt}
-            </span>
+          <div>
+            <span className="font-medium">{completedAt}</span>
           </div>
         );
       },
