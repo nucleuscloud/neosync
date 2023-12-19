@@ -6,6 +6,7 @@ import {
   onJobRunsPaused,
   useGetJobRuns,
 } from '@/libs/hooks/useGetJobRuns';
+import { useGetJobs } from '@/libs/hooks/useGetJobs';
 import { ReactElement, useMemo, useState } from 'react';
 import { getColumns } from './JobRunsTable/columns';
 import { DataTable } from './JobRunsTable/data-table';
@@ -33,6 +34,16 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
     }
   );
 
+  const { data: jobsData, mutate: jobsMutate } = useGetJobs(account?.id ?? '');
+
+  const jobNameMap =
+    jobsData?.jobs.reduce(
+      (prev, curr) => {
+        return { ...prev, [curr.id]: curr.name };
+      },
+      {} as Record<string, string>
+    ) || {};
+
   const columns = useMemo(
     () =>
       getColumns({
@@ -41,8 +52,9 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
         },
         accountId: account?.id ?? '',
         accountName: account?.name ?? '',
+        jobNameMap: jobNameMap,
       }),
-    [account?.id ?? '', account?.name ?? '']
+    [account?.id ?? '', account?.name ?? '', jobNameMap]
   );
 
   if (isLoading) {
@@ -53,6 +65,7 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
 
   function refreshClick(): void {
     mutate();
+    jobsMutate();
   }
 
   return (
