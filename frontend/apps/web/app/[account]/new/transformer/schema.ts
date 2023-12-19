@@ -223,7 +223,7 @@ const transformerNameSchema = Yup.string()
       const accountId = context?.options?.context?.accountId;
       if (!accountId) {
         return context.createError({
-          message: 'Account is not valid.',
+          message: 'Unable to verify Name. Account is not valid.',
         });
       }
 
