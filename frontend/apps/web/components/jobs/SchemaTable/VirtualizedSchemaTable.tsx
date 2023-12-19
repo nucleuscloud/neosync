@@ -245,7 +245,6 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
             render={({ field, fieldState, formState }) => {
               // todo: we should really convert between the real field.value and the job mapping transformer
               const fv = field.value as unknown as JobMappingTransformer;
-              console.log(fieldState.error);
 
               return (
                 <FormItem>

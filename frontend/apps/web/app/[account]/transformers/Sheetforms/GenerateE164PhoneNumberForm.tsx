@@ -9,7 +9,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
@@ -32,29 +32,45 @@ export default function GenerateE164PhoneNumberForm(
   const [min, setMin] = useState<number>(minVal);
   const [max, setMax] = useState<number>(maxVal);
   const [disableSave, setDisableSave] = useState<boolean>(false);
-  const [lengthError, setLengthError] = useState<string>('');
+  const [minError, setMinError] = useState<string>('');
+  const [maxError, setMaxError] = useState<string>('');
 
   const handleSubmit = () => {
     fc.setValue(`mappings.${index}.transformer.config.config.value.min`, min, {
       shouldValidate: false,
     });
+    fc.setValue(`mappings.${index}.transformer.config.config.value.max`, max, {
+      shouldValidate: false,
+    });
     setIsSheetOpen!(false);
   };
 
-  fc.setValue(`mappings.${index}.transformer.config.config.value.max`, max, {
-    shouldValidate: false,
-  });
-  setIsSheetOpen!(false);
-
-  useEffect(() => {
-    if (max > 15 || min < 9) {
+  const handleSettingMinRange = (value: number) => {
+    if (value < 9 || value > max) {
+      setMinError(
+        'Minimum length cannot be less than 9 or greater than the max length'
+      );
+      setMin(value);
       setDisableSave(true);
-      setLengthError('9 < length < 15.');
     } else {
+      setMinError('');
       setDisableSave(false);
-      setLengthError('');
+      setMin(value);
     }
-  }, [min, max]);
+  };
+  const handleSettingMaxRange = (value: number) => {
+    if (value > 15 || value < min) {
+      setMaxError(
+        'Maximum length cannot be greater than 15 or less than the min length'
+      );
+      setMax(value);
+      setDisableSave(true);
+    } else {
+      setMaxError('');
+      setDisableSave(false);
+      setMax(value);
+    }
+  };
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -64,20 +80,20 @@ export default function GenerateE164PhoneNumberForm(
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Minimum Length</FormLabel>
-              <FormDescription className="w-[90%]">
-                Set the minimum length of the output phone number. It cannot be
-                less than 9.
+              <FormDescription>
+                Set the minimum length range of the output phone number. It
+                cannot be less than 9.
               </FormDescription>
             </div>
             <FormControl>
               <div className="max-w-[180px]">
                 <Input
-                  placeholder="3"
-                  max={9}
-                  value={String(length)}
-                  onChange={(e) => setMin(Number(e.target.value))}
+                  value={String(min)}
+                  onChange={(event) =>
+                    handleSettingMinRange(Number(event.target.value))
+                  }
                 />
-                <FormError errorMessage={lengthError} />
+                <FormError errorMessage={minError} />
               </div>
             </FormControl>
           </FormItem>
@@ -89,20 +105,20 @@ export default function GenerateE164PhoneNumberForm(
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Maximum Length</FormLabel>
-              <FormDescription className="w-[90%]">
-                Set the maximum length of the output phone number. It cannot be
-                greater than 15.
+              <FormDescription>
+                Set the maximum length range of the output phone number. It
+                cannot be greater than 15.
               </FormDescription>
             </div>
             <FormControl>
               <div className="max-w-[180px]">
                 <Input
-                  placeholder="3"
-                  max={15}
-                  value={String(length)}
-                  onChange={(e) => setMax(Number(e.target.value))}
+                  value={String(max)}
+                  onChange={(event) =>
+                    handleSettingMaxRange(Number(event.target.value))
+                  }
                 />
-                <FormError errorMessage={lengthError} />
+                <FormError errorMessage={maxError} />
               </div>
             </FormControl>
           </FormItem>

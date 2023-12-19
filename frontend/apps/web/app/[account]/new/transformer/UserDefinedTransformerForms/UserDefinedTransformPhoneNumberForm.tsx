@@ -13,7 +13,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomGenerateStringPhoneNumberForm(
+export default function UserDefinedTransformPhoneNumberForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext();
@@ -22,6 +22,28 @@ export default function CustomGenerateStringPhoneNumberForm(
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
+      <FormField
+        name={`config.config.value.preserveLength`}
+        control={fc.control}
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+            <div className="space-y-0.5">
+              <FormLabel>Preserve Length</FormLabel>
+              <FormDescription className="w-[90%]">
+                Set the length of the output phone number to be the same as the
+                input
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                disabled={isDisabled}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
       <FormField
         name={`config.config.value.includeHyphens`}
         control={fc.control}
@@ -38,9 +60,7 @@ export default function CustomGenerateStringPhoneNumberForm(
               <Switch
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                disabled={
-                  fc.watch('config.config.value.e164Format') || isDisabled
-                }
+                disabled={isDisabled}
               />
             </FormControl>
           </FormItem>

@@ -8,7 +8,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 
@@ -16,7 +15,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function UserDefinedGenerateStringForm(
+export default function UserDefinedGenerateE164NumberForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext();
@@ -33,7 +32,8 @@ export default function UserDefinedGenerateStringForm(
             <div className="space-y-0.5">
               <FormLabel>Minimum Length</FormLabel>
               <FormDescription>
-                Set the minimum length range of the output string.
+                Set the minimum length range of the output phone number. It
+                cannot be less than 9.
               </FormDescription>
             </div>
             <div className="flex flex-col h-14">
@@ -42,6 +42,7 @@ export default function UserDefinedGenerateStringForm(
                   <div className="max-w-[180px]">
                     <Input
                       value={field.value !== null ? String(field.value) : ''}
+                      type="number"
                       onChange={(e) => {
                         field.onChange(
                           e.target.value === '' ? null : Number(e.target.value)
@@ -62,10 +63,11 @@ export default function UserDefinedGenerateStringForm(
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
+            <div className="space-y-0.5 ">
               <FormLabel>Maximum Length</FormLabel>
               <FormDescription>
-                Set the maximum length range of the output string.
+                Set the maximum length range of the output phone number. It
+                cannot be greater than 15.
               </FormDescription>
             </div>
             <div className="flex flex-col h-14">
@@ -74,6 +76,7 @@ export default function UserDefinedGenerateStringForm(
                   <div className="max-w-[180px]">
                     <Input
                       value={field.value !== null ? String(field.value) : ''}
+                      type="number"
                       onChange={(e) => {
                         field.onChange(
                           e.target.value === '' ? null : Number(e.target.value)

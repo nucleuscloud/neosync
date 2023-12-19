@@ -15,7 +15,9 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function GenerateStringPhoneForm(props: Props): ReactElement {
+export default function GenerateStringPhoneNumberForm(
+  props: Props
+): ReactElement {
   const { index, setIsSheetOpen } = props;
 
   const fc = useFormContext();

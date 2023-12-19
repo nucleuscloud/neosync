@@ -11,29 +11,26 @@ import { Switch } from '@/components/ui/switch';
 import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-
 interface Props {
   index?: number;
-  setIsSheetOpen?: (val: boolean) => void;
   transformer: Transformer;
+  setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function TransformFloatForm(props: Props): ReactElement {
+export default function TransformPhoneNumberForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
+  const ihValue = fc.getValues(
+    `mappings.${index}.transformer.config.config.value.includeHyphens`
+  );
 
+  const [ih, setIh] = useState<boolean>(ihValue);
   const plValue = fc.getValues(
     `mappings.${index}.transformer.config.config.value.preserveLength`
   );
 
   const [pl, setPl] = useState<boolean>(plValue);
-
-  const psValue = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.preserveSign`
-  );
-
-  const [ps, setPs] = useState<boolean>(psValue);
 
   const handleSubmit = () => {
     fc.setValue(
@@ -44,8 +41,8 @@ export default function TransformFloatForm(props: Props): ReactElement {
       }
     );
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.preserveSign`,
-      ps,
+      `mappings.${index}.transformer.config.config.value.includeHyphens`,
+      ih,
       {
         shouldValidate: false,
       }
@@ -62,41 +59,36 @@ export default function TransformFloatForm(props: Props): ReactElement {
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription className="w-[90%]">
-                Set the length of the output first name to be the same as the
+                Set the length of the output phone number to be the same as the
                 input
               </FormDescription>
             </div>
             <FormControl>
               <Switch
                 checked={pl}
-                disabled={isUserDefinedTransformer(transformer)}
-                onCheckedChange={() => {
-                  pl ? setPl(false) : setPl(true);
-                }}
+                disabled={ih || isUserDefinedTransformer(transformer)}
+                onCheckedChange={() => setPl(!pl)}
               />
             </FormControl>
           </FormItem>
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.preserveSign`}
+        name={`mappings.${index}.transformer.config.config.value.includeHyphens`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
-              <FormLabel>Preserve Sign</FormLabel>
+              <FormLabel>Include Hyphens</FormLabel>
               <FormDescription className="w-[90%]">
-                Preserve the sign of the input float to the output float. For
-                example, if the input float is positive then the output float
-                will also be positive.
+                Include hyphens in the output phone number. Note: this only
+                works with 10 digit phone numbers.
               </FormDescription>
             </div>
             <FormControl>
               <Switch
-                checked={ps}
-                disabled={isUserDefinedTransformer(transformer)}
-                onCheckedChange={() => {
-                  ps ? setPs(false) : setPs(true);
-                }}
+                checked={ih}
+                disabled={pl || isUserDefinedTransformer(transformer)}
+                onCheckedChange={() => setIh(!ih)}
               />
             </FormControl>
           </FormItem>

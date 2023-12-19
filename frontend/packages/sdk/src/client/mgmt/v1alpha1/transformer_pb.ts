@@ -656,27 +656,27 @@ export class UserDefinedTransformer extends Message<UserDefinedTransformer> {
  */
 export class SystemTransformer extends Message<SystemTransformer> {
   /**
-   * @generated from field: string name = 2;
+   * @generated from field: string name = 1;
    */
   name = "";
 
   /**
-   * @generated from field: string description = 3;
+   * @generated from field: string description = 2;
    */
   description = "";
 
   /**
-   * @generated from field: string data_type = 5;
+   * @generated from field: string data_type = 3;
    */
   dataType = "";
 
   /**
-   * @generated from field: string source = 6;
+   * @generated from field: string source = 4;
    */
   source = "";
 
   /**
-   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 7;
+   * @generated from field: mgmt.v1alpha1.TransformerConfig config = 5;
    */
   config?: TransformerConfig;
 
@@ -688,11 +688,11 @@ export class SystemTransformer extends Message<SystemTransformer> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.SystemTransformer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "config", kind: "message", T: TransformerConfig },
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "config", kind: "message", T: TransformerConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemTransformer {

@@ -15,7 +15,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomGenerateCardNumberForm(
+export default function UserDefinedGenerateCardNumberForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext();

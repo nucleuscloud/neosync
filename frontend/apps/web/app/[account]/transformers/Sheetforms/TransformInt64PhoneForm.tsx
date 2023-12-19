@@ -17,7 +17,7 @@ interface Props {
   transformer: Transformer;
 }
 
-export default function TransformE164NumberForm(props: Props): ReactElement {
+export default function TransformInt64PhoneForm(props: Props): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
@@ -27,7 +27,6 @@ export default function TransformE164NumberForm(props: Props): ReactElement {
   );
 
   const [pl, setPl] = useState<boolean>(plValue);
-
   const handleSubmit = () => {
     fc.setValue(
       `mappings.${index}.transformer.config.config.value.preserveLength`,
@@ -48,17 +47,15 @@ export default function TransformE164NumberForm(props: Props): ReactElement {
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription className="w-[90%]">
-                Set the length of the output e164 phone number to be the same as
-                the input e164 phone number.
+                Set the length of the output phone number to be the same as the
+                input
               </FormDescription>
             </div>
             <FormControl>
               <Switch
                 checked={pl}
+                onCheckedChange={() => setPl(!pl)}
                 disabled={isUserDefinedTransformer(transformer)}
-                onCheckedChange={() => {
-                  pl ? setPl(false) : setPl(true);
-                }}
               />
             </FormControl>
           </FormItem>
