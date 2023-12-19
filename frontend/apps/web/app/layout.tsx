@@ -16,11 +16,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }): Promise<ReactElement> {
-  // const systemAppConfig = getSystemAppConfig();
-  // const session = systemAppConfig.isAuthEnabled ? await auth() : null;
-  // if (systemAppConfig.isAuthEnabled && !session) {
-  //   await signIn();
-  // }
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
@@ -37,18 +32,6 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          {/* <SessionProvider session={session}>
-            <AccountProvider>
-              <div className="relative flex min-h-screen flex-col">
-                <SiteHeader />
-                <div className="flex-1 container" id="top-level-layout">
-                  {children}
-                </div>
-                <SiteFooter />
-                <Toaster />
-              </div>
-            </AccountProvider>
-          </SessionProvider> */}
         </ThemeProvider>
       </body>
     </html>
