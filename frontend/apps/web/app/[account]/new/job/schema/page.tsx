@@ -2,16 +2,12 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import {
-  SchemaTable,
-  getConnectionSchema,
-} from '@/components/jobs/SchemaTable/schema-table';
+import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { useToast } from '@/components/ui/use-toast';
-import { getErrorMessage } from '@/util/util';
+import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import {
   SCHEMA_FORM_SCHEMA,
   SchemaFormValues,
@@ -19,6 +15,7 @@ import {
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  DatabaseColumn,
   JobMappingTransformer,
   Passthrough,
   TransformerConfig,
@@ -36,7 +33,6 @@ const isBrowser = () => typeof window !== 'undefined';
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -62,65 +58,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  async function getSchema(): Promise<SchemaFormValues> {
-    try {
-      const res = await getConnectionSchema(
-        account?.id || '',
-        connectFormValues.sourceId
-      );
-      if (!res) {
-        return { mappings: [] };
-      }
-
-      // set values from the session data if they're available
-      // this helps retain data from page to page and across saves before the data is submitted
-      if (schemaFormData.mappings.length > 0) {
-        const mappings = schemaFormData.mappings.map((r) => {
-          var pt = JobMappingTransformer.fromJson(
-            r.transformer
-          ) as TransformerFormValues;
-          return {
-            ...r,
-            transformer: pt,
-          };
-        });
-
-        return { mappings };
-      } else {
-        const mappings = res.schemas.map((r) => {
-          var pt = new JobMappingTransformer({
-            source: 'passthrough',
-            config: new TransformerConfig({
-              config: {
-                case: 'passthroughConfig',
-                value: new Passthrough({}),
-              },
-            }),
-          }) as TransformerFormValues;
-
-          return {
-            ...r,
-            transformer: pt,
-          };
-        });
-        return { mappings };
-      }
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: 'Unable to get connection schema',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      });
-      return { mappings: [] };
-    }
-  }
+  const { data: connectionSchemaData } = useGetConnectionSchema(
+    account?.id ?? '',
+    connectFormValues.sourceId
+  );
 
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
-    defaultValues: async () => {
-      return getSchema();
-    },
+    values: getFormValues(connectionSchemaData?.schemas ?? [], schemaFormData),
   });
 
   useFormPersist(`${sessionPrefix}-new-job-schema`, {
@@ -154,7 +99,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <SchemaTable data={form.getValues().mappings} />
+          <SchemaTable data={form.watch().mappings} />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
               Back
@@ -167,4 +112,44 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
+}
+
+function getFormValues(
+  dbCols: DatabaseColumn[],
+  existingData: SchemaFormValues | undefined
+): SchemaFormValues {
+  // set values from the session data if they're available
+  // this helps retain data from page to page and across saves before the data is submitted
+  const existingDataMappings = existingData?.mappings ?? [];
+  if (existingDataMappings.length > 0) {
+    const mappings = existingDataMappings.map((r) => {
+      var pt = JobMappingTransformer.fromJson(
+        r.transformer
+      ) as TransformerFormValues;
+      return {
+        ...r,
+        transformer: pt,
+      };
+    });
+
+    return { mappings };
+  } else {
+    const mappings = dbCols.map((r) => {
+      var pt = new JobMappingTransformer({
+        source: 'passthrough',
+        config: new TransformerConfig({
+          config: {
+            case: 'passthroughConfig',
+            value: new Passthrough({}),
+          },
+        }),
+      }) as TransformerFormValues;
+
+      return {
+        ...r,
+        transformer: pt,
+      };
+    });
+    return { mappings };
+  }
 }

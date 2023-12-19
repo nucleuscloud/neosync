@@ -13,6 +13,7 @@ import {
   SchemaFormValues,
   TransformerFormValues,
 } from '@/yup-validations/jobs';
+import { JsonValue } from '@bufbuild/protobuf';
 import {
   JobMappingTransformer,
   UserDefinedTransformerConfig,
@@ -246,7 +247,10 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
             name={`mappings.${index}.transformer`}
             render={({ field, fieldState, formState }) => {
               // todo: we should really convert between the real field.value and the job mapping transformer
-              const fv = field.value as unknown as JobMappingTransformer;
+              const fv =
+                field.value instanceof JobMappingTransformer
+                  ? field.value
+                  : JobMappingTransformer.fromJson(field.value as JsonValue);
 
               return (
                 <FormItem>
@@ -469,10 +473,16 @@ function shouldFilterRow(
     }
     switch (key) {
       case 'transformer': {
-        const rowVal = row[key as keyof Row] as JobMappingTransformer;
+        const rowVal = row[key as keyof Row] as
+          | JobMappingTransformer
+          | TransformerFormValues;
         if (rowVal.source === 'custom') {
+          const transformer =
+            rowVal instanceof JobMappingTransformer
+              ? rowVal
+              : JobMappingTransformer.fromJson(rowVal);
           const udfId = (
-            rowVal.config?.config.value as UserDefinedTransformerConfig
+            transformer.config?.config.value as UserDefinedTransformerConfig
           ).id;
           const value =
             transformers.find(
@@ -572,8 +582,12 @@ function getUniqueFiltersByColumn(
       case 'transformer': {
         const rowVal = r[columnId];
         if (rowVal.source === 'custom') {
+          const transformer =
+            rowVal instanceof JobMappingTransformer
+              ? rowVal
+              : JobMappingTransformer.fromJson(rowVal);
           const udfId = (
-            rowVal.config.config.value as UserDefinedTransformerConfig
+            transformer.config?.config.value as UserDefinedTransformerConfig
           ).id;
           const value =
             transformers.find(
