@@ -445,7 +445,7 @@ function VirtualizedSchemaList({
               width={width}
               itemKey={(index: number) => {
                 const r = rows[index];
-                return `${r.schema}-${r.table}-${r.column}-${index}`;
+                return `${r.schema}-${r.table}-${r.column}`;
               }}
             >
               {Row}

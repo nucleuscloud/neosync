@@ -22,17 +22,13 @@ export type TransformerFormValues = Yup.InferType<typeof TRANSFORMER_SCHEMA>;
 
 export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
 
-export const JOB_MAPPING_COLUMN_SCHEMA = Yup.object({
+export const JOB_MAPPING_SCHEMA = Yup.object({
+  schema: Yup.string().required(),
+  table: Yup.string().required(),
   column: Yup.string().required(),
   dataType: Yup.string().required(),
   transformer: TRANSFORMER_SCHEMA,
-});
-const JOB_MAPPING_SCHEMA = JOB_MAPPING_COLUMN_SCHEMA.concat(
-  Yup.object({
-    schema: Yup.string().required(),
-    table: Yup.string().required(),
-  })
-).required();
+}).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
 
 export const SCHEMA_FORM_SCHEMA = Yup.object({

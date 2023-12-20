@@ -210,6 +210,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
                       )
                       .map((r) => {
                         return {
+                          schema: formValues.schema,
+                          table: value,
                           column: r.column,
                           dataType: r.dataType,
                           transformer: r.transformer,
@@ -340,6 +342,8 @@ function getJobSource(
         colMapping?.transformer ?? new JobMappingTransformer({});
 
       return {
+        schema: schema,
+        table: table,
         column: c.column,
         dataType: c.dataType,
         transformer: transformer as TransformerFormValues,
