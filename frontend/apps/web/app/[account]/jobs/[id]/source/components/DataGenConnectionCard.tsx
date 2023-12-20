@@ -251,7 +251,13 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
               <FormLabel>Number of Rows</FormLabel>
               <FormDescription>The number of rows to generate.</FormDescription>
               <FormControl>
-                <Input value={field.value} onChange={field.onChange} />
+                <Input
+                  type="number"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.target.valueAsNumber);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
