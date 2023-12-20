@@ -198,8 +198,6 @@ export const transformerConfig = Yup.object({
   }),
 });
 
-// export type YupTransformerConfig = Yup.InferType<typeof transformerConfig>;
-
 const transformerNameSchema = Yup.string()
   .required()
   .test(

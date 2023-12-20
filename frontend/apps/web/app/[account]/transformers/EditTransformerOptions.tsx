@@ -10,7 +10,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Transformer } from '@/shared/transformers';
+import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
 import {
   Cross2Icon,
@@ -89,7 +89,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         <Button
           variant="outline"
           size="sm"
-          disabled={!transformer}
+          disabled={!transformer || isUserDefinedTransformer(transformer)}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >
