@@ -30,7 +30,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
-import { TransformerFormValues } from '@/yup-validations/jobs';
+import {
+  JobMappingTransformerForm,
+  convertJobMappingTransformerFormToJobMappingTransformer,
+  convertJobMappingTransformerToForm,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
@@ -42,7 +46,6 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
-  TransformerConfig,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
@@ -84,19 +87,22 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
   const allJobMappings =
     schema?.schemas.map((r) => {
+      const t: JobMappingTransformerForm = {
+        source: '',
+        config: { case: '', value: {} },
+      };
       return {
         ...r,
-        transformer: new JobMappingTransformer({}) as TransformerFormValues,
+        transformer: t,
       };
     }) || [];
-
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
     defaultValues: {
       mappings: [],
       numRows: 0,
-      schema: 'foo',
-      table: 'bar',
+      schema: '',
+      table: '',
     },
     values: getJobSource(data?.job, schema?.schemas),
   });
@@ -210,6 +216,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
                       )
                       .map((r) => {
                         return {
+                          schema: formValues.schema,
+                          table: value,
                           column: r.column,
                           dataType: r.dataType,
                           transformer: r.transformer,
@@ -249,7 +257,13 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
               <FormLabel>Number of Rows</FormLabel>
               <FormDescription>The number of rows to generate.</FormDescription>
               <FormControl>
-                <Input value={field.value} onChange={field.onChange} />
+                <Input
+                  type="number"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.target.valueAsNumber);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -310,19 +324,25 @@ function getJobSource(
       schemaMap[c.schema] = {
         [c.table]: {
           [c.column]: {
-            transformer: c?.transformer ?? new JobMappingTransformer({}),
+            transformer: convertJobMappingTransformerToForm(
+              c?.transformer ?? new JobMappingTransformer({})
+            ),
           },
         },
       };
     } else if (!schemaMap[c.schema][c.table]) {
       schemaMap[c.schema][c.table] = {
         [c.column]: {
-          transformer: c?.transformer ?? new JobMappingTransformer({}),
+          transformer: convertJobMappingTransformerToForm(
+            c?.transformer ?? new JobMappingTransformer({})
+          ),
         },
       };
     } else {
       schemaMap[c.schema][c.table][c.column] = {
-        transformer: c.transformer ?? new JobMappingTransformer({}),
+        transformer: convertJobMappingTransformerToForm(
+          c.transformer ?? new JobMappingTransformer({})
+        ),
       };
     }
   });
@@ -337,15 +357,17 @@ function getJobSource(
         c.column
       );
       const transformer =
-        colMapping?.transformer ?? new JobMappingTransformer({});
+        colMapping?.transformer ??
+        convertJobMappingTransformerToForm(new JobMappingTransformer({}));
 
       return {
+        schema: schema,
+        table: table,
         column: c.column,
         dataType: c.dataType,
-        transformer: transformer as TransformerFormValues,
+        transformer: transformer,
       };
     });
-
   return {
     mappings: mappings,
     numRows: numRows,
@@ -370,16 +392,14 @@ async function updateJobConnection(
         new UpdateJobSourceConnectionRequest({
           id: job.id,
           mappings: values.mappings.map((m) => {
-            const jmt = new JobMappingTransformer({
-              source: m.transformer.source,
-              config: m.transformer.config as TransformerConfig,
-            });
-
             return new JobMapping({
               schema: values.schema,
               table: values.table,
               column: m.column,
-              transformer: jmt,
+              transformer:
+                convertJobMappingTransformerFormToJobMappingTransformer(
+                  m.transformer
+                ),
             });
           }),
           source: new JobSource({

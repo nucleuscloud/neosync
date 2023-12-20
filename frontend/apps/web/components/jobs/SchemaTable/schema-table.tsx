@@ -72,7 +72,7 @@ export async function getConnectionSchema(
   accountId: string,
   connectionId?: string
 ): Promise<GetConnectionSchemaResponse | undefined> {
-  if (!connectionId) {
+  if (!accountId || !connectionId) {
     return;
   }
   const res = await fetch(

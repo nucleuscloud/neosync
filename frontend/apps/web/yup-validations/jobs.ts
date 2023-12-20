@@ -1,38 +1,75 @@
 import { SubsetFormValues } from '@/app/[account]/new/job/schema';
-import { transformerConfig } from '@/app/[account]/new/transformer/schema';
+import { TransformerConfigSchema } from '@/app/[account]/new/transformer/schema';
 import {
   AwsS3DestinationConnectionOptions,
   Connection,
   JobDestinationOptions,
+  JobMappingTransformer,
   MysqlDestinationConnectionOptions,
   MysqlTruncateTableConfig,
   PostgresDestinationConnectionOptions,
   PostgresSourceSchemaOption,
   PostgresSourceTableOption,
   PostgresTruncateTableConfig,
+  TransformerConfig,
 } from '@neosync/sdk';
 import * as Yup from 'yup';
 
-const TRANSFORMER_SCHEMA = Yup.object().shape({
+// Yup schema form JobMappingTransformers
+const JobMappingTransformerForm = Yup.object({
   source: Yup.string().required(),
-  config: transformerConfig,
+  config: TransformerConfigSchema,
 });
 
-export type TransformerFormValues = Yup.InferType<typeof TRANSFORMER_SCHEMA>;
+// Simplified version of a job mapping transformer for use with react-hook-form only
+export type JobMappingTransformerForm = Yup.InferType<
+  typeof JobMappingTransformerForm
+>;
+
+export function convertJobMappingTransformerToForm(
+  jmt: JobMappingTransformer
+): JobMappingTransformerForm {
+  return {
+    source: jmt.source,
+    config: convertTransformerConfigToForm(jmt.config),
+  };
+}
+export function convertJobMappingTransformerFormToJobMappingTransformer(
+  form: JobMappingTransformerForm
+): JobMappingTransformer {
+  return new JobMappingTransformer({
+    source: form.source,
+    config: convertTransformerConfigSchemaToTransformerConfig(form.config),
+  });
+}
+
+export function convertTransformerConfigToForm(
+  tc?: TransformerConfig
+): TransformerConfigSchema {
+  const config = tc?.config ?? { case: '', value: {} };
+  if (!config.case) {
+    return { case: '', value: {} };
+  }
+  return config;
+}
+
+export function convertTransformerConfigSchemaToTransformerConfig(
+  tcs: TransformerConfigSchema
+): TransformerConfig {
+  return TransformerConfig.fromJson({
+    [tcs.case ?? '']: tcs.value,
+  });
+}
 
 export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
 
-export const JOB_MAPPING_COLUMN_SCHEMA = Yup.object({
+export const JOB_MAPPING_SCHEMA = Yup.object({
+  schema: Yup.string().required(),
+  table: Yup.string().required(),
   column: Yup.string().required(),
   dataType: Yup.string().required(),
-  transformer: TRANSFORMER_SCHEMA,
-});
-const JOB_MAPPING_SCHEMA = JOB_MAPPING_COLUMN_SCHEMA.concat(
-  Yup.object({
-    schema: Yup.string().required(),
-    table: Yup.string().required(),
-  })
-).required();
+  transformer: JobMappingTransformerForm,
+}).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
 
 export const SCHEMA_FORM_SCHEMA = Yup.object({

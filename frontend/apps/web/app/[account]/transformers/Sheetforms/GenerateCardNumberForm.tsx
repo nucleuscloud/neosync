@@ -9,6 +9,7 @@ import {
 
 import { Switch } from '@/components/ui/switch';
 import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
+import { GenerateCardNumber } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 interface Props {
@@ -23,14 +24,14 @@ export default function GenerateCardNumberForm(props: Props): ReactElement {
   const fc = useFormContext();
 
   const vlValue = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.validLuhn`
+    `mappings.${index}.transformer.config.value.validLuhn`
   );
   const [vl, setVl] = useState<boolean>(vlValue);
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.validLuhn`,
-      vl,
+      `mappings.${index}.transformer.config.value`,
+      new GenerateCardNumber({ validLuhn: vl }),
       {
         shouldValidate: false,
       }
@@ -41,7 +42,7 @@ export default function GenerateCardNumberForm(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <Controller
-        name={`mappings.${index}.transformer.config.config.value.validLuhn`}
+        name={`mappings.${index}.transformer.config.value.validLuhn`}
         defaultValue={vl}
         disabled={isUserDefinedTransformer(transformer)}
         render={() => (

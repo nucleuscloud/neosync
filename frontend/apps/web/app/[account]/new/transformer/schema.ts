@@ -1,4 +1,7 @@
-import { IsTransformerNameAvailableResponse } from '@neosync/sdk';
+import {
+  IsTransformerNameAvailableResponse,
+  TransformerConfig,
+} from '@neosync/sdk';
 import * as Yup from 'yup';
 
 const transformEmailConfig = Yup.object().shape({
@@ -152,15 +155,44 @@ const userDefinedTransformerConfig = Yup.object().shape({
   id: Yup.string().required('This field is required.'),
 });
 
-type ConfigCase = keyof typeof customConfigs;
+type ConfigType = TransformerConfig['config'];
 
-const emptyConfig = () =>
-  Yup.object({
-    value: Yup.object().shape({}),
-    case: Yup.string(),
-  });
+// Helper function to extract the 'case' property from a config type
+type ExtractCase<T> = T extends { case: infer U } ? U : never;
 
-const customConfigs = {
+// Computed type that extracts all case types from the config union
+type TransformerConfigCase = ExtractCase<ConfigType>;
+
+const EMPTY_TRANSFORMER_CONFIG = Yup.object({
+  case: Yup.string(),
+  value: Yup.object(),
+});
+
+// todo: this should be properly typed
+const TRANSFORMER_SCHEMA_CONFIGS: Record<
+  NonNullable<TransformerConfigCase>,
+  Yup.ObjectSchema<any> // eslint-disable-line @typescript-eslint/no-explicit-any
+> = {
+  generateBoolConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateCityConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateDefaultConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateEmailConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateFirstNameConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateFullAddressConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateFullNameConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateInt64PhoneNumberConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateLastNameConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateSha256hashConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateSsnConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateStateConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateStreetAddressConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateUnixtimestampConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateUsernameConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateUtctimestampConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateZipcodeConfig: EMPTY_TRANSFORMER_CONFIG,
+  nullconfig: EMPTY_TRANSFORMER_CONFIG,
+  passthroughConfig: EMPTY_TRANSFORMER_CONFIG,
+
   transformEmailConfig: transformEmailConfig,
   generateCardNumberConfig: generateCardNumberConfig,
   generateE164PhoneNumberConfig: generateE164PhoneNumberConfig,
@@ -182,23 +214,22 @@ const customConfigs = {
   userDefinedTransformerConfig: userDefinedTransformerConfig,
 };
 
-export const transformerConfig = Yup.object({
-  config: Yup.lazy((value) => {
-    const configCase = value?.case as ConfigCase;
-    const customConfig = customConfigs[configCase];
-
-    if (customConfig) {
-      return Yup.object({
-        value: customConfig,
-        case: Yup.string().oneOf([configCase]),
-      });
-    } else {
-      return emptyConfig();
-    }
-  }),
+export const TransformerConfigSchema = Yup.lazy((v) => {
+  const ccase = v?.case as TransformerConfigCase;
+  if (!ccase) {
+    return EMPTY_TRANSFORMER_CONFIG;
+  }
+  const cconfig = TRANSFORMER_SCHEMA_CONFIGS[ccase];
+  return Yup.object({
+    case: Yup.string().required().oneOf([ccase]),
+    value: cconfig,
+  });
 });
 
-export type YupTransformerConfig = Yup.InferType<typeof transformerConfig>;
+// Simplified version of a job mapping transformer config for use with react-hook-form only
+export type TransformerConfigSchema = Yup.InferType<
+  typeof TransformerConfigSchema
+>;
 
 const transformerNameSchema = Yup.string()
   .required()
@@ -252,7 +283,7 @@ export const CREATE_USER_DEFINED_TRANSFORMER_SCHEMA = Yup.object({
   source: Yup.string(),
   description: Yup.string().required(),
   type: Yup.string().required(),
-  config: transformerConfig,
+  config: TransformerConfigSchema,
 });
 
 export type CreateUserDefinedTransformerSchema = Yup.InferType<
@@ -265,7 +296,7 @@ export const UPDATE_USER_DEFINED_TRANSFORMER = Yup.object({
   source: Yup.string(),
   description: Yup.string().required(),
   type: Yup.string(),
-  config: transformerConfig,
+  config: TransformerConfigSchema,
 });
 
 export type UpdateUserDefinedTransformer = Yup.InferType<
@@ -295,7 +326,7 @@ export const SYSTEM_TRANSFORMER_SCHEMA = Yup.object({
   name: Yup.string(),
   type: Yup.string(),
   description: Yup.string().required(),
-  config: transformerConfig,
+  config: TransformerConfigSchema,
 });
 
 export type SystemTransformersSchema = Yup.InferType<

@@ -17,11 +17,9 @@ import {
   isSystemTransformer,
   isUserDefinedTransformer,
 } from '@/shared/transformers';
-import { TransformerFormValues } from '@/yup-validations/jobs';
+import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
-  JobMappingTransformer,
   SystemTransformer,
-  TransformerConfig,
   UserDefinedTransformer,
   UserDefinedTransformerConfig,
 } from '@neosync/sdk';
@@ -30,8 +28,8 @@ import { ReactElement, useState } from 'react';
 
 interface Props {
   transformers: Transformer[];
-  value: JobMappingTransformer | TransformerFormValues;
-  onSelect(value: JobMappingTransformer): void;
+  value: JobMappingTransformerForm;
+  onSelect(value: JobMappingTransformerForm): void;
   placeholder: string;
 }
 
@@ -44,13 +42,6 @@ export default function TransformerSelect(props: Props): ReactElement {
 
   const udfTransformerMap = new Map(udfTransformers.map((t) => [t.id, t]));
   const sysTransformerMap = new Map(sysTransformers.map((t) => [t.source, t]));
-  // Because of how the react-hook-form data is persisted, sometimes the initial data comes in untransformed
-  // and is temporarily the uninstanced value on initial render. But subsequent renders it's correct.
-  // This just combats that and ensures it's the right value
-  const jmValue =
-    value instanceof JobMappingTransformer
-      ? value
-      : JobMappingTransformer.fromJson(value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -67,7 +58,7 @@ export default function TransformerSelect(props: Props): ReactElement {
         >
           <div className="whitespace-nowrap truncate w-[175px]">
             {getPopoverTriggerButtonText(
-              jmValue,
+              value,
               udfTransformerMap,
               sysTransformerMap,
               placeholder
@@ -91,19 +82,15 @@ export default function TransformerSelect(props: Props): ReactElement {
                   <CommandItem
                     key={t.id}
                     onSelect={() => {
-                      onSelect(
-                        new JobMappingTransformer({
-                          source: 'custom',
-                          config: new TransformerConfig({
-                            config: {
-                              case: 'userDefinedTransformerConfig',
-                              value: new UserDefinedTransformerConfig({
-                                id: t.id,
-                              }),
-                            },
+                      onSelect({
+                        source: 'custom',
+                        config: {
+                          case: 'userDefinedTransformerConfig',
+                          value: new UserDefinedTransformerConfig({
+                            id: t.id,
                           }),
-                        })
-                      );
+                        },
+                      });
                       setOpen(false);
                     }}
                     value={t.name}
@@ -113,10 +100,10 @@ export default function TransformerSelect(props: Props): ReactElement {
                         <CheckIcon
                           className={cn(
                             'mr-2 h-4 w-4',
-                            jmValue.config?.config.case ===
+                            value.config?.case ===
                               'userDefinedTransformerConfig' &&
-                              jmValue?.source === 'custom' &&
-                              jmValue.config.config.value.id === t.id
+                              value?.source === 'custom' &&
+                              value.config.value.id === t.id
                               ? 'opacity-100'
                               : 'opacity-0'
                           )}
@@ -137,12 +124,17 @@ export default function TransformerSelect(props: Props): ReactElement {
                   <CommandItem
                     key={t.source}
                     onSelect={() => {
-                      onSelect(
-                        new JobMappingTransformer({
-                          source: t.source,
-                          config: t.config,
-                        })
-                      );
+                      let config = t.config?.config ?? {
+                        case: '',
+                        value: {},
+                      };
+                      if (!config.case) {
+                        config = { case: '', value: {} };
+                      }
+                      onSelect({
+                        source: t.source,
+                        config: config,
+                      });
                       setOpen(false);
                     }}
                     value={t.name}
@@ -175,7 +167,7 @@ export default function TransformerSelect(props: Props): ReactElement {
 }
 
 function getPopoverTriggerButtonText(
-  value: JobMappingTransformer,
+  value: JobMappingTransformerForm,
   udfTransformerMap: Map<string, UserDefinedTransformer>,
   systemTransformerMap: Map<string, SystemTransformer>,
   placeholder: string
@@ -184,9 +176,9 @@ function getPopoverTriggerButtonText(
     return placeholder;
   }
 
-  switch (value.config?.config?.case) {
+  switch (value.config?.case) {
     case 'userDefinedTransformerConfig':
-      const id = value.config.config.value.id;
+      const id = value.config.value.id;
       return udfTransformerMap.get(id)?.name ?? placeholder;
     default:
       return systemTransformerMap.get(value.source)?.name ?? placeholder;

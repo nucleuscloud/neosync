@@ -8,6 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { GenerateUuid } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -21,15 +22,15 @@ export default function GenerateUuidForm(props: Props): ReactElement {
   const fc = useFormContext();
 
   const ihValue = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.includeHyphens`
+    `mappings.${index}.transformer.config.value.includeHyphens`
   );
 
   const [ih, setIh] = useState<boolean>(ihValue);
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.includeHyphens`,
-      ih,
+      `mappings.${index}.transformer.config.value`,
+      new GenerateUuid({ includeHyphens: ih }),
       {
         shouldValidate: false,
       }
@@ -40,7 +41,7 @@ export default function GenerateUuidForm(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.includeHyphens`}
+        name={`mappings.${index}.transformer.config.value.includeHyphens`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">

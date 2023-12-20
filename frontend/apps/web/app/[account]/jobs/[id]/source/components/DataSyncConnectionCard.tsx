@@ -30,9 +30,11 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
+  JobMappingTransformerForm,
   SCHEMA_FORM_SCHEMA,
   SOURCE_FORM_SCHEMA,
-  TransformerFormValues,
+  convertJobMappingTransformerFormToJobMappingTransformer,
+  convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -69,7 +71,7 @@ export interface SchemaMap {
   [schema: string]: {
     [table: string]: {
       [column: string]: {
-        transformer: JobMappingTransformer;
+        transformer: JobMappingTransformerForm;
       };
     };
   };
@@ -263,16 +265,14 @@ async function updateJobConnection(
         new UpdateJobSourceConnectionRequest({
           id: job.id,
           mappings: values.mappings.map((m) => {
-            const jmt = new JobMappingTransformer({
-              source: m.transformer.source,
-              config: m.transformer.config as TransformerConfig,
-            });
-
             return new JobMapping({
               schema: m.schema,
               table: m.table,
               column: m.column,
-              transformer: jmt,
+              transformer:
+                convertJobMappingTransformerFormToJobMappingTransformer(
+                  m.transformer
+                ),
             });
           }),
           source: new JobSource({
@@ -363,8 +363,26 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       schemaMap[c.schema] = {
         [c.table]: {
           [c.column]: {
-            transformer:
+            transformer: convertJobMappingTransformerToForm(
               c?.transformer ??
+                new JobMappingTransformer({
+                  source: 'passthrough',
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'passthroughConfig',
+                      value: new Passthrough({}),
+                    },
+                  }),
+                })
+            ),
+          },
+        },
+      };
+    } else if (!schemaMap[c.schema][c.table]) {
+      schemaMap[c.schema][c.table] = {
+        [c.column]: {
+          transformer: convertJobMappingTransformerToForm(
+            c.transformer ??
               new JobMappingTransformer({
                 source: 'passthrough',
                 config: new TransformerConfig({
@@ -373,15 +391,14 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
                     value: new Passthrough({}),
                   },
                 }),
-              }),
-          },
+              })
+          ),
         },
       };
-    } else if (!schemaMap[c.schema][c.table]) {
-      schemaMap[c.schema][c.table] = {
-        [c.column]: {
-          transformer:
-            c.transformer ??
+    } else {
+      schemaMap[c.schema][c.table][c.column] = {
+        transformer: convertJobMappingTransformerToForm(
+          c.transformer ??
             new JobMappingTransformer({
               source: 'passthrough',
               config: new TransformerConfig({
@@ -390,22 +407,8 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
                   value: new Passthrough({}),
                 },
               }),
-            }),
-        },
-      };
-    } else {
-      schemaMap[c.schema][c.table][c.column] = {
-        transformer:
-          c.transformer ??
-          new JobMappingTransformer({
-            source: 'passthrough',
-            config: new TransformerConfig({
-              config: {
-                case: 'passthroughConfig',
-                value: new Passthrough({}),
-              },
-            }),
-          }),
+            })
+        ),
       };
     }
   });
@@ -420,15 +423,17 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       dataType: c.dataType,
       transformer:
         colMapping?.transformer ??
-        new JobMappingTransformer({
-          source: 'passthrough',
-          config: new TransformerConfig({
-            config: {
-              case: 'passthroughConfig',
-              value: new Passthrough({}),
-            },
-          }),
-        }),
+        convertJobMappingTransformerToForm(
+          new JobMappingTransformer({
+            source: 'passthrough',
+            config: new TransformerConfig({
+              config: {
+                case: 'passthroughConfig',
+                value: new Passthrough({}),
+              },
+            }),
+          })
+        ),
     };
   });
   const destinationIds = job?.destinations.map((d) => d.connectionId);
@@ -443,7 +448,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
     sourceId: getConnectionIdFromSource(job.source) || '',
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
-      transformer: mapping.transformer as TransformerFormValues,
+      transformer: mapping.transformer as JobMappingTransformerForm,
     })),
   };
 
@@ -476,7 +481,7 @@ export function getColumnMapping(
   schema: string,
   table: string,
   column: string
-): { transformer: JobMappingTransformer } | undefined {
+): { transformer: JobMappingTransformerForm } | undefined {
   if (!schemaMap[schema]) {
     return;
   }
@@ -504,7 +509,9 @@ async function getUpdatedValues(
   const mappings = schemaRes.schemas.map((r) => {
     return {
       ...r,
-      transformer: new JobMappingTransformer({}),
+      transformer: convertJobMappingTransformerToForm(
+        new JobMappingTransformer({})
+      ),
     };
   });
 
@@ -519,10 +526,7 @@ async function getUpdatedValues(
     ...values,
     mappings: values.mappings.map((mapping) => ({
       ...mapping,
-      transformer: mapping.transformer as {
-        source: string;
-        config: { config: { case: string; value: {} } };
-      },
+      transformer: mapping.transformer,
     })),
   };
 

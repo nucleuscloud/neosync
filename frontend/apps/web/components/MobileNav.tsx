@@ -19,8 +19,6 @@ export function MobileNav() {
   const { account } = useAccount();
   const pathname = usePathname();
 
-  console.log('pathname', pathname);
-
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
