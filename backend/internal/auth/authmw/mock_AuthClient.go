@@ -26,10 +26,6 @@ func (_m *MockAuthClient) EXPECT() *MockAuthClient_Expecter {
 func (_m *MockAuthClient) InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error) {
 	ret := _m.Called(ctx, header)
 
-	if len(ret) == 0 {
-		panic("no return value specified for InjectTokenCtx")
-	}
-
 	var r0 context.Context
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, http.Header) (context.Context, error)); ok {
