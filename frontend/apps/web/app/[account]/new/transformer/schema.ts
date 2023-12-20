@@ -215,7 +215,6 @@ export const TRANSFORMER_SCHEMA_CONFIGS: Record<
 };
 
 export const TransformerConfigSchema = Yup.lazy((v) => {
-  console.log('hit here', v);
   const ccase = v?.case as TransformerConfigCase;
   if (!ccase) {
     return EMPTY_TRANSFORMER_CONFIG;

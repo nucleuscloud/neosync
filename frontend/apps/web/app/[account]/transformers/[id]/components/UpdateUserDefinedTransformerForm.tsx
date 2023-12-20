@@ -43,10 +43,6 @@ export default function UpdateUserDefinedTransformerForm(
   const { currentTransformer, onUpdated } = props;
   const { account } = useAccount();
 
-  console.log(
-    currentTransformer.config,
-    convertTransformerConfigToForm(currentTransformer.config)
-  );
   const form = useForm<UpdateUserDefinedTransformer>({
     mode: 'onChange',
     resolver: yupResolver(UPDATE_USER_DEFINED_TRANSFORMER),

@@ -9,7 +9,9 @@ import { GetUserDefinedTransformerByIdResponse } from '@neosync/sdk';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import UpdateUserDefinedTransformerForm from './components/UpdateUserDefinedTransformerForm';
 
-export default function NewUserDefinedTransformerPage({ params }: PageProps) {
+export default function UpdateUserDefinedTransformerPage({
+  params,
+}: PageProps) {
   const id = params?.id ?? '';
   const { account } = useAccount();
 

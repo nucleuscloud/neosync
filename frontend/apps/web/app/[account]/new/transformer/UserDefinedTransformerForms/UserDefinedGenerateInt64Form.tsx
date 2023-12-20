@@ -30,8 +30,6 @@ export default function UserDefinedGenerateInt64Form(
 
   const { isDisabled } = props;
 
-  console.log('errors', fc.formState.errors);
-
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
