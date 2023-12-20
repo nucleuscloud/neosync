@@ -25,7 +25,6 @@ import {
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  TransformerConfig,
   UpdateUserDefinedTransformerRequest,
   UpdateUserDefinedTransformerResponse,
   UserDefinedTransformer,
@@ -34,7 +33,7 @@ import { ReactElement } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 interface Props {
-  currentTransformer: UserDefinedTransformer | undefined;
+  currentTransformer: UserDefinedTransformer;
   onUpdated(transformer: UserDefinedTransformer): void;
 }
 
@@ -44,25 +43,20 @@ export default function UpdateUserDefinedTransformerForm(
   const { currentTransformer, onUpdated } = props;
   const { account } = useAccount();
 
+  console.log(
+    currentTransformer.config,
+    convertTransformerConfigToForm(currentTransformer.config)
+  );
   const form = useForm<UpdateUserDefinedTransformer>({
+    mode: 'onChange',
     resolver: yupResolver(UPDATE_USER_DEFINED_TRANSFORMER),
-    defaultValues: {
-      name: '',
-      source: '',
-      description: '',
-      id: '',
-      config: convertTransformerConfigToForm(new TransformerConfig()),
-    },
     values: {
       name: currentTransformer?.name ?? '',
       source: currentTransformer?.source ?? '',
       description: currentTransformer?.description ?? '',
       type: currentTransformer?.dataType ?? '',
       id: currentTransformer?.id ?? '',
-      config: {
-        case: currentTransformer?.config?.config.case,
-        value: currentTransformer?.config?.config.value ?? {},
-      },
+      config: convertTransformerConfigToForm(currentTransformer.config),
     },
     context: { name: currentTransformer?.name, accountId: account?.id ?? '' },
   });

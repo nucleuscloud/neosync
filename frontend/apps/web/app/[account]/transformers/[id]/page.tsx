@@ -45,16 +45,18 @@ export default function NewUserDefinedTransformerPage({ params }: PageProps) {
         <div>
           <div className="flex flex-col">
             <div>
-              <UpdateUserDefinedTransformerForm
-                currentTransformer={data?.transformer}
-                onUpdated={(updatedTransformer) => {
-                  mutate(
-                    new GetUserDefinedTransformerByIdResponse({
-                      transformer: updatedTransformer,
-                    })
-                  );
-                }}
-              />
+              {data?.transformer && (
+                <UpdateUserDefinedTransformerForm
+                  currentTransformer={data.transformer}
+                  onUpdated={(updatedTransformer) => {
+                    mutate(
+                      new GetUserDefinedTransformerByIdResponse({
+                        transformer: updatedTransformer,
+                      })
+                    );
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>

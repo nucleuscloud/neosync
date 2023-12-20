@@ -48,12 +48,12 @@ export default function UserDefinedTransformFloat64Form(
                 <FormControl>
                   <div className="max-w-[180px]">
                     <Input
-                      value={field.value !== null ? String(field.value) : ''}
+                      value={field.value ? parseFloat(field.value) : 0}
                       type="number"
                       onChange={(e) => {
-                        field.onChange(
-                          e.target.value === '' ? null : Number(e.target.value)
-                        );
+                        if (!isNaN(e.target.valueAsNumber)) {
+                          field.onChange(e.target.valueAsNumber);
+                        }
                       }}
                       disabled={isDisabled}
                     />
@@ -84,12 +84,12 @@ export default function UserDefinedTransformFloat64Form(
                 <FormControl>
                   <div className="max-w-[180px]">
                     <Input
-                      value={field.value !== null ? String(field.value) : ''}
+                      value={field.value ? parseFloat(field.value) : 1}
                       type="number"
                       onChange={(e) => {
-                        field.onChange(
-                          e.target.value === '' ? null : Number(e.target.value)
-                        );
+                        if (!isNaN(e.target.valueAsNumber)) {
+                          field.onChange(e.target.valueAsNumber);
+                        }
                       }}
                       disabled={isDisabled}
                     />

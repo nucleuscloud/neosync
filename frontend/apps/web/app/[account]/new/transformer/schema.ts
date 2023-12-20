@@ -38,7 +38,7 @@ const generateE164PhoneNumberConfig = Yup.object().shape({
 const generateFloat64Config = Yup.object().shape({
   randomizeSign: Yup.bool(),
   min: Yup.number().required('This field is required.'),
-  max: Yup.number().max(10).required('This field is required.'),
+  max: Yup.number().required('This field is required.'),
 });
 
 const generateGenderConfig = Yup.object().shape({
@@ -215,6 +215,7 @@ export const TRANSFORMER_SCHEMA_CONFIGS: Record<
 };
 
 export const TransformerConfigSchema = Yup.lazy((v) => {
+  console.log('hit here', v);
   const ccase = v?.case as TransformerConfigCase;
   if (!ccase) {
     return EMPTY_TRANSFORMER_CONFIG;

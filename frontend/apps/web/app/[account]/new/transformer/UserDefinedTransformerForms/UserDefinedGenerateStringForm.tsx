@@ -47,11 +47,12 @@ export default function UserDefinedGenerateStringForm(
                 <FormControl>
                   <div className="max-w-[180px]">
                     <Input
-                      value={field.value !== null ? String(field.value) : ''}
+                      value={field.value ? parseInt(field.value) : 0}
+                      type="number"
                       onChange={(e) => {
-                        field.onChange(
-                          e.target.value === '' ? null : Number(e.target.value)
-                        );
+                        if (!isNaN(e.target.valueAsNumber)) {
+                          field.onChange(BigInt(e.target.valueAsNumber));
+                        }
                       }}
                       disabled={isDisabled}
                     />
@@ -79,11 +80,12 @@ export default function UserDefinedGenerateStringForm(
                 <FormControl>
                   <div className="max-w-[180px]">
                     <Input
-                      value={field.value !== null ? String(field.value) : ''}
+                      value={field.value ? parseInt(field.value) : 1}
+                      type="number"
                       onChange={(e) => {
-                        field.onChange(
-                          e.target.value === '' ? null : Number(e.target.value)
-                        );
+                        if (!isNaN(e.target.valueAsNumber)) {
+                          field.onChange(BigInt(e.target.valueAsNumber));
+                        }
                       }}
                       disabled={isDisabled}
                     />

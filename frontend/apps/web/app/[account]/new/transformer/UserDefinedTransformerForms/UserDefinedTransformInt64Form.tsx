@@ -26,6 +26,7 @@ export default function UserDefinedTransformInt64Form(
     UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
   >();
   const { isDisabled } = props;
+
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
@@ -47,12 +48,12 @@ export default function UserDefinedTransformInt64Form(
                 <FormControl>
                   <div className="max-w-[180px]">
                     <Input
-                      value={field.value !== null ? String(field.value) : ''}
+                      value={field.value ? parseInt(field.value) : 0}
                       type="number"
                       onChange={(e) => {
-                        field.onChange(
-                          e.target.value === '' ? null : Number(e.target.value)
-                        );
+                        if (!isNaN(e.target.valueAsNumber)) {
+                          field.onChange(BigInt(e.target.valueAsNumber));
+                        }
                       }}
                       disabled={isDisabled}
                     />
@@ -83,12 +84,12 @@ export default function UserDefinedTransformInt64Form(
                 <FormControl>
                   <div className="max-w-[180px]">
                     <Input
-                      value={field.value !== null ? String(field.value) : ''}
+                      value={field.value ? parseInt(field.value) : 1}
                       type="number"
                       onChange={(e) => {
-                        field.onChange(
-                          e.target.value === '' ? null : Number(e.target.value)
-                        );
+                        if (!isNaN(e.target.valueAsNumber)) {
+                          field.onChange(BigInt(e.target.valueAsNumber));
+                        }
                       }}
                       disabled={isDisabled}
                     />

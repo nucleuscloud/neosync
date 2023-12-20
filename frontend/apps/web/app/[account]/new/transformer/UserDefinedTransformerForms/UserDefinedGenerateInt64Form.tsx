@@ -30,6 +30,8 @@ export default function UserDefinedGenerateInt64Form(
 
   const { isDisabled } = props;
 
+  console.log('errors', fc.formState.errors);
+
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
@@ -78,11 +80,12 @@ export default function UserDefinedGenerateInt64Form(
                 <FormControl>
                   <div className="max-w-[180px]">
                     <Input
-                      value={field.value !== null ? String(field.value) : ''}
+                      type="number"
+                      value={field.value ? parseInt(field.value) : 0}
                       onChange={(e) => {
-                        field.onChange(
-                          e.target.value === '' ? null : Number(e.target.value)
-                        );
+                        if (!isNaN(e.target.valueAsNumber)) {
+                          field.onChange(BigInt(e.target.valueAsNumber));
+                        }
                       }}
                       disabled={isDisabled}
                     />
@@ -111,11 +114,12 @@ export default function UserDefinedGenerateInt64Form(
                 <FormControl>
                   <div className="max-w-[180px]">
                     <Input
-                      value={field.value !== null ? String(field.value) : ''}
+                      type="number"
+                      value={field.value ? parseInt(field.value) : 1}
                       onChange={(e) => {
-                        field.onChange(
-                          e.target.value === '' ? null : Number(e.target.value)
-                        );
+                        if (!isNaN(e.target.valueAsNumber)) {
+                          field.onChange(BigInt(e.target.valueAsNumber));
+                        }
                       }}
                       disabled={isDisabled}
                     />
