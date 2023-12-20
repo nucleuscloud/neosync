@@ -1,12 +1,8 @@
 'use client';
 
-import FormError from '@/components/FormError';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import {
-  SchemaTable,
-  getConnectionSchema,
-} from '@/components/jobs/SchemaTable/schema-table';
+import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -33,7 +29,10 @@ import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { getErrorMessage } from '@/util/util';
 import {
-  TransformerFormValues,
+  JobMappingFormValues,
+  JobMappingTransformerForm,
+  convertJobMappingTransformerFormToJobMappingTransformer,
+  convertJobMappingTransformerToForm,
   toJobDestinationOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -50,12 +49,11 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
-  TransformerConfig,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { DATA_GEN_STEPS } from '../../../JobsProgressSteps';
@@ -114,62 +112,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const [allMappings, setAllMappings] = useState<DatabaseColumn[]>([]);
-  async function getSchema(): Promise<SingleTableSchemaFormValues> {
-    try {
-      const res = await getConnectionSchema(
-        account?.id || '',
-        connectFormValues.connectionId
-      );
-      if (!res) {
-        return { mappings: [], numRows: 10, schema: '', table: '' };
-      }
-
-      const allJobMappings = res.schemas.map((r) => {
-        return {
-          ...r,
-          transformer: new JobMappingTransformer({}) as TransformerFormValues,
-        };
-      });
-      setAllMappings(res.schemas);
-      if (schemaFormData.mappings.length > 0) {
-        //pull values from default values for transformers if already set
-        return {
-          ...schemaFormData,
-          mappings: schemaFormData.mappings.map((r) => {
-            var pt = JobMappingTransformer.fromJson(
-              r.transformer
-            ) as TransformerFormValues;
-            return {
-              ...r,
-              transformer: pt,
-            };
-          }),
-        };
-      } else {
-        return {
-          ...schemaFormData,
-          mappings: allJobMappings,
-        };
-      }
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: 'Unable to get connection schema',
-        description: getErrorMessage(err),
-        variant: 'destructive',
-      });
-      return schemaFormData;
-    }
-  }
+  const { data: connectionSchemaData } = useGetConnectionSchema(
+    account?.id ?? '',
+    connectFormValues.connectionId
+  );
 
   const form = useForm({
+    mode: 'onChange',
     resolver: yupResolver<SingleTableSchemaFormValues>(
       SINGLE_TABLE_SCHEMA_FORM_SCHEMA
     ),
-    defaultValues: async () => {
-      return getSchema();
-    },
+    values: getFormValues(connectionSchemaData?.schemas ?? [], schemaFormData),
   });
 
   useFormPersist(formKey, {
@@ -177,6 +130,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setValue: form.setValue,
     storage: isBrowser() ? window.sessionStorage : undefined,
   });
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   async function onSubmit(values: SingleTableSchemaFormValues) {
     if (!account) {
@@ -213,11 +170,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   const formValues = form.watch();
-  const schemaTableData = formValues.mappings?.map((mapping) => ({
-    ...mapping,
-    schema: formValues.schema,
-    table: formValues.table,
-  }));
+  const schemaTableData = formValues.mappings ?? [];
 
   const uniqueSchemas = Array.from(
     new Set(connSchemaData?.schemas.map((s) => s.schema))
@@ -225,24 +178,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const schemaTableMap = getSchemaTableMap(connSchemaData?.schemas ?? []);
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
-
-  /* turning the input field into a controlled component due to console warning a component going from uncontrolled to controlled. The input at first receives an undefined value because the async getSchema() call hasn't returned yet then once it returns it sets the value which throws the error. Ideally, react hook form should just handle this but for some reason it's throwing an error. Revist this in the future.
-   */
-
-  const [rowNum, setRowNum] = useState<number>(
-    form.getValues('numRows')
-      ? form.getValues('numRows')
-      : schemaFormData.numRows
-  );
-  const [rowNumError, setRowNumError] = useState<boolean>(false);
-  useEffect(() => {
-    if (rowNum > 10000) {
-      setRowNumError(true);
-    } else {
-      setRowNumError(false);
-      form.setValue(`numRows`, rowNum);
-    }
-  }, [rowNum]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -269,30 +204,32 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 <FormLabel>Schema</FormLabel>
                 <FormDescription>The name of the schema.</FormDescription>
                 <FormControl>
-                  <Select
-                    onValueChange={(value: string) => {
-                      if (value) {
-                        field.onChange(value);
-                        form.setValue('table', ''); // reset the table value because it may no longer apply
-                      }
-                    }}
-                    value={field.value}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a schema..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {uniqueSchemas.map((schema) => (
-                        <SelectItem
-                          className="cursor-pointer"
-                          key={schema}
-                          value={schema}
-                        >
-                          {schema}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {isClient && (
+                    <Select
+                      onValueChange={(value: string) => {
+                        if (value) {
+                          field.onChange(value);
+                          form.setValue('table', ''); // reset the table value because it may no longer apply
+                        }
+                      }}
+                      value={field.value}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a schema..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {uniqueSchemas.map((schema) => (
+                          <SelectItem
+                            className="cursor-pointer"
+                            key={schema}
+                            value={schema}
+                          >
+                            {schema}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -306,57 +243,61 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 <FormLabel>Table Name</FormLabel>
                 <FormDescription>The name of the table.</FormDescription>
                 <FormControl>
-                  <Select
-                    disabled={!formValues.schema}
-                    onValueChange={(value: string) => {
-                      if (value) {
-                        field.onChange(value);
-                        form.setValue(
-                          'mappings',
-                          allMappings
-                            .filter(
-                              (m) =>
-                                m.schema == formValues.schema &&
-                                m.table == value
-                            )
-                            .map((r) => {
-                              return {
-                                ...r,
-                                transformer: new JobMappingTransformer(
-                                  {}
-                                ) as TransformerFormValues,
-                              };
-                            })
-                        );
-                      }
-                    }}
-                    value={field.value}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a table..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedSchemaTables.map((table) => (
-                        <SelectItem
-                          className="cursor-pointer"
-                          key={table}
-                          value={table}
-                        >
-                          {table}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {isClient && (
+                    <Select
+                      disabled={!formValues.schema}
+                      onValueChange={(value: string) => {
+                        if (value) {
+                          field.onChange(value);
+                          form.setValue(
+                            'mappings',
+                            (connectionSchemaData?.schemas ?? [])
+                              .filter(
+                                (s) =>
+                                  s.schema === formValues.schema &&
+                                  s.table === value
+                              )
+                              .map((s) => {
+                                return {
+                                  schema: s.schema,
+                                  table: s.table,
+                                  column: s.column,
+                                  dataType: s.dataType,
+                                  transformer:
+                                    newDefaultJobMappingTransformerForm(),
+                                };
+                              })
+                          );
+                        }
+                      }}
+                      value={field.value}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a table..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectedSchemaTables.map((table) => (
+                          <SelectItem
+                            className="cursor-pointer"
+                            key={table}
+                            value={table}
+                          >
+                            {table}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Controller
+          <FormField
             control={form.control}
             name="numRows"
-            render={() => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Number of Rows</FormLabel>
                 <FormDescription>
@@ -364,24 +305,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 </FormDescription>
                 <FormControl>
                   <Input
-                    value={rowNum}
+                    type="number"
+                    {...field}
                     onChange={(e) => {
-                      setRowNum(Number(e.target.value));
+                      field.onChange(e.target.valueAsNumber);
                     }}
                   />
                 </FormControl>
-                {rowNumError && (
-                  <FormError errorMessage="The number of rows must be less than 10,000" />
-                )}
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {formValues.schema && formValues.table && (
+          {isClient && formValues.schema && formValues.table && (
             <SchemaTable data={schemaTableData} excludeInputReqTransformers />
           )}
-          {form.formState.errors.mappings && (
+          {form.formState.errors.root && (
             <Alert variant="destructive">
               <AlertTitle className="flex flex-row space-x-2 justify-center">
                 <ExclamationTriangleIcon />
@@ -419,21 +358,13 @@ async function createNewJob(
     cronSchedule: define.cronSchedule,
     initiateJobRun: define.initiateJobRun,
     mappings: schema.mappings.map((m) => {
-      const jmt = new JobMappingTransformer({
-        source: m.transformer.source,
-        config: new TransformerConfig({
-          config: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            case: m.transformer.config.config.case as any,
-            value: m.transformer.config.config.value,
-          },
-        }),
-      });
       return new JobMapping({
-        schema: schema.schema,
-        table: schema.table,
+        schema: m.schema,
+        table: m.table,
         column: m.column,
-        transformer: jmt,
+        transformer: convertJobMappingTransformerFormToJobMappingTransformer(
+          m.transformer
+        ),
       });
     }),
     source: new JobSource({
@@ -496,4 +427,46 @@ function getSchemaTableMap(schemas: DatabaseColumn[]): Map<string, string[]> {
   const outMap = new Map<string, string[]>();
   map.forEach((tableSet, schema) => outMap.set(schema, Array.from(tableSet)));
   return outMap;
+}
+
+function getFormValues(
+  dbCols: DatabaseColumn[],
+  existingData: SingleTableSchemaFormValues | undefined
+): SingleTableSchemaFormValues {
+  const schema = existingData?.schema ?? '';
+  const table = existingData?.table ?? '';
+  const defaultMappings = dbCols
+    .filter((dbCol) => dbCol.schema === schema && dbCol.table === table)
+    .map((dbCol) => {
+      return {
+        ...dbCol,
+        transformer: newDefaultJobMappingTransformerForm(),
+      };
+    });
+  const existingMappings = (existingData?.mappings ?? []).filter(
+    (mapping) => mapping.schema === schema && mapping.table === table
+  );
+  const mappingMap = new Map<string, JobMappingFormValues>();
+  defaultMappings.forEach((mapping) =>
+    mappingMap.set(
+      `${mapping.schema}-${mapping.table}-${mapping.column}`,
+      mapping
+    )
+  );
+  existingMappings.forEach((mapping) =>
+    mappingMap.set(
+      `${mapping.schema}-${mapping.table}-${mapping.column}`,
+      mapping
+    )
+  );
+  return {
+    numRows: existingData?.numRows ?? 10,
+    schema,
+    table,
+    mappings: Array.from(mappingMap.values()),
+  };
+}
+
+function newDefaultJobMappingTransformerForm(): JobMappingTransformerForm {
+  return convertJobMappingTransformerToForm(new JobMappingTransformer({}));
 }

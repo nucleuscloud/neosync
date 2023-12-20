@@ -10,7 +10,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Transformer } from '@/shared/transformers';
+import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
 import {
   Cross2Icon,
@@ -39,6 +39,7 @@ import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
   transformer: Transformer | undefined;
+  // mapping index
   index: number;
 }
 
@@ -88,7 +89,12 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         <Button
           variant="outline"
           size="sm"
-          disabled={!transformer}
+          // disabling this form if the transformer is user defined becuase the form is meant to load job mappings that are system transformers
+          // however, that doesn't really work when the job mapping is "custom" because the config is not a system transformer config so it doens't know how to load the values
+          // we need to load the custom transformer values and push them into the component, but the components expect the "form", which is the Job Mapping.
+          // this would require a refactor of the lower components to not rely on the react-hook-form and instead values as props to the component itself.
+          // until that is true, this needs to be disabled.
+          disabled={!transformer || isUserDefinedTransformer(transformer)}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >

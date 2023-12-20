@@ -10,13 +10,10 @@ import {
   isUserDefinedTransformer,
 } from '@/shared/transformers';
 import {
+  JobMappingTransformerForm,
   SchemaFormValues,
-  TransformerFormValues,
 } from '@/yup-validations/jobs';
-import {
-  JobMappingTransformer,
-  UserDefinedTransformerConfig,
-} from '@neosync/sdk';
+import { UserDefinedTransformerConfig } from '@neosync/sdk';
 import { ExclamationTriangleIcon, UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {
@@ -36,7 +33,7 @@ import TransformerSelect from './TransformerSelect';
 
 interface Row {
   table: string;
-  transformer: TransformerFormValues;
+  transformer: JobMappingTransformerForm;
   schema: string;
   column: string;
   dataType: string;
@@ -55,9 +52,11 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   transformers,
 }: VirtualizedSchemaTableProps) {
   const [rows, setRows] = useState(data);
-  const [bulkTransformer, setBulkTransformer] = useState<JobMappingTransformer>(
-    new JobMappingTransformer({})
-  );
+  const [bulkTransformer, setBulkTransformer] =
+    useState<JobMappingTransformerForm>({
+      source: '',
+      config: { case: '', value: {} },
+    });
   const [bulkSelect, setBulkSelect] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
@@ -152,21 +151,9 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
               onSelect={(value) => {
                 rows.forEach((r, index) => {
                   if (r.isSelected) {
-                    form.setValue(
-                      `mappings.${index}.transformer`,
-                      {
-                        source: value.source,
-                        config: {
-                          config: {
-                            value: value.config?.config.value!,
-                            case: value.config?.config.case,
-                          },
-                        },
-                      },
-                      {
-                        shouldDirty: true,
-                      }
-                    );
+                    form.setValue(`mappings.${index}.transformer`, value, {
+                      shouldDirty: true,
+                    });
                   }
                 });
                 onSelectAll(false);
@@ -245,9 +232,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
           <FormField<SchemaFormValues | SingleTableSchemaFormValues>
             name={`mappings.${index}.transformer`}
             render={({ field, fieldState, formState }) => {
-              // todo: we should really convert between the real field.value and the job mapping transformer
-              const fv = field.value as unknown as JobMappingTransformer;
-
+              const fv = field.value as JobMappingTransformerForm;
               return (
                 <FormItem>
                   <FormControl>
@@ -276,10 +261,9 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                         transformer={transformers.find((t) => {
                           if (
                             fv.source === 'custom' &&
-                            fv.config?.config.case ===
-                              'userDefinedTransformerConfig' &&
+                            fv.config.case === 'userDefinedTransformerConfig' &&
                             isUserDefinedTransformer(t) &&
-                            t.id === fv.config?.config.value.id
+                            t.id === fv.config.value.id
                           ) {
                             return t;
                           }
@@ -441,7 +425,7 @@ function VirtualizedSchemaList({
               width={width}
               itemKey={(index: number) => {
                 const r = rows[index];
-                return `${r.schema}-${r.table}-${r.column}-${index}`;
+                return `${r.schema}-${r.table}-${r.column}`;
               }}
             >
               {Row}
@@ -469,11 +453,10 @@ function shouldFilterRow(
     }
     switch (key) {
       case 'transformer': {
-        const rowVal = row[key as keyof Row] as JobMappingTransformer;
+        const rowVal = row[key as keyof Row] as JobMappingTransformerForm;
         if (rowVal.source === 'custom') {
-          const udfId = (
-            rowVal.config?.config.value as UserDefinedTransformerConfig
-          ).id;
+          const udfId = (rowVal.config.value as UserDefinedTransformerConfig)
+            .id;
           const value =
             transformers.find(
               (t) => isUserDefinedTransformer(t) && t.id === udfId
@@ -572,9 +555,8 @@ function getUniqueFiltersByColumn(
       case 'transformer': {
         const rowVal = r[columnId];
         if (rowVal.source === 'custom') {
-          const udfId = (
-            rowVal.config.config.value as UserDefinedTransformerConfig
-          ).id;
+          const udfId = (rowVal.config.value as UserDefinedTransformerConfig)
+            .id;
           const value =
             transformers.find(
               (t) => isUserDefinedTransformer(t) && t.id === udfId

@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
+import { convertTransformerConfigToForm } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { SystemTransformer } from '@neosync/sdk';
 import NextLink from 'next/link';
@@ -44,22 +45,11 @@ export default function ViewSystemTransformers({
 
   const form = useForm<SystemTransformersSchema>({
     resolver: yupResolver(SYSTEM_TRANSFORMER_SCHEMA),
-    defaultValues: {
-      name: '',
-      description: '',
-      type: '',
-      config: { config: { case: '', value: {} } },
-    },
     values: {
       name: currentTransformer?.name ?? '',
       description: currentTransformer?.description ?? '',
       type: currentTransformer?.dataType ?? '',
-      config: {
-        config: {
-          case: currentTransformer?.config?.config.case,
-          value: currentTransformer?.config?.config.value ?? {},
-        },
-      },
+      config: convertTransformerConfigToForm(currentTransformer?.config),
     },
   });
 

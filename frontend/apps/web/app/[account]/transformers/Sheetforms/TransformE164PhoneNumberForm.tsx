@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
+import { TransformE164PhoneNumber } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -25,15 +26,17 @@ export default function TransformE164PhoneNumberForm(
   const fc = useFormContext();
 
   const plValue = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.preserveLength`
+    `mappings.${index}.transformer.config.value.preserveLength`
   );
 
   const [pl, setPl] = useState<boolean>(plValue);
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.preserveLength`,
-      pl,
+      `mappings.${index}.transformer.config.value`,
+      new TransformE164PhoneNumber({
+        preserveLength: pl,
+      }),
       {
         shouldValidate: false,
       }
@@ -44,7 +47,7 @@ export default function TransformE164PhoneNumberForm(
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.preserveLength`}
+        name={`mappings.${index}.transformer.config.value.preserveLength`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">

@@ -8,6 +8,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { GenerateGender } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -21,15 +22,15 @@ export default function GenerateGenderForm(props: Props): ReactElement {
   const fc = useFormContext();
 
   const aValue = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.abbreviate`
+    `mappings.${index}.transformer.config.value.abbreviate`
   );
 
   const [ab, setAb] = useState<boolean>(aValue);
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.abbreviate`,
-      ab,
+      `mappings.${index}.transformer.config.value`,
+      new GenerateGender({ abbreviate: ab }),
       {
         shouldValidate: false,
       }
@@ -40,7 +41,7 @@ export default function GenerateGenderForm(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.abbreviate`}
+        name={`mappings.${index}.transformer.config.value.abbreviate`}
         defaultValue={ab}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">

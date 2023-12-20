@@ -1,6 +1,6 @@
 import {
   DESTINATION_FORM_SCHEMA,
-  JOB_MAPPING_COLUMN_SCHEMA,
+  JOB_MAPPING_SCHEMA,
   SCHEMA_FORM_SCHEMA,
   SOURCE_FORM_SCHEMA,
 } from '@/yup-validations/jobs';
@@ -48,8 +48,6 @@ const SINGLE_SUBSET_FORM_SCSHEMA = Yup.object({
   whereClause: Yup.string().trim().optional(),
 });
 
-// export type SingleSubset = Yup.InferType<typeof SINGLE_SUBSET_FORM_SCSHEMA>;
-
 export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({}).concat(
   DESTINATION_FORM_SCHEMA
 );
@@ -62,7 +60,7 @@ export const SINGLE_TABLE_SCHEMA_FORM_SCHEMA = Yup.object({
   schema: Yup.string().required(),
   table: Yup.string().required(),
 
-  mappings: Yup.array().of(JOB_MAPPING_COLUMN_SCHEMA).required(),
+  mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
 });
 export type SingleTableSchemaFormValues = Yup.InferType<
   typeof SINGLE_TABLE_SCHEMA_FORM_SCHEMA

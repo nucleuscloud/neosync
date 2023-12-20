@@ -19,9 +19,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
+import {
+  convertTransformerConfigSchemaToTransformerConfig,
+  convertTransformerConfigToForm,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  TransformerConfig,
   UpdateUserDefinedTransformerRequest,
   UpdateUserDefinedTransformerResponse,
   UserDefinedTransformer,
@@ -30,7 +33,7 @@ import { ReactElement } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 interface Props {
-  currentTransformer: UserDefinedTransformer | undefined;
+  currentTransformer: UserDefinedTransformer;
   onUpdated(transformer: UserDefinedTransformer): void;
 }
 
@@ -41,26 +44,15 @@ export default function UpdateUserDefinedTransformerForm(
   const { account } = useAccount();
 
   const form = useForm<UpdateUserDefinedTransformer>({
+    mode: 'onChange',
     resolver: yupResolver(UPDATE_USER_DEFINED_TRANSFORMER),
-    defaultValues: {
-      name: '',
-      source: '',
-      description: '',
-      id: '',
-      config: { config: { case: '', value: {} } },
-    },
     values: {
       name: currentTransformer?.name ?? '',
       source: currentTransformer?.source ?? '',
       description: currentTransformer?.description ?? '',
       type: currentTransformer?.dataType ?? '',
       id: currentTransformer?.id ?? '',
-      config: {
-        config: {
-          case: currentTransformer?.config?.config.case,
-          value: currentTransformer?.config?.config.value ?? {},
-        },
-      },
+      config: convertTransformerConfigToForm(currentTransformer.config),
     },
     context: { name: currentTransformer?.name, accountId: account?.id ?? '' },
   });
@@ -178,7 +170,9 @@ async function updateCustomTransformer(
     transformerId: transformerId,
     name: formData.name,
     description: formData.description,
-    transformerConfig: formData.config as TransformerConfig,
+    transformerConfig: convertTransformerConfigSchemaToTransformerConfig(
+      formData.config
+    ),
   });
 
   const res = await fetch(
