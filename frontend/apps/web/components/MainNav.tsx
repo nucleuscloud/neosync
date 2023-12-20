@@ -42,9 +42,7 @@ export function MainNav({
           href={`/${account?.name}/jobs`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
-            highlightPathName('/jobs')
-              ? 'text-foreground'
-              : 'text-foreground/60'
+            highlightPathName('/job') ? 'text-foreground' : 'text-foreground/60'
           )}
         >
           Jobs
