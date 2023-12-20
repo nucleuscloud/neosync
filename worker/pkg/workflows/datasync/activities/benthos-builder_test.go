@@ -155,7 +155,7 @@ output:
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
                 conn_max_idle: 2
-                conn_max_open: 2zed, removing
+                conn_max_open: 2
                 batching:
                     count: 32767
                     byte_size: 0
