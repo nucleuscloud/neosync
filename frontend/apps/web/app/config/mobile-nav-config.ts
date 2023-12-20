@@ -2,10 +2,10 @@ export function getMobileMainNav(
   accountName: string
 ): { title: string; href: string }[] {
   return [
-    {
-      title: 'Overview',
-      href: `/`,
-    },
+    // {
+    //   title: 'Overview',
+    //   href: `/`,
+    // },
     {
       title: 'Jobs',
       href: `/${accountName}/jobs`,

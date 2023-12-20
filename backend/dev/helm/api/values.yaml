@@ -39,11 +39,20 @@ containerPort: 8080
 auth:
   baseUrl: https://auth.nucleuscloud.dev
   audience: https://api.nucleuscloud.com
+  clientIdSecret:
+    {
+      "N53szkXwrMZmWiMQ96bJVCSuafn6myMR": "ZggNj5-HTCOdYzovNBZTDIys9sdLIl9aKOqn23yXMonECpG7N2qELVwQEfY_It5T",
+    }
+  cliClient: N53szkXwrMZmWiMQ96bJVCSuafn6myMR
+  clientAudience: https://api.nucleuscloud.com
+  apiBaseUrl: https://nucleus-cloud-dev.us.auth0.com
+  apiClientId: NmymQDhFqcMS42Qc9s8zGCX52IoZcJy6
+  apiClientSecret: UUAsnRJZ_fqw4qRgXCed6Q9rY7QgSuU170xY_Tbmr2kImi2WEI-IjoSzRDhR7X2A
 
 temporal:
   url: temporal.temporal:7233
   namespace: default
-  taskQueue: 'sync-job'
+  taskQueue: "sync-job"
 
 ingress:
   enabled: false
