@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
+import { TransformInt64 } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
@@ -24,13 +25,13 @@ export default function TransformInt64Form(props: Props): ReactElement {
   const fc = useFormContext();
 
   const rMinVal = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.randomizationRangeMin`
+    `mappings.${index}.transformer.config.value.randomizationRangeMin`
   );
 
   const [rMin, setRMin] = useState<number>(rMinVal);
 
   const rMaxVal = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.randomizationRangeMax`
+    `mappings.${index}.transformer.config.value.randomizationRangeMax`
   );
 
   const [rMax, setRMax] = useState<number>(rMaxVal);
@@ -40,15 +41,11 @@ export default function TransformInt64Form(props: Props): ReactElement {
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.randomizationRangeMin`,
-      rMin,
-      {
-        shouldValidate: false,
-      }
-    );
-    fc.setValue(
-      `mappings.${index}.transformer.config.config.value.randomizationRangeMax`,
-      rMax,
+      `mappings.${index}.transformer.config.value`,
+      new TransformInt64({
+        randomizationRangeMin: BigInt(rMin),
+        randomizationRangeMax: BigInt(rMax),
+      }),
       {
         shouldValidate: false,
       }
@@ -82,7 +79,7 @@ export default function TransformInt64Form(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.randomizationRangeMin`}
+        name={`mappings.${index}.transformer.config.value.randomizationRangeMin`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -110,7 +107,7 @@ export default function TransformInt64Form(props: Props): ReactElement {
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.randomizationRangeMax`}
+        name={`mappings.${index}.transformer.config.value.randomizationRangeMax`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">

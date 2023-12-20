@@ -9,6 +9,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { GenerateE164PhoneNumber } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -23,12 +24,8 @@ export default function GenerateE164PhoneNumberForm(
 
   const fc = useFormContext();
 
-  const minVal = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.min`
-  );
-  const maxVal = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.max`
-  );
+  const minVal = fc.getValues(`mappings.${index}.transformer.config.value.min`);
+  const maxVal = fc.getValues(`mappings.${index}.transformer.config.value.max`);
   const [min, setMin] = useState<number>(minVal);
   const [max, setMax] = useState<number>(maxVal);
   const [disableSave, setDisableSave] = useState<boolean>(false);
@@ -36,12 +33,16 @@ export default function GenerateE164PhoneNumberForm(
   const [maxError, setMaxError] = useState<string>('');
 
   const handleSubmit = () => {
-    fc.setValue(`mappings.${index}.transformer.config.config.value.min`, min, {
-      shouldValidate: false,
-    });
-    fc.setValue(`mappings.${index}.transformer.config.config.value.max`, max, {
-      shouldValidate: false,
-    });
+    fc.setValue(
+      `mappings.${index}.transformer.config.value`,
+      new GenerateE164PhoneNumber({
+        min: BigInt(min),
+        max: BigInt(max),
+      }),
+      {
+        shouldValidate: false,
+      }
+    );
     setIsSheetOpen!(false);
   };
 
@@ -75,7 +76,7 @@ export default function GenerateE164PhoneNumberForm(
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.min`}
+        name={`mappings.${index}.transformer.config.value.min`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -100,7 +101,7 @@ export default function GenerateE164PhoneNumberForm(
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.max`}
+        name={`mappings.${index}.transformer.config.value.max`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">

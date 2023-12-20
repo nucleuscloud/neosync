@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
+import { TransformEmail } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -23,27 +24,23 @@ export default function TransformEmailForm(props: Props): ReactElement {
   const fc = useFormContext();
 
   const pdValue = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.preserveDomain`
+    `mappings.${index}.transformer.config.value.preserveDomain`
   );
 
   const [pd, setPd] = useState<boolean>(pdValue);
 
   const plValue = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.preserveLength`
+    `mappings.${index}.transformer.config.value.preserveLength`
   );
   const [pl, setPl] = useState<boolean>(plValue);
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.preserveDomain`,
-      pd,
-      {
-        shouldValidate: false,
-      }
-    );
-    fc.setValue(
-      `mappings.${index}.transformer.config.config.value.preserveLength`,
-      pl,
+      `mappings.${index}.transformer.config.value`,
+      new TransformEmail({
+        preserveDomain: pd,
+        preserveLength: pl,
+      }),
       {
         shouldValidate: false,
       }
@@ -54,7 +51,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.preserveLength`}
+        name={`mappings.${index}.transformer.config.value.preserveLength`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -76,7 +73,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.preserveDomain`}
+        name={`mappings.${index}.transformer.config.value.preserveDomain`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
