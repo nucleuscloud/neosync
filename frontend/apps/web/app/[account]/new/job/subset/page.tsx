@@ -184,7 +184,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   return (
-    <div className="px-12 md:px-24 lg:px-32 flex flex-col gap-20">
+    <div className="px-12 md:px-24 lg:px-32 flex flex-col gap-5">
       <OverviewContainer
         Header={
           <PageHeader
