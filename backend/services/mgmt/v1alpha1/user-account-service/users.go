@@ -500,14 +500,10 @@ func (s *Service) verifyUserInAccount(
 
 func (s *Service) GetSystemInformation(ctx context.Context, req *connect.Request[mgmtv1alpha1.GetSystemInformationRequest]) (*connect.Response[mgmtv1alpha1.GetSystemInformationResponse], error) {
 	versionInfo := version.Get()
-
-	layout := "2006-01-02T15:04:05Z"
-
-	builtDate, err := time.Parse(layout, versionInfo.BuildDate)
+	builtDate, err := time.Parse(time.RFC3339, versionInfo.BuildDate)
 	if err != nil {
 		return nil, err
 	}
-
 	return connect.NewResponse(&mgmtv1alpha1.GetSystemInformationResponse{
 		Version:   versionInfo.GitVersion,
 		Commit:    versionInfo.GitCommit,
