@@ -351,23 +351,16 @@ async function createNewJob(
   const connectionIdMap = new Map(
     connections.map((connection) => [connection.id, connection])
   );
-  console.log('schema mappings', schema.mappings);
   const body = new CreateJobRequest({
     accountId,
     jobName: define.jobName,
     cronSchedule: define.cronSchedule,
     initiateJobRun: define.initiateJobRun,
     mappings: schema.mappings.map((m) => {
-      console.log('transformer', m.transformer);
       const jmt =
         m.transformer instanceof JobMappingTransformer
           ? m.transformer
           : JobMappingTransformer.fromJson(m.transformer);
-      // : new JobMappingTransformer({
-      //     source: m.transformer.source,
-      //     config: m.transformer.config as TransformerConfig,
-      //   });
-      console.log('transformer', m.transformer, jmt);
       return new JobMapping({
         schema: m.schema,
         table: m.table,
