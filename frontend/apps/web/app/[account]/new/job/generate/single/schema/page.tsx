@@ -214,7 +214,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       value={field.value}
                     >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select a schema..." />
                       </SelectTrigger>
                       <SelectContent>
                         {uniqueSchemas.map((schema) => (
