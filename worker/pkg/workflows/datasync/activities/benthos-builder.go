@@ -546,7 +546,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					AwsS3: &neosync_benthos.AwsS3Insert{
-						Bucket:      connection.AwsS3Config.BucketArn,
+						Bucket:      connection.AwsS3Config.Bucket,
 						MaxInFlight: 64,
 						Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
 						Batching: &neosync_benthos.Batching{

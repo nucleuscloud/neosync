@@ -73,8 +73,8 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-md border">
+    <div className="space-y-4 rounded-md border overflow-hidden dark:border-gray-700 ">
+      <div className="rounded-md border overflow-hidden dark:border-gray-700 ">
         <Table>
           <TableHeader className="bg-gray-100 dark:bg-gray-800">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -144,9 +144,9 @@ function renderSubComponent(row: Row<JobRunEvent>): React.ReactElement {
   const isError = row.original.tasks.some((t) => t.error);
   return (
     <div className="p-5">
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-hidden dark:border-gray-700 ">
         <Table>
-          <TableHeader className="border-b bg-gray-100">
+          <TableHeader className="border-b dark:border-b-gray-700 bg-gray-100 dark:bg-gray-800">
             <TableRow>
               <TableHead>Id</TableHead>
               <TableHead>Type</TableHead>

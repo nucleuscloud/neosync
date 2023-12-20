@@ -10654,3 +10654,211 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DeleteJobRunResponseValidationError{}
+
+// Validate checks the field values on TerminateJobRunRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TerminateJobRunRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TerminateJobRunRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TerminateJobRunRequestMultiError, or nil if none found.
+func (m *TerminateJobRunRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TerminateJobRunRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for JobRunId
+
+	// no validation rules for AccountId
+
+	if len(errors) > 0 {
+		return TerminateJobRunRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// TerminateJobRunRequestMultiError is an error wrapping multiple validation
+// errors returned by TerminateJobRunRequest.ValidateAll() if the designated
+// constraints aren't met.
+type TerminateJobRunRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TerminateJobRunRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TerminateJobRunRequestMultiError) AllErrors() []error { return m }
+
+// TerminateJobRunRequestValidationError is the validation error returned by
+// TerminateJobRunRequest.Validate if the designated constraints aren't met.
+type TerminateJobRunRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TerminateJobRunRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TerminateJobRunRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TerminateJobRunRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TerminateJobRunRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TerminateJobRunRequestValidationError) ErrorName() string {
+	return "TerminateJobRunRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TerminateJobRunRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTerminateJobRunRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TerminateJobRunRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TerminateJobRunRequestValidationError{}
+
+// Validate checks the field values on TerminateJobRunResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TerminateJobRunResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TerminateJobRunResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TerminateJobRunResponseMultiError, or nil if none found.
+func (m *TerminateJobRunResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TerminateJobRunResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return TerminateJobRunResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// TerminateJobRunResponseMultiError is an error wrapping multiple validation
+// errors returned by TerminateJobRunResponse.ValidateAll() if the designated
+// constraints aren't met.
+type TerminateJobRunResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TerminateJobRunResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TerminateJobRunResponseMultiError) AllErrors() []error { return m }
+
+// TerminateJobRunResponseValidationError is the validation error returned by
+// TerminateJobRunResponse.Validate if the designated constraints aren't met.
+type TerminateJobRunResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TerminateJobRunResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TerminateJobRunResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TerminateJobRunResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TerminateJobRunResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TerminateJobRunResponseValidationError) ErrorName() string {
+	return "TerminateJobRunResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TerminateJobRunResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTerminateJobRunResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TerminateJobRunResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TerminateJobRunResponseValidationError{}

@@ -28,10 +28,6 @@ func (_m *MockDBTX) EXPECT() *MockDBTX_Expecter {
 func (_m *MockDBTX) CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error) {
 	ret := _m.Called(ctx, tableName, columnNames, rowSrc)
 
-	if len(ret) == 0 {
-		panic("no return value specified for CopyFrom")
-	}
-
 	var r0 int64
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, pgx.Identifier, []string, pgx.CopyFromSource) (int64, error)); ok {
@@ -89,10 +85,6 @@ func (_m *MockDBTX) Exec(_a0 context.Context, _a1 string, _a2 ...interface{}) (p
 	_ca = append(_ca, _a0, _a1)
 	_ca = append(_ca, _a2...)
 	ret := _m.Called(_ca...)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Exec")
-	}
 
 	var r0 pgconn.CommandTag
 	var r1 error
@@ -157,10 +149,6 @@ func (_m *MockDBTX) Query(_a0 context.Context, _a1 string, _a2 ...interface{}) (
 	_ca = append(_ca, _a0, _a1)
 	_ca = append(_ca, _a2...)
 	ret := _m.Called(_ca...)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Query")
-	}
 
 	var r0 pgx.Rows
 	var r1 error
@@ -227,10 +215,6 @@ func (_m *MockDBTX) QueryRow(_a0 context.Context, _a1 string, _a2 ...interface{}
 	_ca = append(_ca, _a0, _a1)
 	_ca = append(_ca, _a2...)
 	ret := _m.Called(_ca...)
-
-	if len(ret) == 0 {
-		panic("no return value specified for QueryRow")
-	}
 
 	var r0 pgx.Row
 	if rf, ok := ret.Get(0).(func(context.Context, string, ...interface{}) pgx.Row); ok {

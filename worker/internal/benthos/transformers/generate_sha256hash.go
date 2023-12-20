@@ -32,14 +32,13 @@ func init() {
 	}
 }
 
+/* Generates a random SHA256 hashed value */
 func GenerateRandomSHA256Hash() (string, error) {
 
-	length, err := transformer_utils.GenerateRandomInt(1)
-	if err != nil {
-		return "", err
-	}
+	min := int64(1)
+	max := int64(9)
 
-	str, err := transformer_utils.GenerateRandomStringWithLength(int64(length))
+	str, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, max)
 	if err != nil {
 		return "", err
 	}

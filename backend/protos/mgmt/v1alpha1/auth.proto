@@ -4,35 +4,6 @@ package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
 
-// message RefreshAccessTokenRequest {
-//   string refresh_token = 1 [(buf.validate.field).string.min_len = 1];
-//   optional string client_id = 2 [(buf.validate.field).string.min_len = 1];
-// }
-
-// message RefreshAccessTokenResponse {
-//   string access_token = 1;
-//   string refresh_token = 2;
-//   int64 expires_in = 3;
-//   string scope = 4;
-//   string id_token = 5;
-//   string token_type = 6;
-// }
-
-// message GetAccessTokenRequest {
-//   string code = 1 [(buf.validate.field).string.min_len = 1];
-//   optional string client_id = 2 [(buf.validate.field).string.min_len = 1];
-//   optional string redirect_uri = 3 [(buf.validate.field).string.min_len = 1];
-// }
-
-// message GetAccessTokenResponse {
-//   string access_token = 1;
-//   string refresh_token = 2;
-//   int64 expires_in = 3;
-//   string scope = 4;
-//   string id_token = 5;
-//   string token_type = 6;
-// }
-
 message LoginCliRequest {
   // The oauth code
   string code = 1 [(buf.validate.field).string.min_len = 1];
@@ -53,11 +24,18 @@ message GetAuthStatusResponse {
 
 // A decoded representation of an Access token from the backing auth server
 message AccessToken {
+  // The access token that will be provided in subsequent requests to provide authenticated access to the Api
   string access_token = 1;
+  // Token that can be used to retrieve a refreshed access token.
+  // Will not be provided if the offline_access scope is not provided in the initial login flow.
   optional string refresh_token = 2;
+  // Relative time in seconds that the access token will expire. Combine with the current time to get the expires_at time.
   int64 expires_in = 3;
+  // The scopes that the access token have
   string scope = 4;
+  // The identity token of the authenticated user
   optional string id_token = 5;
+  // The token type. For JWTs, this will be `Bearer`
   string token_type = 6;
 }
 
@@ -82,17 +60,27 @@ message GetCliIssuerResponse {
   string audience = 2;
 }
 
+message RefreshCliRequest {
+  // The token used to retrieve a new access token.
+  string refresh_token = 1 [(buf.validate.field).string.min_len = 1];
+}
+message RefreshCliResponse {
+  // The access token that is returned on successful refresh
+  AccessToken access_token = 1;
+}
+
 // Service that handles generic Authentication for Neosync
 // Today this is mostly used by the CLI to receive authentication information
 service AuthService {
   // Used by the CLI to login to Neosync with OAuth.
   rpc LoginCli(LoginCliRequest) returns (LoginCliResponse) {}
+  // Used by the CLI to refresh an expired Neosync accesss token.
+  // This should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.
+  rpc RefreshCli(RefreshCliRequest) returns (RefreshCliResponse) {}
   // Used by the CLI to retrieve Auth Issuer information
   rpc GetCliIssuer(GetCliIssuerRequest) returns (GetCliIssuerResponse) {}
   // Used by the CLI to retrieve an Authorize URL for use with OAuth login.
   rpc GetAuthorizeUrl(GetAuthorizeUrlRequest) returns (GetAuthorizeUrlResponse) {}
-  // rpc GetAccessToken(GetAccessTokenRequest) returns (GetAccessTokenResponse) {}
-  // rpc RefreshAccessToken(RefreshAccessTokenRequest) returns (RefreshAccessTokenResponse) {}
 
   // Returns the auth status of the API server. Whether or not the backend has authentication enabled.
   // This is used by clients to make decisions on whether or not they should send access tokens to the API.

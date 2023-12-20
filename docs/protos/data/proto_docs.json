@@ -501,7 +501,7 @@
           "fields": [
             {
               "name": "access_token",
-              "description": "",
+              "description": "The access token that will be provided in subsequent requests to provide authenticated access to the Api",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -513,7 +513,7 @@
             },
             {
               "name": "refresh_token",
-              "description": "",
+              "description": "Token that can be used to retrieve a refreshed access token.\nWill not be provided if the offline_access scope is not provided in the initial login flow.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -525,7 +525,7 @@
             },
             {
               "name": "expires_in",
-              "description": "",
+              "description": "Relative time in seconds that the access token will expire. Combine with the current time to get the expires_at time.",
               "label": "",
               "type": "int64",
               "longType": "int64",
@@ -537,7 +537,7 @@
             },
             {
               "name": "scope",
-              "description": "",
+              "description": "The scopes that the access token have",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -549,7 +549,7 @@
             },
             {
               "name": "id_token",
-              "description": "",
+              "description": "The identity token of the authenticated user",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -561,7 +561,7 @@
             },
             {
               "name": "token_type",
-              "description": "",
+              "description": "The token type. For JWTs, this will be `Bearer`",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -786,6 +786,54 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "RefreshCliRequest",
+          "longName": "RefreshCliRequest",
+          "fullName": "mgmt.v1alpha1.RefreshCliRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "refresh_token",
+              "description": "The token used to retrieve a new access token.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "RefreshCliResponse",
+          "longName": "RefreshCliResponse",
+          "fullName": "mgmt.v1alpha1.RefreshCliResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "access_token",
+              "description": "The access token that is returned on successful refresh",
+              "label": "",
+              "type": "AccessToken",
+              "longType": "AccessToken",
+              "fullType": "mgmt.v1alpha1.AccessToken",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         }
       ],
       "services": [
@@ -805,6 +853,18 @@
               "responseType": "LoginCliResponse",
               "responseLongType": "LoginCliResponse",
               "responseFullType": "mgmt.v1alpha1.LoginCliResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "RefreshCli",
+              "description": "Used by the CLI to refresh an expired Neosync accesss token.\nThis should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.",
+              "requestType": "RefreshCliRequest",
+              "requestLongType": "RefreshCliRequest",
+              "requestFullType": "mgmt.v1alpha1.RefreshCliRequest",
+              "requestStreaming": false,
+              "responseType": "RefreshCliResponse",
+              "responseLongType": "RefreshCliResponse",
+              "responseFullType": "mgmt.v1alpha1.RefreshCliResponse",
               "responseStreaming": false
             },
             {
@@ -878,7 +938,10 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
-              "defaultValue": ""
+              "defaultValue": "",
+              "options": {
+                "deprecated": true
+              }
             },
             {
               "name": "path_prefix",
@@ -926,6 +989,18 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_endpoint",
+              "defaultValue": ""
+            },
+            {
+              "name": "bucket",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]
@@ -2725,9 +2800,9 @@
           "fields": []
         },
         {
-          "name": "GenerateE164Number",
-          "longName": "GenerateE164Number",
-          "fullName": "mgmt.v1alpha1.GenerateE164Number",
+          "name": "GenerateE164PhoneNumber",
+          "longName": "GenerateE164PhoneNumber",
+          "fullName": "mgmt.v1alpha1.GenerateE164PhoneNumber",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -2735,7 +2810,19 @@
           "extensions": [],
           "fields": [
             {
-              "name": "length",
+              "name": "min",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max",
               "description": "",
               "label": "",
               "type": "int64",
@@ -2771,9 +2858,9 @@
           "fields": []
         },
         {
-          "name": "GenerateFloat",
-          "longName": "GenerateFloat",
-          "fullName": "mgmt.v1alpha1.GenerateFloat",
+          "name": "GenerateFloat64",
+          "longName": "GenerateFloat64",
+          "fullName": "mgmt.v1alpha1.GenerateFloat64",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -2781,36 +2868,36 @@
           "extensions": [],
           "fields": [
             {
-              "name": "sign",
+              "name": "randomize_sign",
               "description": "",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
             },
             {
-              "name": "digits_before_decimal",
+              "name": "min",
               "description": "",
               "label": "",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
+              "type": "double",
+              "longType": "double",
+              "fullType": "double",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
             },
             {
-              "name": "digits_after_decimal",
+              "name": "max",
               "description": "",
               "label": "",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
+              "type": "double",
+              "longType": "double",
+              "fullType": "double",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -2865,9 +2952,9 @@
           ]
         },
         {
-          "name": "GenerateInt",
-          "longName": "GenerateInt",
-          "fullName": "mgmt.v1alpha1.GenerateInt",
+          "name": "GenerateInt64",
+          "longName": "GenerateInt64",
+          "fullName": "mgmt.v1alpha1.GenerateInt64",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -2875,7 +2962,19 @@
           "extensions": [],
           "fields": [
             {
-              "name": "length",
+              "name": "randomize_sign",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "min",
               "description": "",
               "label": "",
               "type": "int64",
@@ -2887,12 +2986,12 @@
               "defaultValue": ""
             },
             {
-              "name": "sign",
+              "name": "max",
               "description": "",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -2901,9 +3000,9 @@
           ]
         },
         {
-          "name": "GenerateInt64Phone",
-          "longName": "GenerateInt64Phone",
-          "fullName": "mgmt.v1alpha1.GenerateInt64Phone",
+          "name": "GenerateInt64PhoneNumber",
+          "longName": "GenerateInt64PhoneNumber",
+          "fullName": "mgmt.v1alpha1.GenerateInt64PhoneNumber",
           "description": "",
           "hasExtensions": false,
           "hasFields": false,
@@ -2915,17 +3014,6 @@
           "name": "GenerateLastName",
           "longName": "GenerateLastName",
           "fullName": "mgmt.v1alpha1.GenerateLastName",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": []
-        },
-        {
-          "name": "GenerateRealisticEmail",
-          "longName": "GenerateRealisticEmail",
-          "fullName": "mgmt.v1alpha1.GenerateRealisticEmail",
           "description": "",
           "hasExtensions": false,
           "hasFields": false,
@@ -2988,7 +3076,19 @@
           "extensions": [],
           "fields": [
             {
-              "name": "length",
+              "name": "min",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max",
               "description": "",
               "label": "",
               "type": "int64",
@@ -3002,9 +3102,9 @@
           ]
         },
         {
-          "name": "GenerateStringPhone",
-          "longName": "GenerateStringPhone",
-          "fullName": "mgmt.v1alpha1.GenerateStringPhone",
+          "name": "GenerateStringPhoneNumber",
+          "longName": "GenerateStringPhoneNumber",
+          "fullName": "mgmt.v1alpha1.GenerateStringPhoneNumber",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -3379,9 +3479,9 @@
           ]
         },
         {
-          "name": "TransformE164Phone",
-          "longName": "TransformE164Phone",
-          "fullName": "mgmt.v1alpha1.TransformE164Phone",
+          "name": "TransformE164PhoneNumber",
+          "longName": "TransformE164PhoneNumber",
+          "fullName": "mgmt.v1alpha1.TransformE164PhoneNumber",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -3463,9 +3563,9 @@
           ]
         },
         {
-          "name": "TransformFloat",
-          "longName": "TransformFloat",
-          "fullName": "mgmt.v1alpha1.TransformFloat",
+          "name": "TransformFloat64",
+          "longName": "TransformFloat64",
+          "fullName": "mgmt.v1alpha1.TransformFloat64",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -3473,24 +3573,24 @@
           "extensions": [],
           "fields": [
             {
-              "name": "preserve_length",
+              "name": "randomization_range_min",
               "description": "",
               "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
+              "type": "double",
+              "longType": "double",
+              "fullType": "double",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
             },
             {
-              "name": "preserve_sign",
+              "name": "randomization_range_max",
               "description": "",
               "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
+              "type": "double",
+              "longType": "double",
+              "fullType": "double",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -3523,9 +3623,9 @@
           ]
         },
         {
-          "name": "TransformInt",
-          "longName": "TransformInt",
-          "fullName": "mgmt.v1alpha1.TransformInt",
+          "name": "TransformInt64",
+          "longName": "TransformInt64",
+          "fullName": "mgmt.v1alpha1.TransformInt64",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -3533,24 +3633,24 @@
           "extensions": [],
           "fields": [
             {
-              "name": "preserve_length",
+              "name": "randomization_range_min",
               "description": "",
               "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
             },
             {
-              "name": "preserve_sign",
+              "name": "randomization_range_max",
               "description": "",
               "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -3559,9 +3659,9 @@
           ]
         },
         {
-          "name": "TransformIntPhone",
-          "longName": "TransformIntPhone",
-          "fullName": "mgmt.v1alpha1.TransformIntPhone",
+          "name": "TransformInt64PhoneNumber",
+          "longName": "TransformInt64PhoneNumber",
+          "fullName": "mgmt.v1alpha1.TransformInt64PhoneNumber",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -3607,9 +3707,9 @@
           ]
         },
         {
-          "name": "TransformPhone",
-          "longName": "TransformPhone",
-          "fullName": "mgmt.v1alpha1.TransformPhone",
+          "name": "TransformPhoneNumber",
+          "longName": "TransformPhoneNumber",
+          "fullName": "mgmt.v1alpha1.TransformPhoneNumber",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -3689,18 +3789,6 @@
               "defaultValue": ""
             },
             {
-              "name": "generate_realistic_email_config",
-              "description": "",
-              "label": "",
-              "type": "GenerateRealisticEmail",
-              "longType": "GenerateRealisticEmail",
-              "fullType": "mgmt.v1alpha1.GenerateRealisticEmail",
-              "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "config",
-              "defaultValue": ""
-            },
-            {
               "name": "transform_email_config",
               "description": "",
               "label": "",
@@ -3749,12 +3837,12 @@
               "defaultValue": ""
             },
             {
-              "name": "generate_e164_number_config",
+              "name": "generate_e164_phone_number_config",
               "description": "",
               "label": "",
-              "type": "GenerateE164Number",
-              "longType": "GenerateE164Number",
-              "fullType": "mgmt.v1alpha1.GenerateE164Number",
+              "type": "GenerateE164PhoneNumber",
+              "longType": "GenerateE164PhoneNumber",
+              "fullType": "mgmt.v1alpha1.GenerateE164PhoneNumber",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -3773,12 +3861,12 @@
               "defaultValue": ""
             },
             {
-              "name": "generate_float_config",
+              "name": "generate_float64_config",
               "description": "",
               "label": "",
-              "type": "GenerateFloat",
-              "longType": "GenerateFloat",
-              "fullType": "mgmt.v1alpha1.GenerateFloat",
+              "type": "GenerateFloat64",
+              "longType": "GenerateFloat64",
+              "fullType": "mgmt.v1alpha1.GenerateFloat64",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -3821,24 +3909,24 @@
               "defaultValue": ""
             },
             {
-              "name": "generate_int64_phone_config",
+              "name": "generate_int64_phone_number_config",
               "description": "",
               "label": "",
-              "type": "GenerateInt64Phone",
-              "longType": "GenerateInt64Phone",
-              "fullType": "mgmt.v1alpha1.GenerateInt64Phone",
+              "type": "GenerateInt64PhoneNumber",
+              "longType": "GenerateInt64PhoneNumber",
+              "fullType": "mgmt.v1alpha1.GenerateInt64PhoneNumber",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
             },
             {
-              "name": "generate_int_config",
+              "name": "generate_int64_config",
               "description": "",
               "label": "",
-              "type": "GenerateInt",
-              "longType": "GenerateInt",
-              "fullType": "mgmt.v1alpha1.GenerateInt",
+              "type": "GenerateInt64",
+              "longType": "GenerateInt64",
+              "fullType": "mgmt.v1alpha1.GenerateInt64",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -3905,12 +3993,12 @@
               "defaultValue": ""
             },
             {
-              "name": "generate_string_phone_config",
+              "name": "generate_string_phone_number_config",
               "description": "",
               "label": "",
-              "type": "GenerateStringPhone",
-              "longType": "GenerateStringPhone",
-              "fullType": "mgmt.v1alpha1.GenerateStringPhone",
+              "type": "GenerateStringPhoneNumber",
+              "longType": "GenerateStringPhoneNumber",
+              "fullType": "mgmt.v1alpha1.GenerateStringPhoneNumber",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -3989,12 +4077,12 @@
               "defaultValue": ""
             },
             {
-              "name": "transform_e164_phone_config",
+              "name": "transform_e164_phone_number_config",
               "description": "",
               "label": "",
-              "type": "TransformE164Phone",
-              "longType": "TransformE164Phone",
-              "fullType": "mgmt.v1alpha1.TransformE164Phone",
+              "type": "TransformE164PhoneNumber",
+              "longType": "TransformE164PhoneNumber",
+              "fullType": "mgmt.v1alpha1.TransformE164PhoneNumber",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -4013,12 +4101,12 @@
               "defaultValue": ""
             },
             {
-              "name": "transform_float_config",
+              "name": "transform_float64_config",
               "description": "",
               "label": "",
-              "type": "TransformFloat",
-              "longType": "TransformFloat",
-              "fullType": "mgmt.v1alpha1.TransformFloat",
+              "type": "TransformFloat64",
+              "longType": "TransformFloat64",
+              "fullType": "mgmt.v1alpha1.TransformFloat64",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -4037,24 +4125,24 @@
               "defaultValue": ""
             },
             {
-              "name": "transform_int_phone_config",
+              "name": "transform_int64_phone_number_config",
               "description": "",
               "label": "",
-              "type": "TransformIntPhone",
-              "longType": "TransformIntPhone",
-              "fullType": "mgmt.v1alpha1.TransformIntPhone",
+              "type": "TransformInt64PhoneNumber",
+              "longType": "TransformInt64PhoneNumber",
+              "fullType": "mgmt.v1alpha1.TransformInt64PhoneNumber",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
             },
             {
-              "name": "transform_int_config",
+              "name": "transform_int64_config",
               "description": "",
               "label": "",
-              "type": "TransformInt",
-              "longType": "TransformInt",
-              "fullType": "mgmt.v1alpha1.TransformInt",
+              "type": "TransformInt64",
+              "longType": "TransformInt64",
+              "fullType": "mgmt.v1alpha1.TransformInt64",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -4073,12 +4161,12 @@
               "defaultValue": ""
             },
             {
-              "name": "transform_phone_config",
+              "name": "transform_phone_number_config",
               "description": "",
               "label": "",
-              "type": "TransformPhone",
-              "longType": "TransformPhone",
-              "fullType": "mgmt.v1alpha1.TransformPhone",
+              "type": "TransformPhoneNumber",
+              "longType": "TransformPhoneNumber",
+              "fullType": "mgmt.v1alpha1.TransformPhoneNumber",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
@@ -7202,6 +7290,53 @@
           ]
         },
         {
+          "name": "TerminateJobRunRequest",
+          "longName": "TerminateJobRunRequest",
+          "fullName": "mgmt.v1alpha1.TerminateJobRunRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_run_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TerminateJobRunResponse",
+          "longName": "TerminateJobRunResponse",
+          "fullName": "mgmt.v1alpha1.TerminateJobRunResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "UpdateJobDestinationConnectionRequest",
           "longName": "UpdateJobDestinationConnectionRequest",
           "fullName": "mgmt.v1alpha1.UpdateJobDestinationConnectionRequest",
@@ -7687,6 +7822,18 @@
               "responseType": "CancelJobRunResponse",
               "responseLongType": "CancelJobRunResponse",
               "responseFullType": "mgmt.v1alpha1.CancelJobRunResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "TerminateJobRun",
+              "description": "",
+              "requestType": "TerminateJobRunRequest",
+              "requestLongType": "TerminateJobRunRequest",
+              "requestFullType": "mgmt.v1alpha1.TerminateJobRunRequest",
+              "requestStreaming": false,
+              "responseType": "TerminateJobRunResponse",
+              "responseLongType": "TerminateJobRunResponse",
+              "responseFullType": "mgmt.v1alpha1.TerminateJobRunResponse",
               "responseStreaming": false
             }
           ]

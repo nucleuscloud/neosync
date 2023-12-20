@@ -6,6 +6,7 @@ import {
 import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -41,12 +42,12 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
-  Passthrough,
   TransformerConfig,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { SchemaMap, getColumnMapping } from './DataSyncConnectionCard';
 import { getFkIdFromGenerateSource } from './util';
@@ -65,8 +66,29 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     isLoading: isJobLoading,
   } = useGetJob(account?.id ?? '', jobId);
   const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
-  const { data: schema, isLoading: isGetConnectionsSchemaLoading } =
-    useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
+  const {
+    data: schema,
+    isLoading: isGetConnectionsSchemaLoading,
+    error,
+  } = useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Unable to get connection schema',
+        description: getErrorMessage(error),
+        variant: 'destructive',
+      });
+    }
+  }, [error]);
+
+  const allJobMappings =
+    schema?.schemas.map((r) => {
+      return {
+        ...r,
+        transformer: new JobMappingTransformer({}) as TransformerFormValues,
+      };
+    }) || [];
 
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
@@ -111,9 +133,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
-  // changed to getValues() from watch() because watch would listen for a change and then trigger a render which would overwrite the values that were changed (which we wanted to keep)
-
-  const formValues = form.getValues();
+  const formValues = form.watch();
   const schemaTableData = formValues.mappings?.map((mapping) => ({
     ...mapping,
     schema: formValues.schema,
@@ -182,6 +202,20 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
                     return;
                   }
                   field.onChange(value);
+                  form.setValue(
+                    'mappings',
+                    allJobMappings
+                      .filter(
+                        (m) => m.schema == formValues.schema && m.table == value
+                      )
+                      .map((r) => {
+                        return {
+                          column: r.column,
+                          dataType: r.dataType,
+                          transformer: r.transformer,
+                        };
+                      })
+                  );
                 }}
                 value={field.value}
               >
@@ -224,6 +258,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
         {formValues.schema && formValues.table && (
           <SchemaTable data={schemaTableData} excludeInputReqTransformers />
+        )}
+        {form.formState.errors.mappings && (
+          <Alert variant="destructive">
+            <AlertTitle className="flex flex-row space-x-2 justify-center">
+              <ExclamationTriangleIcon />
+              <p>Please fix form errors and try again.</p>
+            </AlertTitle>
+          </Alert>
         )}
         <div className="flex flex-row gap-1 justify-end">
           <Button key="submit" type="submit">
@@ -268,73 +310,41 @@ function getJobSource(
       schemaMap[c.schema] = {
         [c.table]: {
           [c.column]: {
-            transformer:
-              c?.transformer ??
-              new JobMappingTransformer({
-                source: 'passthrough',
-                config: new TransformerConfig({
-                  config: {
-                    case: 'passthroughConfig',
-                    value: new Passthrough({}),
-                  },
-                }),
-              }),
+            transformer: c?.transformer ?? new JobMappingTransformer({}),
           },
         },
       };
     } else if (!schemaMap[c.schema][c.table]) {
       schemaMap[c.schema][c.table] = {
         [c.column]: {
-          transformer:
-            c?.transformer ??
-            new JobMappingTransformer({
-              source: 'passthrough',
-              config: new TransformerConfig({
-                config: {
-                  case: 'passthroughConfig',
-                  value: new Passthrough({}),
-                },
-              }),
-            }),
+          transformer: c?.transformer ?? new JobMappingTransformer({}),
         },
       };
     } else {
       schemaMap[c.schema][c.table][c.column] = {
-        transformer:
-          c.transformer ??
-          new JobMappingTransformer({
-            source: 'passthrough',
-            config: new TransformerConfig({
-              config: {
-                case: 'passthroughConfig',
-                value: new Passthrough({}),
-              },
-            }),
-          }),
+        transformer: c.transformer ?? new JobMappingTransformer({}),
       };
     }
   });
 
-  const mappings: SingleTableSchemaFormValues['mappings'] = dbCols.map((c) => {
-    const colMapping = getColumnMapping(schemaMap, c.schema, c.table, c.column);
-    const transformer =
-      colMapping?.transformer ??
-      new JobMappingTransformer({
-        source: 'passthrough',
-        config: new TransformerConfig({
-          config: {
-            case: 'passthroughConfig',
-            value: new Passthrough({}),
-          },
-        }),
-      });
+  const mappings: SingleTableSchemaFormValues['mappings'] = dbCols
+    .filter((c) => c.schema == schema && c.table == table)
+    .map((c) => {
+      const colMapping = getColumnMapping(
+        schemaMap,
+        c.schema,
+        c.table,
+        c.column
+      );
+      const transformer =
+        colMapping?.transformer ?? new JobMappingTransformer({});
 
-    return {
-      column: c.column,
-      dataType: c.dataType,
-      transformer: transformer as TransformerFormValues,
-    };
-  });
+      return {
+        column: c.column,
+        dataType: c.dataType,
+        transformer: transformer as TransformerFormValues,
+      };
+    });
 
   return {
     mappings: mappings,

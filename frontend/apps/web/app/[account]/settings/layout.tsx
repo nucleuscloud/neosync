@@ -2,8 +2,9 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
-import { useGetAuthEnabled } from '@/libs/hooks/useGetAuthEnabled';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { cn } from '@/libs/utils';
+import { UserAccountType } from '@neosync/sdk';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -40,12 +41,16 @@ export default function SettingsLayout({
 }) {
   const { account } = useAccount();
   const pathname = usePathname();
-  const authEnabled = useGetAuthEnabled();
+  const { data: systemAppConfigData, isLoading: isSystemConfigLoading } =
+    useGetSystemAppConfig();
   const items = getNavSettings(account?.name ?? '');
 
-  const filteredItems = authEnabled
-    ? items
-    : items.filter((item) => item.title !== 'Members');
+  const filteredItems =
+    !isSystemConfigLoading &&
+    systemAppConfigData?.isAuthEnabled &&
+    account?.type === UserAccountType.TEAM
+      ? items
+      : items.filter((item) => item.title !== 'Members');
 
   return (
     <div>
@@ -62,8 +67,8 @@ export default function SettingsLayout({
                   className={cn(
                     'rounded p-2 text-sm',
                     refInPathName(item.ref, pathname)
-                      ? 'bg-gray-200 hover:bg-gray-200 font-bold dark:bg-gray-700'
-                      : 'hover:bg-gray-200 hover:no-underline hover:dark:bg-gray-700'
+                      ? 'bg-gray-200/70 hover:bg-gray-200/70 font-bold dark:bg-gray-700'
+                      : 'hover:bg-gray-200/70 hover:no-underline hover:dark:bg-gray-700'
                   )}
                 >
                   {item.title}

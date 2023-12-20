@@ -2,6 +2,7 @@ package pg_models
 
 import (
 	"fmt"
+	"strings"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 )
@@ -193,6 +194,7 @@ func (a *AwsS3Credentials) FromDto(dto *mgmtv1alpha1.AwsS3Credentials) {
 
 type AwsS3ConnectionConfig struct {
 	BucketArn   string
+	Bucket      string
 	PathPrefix  *string
 	Credentials *AwsS3Credentials
 	Region      *string
@@ -200,8 +202,13 @@ type AwsS3ConnectionConfig struct {
 }
 
 func (a *AwsS3ConnectionConfig) ToDto() *mgmtv1alpha1.AwsS3ConnectionConfig {
+	var bucket = a.Bucket
+	if a.Bucket == "" && a.BucketArn != "" {
+		bucket = strings.ReplaceAll(a.BucketArn, "arn:aws:s3:::", "")
+	}
+
 	return &mgmtv1alpha1.AwsS3ConnectionConfig{
-		BucketArn:   a.BucketArn,
+		Bucket:      bucket,
 		PathPrefix:  a.PathPrefix,
 		Credentials: a.Credentials.ToDto(),
 		Region:      a.Region,
@@ -209,7 +216,7 @@ func (a *AwsS3ConnectionConfig) ToDto() *mgmtv1alpha1.AwsS3ConnectionConfig {
 	}
 }
 func (a *AwsS3ConnectionConfig) FromDto(dto *mgmtv1alpha1.AwsS3ConnectionConfig) error {
-	a.BucketArn = dto.BucketArn
+	a.Bucket = dto.Bucket
 	a.PathPrefix = dto.PathPrefix
 	a.Credentials = &AwsS3Credentials{}
 	a.Credentials.FromDto(dto.Credentials)

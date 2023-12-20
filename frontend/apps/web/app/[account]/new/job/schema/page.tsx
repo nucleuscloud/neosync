@@ -64,7 +64,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   async function getSchema(): Promise<SchemaFormValues> {
     try {
-      const res = await getConnectionSchema(connectFormValues.sourceId);
+      const res = await getConnectionSchema(
+        account?.id || '',
+        connectFormValues.sourceId
+      );
       if (!res) {
         return { mappings: [] };
       }
@@ -134,7 +137,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   return (
-    <div className="flex flex-col gap-20">
+    <div className="flex flex-col gap-5">
       <OverviewContainer
         Header={
           <PageHeader

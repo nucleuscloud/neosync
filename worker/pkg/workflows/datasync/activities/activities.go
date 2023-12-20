@@ -626,12 +626,10 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	switch col.Transformer.Source {
 	case "generate_email":
 		return "generate_email()", nil
-	case "generate_realistic_email":
-		return "generate_realistic_email()", nil
 	case "transform_email":
 		pd := col.Transformer.Config.GetTransformEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
-		return fmt.Sprintf("transform_email(value:this.%s,preserve_domain:%t,preserve_length:%t)", col.Column, pd, pl), nil
+		return fmt.Sprintf("transform_email(email:this.%s,preserve_domain:%t,preserve_length:%t)", col.Column, pd, pl), nil
 	case "generate_bool":
 		return "generate_bool()", nil
 	case "generate_card_number":
@@ -639,16 +637,17 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf(`generate_card_number(valid_luhn:%t)`, luhn), nil
 	case "generate_city":
 		return "generate_city()", nil
-	case "generate_e164_number":
-		length := col.Transformer.Config.GetGenerateE164NumberConfig().Length
-		return fmt.Sprintf(`generate_e164_number(length:%d)`, length), nil
+	case "generate_e164_phone_number":
+		min := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Min
+		max := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Max
+		return fmt.Sprintf(`generate_e164_phone_number(min:%d, max: %d)`, min, max), nil
 	case "generate_first_name":
 		return "generate_first_name()", nil
-	case "generate_float":
-		sign := col.Transformer.Config.GetGenerateFloatConfig().Sign
-		bd := col.Transformer.Config.GetGenerateFloatConfig().DigitsBeforeDecimal
-		ad := col.Transformer.Config.GetGenerateFloatConfig().DigitsAfterDecimal
-		return fmt.Sprintf(`generate_float(sign:%q, digits_before_decimal:%d, digits_after_decimal:%d)`, sign, bd, ad), nil
+	case "generate_float64":
+		randomSign := col.Transformer.Config.GetGenerateFloat64Config().RandomizeSign
+		min := col.Transformer.Config.GetGenerateFloat64Config().Min
+		max := col.Transformer.Config.GetGenerateFloat64Config().Max
+		return fmt.Sprintf(`generate_float64(randomize_sign:%t, min:%f, max:%f)`, randomSign, min, max), nil
 	case "generate_full_address":
 		return "generate_full_address()", nil
 	case "generate_full_name":
@@ -656,12 +655,13 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 	case "generate_gender":
 		ab := col.Transformer.Config.GetGenerateGenderConfig().Abbreviate
 		return fmt.Sprintf(`generate_gender(abbreviate:%t)`, ab), nil
-	case "generate_int64_phone":
-		return "generate_int64_phone()", nil
-	case "generate_int":
-		sign := col.Transformer.Config.GetGenerateIntConfig().Sign
-		length := col.Transformer.Config.GetGenerateIntConfig().Length
-		return fmt.Sprintf(`generate_int(length:%d,sign:%q)`, length, sign), nil
+	case "generate_int64_phone_number":
+		return "generate_int64_phone_number()", nil
+	case "generate_int64":
+		sign := col.Transformer.Config.GetGenerateInt64Config().RandomizeSign
+		min := col.Transformer.Config.GetGenerateInt64Config().Min
+		max := col.Transformer.Config.GetGenerateInt64Config().Max
+		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d)`, sign, min, max), nil
 	case "generate_last_name":
 		return "generate_last_name()", nil
 	case "generate_sha256hash":
@@ -672,12 +672,13 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "generate_state()", nil
 	case "generate_street_address":
 		return "generate_street_address()", nil
-	case "generate_string_phone":
-		ih := col.Transformer.Config.GetGenerateStringPhoneConfig().IncludeHyphens
-		return fmt.Sprintf("generate_string_phone(include_hyphens:%t)", ih), nil
+	case "generate_string_phone_number":
+		ih := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().IncludeHyphens
+		return fmt.Sprintf("generate_string_phone_number(include_hyphens:%t)", ih), nil
 	case "generate_string":
-		length := col.Transformer.Config.GetGenerateStringConfig().Length
-		return fmt.Sprintf(`generate_string(length:%d)`, length), nil
+		min := col.Transformer.Config.GetGenerateStringConfig().Min
+		max := col.Transformer.Config.GetGenerateStringConfig().Max
+		return fmt.Sprintf(`generate_string(min:%d, max: %d)`, min, max), nil
 	case "generate_unixtimestamp":
 		return "generate_unixtimestamp()", nil
 	case "generate_username":
@@ -689,33 +690,33 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("generate_uuid(include_hyphens:%t)", ih), nil
 	case "generate_zipcode":
 		return "generate_zipcode()", nil
-	case "transform_e164_phone":
-		pl := col.Transformer.Config.GetTransformE164PhoneConfig().PreserveLength
-		return fmt.Sprintf("transform_e164_phone(value:this.%s,preserve_length:%t)", col.Column, pl), nil
+	case "transform_e164_phone_number":
+		pl := col.Transformer.Config.GetTransformE164PhoneNumberConfig().PreserveLength
+		return fmt.Sprintf("transform_e164_phone_number(value:this.%s,preserve_length:%t)", col.Column, pl), nil
 	case "transform_first_name":
 		pl := col.Transformer.Config.GetTransformFirstNameConfig().PreserveLength
 		return fmt.Sprintf("transform_first_name(value:this.%s,preserve_length:%t)", col.Column, pl), nil
-	case "transform_float":
-		pl := col.Transformer.Config.GetTransformFloatConfig().PreserveLength
-		sign := col.Transformer.Config.GetTransformFloatConfig().PreserveSign
-		return fmt.Sprintf(`transform_float(value:this.%s,preserve_length:%t,preserve_sign:%t)`, col.Column, pl, sign), nil
+	case "transform_float64":
+		rMin := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMin
+		rMax := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMax
+		return fmt.Sprintf(`transform_float64(value:this.%s,randomization_range_min:%f,randomization_range_max:%f)`, col.Column, rMin, rMax), nil
 	case "transform_full_name":
 		pl := col.Transformer.Config.GetTransformFullNameConfig().PreserveLength
 		return fmt.Sprintf("transform_full_name(value:this.%s,preserve_length:%t)", col.Column, pl), nil
-	case "transform_int_phone":
-		pl := col.Transformer.Config.GetTransformIntPhoneConfig().PreserveLength
-		return fmt.Sprintf("transform_int_phone(value:this.%s,preserve_length:%t)", col.Column, pl), nil
-	case "transform_int":
-		pl := col.Transformer.Config.GetTransformIntConfig().PreserveLength
-		sign := col.Transformer.Config.GetTransformIntConfig().PreserveSign
-		return fmt.Sprintf(`transform_int(value:this.%s,preserve_length:%t,preserve_sign:%t)`, col.Column, pl, sign), nil
+	case "transform_int64_phone_number":
+		pl := col.Transformer.Config.GetTransformInt64PhoneNumberConfig().PreserveLength
+		return fmt.Sprintf("transform_int64_phone_number(value:this.%s,preserve_length:%t)", col.Column, pl), nil
+	case "transform_int64":
+		rMin := col.Transformer.Config.GetTransformInt64Config().RandomizationRangeMin
+		rMax := col.Transformer.Config.GetTransformInt64Config().RandomizationRangeMax
+		return fmt.Sprintf(`transform_int64(value:this.%s,randomization_range_min:%d,randomization_range_max:%d)`, col.Column, rMin, rMax), nil
 	case "transform_last_name":
 		pl := col.Transformer.Config.GetTransformLastNameConfig().PreserveLength
 		return fmt.Sprintf("transform_last_name(value:this.%s,preserve_length:%t)", col.Column, pl), nil
-	case "transform_phone":
-		pl := col.Transformer.Config.GetTransformPhoneConfig().PreserveLength
-		ih := col.Transformer.Config.GetTransformPhoneConfig().IncludeHyphens
-		return fmt.Sprintf("transform_phone(value:this.%s,preserve_length:%t,include_hyphens:%t)", col.Column, pl, ih), nil
+	case "transform_phone_number":
+		pl := col.Transformer.Config.GetTransformPhoneNumberConfig().PreserveLength
+		ih := col.Transformer.Config.GetTransformPhoneNumberConfig().IncludeHyphens
+		return fmt.Sprintf("transform_phone_number(value:this.%s,preserve_length:%t,include_hyphens:%t)", col.Column, pl, ih), nil
 	case "transform_string":
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
 		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t)`, col.Column, pl), nil

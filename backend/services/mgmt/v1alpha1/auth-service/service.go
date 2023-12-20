@@ -27,6 +27,11 @@ type AuthClient interface {
 		code string,
 		redirecturi string,
 	) (*auth_client.AuthTokenResponse, error)
+	GetRefreshedAccessToken(
+		ctx context.Context,
+		clientId string,
+		refreshToken string,
+	) (*auth_client.AuthTokenResponse, error)
 }
 
 func New(

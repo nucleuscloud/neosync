@@ -1,5 +1,5 @@
 'use client';
-import { handleCustomTransformerForm } from '@/app/[account]/new/transformer/UserDefinedTransformerForms/HandleCustomTransformersForm';
+import { handleUserDefinedTransformerForm } from '@/app/[account]/new/transformer/UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
 import {
   SYSTEM_TRANSFORMER_SCHEMA,
   SystemTransformersSchema,
@@ -129,7 +129,7 @@ export default function ViewSystemTransformers({
             </div>
           </div>
           <div>
-            {handleCustomTransformerForm(currentTransformer?.source, true)}
+            {handleUserDefinedTransformerForm(currentTransformer?.source, true)}
           </div>
           <div className="flex flex-row justify-start">
             <Button

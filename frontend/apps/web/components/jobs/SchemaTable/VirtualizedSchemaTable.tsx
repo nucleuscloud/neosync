@@ -17,7 +17,7 @@ import {
   JobMappingTransformer,
   UserDefinedTransformerConfig,
 } from '@neosync/sdk';
-import { UpdateIcon } from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon, UpdateIcon } from '@radix-ui/react-icons';
 import memoize from 'memoize-one';
 import {
   CSSProperties,
@@ -143,7 +143,7 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
       <div className="basis-1/6  pt-[45px] ">
         <VirtualizedTree data={treeData} onNodeSelect={onTreeFilterSelect} />
       </div>
-      <div className={`space-y-2 pl-8 basis-5/6`}>
+      <div className="space-y-2 pl-2 basis-5/6 ">
         <div className="flex items-center justify-between">
           <div className="w-[250px]">
             <TransformerSelect
@@ -188,17 +188,19 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
             <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </div>
-        <VirtualizedSchemaList
-          rows={rows}
-          allRows={data}
-          onSelect={onSelect}
-          onSelectAll={onSelectAll}
-          transformers={transformers}
-          bulkSelect={bulkSelect}
-          setBulkSelect={setBulkSelect}
-          columnFilters={columnFilters}
-          onFilterSelect={onFilterSelect}
-        />
+        <div>
+          <VirtualizedSchemaList
+            rows={rows}
+            allRows={data}
+            onSelect={onSelect}
+            onSelectAll={onSelectAll}
+            transformers={transformers}
+            bulkSelect={bulkSelect}
+            setBulkSelect={setBulkSelect}
+            columnFilters={columnFilters}
+            onFilterSelect={onFilterSelect}
+          />
+        </div>
       </div>
     </div>
   );
@@ -225,7 +227,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
 
   return (
     <div style={style} className="border-t dark:border-gray-700">
-      <div className="grid grid-cols-5 gap-4 items-center p-2">
+      <div className="grid grid-cols-5 gap-2 items-center p-2">
         <div className="flex flex-row truncate ">
           <Checkbox
             id="select"
@@ -242,19 +244,32 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
         <div>
           <FormField<SchemaFormValues | SingleTableSchemaFormValues>
             name={`mappings.${index}.transformer`}
-            render={({ field }) => {
+            render={({ field, fieldState, formState }) => {
               // todo: we should really convert between the real field.value and the job mapping transformer
               const fv = field.value as unknown as JobMappingTransformer;
+
               return (
                 <FormItem>
                   <FormControl>
-                    <div className="flex flex-row space-x-2  ">
-                      <div className="w-[175px]">
+                    <div className="flex flex-row space-x-2">
+                      {formState.errors.mappings && (
+                        <div className="place-self-center">
+                          {fieldState.error ? (
+                            <div>
+                              <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
+                            </div>
+                          ) : (
+                            <div className="w-4"></div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="">
                         <TransformerSelect
                           transformers={transformers}
                           value={fv}
                           onSelect={field.onChange}
-                          placeholder="Passthrough"
+                          placeholder="Select transformer..."
                         />
                       </div>
                       <EditTransformerOptions
@@ -348,11 +363,14 @@ function VirtualizedSchemaList({
     [allRows, columnFilters]
   );
 
+  const sumOfRowHeights = 50 * rows.length;
+  const dynamicHeight = Math.min(sumOfRowHeights, 700);
+
   return (
     <div
       className={cn(`grid grid-col-1 border rounded-md dark:border-gray-700`)}
     >
-      <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 pb-1 bg-muted`}>
+      <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 bg-muted `}>
         <div className="flex flex-row">
           <Checkbox
             id="select"
@@ -411,7 +429,8 @@ function VirtualizedSchemaList({
         </div>
         <div className="col-span-5"></div>
       </div>
-      <div className="h-[700px]">
+
+      <div style={{ height: dynamicHeight }}>
         <AutoSizer defaultHeight={700}>
           {({ height, width }) => (
             <List

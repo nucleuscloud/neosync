@@ -132,7 +132,10 @@ function DataTable(props: DataTableProps): React.ReactElement {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const columns = getColumns({ accountId, onDeleted });
+  const columns = React.useMemo(
+    () => getColumns({ accountId, onDeleted }),
+    [accountId]
+  );
 
   const table = useReactTable({
     data,

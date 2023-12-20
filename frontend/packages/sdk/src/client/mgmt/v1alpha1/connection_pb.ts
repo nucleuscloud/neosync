@@ -859,7 +859,8 @@ export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
  */
 export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
   /**
-   * @generated from field: string bucket_arn = 1;
+   * @generated from field: string bucket_arn = 1 [deprecated = true];
+   * @deprecated
    */
   bucketArn = "";
 
@@ -883,6 +884,11 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
    */
   endpoint?: string;
 
+  /**
+   * @generated from field: string bucket = 6;
+   */
+  bucket = "";
+
   constructor(data?: PartialMessage<AwsS3ConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -896,6 +902,7 @@ export class AwsS3ConnectionConfig extends Message<AwsS3ConnectionConfig> {
     { no: 3, name: "credentials", kind: "message", T: AwsS3Credentials, opt: true },
     { no: 4, name: "region", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 5, name: "endpoint", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 6, name: "bucket", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AwsS3ConnectionConfig {

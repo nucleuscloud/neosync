@@ -114,7 +114,7 @@ func oAuthLogin(
 	authorizeurlResp, err := authclient.GetAuthorizeUrl(ctx, connect.NewRequest(&mgmtv1alpha1.GetAuthorizeUrlRequest{
 		State:       state,
 		RedirectUri: redirectUri,
-		Scope:       "openid profile",
+		Scope:       "openid profile offline_access",
 	}))
 	if err != nil {
 		return err

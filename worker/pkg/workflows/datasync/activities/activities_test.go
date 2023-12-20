@@ -299,7 +299,7 @@ func Test_buildProcessorMutation(t *testing.T) {
 	})
 
 	assert.Nil(t, err)
-	assert.Equal(t, output, `root.email = transform_email(value:this.email,preserve_domain:true,preserve_length:false)`)
+	assert.Equal(t, output, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false)`)
 
 	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
@@ -708,14 +708,6 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_realistic_email",
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateRealisticEmailConfig{
-					GenerateRealisticEmailConfig: &mgmtv1alpha1.GenerateRealisticEmail{},
-				},
-			},
-		},
-		{
 			Name: "transform_email",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
@@ -753,11 +745,12 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_e164_number",
+			Name: "generate_e164_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164NumberConfig{
-					GenerateE164NumberConfig: &mgmtv1alpha1.GenerateE164Number{
-						Length: 12,
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
+					GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
+						Min: 9,
+						Max: 15,
 					},
 				},
 			},
@@ -771,13 +764,13 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_float",
+			Name: "generate_float64",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloatConfig{
-					GenerateFloatConfig: &mgmtv1alpha1.GenerateFloat{
-						Sign:                "positive",
-						DigitsBeforeDecimal: 3,
-						DigitsAfterDecimal:  3,
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
+					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
+						RandomizeSign: true,
+						Min:           1.00,
+						Max:           100.00,
 					},
 				},
 			},
@@ -809,20 +802,21 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_int64_phone",
+			Name: "generate_int64_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneConfig{
-					GenerateInt64PhoneConfig: &mgmtv1alpha1.GenerateInt64Phone{},
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
+					GenerateInt64PhoneNumberConfig: &mgmtv1alpha1.GenerateInt64PhoneNumber{},
 				},
 			},
 		},
 		{
-			Name: "generate_int",
+			Name: "generate_int64",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateIntConfig{
-					GenerateIntConfig: &mgmtv1alpha1.GenerateInt{
-						Length: 4,
-						Sign:   "positive",
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
+					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
+						RandomizeSign: true,
+						Min:           1,
+						Max:           4,
 					},
 				},
 			},
@@ -868,10 +862,10 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_string_phone",
+			Name: "generate_string_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneConfig{
-					GenerateStringPhoneConfig: &mgmtv1alpha1.GenerateStringPhone{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
+					GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
 						IncludeHyphens: false,
 					},
 				},
@@ -882,7 +876,8 @@ func Test_TransformerStringLint(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-						Length: 6,
+						Min: 2,
+						Max: 7,
 					},
 				},
 			},
@@ -930,10 +925,10 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_e164_phone",
+			Name: "transform_e164_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneConfig{
-					TransformE164PhoneConfig: &mgmtv1alpha1.TransformE164Phone{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
+					TransformE164PhoneNumberConfig: &mgmtv1alpha1.TransformE164PhoneNumber{
 						PreserveLength: false,
 					},
 				},
@@ -950,12 +945,12 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_float",
+			Name: "transform_float64",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformFloatConfig{
-					TransformFloatConfig: &mgmtv1alpha1.TransformFloat{
-						PreserveLength: false,
-						PreserveSign:   true,
+				Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
+					TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
+						RandomizationRangeMin: 20.00,
+						RandomizationRangeMax: 50.00,
 					},
 				},
 			},
@@ -971,22 +966,22 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_int_phone",
+			Name: "transform_int64_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformIntPhoneConfig{
-					TransformIntPhoneConfig: &mgmtv1alpha1.TransformIntPhone{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
+					TransformInt64PhoneNumberConfig: &mgmtv1alpha1.TransformInt64PhoneNumber{
 						PreserveLength: false,
 					},
 				},
 			},
 		},
 		{
-			Name: "transform_int",
+			Name: "transform_int64",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformIntConfig{
-					TransformIntConfig: &mgmtv1alpha1.TransformInt{
-						PreserveLength: false,
-						PreserveSign:   true,
+				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
+					TransformInt64Config: &mgmtv1alpha1.TransformInt64{
+						RandomizationRangeMin: 20,
+						RandomizationRangeMax: 50,
 					},
 				},
 			},
@@ -1002,10 +997,10 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_phone",
+			Name: "transform_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneConfig{
-					TransformPhoneConfig: &mgmtv1alpha1.TransformPhone{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
+					TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
 						PreserveLength: false,
 						IncludeHyphens: false,
 					},

@@ -9,6 +9,7 @@ import {
 } from '@/components/jobs/SchemaTable/schema-table';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -51,6 +52,7 @@ import {
   JobSourceOptions,
   TransformerConfig,
 } from '@neosync/sdk';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -115,7 +117,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [allMappings, setAllMappings] = useState<DatabaseColumn[]>([]);
   async function getSchema(): Promise<SingleTableSchemaFormValues> {
     try {
-      const res = await getConnectionSchema(connectFormValues.connectionId);
+      const res = await getConnectionSchema(
+        account?.id || '',
+        connectFormValues.connectionId
+      );
       if (!res) {
         return { mappings: [], numRows: 10, schema: '', table: '' };
       }
@@ -240,7 +245,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [rowNum]);
 
   return (
-    <div className="flex flex-col gap-20">
+    <div className="flex flex-col gap-5">
       <OverviewContainer
         Header={
           <PageHeader
@@ -254,7 +259,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       >
         <div />
       </OverviewContainer>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -376,6 +380,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
           {formValues.schema && formValues.table && (
             <SchemaTable data={schemaTableData} excludeInputReqTransformers />
+          )}
+          {form.formState.errors.mappings && (
+            <Alert variant="destructive">
+              <AlertTitle className="flex flex-row space-x-2 justify-center">
+                <ExclamationTriangleIcon />
+                <p>Please fix form errors and try again.</p>
+              </AlertTitle>
+            </Alert>
           )}
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>

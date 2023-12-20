@@ -1,6 +1,7 @@
 import { SubsetFormValues } from '@/app/[account]/new/job/schema';
 import { transformerConfig } from '@/app/[account]/new/transformer/schema';
 import {
+  AwsS3DestinationConnectionOptions,
   Connection,
   JobDestinationOptions,
   MysqlDestinationConnectionOptions,
@@ -39,7 +40,7 @@ export const SCHEMA_FORM_SCHEMA = Yup.object({
 });
 
 export const SOURCE_FORM_SCHEMA = Yup.object({
-  sourceId: Yup.string().uuid('source is required').required(),
+  sourceId: Yup.string().uuid('Source is required').required(),
   sourceOptions: Yup.object({
     haltOnNewColumnAddition: Yup.boolean().optional(),
   }),
@@ -47,7 +48,7 @@ export const SOURCE_FORM_SCHEMA = Yup.object({
 
 export const DESTINATION_FORM_SCHEMA = Yup.object({
   connectionId: Yup.string()
-    .uuid('destination is required')
+    .uuid('Destination is required')
     .required()
     .test(
       'checkConnectionUnique',
@@ -105,6 +106,14 @@ export function toJobDestinationOptions(
             }),
             initTableSchema: values.destinationOptions.initTableSchema,
           }),
+        },
+      });
+    }
+    case 'awsS3Config': {
+      return new JobDestinationOptions({
+        config: {
+          case: 'awsS3Options',
+          value: new AwsS3DestinationConnectionOptions({}),
         },
       });
     }

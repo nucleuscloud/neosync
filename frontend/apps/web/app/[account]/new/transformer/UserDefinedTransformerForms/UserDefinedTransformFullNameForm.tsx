@@ -13,7 +13,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function CustomTransformFullNameForm(
+export default function UserDefinedTransformFullNameForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext();
@@ -24,7 +24,7 @@ export default function CustomTransformFullNameForm(
         name={`config.config.value.preserveLength`}
         control={fc.control}
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Preserve Length</FormLabel>
               <FormDescription className="w-[90%]">
