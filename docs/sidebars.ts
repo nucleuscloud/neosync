@@ -75,6 +75,11 @@ const sidebars: SidebarsConfig = {
         },
         {
           type: 'doc',
+          id: 'cli/installing',
+          label: 'Installing',
+        },
+        {
+          type: 'doc',
           id: 'cli/login',
           label: 'login',
         },
