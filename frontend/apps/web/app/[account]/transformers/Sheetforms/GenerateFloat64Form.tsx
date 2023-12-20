@@ -6,6 +6,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -70,6 +71,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                 }}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -94,6 +96,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                 }}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -118,6 +121,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                 }}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />

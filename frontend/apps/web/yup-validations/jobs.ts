@@ -29,14 +29,9 @@ export type JobMappingTransformerForm = Yup.InferType<
 export function convertJobMappingTransformerToForm(
   jmt: JobMappingTransformer
 ): JobMappingTransformerForm {
-  let config = jmt.config?.config ?? { case: '', value: {} };
-  // handles: { case: undefined; value?: undefined };
-  if (!config.case) {
-    config = { case: '', value: {} };
-  }
   return {
     source: jmt.source,
-    config: config,
+    config: convertTransformerConfigToForm(jmt.config),
   };
 }
 export function convertJobMappingTransformerFormToJobMappingTransformer(
@@ -44,9 +39,25 @@ export function convertJobMappingTransformerFormToJobMappingTransformer(
 ): JobMappingTransformer {
   return new JobMappingTransformer({
     source: form.source,
-    config: TransformerConfig.fromJson({
-      [form.config.case ?? '']: form.config.value,
-    }),
+    config: convertTransformerConfigSchemaToTransformerConfig(form.config),
+  });
+}
+
+export function convertTransformerConfigToForm(
+  tc?: TransformerConfig
+): TransformerConfigSchema {
+  const config = tc?.config ?? { case: '', value: {} };
+  if (!config.case) {
+    return { case: '', value: {} };
+  }
+  return config;
+}
+
+export function convertTransformerConfigSchemaToTransformerConfig(
+  tcs: TransformerConfigSchema
+): TransformerConfig {
+  return TransformerConfig.fromJson({
+    [tcs.case ?? '']: tcs.value,
   });
 }
 

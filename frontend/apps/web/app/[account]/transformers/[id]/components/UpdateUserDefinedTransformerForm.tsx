@@ -19,6 +19,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
+import {
+  convertTransformerConfigSchemaToTransformerConfig,
+  convertTransformerConfigToForm,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   TransformerConfig,
@@ -47,7 +51,7 @@ export default function UpdateUserDefinedTransformerForm(
       source: '',
       description: '',
       id: '',
-      config: { config: { case: '', value: {} } },
+      config: convertTransformerConfigToForm(new TransformerConfig()),
     },
     values: {
       name: currentTransformer?.name ?? '',
@@ -56,10 +60,8 @@ export default function UpdateUserDefinedTransformerForm(
       type: currentTransformer?.dataType ?? '',
       id: currentTransformer?.id ?? '',
       config: {
-        config: {
-          case: currentTransformer?.config?.config.case,
-          value: currentTransformer?.config?.config.value ?? {},
-        },
+        case: currentTransformer?.config?.config.case,
+        value: currentTransformer?.config?.config.value ?? {},
       },
     },
     context: { name: currentTransformer?.name, accountId: account?.id ?? '' },
@@ -178,7 +180,9 @@ async function updateCustomTransformer(
     transformerId: transformerId,
     name: formData.name,
     description: formData.description,
-    transformerConfig: formData.config as TransformerConfig,
+    transformerConfig: convertTransformerConfigSchemaToTransformerConfig(
+      formData.config
+    ),
   });
 
   const res = await fetch(

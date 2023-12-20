@@ -27,6 +27,10 @@ import { toast } from '@/components/ui/use-toast';
 import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import {
+  convertTransformerConfigSchemaToTransformerConfig,
+  convertTransformerConfigToForm,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CreateUserDefinedTransformerRequest,
@@ -42,7 +46,6 @@ import { handleUserDefinedTransformerForm } from './UserDefinedTransformerForms/
 import {
   CREATE_USER_DEFINED_TRANSFORMER_SCHEMA,
   CreateUserDefinedTransformerSchema,
-  YupTransformerConfig,
 } from './schema';
 
 export default function NewTransformer(): ReactElement {
@@ -59,7 +62,7 @@ export default function NewTransformer(): ReactElement {
       name: '',
       source: '',
       type: '',
-      config: new TransformerConfig(),
+      config: convertTransformerConfigToForm(new TransformerConfig()),
       description: '',
     },
     context: { accountId: account?.id ?? '' },
@@ -135,7 +138,7 @@ export default function NewTransformer(): ReactElement {
                                 field.onChange(t.source);
                                 form.setValue(
                                   'config',
-                                  t.config as YupTransformerConfig
+                                  convertTransformerConfigToForm(t.config)
                                 );
                                 form.setValue('type', t.dataType);
                                 setBase(t ?? new SystemTransformer({}));
@@ -238,7 +241,9 @@ async function createNewTransformer(
     description: formData.description,
     type: formData.type,
     source: formData.source,
-    transformerConfig: formData.config as TransformerConfig,
+    transformerConfig: convertTransformerConfigSchemaToTransformerConfig(
+      formData.config
+    ),
   });
 
   const res = await fetch(

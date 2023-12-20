@@ -38,7 +38,7 @@ const generateE164PhoneNumberConfig = Yup.object().shape({
 const generateFloat64Config = Yup.object().shape({
   randomizeSign: Yup.bool(),
   min: Yup.number().required('This field is required.'),
-  max: Yup.number().required('This field is required.'),
+  max: Yup.number().max(10).required('This field is required.'),
 });
 
 const generateGenderConfig = Yup.object().shape({

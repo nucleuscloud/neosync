@@ -10,6 +10,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
+import {
+  CreateUserDefinedTransformerSchema,
+  UpdateUserDefinedTransformer,
+} from '../schema';
 
 interface Props {
   isDisabled?: boolean;
@@ -18,13 +22,15 @@ interface Props {
 export default function UserDefinedTransformFloat64Form(
   props: Props
 ): ReactElement {
-  const fc = useFormContext();
+  const fc = useFormContext<
+    UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
+  >();
   const { isDisabled } = props;
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`config.config.value.randomizationRangeMin`}
+        name={`config.value.randomizationRangeMin`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
@@ -60,7 +66,7 @@ export default function UserDefinedTransformFloat64Form(
         )}
       />
       <FormField
-        name={`config.config.value.randomizationRangeMax`}
+        name={`config.value.randomizationRangeMax`}
         control={fc.control}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
