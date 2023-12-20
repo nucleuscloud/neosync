@@ -40,7 +40,7 @@ export const SCHEMA_FORM_SCHEMA = Yup.object({
 });
 
 export const SOURCE_FORM_SCHEMA = Yup.object({
-  sourceId: Yup.string().uuid('source is required').required(),
+  sourceId: Yup.string().uuid('Source is required').required(),
   sourceOptions: Yup.object({
     haltOnNewColumnAddition: Yup.boolean().optional(),
   }),
@@ -48,7 +48,7 @@ export const SOURCE_FORM_SCHEMA = Yup.object({
 
 export const DESTINATION_FORM_SCHEMA = Yup.object({
   connectionId: Yup.string()
-    .uuid('destination is required')
+    .uuid('Destination is required')
     .required()
     .test(
       'checkConnectionUnique',

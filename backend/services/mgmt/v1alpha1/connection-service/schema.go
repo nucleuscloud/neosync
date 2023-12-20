@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"connectrpc.com/connect"
 	_ "github.com/go-sql-driver/mysql"
@@ -81,10 +82,12 @@ func (s *Service) GetConnectionSchema(
 			logger.Error(fmt.Errorf("failed to close sql connection: %w", err).Error())
 		}
 	}()
+	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+	defer cancel()
 
 	switch connCfg.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		dbSchema, err := getDatabaseSchema(ctx, conn, getPostgresTableSchemaSql)
+		dbSchema, err := getDatabaseSchema(cctx, conn, getPostgresTableSchemaSql)
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +97,7 @@ func (s *Service) GetConnectionSchema(
 		}), nil
 
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		dbSchema, err := getDatabaseSchema(ctx, conn, getMysqlTableSchemaSql)
+		dbSchema, err := getDatabaseSchema(cctx, conn, getMysqlTableSchemaSql)
 		if err != nil {
 			return nil, err
 		}

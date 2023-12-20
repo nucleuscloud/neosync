@@ -91,6 +91,9 @@ const (
 	JobServiceCreateJobRunProcedure = "/mgmt.v1alpha1.JobService/CreateJobRun"
 	// JobServiceCancelJobRunProcedure is the fully-qualified name of the JobService's CancelJobRun RPC.
 	JobServiceCancelJobRunProcedure = "/mgmt.v1alpha1.JobService/CancelJobRun"
+	// JobServiceTerminateJobRunProcedure is the fully-qualified name of the JobService's
+	// TerminateJobRun RPC.
+	JobServiceTerminateJobRunProcedure = "/mgmt.v1alpha1.JobService/TerminateJobRun"
 )
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
@@ -118,6 +121,7 @@ type JobServiceClient interface {
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
+	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -245,6 +249,11 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			baseURL+JobServiceCancelJobRunProcedure,
 			opts...,
 		),
+		terminateJobRun: connect.NewClient[v1alpha1.TerminateJobRunRequest, v1alpha1.TerminateJobRunResponse](
+			httpClient,
+			baseURL+JobServiceTerminateJobRunProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -273,6 +282,7 @@ type jobServiceClient struct {
 	deleteJobRun                     *connect.Client[v1alpha1.DeleteJobRunRequest, v1alpha1.DeleteJobRunResponse]
 	createJobRun                     *connect.Client[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse]
 	cancelJobRun                     *connect.Client[v1alpha1.CancelJobRunRequest, v1alpha1.CancelJobRunResponse]
+	terminateJobRun                  *connect.Client[v1alpha1.TerminateJobRunRequest, v1alpha1.TerminateJobRunResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -390,6 +400,11 @@ func (c *jobServiceClient) CancelJobRun(ctx context.Context, req *connect.Reques
 	return c.cancelJobRun.CallUnary(ctx, req)
 }
 
+// TerminateJobRun calls mgmt.v1alpha1.JobService.TerminateJobRun.
+func (c *jobServiceClient) TerminateJobRun(ctx context.Context, req *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error) {
+	return c.terminateJobRun.CallUnary(ctx, req)
+}
+
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
 type JobServiceHandler interface {
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
@@ -415,6 +430,7 @@ type JobServiceHandler interface {
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
+	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -538,6 +554,11 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		svc.CancelJobRun,
 		opts...,
 	)
+	jobServiceTerminateJobRunHandler := connect.NewUnaryHandler(
+		JobServiceTerminateJobRunProcedure,
+		svc.TerminateJobRun,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceGetJobsProcedure:
@@ -586,6 +607,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceCreateJobRunHandler.ServeHTTP(w, r)
 		case JobServiceCancelJobRunProcedure:
 			jobServiceCancelJobRunHandler.ServeHTTP(w, r)
+		case JobServiceTerminateJobRunProcedure:
+			jobServiceTerminateJobRunHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -685,4 +708,8 @@ func (UnimplementedJobServiceHandler) CreateJobRun(context.Context, *connect.Req
 
 func (UnimplementedJobServiceHandler) CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.CancelJobRun is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.TerminateJobRun is not implemented"))
 }

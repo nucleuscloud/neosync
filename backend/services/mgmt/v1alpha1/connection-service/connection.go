@@ -419,7 +419,9 @@ func (s *Service) GetConnectionForeignConstraints(
 		if err != nil {
 			return nil, err
 		}
-		allConstraints, err := getAllPostgresFkConstraints(pgquerier, ctx, pool, schemas)
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
+		allConstraints, err := getAllPostgresFkConstraints(pgquerier, cctx, pool, schemas)
 		if err != nil {
 			return nil, err
 		}
@@ -436,7 +438,9 @@ func (s *Service) GetConnectionForeignConstraints(
 				logger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
 			}
 		}()
-		allConstraints, err := getAllMysqlFkConstraints(mysqlquerier, ctx, conn, schemas)
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
+		allConstraints, err := getAllMysqlFkConstraints(mysqlquerier, cctx, conn, schemas)
 		if err != nil {
 			return nil, err
 		}
@@ -496,10 +500,12 @@ func (s *Service) GetConnectionInitStatements(
 		if err != nil {
 			return nil, err
 		}
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
 		for k, v := range schemaTableMap {
 			statements := []string{}
 			if req.Msg.Options.InitSchema {
-				stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, pool, pgquerier, v.Schema, v.Table)
+				stmt, err := dbschemas_postgres.GetTableCreateStatement(cctx, pool, pgquerier, v.Schema, v.Table)
 				if err != nil {
 					return nil, err
 				}
@@ -525,10 +531,12 @@ func (s *Service) GetConnectionInitStatements(
 				logger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
 			}
 		}()
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
 		for k, v := range schemaTableMap {
 			statements := []string{}
 			if req.Msg.Options.InitSchema {
-				stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{
+				stmt, err := dbschemas_mysql.GetTableCreateStatement(cctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{
 					Schema: v.Schema,
 					Table:  v.Table,
 				})

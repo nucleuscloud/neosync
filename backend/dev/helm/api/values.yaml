@@ -43,7 +43,7 @@ auth:
 temporal:
   url: temporal.temporal:7233
   namespace: default
-  taskQueue: 'sync-job'
+  taskQueue: "sync-job"
 
 ingress:
   enabled: false

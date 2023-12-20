@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useGetAccountApiKeys } from '@/libs/hooks/useGetAccountApiKeys';
 import { PlusIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { getColumns } from './components/ApiKeysTable/columns';
 import { DataTable } from './components/ApiKeysTable/data-table';
 
@@ -30,18 +30,22 @@ function ApiKeyTable(props: ApiKeyTableProps): ReactElement {
   const { account } = useAccount();
   const { isLoading, data, mutate } = useGetAccountApiKeys(account?.id ?? '');
 
+  const columns = useMemo(
+    () =>
+      getColumns({
+        accountName: account?.name ?? '',
+        onDeleted() {
+          mutate();
+        },
+      }),
+    [account?.name ?? '']
+  );
+
   if (isLoading) {
     return <SkeletonTable />;
   }
 
   const apiKeys = data?.apiKeys ?? [];
-
-  const columns = getColumns({
-    accountName: account?.name ?? '',
-    onDeleted() {
-      mutate();
-    },
-  });
 
   return (
     <div>

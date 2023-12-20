@@ -11,7 +11,12 @@ import {
 } from '@radix-ui/react-icons';
 import React, { ReactElement } from 'react';
 import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
-import { BiLogInCircle, BiLogoPostgresql, BiTerminal } from 'react-icons/bi';
+import {
+  BiDownload,
+  BiLogInCircle,
+  BiLogoPostgresql,
+  BiTerminal,
+} from 'react-icons/bi';
 import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
 import { FaAws, FaDocker, FaFolder, FaKey } from 'react-icons/fa';
 import { GoLightBulb, GoSync } from 'react-icons/go';
@@ -72,6 +77,8 @@ export function IconHandler(name: string): ReactElement {
       return <GoTable />;
     case 'login':
       return <BiLogInCircle />;
+    case 'Installing':
+      return <BiDownload />;
     case 'whoami':
       return <AvatarIcon />;
     case 'jobs':

@@ -2,6 +2,7 @@
 import JobRunStatus from '@/app/[account]/runs/components/JobRunStatus';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -74,7 +75,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
       ) : (
         <div>
           <div className="flex flex-row items-center px-2">
-            <CardTitle className="py-6">Recent Job Runs</CardTitle>
+            <CardTitle className="py-6 pl-4">Recent Job Runs</CardTitle>
             <Button
               className={
                 isValidating || jobRunsValidating ? 'animate-spin' : ''
@@ -88,9 +89,9 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
             </Button>
           </div>
           <Table className="pt-5">
-            <TableHeader className="bg-gray-100 dark:bg-gray-800">
+            <TableHeader className="bg-gray-100 dark:bg-gray-800 ">
               <TableRow>
-                <TableHead>Run Id</TableHead>
+                <TableHead className="pl-6">Run Id</TableHead>
                 <TableHead>Start At</TableHead>
                 <TableHead>Completed At</TableHead>
                 <TableHead>Status</TableHead>
@@ -102,13 +103,17 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                 const jobRun = jobRunsIdMap[r.jobRunId];
                 return (
                   <TableRow key={r.jobRunId}>
-                    <TableCell>
-                      <Link
-                        className="hover:underline"
-                        href={`/${account?.name}/runs/${r.jobRunId}`}
-                      >
+                    <TableCell className="pl-6">
+                      {jobRun ? (
+                        <Link
+                          className="hover:underline"
+                          href={`/${account?.name}/runs/${r.jobRunId}`}
+                        >
+                          <span className="font-medium">{r.jobRunId}</span>
+                        </Link>
+                      ) : (
                         <span className="font-medium">{r.jobRunId}</span>
-                      </Link>
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">
@@ -122,7 +127,11 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">
-                        {jobRun && <JobRunStatus status={jobRun.status} />}
+                        {jobRun ? (
+                          <JobRunStatus status={jobRun.status} />
+                        ) : (
+                          <Badge className="bg-gray-600">Archived</Badge>
+                        )}
                       </span>
                     </TableCell>
                     <TableCell>

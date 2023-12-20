@@ -1,7 +1,6 @@
 'use client';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -33,31 +32,27 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
   }
 
   return (
-    <Card>
+    <div>
       {!data?.nextRuns || error ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
         </Alert>
       ) : (
         <div>
-          <Table className="pt-5">
+          <Table>
             <TableHeader className="bg-gray-100 dark:bg-gray-800">
               <TableRow>
-                <TableHead>Upcoming Runs</TableHead>
+                <TableHead className="pl-4">Upcoming Runs</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {status && data?.nextRuns?.nextRunTimes.length == 0 && (
-                <TableRow>
+              {(status && status == JobStatus.PAUSED) ||
+              data?.nextRuns?.nextRunTimes.length == 0 ? (
+                <TableRow className="hover:bg-background">
                   <TableCell>
-                    <span className="font-medium">No upcoming runs</span>
-                  </TableCell>
-                </TableRow>
-              )}
-              {status && status == JobStatus.PAUSED ? (
-                <TableRow>
-                  <TableCell>
-                    <span className="font-medium">No upcoming runs</span>
+                    <span className="font-medium justify-center flex pt-20">
+                      No upcoming runs
+                    </span>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -77,6 +72,6 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
           </Table>
         </div>
       )}
-    </Card>
+    </div>
   );
 }

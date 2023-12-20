@@ -93,7 +93,7 @@ function JobCard(props: JobCardProps): ReactElement {
   const { name, description, href, icon } = props;
   return (
     <Link href={href}>
-      <Card className="cursor-pointer">
+      <Card className="cursor-pointer hover:border hover:border-gray-500">
         <CardHeader>
           <CardTitle>
             <div className="flex flex-row items-center gap-2">

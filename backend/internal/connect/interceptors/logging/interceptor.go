@@ -48,6 +48,8 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 				fields = append(fields, "connect.code", connect.CodeInternal.String())
 			}
 
+			i.logger.Error(err.Error())
+
 			i.logger.Info(
 				"finished call",
 				fields...,

@@ -107,7 +107,7 @@ function ApiKeyDetails(props: ApiKeyDetailsProps): ReactElement {
           </div>
         </Alert>
       )}
-      <div className="flex flex-col gap-6 rounded-xl border border-gray-200 p-4">
+      <div className="flex flex-col gap-6 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         {keyValue && (
           <div className="flex flex-row gap-3">
             <Input value={keyValue} disabled={true} />

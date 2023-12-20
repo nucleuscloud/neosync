@@ -42,13 +42,12 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
-  Passthrough,
   TransformerConfig,
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { SchemaMap, getColumnMapping } from './DataSyncConnectionCard';
 import { getFkIdFromGenerateSource } from './util';
@@ -67,8 +66,21 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     isLoading: isJobLoading,
   } = useGetJob(account?.id ?? '', jobId);
   const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
-  const { data: schema, isLoading: isGetConnectionsSchemaLoading } =
-    useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
+  const {
+    data: schema,
+    isLoading: isGetConnectionsSchemaLoading,
+    error,
+  } = useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Unable to get connection schema',
+        description: getErrorMessage(error),
+        variant: 'destructive',
+      });
+    }
+  }, [error]);
 
   const allJobMappings =
     schema?.schemas.map((r) => {
@@ -298,49 +310,19 @@ function getJobSource(
       schemaMap[c.schema] = {
         [c.table]: {
           [c.column]: {
-            transformer:
-              c?.transformer ??
-              new JobMappingTransformer({
-                source: 'passthrough',
-                config: new TransformerConfig({
-                  config: {
-                    case: 'passthroughConfig',
-                    value: new Passthrough({}),
-                  },
-                }),
-              }),
+            transformer: c?.transformer ?? new JobMappingTransformer({}),
           },
         },
       };
     } else if (!schemaMap[c.schema][c.table]) {
       schemaMap[c.schema][c.table] = {
         [c.column]: {
-          transformer:
-            c?.transformer ??
-            new JobMappingTransformer({
-              source: 'passthrough',
-              config: new TransformerConfig({
-                config: {
-                  case: 'passthroughConfig',
-                  value: new Passthrough({}),
-                },
-              }),
-            }),
+          transformer: c?.transformer ?? new JobMappingTransformer({}),
         },
       };
     } else {
       schemaMap[c.schema][c.table][c.column] = {
-        transformer:
-          c.transformer ??
-          new JobMappingTransformer({
-            source: 'passthrough',
-            config: new TransformerConfig({
-              config: {
-                case: 'passthroughConfig',
-                value: new Passthrough({}),
-              },
-            }),
-          }),
+        transformer: c.transformer ?? new JobMappingTransformer({}),
       };
     }
   });
@@ -355,16 +337,7 @@ function getJobSource(
         c.column
       );
       const transformer =
-        colMapping?.transformer ??
-        new JobMappingTransformer({
-          source: 'passthrough',
-          config: new TransformerConfig({
-            config: {
-              case: 'passthroughConfig',
-              value: new Passthrough({}),
-            },
-          }),
-        });
+        colMapping?.transformer ?? new JobMappingTransformer({});
 
       return {
         column: c.column,

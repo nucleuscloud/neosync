@@ -376,6 +376,34 @@ func (s *Service) CancelJobRun(
 	return connect.NewResponse(&mgmtv1alpha1.CancelJobRunResponse{}), nil
 }
 
+func (s *Service) TerminateJobRun(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.TerminateJobRunRequest],
+) (*connect.Response[mgmtv1alpha1.TerminateJobRunResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobRunId", req.Msg.JobRunId)
+	verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Info("terminating job run")
+	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, verifResp.NeosyncAccountId, logger)
+	if err != nil {
+		return nil, err
+	}
+	err = tclient.TerminateWorkflow(
+		ctx,
+		verifResp.WorkflowExecution.Execution.WorkflowId,
+		verifResp.WorkflowExecution.Execution.RunId,
+		"terminating run",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to terminate job run: %w", err)
+	}
+	return connect.NewResponse(&mgmtv1alpha1.TerminateJobRunResponse{}), nil
+}
+
 func (s *Service) DeleteJobRun(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.DeleteJobRunRequest],

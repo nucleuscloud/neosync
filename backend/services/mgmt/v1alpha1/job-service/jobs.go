@@ -302,7 +302,7 @@ func (s *Service) CreateJob(
 	req *connect.Request[mgmtv1alpha1.CreateJobRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobName", req.Msg.JobName)
+	logger = logger.With("jobName", req.Msg.JobName, "accountId", req.Msg.AccountId)
 
 	accountUuid, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
@@ -331,6 +331,7 @@ func (s *Service) CreateJob(
 		connectionUuids = append(connectionUuids, destUuid)
 	}
 
+	logger.Info("verifying connections")
 	count, err := s.db.Q.AreConnectionsInAccount(ctx, s.db.Db, db_queries.AreConnectionsInAccountParams{
 		AccountId:     *accountUuid,
 		ConnectionIds: connectionUuids,
@@ -339,6 +340,7 @@ func (s *Service) CreateJob(
 		return nil, err
 	}
 	if count != int64(len(connectionUuids)) {
+		logger.Error("connection is not in account")
 		return nil, nucleuserrors.NewForbidden("provided connection id is not in account")
 	}
 
@@ -354,6 +356,7 @@ func (s *Service) CreateJob(
 	}
 
 	if !verifyConnectionIdsUnique(connectionIds) {
+		logger.Error("connection ids are not unqiue")
 		return nil, nucleuserrors.NewBadRequest("connections ids are not unique")
 	}
 
@@ -424,11 +427,15 @@ func (s *Service) CreateJob(
 		})
 	}
 
+	logger.Info("verifying temporal workspace")
 	hasNs, err := s.temporalWfManager.DoesAccountHaveTemporalWorkspace(ctx, req.Msg.AccountId, logger)
 	if err != nil {
-		return nil, err
+		wrappedErr := fmt.Errorf("unable to verify account's temporal workspace. error: %w", err)
+		logger.Error(wrappedErr.Error())
+		return nil, wrappedErr
 	}
 	if !hasNs {
+		logger.Error("temporal namespace not configured")
 		return nil, nucleuserrors.NewBadRequest("must first configure temporal namespace in account settings")
 	}
 
@@ -445,6 +452,7 @@ func (s *Service) CreateJob(
 	if err != nil {
 		return nil, fmt.Errorf("unable to create job: %w", err)
 	}
+	logger.Info("created job", "jobId", cj.ID)
 
 	tScheduleClient, err := s.temporalWfManager.GetScheduleClientByAccount(ctx, req.Msg.AccountId, logger)
 	if err != nil {
