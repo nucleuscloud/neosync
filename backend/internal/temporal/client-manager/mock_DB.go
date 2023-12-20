@@ -30,10 +30,6 @@ func (_m *MockDB) EXPECT() *MockDB_Expecter {
 func (_m *MockDB) GetTemporalConfigByAccount(ctx context.Context, db db_queries.DBTX, accountId pgtype.UUID) (*pg_models.TemporalConfig, error) {
 	ret := _m.Called(ctx, db, accountId)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetTemporalConfigByAccount")
-	}
-
 	var r0 *pg_models.TemporalConfig
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, db_queries.DBTX, pgtype.UUID) (*pg_models.TemporalConfig, error)); ok {

@@ -29,10 +29,6 @@ func (_m *MockDBTX) ExecContext(_a0 context.Context, _a1 string, _a2 ...interfac
 	_ca = append(_ca, _a2...)
 	ret := _m.Called(_ca...)
 
-	if len(ret) == 0 {
-		panic("no return value specified for ExecContext")
-	}
-
 	var r0 sql.Result
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, ...interface{}) (sql.Result, error)); ok {
@@ -96,10 +92,6 @@ func (_c *MockDBTX_ExecContext_Call) RunAndReturn(run func(context.Context, stri
 func (_m *MockDBTX) PrepareContext(_a0 context.Context, _a1 string) (*sql.Stmt, error) {
 	ret := _m.Called(_a0, _a1)
 
-	if len(ret) == 0 {
-		panic("no return value specified for PrepareContext")
-	}
-
 	var r0 *sql.Stmt
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (*sql.Stmt, error)); ok {
@@ -157,10 +149,6 @@ func (_m *MockDBTX) QueryContext(_a0 context.Context, _a1 string, _a2 ...interfa
 	_ca = append(_ca, _a0, _a1)
 	_ca = append(_ca, _a2...)
 	ret := _m.Called(_ca...)
-
-	if len(ret) == 0 {
-		panic("no return value specified for QueryContext")
-	}
 
 	var r0 *sql.Rows
 	var r1 error
@@ -227,10 +215,6 @@ func (_m *MockDBTX) QueryRowContext(_a0 context.Context, _a1 string, _a2 ...inte
 	_ca = append(_ca, _a0, _a1)
 	_ca = append(_ca, _a2...)
 	ret := _m.Called(_ca...)
-
-	if len(ret) == 0 {
-		panic("no return value specified for QueryRowContext")
-	}
 
 	var r0 *sql.Row
 	if rf, ok := ret.Get(0).(func(context.Context, string, ...interface{}) *sql.Row); ok {
