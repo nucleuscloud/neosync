@@ -11,7 +11,7 @@ import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import {
   SCHEMA_FORM_SCHEMA,
   SchemaFormValues,
-  TransformerFormValues,
+  convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -118,38 +118,26 @@ function getFormValues(
   dbCols: DatabaseColumn[],
   existingData: SchemaFormValues | undefined
 ): SchemaFormValues {
-  // set values from the session data if they're available
-  // this helps retain data from page to page and across saves before the data is submitted
-  const existingDataMappings = existingData?.mappings ?? [];
-  if (existingDataMappings.length > 0) {
-    const mappings = existingDataMappings.map((r) => {
-      var pt = JobMappingTransformer.fromJson(
-        r.transformer
-      ) as TransformerFormValues;
-      return {
-        ...r,
-        transformer: pt,
-      };
-    });
-
-    return { mappings };
-  } else {
-    const mappings = dbCols.map((r) => {
-      var pt = new JobMappingTransformer({
-        source: 'passthrough',
-        config: new TransformerConfig({
-          config: {
-            case: 'passthroughConfig',
-            value: new Passthrough({}),
-          },
-        }),
-      }) as TransformerFormValues;
-
-      return {
-        ...r,
-        transformer: pt,
-      };
-    });
-    return { mappings };
+  if (existingData) {
+    return existingData;
   }
+
+  return {
+    mappings: dbCols.map((r) => {
+      return {
+        ...r,
+        transformer: convertJobMappingTransformerToForm(
+          new JobMappingTransformer({
+            source: 'passthrough',
+            config: new TransformerConfig({
+              config: {
+                case: 'passthroughConfig',
+                value: new Passthrough({}),
+              },
+            }),
+          })
+        ),
+      };
+    }),
+  };
 }

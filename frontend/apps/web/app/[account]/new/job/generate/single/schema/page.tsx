@@ -30,7 +30,9 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { getErrorMessage } from '@/util/util';
 import {
   JobMappingFormValues,
-  TransformerFormValues,
+  JobMappingTransformerForm,
+  convertJobMappingTransformerFormToJobMappingTransformer,
+  convertJobMappingTransformerToForm,
   toJobDestinationOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -133,7 +135,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setIsClient(true);
   }, []);
 
-  async function onSubmit(_values: SingleTableSchemaFormValues) {
+  async function onSubmit(values: SingleTableSchemaFormValues) {
     if (!account) {
       return;
     }
@@ -141,8 +143,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       const job = await createNewJob(
         defineFormValues,
         connectFormValues,
-        // using this instead of form values because the transformer object is really messed up. It is a combination of both the class and json version and it's really difficult to parse
-        schemaFormData,
+        values,
         account.id,
         connections
       );
@@ -263,7 +264,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   column: s.column,
                                   dataType: s.dataType,
                                   transformer:
-                                    newDefaultJobMappingTransformer() as TransformerFormValues,
+                                    newDefaultJobMappingTransformerForm(),
                                 };
                               })
                           );
@@ -357,15 +358,13 @@ async function createNewJob(
     cronSchedule: define.cronSchedule,
     initiateJobRun: define.initiateJobRun,
     mappings: schema.mappings.map((m) => {
-      const jmt =
-        m.transformer instanceof JobMappingTransformer
-          ? m.transformer
-          : JobMappingTransformer.fromJson(m.transformer);
       return new JobMapping({
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: jmt,
+        transformer: convertJobMappingTransformerFormToJobMappingTransformer(
+          m.transformer
+        ),
       });
     }),
     source: new JobSource({
@@ -441,21 +440,12 @@ function getFormValues(
     .map((dbCol) => {
       return {
         ...dbCol,
-        transformer: newDefaultJobMappingTransformer() as TransformerFormValues,
+        transformer: newDefaultJobMappingTransformerForm(),
       };
     });
-  const existingMappings = (existingData?.mappings ?? [])
-    .filter((mapping) => mapping.schema === schema && mapping.table === table)
-    .map((mapping) => {
-      return {
-        ...mapping,
-        transformer: (mapping.transformer instanceof JobMappingTransformer
-          ? mapping.transformer
-          : JobMappingTransformer.fromJson(
-              mapping.transformer
-            )) as TransformerFormValues,
-      };
-    });
+  const existingMappings = (existingData?.mappings ?? []).filter(
+    (mapping) => mapping.schema === schema && mapping.table === table
+  );
   const mappingMap = new Map<string, JobMappingFormValues>();
   defaultMappings.forEach((mapping) =>
     mappingMap.set(
@@ -477,6 +467,6 @@ function getFormValues(
   };
 }
 
-function newDefaultJobMappingTransformer(): JobMappingTransformer {
-  return new JobMappingTransformer({});
+function newDefaultJobMappingTransformerForm(): JobMappingTransformerForm {
+  return convertJobMappingTransformerToForm(new JobMappingTransformer({}));
 }

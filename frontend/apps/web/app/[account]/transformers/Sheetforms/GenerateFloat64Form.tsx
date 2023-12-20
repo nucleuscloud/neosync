@@ -9,8 +9,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { GenerateFloat64 } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 interface Props {
   index?: number;
   setIsSheetOpen?: (val: boolean) => void;
@@ -22,41 +23,36 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
   const fc = useFormContext();
 
   const s = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.randomizeSign`
+    `mappings.${index}.transformer.config.value.randomizeSign`
   );
   const [sign, setSign] = useState<boolean>(s);
 
   const minValue = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.min`
+    `mappings.${index}.transformer.config.value.min`
   );
   const [min, setMin] = useState<number>(minValue);
 
-  const maxVal = fc.getValues(
-    `mappings.${index}.transformer.config.config.value.max`
-  );
+  const maxVal = fc.getValues(`mappings.${index}.transformer.config.value.max`);
   const [max, setMax] = useState<number>(maxVal);
 
   const handleSubmit = () => {
     fc.setValue(
-      `mappings.${index}.transformer.config.config.value.randomizeSign`,
-      sign,
+      `mappings.${index}.transformer.config.value`,
+      new GenerateFloat64({
+        randomizeSign: sign,
+        min,
+        max,
+      }),
       {
         shouldValidate: false,
       }
     );
-    fc.setValue(`mappings.${index}.transformer.config.config.value.min`, min, {
-      shouldValidate: false,
-    });
-    fc.setValue(`mappings.${index}.transformer.config.config.value.max`, max, {
-      shouldValidate: false,
-    });
     setIsSheetOpen!(false);
   };
-
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
-      <Controller
-        name={`mappings.${index}.transformer.config.config.value.randomizeSign`}
+      <FormField
+        name={`mappings.${index}.transformer.config.value.randomizeSign`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0 z-10">
@@ -70,7 +66,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
               <Switch
                 checked={sign}
                 onCheckedChange={() => {
-                  sign ? setSign(false) : setSign(true);
+                  setSign(!sign);
                 }}
               />
             </FormControl>
@@ -78,7 +74,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.min`}
+        name={`mappings.${index}.transformer.config.value.min`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -102,7 +98,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.config.value.max`}
+        name={`mappings.${index}.transformer.config.value.max`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">

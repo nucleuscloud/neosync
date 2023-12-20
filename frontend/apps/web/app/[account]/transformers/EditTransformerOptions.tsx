@@ -39,6 +39,7 @@ import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
   transformer: Transformer | undefined;
+  // mapping index
   index: number;
 }
 

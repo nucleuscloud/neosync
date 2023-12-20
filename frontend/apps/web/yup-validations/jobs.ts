@@ -1,24 +1,74 @@
 import { SubsetFormValues } from '@/app/[account]/new/job/schema';
-import { transformerConfig } from '@/app/[account]/new/transformer/schema';
 import {
   AwsS3DestinationConnectionOptions,
   Connection,
   JobDestinationOptions,
+  JobMappingTransformer,
   MysqlDestinationConnectionOptions,
   MysqlTruncateTableConfig,
   PostgresDestinationConnectionOptions,
   PostgresSourceSchemaOption,
   PostgresSourceTableOption,
   PostgresTruncateTableConfig,
+  TransformerConfig,
 } from '@neosync/sdk';
 import * as Yup from 'yup';
 
-const TRANSFORMER_SCHEMA = Yup.object().shape({
+// type ConfigType = TransformerConfig['config'];
+
+// // Helper function to extract the 'case' property from a config type
+// type ExtractCase<T> = T extends { case: infer U } ? U : never;
+// type ExtractTransformerConfigValue<T> = T extends { value: infer U }
+//   ? U
+//   : never;
+
+// // Computed type that extracts all case types from the config union
+// type TransformerConfigCase = ExtractCase<ConfigType>;
+// type TransformerConfigValue = ExtractTransformerConfigValue<ConfigType>;
+
+const JobMappingTransformerConfig = Yup.object({
+  case: Yup.string().required(),
+  value: Yup.object<any, any>(),
+});
+// Simplified version of a job mapping transformer config for use with react-hook-form only
+export type JobMappingTransformerConfig = Yup.InferType<
+  typeof JobMappingTransformerConfig
+>;
+
+// Yup schema form JobMappingTransformers
+const JobMappingTransformerForm = Yup.object({
   source: Yup.string().required(),
-  config: transformerConfig,
+  config: JobMappingTransformerConfig,
 });
 
-export type TransformerFormValues = Yup.InferType<typeof TRANSFORMER_SCHEMA>;
+// Simplified version of a job mapping transformer for use with react-hook-form only
+export type JobMappingTransformerForm = Yup.InferType<
+  typeof JobMappingTransformerForm
+>;
+
+export function convertJobMappingTransformerToForm(
+  jmt: JobMappingTransformer
+): JobMappingTransformerForm {
+  let config = jmt.config?.config ?? { case: '', value: {} };
+  // handles: { case: undefined; value?: undefined };
+  if (!config.case) {
+    config = { case: '', value: {} };
+  }
+  return {
+    source: jmt.source,
+    config: config,
+  };
+}
+export function convertJobMappingTransformerFormToJobMappingTransformer(
+  form: JobMappingTransformerForm
+): JobMappingTransformer {
+  return new JobMappingTransformer({
+    source: form.source,
+    config: TransformerConfig.fromJson({
+      [form.config.case]: form.config.value,
+    }),
+  });
+}
 
 export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;
 
@@ -27,7 +77,7 @@ export const JOB_MAPPING_SCHEMA = Yup.object({
   table: Yup.string().required(),
   column: Yup.string().required(),
   dataType: Yup.string().required(),
-  transformer: TRANSFORMER_SCHEMA,
+  transformer: JobMappingTransformerForm,
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
 
