@@ -161,15 +161,15 @@ type ConfigType = TransformerConfig['config'];
 type ExtractCase<T> = T extends { case: infer U } ? U : never;
 
 // Computed type that extracts all case types from the config union
-export type TransformerConfigCase = ExtractCase<ConfigType>;
+type TransformerConfigCase = ExtractCase<ConfigType>;
 
-export const EMPTY_TRANSFORMER_CONFIG = Yup.object({
+const EMPTY_TRANSFORMER_CONFIG = Yup.object({
   case: Yup.string(),
   value: Yup.object(),
 });
 
 // todo: this should be properly typed
-export const TRANSFORMER_SCHEMA_CONFIGS: Record<
+const TRANSFORMER_SCHEMA_CONFIGS: Record<
   NonNullable<TransformerConfigCase>,
   Yup.ObjectSchema<any> // eslint-disable-line @typescript-eslint/no-explicit-any
 > = {
