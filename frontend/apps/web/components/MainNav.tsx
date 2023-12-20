@@ -41,7 +41,7 @@ export function MainNav({
         <Link
           href={`/${account?.name}/jobs`}
           className={cn(
-            'text-sm font-medium text-muted-foreground transition-colors hover:text-white',
+            'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
             highlightPathName('/jobs')
               ? 'text-foreground'
               : 'text-foreground/60'
@@ -52,7 +52,7 @@ export function MainNav({
         <Link
           href={`/${account?.name}/runs`}
           className={cn(
-            'text-sm font-medium text-muted-foreground transition-colors hover:text-white',
+            'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
             highlightPathName('/run') ? 'text-foreground' : 'text-foreground/60'
           )}
         >
@@ -61,7 +61,7 @@ export function MainNav({
         <Link
           href={`/${account?.name}/transformers`}
           className={cn(
-            'text-sm font-medium text-muted-foreground transition-colors hover:text-white',
+            'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
             highlightPathName('/transformer')
               ? 'text-foreground'
               : 'text-foreground/60'
@@ -72,7 +72,7 @@ export function MainNav({
         <Link
           href={`/${account?.name}/connections`}
           className={cn(
-            'text-sm font-medium text-muted-foreground transition-colors hover:text-white',
+            'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
             highlightPathName('connection')
               ? 'text-foreground'
               : 'text-foreground/60'
@@ -84,7 +84,7 @@ export function MainNav({
         <Link
           href={`/${account?.name}/settings`}
           className={cn(
-            'text-sm font-medium text-muted-foreground transition-colors hover:text-white',
+            'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
             highlightPathName('/settings')
               ? 'text-foreground'
               : 'text-foreground/60'

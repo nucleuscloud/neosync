@@ -143,7 +143,7 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
       <div className="basis-1/6  pt-[45px] ">
         <VirtualizedTree data={treeData} onNodeSelect={onTreeFilterSelect} />
       </div>
-      <div className={`space-y-2 pl-8 basis-5/6`}>
+      <div className="space-y-2 pl-2 basis-5/6 ">
         <div className="flex items-center justify-between">
           <div className="w-[250px]">
             <TransformerSelect
@@ -188,17 +188,19 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
             <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </div>
-        <VirtualizedSchemaList
-          rows={rows}
-          allRows={data}
-          onSelect={onSelect}
-          onSelectAll={onSelectAll}
-          transformers={transformers}
-          bulkSelect={bulkSelect}
-          setBulkSelect={setBulkSelect}
-          columnFilters={columnFilters}
-          onFilterSelect={onFilterSelect}
-        />
+        <div>
+          <VirtualizedSchemaList
+            rows={rows}
+            allRows={data}
+            onSelect={onSelect}
+            onSelectAll={onSelectAll}
+            transformers={transformers}
+            bulkSelect={bulkSelect}
+            setBulkSelect={setBulkSelect}
+            columnFilters={columnFilters}
+            onFilterSelect={onFilterSelect}
+          />
+        </div>
       </div>
     </div>
   );
@@ -361,6 +363,9 @@ function VirtualizedSchemaList({
     [allRows, columnFilters]
   );
 
+  const sumOfRowHeights = 50 * rows.length;
+  const dynamicHeight = Math.min(sumOfRowHeights, 700);
+
   return (
     <div
       className={cn(`grid grid-col-1 border rounded-md dark:border-gray-700`)}
@@ -424,7 +429,8 @@ function VirtualizedSchemaList({
         </div>
         <div className="col-span-5"></div>
       </div>
-      <div className="h-[700px]">
+
+      <div style={{ height: dynamicHeight }}>
         <AutoSizer defaultHeight={700}>
           {({ height, width }) => (
             <List
