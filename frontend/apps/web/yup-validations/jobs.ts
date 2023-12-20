@@ -1,4 +1,5 @@
 import { SubsetFormValues } from '@/app/[account]/new/job/schema';
+import { TransformerConfigSchema } from '@/app/[account]/new/transformer/schema';
 import {
   AwsS3DestinationConnectionOptions,
   Connection,
@@ -14,31 +15,10 @@ import {
 } from '@neosync/sdk';
 import * as Yup from 'yup';
 
-// type ConfigType = TransformerConfig['config'];
-
-// // Helper function to extract the 'case' property from a config type
-// type ExtractCase<T> = T extends { case: infer U } ? U : never;
-// type ExtractTransformerConfigValue<T> = T extends { value: infer U }
-//   ? U
-//   : never;
-
-// // Computed type that extracts all case types from the config union
-// type TransformerConfigCase = ExtractCase<ConfigType>;
-// type TransformerConfigValue = ExtractTransformerConfigValue<ConfigType>;
-
-const JobMappingTransformerConfig = Yup.object({
-  case: Yup.string().required(),
-  value: Yup.object<any, any>(),
-});
-// Simplified version of a job mapping transformer config for use with react-hook-form only
-export type JobMappingTransformerConfig = Yup.InferType<
-  typeof JobMappingTransformerConfig
->;
-
 // Yup schema form JobMappingTransformers
 const JobMappingTransformerForm = Yup.object({
   source: Yup.string().required(),
-  config: JobMappingTransformerConfig,
+  config: TransformerConfigSchema,
 });
 
 // Simplified version of a job mapping transformer for use with react-hook-form only
@@ -65,7 +45,7 @@ export function convertJobMappingTransformerFormToJobMappingTransformer(
   return new JobMappingTransformer({
     source: form.source,
     config: TransformerConfig.fromJson({
-      [form.config.case]: form.config.value,
+      [form.config.case ?? '']: form.config.value,
     }),
   });
 }
