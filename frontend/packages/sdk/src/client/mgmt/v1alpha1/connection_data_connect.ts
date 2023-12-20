@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetConnectionDataSchemaRequest, GetConnectionDataSchemaResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse } from "./connection_data_pb.js";
+import { GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse } from "./connection_data_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -28,12 +28,38 @@ export const ConnectionDataService = {
       kind: MethodKind.ServerStreaming,
     },
     /**
-     * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionDataSchema
+     * Returns the schema for a specific connection. Used mostly for SQL-based connections
+     *
+     * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionSchema
      */
-    getConnectionDataSchema: {
-      name: "GetConnectionDataSchema",
-      I: GetConnectionDataSchemaRequest,
-      O: GetConnectionDataSchemaResponse,
+    getConnectionSchema: {
+      name: "GetConnectionSchema",
+      I: GetConnectionSchemaRequest,
+      O: GetConnectionSchemaResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
+     * Used primarily by the CLI sync command to determine stream order.
+     *
+     * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionForeignConstraints
+     */
+    getConnectionForeignConstraints: {
+      name: "GetConnectionForeignConstraints",
+      I: GetConnectionForeignConstraintsRequest,
+      O: GetConnectionForeignConstraintsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
+     * Used primarily by the CLI sync command to create table schema init statement.
+     *
+     * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionInitStatements
+     */
+    getConnectionInitStatements: {
+      name: "GetConnectionInitStatements",
+      I: GetConnectionInitStatementsRequest,
+      O: GetConnectionInitStatementsResponse,
       kind: MethodKind.Unary,
     },
   }
