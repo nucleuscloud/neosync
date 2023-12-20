@@ -430,8 +430,9 @@ func (s *Service) CreateJob(
 	logger.Info("verifying temporal workspace")
 	hasNs, err := s.temporalWfManager.DoesAccountHaveTemporalWorkspace(ctx, req.Msg.AccountId, logger)
 	if err != nil {
-		logger.Error("unable to verify account temporal workspace. error: %w", err)
-		return nil, err
+		wrappedErr := fmt.Errorf("unable to verify account's temporal workspace. error: %w", err)
+		logger.Error(wrappedErr.Error())
+		return nil, wrappedErr
 	}
 	if !hasNs {
 		logger.Error("temporal namespace not configured")
