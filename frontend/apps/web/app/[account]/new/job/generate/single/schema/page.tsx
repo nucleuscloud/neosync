@@ -39,7 +39,6 @@ import {
   CreateJobRequest,
   CreateJobResponse,
   DatabaseColumn,
-  GenerateDefault,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
@@ -48,7 +47,6 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
-  TransformerConfig,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
@@ -171,7 +169,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   const formValues = form.watch();
-  // console.log('form values', formValues);
   const schemaTableData = formValues.mappings ?? [];
 
   const uniqueSchemas = Array.from(
@@ -180,7 +177,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const schemaTableMap = getSchemaTableMap(connSchemaData?.schemas ?? []);
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
-  // console.log('schema table data', schemaTableData);
 
   return (
     <div className="flex flex-col gap-5">
@@ -480,60 +476,14 @@ function getFormValues(
       mapping
     )
   );
-  console.log('getFormValues mappings', Array.from(mappingMap.values()));
   return {
     numRows: existingData?.numRows ?? 10,
     schema,
     table,
     mappings: Array.from(mappingMap.values()),
   };
-  // const existingDataMappings = existingData?.mappings ?? [];
-  // if (existingDataMappings.length > 0) {
-  //   // pull values from default values for transformers if already set
-  //   return {
-  //     numRows: existingData?.numRows ?? 10,
-  //     schema: existingData?.schema ?? '',
-  //     table: existingData?.table ?? '',
-  //     mappings: existingDataMappings.map((r) => {
-  //       var pt = JobMappingTransformer.fromJson(
-  //         r.transformer
-  //       ) as TransformerFormValues;
-  //       return {
-  //         ...r,
-  //         transformer: pt,
-  //       };
-  //     }),
-  //   };
-  // } else {
-  //   return {
-  //     numRows: existingData?.numRows ?? 10,
-  //     schema: existingData?.schema ?? '',
-  //     table: existingData?.table ?? '',
-  //     mappings: dbCols
-  //       .filter(
-  //         (dbcol) =>
-  //           dbcol.schema === existingData?.schema &&
-  //           dbcol.table === existingData?.table
-  //       )
-  //       .map((r) => {
-  //         return {
-  //           ...r,
-  //           transformer:
-  //             newDefaultJobMappingTransformer() as TransformerFormValues,
-  //         };
-  //       }),
-  //   };
-  // }
 }
 
 function newDefaultJobMappingTransformer(): JobMappingTransformer {
-  return new JobMappingTransformer({
-    source: 'generate_default',
-    config: new TransformerConfig({
-      config: {
-        case: 'generateDefaultConfig',
-        value: new GenerateDefault(),
-      },
-    }),
-  });
+  return new JobMappingTransformer({});
 }
