@@ -119,6 +119,10 @@ export const Doc = defineDocumentType(() => ({
       required: false,
       default: false,
     },
+    show_child_cards: {
+      type: 'boolean',
+      default: false,
+    },
   },
   computedFields: {
     url: {

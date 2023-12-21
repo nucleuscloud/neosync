@@ -34,10 +34,10 @@ export default async function DocsPage(props: Props): Promise<ReactElement> {
 
   const tree = buildDocsTree(allDocs);
   const breadcrumbs = buildBreadcrumbs(slugs);
-  // const childrenTree = buildDocsTree(
-  //   allDocs,
-  //   doc?.pathSegments.map((ps: PathSegment) => ps.pathName)
-  // );
+  const childrenTree = buildDocsTree(
+    allDocs,
+    doc?.pathSegments.map((ps: PathSegment) => ps.pathName)
+  );
   return (
     <div className="relative w-full mx-auto max-w-screen-2xl lg:flex lg:items-start">
       <div
