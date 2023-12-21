@@ -8,9 +8,9 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
-    return ctx.client.connections.getConnectionSchema(
+    return ctx.client.connectiondata.getConnectionSchema(
       new GetConnectionSchemaRequest({
-        id: params.id,
+        connectionId: params.id,
       })
     );
   })(req);

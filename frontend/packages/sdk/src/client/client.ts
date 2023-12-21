@@ -3,16 +3,18 @@ import {
   PromiseClient,
   Transport,
   createPromiseClient,
-} from "@connectrpc/connect";
+} from '@connectrpc/connect';
 
-import { ApiKeyService } from "./mgmt/v1alpha1/api_key_connect.js";
-import { ConnectionService } from "./mgmt/v1alpha1/connection_connect.js";
-import { JobService } from "./mgmt/v1alpha1/job_connect.js";
-import { TransformersService } from "./mgmt/v1alpha1/transformer_connect.js";
-import { UserAccountService } from "./mgmt/v1alpha1/user_account_connect.js";
+import { ApiKeyService } from './mgmt/v1alpha1/api_key_connect.js';
+import { ConnectionService } from './mgmt/v1alpha1/connection_connect.js';
+import { ConnectionDataService } from './mgmt/v1alpha1/connection_data_connect.js';
+
+import { JobService } from './mgmt/v1alpha1/job_connect.js';
+import { TransformersService } from './mgmt/v1alpha1/transformer_connect.js';
+import { UserAccountService } from './mgmt/v1alpha1/user_account_connect.js';
 
 export type NeosyncClient = NeosyncV1alpha1Client;
-export type ClientVersion = "v1alpha1" | "latest";
+export type ClientVersion = 'v1alpha1' | 'latest';
 
 export interface NeosyncV1alpha1Client {
   connections: PromiseClient<typeof ConnectionService>;
@@ -20,6 +22,7 @@ export interface NeosyncV1alpha1Client {
   jobs: PromiseClient<typeof JobService>;
   transformers: PromiseClient<typeof TransformersService>;
   apikeys: PromiseClient<typeof ApiKeyService>;
+  connectiondata: PromiseClient<typeof ConnectionDataService>;
 }
 
 /**
@@ -50,14 +53,14 @@ export function getNeosyncClient(config: ClientConfig): NeosyncClient;
  */
 export function getNeosyncClient(
   config: ClientConfig,
-  version: "latest"
+  version: 'latest'
 ): NeosyncClient;
 /**
  * Returns the v1alpha1 version of the Neosync Client
  */
 export function getNeosyncClient(
   config: ClientConfig,
-  version: "v1alpha1"
+  version: 'v1alpha1'
 ): NeosyncV1alpha1Client;
 export function getNeosyncClient(
   config: ClientConfig,
@@ -83,13 +86,14 @@ export function getNeosyncV1alpha1Client(
     jobs: createPromiseClient(JobService, transport),
     transformers: createPromiseClient(TransformersService, transport),
     apikeys: createPromiseClient(ApiKeyService, transport),
+    connectiondata: createPromiseClient(ConnectionDataService, transport),
   };
 }
 
 function getAuthInterceptor(getAccessToken: GetAccessTokenFn): Interceptor {
   return (next) => async (req) => {
     const accessToken = await getAccessToken();
-    req.header.set("Authorization", `Bearer ${accessToken}`);
+    req.header.set('Authorization', `Bearer ${accessToken}`);
     return next(req);
   };
 }

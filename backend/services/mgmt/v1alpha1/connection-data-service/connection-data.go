@@ -290,8 +290,8 @@ func (s *Service) GetConnectionSchema(
 		return nil, err
 	}
 
-	switch config := req.Msg.SchemaConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig:
+	switch connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		connCfg := connection.ConnectionConfig
 		connDetails, err := s.getConnectionDetails(connCfg)
 		if err != nil {
@@ -320,7 +320,7 @@ func (s *Service) GetConnectionSchema(
 			Schemas: ToDatabaseColumn(dbSchema),
 		}), nil
 
-	case *mgmtv1alpha1.ConnectionSchemaConfig_PgConfig:
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		connCfg := connection.ConnectionConfig
 		connDetails, err := s.getConnectionDetails(connCfg)
 		if err != nil {
@@ -349,9 +349,13 @@ func (s *Service) GetConnectionSchema(
 			Schemas: ToDatabaseColumn(dbSchema),
 		}), nil
 
-	case *mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config:
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		awsCfg := req.Msg.SchemaConfig.GetAwsS3Config()
+		if awsCfg == nil {
+			return nil, nucleuserrors.NewBadRequest("jobId or jobRunId required for AWS S3 connections")
+		}
 		var jobRunId string
-		switch id := config.AwsS3Config.Id.(type) {
+		switch id := awsCfg.Id.(type) {
 		case *mgmtv1alpha1.AwsS3SchemaConfig_JobRunId:
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.AwsS3SchemaConfig_JobId:
