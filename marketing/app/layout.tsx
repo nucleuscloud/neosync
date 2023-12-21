@@ -1,6 +1,5 @@
 import Footer from '@/components/Footer';
 import TopNav from '@/components/nav/TopNav';
-import GoogleAnalytics from '@/lib/GoogleAnalytics';
 import Script from 'next/script';
 import '../styles/global.css';
 
@@ -12,7 +11,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <GoogleAnalytics />
+        <Script
+          async
+          src={`https://www.googletagmanager.com/gtag/js? 
+      id=${process.env.GTAG}`}
+        ></Script>
+        <Script
+          id="google-analytics"
+          dangerouslySetInnerHTML={{
+            __html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', '${process.env.GTAG}');
+        `,
+          }}
+        ></Script>
+
         <Script type="text/javascript" id="livesession">
           {`
 window['__ls_namespace'] = '__ls';
@@ -26,7 +42,7 @@ window['__ls_script_url'] = 'https://cdn.livesession.io/track.js';
     var s = d.getElementsByTagName(t)[0]; s.parentNode.insertBefore(ls, s);
 }(window, document, 'script', window['__ls_script_url'], window['__ls_namespace']);
 
-__ls("init", "0201d753.23d48d5d", { keystrokes: false });
+__ls("init", "${process.env.LIVESESSION}", { keystrokes: false });
 __ls("newPageView");
 `}
         </Script>
