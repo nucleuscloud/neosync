@@ -22,3 +22,7 @@ go.work.sum
 
 .turbo
 frontend/out
+
+
+# contentlayer
+.contentlayer
