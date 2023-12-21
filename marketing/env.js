@@ -10,7 +10,7 @@ function getNextPublicAppUrl() {
 
 const env = createEnv({
   server: {
-    MIXPANEL_TOKEN: z.string(),
+    MIXPANEL_TOKEN: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().min(1),
