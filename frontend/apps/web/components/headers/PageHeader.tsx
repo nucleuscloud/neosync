@@ -5,18 +5,20 @@ import { Separator } from '../ui/separator';
 
 interface Props {
   header: string;
-  description?: string;
+  description?: string | JSX.Element;
   leftBadgeValue?: string;
   extraHeading?: ReactNode;
   leftIcon?: ReactNode;
   progressSteps?: JSX.Element;
   pageHeaderContainerClassName?: string;
+  copyIcon?: JSX.Element;
 }
 
 export default function PageHeader(props: Props) {
   const {
     header,
     description,
+    copyIcon,
     extraHeading,
     leftIcon,
     pageHeaderContainerClassName,
@@ -45,10 +47,12 @@ export default function PageHeader(props: Props) {
 
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
-
-      {description ? (
-        <h3 className="text-muted-foreground text-sm">{description}</h3>
-      ) : null}
+      <div className="flex flex-row items-center gap-4">
+        {description ? (
+          <h3 className="text-muted-foreground text-sm">{description}</h3>
+        ) : null}
+        {copyIcon && copyIcon}
+      </div>
 
       <Separator />
     </div>

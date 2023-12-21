@@ -44,7 +44,6 @@ interface GetJobsProps {
 
 export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
   const { onDeleted, accountName } = props;
-
   return [
     {
       accessorKey: 'status',
@@ -95,7 +94,14 @@ export function getColumns(props: GetJobsProps): ColumnDef<JobColumn>[] {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {row.getValue('name')}
+              <div>
+                <NextLink
+                  className="hover:underline"
+                  href={`/${accountName}/jobs/${row.getValue('id')}`}
+                >
+                  {row.getValue('name')}
+                </NextLink>
+              </div>
             </span>
           </div>
         );

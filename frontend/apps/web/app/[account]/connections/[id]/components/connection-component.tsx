@@ -1,4 +1,5 @@
 'use client';
+import { CopyButton } from '@/components/CopyButton';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import PageHeader from '@/components/headers/PageHeader';
 import { Connection, UpdateConnectionResponse } from '@neosync/sdk';
@@ -43,6 +44,15 @@ export function getConnectionComponentDetails(
                 header="PostgreSQL"
                 leftIcon={<ConnectionIcon name="postgres" />}
                 extraHeading={extraPageHeading}
+                description={connection.id}
+                copyIcon={
+                  <CopyButton
+                    onHoverText="Copy the Connection ID"
+                    textToCopy={connection.id}
+                    onCopiedText="Success!"
+                    buttonVariant="outline"
+                  />
+                }
               />
             ),
             body: (
@@ -94,7 +104,15 @@ export function getConnectionComponentDetails(
             header: (
               <PageHeader
                 header="Mysql"
-                description="Update this connection"
+                description={connection.id}
+                copyIcon={
+                  <CopyButton
+                    onHoverText="Copy the Connection ID"
+                    textToCopy={connection.id}
+                    onCopiedText="Success!"
+                    buttonVariant="outline"
+                  />
+                }
                 leftIcon={<ConnectionIcon name="mysql" />}
                 extraHeading={extraPageHeading}
               />
@@ -147,6 +165,15 @@ export function getConnectionComponentDetails(
             header="AWS S3"
             leftIcon={<ConnectionIcon name="aws S3" />}
             extraHeading={extraPageHeading}
+            description={connection.id}
+            copyIcon={
+              <CopyButton
+                onHoverText="Copy the Connection ID"
+                textToCopy={connection.id}
+                onCopiedText="Success!"
+                buttonVariant="outline"
+              />
+            }
           />
         ),
         body: (
