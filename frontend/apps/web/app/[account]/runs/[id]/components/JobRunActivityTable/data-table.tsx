@@ -39,7 +39,7 @@ interface DataTableProps {
 export function DataTable({ columns, data, isError }: DataTableProps) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({ error: isError });
+    React.useState<VisibilityState>({ error: isError, id: false });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );

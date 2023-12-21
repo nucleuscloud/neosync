@@ -48,7 +48,7 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
 }: DataTableProps<TData, TValue, TAutoRefreshInterval>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({ jobId: false });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
