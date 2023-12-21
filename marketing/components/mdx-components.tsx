@@ -4,6 +4,11 @@ import * as React from 'react';
 
 import Callout from '@/components/Callout';
 import MdxCard from '@/components/MdxCard';
+import {
+  OptionDescription,
+  OptionTitle,
+  OptionsTable,
+} from '@/components/OptionsTable';
 import { cn } from '@/lib/utils';
 
 const components = {
@@ -153,6 +158,9 @@ const components = {
   Image,
   Callout,
   Card: MdxCard,
+  OptionDescription,
+  OptionTitle,
+  OptionsTable,
 };
 
 interface MdxProps {
