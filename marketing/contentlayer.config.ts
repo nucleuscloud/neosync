@@ -124,7 +124,10 @@ export const Doc = defineDocumentType(() => ({
     url: {
       type: 'string',
       resolve(doc) {
-        return `/${doc._raw.flattenedPath}`;
+        if (doc._id.startsWith('docs/index.md')) {
+          return '/docs';
+        }
+        return urlFromFilePath(doc);
       },
     },
     pathSegments: {
@@ -138,6 +141,7 @@ export const Doc = defineDocumentType(() => ({
             const re = /^((\d+)-)?(.*)$/;
             const [, , orderStr, pathName] = dirName.match(re) ?? [];
             const order = orderStr ? parseInt(orderStr) : 0;
+            console.log('order', order, 'pathname', pathName);
             return { order, pathName };
           }),
     },

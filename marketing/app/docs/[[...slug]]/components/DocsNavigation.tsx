@@ -68,11 +68,9 @@ function NavLink({
             }`
       )}
     >
-      <Link href={url}>
-        <a className="flex items-center h-full space-x-2 grow">
-          <span>{title}</span>
-          {label && <Label text={label} />}
-        </a>
+      <Link className="flex items-center h-full space-x-2 grow" href={url}>
+        <span>{title}</span>
+        {label && <Label text={label} />}
       </Link>
       {collapsible && (
         <button

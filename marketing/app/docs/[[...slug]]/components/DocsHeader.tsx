@@ -44,10 +44,11 @@ export default function DocsHeader({
               <Fragment key={index}>
                 {index < breadcrumbs.length - 1 && (
                   <li className="mx-1 flex items-center space-x-2">
-                    <Link href={path}>
-                      <a className="inline whitespace-nowrap hover:text-slate-600 dark:hover:text-slate-300">
-                        {title}
-                      </a>
+                    <Link
+                      className="inline whitespace-nowrap hover:text-slate-600 dark:hover:text-slate-300"
+                      href={path}
+                    >
+                      {title}
                     </Link>
                     <span className="inline-block w-1.5 text-slate-400 dark:text-slate-500">
                       <ChevronRightIcon />
@@ -109,10 +110,11 @@ export default function DocsHeader({
             <Fragment key={index}>
               {index < breadcrumbs.length - 1 && (
                 <li className="flex items-center space-x-2">
-                  <Link href={path}>
-                    <a className="inline whitespace-nowrap hover:text-slate-600 dark:hover:text-slate-300">
-                      {title}
-                    </a>
+                  <Link
+                    className="inline whitespace-nowrap hover:text-slate-600 dark:hover:text-slate-300"
+                    href={path}
+                  >
+                    {title}
                   </Link>
                   <span className="inline-block w-1.5 text-slate-400 dark:text-slate-500">
                     <ChevronRightIcon />
