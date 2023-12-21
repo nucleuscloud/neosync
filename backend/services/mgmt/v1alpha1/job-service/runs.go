@@ -140,64 +140,6 @@ func (s *Service) GetJobRun(
 	}), nil
 }
 
-func (s *Service) GetLatestJobRun(
-	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetLatestJobRunRequest],
-) (*connect.Response[mgmtv1alpha1.GetLatestJobRunResponse], error) {
-	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	logger = logger.With("jobId", req.Msg.JobId)
-	jobUuid, err := nucleusdb.ToUuid(req.Msg.JobId)
-	if err != nil {
-		return nil, err
-	}
-	job, err := s.db.Q.GetJobById(ctx, s.db.Db, jobUuid)
-	if err != nil {
-		return nil, err
-	}
-
-	accountId := nucleusdb.UUIDString(job.AccountID)
-	_, err = s.verifyUserInAccount(ctx, accountId)
-	if err != nil {
-		return nil, err
-	}
-	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, accountId, logger)
-	if err != nil {
-		return nil, err
-	}
-	tconfig, err := s.temporalWfManager.GetTemporalConfigByAccount(ctx, accountId)
-	if err != nil {
-		return nil, err
-	}
-
-	query := fmt.Sprintf("TemporalScheduledById IN (%q)", nucleusdb.UUIDString(job.ID))
-	resp, err := tclient.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
-		Namespace: tconfig.Namespace,
-		PageSize:  1,
-		Query:     query,
-	})
-	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve workflow executions: %w", err).Error())
-		return nil, err
-	}
-	runs := resp.GetExecutions()
-	if len(runs) == 0 {
-		return nil, nucleuserrors.NewNotFound("latest job run not found")
-	}
-	jobRun := runs[0]
-
-	res, err := tclient.DescribeWorkflowExecution(ctx, jobRun.Execution.WorkflowId, jobRun.Execution.RunId)
-	if err != nil && !strings.Contains(err.Error(), "Workflow executionsRow not found") {
-		return nil, err
-	} else if err != nil && strings.Contains(err.Error(), "Workflow executionsRow not found") {
-		return nil, err
-	}
-
-	dto := dtomaps.ToJobRunDto(logger, res)
-	return connect.NewResponse(&mgmtv1alpha1.GetLatestJobRunResponse{
-		JobRun: dto,
-	}), nil
-}
-
 func (s *Service) GetJobRunEvents(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRunEventsRequest],

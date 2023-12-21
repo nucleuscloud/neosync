@@ -82,9 +82,6 @@ const (
 	JobServiceGetJobRunEventsProcedure = "/mgmt.v1alpha1.JobService/GetJobRunEvents"
 	// JobServiceGetJobRunProcedure is the fully-qualified name of the JobService's GetJobRun RPC.
 	JobServiceGetJobRunProcedure = "/mgmt.v1alpha1.JobService/GetJobRun"
-	// JobServiceGetLatestJobRunProcedure is the fully-qualified name of the JobService's
-	// GetLatestJobRun RPC.
-	JobServiceGetLatestJobRunProcedure = "/mgmt.v1alpha1.JobService/GetLatestJobRun"
 	// JobServiceDeleteJobRunProcedure is the fully-qualified name of the JobService's DeleteJobRun RPC.
 	JobServiceDeleteJobRunProcedure = "/mgmt.v1alpha1.JobService/DeleteJobRun"
 	// JobServiceCreateJobRunProcedure is the fully-qualified name of the JobService's CreateJobRun RPC.
@@ -117,7 +114,6 @@ type JobServiceClient interface {
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
-	GetLatestJobRun(context.Context, *connect.Request[v1alpha1.GetLatestJobRunRequest]) (*connect.Response[v1alpha1.GetLatestJobRunResponse], error)
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
@@ -229,11 +225,6 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			baseURL+JobServiceGetJobRunProcedure,
 			opts...,
 		),
-		getLatestJobRun: connect.NewClient[v1alpha1.GetLatestJobRunRequest, v1alpha1.GetLatestJobRunResponse](
-			httpClient,
-			baseURL+JobServiceGetLatestJobRunProcedure,
-			opts...,
-		),
 		deleteJobRun: connect.NewClient[v1alpha1.DeleteJobRunRequest, v1alpha1.DeleteJobRunResponse](
 			httpClient,
 			baseURL+JobServiceDeleteJobRunProcedure,
@@ -278,7 +269,6 @@ type jobServiceClient struct {
 	getJobRuns                       *connect.Client[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse]
 	getJobRunEvents                  *connect.Client[v1alpha1.GetJobRunEventsRequest, v1alpha1.GetJobRunEventsResponse]
 	getJobRun                        *connect.Client[v1alpha1.GetJobRunRequest, v1alpha1.GetJobRunResponse]
-	getLatestJobRun                  *connect.Client[v1alpha1.GetLatestJobRunRequest, v1alpha1.GetLatestJobRunResponse]
 	deleteJobRun                     *connect.Client[v1alpha1.DeleteJobRunRequest, v1alpha1.DeleteJobRunResponse]
 	createJobRun                     *connect.Client[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse]
 	cancelJobRun                     *connect.Client[v1alpha1.CancelJobRunRequest, v1alpha1.CancelJobRunResponse]
@@ -380,11 +370,6 @@ func (c *jobServiceClient) GetJobRun(ctx context.Context, req *connect.Request[v
 	return c.getJobRun.CallUnary(ctx, req)
 }
 
-// GetLatestJobRun calls mgmt.v1alpha1.JobService.GetLatestJobRun.
-func (c *jobServiceClient) GetLatestJobRun(ctx context.Context, req *connect.Request[v1alpha1.GetLatestJobRunRequest]) (*connect.Response[v1alpha1.GetLatestJobRunResponse], error) {
-	return c.getLatestJobRun.CallUnary(ctx, req)
-}
-
 // DeleteJobRun calls mgmt.v1alpha1.JobService.DeleteJobRun.
 func (c *jobServiceClient) DeleteJobRun(ctx context.Context, req *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error) {
 	return c.deleteJobRun.CallUnary(ctx, req)
@@ -426,7 +411,6 @@ type JobServiceHandler interface {
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
-	GetLatestJobRun(context.Context, *connect.Request[v1alpha1.GetLatestJobRunRequest]) (*connect.Response[v1alpha1.GetLatestJobRunResponse], error)
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
@@ -534,11 +518,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		svc.GetJobRun,
 		opts...,
 	)
-	jobServiceGetLatestJobRunHandler := connect.NewUnaryHandler(
-		JobServiceGetLatestJobRunProcedure,
-		svc.GetLatestJobRun,
-		opts...,
-	)
 	jobServiceDeleteJobRunHandler := connect.NewUnaryHandler(
 		JobServiceDeleteJobRunProcedure,
 		svc.DeleteJobRun,
@@ -599,8 +578,6 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceGetJobRunEventsHandler.ServeHTTP(w, r)
 		case JobServiceGetJobRunProcedure:
 			jobServiceGetJobRunHandler.ServeHTTP(w, r)
-		case JobServiceGetLatestJobRunProcedure:
-			jobServiceGetLatestJobRunHandler.ServeHTTP(w, r)
 		case JobServiceDeleteJobRunProcedure:
 			jobServiceDeleteJobRunHandler.ServeHTTP(w, r)
 		case JobServiceCreateJobRunProcedure:
@@ -692,10 +669,6 @@ func (UnimplementedJobServiceHandler) GetJobRunEvents(context.Context, *connect.
 
 func (UnimplementedJobServiceHandler) GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetJobRun is not implemented"))
-}
-
-func (UnimplementedJobServiceHandler) GetLatestJobRun(context.Context, *connect.Request[v1alpha1.GetLatestJobRunRequest]) (*connect.Response[v1alpha1.GetLatestJobRunResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetLatestJobRun is not implemented"))
 }
 
 func (UnimplementedJobServiceHandler) DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error) {

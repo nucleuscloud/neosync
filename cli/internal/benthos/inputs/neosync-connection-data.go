@@ -59,7 +59,7 @@ func newNeosyncConnectionDataInput(conf *service.ParsedConfig) (service.Input, e
 	}
 
 	var jobId *string
-	if conf.Contains("job_ir") {
+	if conf.Contains("job_id") {
 		jobIdStr, err := conf.FieldString("job_id")
 		if err != nil {
 			return nil, err
@@ -131,7 +131,7 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 		connect.WithInterceptors(auth_interceptor.NewInterceptor(g.apiKey != nil, auth.AuthHeader, auth.GetAuthHeaderTokenFn(g.apiKey))),
 	)
 
-	streamCfg := &mgmtv1alpha1.ConnectionStreamConfig{}
+	var streamCfg *mgmtv1alpha1.ConnectionStreamConfig
 	if g.connectionType == "awsS3" {
 		awsS3Cfg := &mgmtv1alpha1.AwsS3StreamConfig{}
 		if g.connectionOpts != nil {
@@ -141,8 +141,10 @@ func (g *neosyncInput) Connect(ctx context.Context) error {
 				awsS3Cfg.Id = &mgmtv1alpha1.AwsS3StreamConfig_JobId{JobId: *g.connectionOpts.jobId}
 			}
 		}
-		streamCfg.Config = &mgmtv1alpha1.ConnectionStreamConfig_AwsS3Config{
-			AwsS3Config: awsS3Cfg,
+		streamCfg = &mgmtv1alpha1.ConnectionStreamConfig{
+			Config: &mgmtv1alpha1.ConnectionStreamConfig_AwsS3Config{
+				AwsS3Config: awsS3Cfg,
+			},
 		}
 	}
 

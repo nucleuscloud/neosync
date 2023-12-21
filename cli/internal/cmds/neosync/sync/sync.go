@@ -69,6 +69,7 @@ type ConnectionType string
 type DriverType string
 
 type model struct {
+	ctx            context.Context
 	groupedConfigs [][]*benthosConfigResponse
 	tableSynced    int
 	index          int
@@ -476,7 +477,7 @@ func sync(
 		log.SetOutput(io.Discard)
 	}
 	fmt.Println(header.Render("── Syncing Tables ────────────────────────────────")) // nolint
-	if _, err := tea.NewProgram(newModel(groupedConfigs), opts...).Run(); err != nil {
+	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs), opts...).Run(); err != nil {
 		fmt.Println("Error syncing data:", err) // nolint
 		os.Exit(1)
 	}
@@ -507,7 +508,6 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(configbits))
 
 	var benthosStream *service.Stream
 	go func() {
@@ -619,13 +619,10 @@ func generateBenthosConfig(
 ) *benthosConfigResponse {
 	tableName := fmt.Sprintf("%s.%s", schema, table)
 
-	connOpts := &neosync_benthos.ConnectionOpts{}
-	if connectionType == awsS3Connection && cmd.Source.ConnectionOpts != nil {
-		if cmd.Source.ConnectionOpts.JobRunId != nil && *cmd.Source.ConnectionOpts.JobRunId != "" {
-			connOpts.JobRunId = cmd.Source.ConnectionOpts.JobRunId
-		} else if cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
-			connOpts.JobId = cmd.Source.ConnectionOpts.JobId
-		}
+	var jobId, jobRunId *string
+	if cmd.Source.ConnectionOpts != nil {
+		jobRunId = cmd.Source.ConnectionOpts.JobRunId
+		jobId = cmd.Source.ConnectionOpts.JobId
 	}
 
 	bc := &neosync_benthos.BenthosConfig{
@@ -637,7 +634,8 @@ func generateBenthosConfig(
 						ApiUrl:         apiUrl,
 						ConnectionId:   cmd.Source.ConnectionId,
 						ConnectionType: string(connectionType),
-						ConnectionOpts: connOpts,
+						JobId:          jobId,
+						JobRunId:       jobRunId,
 						Schema:         schema,
 						Table:          table,
 					},
@@ -726,7 +724,7 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 	return groupedConfigs
 }
 
-func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
+func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse) *model {
 	p := progress.New(
 		progress.WithDefaultGradient(),
 		progress.WithWidth(40),
@@ -735,6 +733,7 @@ func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
+		ctx:            ctx,
 		groupedConfigs: groupedConfigs,
 		tableSynced:    0,
 		spinner:        s,
@@ -743,7 +742,7 @@ func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 }
 
 func (m *model) Init() tea.Cmd {
-	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
+	return tea.Batch(syncConfigs(m.ctx, m.groupedConfigs[m.index]), m.spinner.Tick)
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -779,7 +778,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(
 			progressCmd,
 			tea.Println(strings.Join(successStrs, " \n")),
-			syncConfigs(m.groupedConfigs[m.index]),
+			syncConfigs(m.ctx, m.groupedConfigs[m.index]),
 		)
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -824,15 +823,16 @@ func (m *model) View() string {
 
 type syncedDataMsg string
 
-func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
+func syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd {
 	return func() tea.Msg {
-		errgrp, errctx := errgroup.WithContext(context.Background())
+		errgrp, errctx := errgroup.WithContext(ctx)
 		for _, cfg := range configs {
 			cfg := cfg
 			errgrp.Go(func() error {
 				log.Printf("Syncing table %s \n", cfg.Name)
 				err := syncData(errctx, cfg)
 				if err != nil {
+					fmt.Printf("Error syncing table: %s \n", err.Error()) // nolint
 					return err
 				}
 				return nil
