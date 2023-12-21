@@ -93,7 +93,7 @@ func (s *Service) GetConnectionDataStream(
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		// check that schema and table are valid
-		schemas, err := s.getConnectionSchema(ctx, connection, &SchemaOpts{})
+		schemas, err := s.getConnectionSchema(ctx, connection, &schemaOpts{})
 		if err != nil {
 			return err
 		}
@@ -539,7 +539,7 @@ func (s *Service) GetConnectionForeignConstraints(
 		return nil, err
 	}
 
-	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &SchemaOpts{})
+	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
 	if err != nil {
 		return nil, err
 	}
@@ -626,7 +626,7 @@ func (s *Service) GetConnectionInitStatements(
 		return nil, err
 	}
 
-	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &SchemaOpts{})
+	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
 	if err != nil {
 		return nil, err
 	}
@@ -753,12 +753,12 @@ func (s *Service) getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig) (*conne
 	}
 }
 
-type SchemaOpts struct {
+type schemaOpts struct {
 	JobId    *string
 	JobRunId *string
 }
 
-func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alpha1.Connection, opts *SchemaOpts) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alpha1.Connection, opts *schemaOpts) ([]*mgmtv1alpha1.DatabaseColumn, error) {
 	schemaReq := &mgmtv1alpha1.GetConnectionSchemaRequest{
 		ConnectionId: connection.Id,
 	}

@@ -330,21 +330,3 @@ func (s *Service) getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig) (*conne
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
 	}
 }
-
-func isValidTable(table string, columns []*mgmtv1alpha1.DatabaseColumn) bool {
-	for _, c := range columns {
-		if c.Table == table {
-			return true
-		}
-	}
-	return false
-}
-
-func isValidSchema(schema string, columns []*mgmtv1alpha1.DatabaseColumn) bool {
-	for _, c := range columns {
-		if c.Schema == schema {
-			return true
-		}
-	}
-	return false
-}
