@@ -128,57 +128,18 @@ export default async function DocsPage(props: Props): Promise<ReactElement> {
     params: { slug },
   } = props;
 
-  console.log('slug', slug);
-  // console.log(
-  //   '_id',
-  //   allDocs.map((d) => d._id)
-  // );
-  // console.log(
-  //   'url',
-  //   allDocs.map((d) => d.url)
-  // );
-  // console.log(
-  //   'pathSegments',
-  //   allDocs.map((d) => d.pathSegments)
-  // );
-  // console.log(allDocs);
-  // If on the index page, we don't worry about the global_id
-  if (!slug) {
-    const doc = allDocs.find((d) => d.url === '/docs');
-    if (!doc) {
-      notFound();
-    }
-    return (
-      <div>
-        <div>
-          <Mdx code={doc.body.code} />
-        </div>
-      </div>
-    );
-  }
+  const doc = slug
+    ? allDocs.find((d) => d.url === `/docs/${slug.join('/')}`)
+    : allDocs.find((d) => d.url === '/docs');
 
-  const doc = allDocs.find((d) => d.url === `/docs/${slug.join('/')}`);
+  const slugs = slug ? ['docs', ...slug] : [];
 
   if (!doc) {
     notFound();
   }
 
-  const breadcrumbs: Breadcrumb[] = [];
-  let path = '';
-  for (const s of ['docs', ...slug]) {
-    path += `/${s}`;
-    const breadcrumbDoc = allDocs.find((doc) => {
-      return doc.url === path;
-    });
-    if (!breadcrumbDoc) continue;
-    breadcrumbs.push({
-      path: breadcrumbDoc.url,
-      title: breadcrumbDoc?.nav_title || breadcrumbDoc?.title,
-    });
-  }
-
   const tree = buildDocsTree(allDocs);
-  console.log('breaccrumbs', breadcrumbs);
+  const breadcrumbs = buildBreadcrumbs(slugs);
   // const childrenTree = buildDocsTree(
   //   allDocs,
   //   doc?.pathSegments.map((ps: PathSegment) => ps.pathName)
@@ -235,6 +196,23 @@ export default async function DocsPage(props: Props): Promise<ReactElement> {
       </div>
     </div>
   );
+}
+
+function buildBreadcrumbs(slugs: string[]): Breadcrumb[] {
+  const breadcrumbs: Breadcrumb[] = [];
+  let path = '';
+  for (const slug of slugs) {
+    path += `/${slug}`;
+    const breadcrumbDoc = allDocs.find((doc) => {
+      return doc.url === path;
+    });
+    if (!breadcrumbDoc) continue;
+    breadcrumbs.push({
+      path: breadcrumbDoc.url,
+      title: breadcrumbDoc?.nav_title || breadcrumbDoc?.title,
+    });
+  }
+  return breadcrumbs;
 }
 
 function buildDocsTree(
