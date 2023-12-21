@@ -13,6 +13,8 @@ services:
       - NEOSYNC_API_BASE_URL=http://api:8080
       - NEXT_PUBLIC_APP_BASE_URL=http://localhost:3000
 
+      - POSTHOG_KEY=phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip
+
       - AUTH_ENABLED=false
 
     networks:

@@ -1,9 +1,10 @@
 import SiteFooter from '@/components/SiteFooter';
 import SiteHeader from '@/components/SiteHeader';
 import AccountProvider from '@/components/providers/account-provider';
+import { PostHogIdentifier } from '@/components/providers/posthog-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
 import { Toaster } from '@/components/ui/toaster';
-import { ReactElement, ReactNode } from 'react';
+import { ReactElement, ReactNode, Suspense } from 'react';
 import { auth, signIn } from './api/auth/[...nextauth]/auth';
 import { getSystemAppConfig } from './api/config/config';
 
@@ -23,6 +24,9 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
   return (
     <SessionProvider session={session}>
       <AccountProvider>
+        <Suspense>
+          <PostHogIdentifier systemConfig={systemAppConfig} />
+        </Suspense>
         <div className="relative flex min-h-screen flex-col">
           <SiteHeader />
           <div className="flex-1 container" id="top-level-layout">
