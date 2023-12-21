@@ -13,6 +13,7 @@ require (
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/fatih/color v1.16.0
 	github.com/google/uuid v1.4.0
+	github.com/jackc/pgx/v5 v5.5.0
 	github.com/nucleuscloud/neosync/backend v0.0.0-00010101000000-000000000000
 	github.com/rodaine/table v1.1.0
 	github.com/spf13/cobra v1.8.0
@@ -21,6 +22,7 @@ require (
 	github.com/toqueteos/webbrowser v1.2.0
 	golang.org/x/net v0.19.0
 	golang.org/x/sync v0.5.0
+	golang.org/x/term v0.15.0
 	google.golang.org/grpc v1.59.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -51,7 +53,7 @@ require (
 	github.com/apache/thrift v0.18.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-lambda-go v1.41.0 // indirect
-	github.com/aws/aws-sdk-go v1.48.0 // indirect
+	github.com/aws/aws-sdk-go v1.49.4 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.19.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.28 // indirect
@@ -122,6 +124,9 @@ require (
 	github.com/influxdata/go-syslog/v3 v3.0.0 // indirect
 	github.com/itchyny/gojq v0.12.13 // indirect
 	github.com/itchyny/timefmt-go v0.1.5 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
@@ -221,7 +226,6 @@ require (
 	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/term v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect

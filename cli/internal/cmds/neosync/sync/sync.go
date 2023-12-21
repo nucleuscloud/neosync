@@ -3,6 +3,7 @@ package sync_cmd
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -52,7 +53,7 @@ const (
 	postgresDriver DriverType = "postgres"
 	mysqlDriver    DriverType = "mysql"
 
-	s3Connection       ConnectionType = "s3"
+	awsS3Connection    ConnectionType = "awsS3"
 	postgresConnection ConnectionType = "postgres"
 	mysqlConnection    ConnectionType = "mysql"
 )
@@ -93,9 +94,13 @@ type cmdConfig struct {
 }
 
 type sourceConfig struct {
-	ConnectionId string  `yaml:"connection-id"`
-	JobId        *string `yaml:"job-id,omitempty"`
-	JobRunId     *string `yaml:"job-run-id,omitempty"`
+	ConnectionId   string          `yaml:"connection-id"`
+	ConnectionOpts *connectionOpts `yaml:"connection-opts,omitempty"`
+}
+
+type connectionOpts struct {
+	JobId    *string `yaml:"job-id,omitempty"`
+	JobRunId *string `yaml:"job-run-id,omitempty"`
 }
 
 type destinationConfig struct {
@@ -121,7 +126,10 @@ func NewCmd() *cobra.Command {
 				apiKey = &apiKeyStr
 			}
 
-			config := &cmdConfig{}
+			config := &cmdConfig{
+				Source:      &sourceConfig{},
+				Destination: &destinationConfig{},
+			}
 			configPath, err := cmd.Flags().GetString("config")
 			if err != nil {
 				return err
@@ -219,11 +227,12 @@ func NewCmd() *cobra.Command {
 		},
 	}
 
+	// TODO update this
 	cmd.Flags().String("connection-id", "", "Connection id for sync source")
 	cmd.Flags().String("destination-connection-url", "", "Connection url for sync output")
 	cmd.Flags().String("destination-driver", "", "Connection driver for sync output")
 	cmd.Flags().String("account-id", "", "Account source connection is in. Defaults to account id in cli context")
-	cmd.Flags().String("config", "", `Location of config file`)
+	cmd.Flags().String("config", "", "Location of config file")
 	cmd.Flags().Bool("init-schema", false, "Create table schema and its constraints")
 	cmd.Flags().Bool("truncate-before-insert", false, "Truncate table before insert")
 	cmd.Flags().Bool("truncate-cascade", false, "Truncate cascade table before insert (postgres only)")
@@ -238,6 +247,8 @@ func sync(
 	apiKey, accountIdFlag *string,
 	cmd *cmdConfig,
 ) error {
+	jsonF, _ := json.MarshalIndent(cmd, "", " ")
+	fmt.Printf("\n\n  %s \n\n", string(jsonF))
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
 		return err
@@ -271,9 +282,8 @@ func sync(
 		return err
 	}
 
-	// if connection type s3 must provide job-id
-	if connectionType == s3Connection && (cmd.Source.JobId == nil || *cmd.Source.JobId == "") {
-		return errors.New("S3 source connection type requires job-id.")
+	if connectionType == awsS3Connection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
+		return errors.New("S3 source connection type requires job-id or job-run-id.")
 	}
 
 	var token *string
@@ -320,14 +330,15 @@ func sync(
 	var initTableStatementsMap map[string]string
 
 	switch connectionType {
-	case s3Connection:
+	case awsS3Connection:
+		// TODO handle job id
 		schemaResp, err := connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 			ConnectionId: connection.Id,
 			SchemaConfig: &mgmtv1alpha1.ConnectionSchemaConfig{
 				Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
 					AwsS3Config: &mgmtv1alpha1.AwsS3SchemaConfig{
-						Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{
-							JobId: *cmd.Source.JobId,
+						Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{
+							JobRunId: *cmd.Source.ConnectionOpts.JobRunId,
 						},
 					},
 				},
@@ -450,7 +461,7 @@ func sync(
 		}
 		initStatement := initTableStatementsMap[name]
 
-		benthosConfig := generateBenthosConfig(cmd, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, table.Columns, dependsOn, token)
+		benthosConfig := generateBenthosConfig(cmd, connectionType, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, table.Columns, dependsOn, token)
 		configs = append(configs, benthosConfig)
 	}
 
@@ -485,7 +496,6 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		return errors.New("AWS S3 is not a supported source.")
 	default:
 		return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
 	}
@@ -497,6 +507,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(string(configbits))
 
 	var benthosStream *service.Stream
 	go func() {
@@ -601,22 +612,34 @@ type benthosConfigResponse struct {
 
 func generateBenthosConfig(
 	cmd *cmdConfig,
+	connectionType ConnectionType,
 	schema, table, apiUrl, initStatement string,
 	columns, dependsOn []string,
 	authToken *string,
 ) *benthosConfigResponse {
 	tableName := fmt.Sprintf("%s.%s", schema, table)
 
+	connOpts := &neosync_benthos.ConnectionOpts{}
+	if connectionType == awsS3Connection && cmd.Source.ConnectionOpts != nil {
+		if cmd.Source.ConnectionOpts.JobRunId != nil && *cmd.Source.ConnectionOpts.JobRunId != "" {
+			connOpts.JobRunId = cmd.Source.ConnectionOpts.JobRunId
+		} else if cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
+			connOpts.JobId = cmd.Source.ConnectionOpts.JobId
+		}
+	}
+
 	bc := &neosync_benthos.BenthosConfig{
 		StreamConfig: neosync_benthos.StreamConfig{
 			Input: &neosync_benthos.InputConfig{
 				Inputs: neosync_benthos.Inputs{
 					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
-						ApiKey:       authToken,
-						ApiUrl:       apiUrl,
-						ConnectionId: cmd.Source.ConnectionId,
-						Schema:       schema,
-						Table:        table,
+						ApiKey:         authToken,
+						ApiUrl:         apiUrl,
+						ConnectionId:   cmd.Source.ConnectionId,
+						ConnectionType: string(connectionType),
+						ConnectionOpts: connOpts,
+						Schema:         schema,
+						Table:          table,
 					},
 				},
 			},
@@ -721,7 +744,6 @@ func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 
 func (m *model) Init() tea.Cmd {
 	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
-
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -854,7 +876,7 @@ func getDestinationForeignConstraints(ctx context.Context, connectionDriver Driv
 		}
 		defer func() {
 			if err := conn.Close(); err != nil {
-				fmt.Println(fmt.Errorf("failed to close mysql connection: %w", err).Error())
+				fmt.Println(fmt.Errorf("failed to close mysql connection: %w", err).Error()) // nolint
 			}
 		}()
 		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
@@ -876,7 +898,6 @@ func getDestinationForeignConstraints(ctx context.Context, connectionDriver Driv
 	}
 
 	return constraints, nil
-
 }
 
 func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
@@ -933,7 +954,7 @@ func parseDriverString(str string) (DriverType, bool) {
 
 func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, error) {
 	if connection.ConnectionConfig.GetAwsS3Config() != nil {
-		return s3Connection, nil
+		return awsS3Connection, nil
 	}
 	if connection.ConnectionConfig.GetMysqlConfig() != nil {
 		return mysqlConnection, nil

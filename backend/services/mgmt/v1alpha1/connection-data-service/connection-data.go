@@ -78,6 +78,8 @@ func (s *Service) GetConnectionDataStream(
 ) error {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("connectionId", req.Msg.ConnectionId)
+	jsonF, _ := json.MarshalIndent(req.Msg, "", " ")
+	fmt.Printf("\n\n  %s \n\n", string(jsonF))
 	connResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
 	}))
@@ -90,8 +92,8 @@ func (s *Service) GetConnectionDataStream(
 		return err
 	}
 
-	switch config := req.Msg.StreamConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionStreamConfig_MysqlConfig, *mgmtv1alpha1.ConnectionStreamConfig_PgConfig:
+	switch config := connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		// check that schema and table are valid
 		schemas, err := s.getConnectionSchema(ctx, connection, &SchemaOpts{})
 		if err != nil {
@@ -156,9 +158,13 @@ func (s *Service) GetConnectionDataStream(
 			}
 		}
 
-	case *mgmtv1alpha1.ConnectionStreamConfig_AwsS3Config:
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		awsS3StreamCfg := req.Msg.StreamConfig.GetAwsS3Config()
+		if awsS3StreamCfg == nil {
+			return nucleuserrors.NewBadRequest("jobId or jobRunId required for AWS S3 connections")
+		}
 		var jobRunId string
-		switch id := config.AwsS3Config.Id.(type) {
+		switch id := awsS3StreamCfg.Id.(type) {
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobRunId:
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobId:
@@ -177,11 +183,7 @@ func (s *Service) GetConnectionDataStream(
 			return nucleuserrors.NewInternalError("unsupported AWS S3 config id")
 		}
 
-		awsS3Config := connection.ConnectionConfig.GetAwsS3Config()
-		if awsS3Config == nil {
-			return nucleuserrors.NewInternalError("AWS S3 connection config missing")
-		}
-
+		awsS3Config := config.AwsS3Config
 		sess, err := aws_session.NewSession(awsS3Config)
 		if err != nil {
 			logger.Error("unable to create AWS session")
@@ -204,6 +206,7 @@ func (s *Service) GetConnectionDataStream(
 				return err
 			}
 			if err != nil || *output.KeyCount == 0 {
+				logger.Info(fmt.Sprintf("0 files found for path: %s", path))
 				break
 			}
 			for _, item := range output.Contents {
@@ -290,7 +293,7 @@ func (s *Service) GetConnectionSchema(
 		return nil, err
 	}
 
-	switch connection.ConnectionConfig.Config.(type) {
+	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		connCfg := connection.ConnectionConfig
 		connDetails, err := s.getConnectionDetails(connCfg)
@@ -364,11 +367,7 @@ func (s *Service) GetConnectionSchema(
 			return nil, nucleuserrors.NewInternalError("unsupported AWS S3 config id")
 		}
 
-		awsS3Config := connection.ConnectionConfig.GetAwsS3Config()
-		if awsS3Config == nil {
-			return nil, nucleuserrors.NewInternalError("AWS S3 connection config missing")
-		}
-
+		awsS3Config := config.AwsS3Config
 		sess, err := aws_session.NewSession(awsS3Config)
 		if err != nil {
 			logger.Error("unable to create AWS session")
@@ -379,7 +378,7 @@ func (s *Service) GetConnectionSchema(
 		svc := s3.New(sess)
 		path := fmt.Sprintf("workflows/%s/activities/", jobRunId)
 
-		schema := []*mgmtv1alpha1.DatabaseColumn{}
+		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		var pageToken *string
 		for {
 			var output *s3.ListObjectsV2Output
@@ -398,11 +397,64 @@ func (s *Service) GetConnectionSchema(
 			for _, item := range output.CommonPrefixes {
 				folders := strings.Split(*item.Prefix, "activities")
 				tableFolder := strings.ReplaceAll(folders[len(folders)-1], "/", "")
-				pieces := strings.Split(tableFolder, ".")
-				schema = append(schema, &mgmtv1alpha1.DatabaseColumn{
-					Schema: pieces[0],
-					Table:  pieces[1],
+				schemaTableList := strings.Split(tableFolder, ".")
+
+				filePath := fmt.Sprintf("%s%s.%s/data", path, schemaTableList[0], schemaTableList[1])
+				var output *s3.ListObjectsV2Output
+				output, err = svc.ListObjectsV2(&s3.ListObjectsV2Input{
+					Bucket:  aws.String(awsS3Config.Bucket),
+					Prefix:  aws.String(filePath),
+					MaxKeys: aws.Int64(1),
 				})
+				if err != nil && !aws_s3.IsNotFound(err) {
+					return nil, err
+				}
+				if err != nil || *output.KeyCount == 0 {
+					break
+				}
+				// for _, item := range output.Contents {
+				item := output.Contents[0]
+				result, err := svc.GetObject(&s3.GetObjectInput{
+					Bucket: aws.String(awsS3Config.Bucket),
+					Key:    aws.String(*item.Key),
+				})
+				if err != nil {
+					return nil, fmt.Errorf("error getting object from S3: %w", err)
+				}
+
+				gzr, err := gzip.NewReader(result.Body)
+				if err != nil {
+					result.Body.Close()
+					return nil, fmt.Errorf("error creating gzip reader: %w", err)
+				}
+
+				scanner := bufio.NewScanner(gzr)
+				if scanner.Scan() {
+					line := scanner.Bytes()
+					var data map[string]interface{} // nolint
+					err = json.Unmarshal(line, &data)
+					if err != nil {
+						result.Body.Close()
+						gzr.Close()
+						return nil, err
+					}
+
+					for key := range data {
+						schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
+							Schema: schemaTableList[0],
+							Table:  schemaTableList[1],
+							Column: key,
+						})
+					}
+				}
+				if err := scanner.Err(); err != nil {
+					result.Body.Close()
+					gzr.Close()
+					return nil, err
+				}
+				result.Body.Close()
+				gzr.Close()
+				// }
 			}
 			if *output.IsTruncated {
 				pageToken = output.NextContinuationToken
@@ -411,7 +463,7 @@ func (s *Service) GetConnectionSchema(
 			break
 		}
 		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-			Schemas: schema,
+			Schemas: schemas,
 		}), nil
 
 	default:
