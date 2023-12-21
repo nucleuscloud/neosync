@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -160,23 +161,6 @@ func (s *Service) GetConnectionDataStream(
 		if awsS3StreamCfg == nil {
 			return nucleuserrors.NewBadRequest("jobId or jobRunId required for AWS S3 connections")
 		}
-		var jobRunId string
-		switch id := awsS3StreamCfg.Id.(type) {
-		case *mgmtv1alpha1.AwsS3StreamConfig_JobRunId:
-			jobRunId = id.JobRunId
-		case *mgmtv1alpha1.AwsS3StreamConfig_JobId:
-			// get latest job run id and compare to bucket
-			jobRunsResp, err := s.jobService.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
-				JobId: id.JobId,
-			}))
-			if err != nil {
-				return err
-			}
-			jobRuns := jobRunsResp.Msg.GetRecentRuns()
-			fmt.Println(jobRuns)
-		default:
-			return nucleuserrors.NewInternalError("unsupported AWS S3 config id")
-		}
 
 		awsS3Config := config.AwsS3Config
 		sess, err := aws_session.NewSession(awsS3Config)
@@ -184,15 +168,29 @@ func (s *Service) GetConnectionDataStream(
 			logger.Error("unable to create AWS session")
 			return err
 		}
+		s3Client := s3.New(sess)
 		logger.Info("created AWS session")
 
-		svc := s3.New(sess)
+		var jobRunId string
+		switch id := awsS3StreamCfg.Id.(type) {
+		case *mgmtv1alpha1.AwsS3StreamConfig_JobRunId:
+			jobRunId = id.JobRunId
+		case *mgmtv1alpha1.AwsS3StreamConfig_JobId:
+			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket)
+			if err != nil {
+				return err
+			}
+			jobRunId = runId
+		default:
+			return nucleuserrors.NewInternalError("unsupported AWS S3 config id")
+		}
+
 		tableName := fmt.Sprintf("%s.%s", req.Msg.Schema, req.Msg.Table)
 		path := fmt.Sprintf("workflows/%s/activities/%s/data", jobRunId, tableName)
 		var pageToken *string
 		for {
 			var output *s3.ListObjectsV2Output
-			output, err = svc.ListObjectsV2(&s3.ListObjectsV2Input{
+			output, err = s3Client.ListObjectsV2(&s3.ListObjectsV2Input{
 				Bucket:            aws.String(awsS3Config.Bucket),
 				Prefix:            aws.String(path),
 				ContinuationToken: pageToken,
@@ -205,7 +203,7 @@ func (s *Service) GetConnectionDataStream(
 				break
 			}
 			for _, item := range output.Contents {
-				result, err := svc.GetObject(&s3.GetObjectInput{
+				result, err := s3Client.GetObject(&s3.GetObjectInput{
 					Bucket: aws.String(awsS3Config.Bucket),
 					Key:    aws.String(*item.Key),
 				})
@@ -360,15 +358,6 @@ func (s *Service) GetConnectionSchema(
 		if awsCfg == nil {
 			return nil, nucleuserrors.NewBadRequest("jobId or jobRunId required for AWS S3 connections")
 		}
-		var jobRunId string
-		switch id := awsCfg.Id.(type) {
-		case *mgmtv1alpha1.AwsS3SchemaConfig_JobRunId:
-			jobRunId = id.JobRunId
-		case *mgmtv1alpha1.AwsS3SchemaConfig_JobId:
-			// get latest job run id and compare to bucket
-		default:
-			return nil, nucleuserrors.NewInternalError("unsupported AWS S3 config id")
-		}
 
 		awsS3Config := config.AwsS3Config
 		sess, err := aws_session.NewSession(awsS3Config)
@@ -376,16 +365,30 @@ func (s *Service) GetConnectionSchema(
 			logger.Error("unable to create AWS session")
 			return nil, err
 		}
+		s3Client := s3.New(sess)
 		logger.Info("created AWS session")
 
-		svc := s3.New(sess)
+		var jobRunId string
+		switch id := awsCfg.Id.(type) {
+		case *mgmtv1alpha1.AwsS3SchemaConfig_JobRunId:
+			jobRunId = id.JobRunId
+		case *mgmtv1alpha1.AwsS3SchemaConfig_JobId:
+			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket)
+			if err != nil {
+				return nil, err
+			}
+			jobRunId = runId
+		default:
+			return nil, nucleuserrors.NewInternalError("unsupported AWS S3 config id")
+		}
+
 		path := fmt.Sprintf("workflows/%s/activities/", jobRunId)
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		var pageToken *string
 		for {
 			var output *s3.ListObjectsV2Output
-			output, err = svc.ListObjectsV2(&s3.ListObjectsV2Input{
+			output, err = s3Client.ListObjectsV2(&s3.ListObjectsV2Input{
 				Bucket:            aws.String(awsS3Config.Bucket),
 				Prefix:            aws.String(path),
 				Delimiter:         aws.String("/"),
@@ -404,7 +407,7 @@ func (s *Service) GetConnectionSchema(
 
 				filePath := fmt.Sprintf("%s%s.%s/data", path, schemaTableList[0], schemaTableList[1])
 				var output *s3.ListObjectsV2Output
-				output, err = svc.ListObjectsV2(&s3.ListObjectsV2Input{
+				output, err = s3Client.ListObjectsV2(&s3.ListObjectsV2Input{
 					Bucket:  aws.String(awsS3Config.Bucket),
 					Prefix:  aws.String(filePath),
 					MaxKeys: aws.Int64(1),
@@ -416,7 +419,7 @@ func (s *Service) GetConnectionSchema(
 					break
 				}
 				item := output.Contents[0]
-				result, err := svc.GetObject(&s3.GetObjectInput{
+				result, err := s3Client.GetObject(&s3.GetObjectInput{
 					Bucket: aws.String(awsS3Config.Bucket),
 					Key:    aws.String(*item.Key),
 				})
@@ -793,6 +796,43 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 		return nil, err
 	}
 	return schemaResp.Msg.GetSchemas(), nil
+}
+
+// returns the first job run id for a given job that is in S3
+func (s *Service) getLastestJobRunFromAwsS3(
+	ctx context.Context,
+	logger *slog.Logger,
+	s3Client *s3.S3,
+	jobId, bucket string,
+) (string, error) {
+	jobRunsResp, err := s.jobService.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
+		JobId: jobId,
+	}))
+	if err != nil {
+		return "", err
+	}
+	jobRuns := jobRunsResp.Msg.GetRecentRuns()
+
+	for i := len(jobRuns) - 1; i >= 0; i-- {
+		runId := jobRuns[i].JobRunId
+		path := fmt.Sprintf("workflows/%s/activities/", runId)
+		output, err := s3Client.ListObjectsV2(&s3.ListObjectsV2Input{
+			Bucket:    aws.String(bucket),
+			Prefix:    aws.String(path),
+			Delimiter: aws.String("/"),
+		})
+		if err != nil && !aws_s3.IsNotFound(err) {
+			return "", err
+		}
+		if err != nil && aws_s3.IsNotFound(err) {
+			continue
+		}
+		if *output.KeyCount > 0 {
+			logger.Info(fmt.Sprintf("found latest job run: %s", runId))
+			return runId, nil
+		}
+	}
+	return "", nucleuserrors.NewInternalError(fmt.Sprintf("unable to find latest job run for job: %s", jobId))
 }
 
 func isValidTable(table string, columns []*mgmtv1alpha1.DatabaseColumn) bool {

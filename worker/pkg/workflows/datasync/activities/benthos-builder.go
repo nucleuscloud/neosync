@@ -545,7 +545,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					`${!count("files")}.txt.gz`,
 				)
 
-				// add job id here
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					AwsS3: &neosync_benthos.AwsS3Insert{
 						Bucket:      connection.AwsS3Config.Bucket,
