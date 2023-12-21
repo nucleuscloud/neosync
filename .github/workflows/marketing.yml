@@ -5,22 +5,6 @@ on:
 
 name: Marketing
 jobs:
-  knip:
-    name: Knip
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: marketing/apps/web
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-
-      - run: npm install
-      - run: npm run knip:production
-
   prettier:
     name: Prettier
     runs-on: ubuntu-latest
