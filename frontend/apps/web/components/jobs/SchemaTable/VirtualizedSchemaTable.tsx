@@ -254,7 +254,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                           transformers={transformers}
                           value={fv}
                           onSelect={field.onChange}
-                          placeholder="Select transformer..."
+                          placeholder="Select Transformer..."
                         />
                       </div>
                       <EditTransformerOptions
