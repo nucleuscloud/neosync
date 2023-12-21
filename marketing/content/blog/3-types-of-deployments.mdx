@@ -1,0 +1,136 @@
+---
+title: 3 types of Zero-Downtime Deployments in Kubernetes
+description: A guide to the 3 types of zero-downtime deployments in Kubernetes
+image: https://assets.nucleuscloud.com/neosync/blog/bluegreen.png
+date: 2023-11-29
+published: true
+authors:
+  - nick
+---
+
+import InlineBlogCode from '../../components/codeblocks/InlineBlogCode.tsx';
+
+# Intro
+
+One of the main benefits of using a container orchestration system like Kubernetes is that you have a lot of control over your deployment strategy and how you deploy software. In a traditional software environment, deployments or upgrades to applications result in downtime and disruption of service which can frustrate users. In today's cloud native world, users expect that software should be available at all times and in all time zones.
+
+Now, thanks to continuous integration and continuous deployment (CI/CD) — a key component of [DevOps methodology](https://www.nucleuscloud.com/blog/sre-devops-platformeng) — deployments aren’t limited to a monthly or quarterly basis. Additionally, with the rise of [platform engineering](https://www.nucleuscloud.com/blog/what-is-platform-engineering), which is further accelerating the speed at which developers can build and deploy new or improved features, deployments are happening all of the time.
+
+In this blog, we'll walk through three deployment strategies that you can implement to avoid down-time when deploying your software.
+
+Let's jump in.
+
+# 3 types of zero-downtime deployments
+
+The three most common types of zero-downtime deployment are:
+
+- **Rolling deployments** - These replaces pods running the old version of the application with the new version, one by one, without downtime to the cluster.
+- **Blue-green deployments** - These involve maintaining two identical environments, one referred to as “blue” (the active production environment), and the other “green” (the environment being updated).
+- **Canary deployments** - These involve deploying new software versions to specific segments of users (called “canaries”), while the majority of traffic continues to use the stable version. The canaries test and validate the new version performance, identifying potential issues before it goes live to the whole system.
+
+Lets take a look at all three of these zero-downtime deployment approaches in more detail.
+
+## Rolling deployments
+
+![rolling](https://assets.nucleuscloud.com/neosync/blog/rollingdeploy.png)
+
+A rolling deployment is the default deployment strategy used in Kubernetes. It updates pods one by one by replacing the existing version of a pod with the new version, without cluster downtime. The update uses a [readiness probe](https://www.nucleuscloud.com/blog/health-checks) to check if the new pod is ready before scaling down the old pods.
+
+Let's look at this process in more detail with an example.
+
+1. Let's look at a simple replicaSet file for an application: <InlineBlogCode children={'myapp'} />.
+   Note that this replicaSet defines 3 replicas as the desired state and that the <InlineBlogCode children={'image'} /> is set to <InlineBlogCode children={'myapp:1.0'} />.
+
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: myapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nucleus-sample-app
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp-container
+          image: myapp:1.0
+          # container specs, ports, etc. as needed
+```
+
+2. Now let's say that we want to update our application with the newest version. We can update the image-tag in the replicaSet file to our updated image: <InlineBlogCode children={'image: myapp:2.0'} />.
+
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: myapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp-container
+          image: myapp:2.0 # Updated image tag to new version
+          # Add container specs, ports, etc. as needed
+```
+
+3. Kubernetes now starts the rolling updates by creating the new <InlineBlogCode children={`image: myapp:2.0`} /> pods alongside the original <InlineBlogCode children={`image: myapp:1.0`} /> pods.
+4. The new pods are gradually added to the load balancer or service endpoint and using the pod selector to check for labels, the service endpoint determines which pod should receive the traffic.
+5. Once the new pods pass the readiness health check and start to receive traffic, Kubernetes will start to gradually terminate the old pods. This continues until all old pods are replaced with the new ones.
+
+In this way, there is no downtime experienced by the end user because there is always a pod serving their traffic, whether it's the new pod or the old one.
+
+There are two optional parameters that you can define to have more control over the rolling deploy:
+
+- **maxSurge** - specifies the maximum number of additional pods above the replica count during the update process. You can specify this as a whole number (i.e. 5), or as a percentage of the total required number of pods (i.e 10% and this is always rounded up to the nearest whole number). If you do not set MaxSurge, the implicit, default value is 25%. maxSurge is useful because it allows for better control of resource utilization and application stability. The higher the number the faster the newer application will be rolled out and vice versa.
+- **maxUnavailable** - specifies the maximum number of pods that are allowed to be unavailable during the rollout. Like MaxSurge, you can define it as an absolute number or a percentage. This helps to control the stability of the rollout and ensure that you don't have too many unavailable pods at any point in time which may impact the end user.
+
+The primary benefit of rolling deployments is that if there is an issue during the deployment process, it only affects some of the pods and not all of them and the end user typically doesn't see the impact.
+
+## Blue-green deployments
+
+![bluegreen](https://assets.nucleuscloud.com/neosync/blog/bluegreen.png)
+
+With blue-green deployments, developers maintain two identical environments:
+
+- “Blue” is the active production environment
+- “Green” is the environment being updated
+
+The green environment is tested and validated, and any errors resolved. Once that process is complete, the devOps or platform team will switch over the load balancer or DNS to point to the green environment. This means that incoming requests are then routed from the blue to the green, resulting in the blue becoming inactive. This switchover is fast and has minimal if any downtime on the end user of the application.
+
+In Kubernetes, an environment in a blue-green deployment can be defined at the namespace or even cluster level. With two isolated environments, you can reduce the risk of impacting the live production environment during the update process. And in case anything does go wrong, you can easily switch back over to the blue environment for any rollbacks.
+
+A common question I hear is: how are blue-green deployments different from rolling deployments? Unlike rolling deployments which spin up two different versions of the pods in the same environment, blue-green deployments spin up two completely different environments. This means that rolling deployments happen within the **same** environment while blue-green happens **across** environments. From the routing perspective, rolling deployments gradually shift traffic from one pod to another while blue-green deployments switches traffic from one environment to another. Lastly, Kubernetes natively handles the rolling deployments while typically a team manually handles the blue-green deployment. You can automate the blue-green switchover but commonly there is a team monitoring it at the least.
+
+Blue-green deploys are great because there is minimal downtime and an easy way to rollback to a previous working version. However, there are some challenges. The first is resource duplication, as maintaining two identical environments requires additional infrastructure and resources. There is also the challenge of keeping blue and green environments in sync to ensure consistency and avoid unexpected issues during the switchover, while maintaining isolation to prevent interference or unintended data changes between the two environments.
+
+Lastly, while Kubernetes doesn't support blue-green deployments natively (it's default is rolling as discussed above), there are CI/CD platforms such as ArgoCD and Jenkins which can help accomplish this.
+
+## Canary deployments
+
+![canary](https://assets.nucleuscloud.com/neosync/blog/canary.png)
+
+Canary deployments are similar to rolling deployments in that an updated application is gradually rolled out (instead of all at once like in a blue-green deploy) but there are couple of important differences.
+
+First is that a rolling deployment happens at the pod level while a canary deployment typically happens at the deployment or service level. Second is that a rolling deploy gradually rolls out the update across all pods with the rate limiting factor being either the <InlineBlogCode children={`maxSurge`} /> or <InlineBlogCode children={`maxUnavailable`} /> parameter (as discussed above) or how long it takes for a pod to complete the readiness health check. This is typically pretty fast - can be seconds or minutes.
+
+Conversely, a canary deploy rolls out to only a subset of users and is typically manually controlled by the devOps or platform team who assign a weight to the number of requests that should be routed to the updated environment. For example, you may decide that you want 5% of your requests to be routed to the new version of an application while the remaining 95% route to the existing version. Then over time, this can be hours, days or even weeks, you gradually roll out the new version to the rest of your users. The big difference here between canary and rolling deploys is the **time-frame** and **manual nature** of the gradual roll out.
+
+Similar to Blue-green deploys, you'll need to use an additional tool to be able to execute canary deploys in Kubernetes. Luckily, there are several tools that you can use from ingress controllers such as Traefik and Nginx to service meshes such as Istio and Linkerd.
+
+Canary deployments are great for early issue detection. Since only a segment of users or servers are exposed to the issue, you can quickly resolve it without jeopardizing the broad user base. Additionally, canary deployments provide an ideal environment for controlled testing and validation. Because you choose the segment, you can experiment with different scenarios to help account for various real-world situations the software may encounter. This also carries some risk, as you may test the software with a non-representative sample.
+
+# Wrapping up
+
+If you're building applications and services on Kubernetes and thinking about how to achieve zero down-time deploys, then these three options are definitely ones you should consider. Depending on which route you want to go, you may have to use additional tools to achieve those goals but at the end of the day, if you're able to deliver a consistent and stable application to your end users, then it's worth it!

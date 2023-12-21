@@ -1,0 +1,9 @@
+.prettierrc.json
+.vercel
+.vscode
+.next
+.contentlayer
+README.md
+tsconfig.json
+charts
+dev
