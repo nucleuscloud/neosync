@@ -10,14 +10,14 @@ function getNextPublicAppUrl() {
 
 const env = createEnv({
   server: {
-    MIXPANEL_TOKEN: z.string()
+    MIXPANEL_TOKEN: z.string(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().min(1),
   },
   runtimeEnv: {
     NEXT_PUBLIC_APP_URL: getNextPublicAppUrl(),
-    MIXPANEL_TOKEN: process.env.MIXPANEL_TOKEN
+    MIXPANEL_TOKEN: process.env.MIXPANEL_TOKEN,
   },
 });
 module.exports = { env };
