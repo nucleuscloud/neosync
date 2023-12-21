@@ -1,3 +1,4 @@
+import { env } from '@/env';
 import axios from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   };
 
   const options = {
-    Authorization: `Bearer pat-na1-502b94c6-08ed-42b3-91f0-85ac0fbf9960`,
+    Authorization: `Bearer ${env.HUBSPOT_TOKEN}`,
   };
 
   try {
