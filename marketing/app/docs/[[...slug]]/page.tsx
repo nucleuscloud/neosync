@@ -3,7 +3,7 @@ import { Doc, allDocs } from 'contentlayer/generated';
 import { notFound } from 'next/navigation';
 import type { ReactElement } from 'react';
 import DocsFooter from './components/DocsFooter';
-import DocsHeader from './components/DocsHeader';
+import DocsHeader, { Breadcrumb } from './components/DocsHeader';
 import DocsNavigation, { TreeNode } from './components/DocsNavigation';
 import PageNavigation from './components/PageNavigation';
 // import { Doc, allDocs } from 'contentlayer/generated';
@@ -163,7 +163,22 @@ export default async function DocsPage(props: Props): Promise<ReactElement> {
     notFound();
   }
 
+  const breadcrumbs: Breadcrumb[] = [];
+  let path = '';
+  for (const s of ['docs', ...slug]) {
+    path += `/${s}`;
+    const breadcrumbDoc = allDocs.find((doc) => {
+      return doc.url === path;
+    });
+    if (!breadcrumbDoc) continue;
+    breadcrumbs.push({
+      path: breadcrumbDoc.url,
+      title: breadcrumbDoc?.nav_title || breadcrumbDoc?.title,
+    });
+  }
+
   const tree = buildDocsTree(allDocs);
+  console.log('breaccrumbs', breadcrumbs);
   // const childrenTree = buildDocsTree(
   //   allDocs,
   //   doc?.pathSegments.map((ps: PathSegment) => ps.pathName)
@@ -182,7 +197,7 @@ export default async function DocsPage(props: Props): Promise<ReactElement> {
       </div>
 
       <div className="relative w-full grow">
-        <DocsHeader tree={tree} breadcrumbs={[]} title={doc.title} />
+        <DocsHeader tree={tree} breadcrumbs={breadcrumbs} title={doc.title} />
         <div className="w-full max-w-3xl p-4 pb-8 mx-auto mb-4 prose docs prose-slate prose-violet shrink prose-headings:font-semibold prose-a:font-normal prose-code:font-normal prose-code:before:content-none prose-code:after:content-none prose-hr:border-gray-200 dark:prose-invert dark:prose-a:text-violet-400 dark:prose-hr:border-gray-800 md:mb-8 md:px-8 lg:mx-0 lg:max-w-full lg:px-16">
           {<Mdx code={doc?.body.code} />}
           {/* {doc.show_child_cards && (

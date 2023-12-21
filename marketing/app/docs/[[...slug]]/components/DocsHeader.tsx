@@ -8,9 +8,14 @@ import Link from 'next/link';
 import { Fragment, ReactElement, useEffect, useState } from 'react';
 import DocsNavigation, { TreeNode } from './DocsNavigation';
 
+export interface Breadcrumb {
+  path: string;
+  title: string;
+}
+
 interface Props {
   tree: TreeNode[];
-  breadcrumbs: any[];
+  breadcrumbs: Breadcrumb[];
   title: string;
 }
 
@@ -39,24 +44,26 @@ export default function DocsHeader({
     <>
       <header className="relative w-full">
         <div className="mx-auto w-full max-w-3xl space-y-2 px-4 py-8 md:px-8 lg:max-w-full lg:px-16">
-          <ul className="-mx-1 flex flex-wrap items-center text-sm">
-            {breadcrumbs.map(({ path, title }, index) => (
-              <Fragment key={index}>
-                {index < breadcrumbs.length - 1 && (
-                  <li className="mx-1 flex items-center space-x-2">
-                    <Link
-                      className="inline whitespace-nowrap hover:text-slate-600 dark:hover:text-slate-300"
-                      href={path}
-                    >
-                      {title}
-                    </Link>
-                    <span className="inline-block w-1.5 text-slate-400 dark:text-slate-500">
-                      <ChevronRightIcon />
-                    </span>
-                  </li>
-                )}
-              </Fragment>
-            ))}
+          <ul className="-mx-1 flex flex-wrap items-center text-sm breadcrumbs">
+            {breadcrumbs.map(({ path, title }, index) => {
+              return (
+                <Fragment key={index}>
+                  {index < breadcrumbs.length - 1 && (
+                    <li className="mx-1 flex items-center space-x-2">
+                      <Link
+                        className="inline whitespace-nowrap hover:text-slate-600 dark:hover:text-slate-300"
+                        href={path}
+                      >
+                        {title}
+                      </Link>
+                      <span className="inline-block w-1.5 text-slate-400 dark:text-slate-500">
+                        <ChevronRightIcon />
+                      </span>
+                    </li>
+                  )}
+                </Fragment>
+              );
+            })}
           </ul>
           <h1 className="sr-only text-2xl font-semibold text-slate-800 dark:text-slate-200 md:text-3xl lg:not-sr-only lg:text-4xl">
             {title}

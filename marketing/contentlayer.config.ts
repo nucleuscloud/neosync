@@ -159,7 +159,6 @@ export const Doc = defineDocumentType(() => ({
             return opts;
           },
         });
-
         return [{ level: 1, title: doc.title }, ...headings];
       },
     },
