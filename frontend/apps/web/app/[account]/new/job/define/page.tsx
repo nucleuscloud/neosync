@@ -17,11 +17,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { yupResolver } from '@hookform/resolvers/yup';
-import NeoCron from 'neocron';
-import 'neocron/dist/src/globals.css';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
@@ -40,8 +38,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [searchParams?.sessionId]);
 
-  const defaultCronString = '0 0 * * *'; //by default runs every day
-
   const sessionPrefix = searchParams?.sessionId ?? '';
   const [defaultValues] = useSessionStorage<DefineFormValues>(
     `${sessionPrefix}-new-job-define`,
@@ -51,11 +47,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       initiateJobRun: false,
     }
   );
+  const [showSchedule, setShowSchedule] = useState<boolean>(false);
 
   const form = useForm<DefineFormValues>({
+    mode: 'onChange',
     resolver: yupResolver<DefineFormValues>(DEFINE_FORM_SCHEMA),
     defaultValues,
-    context: { accountId: account?.id ?? '' },
+    context: { accountId: account?.id ?? '', showSchedule: showSchedule },
   });
 
   const isBrowser = () => typeof window !== 'undefined';
@@ -69,7 +67,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const newJobType = getNewJobType(getSingleOrUndefined(searchParams?.jobType));
 
   async function onSubmit(_values: DefineFormValues) {
-    if (disableSchedule) {
+    if (!showSchedule) {
       form.setValue('cronSchedule', '');
     }
     if (newJobType === 'generate-table') {
@@ -83,13 +81,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const [isClient, setIsClient] = useState(false);
   useEffect(() => {
-    // This code runs after mount, indicating we're on the client
-    setIsClient(true);
-  }, []);
-
-  const [disableSchedule, setDisableSchedule] = useState<boolean>(true);
+    if (form.getValues('cronSchedule')) {
+      setShowSchedule(true);
+    }
+  }, [setShowSchedule, form]);
 
   return (
     <div
@@ -130,47 +126,35 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </FormItem>
             )}
           />
-
-          <div>
-            <div></div>
-          </div>
-          {isClient && (
-            <Controller
-              control={form.control}
-              name="cronSchedule"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex flex-row items-center gap-2">
-                    <FormLabel>Schedule</FormLabel>
-                    <Switch
-                      checked={!disableSchedule}
-                      onCheckedChange={() => {
-                        disableSchedule
-                          ? setDisableSchedule(false)
-                          : setDisableSchedule(true);
-                      }}
-                    />
-                  </div>
-                  <FormDescription>
-                    Define a schedule to run this job. If disabled, job will
-                    need to be manually triggered.
-                  </FormDescription>
-                  <FormControl>
-                    {!disableSchedule && (
-                      <NeoCron
-                        cronString={
-                          field.value ? field.value : defaultCronString
-                        }
-                        defaultCronString={defaultCronString}
-                        setCronString={field.onChange}
-                      />
-                    )}
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={form.control}
+            name="cronSchedule"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex flex-row items-center gap-2">
+                  <FormLabel>Schedule</FormLabel>
+                  <Switch
+                    checked={showSchedule}
+                    onCheckedChange={() => {
+                      showSchedule
+                        ? setShowSchedule(false)
+                        : setShowSchedule(true);
+                    }}
+                  />
+                </div>
+                <FormDescription>
+                  Define a cron schedule to run this job. If disabled, the job
+                  will need to be manually triggered.
+                </FormDescription>
+                <FormControl>
+                  {showSchedule && (
+                    <Input placeholder="0 0 * * * " {...field} />
+                  )}
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <div>
             <FormLabel>Settings</FormLabel>
             <div className="pt-4">
@@ -193,7 +177,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             </div>
           </div>
           <div className="flex flex-row justify-end">
-            <Button type="submit">Next</Button>
+            <Button type="submit" disabled={!form.formState.isValid}>
+              Next
+            </Button>
           </div>
         </form>
       </Form>
