@@ -13,7 +13,7 @@ interface Props {
 export default function DocsFooter({ doc }: Props): ReactElement {
   return (
     <>
-      <hr />
+      <hr className="my-8" />
       <div className="space-y-4 text-sm sm:flex sm:justify-between sm:space-y-0">
         <p className="m-0">
           Was this article helpful to you? <br />{' '}

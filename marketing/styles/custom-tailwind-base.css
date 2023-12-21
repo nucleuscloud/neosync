@@ -1,0 +1,186 @@
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  /* body {
+    @apply bg-background text-foreground bg-[#F5F5F5];
+  } */
+
+  pre {
+    @apply p-4;
+  }
+}
+
+@layer base {
+  .scroll-padding {
+    scroll-padding-top: 150px;
+  }
+
+  /* body {
+    @apply h-full bg-white text-slate-500 antialiased dark:bg-gray-950 dark:text-slate-400;
+  } */
+
+  svg {
+    @apply max-w-full;
+  }
+
+  .svg-h-full svg {
+    @apply h-full;
+  }
+
+  svg path {
+    fill: currentColor;
+  }
+
+  code {
+    @apply rounded bg-gray-200 py-0.5 px-1 text-sm dark:bg-gray-800;
+  }
+
+  .prose code.hljs {
+    @apply bg-transparent;
+  }
+
+  .prose a code {
+    @apply dark:text-violet-400 !important;
+  }
+
+  .prose pre {
+    @apply rounded-lg border border-transparent dark:border-gray-900 dark:bg-black;
+  }
+
+  @media (min-width: 1024px) {
+    .docs.prose pre {
+      max-width: calc(100vw - 520px);
+    }
+
+    .blog.prose pre {
+      max-width: calc(100vw - 352px);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .blog.prose pre {
+      max-width: calc(100vw - 672px);
+    }
+  }
+
+  @media (min-width: 1440px) {
+    .docs.prose pre {
+      max-width: calc(100vw - 840px);
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .docs.prose pre {
+      max-width: 707px;
+    }
+
+    .blog.prose pre {
+      max-width: 832px;
+    }
+  }
+
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(calc(-560px * 4));
+    }
+  }
+
+  .animate-scroll {
+    animation: scroll 50s linear infinite;
+  }
+
+  .animate-scroll:hover {
+    animation-play-state: paused;
+  }
+
+  reach-portal {
+    position: absolute;
+    z-index: 100;
+  }
+
+  .options-table .option-title h2,
+  .options-table .option-title h3,
+  .options-table .option-title h4 {
+    @apply text-slate-900 dark:text-white;
+  }
+
+  .options-table .option-title p {
+    @apply text-sm text-slate-500 dark:text-slate-400;
+  }
+
+  .hyphens {
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+}
