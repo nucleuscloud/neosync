@@ -1,9 +1,12 @@
-import mixpanel from 'mixpanel';
-import { PropertyDict } from 'mixpanel';
+import mixpanel, { PropertyDict } from 'mixpanel';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest, res: NextResponse) {
-  const Mixpanel = mixpanel.init('a970fed5baf076582713ccc5d63e09ca');
+export async function POST(req: NextRequest) {
+  const mixpanelToken = process.env.MIXPANEL_TOKEN;
+  if (!mixpanelToken) {
+    return NextResponse.json({ message: 'no token' });
+  }
+  const Mixpanel = mixpanel.init(mixpanelToken);
 
   const body = await req.json();
 
@@ -18,7 +21,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
   }
 
   try {
-    await Mixpanel.track(name, props);
+    Mixpanel.track(name, props);
     return NextResponse.json({ message: 'success' });
   } catch (e) {
     throw e;
