@@ -118,7 +118,8 @@ function getFormValues(
   dbCols: DatabaseColumn[],
   existingData: SchemaFormValues | undefined
 ): SchemaFormValues {
-  if (existingData) {
+  const existingMappings = existingData?.mappings ?? [];
+  if (existingData && existingMappings.length > 0) {
     return existingData;
   }
 
