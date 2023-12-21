@@ -3,7 +3,6 @@ package sync_cmd
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -128,7 +127,9 @@ func NewCmd() *cobra.Command {
 			}
 
 			config := &cmdConfig{
-				Source:      &sourceConfig{},
+				Source: &sourceConfig{
+					ConnectionOpts: &connectionOpts{},
+				},
 				Destination: &destinationConfig{},
 			}
 			configPath, err := cmd.Flags().GetString("config")
@@ -196,6 +197,22 @@ func NewCmd() *cobra.Command {
 				config.Destination.TruncateCascade = truncateCascade
 			}
 
+			jobId, err := cmd.Flags().GetString("job-id")
+			if err != nil {
+				return err
+			}
+			if jobId != "" {
+				config.Source.ConnectionOpts.JobId = &jobId
+			}
+
+			jobRunId, err := cmd.Flags().GetString("job-run-id")
+			if err != nil {
+				return err
+			}
+			if jobRunId != "" {
+				config.Source.ConnectionOpts.JobRunId = &jobRunId
+			}
+
 			if config.Source.ConnectionId == "" {
 				return fmt.Errorf("must provide connection-id")
 			}
@@ -228,8 +245,9 @@ func NewCmd() *cobra.Command {
 		},
 	}
 
-	// TODO update this
 	cmd.Flags().String("connection-id", "", "Connection id for sync source")
+	cmd.Flags().String("job-id", "", "Id of Job to sync data from. Only used with AWS S3 connections. Can use job-run-id instead.")
+	cmd.Flags().String("job-run-id", "", "Id of Job run to sync data from. Only used with AWS S3 connections. Can use job-id instead.")
 	cmd.Flags().String("destination-connection-url", "", "Connection url for sync output")
 	cmd.Flags().String("destination-driver", "", "Connection driver for sync output")
 	cmd.Flags().String("account-id", "", "Account source connection is in. Defaults to account id in cli context")
@@ -248,8 +266,6 @@ func sync(
 	apiKey, accountIdFlag *string,
 	cmd *cmdConfig,
 ) error {
-	jsonF, _ := json.MarshalIndent(cmd, "", " ")
-	fmt.Printf("\n\n  %s \n\n", string(jsonF))
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
 		return err

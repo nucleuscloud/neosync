@@ -148,6 +148,7 @@ func (s *Service) GetConnectionDataStream(
 			for i, v := range values {
 				col := columnNames[i]
 				row[col] = v
+				fmt.Println(string(v))
 			}
 
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
@@ -234,11 +235,19 @@ func (s *Service) GetConnectionDataStream(
 
 					rowMap := make(map[string][]byte)
 					for key, value := range data {
-						byteValue, err := json.Marshal(value)
-						if err != nil {
-							result.Body.Close()
-							gzr.Close()
-							return err
+						var byteValue []byte
+						if str, ok := value.(string); ok {
+							// try converting string directly to []byte
+							// prevents quoted strings
+							byteValue = []byte(str)
+						} else {
+							// if not a string use JSON encoding
+							byteValue, err = json.Marshal(value)
+							if err != nil {
+								result.Body.Close()
+								gzr.Close()
+								return err
+							}
 						}
 						rowMap[key] = byteValue
 					}
