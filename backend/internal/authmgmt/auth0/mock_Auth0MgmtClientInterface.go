@@ -26,6 +26,10 @@ func (_m *MockAuth0MgmtClientInterface) EXPECT() *MockAuth0MgmtClientInterface_E
 func (_m *MockAuth0MgmtClientInterface) GetUserById(ctx context.Context, id string) (*management.User, error) {
 	ret := _m.Called(ctx, id)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserById")
+	}
+
 	var r0 *management.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (*management.User, error)); ok {

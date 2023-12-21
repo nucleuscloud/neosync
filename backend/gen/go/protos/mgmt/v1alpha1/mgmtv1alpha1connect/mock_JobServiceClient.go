@@ -28,6 +28,10 @@ func (_m *MockJobServiceClient) EXPECT() *MockJobServiceClient_Expecter {
 func (_m *MockJobServiceClient) CancelJobRun(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CancelJobRunRequest]) (*connect.Response[mgmtv1alpha1.CancelJobRunResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CancelJobRun")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.CancelJobRunResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CancelJobRunRequest]) (*connect.Response[mgmtv1alpha1.CancelJobRunResponse], error)); ok {
@@ -82,6 +86,10 @@ func (_c *MockJobServiceClient_CancelJobRun_Call) RunAndReturn(run func(context.
 // CreateJob provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) CreateJob(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CreateJobRequest]) (*connect.Response[mgmtv1alpha1.CreateJobResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJob")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.CreateJobResponse]
 	var r1 error
@@ -138,6 +146,10 @@ func (_c *MockJobServiceClient_CreateJob_Call) RunAndReturn(run func(context.Con
 func (_m *MockJobServiceClient) CreateJobDestinationConnections(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CreateJobDestinationConnectionsRequest]) (*connect.Response[mgmtv1alpha1.CreateJobDestinationConnectionsResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJobDestinationConnections")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.CreateJobDestinationConnectionsResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CreateJobDestinationConnectionsRequest]) (*connect.Response[mgmtv1alpha1.CreateJobDestinationConnectionsResponse], error)); ok {
@@ -192,6 +204,10 @@ func (_c *MockJobServiceClient_CreateJobDestinationConnections_Call) RunAndRetur
 // CreateJobRun provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) CreateJobRun(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CreateJobRunRequest]) (*connect.Response[mgmtv1alpha1.CreateJobRunResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJobRun")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.CreateJobRunResponse]
 	var r1 error
@@ -248,6 +264,10 @@ func (_c *MockJobServiceClient_CreateJobRun_Call) RunAndReturn(run func(context.
 func (_m *MockJobServiceClient) DeleteJob(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.DeleteJobRequest]) (*connect.Response[mgmtv1alpha1.DeleteJobResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteJob")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.DeleteJobResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.DeleteJobRequest]) (*connect.Response[mgmtv1alpha1.DeleteJobResponse], error)); ok {
@@ -302,6 +322,10 @@ func (_c *MockJobServiceClient_DeleteJob_Call) RunAndReturn(run func(context.Con
 // DeleteJobDestinationConnection provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) DeleteJobDestinationConnection(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.DeleteJobDestinationConnectionRequest]) (*connect.Response[mgmtv1alpha1.DeleteJobDestinationConnectionResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteJobDestinationConnection")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.DeleteJobDestinationConnectionResponse]
 	var r1 error
@@ -358,6 +382,10 @@ func (_c *MockJobServiceClient_DeleteJobDestinationConnection_Call) RunAndReturn
 func (_m *MockJobServiceClient) DeleteJobRun(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.DeleteJobRunRequest]) (*connect.Response[mgmtv1alpha1.DeleteJobRunResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteJobRun")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.DeleteJobRunResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.DeleteJobRunRequest]) (*connect.Response[mgmtv1alpha1.DeleteJobRunResponse], error)); ok {
@@ -412,6 +440,10 @@ func (_c *MockJobServiceClient_DeleteJobRun_Call) RunAndReturn(run func(context.
 // GetJob provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) GetJob(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobRequest]) (*connect.Response[mgmtv1alpha1.GetJobResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetJob")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetJobResponse]
 	var r1 error
@@ -468,6 +500,10 @@ func (_c *MockJobServiceClient_GetJob_Call) RunAndReturn(run func(context.Contex
 func (_m *MockJobServiceClient) GetJobNextRuns(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobNextRunsRequest]) (*connect.Response[mgmtv1alpha1.GetJobNextRunsResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobNextRuns")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetJobNextRunsResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetJobNextRunsRequest]) (*connect.Response[mgmtv1alpha1.GetJobNextRunsResponse], error)); ok {
@@ -522,6 +558,10 @@ func (_c *MockJobServiceClient_GetJobNextRuns_Call) RunAndReturn(run func(contex
 // GetJobRecentRuns provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) GetJobRecentRuns(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobRecentRunsRequest]) (*connect.Response[mgmtv1alpha1.GetJobRecentRunsResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobRecentRuns")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetJobRecentRunsResponse]
 	var r1 error
@@ -578,6 +618,10 @@ func (_c *MockJobServiceClient_GetJobRecentRuns_Call) RunAndReturn(run func(cont
 func (_m *MockJobServiceClient) GetJobRun(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobRunRequest]) (*connect.Response[mgmtv1alpha1.GetJobRunResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobRun")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetJobRunResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetJobRunRequest]) (*connect.Response[mgmtv1alpha1.GetJobRunResponse], error)); ok {
@@ -632,6 +676,10 @@ func (_c *MockJobServiceClient_GetJobRun_Call) RunAndReturn(run func(context.Con
 // GetJobRunEvents provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) GetJobRunEvents(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobRunEventsRequest]) (*connect.Response[mgmtv1alpha1.GetJobRunEventsResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobRunEvents")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetJobRunEventsResponse]
 	var r1 error
@@ -688,6 +736,10 @@ func (_c *MockJobServiceClient_GetJobRunEvents_Call) RunAndReturn(run func(conte
 func (_m *MockJobServiceClient) GetJobRuns(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobRunsRequest]) (*connect.Response[mgmtv1alpha1.GetJobRunsResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobRuns")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetJobRunsResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetJobRunsRequest]) (*connect.Response[mgmtv1alpha1.GetJobRunsResponse], error)); ok {
@@ -742,6 +794,10 @@ func (_c *MockJobServiceClient_GetJobRuns_Call) RunAndReturn(run func(context.Co
 // GetJobStatus provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) GetJobStatus(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobStatusRequest]) (*connect.Response[mgmtv1alpha1.GetJobStatusResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobStatus")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetJobStatusResponse]
 	var r1 error
@@ -798,6 +854,10 @@ func (_c *MockJobServiceClient_GetJobStatus_Call) RunAndReturn(run func(context.
 func (_m *MockJobServiceClient) GetJobStatuses(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobStatusesRequest]) (*connect.Response[mgmtv1alpha1.GetJobStatusesResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobStatuses")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetJobStatusesResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetJobStatusesRequest]) (*connect.Response[mgmtv1alpha1.GetJobStatusesResponse], error)); ok {
@@ -853,6 +913,10 @@ func (_c *MockJobServiceClient_GetJobStatuses_Call) RunAndReturn(run func(contex
 func (_m *MockJobServiceClient) GetJobs(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetJobsRequest]) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetJobs")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetJobsResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetJobsRequest]) (*connect.Response[mgmtv1alpha1.GetJobsResponse], error)); ok {
@@ -904,9 +968,72 @@ func (_c *MockJobServiceClient_GetJobs_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// GetLatestJobRun provides a mock function with given fields: _a0, _a1
+func (_m *MockJobServiceClient) GetLatestJobRun(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetLatestJobRunRequest]) (*connect.Response[mgmtv1alpha1.GetLatestJobRunResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLatestJobRun")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.GetLatestJobRunResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetLatestJobRunRequest]) (*connect.Response[mgmtv1alpha1.GetLatestJobRunResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetLatestJobRunRequest]) *connect.Response[mgmtv1alpha1.GetLatestJobRunResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetLatestJobRunResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetLatestJobRunRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockJobServiceClient_GetLatestJobRun_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatestJobRun'
+type MockJobServiceClient_GetLatestJobRun_Call struct {
+	*mock.Call
+}
+
+// GetLatestJobRun is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetLatestJobRunRequest]
+func (_e *MockJobServiceClient_Expecter) GetLatestJobRun(_a0 interface{}, _a1 interface{}) *MockJobServiceClient_GetLatestJobRun_Call {
+	return &MockJobServiceClient_GetLatestJobRun_Call{Call: _e.mock.On("GetLatestJobRun", _a0, _a1)}
+}
+
+func (_c *MockJobServiceClient_GetLatestJobRun_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetLatestJobRunRequest])) *MockJobServiceClient_GetLatestJobRun_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetLatestJobRunRequest]))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceClient_GetLatestJobRun_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetLatestJobRunResponse], _a1 error) *MockJobServiceClient_GetLatestJobRun_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockJobServiceClient_GetLatestJobRun_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetLatestJobRunRequest]) (*connect.Response[mgmtv1alpha1.GetLatestJobRunResponse], error)) *MockJobServiceClient_GetLatestJobRun_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // IsJobNameAvailable provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) IsJobNameAvailable(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.IsJobNameAvailableRequest]) (*connect.Response[mgmtv1alpha1.IsJobNameAvailableResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsJobNameAvailable")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.IsJobNameAvailableResponse]
 	var r1 error
@@ -963,6 +1090,10 @@ func (_c *MockJobServiceClient_IsJobNameAvailable_Call) RunAndReturn(run func(co
 func (_m *MockJobServiceClient) PauseJob(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.PauseJobRequest]) (*connect.Response[mgmtv1alpha1.PauseJobResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for PauseJob")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.PauseJobResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.PauseJobRequest]) (*connect.Response[mgmtv1alpha1.PauseJobResponse], error)); ok {
@@ -1017,6 +1148,10 @@ func (_c *MockJobServiceClient_PauseJob_Call) RunAndReturn(run func(context.Cont
 // SetJobSourceSqlConnectionSubsets provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) SetJobSourceSqlConnectionSubsets(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsRequest]) (*connect.Response[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetJobSourceSqlConnectionSubsets")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.SetJobSourceSqlConnectionSubsetsResponse]
 	var r1 error
@@ -1073,6 +1208,10 @@ func (_c *MockJobServiceClient_SetJobSourceSqlConnectionSubsets_Call) RunAndRetu
 func (_m *MockJobServiceClient) TerminateJobRun(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.TerminateJobRunRequest]) (*connect.Response[mgmtv1alpha1.TerminateJobRunResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for TerminateJobRun")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.TerminateJobRunResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.TerminateJobRunRequest]) (*connect.Response[mgmtv1alpha1.TerminateJobRunResponse], error)); ok {
@@ -1127,6 +1266,10 @@ func (_c *MockJobServiceClient_TerminateJobRun_Call) RunAndReturn(run func(conte
 // UpdateJobDestinationConnection provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) UpdateJobDestinationConnection(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.UpdateJobDestinationConnectionRequest]) (*connect.Response[mgmtv1alpha1.UpdateJobDestinationConnectionResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobDestinationConnection")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.UpdateJobDestinationConnectionResponse]
 	var r1 error
@@ -1183,6 +1326,10 @@ func (_c *MockJobServiceClient_UpdateJobDestinationConnection_Call) RunAndReturn
 func (_m *MockJobServiceClient) UpdateJobSchedule(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.UpdateJobScheduleRequest]) (*connect.Response[mgmtv1alpha1.UpdateJobScheduleResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobSchedule")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.UpdateJobScheduleResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.UpdateJobScheduleRequest]) (*connect.Response[mgmtv1alpha1.UpdateJobScheduleResponse], error)); ok {
@@ -1237,6 +1384,10 @@ func (_c *MockJobServiceClient_UpdateJobSchedule_Call) RunAndReturn(run func(con
 // UpdateJobSourceConnection provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceClient) UpdateJobSourceConnection(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.UpdateJobSourceConnectionRequest]) (*connect.Response[mgmtv1alpha1.UpdateJobSourceConnectionResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateJobSourceConnection")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.UpdateJobSourceConnectionResponse]
 	var r1 error

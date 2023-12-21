@@ -28,6 +28,10 @@ func (_m *MockUserAccountServiceClient) EXPECT() *MockUserAccountServiceClient_E
 func (_m *MockUserAccountServiceClient) AcceptTeamAccountInvite(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.AcceptTeamAccountInviteRequest]) (*connect.Response[mgmtv1alpha1.AcceptTeamAccountInviteResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for AcceptTeamAccountInvite")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.AcceptTeamAccountInviteResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.AcceptTeamAccountInviteRequest]) (*connect.Response[mgmtv1alpha1.AcceptTeamAccountInviteResponse], error)); ok {
@@ -82,6 +86,10 @@ func (_c *MockUserAccountServiceClient_AcceptTeamAccountInvite_Call) RunAndRetur
 // ConvertPersonalToTeamAccount provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) ConvertPersonalToTeamAccount(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.ConvertPersonalToTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.ConvertPersonalToTeamAccountResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConvertPersonalToTeamAccount")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.ConvertPersonalToTeamAccountResponse]
 	var r1 error
@@ -138,6 +146,10 @@ func (_c *MockUserAccountServiceClient_ConvertPersonalToTeamAccount_Call) RunAnd
 func (_m *MockUserAccountServiceClient) CreateTeamAccount(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateTeamAccount")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.CreateTeamAccountResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], error)); ok {
@@ -192,6 +204,10 @@ func (_c *MockUserAccountServiceClient_CreateTeamAccount_Call) RunAndReturn(run 
 // GetAccountTemporalConfig provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) GetAccountTemporalConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountTemporalConfig")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse]
 	var r1 error
@@ -307,6 +323,10 @@ func (_c *MockUserAccountServiceClient_GetSystemInformation_Call) RunAndReturn(r
 func (_m *MockUserAccountServiceClient) GetTeamAccountInvites(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamAccountInvites")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetTeamAccountInvitesRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountInvitesResponse], error)); ok {
@@ -361,6 +381,10 @@ func (_c *MockUserAccountServiceClient_GetTeamAccountInvites_Call) RunAndReturn(
 // GetTeamAccountMembers provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) GetTeamAccountMembers(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]) (*connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamAccountMembers")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetTeamAccountMembersResponse]
 	var r1 error
@@ -417,6 +441,10 @@ func (_c *MockUserAccountServiceClient_GetTeamAccountMembers_Call) RunAndReturn(
 func (_m *MockUserAccountServiceClient) GetUser(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetUserRequest]) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetUser")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetUserResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetUserRequest]) (*connect.Response[mgmtv1alpha1.GetUserResponse], error)); ok {
@@ -471,6 +499,10 @@ func (_c *MockUserAccountServiceClient_GetUser_Call) RunAndReturn(run func(conte
 // GetUserAccounts provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) GetUserAccounts(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetUserAccountsRequest]) (*connect.Response[mgmtv1alpha1.GetUserAccountsResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserAccounts")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetUserAccountsResponse]
 	var r1 error
@@ -527,6 +559,10 @@ func (_c *MockUserAccountServiceClient_GetUserAccounts_Call) RunAndReturn(run fu
 func (_m *MockUserAccountServiceClient) InviteUserToTeamAccount(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for InviteUserToTeamAccount")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.InviteUserToTeamAccountRequest]) (*connect.Response[mgmtv1alpha1.InviteUserToTeamAccountResponse], error)); ok {
@@ -581,6 +617,10 @@ func (_c *MockUserAccountServiceClient_InviteUserToTeamAccount_Call) RunAndRetur
 // IsUserInAccount provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) IsUserInAccount(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.IsUserInAccountRequest]) (*connect.Response[mgmtv1alpha1.IsUserInAccountResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsUserInAccount")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.IsUserInAccountResponse]
 	var r1 error
@@ -637,6 +677,10 @@ func (_c *MockUserAccountServiceClient_IsUserInAccount_Call) RunAndReturn(run fu
 func (_m *MockUserAccountServiceClient) RemoveTeamAccountInvite(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveTeamAccountInvite")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountInviteRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountInviteResponse], error)); ok {
@@ -691,6 +735,10 @@ func (_c *MockUserAccountServiceClient_RemoveTeamAccountInvite_Call) RunAndRetur
 // RemoveTeamAccountMember provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) RemoveTeamAccountMember(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveTeamAccountMember")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse]
 	var r1 error
@@ -747,6 +795,10 @@ func (_c *MockUserAccountServiceClient_RemoveTeamAccountMember_Call) RunAndRetur
 func (_m *MockUserAccountServiceClient) SetAccountTemporalConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for SetAccountTemporalConfig")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse], error)); ok {
@@ -802,6 +854,10 @@ func (_c *MockUserAccountServiceClient_SetAccountTemporalConfig_Call) RunAndRetu
 func (_m *MockUserAccountServiceClient) SetPersonalAccount(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetPersonalAccountRequest]) (*connect.Response[mgmtv1alpha1.SetPersonalAccountResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for SetPersonalAccount")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.SetPersonalAccountResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetPersonalAccountRequest]) (*connect.Response[mgmtv1alpha1.SetPersonalAccountResponse], error)); ok {
@@ -856,6 +912,10 @@ func (_c *MockUserAccountServiceClient_SetPersonalAccount_Call) RunAndReturn(run
 // SetUser provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) SetUser(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetUserRequest]) (*connect.Response[mgmtv1alpha1.SetUserResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetUser")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.SetUserResponse]
 	var r1 error

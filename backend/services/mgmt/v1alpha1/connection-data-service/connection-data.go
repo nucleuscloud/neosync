@@ -26,7 +26,6 @@ import (
 	conn_utils "github.com/nucleuscloud/neosync/backend/internal/utils/connections"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -78,8 +77,6 @@ func (s *Service) GetConnectionDataStream(
 ) error {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("connectionId", req.Msg.ConnectionId)
-	jsonF, _ := json.MarshalIndent(req.Msg, "", " ")
-	fmt.Printf("\n\n  %s \n\n", string(jsonF))
 	connResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
 	}))
@@ -412,7 +409,6 @@ func (s *Service) GetConnectionSchema(
 				if err != nil || *output.KeyCount == 0 {
 					break
 				}
-				// for _, item := range output.Contents {
 				item := output.Contents[0]
 				result, err := svc.GetObject(&s3.GetObjectInput{
 					Bucket: aws.String(awsS3Config.Bucket),
@@ -454,7 +450,6 @@ func (s *Service) GetConnectionSchema(
 				}
 				result.Body.Close()
 				gzr.Close()
-				// }
 			}
 			if *output.IsTruncated {
 				pageToken = output.NextContinuationToken
@@ -559,7 +554,7 @@ func (s *Service) GetConnectionForeignConstraints(
 		}
 		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 		defer cancel()
-		allConstraints, err := getAllPostgresFkConstraints(pgquerier, cctx, pool, schemas)
+		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(pgquerier, cctx, pool, schemas)
 		if err != nil {
 			return nil, err
 		}
@@ -578,7 +573,7 @@ func (s *Service) GetConnectionForeignConstraints(
 		}()
 		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 		defer cancel()
-		allConstraints, err := getAllMysqlFkConstraints(mysqlquerier, cctx, conn, schemas)
+		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(mysqlquerier, cctx, conn, schemas)
 		if err != nil {
 			return nil, err
 		}
@@ -697,70 +692,6 @@ func (s *Service) GetConnectionInitStatements(
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionInitStatementsResponse{
 		TableInitStatements: statementsMap,
 	}), nil
-}
-
-func getAllPostgresFkConstraints(
-	pgquerier pg_queries.Querier,
-	ctx context.Context,
-	conn pg_queries.DBTX,
-	uniqueSchemas []string,
-) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
-	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range uniqueSchemas {
-		idx := idx
-		schema := uniqueSchemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := pgquerier.GetForeignKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
-
-	output := []*pg_queries.GetForeignKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
-	}
-	return output, nil
-}
-
-func getAllMysqlFkConstraints(
-	mysqlquerier mysql_queries.Querier,
-	ctx context.Context,
-	conn *sql.DB,
-	schemas []string,
-) ([]*mysql_queries.GetForeignKeyConstraintsRow, error) {
-	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range schemas {
-		idx := idx
-		schema := schemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := mysqlquerier.GetForeignKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
-
-	output := []*mysql_queries.GetForeignKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
-	}
-	return output, nil
 }
 
 type connectionDetails struct {
