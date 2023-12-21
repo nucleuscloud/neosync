@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb.js";
+import { AcceptTeamAccountInviteRequest, AcceptTeamAccountInviteResponse, ConvertPersonalToTeamAccountRequest, ConvertPersonalToTeamAccountResponse, CreateTeamAccountRequest, CreateTeamAccountResponse, GetAccountTemporalConfigRequest, GetAccountTemporalConfigResponse, GetSystemInformationRequest, GetSystemInformationResponse, GetTeamAccountInvitesRequest, GetTeamAccountInvitesResponse, GetTeamAccountMembersRequest, GetTeamAccountMembersResponse, GetUserAccountsRequest, GetUserAccountsResponse, GetUserRequest, GetUserResponse, InviteUserToTeamAccountRequest, InviteUserToTeamAccountResponse, IsUserInAccountRequest, IsUserInAccountResponse, RemoveTeamAccountInviteRequest, RemoveTeamAccountInviteResponse, RemoveTeamAccountMemberRequest, RemoveTeamAccountMemberResponse, SetAccountTemporalConfigRequest, SetAccountTemporalConfigResponse, SetPersonalAccountRequest, SetPersonalAccountResponse, SetUserRequest, SetUserResponse } from "./user_account_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -145,6 +145,15 @@ export const UserAccountService = {
       name: "AcceptTeamAccountInvite",
       I: AcceptTeamAccountInviteRequest,
       O: AcceptTeamAccountInviteResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.UserAccountService.GetSystemInformation
+     */
+    getSystemInformation: {
+      name: "GetSystemInformation",
+      I: GetSystemInformationRequest,
+      O: GetSystemInformationResponse,
       kind: MethodKind.Unary,
     },
   }
