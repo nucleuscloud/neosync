@@ -1,8 +1,9 @@
+import { env } from '@/env';
 import mixpanel, { PropertyDict } from 'mixpanel';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const mixpanelToken = process.env.MIXPANEL_TOKEN;
+  const mixpanelToken = env.MIXPANEL_TOKEN;
   if (!mixpanelToken) {
     return NextResponse.json({ message: 'no token' });
   }
