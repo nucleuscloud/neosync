@@ -14,12 +14,11 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.1
 	github.com/auth0/go-auth0 v1.4.0
 	github.com/auth0/go-jwt-middleware/v2 v2.2.0
-	github.com/aws/aws-sdk-go v1.49.4
+	github.com/aws/aws-sdk-go v1.49.6
 	github.com/aws/smithy-go v1.13.5
-	github.com/golang-migrate/migrate/v4 v4.17.2
+	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/google/uuid v1.5.0
 	github.com/jackc/pgx/v5 v5.5.1
-	github.com/go-sql-driver/mysql v1.7.1
 	github.com/nucleuscloud/neosync/worker v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
@@ -70,7 +69,6 @@ require (
 	github.com/apache/arrow/go/v12 v12.0.1 // indirect
 	github.com/apache/thrift v0.18.1 // indirect
 	github.com/aws/aws-lambda-go v1.41.0 // indirect
-	github.com/aws/aws-sdk-go v1.49.6 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.19.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.28 // indirect
