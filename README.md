@@ -1,6 +1,5 @@
 <p align="center">
-  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/readme_header_new_logo.png">
-    <!-- <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/neosync_readme_banner.svg"> -->
+  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/readme_header_new_logo.png">
 </p>
 
 <p align="center" style="font-size: 24px">
@@ -36,7 +35,7 @@ Neosync is a developer-first way to create anonymized, secure test data and sync
 
 ## Introduction
 
-![neosync-data-flow](https://assets.nucleuscloud.com/neosync/readmeheader.svg)
+![neosync-data-flow](https://assets.nucleuscloud.com/neosync/docs/readmeheader.svg)
 
 [Neosync](https://neosync.dev) is an open source platform that connects to a snapshot of your production database and allows teams to either generate synthetic data from their production schema or anonymize production-data and sync it across all of their environments for high-quality local, stage and CI testing.
 
@@ -45,7 +44,6 @@ Our mission is to help developers build better, more resilient applications whil
 1. A world-class developer experience that fits into any workflow and follows modern developer best practices such as GitOps
 2. A platform that can anonymize sensitive data or automatically generate synthetic data from a schema and sync that across all environments
 3. An open source approach that allows you to keep your most sensitive data in your infrastructure
-
 
 ## Table of Contents
 
@@ -68,7 +66,6 @@ Our mission is to help developers build better, more resilient applications whil
 - Pre-built transformers for all major data types
 - Define custom transformers
 - Pre-built integrations with Postgres, Mysql, S3
-
 
 ## Getting started
 
