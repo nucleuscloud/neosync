@@ -129,18 +129,18 @@ export default async function DocsPage(props: Props): Promise<ReactElement> {
   } = props;
 
   console.log('slug', slug);
-  console.log(
-    '_id',
-    allDocs.map((d) => d._id)
-  );
-  console.log(
-    'url',
-    allDocs.map((d) => d.url)
-  );
-  console.log(
-    'pathSegments',
-    allDocs.map((d) => d.pathSegments)
-  );
+  // console.log(
+  //   '_id',
+  //   allDocs.map((d) => d._id)
+  // );
+  // console.log(
+  //   'url',
+  //   allDocs.map((d) => d.url)
+  // );
+  // console.log(
+  //   'pathSegments',
+  //   allDocs.map((d) => d.pathSegments)
+  // );
   // console.log(allDocs);
   // If on the index page, we don't worry about the global_id
   if (!slug) {
@@ -168,7 +168,6 @@ export default async function DocsPage(props: Props): Promise<ReactElement> {
   //   allDocs,
   //   doc?.pathSegments.map((ps: PathSegment) => ps.pathName)
   // );
-  console.log('tree', tree);
   return (
     <div className="relative w-full mx-auto max-w-screen-2xl lg:flex lg:items-start">
       <div
@@ -230,19 +229,19 @@ function buildDocsTree(
   const level = parentPathNames.length;
 
   // Remove ID from parent path
-  parentPathNames = parentPathNames
-    .join('/')
-    .split('-')
-    .slice(0, -1)
-    .join('-')
-    .split('/');
+  // parentPathNames = parentPathNames
+  //   .join('/')
+  //   .split('-')
+  //   .slice(0, -1)
+  //   .join('-')
+  //   .split('/');
 
   return docs
     .filter(
-      (_) =>
-        _.pathSegments.length === level + 1 &&
-        _.pathSegments
-          .map((_: PathSegment) => _.pathName)
+      (doc) =>
+        doc.pathSegments.length === level + 1 &&
+        doc.pathSegments
+          .map((ps: PathSegment) => ps.pathName)
           .join('/')
           .startsWith(parentPathNames.join('/'))
     )
@@ -252,12 +251,12 @@ function buildDocsTree(
       title: doc.title,
       label: '', //doc.label ?? null,
       excerpt: doc.excerpt ?? null,
-      urlPath: '', //doc.url_path,
+      urlPath: doc.url, //doc.url_path,
       collapsible: doc.collapsible ?? null,
       collapsed: doc.collapsed ?? null,
       children: buildDocsTree(
         docs,
-        doc.pathSegments.map((_: PathSegment) => _.pathName)
+        doc.pathSegments.map((ps: PathSegment) => ps.pathName)
       ),
     }));
 }
