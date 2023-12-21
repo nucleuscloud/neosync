@@ -11,7 +11,7 @@ const (
 <!DOCTYPE html>
 <head>
     <title>{{ .Title }}</title>
-    <link rel="icon" type="image/png" href="https://assets.nucleuscloud.com/favicon_transparent.ico" />
+    <link rel="icon" type="image/png" href="https://assets.nucleuscloud.com/neosync/newbrand/favicon_transparent.ico" />
     <style>
         body {
             background-color: #101010;
@@ -97,7 +97,7 @@ const (
       <p>You may now close this window and return to your terminal.</p>
   </div>
   <div>
-      <img class='logo' src="https://assets.nucleuscloud.com/cliImage.png">
+      <img class='logo' src="https://assets.nucleuscloud.com/neosync/app/cliImage.png">
   </div>
 	`
 
@@ -109,7 +109,7 @@ const (
         <p class="error-text">Error Description: {{ .ErrorDescription }}</p>
     </div>
     <div>
-        <img class='logo' src="https://assets.nucleuscloud.com/angryDarth.jpg">
+        <img class='logo' src="https://assets.nucleuscloud.com/neosync/app/angryDarth.jpg">
     </div>
 	`
 )
