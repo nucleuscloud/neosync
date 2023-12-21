@@ -7,6 +7,10 @@ import {
 import { IsJobNameAvailableResponse } from '@neosync/sdk';
 import * as Yup from 'yup';
 
+const cronRegex = new RegExp(
+  '^([0-5]?\\d|\\*) \\s*([01]?\\d|2[0-3]|\\*) \\s*([0-2]?\\d|3[01]|\\*|\\?) \\s*([1-9]|1[0-2]|\\*|\\?) \\s*([0-6]|\\*|\\?)$'
+);
+
 export const DEFINE_FORM_SCHEMA = Yup.object({
   jobName: Yup.string()
     .trim()
@@ -28,7 +32,16 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
         return res.isAvailable;
       }
     ),
-  cronSchedule: Yup.string().optional(),
+  cronSchedule: Yup.string()
+    .optional()
+    .test('validateCron', 'Invalid cron string', (value, context) => {
+      const showSchedule = context.options.context?.showSchedule;
+      if (!showSchedule) {
+        return true;
+      } else {
+        return !value || cronRegex.test(value);
+      }
+    }),
   initiateJobRun: Yup.boolean(),
 });
 
