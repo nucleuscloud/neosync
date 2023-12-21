@@ -144,7 +144,7 @@ export default function NewTransformer(): ReactElement {
                                 setBase(t ?? new SystemTransformer({}));
                                 setOpenBaseSelect(false);
                               }}
-                              value={t.source}
+                              value={t.name}
                             >
                               <CheckIcon
                                 className={cn(
