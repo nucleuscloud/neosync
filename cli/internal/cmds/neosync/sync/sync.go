@@ -348,16 +348,17 @@ func sync(
 
 	switch connectionType {
 	case awsS3Connection:
-		// TODO handle job id
+		var cfg *mgmtv1alpha1.AwsS3SchemaConfig
+		if cmd.Source.ConnectionOpts.JobRunId != nil && *cmd.Source.ConnectionOpts.JobRunId != "" {
+			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *cmd.Source.ConnectionOpts.JobRunId}}
+		} else if cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
+			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: *cmd.Source.ConnectionOpts.JobId}}
+		}
 		schemaResp, err := connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 			ConnectionId: connection.Id,
 			SchemaConfig: &mgmtv1alpha1.ConnectionSchemaConfig{
 				Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
-					AwsS3Config: &mgmtv1alpha1.AwsS3SchemaConfig{
-						Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{
-							JobRunId: *cmd.Source.ConnectionOpts.JobRunId,
-						},
-					},
+					AwsS3Config: cfg,
 				},
 			},
 		}))

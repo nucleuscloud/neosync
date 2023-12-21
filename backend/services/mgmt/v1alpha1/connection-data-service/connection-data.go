@@ -148,7 +148,6 @@ func (s *Service) GetConnectionDataStream(
 			for i, v := range values {
 				col := columnNames[i]
 				row[col] = v
-				fmt.Println(string(v))
 			}
 
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
@@ -167,16 +166,14 @@ func (s *Service) GetConnectionDataStream(
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobId:
 			// get latest job run id and compare to bucket
-			jobResp, err := s.jobService.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
-				Id: id.JobId,
+			jobRunsResp, err := s.jobService.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
+				JobId: id.JobId,
 			}))
 			if err != nil {
 				return err
 			}
-			job := jobResp.Msg.Job
-			if job.AccountId != connection.AccountId {
-				return nucleuserrors.NewForbidden("must provide valid job id")
-			}
+			jobRuns := jobRunsResp.Msg.GetRecentRuns()
+			fmt.Println(jobRuns)
 		default:
 			return nucleuserrors.NewInternalError("unsupported AWS S3 config id")
 		}
