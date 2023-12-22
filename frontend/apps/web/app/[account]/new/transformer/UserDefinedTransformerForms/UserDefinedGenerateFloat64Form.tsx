@@ -129,6 +129,41 @@ export default function UserDefinedGenerateFloat64Form(
           </FormItem>
         )}
       />
+      <FormField
+        name={`config.value.precision`}
+        control={fc.control}
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+            <div className="space-y-0.5">
+              <FormLabel>Precision</FormLabel>
+              <FormDescription>
+                Sets the precision for the entire float64 value, not just the
+                decimals. For example. a precision of 4 would update a float64
+                value of 23.567 to 23.56.
+              </FormDescription>
+            </div>
+            <div className="flex flex-col h-14">
+              <div className="justify-end flex">
+                <FormControl>
+                  <div className="max-w-[180px]">
+                    <Input
+                      type="number"
+                      value={field.value ? parseInt(field.value) : 1}
+                      onChange={(e) => {
+                        if (!isNaN(e.target.valueAsNumber)) {
+                          field.onChange(Number(e.target.valueAsNumber));
+                        }
+                      }}
+                      disabled={isDisabled}
+                    />
+                  </div>
+                </FormControl>
+              </div>
+              <FormMessage />
+            </div>
+          </FormItem>
+        )}
+      />
     </div>
   );
 }

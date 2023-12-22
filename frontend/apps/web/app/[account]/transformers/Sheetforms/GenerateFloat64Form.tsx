@@ -36,6 +36,11 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
   const maxVal = fc.getValues(`mappings.${index}.transformer.config.value.max`);
   const [max, setMax] = useState<number>(maxVal);
 
+  const precisionVal = fc.getValues(
+    `mappings.${index}.transformer.config.value.precision`
+  );
+  const [precision, setPrecision] = useState<number>(precisionVal);
+
   const handleSubmit = () => {
     fc.setValue(
       `mappings.${index}.transformer.config.value`,
@@ -43,6 +48,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
         randomizeSign: sign,
         min,
         max,
+        precision: BigInt(precision),
       }),
       {
         shouldValidate: false,
@@ -122,6 +128,37 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
               />
             </FormControl>
             <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        name={`config.value.precision`}
+        render={() => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
+            <div className="space-y-0.5">
+              <FormLabel>Precision</FormLabel>
+              <FormDescription>
+                Sets the precision for the entire float64 value, not just the
+                decimals. For example. a precision of 4 would update a float64
+                value of 23.567 to 23.56.
+              </FormDescription>
+            </div>
+            <div className="flex flex-col h-14">
+              <div className="justify-end flex">
+                <FormControl>
+                  <div className="max-w-[180px]">
+                    <Input
+                      type="number"
+                      value={String(max)}
+                      onChange={(event) => {
+                        setPrecision(Number(event.target.value));
+                      }}
+                    />
+                  </div>
+                </FormControl>
+              </div>
+              <FormMessage />
+            </div>
           </FormItem>
         )}
       />

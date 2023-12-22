@@ -39,6 +39,10 @@ const generateFloat64Config = Yup.object().shape({
   randomizeSign: Yup.bool(),
   min: Yup.number().required('This field is required.'),
   max: Yup.number().required('This field is required.'),
+  precision: Yup.number()
+    .required('This field is required.')
+    .min(1, 'The value must be greater than or equal to 1.')
+    .max(17, 'The value must be less than or equal 17.'),
 });
 
 const generateGenderConfig = Yup.object().shape({
