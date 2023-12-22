@@ -1,0 +1,27 @@
+---
+title: Postgres
+---
+
+Neosync is an open-source, developer-first product that allows you to create anonymized, secure test data that you can sync across all of your environments for high quality local, stage and CI testing.
+
+## PostgreSQL Database Connection Configuration
+
+![postgres](https://assets.nucleuscloud.com/neosync/docs/postgres.png)
+
+This guide will help you to configure your Postgres database connection properly.
+
+**Connection Name**: Enter a unique name for this connection that you'll easily recognize. This is just a label and does not affect the connection itself.
+
+**Host Name**: The address of the server where your PostgreSQL database is hosted. Use 'localhost' for a local database or enter the IP address or domain name for a remote server.
+
+**Database Port**: PostgreSQL's default port is 5432. If your database listens on a different port, specify it here.
+
+**Database Name**: Enter the name of the database you wish to connect to. The database should already exist on the PostgreSQL server.
+
+**Database Username**: The username with which you will log in to the database. Ensure it has the necessary permissions reading or writing data.
+
+**Database Password**: Enter the password associated with the username. Make sure this information is correct for data security.
+
+**SSL Mode**: Choose an SSL mode based on your company's security policies. 'Require' enforces SSL connections for enhanced security. Please note that the postgres driver enforces SSL by default, you can override this by selecting 'disable'.
+
+Test the connection before saving to ensure all details are correct and the system can connect to the database.
