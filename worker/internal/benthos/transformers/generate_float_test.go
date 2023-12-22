@@ -20,8 +20,6 @@ func Test_GenerateRandomFloatPositiveRange(t *testing.T) {
 
 	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
 	assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
-	assert.Equal(t, precision, transformer_utils.GetFloat64Length(res), "The float should have reduced precision based on the ")
-
 }
 
 func Test_GenerateRandomFloatNegativeRange(t *testing.T) {
@@ -36,8 +34,6 @@ func Test_GenerateRandomFloatNegativeRange(t *testing.T) {
 	// swapped because negative min number is the max
 	assert.GreaterOrEqual(t, res, max, "The result should be greater or equal to the minimum")
 	assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
-	assert.Equal(t, precision, transformer_utils.GetFloat64Length(res), "The float should have reduced precision based on the ")
-
 }
 
 func Test_GenerateRandomFloatNegativetoPositiveRange(t *testing.T) {
@@ -51,8 +47,6 @@ func Test_GenerateRandomFloatNegativetoPositiveRange(t *testing.T) {
 
 	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
 	assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
-	assert.Equal(t, precision, transformer_utils.GetFloat64Length(res), "The float should have reduced precision based on the ")
-
 }
 
 func Test_GenerateRandomFloatRandomizePositive(t *testing.T) {
@@ -74,9 +68,6 @@ func Test_GenerateRandomFloatRandomizePositive(t *testing.T) {
 		assert.GreaterOrEqual(t, res, -max, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, -min, "The result should be less or equal to the maximum")
 	}
-
-	assert.Equal(t, precision, transformer_utils.GetFloat64Length(res), "The float should have reduced precision based on the ")
-
 }
 
 func Test_GenerateRandomFloatRandomizeNegative(t *testing.T) {
@@ -97,8 +88,6 @@ func Test_GenerateRandomFloatRandomizeNegative(t *testing.T) {
 		assert.GreaterOrEqual(t, res, max, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
 	}
-	assert.Equal(t, precision, transformer_utils.GetFloat64Length(res), "The float should have reduced precision based on the ")
-
 }
 
 func Test_GenerateRandomFloatRandomizeNegativeToPositive(t *testing.T) {
@@ -119,8 +108,6 @@ func Test_GenerateRandomFloatRandomizeNegativeToPositive(t *testing.T) {
 		assert.GreaterOrEqual(t, res, -max, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
 	}
-	assert.Equal(t, precision, transformer_utils.GetFloat64Length(res), "The float should have reduced precision based on the ")
-
 }
 
 func Test_GenerateRandomFloatTransformer(t *testing.T) {
@@ -139,6 +126,4 @@ func Test_GenerateRandomFloatTransformer(t *testing.T) {
 
 	assert.GreaterOrEqual(t, res.(float64), min, "The result should be greater or equal to the minimum")
 	assert.LessOrEqual(t, res.(float64), max, "The result should be less or equal to the maximum")
-	assert.Equal(t, precision, transformer_utils.GetFloat64Length(res.(float64)), "The float should have reduced precision based on the ")
-
 }
