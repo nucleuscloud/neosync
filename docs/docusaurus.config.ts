@@ -86,7 +86,7 @@ const config: Config = {
     colorMode: {
       defaultMode: 'light',
       // disabling color mode and preference until dark mode switching is fixed
-      disableSwitch: true,
+      disableSwitch: false,
       respectPrefersColorScheme: false,
     },
     navbar: {
