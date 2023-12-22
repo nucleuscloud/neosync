@@ -1,14 +1,23 @@
-import React from 'react';
-import clsx from 'clsx';
-import useIsBrowser from '@docusaurus/useIsBrowser';
 import { translate } from '@docusaurus/Translate';
-import styles from './styles.module.css';
+import useIsBrowser from '@docusaurus/useIsBrowser';
+import type { Props } from '@theme/ColorModeToggle';
+import clsx from 'clsx';
+import React from 'react';
+
 import { MoonIcon, SunIcon } from '@radix-ui/react-icons';
-function ColorModeToggle({ className, buttonClassName, value, onChange }) {
+import styles from './styles.module.css';
+
+function ColorModeToggle({
+  className,
+  buttonClassName,
+  value,
+  onChange,
+}: Props): JSX.Element {
   const isBrowser = useIsBrowser();
+
   const title = translate(
     {
-      message: '{mode}',
+      message: 'Switch between dark and light mode (currently {mode})',
       id: 'theme.colorToggle.ariaLabel',
       description: 'The ARIA label for the navbar color mode toggle',
     },
@@ -27,6 +36,7 @@ function ColorModeToggle({ className, buttonClassName, value, onChange }) {
             }),
     }
   );
+
   return (
     <div className={clsx(styles.toggle, className)}>
       <button
@@ -43,9 +53,14 @@ function ColorModeToggle({ className, buttonClassName, value, onChange }) {
         aria-label={title}
         aria-live="polite"
       >
-        {value == 'light' ? <SunIcon /> : <MoonIcon />}
+        {value == 'light' ? (
+          <SunIcon height="24" width="24" />
+        ) : (
+          <MoonIcon height="24" width="24" />
+        )}
       </button>
     </div>
   );
 }
+
 export default React.memo(ColorModeToggle);

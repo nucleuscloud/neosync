@@ -1,0 +1,246 @@
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #101010;
+  --ifm-color-primary-dark: #101010;
+  --ifm-color-primary-darker: #101010;
+  --ifm-color-primary-darkest: #101010;
+  --ifm-color-primary-light: #101010;
+  --ifm-color-primary-lighter: #101010;
+  --ifm-color-primary-lightest: #101010;
+  --ifm-code-font-size: 90%;
+  --ifm-font-family: 'Inter';
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+html[data-theme='dark'] {
+  --ifm-background-color: #1c1c1c;
+  --ifm-background-surface-color: #1c1c1c;
+  --ifm-color-primary: #acc7f9;
+  --ifm-color-primary-dark: #9bb3de;
+  --ifm-color-primary-darker: #586c91;
+  --ifm-color-primary-darkest: #37455f;
+  --ifm-color-primary-light: #b3cdff;
+  --ifm-color-primary-lighter: #b3cdff;
+  --ifm-color-primary-lightest: #b3cdff;
+  --ifm-toc-border-color: #252525;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+@layer base {
+  body {
+    @apply dark:text-gray-300;
+  }
+
+  ol {
+    @apply list-inside list-decimal mb-8;
+  }
+  ul {
+    @apply list-inside list-disc mb-8;
+  }
+}
+
+/*
+this is the class for the sidebar categories that section headers
+*/
+.sidebarcategory {
+  /* padding-left: 11px; */
+  padding-bottom: 10px;
+  padding-top: 30px;
+}
+
+.table-of-contents__link {
+  @apply no-underline;
+}
+
+.pagination-nav__link--prev {
+  @apply no-underline;
+}
+
+.pagination-nav__link {
+  @apply no-underline;
+}
+
+.breadcrumbs__item {
+  @apply flex flex-row items-center;
+}
+
+@layer components {
+  /* [data-theme='light'] .home-icon {
+    @apply text-gray-900;
+  }
+  [data-theme='dark'] .home-icon {
+    @apply text-gray-100;
+  } */
+
+  [data-theme='dark'] .breadcrumb-label {
+    @apply text-gray-100 cursor-pointer text-sm rounded-full;
+  }
+
+  [data-theme='light'] .breadcrumb-label {
+    @apply text-gray-900 cursor-pointer text-sm rounded-full;
+  }
+
+  .breadcrumbs__link {
+    @apply py-1;
+  }
+
+  .transformer-page-header {
+    @apply flex flex-row gap-4 font-bold text-3xl items-center;
+  }
+
+  .heroImage {
+    @apply py-10;
+  }
+
+  .menu__list-item {
+    @apply text-gray-800 dark:text-gray-300 no-underline;
+  }
+
+  .menu__list-item-collapsible {
+    @apply px-2 flex flex-row items-center rounded-xl text-gray-800 dark:text-gray-300 no-underline;
+  }
+
+  .menu__list {
+    @apply text-gray-800 dark:text-gray-300 no-underline;
+  }
+
+  .menu__link {
+    @apply px-2 no-underline;
+  }
+
+  .menu__link--item {
+    @apply gap-2 flex flex-row items-center font-normal text-gray-800 dark:text-gray-300 dark:hover:text-gray-300;
+  }
+
+  .menu__link.menu__link--sublist {
+    @apply rounded-xl no-underline dark:text-gray-300 dark:hover:text-gray-300;
+  }
+
+  h1 {
+    @apply font-bold text-3xl;
+  }
+
+  h2 {
+    @apply text-gray-900 text-2xl font-semibold dark:text-gray-300;
+  }
+
+  h3 {
+    @apply text-gray-900 text-xl font-semibold dark:text-gray-300;
+  }
+
+  .card {
+    @apply rounded-xl shadow-lg;
+  }
+
+  .custom-card-list {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-2;
+  }
+
+  .custom-card {
+    @apply border border-gray-200 dark:border-gray-900 dark:bg-[#232323] hover:dark:border-gray-700 hover:border-[#acc7f9] hover:shadow-md hover:text-gray-800 dark:text-gray-300 rounded-xl p-4 flex flex-col justify-between space-y-2 dark:hover:text-gray-100;
+  }
+
+  .custom-card-icon {
+    @apply border-2 border-blue-200 dark:border-gray-800 rounded-lg bg-blue-100 dark:bg-gray-700 dark:text-gray-300 p-2;
+  }
+
+  .card-title {
+    @apply font-semibold text-base;
+  }
+
+  .card-text {
+    @apply font-light;
+  }
+
+  /*
+    the prev and next nav links at the bottom of the page
+    */
+  .pagination-nav__link {
+    @apply border border-gray-100 hover:border-[#acc7f9] dark:border-gray-700 dark:hover:border-gray-600 hover:shadow-md;
+  }
+
+  .pagination-nav__sublabel {
+    @apply text-xs;
+  }
+
+  .menu__link--sublist {
+    @apply text-gray-900 font-[10px] dark:text-gray-300;
+  }
+
+  .docsImage {
+    @apply border border-gray-300 shadow-lg rounded-lg overflow-hidden my-6;
+  }
+
+  a {
+    @apply underline text-blue-700 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-600;
+  }
+}
+
+/* fills the github link in the top nav with the svg */
+.header-github-link::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  display: flex;
+  background-color: var(--ifm-navbar-link-color);
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E");
+  transition: background-color var(--ifm-transition-fast)
+    var(--ifm-transition-timing-default);
+}
+
+.header-github-link:hover::before {
+  background-color: var(--ifm-navbar-link-hover-color);
+}
+
+.header-discord-link::before {
+  content: '';
+  width: 24px;
+  height: 15px;
+  display: flex;
+  background-color: var(--ifm-navbar-link-color);
+  mask-image: url('data:image/svg+xml; base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTE2LjkzIDEuMzI2QTE1LjkzIDE1LjkzIDAgMCAwIDEyLjg2LjAwMWEuMDYuMDYgMCAwIDAtLjA2Ni4wMzNjLS4xNzUuMzI4LS4zNy43NTYtLjUwNiAxLjA5MmExNC41MTYgMTQuNTE2IDAgMCAwLTQuNTczIDBBMTEuMjk1IDExLjI5NSAwIDAgMCA3LjIuMDM0LjA2My4wNjMgMCAwIDAgNy4xMzUgMEM1LjcwNy4yNiA0LjM0LjcxMSAzLjA2NSAxLjMyNmEuMDYuMDYgMCAwIDAtLjAyOC4wMjRDLjQ0NCA1LjQxNi0uMjY2IDkuMzgyLjA4MyAxMy4yOThjLjAwMS4wMi4wMTEuMDM4LjAyNi4wNWExNi4yOTYgMTYuMjk2IDAgMCAwIDQuOTk0IDIuNjUuMDYzLjA2MyAwIDAgMCAuMDctLjAyNWMuMzg1LS41NTIuNzI4LTEuMTMzIDEuMDIyLTEuNzQ0YS4wNjguMDY4IDAgMCAwLS4wMzUtLjA5MyAxMC43IDEwLjcgMCAwIDEtMS41Ni0uNzguMDcuMDcgMCAwIDEtLjAwNy0uMTEyYy4xMDUtLjA4Mi4yMS0uMTY4LjMxLS4yNTVhLjA2LjA2IDAgMCAxIC4wNjUtLjAwOWMzLjI3MyAxLjU2OSA2LjgxNyAxLjU2OSAxMC4wNTEgMGEuMDYuMDYgMCAwIDEgLjA2Ni4wMDhjLjEuMDg3LjIwNS4xNzQuMzEuMjU2LjAzNi4wMjkuMDM0LjA4OC0uMDA1LjExMi0uNDk5LjMwNi0xLjAxNy41NjQtMS41NjEuNzhhLjA2OC4wNjggMCAwIDAtLjAzNC4wOTNjLjMuNjEuNjQzIDEuMTkyIDEuMDIgMS43NDNhLjA2Mi4wNjIgMCAwIDAgLjA3LjAyNSAxNi4yNDIgMTYuMjQyIDAgMCAwIDUuMDAzLTIuNjUuMDY5LjA2OSAwIDAgMCAuMDI2LS4wNDhjLjQxNy00LjUyOC0uNjk5LTguNDYxLTIuOTU3LTExLjk0OGEuMDUyLjA1MiAwIDAgMC0uMDI2LS4wMjVaTTYuNjg0IDEwLjkxNGMtLjk4NSAwLTEuNzk3LS45NS0xLjc5Ny0yLjExNiAwLTEuMTY2Ljc5Ni0yLjExNiAxLjc5Ny0yLjExNiAxLjAxIDAgMS44MTQuOTU4IDEuNzk4IDIuMTE2IDAgMS4xNjYtLjc5NiAyLjExNi0xLjc5OCAyLjExNlptNi42NDYgMGMtLjk4NiAwLTEuNzk3LS45NS0xLjc5Ny0yLjExNiAwLTEuMTY2Ljc5Ni0yLjExNiAxLjc5Ny0yLjExNiAxLjAwOSAwIDEuODEzLjk1OCAxLjc5NyAyLjExNiAwIDEuMTY2LS43ODggMi4xMTYtMS43OTcgMi4xMTZaIiBmaWxsPSIjOTJBMEIzIi8+PC9zdmc+');
+  transition: background-color var(--ifm-transition-fast)
+    var(--ifm-transition-timing-default);
+}
+
+.header-discord-link:hover::before {
+  background-color: var(--ifm-navbar-link-hover-color);
+}
+
+/* overrides the foot to be transparent regardless of theme */
+.footer {
+  @apply bg-transparent border-t border-t-gray-300 dark:border-t-gray-700 text-gray-600 dark:text-gray-300 text-sm;
+}
+
+.navbar__link {
+  @apply no-underline dark:text-gray-300 dark:hover:text-gray-300;
+}
+
+.navbar__link:hover {
+  @apply font-semibold;
+}
+
+.navbar__items--right {
+  @apply flex flex-row items-center gap-2;
+}
+
+/* centers the top nav */
+.navbar__inner {
+  @apply flex flex-row items-center justify-between w-full px-4 mx-auto max-w-screen-2xl md:px-8 lg:px-16 shadow-none border-gray-200 dark:border-gray-700;
+}
+
+/* sets the border properly in dark mode */
+.navbar {
+  @apply dark:border-b dark:border-gray-700;
+}
+
+/* centers the body with the top nav */
+[class^='docsWrapper'] {
+  @apply mx-auto w-full px-4 max-w-screen-2xl md:px-8 lg:px-16;
+}
+
+/* removes padding on the nav menu so that body matches with the top nav */
+nav.menu {
+  @apply px-0;
+}

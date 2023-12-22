@@ -1,15 +1,9 @@
 ---
 title: Kubernetes
 id: kubernetes
-hide_title: true
+hide_title: false
 slug: /deploy/kubernetes
 ---
-
-import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
-
-<DocPageHeader
-  title="Deploy on Kubernetes"
-/>
 
 ## Kubernetes
 
@@ -87,9 +81,11 @@ These can easily be spread across multiple `values.yaml` files if desired to kee
 We do not cover how to deploy a Postgres database for Neosync or the Temporal suite.
 
 ### Neosync Postgres DB
+
 Generally, we suggest going with a cloud provider to host the database, but if it's desired to host within Kubernetes, the [Kubernetes Operator](https://postgres-operator.readthedocs.io/en/latest/) is good option.
 
 ### Temporal
+
 Temporal can also be deployed to Kubernetes via a Helm chart that can be found in their [Github repo](https://github.com/temporalio/helm-charts). We suggest following their helm chart guide for deploying Temporal into Kubernetes.
 Temporal also has [Temporal Cloud](https://cloud.temporal.io/) that can be used if it's not desirable to self-host Temporal in a production environment.
 
@@ -113,8 +109,9 @@ spec:
       annotations:
         proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
       labels:
-        sidecar.istio.io/inject: "true"
+        sidecar.istio.io/inject: 'true'
 ```
+
 These options will allow injection of the istio sidecar, as well as hold the containers from starting until the Istio sidecar has started.
 
 Istio Gateway's and VirtualServices must be provided separately
@@ -128,19 +125,21 @@ This will add the following to each service's `Deployment`.
 kind: Deployment
 metadata:
   labels:
-    tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
-    tags.datadoghq.com/service: {{ template "neosync-api.fullname" . }}
-    tags.datadoghq.com/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
+    tags.datadoghq.com/env: { { .Values.nucleusEnv } }
+    tags.datadoghq.com/service: { { template "neosync-api.fullname" . } }
+    tags.datadoghq.com/version:
+      { { .Values.image.tag | default .Chart.AppVersion } }
 spec:
   template:
     metadata:
       annotations:
         ad.datadoghq.com/nucleus-api.logs: '[{"source":"nucleus-neosync-api","service":"{{ template "neosync-api.fullname" . }}"}]'
       labels:
-        admission.datadoghq.com/enabled: "true"
-        tags.datadoghq.com/env: {{ .Values.nucleusEnv }}
-        tags.datadoghq.com/service: {{ template "neosync-api.fullname" . }}
-        tags.datadoghq.com/version: {{ .Values.image.tag | default .Chart.AppVersion  }}
+        admission.datadoghq.com/enabled: 'true'
+        tags.datadoghq.com/env: { { .Values.nucleusEnv } }
+        tags.datadoghq.com/service: { { template "neosync-api.fullname" . } }
+        tags.datadoghq.com/version:
+          { { .Values.image.tag | default .Chart.AppVersion } }
     spec:
       containers:
         - name: user-container
@@ -204,7 +203,6 @@ secretGenerator:
     type: kubernetes.io/tls
     options:
       disableNameSuffixHash: true
-
 ```
 
 To apply this: `kustomize build . | kubectl apply -f -`

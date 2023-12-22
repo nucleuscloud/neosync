@@ -27,7 +27,7 @@ export default function Footer(): ReactElement {
           <div className="flex flex-col sm:flex-row gap-2 lg:gap-4 items-end">
             <div>
               <Button className="px-4" variant="secondary">
-                <Link href="https://discord.gg/jAazzbsZ">
+                <Link href="https://discord.gg/UVmPTzn7dV">
                   <div className="flex flex-row items-center">
                     <p>Join our Discord</p>
                     <ArrowRightIcon className="ml-2 h-5 w-5" />
@@ -92,7 +92,7 @@ function Socials(): ReactElement {
     {
       name: 'Discord',
       logo: <DiscordLogoIcon className="w-6 h-6" />,
-      href: 'https://discord.gg/jAazzbsZ',
+      href: 'https://discord.gg/UVmPTzn7dV',
     },
   ];
   return (

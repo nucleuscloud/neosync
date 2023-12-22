@@ -57,7 +57,7 @@ const config: Config = {
         },
         blog: false,
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          customCss: ['./src/css/custom.css'],
         },
       },
     ],
@@ -86,7 +86,7 @@ const config: Config = {
     colorMode: {
       defaultMode: 'light',
       // disabling color mode and preference until dark mode switching is fixed
-      disableSwitch: true,
+      disableSwitch: false,
       respectPrefersColorScheme: false,
     },
     navbar: {
@@ -98,15 +98,22 @@ const config: Config = {
 
       items: [
         {
-          type: 'custom-Gitlink',
+          href: 'https://github.com/nucleuscloud/neosync',
           position: 'right',
+          className: 'header-github-link',
+          'aria-label': 'GitHub repository',
+        },
+        {
+          href: 'https://discord.gg/UVmPTzn7dV',
+          position: 'right',
+          className: 'header-discord-link',
+          'aria-label': 'Discord Server',
         },
         { to: '/', label: 'Docs' },
         { to: '/api', label: 'API' },
       ],
     },
     footer: {
-      style: 'dark',
       copyright: `Copyright © Nucleus Cloud Corp ${new Date().getFullYear()}`,
     },
     prism: {

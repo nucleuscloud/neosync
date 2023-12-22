@@ -171,13 +171,9 @@ export default function DocSidebarItemCategory({
       )}
     >
       <div
-        className={clsx(
-          'menu__list-item-collapsible',
-          {
-            'menu__list-item-collapsible--active': isCurrentPage,
-          },
-          'flex flex-row items-center pl-3 rounded-xl'
-        )}
+        className={clsx('menu__list-item-collapsible', {
+          'menu__list-item-collapsible--active': isCurrentPage,
+        })}
       >
         {IconHandler(item.label)}
         <Link

@@ -1,19 +1,13 @@
 ---
 title: Core Concepts
 id: core-concepts
-hide_title: true
+hide_title: false
 slug: /core-concepts
 ---
-
-import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
 
 import { HeroImage } from '@site/src/CustomComponents/HeroImage.tsx';
 
 import { DocsImage } from '@site/src/CustomComponents/DocsImage.tsx';
-
-import { OrderedListComponent } from '@site/src/CustomComponents/Lists.tsx';
-
-<DocPageHeader title="Platform Overview" />
 
 ## Introduction
 
@@ -33,12 +27,8 @@ Jobs are async workflows that transform data and sync it between source and dest
 
 Jobs also have <strong>types</strong>. Today, we support two types:
 
-<OrderedListComponent
-  items={[
-    'Sync Jobs - Replicate and anonymize data between a source and a destination such as two databases.',
-    'Generation Jobs - Generate synthetic data and sync it to a destination such a database or S3.',
-  ]}
-/>
+1. Sync Jobs - Replicate and anonymize data between a source and a destination such as two databases.
+2. Generation Jobs - Generate synthetic data and sync it to a destination such a database or S3.
 
 You can create multiple jobs with different schedules, schemas and settings. You can also update a jobs connections, schema, transformers and subsets after you've already created the job.
 

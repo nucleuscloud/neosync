@@ -1,11 +1,9 @@
 ---
 title: Introduction
 id: introduction
-hide_title: true
+hide_title: false
 slug: /transformers/introduction
 ---
-
-import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
 
 import { CustomCardList } from '@site/src/CustomComponents/CustomCardList';
 
@@ -14,10 +12,6 @@ import { IoBuildOutline } from 'react-icons/io5';
 import { GoCode } from 'react-icons/go';
 
 import { DocsImage } from '@site/src/CustomComponents/DocsImage';
-
-import { OrderedListComponent } from '@site/src/CustomComponents/Lists.tsx';
-
-<DocPageHeader title="Transformers" />
 
 ## Introduction
 
@@ -31,12 +25,8 @@ Tranformers are defined in the job workflow and are applied to every piece of da
 
 There are two types of transformers:
 
-<OrderedListComponent
-  items={[
-    'System Transformers - Pre-built and configured transformers that automatically come with Neosync out of the box. These cannot be deleted but they can be cloned.',
-    '**User Defined Transformers - These are system transformers that have been cloned, re-configured and renamed. These transformers can be edited and deleted.',
-  ]}
-/>
+1. System Transformers - Pre-built and configured transformers that automatically come with Neosync out of the box. These cannot be deleted but they can be cloned.
+2. User Defined Transformers - These are system transformers that have been cloned, re-configured and renamed. These transformers can be edited and deleted.
 
 ## Transformers
 
