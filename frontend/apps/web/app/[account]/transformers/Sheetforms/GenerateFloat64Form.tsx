@@ -132,7 +132,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
         )}
       />
       <FormField
-        name={`config.value.precision`}
+        name={`mappings.${index}.transformer.config.value.precision`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
@@ -143,22 +143,18 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                 value of 23.567 to 23.56.
               </FormDescription>
             </div>
-            <div className="flex flex-col h-14">
-              <div className="justify-end flex">
-                <FormControl>
-                  <div className="max-w-[180px]">
-                    <Input
-                      type="number"
-                      value={String(max)}
-                      onChange={(event) => {
-                        setPrecision(Number(event.target.value));
-                      }}
-                    />
-                  </div>
-                </FormControl>
-              </div>
-              <FormMessage />
-            </div>
+
+            <FormControl>
+              <Input
+                type="number"
+                className="max-w-[180px]"
+                value={String(precision)}
+                onChange={(event) => {
+                  setPrecision(Number(event.target.value));
+                }}
+              />
+            </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
