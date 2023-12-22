@@ -1,0 +1,31 @@
+---
+title: Version
+---
+
+## Overview
+
+Learn how to view the Neosync CLI Version with the neosync version command and neosync --version flag.
+
+## Command Usage
+
+```bash
+neosync version
+```
+
+The basic command will print out details such as the current Git tag, commit, build date, go version, and other relevant operating system information.
+
+This can be augmented for systems by providing the `--output` flag to generate the version data in either `yaml` or `json`.
+
+```bash
+neosync version --output json
+neosync version --output yaml
+```
+
+## Flag Usage
+
+```bash
+neosync --version
+```
+
+The top-level `--version` flag can be used to simply print out the Git tagged version of Neosync CLI.
+For more details, it's recommended to use the `neosync version` command.

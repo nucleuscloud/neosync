@@ -1,0 +1,42 @@
+---
+title: sync
+---
+
+## Overview
+
+Learn how to sync data to a local destination with the neosync sync CLI command.
+
+The `neosync sync` command is used to sync data from a neosync connection to a local destination.
+Supported sources and destinations are currently postgres and mysql.
+
+## Usage
+
+```bash
+neosync sync
+```
+
+## Options
+
+The following options can be passed using the `neosync sync` command:
+
+- `--api-key` - Neosync API Key. Takes precedence over `$NEOSYNC_API_KEY`
+- `--config` - Path to yaml config. Defaults to `neosync.yaml` in current directory.
+- `--connection-id` - Neosync connection id for sync data source. Takes precedence over config.
+- `--destination-connection-url` - Local destination connection url to sync data to. Takes precedence over config.
+- `--destination-driver` - Destination connection driver (postgres, mysql). Takes precendence over config.
+- `--truncate-before-insert` - Truncates the table before inserting data. This will not work with Foreign Keys.
+- `--truncate-cascade` - Truncate cascades to all tables. Only supported for postgres.
+- `--init-schema` - Creates the table schema and its constraints.
+- `--output` - Sets output type (auto, plain, tty). (default `auto`).
+
+## Yaml Config File
+
+```yaml
+connection-id: d9dc020d-746b-48c1-9319-a165a25ac32e
+destination:
+  connection-url: user:pass@tcp(127.0.0.1:3306)/database
+  driver: mysql
+  truncate-before-insert: false
+  truncate-cascade: false
+  init-schema: false
+```
