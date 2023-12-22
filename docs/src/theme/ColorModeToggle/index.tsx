@@ -53,7 +53,11 @@ function ColorModeToggle({
         aria-label={title}
         aria-live="polite"
       >
-        {value == 'light' ? <SunIcon /> : <MoonIcon />}
+        {value == 'light' ? (
+          <SunIcon height="24" width="24" />
+        ) : (
+          <MoonIcon height="24" width="24" />
+        )}
       </button>
     </div>
   );
