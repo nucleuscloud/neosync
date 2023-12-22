@@ -2,4 +2,18 @@
 title: Subset Data
 ---
 
-Subset Data Page
+## Introduction
+
+Subseting is useful to reduce the size of a large dataset so that it is usable in another environment with less resources. For example, if you have a large 100gb database, you'll likely want to filter that down to be able to use it locally. Additionally, for teams spinning up databases in their CI pipelines, they often pay by the minute if the CI pipeline is hosted. As a result, teams are often looking for ways to scale down their dataset size so that it is usable in different environments. This is where subsetting comes into play.
+
+## Subsetting
+
+Neosync can help you subset your data by taking in a SQL statement of how you want to filter your data on a table-by-data. This gives you a flexible way of building your destination data set. Once you've connected Neosync to your source database and configured your schema and mappings, you can then decide to subset that data further by selecting a source table to start with.
+
+![subset](https://assets.nucleuscloud.com/neosync/docs/subset.png)
+
+Neosync will automatically ensure relational integrity in the data, making sure that the resulting dataset, post-subset, still has all of the foreign key constraints you had in the original data set. Once you've subsetted the data, Neosync will push the result set to your destination(s).
+
+## Conclusion
+
+Neosync has powerful subsetting features which allow you to create smaller subsets of your data while maintaining relational integrity. This is useful for local and CI testing where you don't want or need the entire dataaset but don't want to spend time querying, joining and filtering the data yourself.

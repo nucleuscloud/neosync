@@ -2,10 +2,70 @@
 title: Overview
 ---
 
-## This is the overview page
+import {
+  LayersIcon,
+  LightningBoltIcon,
+  LinkBreak1Icon,
+  StackIcon,
+} from '@radix-ui/react-icons';
+import {
+  PiArrowsSplitLight,
+  PiFlaskLight,
+  PiPlugsLight,
+  PiRocketLaunchLight,
+} from 'react-icons/pi';
 
-## Test
+# Welcome to the Neosync Docs
 
-## Test 2
+Neosync is an open-source, developer-first way to create safe, anonymized test data from production data and sync it across all environments for high-quality local, stage and CI testing.
 
-### Test3
+![readme-header](https://assets.nucleuscloud.com/neosync/docs/readmeheader.svg)
+
+## Learn about Neosync
+
+The best way to learn Neosync is to check out our core concepts and familiarize yourself with Jobs, Runs, Connections and Transformers.
+
+<CustomCards
+  cards={[
+    {
+      title: 'Jobs',
+      description:
+        'Jobs are async workflows that tranform data and sync it between connections.',
+      link: 'overview/platform#jobs',
+      icon: <StackIcon />,
+    },
+    {
+      title: 'Runs',
+      description:
+        'Runs are instances of a job that can be started, paused and played back.',
+      link: 'overview/platform#runs',
+      icon: <LayersIcon />,
+    },
+    {
+      title: 'Connections',
+      description:
+        'Connections are sources of data or destinations that you sync using Jobs such as databases.',
+      link: 'overview/platform#connections',
+      icon: <PiPlugsLight />,
+    },
+    {
+      title: 'Transformers',
+      description:
+        'Transformers are data-type specific modules that anonymize or generate data.',
+      link: 'overview/platform#transformers',
+      icon: <LightningBoltIcon />,
+    },
+  ]}
+/>
+
+## Deploying Neosync
+
+Once you're ready to deploy Neosync, check out our Deployment guide to see the available deployment options.
+
+## Use cases
+
+Neosync can be used in many different ways to support different use-cases. Check out the most common use-cases below.
+
+## Contributing to Neosync
+
+We love contributors and are happy to accept PRs. The best way to contribute to Neosync is to go ahead and try out it. If you find something is not right, you can report an issue [here](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md).

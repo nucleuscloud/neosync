@@ -10,6 +10,8 @@ import {
   OptionsTable,
 } from '@/components/OptionsTable';
 import { cn } from '@/lib/utils';
+import { CustomCard } from './CustomCard';
+import { CustomCards } from './CustomCards';
 
 const components = {
   h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -161,6 +163,8 @@ const components = {
   OptionDescription,
   OptionTitle,
   OptionsTable,
+  CustomCard: CustomCard,
+  CustomCards: CustomCards,
 };
 
 interface MdxProps {

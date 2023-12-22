@@ -1,5 +1,19 @@
 ---
-title: Synthetic Data Page
+title: Synthetic Data
 ---
 
-Synthetic DAta
+## Introduction
+
+Synthetic data can be useful for testing applications and services in unsecure development and stage environments where you don't want your sensitive data to be floating around. Neosync helps teams create high-quality synthetic data from their production data that is representative of that production data using our [transformers](/platform#transformers). There are multiple ways to generate high quality synthetic data that can be useful depending on the use-case.
+
+## Full synthetic data generation
+
+Neosync can generate synthetic data from scratch, making it easy to test new features that don't already have generated data or when the current production data is to sensitive to work with. We give you different options to be able to generate synthetic data so that it fits your schema and works with your applications. These options are transformer specific and will depend on the data being generated. You can easily seed an entire database with synthetic data using Neosync to get started or create synthetic data for just a given column.
+
+## Partial synthetic data generation
+
+There are use-cases where you don't want to generate synthetic data for the entire value but only portions of it. For ex. say that you have a list of email addresses and you want to understand the distribution of email domains across your userbase. In this case, preserving the domain of the email address (i.e. @ gmail .com) is important so that you can filter by it. However, preserving the username (i.e. johndoe) is not important and is sensitive. In this case, you can use a transformer to generate fake usernames of the email address while preserving the domain name for your analytics. There are many different use-cases where you'll want to only generate a portion of the data and combine that with existing data. Neosync's transformers are flexible enough to serve these usecases.
+
+## Conclusion
+
+Generating synthetic data is important in order to test services and applications while protecting your sensitive data. Neosync supports many different kinds of synthetic data generation, from full synthetic data generation to partial synthetic data generation across most data types.
