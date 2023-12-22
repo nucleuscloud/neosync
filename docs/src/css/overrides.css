@@ -179,6 +179,7 @@ this is the class for the sidebar categories that section headers
   }
 }
 
+/* fills the github link in the top nav with the svg */
 .header-github-link::before {
   content: '';
   width: 24px;
@@ -193,6 +194,7 @@ this is the class for the sidebar categories that section headers
   background-color: var(--ifm-navbar-link-hover-color);
 }
 
+/* overrides the foot to be transparent regardless of theme */
 .footer {
   @apply bg-transparent border-t border-t-gray-300 dark:border-t-gray-700 text-gray-600 dark:text-gray-300 text-sm;
 }
@@ -209,18 +211,22 @@ this is the class for the sidebar categories that section headers
   @apply flex flex-row items-center gap-2;
 }
 
+/* centers the top nav */
 .navbar__inner {
   @apply flex flex-row items-center justify-between w-full px-4 mx-auto max-w-screen-2xl md:px-8 lg:px-16 shadow-none border-gray-200 dark:border-gray-700;
 }
 
+/* sets the border properly in dark mode */
 .navbar {
   @apply dark:border-b dark:border-gray-700
 }
 
+/* centers the body with the top nav */
 [class^="docsWrapper"] {
   @apply mx-auto w-full px-4 max-w-screen-2xl md:px-8 lg:px-16;
 }
 
+/* removes padding on the nav menu so that body matches with the top nav */
 nav.menu {
   @apply px-0;
 }
