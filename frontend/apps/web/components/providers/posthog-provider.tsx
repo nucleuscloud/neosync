@@ -70,8 +70,8 @@ export function PostHogIdentifier(props: Props): ReactElement {
     }
     // we only want to set the user id if auth is enabled, otherwise it is always the same
     // so it makes it harder to identify unique posthog sessions when running in un-auth mode.
-    // const userId = systemConfig.isAuthEnabled ? userData.userId : undefined;
-    posthog.identify(userData.userId, {
+    const userId = systemConfig.isAuthEnabled ? userData.userId : undefined;
+    posthog.identify(userId, {
       accountName: account.name,
       accountId: account.id,
     });
