@@ -11,6 +11,7 @@ interface PosthogPageviewProps {
   config: PosthogConfig;
 }
 
+// Enables posthog, as well as turns on pageview tracking.
 export function PostHogPageview(props: PosthogPageviewProps): JSX.Element {
   const { config } = props;
   const pathname = usePathname();
@@ -44,6 +45,7 @@ interface PHProps {
   children: ReactNode;
 }
 
+// Enables Posthog to be used througout the app via the hook.
 export function PHProvider({ children }: PHProps) {
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
 }
@@ -52,6 +54,7 @@ interface Props {
   systemConfig: SystemAppConfig;
 }
 
+// Handles setting global user data for the user so that it doesn't have to be set on every capture call.
 export function PostHogIdentifier(props: Props): ReactElement {
   const { systemConfig } = props;
   const { data: userData, isLoading: isUserDataLoading } = useNeosyncUser();
