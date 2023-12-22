@@ -12,10 +12,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { GearIcon } from '@radix-ui/react-icons';
 import { signOut, useSession } from 'next-auth/react';
+import { usePostHog } from 'posthog-js/react';
 import { ReactElement } from 'react';
 
 export function UserNav(): ReactElement | null {
   const session = useSession();
+  const posthog = usePostHog();
 
   const avatarImageSrc = session.data?.user?.image ?? '';
   const avatarImageAlt = session.data?.user?.name ?? 'unknown';
@@ -63,7 +65,10 @@ export function UserNav(): ReactElement | null {
         {session.status === 'authenticated' && (
           <DropdownMenuItem
             className="cursor-pointer"
-            onClick={() => signOut()}
+            onClick={() => {
+              posthog.reset();
+              signOut();
+            }}
           >
             Log out
           </DropdownMenuItem>

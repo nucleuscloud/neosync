@@ -1,9 +1,14 @@
 import '@/app/globals.css';
+import {
+  PHProvider,
+  PostHogPageview,
+} from '@/components/providers/posthog-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { fontSans } from '@/libs/fonts';
 import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
-import { ReactElement } from 'react';
+import { ReactElement, Suspense } from 'react';
+import { getSystemAppConfig } from './api/config/config';
 
 export const metadata: Metadata = {
   title: 'Neosync',
@@ -16,6 +21,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }): Promise<ReactElement> {
+  const appConfig = getSystemAppConfig();
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
@@ -31,7 +37,12 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <>
+            <Suspense>
+              <PostHogPageview config={appConfig.posthog} />
+            </Suspense>
+            <PHProvider>{children}</PHProvider>
+          </>
         </ThemeProvider>
       </body>
     </html>
