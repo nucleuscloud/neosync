@@ -29,7 +29,7 @@ html[data-theme='dark'] {
 
 @layer base {
   body {
-    @apply lg:mx-20 dark:text-gray-300;
+    @apply dark:text-gray-300;
   }
 
   ol {
@@ -61,34 +61,12 @@ this is the class for the sidebar categories that section headers
   @apply no-underline;
 }
 
-.navbar__items {
-  @apply no-underline flex flex-row items-center;
-}
-
-.navbar__link {
-  @apply no-underline py-0 dark:text-gray-300 dark:hover:text-gray-300;
-}
-
-.navbar__link:hover {
-  @apply font-semibold;
-}
-
 .breadcrumbs__item {
   @apply flex flex-row items-center;
 }
 
-.navbar__items--right {
-  @apply flex flex-row items-center gap-2;
-}
 
 @layer components {
-  .navbar {
-    @apply py-[16px] lg:mx-[40px] shadow-none border-b border-gray-200 dark:border-gray-700;
-  }
-
-  [data-theme='dark'] .navbar {
-    @apply border-gray-700;
-  }
 
   /* [data-theme='light'] .home-icon {
     @apply text-gray-900;
@@ -118,7 +96,7 @@ this is the class for the sidebar categories that section headers
   }
 
   .menu__list {
-    @apply px-6 text-gray-800 dark:text-gray-300 no-underline;
+    @apply text-gray-800 dark:text-gray-300 no-underline;
   }
 
   .menu__link {
@@ -201,4 +179,24 @@ this is the class for the sidebar categories that section headers
 
 .footer {
   @apply bg-transparent border-t border-t-gray-300 dark:border-t-gray-700 text-gray-600 dark:text-gray-300 text-sm;
+}
+
+.navbar__link {
+  @apply no-underline dark:text-gray-300 dark:hover:text-gray-300;
+}
+
+.navbar__link:hover {
+  @apply font-semibold;
+}
+
+.navbar__items--right {
+  @apply flex flex-row items-center gap-2;
+}
+
+.navbar__inner {
+  @apply flex flex-row items-center justify-between w-full px-4 mx-auto max-w-screen-2xl md:px-8 lg:px-16 shadow-none border-gray-200 dark:border-gray-700;
+}
+
+.navbar {
+  @apply dark:border-b dark:border-gray-700
 }
