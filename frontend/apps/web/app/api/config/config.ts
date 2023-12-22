@@ -7,8 +7,8 @@ export function getSystemAppConfig(): SystemAppConfig {
     publicAppBaseUrl:
       process.env.NEXT_PUBLIC_APP_BASE_URL ?? 'http://localhost:3000',
     posthog: {
-      enabled: process.env.POSTHOG_ENABLED
-        ? process.env.POSTHOG_ENABLED == 'true'
+      enabled: process.env.NEOSYNC_ANALYTICS_ENABLED
+        ? process.env.NEOSYNC_ANALYTICS_ENABLED == 'true'
         : true,
       host: process.env.POSTHOG_HOST ?? 'https://app.posthog.com',
       key: process.env.POSTHOG_KEY,
