@@ -136,3 +136,57 @@ func Test_GetFloatLength(t *testing.T) {
 	assert.Equal(t, int64(1), GetInt64Length(res.DigitsBeforeDecimalLength), "The actual value should be the same length as the input value")
 	assert.Equal(t, int64(1), GetInt64Length(res.DigitsAfterDecimalLength), "The actual value should be the same length as the input value")
 }
+
+func Test_ApplyPrecisionToFloat64ErrorTooShort(t *testing.T) {
+
+	precision := 0
+	value := float64(2.4356789)
+
+	_, err := ReduceFloat64Precision(precision, value)
+	assert.Error(t, err)
+}
+
+func Test_ApplyPrecisionToFloat64LengthError(t *testing.T) {
+
+	precision := 20
+	value := float64(2.4356789)
+
+	_, err := ReduceFloat64Precision(precision, value)
+	assert.Error(t, err)
+}
+
+func Test_ApplyPrecisionToFloat64LongPrecision(t *testing.T) {
+
+	precision := 13
+	value := float64(2.4356789)
+
+	res, err := ReduceFloat64Precision(precision, value)
+	assert.NoError(t, err)
+
+	assert.Equal(t, GetFloat64Length(value), GetFloat64Length(res), "The float should have reduced precision based on the ")
+
+}
+
+func Test_ApplyPrecisionToFloat64(t *testing.T) {
+
+	precision := 4
+	value := float64(2.4356789)
+
+	res, err := ReduceFloat64Precision(precision, value)
+	assert.NoError(t, err)
+
+	assert.Equal(t, GetFloat64Length(value)-int64(precision), GetFloat64Length(res), "The float should have reduced precision based on the ")
+
+}
+
+func Test_ApplyPrecisionToFloat64Negative(t *testing.T) {
+
+	precision := 4
+	value := float64(-2.4356789)
+
+	res, err := ReduceFloat64Precision(precision, value)
+	assert.NoError(t, err)
+
+	assert.Equal(t, GetFloat64Length(value)-int64(precision), GetFloat64Length(res), "The float should have reduced precision based on the ")
+
+}

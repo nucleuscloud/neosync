@@ -19,6 +19,7 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { getErrorMessage } from '@/util/util';
 import {
   SchemaFormValues,
+  convertJobMappingTransformerFormToJobMappingTransformer,
   toJobDestinationOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -28,7 +29,6 @@ import {
   CreateJobResponse,
   JobDestination,
   JobMapping,
-  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
   MysqlSourceConnectionOptions,
@@ -305,7 +305,9 @@ async function createNewJob(
         schema: m.schema,
         table: m.table,
         column: m.column,
-        transformer: JobMappingTransformer.fromJson(m.transformer),
+        transformer: convertJobMappingTransformerFormToJobMappingTransformer(
+          m.transformer
+        ),
       });
     }),
     source: new JobSource({

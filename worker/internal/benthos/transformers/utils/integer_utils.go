@@ -95,7 +95,7 @@ func GetInt64Length(i int64) int64 {
 	return length
 }
 
-func IsLastDigitZero(n int64) bool {
+func IsLastInt64DigitZero(n int64) bool {
 	// Convert the int64 to a string
 	str := strconv.FormatInt(n, 10)
 

@@ -98,3 +98,23 @@ func GetFloatLength(i float64) *FloatLength {
 		DigitsAfterDecimalLength:  int64(len(parsed[1])),
 	}
 }
+
+func ReduceFloat64Precision(precision int, value float64) (float64, error) {
+
+	if precision < 1 {
+		return 0, fmt.Errorf("precision cannot be less than 1")
+	}
+
+	if precision > 17 {
+		return 0, fmt.Errorf("precision cannot be greater than 17")
+	}
+
+	res := strconv.FormatFloat(value, 'g', precision, 64)
+
+	f, err := strconv.ParseFloat(res, 64)
+	if err != nil {
+		return 0, fmt.Errorf("unable to convert string to float64 value")
+	}
+
+	return f, nil
+}

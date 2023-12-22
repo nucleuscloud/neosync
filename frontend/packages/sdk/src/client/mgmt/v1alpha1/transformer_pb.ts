@@ -1311,6 +1311,11 @@ export class GenerateFloat64 extends Message<GenerateFloat64> {
    */
   max = 0;
 
+  /**
+   * @generated from field: int64 precision = 4;
+   */
+  precision = protoInt64.zero;
+
   constructor(data?: PartialMessage<GenerateFloat64>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1322,6 +1327,7 @@ export class GenerateFloat64 extends Message<GenerateFloat64> {
     { no: 1, name: "randomize_sign", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "min", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
     { no: 3, name: "max", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+    { no: 4, name: "precision", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateFloat64 {
