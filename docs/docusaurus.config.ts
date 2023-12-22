@@ -97,9 +97,15 @@ const config: Config = {
       },
 
       items: [
+        // {
+        //   type: 'custom-Gitlink',
+        //   position: 'right',
+        // },
         {
-          type: 'custom-Gitlink',
+          href: 'https://github.com/nucleuscloud/neosync',
           position: 'right',
+          className: 'header-github-link',
+          'aria-label': 'GitHub repository',
         },
         { to: '/', label: 'Docs' },
         { to: '/api', label: 'API' },
