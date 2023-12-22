@@ -8,7 +8,6 @@ slug: /transformers/system
 import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
 import { DocsTable } from '@site/src/CustomComponents/DocsTable.tsx';
 import { TransformersTable } from '@site/src/CustomComponents/TransformersTable.tsx';
-import { OrderedListComponent } from '@site/src/CustomComponents/Lists.tsx';
 
 <DocPageHeader title="System Transformer Reference" />
 
@@ -16,12 +15,9 @@ import { OrderedListComponent } from '@site/src/CustomComponents/Lists.tsx';
 
 Neosync comes out of the box with 40+ system transformers in order to give you an easy way to get started with anonymizing or generating data. There are two kinds of system transformers:
 
-<OrderedListComponent
-  items={[
-    'Generators - these begin with `generate_` and do not anonymize existing data. They only generate net-new synthetic data.',
-    ' Transformers - these begin with `transform_` and can anonymize existing data or generate new-new synthetic data based on how you configure it.',
-  ]}
-/>
+1. Generators - these begin with `generate_` and do not anonymize existing data. They only generate net-new synthetic data.
+2. Transformers - these begin with `transform_` and can anonymize existing data or generate new-new synthetic data based on how you configure it.
+
 ## Reference
 
 <TransformersTable
@@ -1282,7 +1278,7 @@ Here are some examples of what an output state value may look like.
   rowData={[
     {
       data: [
-  
+
         'N/A',
         'July 8, 2025, 00:00:00 UTC',
       ],

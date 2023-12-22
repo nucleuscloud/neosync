@@ -7,8 +7,6 @@ slug: /platform
 
 import { DocPageHeader } from '@site/src/CustomComponents/DocPageHeader.tsx';
 
-import { OrderedListComponent } from '@site/src/CustomComponents/Lists.tsx';
-
 <DocPageHeader title="Platform Overview" />
 
 ## Introduction
@@ -18,14 +16,10 @@ This page will also detail the external dependencies that Neosync requires to ru
 
 The four main components are:
 
-<OrderedListComponent
-  items={[
-    'Client-side App',
-    'Client-side Command-line INterface (CLI)',
-    'Server-side API',
-    'Server-side Workers',
-  ]}
-/>
+1. Client-side app
+2. Client-side Command-line Interface (CLI)
+3. Server-side API
+4. Server-side Workers
 
 For more information on inputs that each component supports, see the [Environment Variables](../deploy/environment-variables.mdx) section of the deployment docs.
 
