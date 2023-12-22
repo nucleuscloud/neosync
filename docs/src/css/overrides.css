@@ -109,14 +109,6 @@ this is the class for the sidebar categories that section headers
     @apply py-1;
   }
 
-  .intro-page-header {
-    @apply flex flex-col text-left font-bold text-3xl pb-10;
-  }
-
-  .doc-page-header {
-    @apply flex flex-col text-left font-bold text-3xl;
-  }
-
   .transformer-page-header {
     @apply flex flex-row gap-4 font-bold text-3xl items-center;
   }
@@ -131,6 +123,10 @@ this is the class for the sidebar categories that section headers
 
   .menu__link {
     @apply rounded-xl no-underline dark:text-gray-300 dark:hover:text-gray-300;
+  }
+
+  h1 {
+    @apply font-bold text-3xl;
   }
 
   h2 {
