@@ -1,5 +1,31 @@
 ---
-title: Deploy Neosync
+title: Self-host Neosync
 ---
 
-Deploy Neosync Page
+import { SiKubernetes } from 'react-icons/si';
+import { FaDocker } from 'react-icons/fa';
+
+## Overview
+
+Neosync can be deployed in a variety of ways, and it's ultimately up to each user how they are going to determine to do so.
+Neosync is deployable on bare metal, or in dockerized environments. The latter of which is what will be covered in the following sections in greater detail.
+
+The reader will find that the Github repository is set up primarily for dockerized environments and that we do not generally run services bare metal.
+The two main supported development environments are Docker Compose, and Tilt.
+
+<CustomCards
+  cards={[
+    {
+      title: 'Kubernetes',
+      description: 'Deploy Neosync on Kubernetes using Helm Charts. ',
+      link: 'kubernetes',
+      icon: <SiKubernetes />,
+    },
+    {
+      title: 'Docker',
+      description: 'Deploy Neosync using Docker Compose.',
+      link: 'docker-compose',
+      icon: <FaDocker />,
+    },
+  ]}
+/>
