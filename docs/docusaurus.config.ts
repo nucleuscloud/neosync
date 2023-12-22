@@ -103,6 +103,12 @@ const config: Config = {
           className: 'header-github-link',
           'aria-label': 'GitHub repository',
         },
+        {
+          href: 'https://discord.gg/UVmPTzn7dV',
+          position: 'right',
+          className: 'header-discord-link',
+          'aria-label': 'Discord Server',
+        },
         { to: '/', label: 'Docs' },
         { to: '/api', label: 'API' },
       ],
