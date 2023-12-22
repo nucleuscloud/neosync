@@ -161,10 +161,6 @@ this is the class for the sidebar categories that section headers
     @apply font-light;
   }
 
-  .footer {
-    @apply bg-transparent border-t border-t-gray-300 dark:border-t-gray-700 text-gray-600 text-sm;
-  }
-
   /*
     the prev and next nav links at the bottom of the page
     */
@@ -201,4 +197,8 @@ this is the class for the sidebar categories that section headers
 
 .header-github-link:hover::before {
   background-color: var(--ifm-navbar-link-hover-color);
+}
+
+.footer {
+  @apply bg-transparent border-t border-t-gray-300 dark:border-t-gray-700 text-gray-600 dark:text-gray-300 text-sm;
 }

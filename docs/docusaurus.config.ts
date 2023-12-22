@@ -112,7 +112,6 @@ const config: Config = {
       ],
     },
     footer: {
-      style: 'dark',
       copyright: `Copyright © Nucleus Cloud Corp ${new Date().getFullYear()}`,
     },
     prism: {
