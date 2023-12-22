@@ -4589,6 +4589,8 @@ func (m *GenerateFloat64) validate(all bool) error {
 
 	// no validation rules for Max
 
+	// no validation rules for Precision
+
 	if len(errors) > 0 {
 		return GenerateFloat64MultiError(errors)
 	}

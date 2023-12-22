@@ -171,6 +171,7 @@ func (s *Service) GetSystemTransformers(
 							RandomizeSign: false,
 							Min:           1.00,
 							Max:           100.00,
+							Precision:     6,
 						},
 					},
 				},

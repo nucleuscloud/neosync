@@ -647,7 +647,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		randomSign := col.Transformer.Config.GetGenerateFloat64Config().RandomizeSign
 		min := col.Transformer.Config.GetGenerateFloat64Config().Min
 		max := col.Transformer.Config.GetGenerateFloat64Config().Max
-		return fmt.Sprintf(`generate_float64(randomize_sign:%t, min:%f, max:%f)`, randomSign, min, max), nil
+		precision := col.Transformer.Config.GetGenerateFloat64Config().Precision
+		return fmt.Sprintf(`generate_float64(randomize_sign:%t, min:%f, max:%f, precision:%d)`, randomSign, min, max, precision), nil
 	case "generate_full_address":
 		return "generate_full_address()", nil
 	case "generate_full_name":

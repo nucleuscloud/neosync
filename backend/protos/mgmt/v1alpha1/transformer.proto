@@ -159,6 +159,7 @@ message GenerateFloat64 {
   bool randomize_sign = 1;
   double min = 2;
   double max = 3;
+  int64 precision = 4;
 }
 
 message GenerateFullAddress {}

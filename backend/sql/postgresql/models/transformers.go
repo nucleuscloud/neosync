@@ -78,6 +78,7 @@ type GenerateFloat64Config struct {
 	RandomizeSign bool    `json:"randomizeSign"`
 	Min           float64 `json:"min"`
 	Max           float64 `json:"max"`
+	Precision     int64   `json:"precision"`
 }
 
 type GenerateFullAddressConfig struct{}
@@ -222,6 +223,7 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 			RandomizeSign: tr.GetGenerateFloat64Config().RandomizeSign,
 			Min:           tr.GetGenerateFloat64Config().Min,
 			Max:           tr.GetGenerateFloat64Config().Max,
+			Precision:     tr.GetGenerateFloat64Config().Precision,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig:
 		t.GenerateFullAddress = &GenerateFullAddressConfig{}
@@ -396,6 +398,7 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 					RandomizeSign: t.GenerateFloat64.RandomizeSign,
 					Min:           t.GenerateFloat64.Min,
 					Max:           t.GenerateFloat64.Max,
+					Precision:     t.GenerateFloat64.Precision,
 				},
 			},
 		}
