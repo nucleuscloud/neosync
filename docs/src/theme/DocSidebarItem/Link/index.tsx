@@ -47,7 +47,7 @@ export default function DocSidebarItemLink({
         })}
         {...props}
       >
-        <div className="gap-3 flex flex-row items-center font-normal text-gray-800 dark:text-gray-300 dark:hover:text-gray-300">
+        <div className="menu__link--item">
           <div
             className={cn(
               isActive ? 'text-blue-500' : 'text-gray-900 dark:text-gray-300'

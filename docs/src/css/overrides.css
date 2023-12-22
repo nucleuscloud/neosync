@@ -44,7 +44,7 @@ html[data-theme='dark'] {
 this is the class for the sidebar categories that section headers
 */
 .sidebarcategory {
-  padding-left: 11px;
+  /* padding-left: 11px; */
   padding-bottom: 10px;
   padding-top: 30px;
 }
@@ -95,11 +95,27 @@ this is the class for the sidebar categories that section headers
     @apply py-10;
   }
 
+  .menu__list-item {
+    @apply text-gray-800 dark:text-gray-300 no-underline;
+  }
+
+  .menu__list-item-collapsible {
+    @apply px-2 flex flex-row items-center rounded-xl text-gray-800 dark:text-gray-300 no-underline;
+  }
+
   .menu__list {
     @apply text-gray-800 dark:text-gray-300 no-underline;
   }
 
   .menu__link {
+    @apply px-2 no-underline;
+  }
+
+  .menu__link--item {
+    @apply gap-2 flex flex-row items-center font-normal text-gray-800 dark:text-gray-300 dark:hover:text-gray-300;
+  }
+
+  .menu__link.menu__link--sublist {
     @apply rounded-xl no-underline dark:text-gray-300 dark:hover:text-gray-300;
   }
 
@@ -199,4 +215,12 @@ this is the class for the sidebar categories that section headers
 
 .navbar {
   @apply dark:border-b dark:border-gray-700
+}
+
+[class^="docsWrapper"] {
+  @apply mx-auto w-full px-4 max-w-screen-2xl md:px-8 lg:px-16;
+}
+
+nav.menu {
+  @apply px-0;
 }
