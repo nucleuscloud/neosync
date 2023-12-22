@@ -54,3 +54,10 @@ auth0:
 
 ingress:
   enabled: false
+
+analytics:
+  enabled: true
+
+posthog:
+  key: phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip
+  # host:

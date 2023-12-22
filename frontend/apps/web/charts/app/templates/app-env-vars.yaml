@@ -48,3 +48,13 @@ stringData:
     {{- end }}
 
     AUTH_ENABLED: {{ .Values.auth.enabled | default "false" | quote }}
+
+    NEOSYNC_ANALYTICS_ENABLED: {{ .Values.analytics.enabled | default "true" | quote }}
+
+    {{ if and .Values.posthog .Values.posthog.key }}
+    POSTHOG_KEY: {{ .Values.posthog.key }}
+    {{- end }}
+
+    {{ if and .Values.posthog .Values.posthog.host }}
+    POSTHOG_HOST: {{ .Values.posthog.host }}
+    {{- end }}
