@@ -2,7 +2,6 @@ package dbschemas_mysql
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 
@@ -120,7 +119,7 @@ func GetUniqueSchemaColMappings(
 func GetAllMysqlFkConstraints(
 	mysqlquerier mysql_queries.Querier,
 	ctx context.Context,
-	conn *sql.DB,
+	conn mysql_queries.DBTX,
 	schemas []string,
 ) ([]*mysql_queries.GetForeignKeyConstraintsRow, error) {
 	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas))

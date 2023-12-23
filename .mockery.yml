@@ -49,3 +49,6 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0:
     interfaces:
       Auth0MgmtClientInterface:
+  github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service:
+    interfaces:
+      SqlConnector:

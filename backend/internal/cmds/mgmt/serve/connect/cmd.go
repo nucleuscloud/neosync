@@ -17,6 +17,8 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
@@ -299,7 +301,17 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	connectionDataService := v1alpha1_connectiondataservice.New(&v1alpha1_connectiondataservice.Config{}, useraccountService, connectionService, jobService, nil)
+	pgquerier := pg_queries.New()
+	mysqlquerier := mysql_queries.New()
+	connectionDataService := v1alpha1_connectiondataservice.New(
+		&v1alpha1_connectiondataservice.Config{},
+		useraccountService,
+		connectionService,
+		jobService,
+		nil,
+		pgquerier,
+		mysqlquerier,
+	)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionDataServiceHandler(
 			connectionDataService,
