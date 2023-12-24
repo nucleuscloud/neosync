@@ -111,7 +111,7 @@ func main() {
 }
 ```
 
-## Using ldflags to insert Version Information
+## Using ldflags to Insert Version Information
 
 Now is the fun part, actually inserting the build information!
 This is done by providing the `-X` flag to the `-ldflags` parameter.
@@ -129,8 +129,7 @@ BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 GIT_COMMIT="$(git rev-parse HEAD)"
 VERSION="$(git describe --tags --abbrev=0 | tr -d '\n')"
 
-go build -ldflags="-X 'github.com/example/internal/version.buildDate=$(BUILD_DATE)' -X 'github.com/example/internal/version.gitCommit=${GIT_COMMIT}' -X 'github.com/example/internal/version.gitVersion=${VERSION}'" *.go
-
+go build -o bin/main -ldflags="-X 'github.com/example/internal/version.buildDate=${BUILD_DATE}' -X 'github.com/example/internal/version.gitCommit=${GIT_COMMIT}' -X 'github.com/example/internal/version.gitVersion=${VERSION}'" *.go
 ```
 
 For success, make sure that your repo has at least one git tag.
