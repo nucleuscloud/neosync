@@ -1,0 +1,157 @@
+---
+title: Set Version Information in Go Applications with ldflags
+description: Use ldflags to compile version information into a Go Binary. This is useful for tracking version information across Go Binary releases.
+date: 2023-12-23
+published: true
+image: /images/blogs/gobuild.png
+authors:
+  - nick
+---
+
+## Introduction
+
+Version information is extremely useful when releasing software. It can be particularly beneficial when distributing binaries into the wild that might exist for long periods of time across many different machines. It's also useful when releasing web services. In this highly automated world of continuous deployment, having version information available via a REST endpoint can make it really easy to sanity check what versions of your service are actually live. Often times software is released many times per day, so having a quick way to check this can be a big quality of life improvement.
+
+There are many different ways to solve this problem, one way to do so in Go is by baking these values directly into the binary. Go has the ability to insert information into the binary when running `go build` with the use of the `-ldflags` parameter.
+
+## Prereqs
+
+To follow this guide, you'll need a basic understanding of Go, and have a working development environment.
+
+This guide will set up a version module that can be imported by main and printed, or used in any way such as exported via a REST endpoint, or printed out via a CLI's version command.
+
+The full code found in this blog can be found [here](https://github.com/nucleuscloud/blog-code/tree/main/version-blog). This repo is linked again at the bottom of the blog in the conclusion.
+
+## Module Setup
+
+First we can set up a basic go program.
+
+```go
+// main.go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	fmt.Println("Hello World")
+}
+```
+
+### Version module
+
+Next, let's set up a module that we can use throughout our Go program that is dedicated to version data.
+
+The version module will live in the `internal` folder. This makes it importable only by the modules in the Go module package. This is optional and the package can live anywhere, however having it live in `internal` signals to users of your Go package that it's intended only for your module.
+
+```go
+// /internal/version/version.go
+package version
+
+import (
+	"fmt"
+	"runtime"
+)
+
+var (
+	// These variables are replaced by ldflags at build time
+	gitVersion = "v0.0.0-main"
+	gitCommit = ""
+	buildDate = "1970-01-01T00:00:00Z" // build date in ISO8601 format
+)
+
+type VersionInfo struct {
+	GitVersion string `json:"gitVersion" yaml:"gitVersion"`
+	GitCommit string `json:"gitCommit" yaml:"gitCommit"`
+	BuildDate string `json:"buildDate" yaml:"buildDate"`
+	GoVersion string `json:"goVersion" yaml:"goVersion"`
+	Compiler string `json:"compiler" yaml:"compiler"`
+	Platform string `json:"platform" yaml:"platform"`
+}
+
+// Get returns the overall codebase version. It's for detecting
+// what code a binary was built from.
+func Get() *VersionInfo {
+	// These variables typically come from -ldflags settings and in
+	// their absence fallback to the constants above
+	return &VersionInfo{
+		GitVersion: gitVersion,
+		GitCommit: gitCommit,
+		BuildDate: buildDate,
+		GoVersion: runtime.Version(),
+		Compiler: runtime.Compiler,
+		Platform: fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+	}
+}
+```
+
+The module above exports a `Get` function that returns a `VersionInfo` struct that is filled with all sorts of version information. It contains a combination of Go platform information as well as Git information.
+The Git information, as it is external to the Go language, must be filled in dynamically during build time. This is where the `ldflags` will come in. Default values have been set so that there will be _some_ information in the event that the build flags are not provided, as they are completely optional and really only need to be invoked during a production build step.
+
+### Importing the Version module into Main
+
+Now that we have a version module, we can import it into our main module to actually make use of this.
+In a more complex example, this could be used as a part of a REST method, or for a CLI version command.
+
+```go
+// main.go
+package main
+
+import (
+	"fmt"
+	"github.com/example/internal/version"
+)
+
+func main() {
+	versionInfo := version.Get()
+	fmt.Println(versionInfo.GitVersion)
+	fmt.Println(versionInfo.BuildDate)
+	fmt.Println(versionInfo.GitCommit)
+}
+```
+
+## Using ldflags to insert Version Information
+
+Now is the fun part, actually inserting the build information!
+This is done by providing the `-X` flag to the `-ldflags` parameter.
+
+For each build parameter, the `-X` flag must be provided for each one. For this guide, we're inserting three different build parameters, so we'll provide `-X` three times.
+
+The format is a simple key value pair, separated by an equal `=` sign.
+
+Here is a simple shell script that can be used to build the binary above with our three Git build parameters:
+
+```sh
+#!/bin/sh
+
+BUILD_DATE="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+GIT_COMMIT="$(git rev-parse HEAD)"
+VERSION="$(git describe --tags --abbrev=0 | tr -d '\n')"
+
+go build -ldflags="-X 'github.com/example/internal/version.buildDate=$(BUILD_DATE)' -X 'github.com/example/internal/version.gitCommit=${GIT_COMMIT}' -X 'github.com/example/internal/version.gitVersion=${VERSION}'" *.go
+
+```
+
+For success, make sure that your repo has at least one git tag.
+
+After running the build, running `./main` will print out your git version!
+
+```sh
+./bin/main
+v0.0.1
+2023-12-24T00:07:55Z
+36a3c3e711b77c4a9c2cb0c2a585c34f02dc9cf3
+```
+
+## Conclusion
+
+This blog details how to include dynamic build information into a Go binary. We applied this to including version information into the binary, but this could be useful for many different types of uses such as feature flags, other environment information. `ldflags` can be a powerful tool to more finely control how you release Go binaries, or how information can be included in them.
+
+### Full code
+
+The full code from this blog can be found in our Blog repository, found [here](https://github.com/nucleuscloud/blog-code/tree/main/version-blog)
+
+### Neosync
+
+Real applications of this can be found in [Neosync](https://github.com/nucleuscloud/neosync) where we serve up build information at the API layer via a RPC endpoint. The CLI also serves up build information for the version command, as well as sends the version information as metadata in all requests. This is really beneficial so that the API layer can track what versions of the CLI are being used and log them as request metadata. This is very beneficial for tracking bugs that might be present, or usage across the system.
