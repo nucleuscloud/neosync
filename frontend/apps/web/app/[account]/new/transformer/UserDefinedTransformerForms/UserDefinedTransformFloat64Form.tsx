@@ -39,8 +39,8 @@ export default function UserDefinedTransformFloat64Form(
               <FormDescription className="w-[90%]">
                 Sets a minium lower range value. This will create an lowerbound
                 around the source input value. For example, if the input value
-                is 10, and you set this value to 5, then the maximum range will
-                be 5.
+                is 10, and you set this value to 5, then the minimum range will
+                be 5 (10-5 = 5).
               </FormDescription>
             </div>
             <div className="flex flex-col h-14">
@@ -76,7 +76,7 @@ export default function UserDefinedTransformFloat64Form(
                 Sets a maximum upper range value. This will create an upperbound
                 around the source input value. For example, if the input value
                 is 10, and you set this value to 5, then the maximum range will
-                be 15.
+                be 15 ( 10 + 5 = 15).
               </FormDescription>
             </div>
             <div className="flex flex-col h-14">
