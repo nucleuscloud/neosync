@@ -175,6 +175,10 @@ this is the class for the sidebar categories that section headers
   a {
     @apply underline text-blue-700 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-600;
   }
+
+  .menu__list {
+    @apply text-sm;
+  }
 }
 
 /* fills the github link in the top nav with the svg */
@@ -214,7 +218,7 @@ this is the class for the sidebar categories that section headers
 }
 
 .navbar__link {
-  @apply no-underline dark:text-gray-300 dark:hover:text-gray-300;
+  @apply no-underline dark:text-gray-300 dark:hover:text-gray-300 hover:bg-gray-100 rounded text-sm;
 }
 
 .navbar__link:hover {

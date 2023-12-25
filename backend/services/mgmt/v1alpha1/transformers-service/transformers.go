@@ -231,7 +231,7 @@ func (s *Service) GetSystemTransformers(
 						GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
 							RandomizeSign: false,
 							Min:           1,
-							Max:           4,
+							Max:           40,
 						},
 					},
 				},

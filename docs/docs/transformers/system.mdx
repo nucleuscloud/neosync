@@ -29,14 +29,6 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
         'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_email.go',
     },
     {
-      title: 'Generate Realistic Email',
-      type: 'string',
-      description: 'Generates a new realistic email address.',
-      pagelink: 'generate-realistic-email',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_realistic_email.go',
-    },
-    {
       title: 'Transform Email',
       type: 'string',
       description: 'Transforms an existing email address.',
@@ -347,7 +339,7 @@ For example, the following input value:
 `john@acme.com`
 
 Would produce the following ouput value:
-`ytvub873@ksh0293.com`
+`ytvub873@gmail.com`
 
 **Configurations**
 
@@ -356,51 +348,19 @@ There are no configurations for this transformer.
 **Examples**
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', 'f98723uh@gmail.com'],
+      data: ['f98723uh@gmail.com'],
     },
     {
-      data: ['N/A', '9cd@ms0ej.com'],
+      data: ['9cd@msn.com'],
     },
     {
-      data: ['N/A', 'mDy@bdo3s.edu'],
+      data: ['mDy@gmail.edu'],
     },
     {
-      data: ['N/A', 'fweq23f@fheuiw78.edu'],
-    },
-  ]}
-/>
-
-### Generate Realistic Email{#generate-realistic-email}
-
-The generate realistic email transformer generates a new randomized email address that "looks" realistic in the format:
-
-`<username>@<domain>.<top-level-domain>`
-
-By "looks realistic", we mean that the email will look like an email that a normal person will have and won't be randomized letters and numbers. The generated email will either have a first letter initial and last name as a username and then a standardized domain name such as gmail, yahoo, hotmail, etc.
-
-**Configurations**
-
-There are no configurations for this transformer.
-
-**Examples**
-
-<DocsTable
-  headers={['Example Input', 'Example Output']}
-  rowData={[
-    {
-      data: ['N/A', 'jdoe@gmail.com'],
-    },
-    {
-      data: ['N/A', 'bill.johnson@yahoo.com'],
-    },
-    {
-      data: ['N/A', 'ataylor@hotmail.com'],
-    },
-    {
-      data: ['N/A', 'list.franklin@gmail.com'],
+      data: ['fweq23f@hotmail.com'],
     },
   ]}
 />
@@ -417,7 +377,7 @@ For example, the following input value:
 `john@acme.com`
 
 Would produce the following ouput value:
-`ytvub873@ksh0293.com`
+`ytvub873@gmail.com`
 
 **Configurations**
 
@@ -447,7 +407,7 @@ Depending on your logic, you may want to configure the output email. The transfo
         'Ensures the output email address is the same length as the input email address.',
         'false',
         'john@gmail.com',
-        'hw98@k8g1s.edu',
+        'hw98@gmail.edu',
       ],
     },
   ]}
@@ -493,13 +453,13 @@ There are no configurations for the random boolean transformer.
 Here are some examples of what an output random boolean value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', 'true'],
+      data: ['true'],
     },
     {
-      data: ['N/A', 'false'],
+      data: ['false'],
     },
   ]}
 />
@@ -515,20 +475,13 @@ By default, the card number transformer generates a random 16 digit card number 
 Depending on your validations, you may want to configure the output card number. The card number transformer has the following configurations:
 
 <DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['Name', 'Description', 'Default', 'Example Output']}
   rowData={[
     {
       data: [
-        'Luhn Check',
+        'Valid Luhn',
         'Generate a card number that can pass luhn validation.',
         'true',
-        'N/A',
         '6621238134011099',
       ],
     },
@@ -540,13 +493,13 @@ Depending on your validations, you may want to configure the output card number.
 Here are some examples of an output card number:
 
 <DocsTable
-  headers={['Luhn Check', 'Example Input', 'Example Output']}
+  headers={['Valid Luhn', 'Example Output']}
   rowData={[
     {
-      data: ['false', 'N/A', '3627893345931223'],
+      data: ['false', '3627893345931223'],
     },
     {
-      data: ['true', 'N/A', '6621238134011099'],
+      data: ['true', '6621238134011099'],
     },
   ]}
 />
@@ -566,45 +519,46 @@ There are no configurations for the city transformer.
 Here are some examples of what an output City value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', 'Manchester'],
+      data: ['Manchester'],
     },
     {
-      data: ['N/A', 'Louisville'],
+      data: ['Louisville'],
     },
   ]}
 />
 
 ### Generate E164 Phone Number{#generate-e164-phone-number}
 
-The generate e164 phone transformer generates a new international phone number including the + sign. By default, the generate e164 transformer generates a random 12 digit number with no hyphens in the format:
+The generate e164 phone transformer generates a new international phone number including the + sign. By default, the generate e164 transformer generates a random phone number with no hyphens in the format:
 
 `+34567890123`
 
-TPhone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set this transformer to be a certain length by passing in the `length` configuration. Here is more information on the [e164 format](https://www.twilio.com/docs/glossary/what-e164). This transformer also has a min of 9 and a max of 15. If you want to generate a number that is longer than that, you can use the [Generate Random int64 transformer](/transformers/system#generate-random-int64)
+TPhone numbers also vary in length with some international phone numbers reaching up to 15 digits in length. You can set the range of the value by setting the `min` and `max` params. Here is more information on the [e164 format](https://www.twilio.com/docs/glossary/what-e164). This transformer also has a min of 9 and a max of 15. If you want to generate a number that is longer than that, you can use the [Generate Random int64 transformer](/transformers/system#generate-random-int64)
 
 **Configurations**
 
 Depending on your validations, you may want to configure the output e164 phone number:
 
 <DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['Name', 'Description', 'Default', 'Example Output']}
   rowData={[
     {
       data: [
-        'Length',
-        'Length will generate a string value of that length including the + sign.',
+        'Min',
+        'Min is the lower range of the a length value.',
+        '9',
+        '+29748675',
+      ],
+    },
+    {
+      data: [
+        'Max',
+        'Max is the upper range of  a length value.',
         '12',
-        'N/A',
-        '+29037486752',
+        '+2037486752',
       ],
     },
   ]}
@@ -615,22 +569,16 @@ Depending on your validations, you may want to configure the output e164 phone n
 There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
 <DocsTable
-  headers={['Length', 'Example Input', 'Example Output']}
+  headers={['Min', 'Max', 'Example Output']}
   rowData={[
     {
-      data: ['12', 'N/A', '5209273239'],
+      data: ['9', '12', '+5209273239'],
     },
     {
-      data: ['10', 'N/A', '520-927-3239'],
+      data: ['10', '14', '+5209273239'],
     },
     {
-      data: ['9', 'N/A', '520927323239'],
-    },
-    {
-      data: ['false', 'N/A', '+520922339'],
-    },
-    {
-      data: ['true', '+N/A', '+520927323921'],
+      data: ['12', '12', '+52092732323'],
     },
   ]}
 />
@@ -650,16 +598,16 @@ There are no configurations for this transformer.
 There are several ways you can mix-and-match configurations to get different first name formats. Here are some possible combinations:
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', 'Benjamin'],
+      data: ['Benjamin'],
     },
     {
-      data: ['N/A', 'Gregory'],
+      data: ['Gregory'],
     },
     {
-      data: ['N/A', 'Ashley'],
+      data: ['Ashley'],
     },
   ]}
 />
@@ -671,46 +619,45 @@ The generate float transformer generates a random floating point number.
 For example:
 `32.2432`
 
-By default, the random float transformer generates a floating point number with 3 digits before the decimal point and 3 digits after the decimal point.
+This transformer supports both positive and negative float numbers with a max precision of 17.
 
 **Configurations**
 
 Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
 
 <DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['Name', 'Description', 'Default', 'Example Output']}
   rowData={[
     {
       data: [
-        'Sign',
-        'Sets the sign of the value. Options are: positive, negative, random. ',
+        'RandomizeSign',
+        'Randomly sets the sign of the value. Options are: positive, negative, random. ',
         'positive',
-        'N/A',
         '873.923',
       ],
     },
     {
       data: [
-        'Digits before Decimal',
-        'Specifies how many digits you want before the decimal place. This has a max of 9 digits. ',
-        '3',
-        'N/A',
+        'Min',
+        'Specifies the min range for a generated float value. This supports negative values.  ',
+        '1.00',
         '94.17',
       ],
     },
     {
       data: [
-        'Digits after Decimal',
-        'Specifies how many digits you want after the decimal place. This has a max of 9 digits. ',
-        '3',
-        'N/A',
+        'Max',
+        'Specifies the max range for a generated float value. The supports negative values. ',
+        '100.00',
         '34.8',
+      ],
+    },
+    {
+      data: [
+        'Precision',
+        'Sets the precision of the value. For example, a precision of 6 will generate a value such as 42.9812.',
+        '6',
+        '34.8367',
       ],
     },
   ]}
@@ -721,25 +668,19 @@ Depending on your validations, you may want to configure the output float. The r
 There are several ways you can mix-and-match configurations to get different potential random float formats. Here are some possible combinations:
 
 <DocsTable
-  headers={[
-    'Sign',
-    'Digits before Decimal',
-    'Digits after Decimal',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['RandomizeSign', 'Min', 'Max', 'Precision', 'Example Output']}
   rowData={[
     {
-      data: ['positive', 'N/A', 'N/A', 'N/A', '283.824'],
+      data: ['true', '2.00', '35.00', '4', '-23.84'],
     },
     {
-      data: ['negative', '4', '1', 'N/A', '-9872.8'],
+      data: ['true', '4.12', '19.43', '3', '7.28'],
     },
     {
-      data: ['random', '3', '2', 'N/A', '542.19'],
+      data: ['false', '-30.00', '2.00', '8', '-15.54219'],
     },
     {
-      data: ['random', '2', '3', 'N/A', '-92.129'],
+      data: ['false', '-20.00', '30.00', '4', '20.19'],
     },
   ]}
 />
@@ -760,13 +701,13 @@ There are no configurations for the full adddress transformer.
 Here are some examples of what an output full address value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', '509 Franklin Street Northeast Washington, DC, 20017'],
+      data: ['509 Franklin Street Northeast Washington, DC, 20017'],
     },
     {
-      data: ['N/A', '14 Huntingon Street Manchester, CT 06040'],
+      data: ['14 Huntingon Street Manchester, CT 06040'],
     },
   ]}
 />
@@ -784,16 +725,16 @@ There are no configurations for this transformer.
 Here are some examples of what an output full name value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', 'Edward Marshall'],
+      data: ['Edward Marshall'],
     },
     {
-      data: ['N/A', 'Dante Mayer'],
+      data: ['Dante Mayer'],
     },
     {
-      data: ['N/A', 'Gregory Johnson'],
+      data: ['Gregory Johnson'],
     },
   ]}
 />
@@ -827,20 +768,13 @@ By default, the gender transformer does not abbreviate the gender. If you'd like
 Depending on your validations, you may want to configure the output gender. The gender transformer has the following configurations:
 
 <DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['Name', 'Description', 'Default', 'Example Output']}
   rowData={[
     {
       data: [
         'Abbreviate',
         'Abbreviate will abbreviate the output gender so that it is only one character. ',
         'false',
-        'N/A',
         'u',
       ],
     },
@@ -852,23 +786,23 @@ Depending on your validations, you may want to configure the output gender. The 
 There are several ways you can mix-and-match configurations to get different full name formats. Here are some possible combinations:
 
 <DocsTable
-  headers={['Abbreviate', 'Example Input', 'Example Output']}
+  headers={['Abbreviate', 'Example Output']}
   rowData={[
     {
-      data: ['false', 'N/A', 'male'],
+      data: ['false', 'male'],
     },
     {
-      data: ['true', 'N/A', 'f'],
+      data: ['true', 'f'],
     },
     {
-      data: ['false', 'N/A', 'nonbinary'],
+      data: ['false', 'nonbinary'],
     },
   ]}
 />
 
 ### Generate Int64 Phone Number{#generate-int64-phone-number}
 
-The generate int64 phone number generates a random 10 digit phone number and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system#generate-string-phone-number).
+The generate int64 phone number generates a random 10 digit phone number with a valid US area code and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system#generate-string-phone-number).
 
 For example, the generate int64 phone number transformer could generate the following ouput value:
 `5698437232`
@@ -882,13 +816,13 @@ There are no configurations for this transformer.
 Here are some examples of what the output values could look like:
 
 <DocsTable
-  headers={[, 'Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', '5209273239'],
+      data: ['5209273239'],
     },
     {
-      data: ['N/A', '9378463528'],
+      data: ['9378463528'],
     },
   ]}
 />
@@ -907,30 +841,30 @@ By default, the generate random int64 transformer generates an integer of 4 digi
 Depending on your validations, you may want to configure the output float. The random integer transformer has the following configurations:
 
 <DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['Name', 'Description', 'Default', 'Example Output']}
   rowData={[
     {
       data: [
-        'Sign',
-        'Sets the sign of the value. Options are: positive, negative, random.',
+        'RandomizeSign',
+        'Randomly sets the sign of the value. Options are: positive, negative, random. ',
         'positive',
-        'N/A',
-        '78223',
+        '873',
       ],
     },
     {
       data: [
-        'Length',
-        'Specifies how many digits you want the integer to be. This has a min of 1 and a max of 18 digits. ',
-        '4',
-        'N/A',
-        '2782',
+        'Min',
+        'Specifies the min range for a generated int64 value. This supports negative values.  ',
+        '1',
+        '97',
+      ],
+    },
+    {
+      data: [
+        'Max',
+        'Specifies the max range for a generated int64 value. The supports negative values. ',
+        '40',
+        '34',
       ],
     },
   ]}
@@ -941,19 +875,16 @@ Depending on your validations, you may want to configure the output float. The r
 There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
 
 <DocsTable
-  headers={['Sign', 'Length', 'Example Input', 'Example Output']}
+  headers={['RandomizeSign', 'Min', 'Max', 'Example Output']}
   rowData={[
     {
-      data: ['positive', '5', 'N/A', '23324'],
+      data: ['true', '10', '40', '-23'],
     },
     {
-      data: ['negative', '4', 'N/A', '-6721'],
+      data: ['true', '-20', '-3', '-14'],
     },
     {
-      data: ['random', '2', 'N/A', '54'],
-    },
-    {
-      data: ['random', '5', 'N/A', '-58419'],
+      data: ['false', '2', '100', '54'],
     },
   ]}
 />
@@ -971,16 +902,16 @@ This transformer has no configurations.
 Here are some possible output examples:
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', 'Dach'],
+      data: ['Dach'],
     },
     {
-      data: ['N/A', 'Sporer'],
+      data: ['Sporer'],
     },
     {
-      data: ['N/A', 'Rodriguezon'],
+      data: ['Rodriguezon'],
     },
   ]}
 />
@@ -998,23 +929,20 @@ There are no configurations for the hash transformer.
 Here are some examples of what an output hash value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
       data: [
-        'N/A',
         '1b836d86806e16bd45164b9d665ce86dac9d9d55bf79d0e771265da9fbf950d1',
       ],
     },
     {
       data: [
-        'N/A',
         'c74f07e35232c844a6639fef0c82ad093351cfa1a1b458fd2afc44cc19211508C',
       ],
     },
     {
       data: [
-        `N/A`,
         '18dd7ce288e5538fbdd9c736aa9951ddb317e42c0b928e2b4db672414a82f811',
       ],
     },
@@ -1037,13 +965,13 @@ There are no configurations for the ssn transformer.
 Here are some examples of what an output street address value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', '892-23-7634'],
+      data: ['892-23-7634'],
     },
     {
-      data: ['N/A', '479-82-3224'],
+      data: ['479-82-3224'],
     },
   ]}
 />
@@ -1063,13 +991,13 @@ There are no configurations for the state transformer.
 Here are some examples of what an output state value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', 'Rhode Island'],
+      data: ['Rhode Island'],
     },
     {
-      data: ['N/A', 'Missouri'],
+      data: ['Missouri'],
     },
   ]}
 />
@@ -1090,13 +1018,13 @@ There are no configurations for the street adddress transformer.
 Here are some examples of what an output street address value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', '509 Franklin Street Northeast'],
+      data: ['509 Franklin Street Northeast'],
     },
     {
-      data: ['N/A', '14 Huntingon Street'],
+      data: ['14 Huntingon Street'],
     },
   ]}
 />
@@ -1110,20 +1038,13 @@ The generate string phone transformer generates a random string phone number. By
 Depending on your validations, you may want to configure the output phone number. The generate string phone number transformer has the following configuration:
 
 <DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['Name', 'Description', 'Default', 'Example Output']}
   rowData={[
     {
       data: [
         'Include hyphens',
         'Includes hyphens in the output phone numnber. Note that this config can only be used with default 10 digit phone numbers. ',
         'false',
-        'N/A',
         '290-374-8675',
       ],
     },
@@ -1137,18 +1058,17 @@ There are several ways you can mix-and-match configurations to get different pot
 <DocsTable
   headers={[
     'Include Hyphens',
-    'Example Input',
     'Example Output',
 
 ]}
 rowData={[{
-data: ['false', 'N/A', '5209273239'],
+data: ['false', '5209273239'],
 },
 {
-data: ['true', , 'N/A', '520-927-3239'],
+data: ['true', '520-927-3239'],
 },
 {
-data: ['false', 'N/A', '2927323921'],
+data: ['false', '2927323921'],
 },
 ]}
 />
@@ -1167,21 +1087,22 @@ By default, the random string transformer generates a string of 10 characters lo
 Depending on your validations, you may want to configure the output string. The generate string transformer has the following configurations:
 
 <DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['Name', 'Description', 'Default', 'Example Output']}
   rowData={[
     {
       data: [
-        'length',
-        'Specifies how many digits you want the string to be. ',
-        '6',
-        'N/A',
-        'noIB8a',
+        'Min',
+        'Specifies the min range for a generated int64 value. This supports negative values.  ',
+        '2',
+        'jn9d',
+      ],
+    },
+    {
+      data: [
+        'Max',
+        'Specifies the max range for a generated int64 value. The supports negative values. ',
+        '7',
+        'hd9n93',
       ],
     },
   ]}
@@ -1192,16 +1113,16 @@ Depending on your validations, you may want to configure the output string. The 
 There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
 
 <DocsTable
-  headers={['Length', 'Example Input', 'Example Output']}
+  headers={['Min', 'Max', 'Example Output']}
   rowData={[
     {
-      data: ['5', 'N/A', 'je7R6'],
+      data: ['2', '7', 'je7R6'],
     },
     {
-      data: ['10', 'N/A', '29h23rega9'],
+      data: ['1', '20', '29h23rega9'],
     },
     {
-      data: ['2', 'N/A', 'h2'],
+      data: ['5', '5', 'h2dni'],
     },
   ]}
 />
@@ -1221,13 +1142,13 @@ There are no configurations for this transformer.
 Here are some examples of what an output state value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', '2524608000'],
+      data: ['2524608000'],
     },
     {
-      data: ['N/A', '946684800'],
+      data: ['946684800'],
     },
   ]}
 />
@@ -1245,13 +1166,13 @@ There are no configurations for the state transformer.
 Here are some examples of what an output state value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', 'jdoe'],
+      data: ['jdoe'],
     },
     {
-      data: ['N/A', 'lsmith'],
+      data: ['lsmith'],
     },
   ]}
 />
@@ -1271,18 +1192,15 @@ There are no configurations for this transformer.
 Here are some examples of what an output state value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={[ 'Example Output']}
   rowData={[
     {
       data: [
-
-        'N/A',
         'July 8, 2025, 00:00:00 UTC',
       ],
     },
     {
       data: [
-        'N/A',
         'September 21, 1989, 00:00:00 UTC',
       ],
     },
@@ -1302,20 +1220,13 @@ For example:
 Depending on your validations, you may want to configure the output uuid. The uuid transformer has the following configurations:
 
 <DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
+  headers={['Name', 'Description', 'Default', 'Example Output']}
   rowData={[
     {
       data: [
         'Include hyphens',
         'Includes hyphens in the output UUID. Note: For some databases, such as Postgres, it will automatically convert any UUID without hyphens to having hyphens. ',
         'false',
-        'N/A',
         '6817d39c-ea4f-45ec-a81c-bc0801355576',
       ],
     },
@@ -1327,13 +1238,13 @@ Depending on your validations, you may want to configure the output uuid. The uu
 Here are some example UUID values that the uuid transformer can generate:
 
 <DocsTable
-  headers={['Include Hyphens', 'Example Input', 'Example Output']}
+  headers={['Include Hyphens', 'Example Output']}
   rowData={[
     {
-      data: ['false', 'N/A', '53ef1f16cd0d455cb45c4cb6434ae807'],
+      data: ['false', '53ef1f16cd0d455cb45c4cb6434ae807'],
     },
     {
-      data: ['true', 'N/A', 'ab6b676b-0d0e-4e38-b98a-3935a832da7d'],
+      data: ['true', 'ab6b676b-0d0e-4e38-b98a-3935a832da7d'],
     },
   ]}
 />
@@ -1353,13 +1264,13 @@ There are no configurations for the zipcode transformer.
 Here are some examples of what an output zipcode value may look like.
 
 <DocsTable
-  headers={['Example Input', 'Example Output']}
+  headers={['Example Output']}
   rowData={[
     {
-      data: ['N/A', '27563'],
+      data: ['27563'],
     },
     {
-      data: ['N/A', '90237'],
+      data: ['90237'],
     },
   ]}
 />
@@ -1471,7 +1382,7 @@ The transform float transformer can anonymize an existing float64 value or gener
 For example:
 `32.2432`
 
-By default, the random float transformer generates a floating point number with 3 digits before the decimal point and 3 digits after the decimal point.
+The params `randomizationRangeMin` and `randomizationRangeMax` set an upper and lower bound around the value that you want to anonymize. For example, if the input value is 10, and you set the `randomizationRangeMin` value to 5, then the maximum range will be 5. And if you set the `randomizationRangeMax` to 5, then the maximum range will be 15 ( 10 + 5 = 15).
 
 **Configurations**
 
@@ -1488,20 +1399,20 @@ Depending on your validations, you may want to configure the output float. The r
   rowData={[
     {
       data: [
-        'Preserve Length',
-        'Preserves the length of the input float to the output float while maintaining the placement of the decimal.',
-        'false',
-        '1.34',
-        '873.923',
+        'Randomization Range Min',
+        'Sets the lower bound of a range for the input value.',
+        '20.00',
+        '50.23',
+        '43.30',
       ],
     },
     {
       data: [
-        'PreserveSign',
-        'Preserves the sign of the value. If false, will always return a positive value. ',
-        'true',
-        '-67.2',
-        '-71.523',
+        'Randomization Range Max',
+        'Sets the upper bound of a range for the input value.',
+        '50.00',
+        '20.00',
+        '69.523',
       ],
     },
   ]}
@@ -1513,20 +1424,20 @@ There are several ways you can mix-and-match configurations to get different pot
 
 <DocsTable
   headers={[
-    'PreserveLength',
-    'Preserve Sign',
+    'Randomization Range Min',
+    'Randomization Range Max',
     'Example Input',
     'Example Output',
   ]}
   rowData={[
     {
-      data: ['false', 'true', '89.232', '233.824'],
+      data: ['10', '20', '27.23', '17.248'],
     },
     {
-      data: ['true', 'false', '2.344', '9.813'],
+      data: ['14', '29', '2.344', '-9.24'],
     },
     {
-      data: ['true', 'true', '-8.23', '-4.19'],
+      data: ['5', '10', '-8.23', '-4.19'],
     },
   ]}
 />
@@ -1658,20 +1569,20 @@ Depending on your validations, you may want to configure the output integer. The
   rowData={[
     {
       data: [
-        'Preserve Length',
-        'Preserves the length of the input float to the output float while maintaining the placement of the decimal.',
-        'false',
-        '1.34',
-        '873.923',
+        'Randomization Range Min',
+        'Sets the lower bound of a range for the input value.',
+        '20',
+        '50',
+        '43',
       ],
     },
     {
       data: [
-        'PreserveSign',
-        'Preserves the sign of the value. If false, will always return a positive value. ',
-        'true',
-        '-672',
-        '-71523',
+        'Randomization Range Max',
+        'Sets the upper bound of a range for the input value.',
+        '50',
+        '20',
+        '69',
       ],
     },
   ]}
@@ -1683,20 +1594,20 @@ There are several ways you can mix-and-match configurations to get different pot
 
 <DocsTable
   headers={[
-    'PreserveLength',
-    'Preserve Sign',
+    'Randomization Range Min',
+    'Randomization Range Max',
     'Example Input',
     'Example Output',
   ]}
   rowData={[
     {
-      data: ['false', 'true', '89232', '233824'],
+      data: ['5', '50', '10', '43'],
     },
     {
-      data: ['true', 'false', '2344', '9813'],
+      data: ['10', '70', '23', '91'],
     },
     {
-      data: ['true', 'true', '-823', '-439'],
+      data: ['20', '90', '30', '27'],
     },
   ]}
 />
