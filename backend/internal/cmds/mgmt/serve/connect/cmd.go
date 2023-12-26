@@ -15,6 +15,7 @@ import (
 	"connectrpc.com/grpcreflect"
 	"connectrpc.com/otelconnect"
 	"connectrpc.com/validate"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -152,7 +153,11 @@ func serve(ctx context.Context) error {
 
 	isAuthEnabled := viper.GetBool("AUTH_ENABLED")
 	if isAuthEnabled {
-		jwtclient, err := auth_jwt.New(getJwtClientConfig())
+		jwtcfg, err := getJwtClientConfig()
+		if err != nil {
+			return err
+		}
+		jwtclient, err := auth_jwt.New(jwtcfg)
 		if err != nil {
 			return err
 		}
@@ -190,10 +195,9 @@ func serve(ctx context.Context) error {
 	api := http.NewServeMux()
 
 	authBaseUrl := getAuthBaseUrl()
-	tokenUrl := getAuthTokenUrl()
 	clientIdSecretMap := getAuthClientIdSecretMap()
 
-	authclient := auth_client.New(tokenUrl, clientIdSecretMap)
+	authclient := auth_client.New(authBaseUrl, clientIdSecretMap)
 
 	var issuerStr string
 	issuerUrl, err := url.Parse(authBaseUrl + "/")
@@ -219,7 +223,6 @@ func serve(ctx context.Context) error {
 
 	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{
 		IsAuthEnabled: isAuthEnabled,
-		AuthorizeUrl:  getAuthAuthorizeUrl(),
 		CliClientId:   viper.GetString("AUTH_CLI_CLIENT_ID"),
 		CliAudience:   getAuthCliAudience(),
 		IssuerUrl:     issuerStr,
@@ -482,14 +485,49 @@ func getDefaultTemporalSyncJobQueue() string {
 	return name
 }
 
-func getJwtClientConfig() *auth_jwt.ClientConfig {
+func getJwtClientConfig() (*auth_jwt.ClientConfig, error) {
 	authBaseUrl := getAuthBaseUrl()
 	authAudiences := getAuthAudiences()
 
-	return &auth_jwt.ClientConfig{
-		BaseUrl:      authBaseUrl,
-		ApiAudiences: authAudiences,
+	sigAlgo, err := getAuthSignatureAlgorithm()
+	if err != nil {
+		return nil, err
 	}
+
+	return &auth_jwt.ClientConfig{
+		BackendIssuerUrl:   authBaseUrl,
+		FrontendIssuerUrl:  getAuthExpectedIssUrl(),
+		ApiAudiences:       authAudiences,
+		SignatureAlgorithm: *sigAlgo,
+	}, nil
+}
+
+var allowedSigningAlgorithms = map[validator.SignatureAlgorithm]bool{
+	validator.EdDSA: true,
+	validator.HS256: true,
+	validator.HS384: true,
+	validator.HS512: true,
+	validator.RS256: true,
+	validator.RS384: true,
+	validator.RS512: true,
+	validator.ES256: true,
+	validator.ES384: true,
+	validator.ES512: true,
+	validator.PS256: true,
+	validator.PS384: true,
+	validator.PS512: true,
+}
+
+func getAuthSignatureAlgorithm() (*validator.SignatureAlgorithm, error) {
+	algoStr := viper.GetString("AUTH_SIGNATURE_ALGORITHM")
+	if algoStr == "" {
+		rs256 := validator.RS256
+		return &rs256, nil
+	}
+	if _, ok := allowedSigningAlgorithms[validator.SignatureAlgorithm(algoStr)]; !ok {
+		return nil, errors.New("unsupported signature algorithm")
+	}
+	return (*validator.SignatureAlgorithm)(&algoStr), nil
 }
 
 func getAuthCliAudience() string {
@@ -512,14 +550,12 @@ func getAuthBaseUrl() string {
 	return authBaseUrl
 }
 
-func getAuthTokenUrl() string {
-	baseUrl := getAuthBaseUrl()
-	return fmt.Sprintf("%s/oauth/token", baseUrl)
-}
-
-func getAuthAuthorizeUrl() string {
-	baseUrl := getAuthBaseUrl()
-	return fmt.Sprintf("%s/authorize", baseUrl)
+func getAuthExpectedIssUrl() *string {
+	iss := viper.GetString("AUTH_EXPECTED_ISS")
+	if iss == "" {
+		return nil
+	}
+	return &iss
 }
 
 func getAuthClientIdSecretMap() map[string]string {

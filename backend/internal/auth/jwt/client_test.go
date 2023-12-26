@@ -64,10 +64,10 @@ func Test_New(t *testing.T) {
 	_, err := New(nil)
 	assert.Error(t, err)
 
-	_, err = New(&ClientConfig{BaseUrl: "", ApiAudiences: []string{"foo"}})
+	_, err = New(&ClientConfig{BackendIssuerUrl: "", ApiAudiences: []string{"foo"}})
 	assert.Nil(t, err)
 
-	_, err = New(&ClientConfig{BaseUrl: "", ApiAudiences: nil})
+	_, err = New(&ClientConfig{BackendIssuerUrl: "", ApiAudiences: nil})
 	assert.Error(t, err, "fails if api audiences is nil")
 }
 

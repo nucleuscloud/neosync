@@ -574,6 +574,28 @@
           ]
         },
         {
+          "name": "CheckTokenRequest",
+          "longName": "CheckTokenRequest",
+          "fullName": "mgmt.v1alpha1.CheckTokenRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
+          "name": "CheckTokenResponse",
+          "longName": "CheckTokenResponse",
+          "fullName": "mgmt.v1alpha1.CheckTokenResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "GetAuthStatusRequest",
           "longName": "GetAuthStatusRequest",
           "fullName": "mgmt.v1alpha1.GetAuthStatusRequest",
@@ -868,8 +890,20 @@
               "responseStreaming": false
             },
             {
+              "name": "CheckToken",
+              "description": "Empty endpoint to simply check if the provided access token is valid",
+              "requestType": "CheckTokenRequest",
+              "requestLongType": "CheckTokenRequest",
+              "requestFullType": "mgmt.v1alpha1.CheckTokenRequest",
+              "requestStreaming": false,
+              "responseType": "CheckTokenResponse",
+              "responseLongType": "CheckTokenResponse",
+              "responseFullType": "mgmt.v1alpha1.CheckTokenResponse",
+              "responseStreaming": false
+            },
+            {
               "name": "GetCliIssuer",
-              "description": "Used by the CLI to retrieve Auth Issuer information",
+              "description": "Used by the CLI to retrieve Auth Issuer information\n@deprecated",
               "requestType": "GetCliIssuerRequest",
               "requestLongType": "GetCliIssuerRequest",
               "requestFullType": "mgmt.v1alpha1.GetCliIssuerRequest",

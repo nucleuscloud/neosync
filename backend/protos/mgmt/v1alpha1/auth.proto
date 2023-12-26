@@ -69,6 +69,9 @@ message RefreshCliResponse {
   AccessToken access_token = 1;
 }
 
+message CheckTokenRequest {}
+message CheckTokenResponse {}
+
 // Service that handles generic Authentication for Neosync
 // Today this is mostly used by the CLI to receive authentication information
 service AuthService {
@@ -77,7 +80,10 @@ service AuthService {
   // Used by the CLI to refresh an expired Neosync accesss token.
   // This should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.
   rpc RefreshCli(RefreshCliRequest) returns (RefreshCliResponse) {}
+  // Empty endpoint to simply check if the provided access token is valid
+  rpc CheckToken(CheckTokenRequest) returns (CheckTokenResponse) {}
   // Used by the CLI to retrieve Auth Issuer information
+  // @deprecated
   rpc GetCliIssuer(GetCliIssuerRequest) returns (GetCliIssuerResponse) {}
   // Used by the CLI to retrieve an Authorize URL for use with OAuth login.
   rpc GetAuthorizeUrl(GetAuthorizeUrlRequest) returns (GetAuthorizeUrlResponse) {}

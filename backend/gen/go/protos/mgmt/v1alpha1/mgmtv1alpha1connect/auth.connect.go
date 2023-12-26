@@ -37,6 +37,8 @@ const (
 	AuthServiceLoginCliProcedure = "/mgmt.v1alpha1.AuthService/LoginCli"
 	// AuthServiceRefreshCliProcedure is the fully-qualified name of the AuthService's RefreshCli RPC.
 	AuthServiceRefreshCliProcedure = "/mgmt.v1alpha1.AuthService/RefreshCli"
+	// AuthServiceCheckTokenProcedure is the fully-qualified name of the AuthService's CheckToken RPC.
+	AuthServiceCheckTokenProcedure = "/mgmt.v1alpha1.AuthService/CheckToken"
 	// AuthServiceGetCliIssuerProcedure is the fully-qualified name of the AuthService's GetCliIssuer
 	// RPC.
 	AuthServiceGetCliIssuerProcedure = "/mgmt.v1alpha1.AuthService/GetCliIssuer"
@@ -55,7 +57,10 @@ type AuthServiceClient interface {
 	// Used by the CLI to refresh an expired Neosync accesss token.
 	// This should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.
 	RefreshCli(context.Context, *connect.Request[v1alpha1.RefreshCliRequest]) (*connect.Response[v1alpha1.RefreshCliResponse], error)
+	// Empty endpoint to simply check if the provided access token is valid
+	CheckToken(context.Context, *connect.Request[v1alpha1.CheckTokenRequest]) (*connect.Response[v1alpha1.CheckTokenResponse], error)
 	// Used by the CLI to retrieve Auth Issuer information
+	// @deprecated
 	GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error)
 	// Used by the CLI to retrieve an Authorize URL for use with OAuth login.
 	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
@@ -84,6 +89,11 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			baseURL+AuthServiceRefreshCliProcedure,
 			opts...,
 		),
+		checkToken: connect.NewClient[v1alpha1.CheckTokenRequest, v1alpha1.CheckTokenResponse](
+			httpClient,
+			baseURL+AuthServiceCheckTokenProcedure,
+			opts...,
+		),
 		getCliIssuer: connect.NewClient[v1alpha1.GetCliIssuerRequest, v1alpha1.GetCliIssuerResponse](
 			httpClient,
 			baseURL+AuthServiceGetCliIssuerProcedure,
@@ -106,6 +116,7 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 type authServiceClient struct {
 	loginCli        *connect.Client[v1alpha1.LoginCliRequest, v1alpha1.LoginCliResponse]
 	refreshCli      *connect.Client[v1alpha1.RefreshCliRequest, v1alpha1.RefreshCliResponse]
+	checkToken      *connect.Client[v1alpha1.CheckTokenRequest, v1alpha1.CheckTokenResponse]
 	getCliIssuer    *connect.Client[v1alpha1.GetCliIssuerRequest, v1alpha1.GetCliIssuerResponse]
 	getAuthorizeUrl *connect.Client[v1alpha1.GetAuthorizeUrlRequest, v1alpha1.GetAuthorizeUrlResponse]
 	getAuthStatus   *connect.Client[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse]
@@ -119,6 +130,11 @@ func (c *authServiceClient) LoginCli(ctx context.Context, req *connect.Request[v
 // RefreshCli calls mgmt.v1alpha1.AuthService.RefreshCli.
 func (c *authServiceClient) RefreshCli(ctx context.Context, req *connect.Request[v1alpha1.RefreshCliRequest]) (*connect.Response[v1alpha1.RefreshCliResponse], error) {
 	return c.refreshCli.CallUnary(ctx, req)
+}
+
+// CheckToken calls mgmt.v1alpha1.AuthService.CheckToken.
+func (c *authServiceClient) CheckToken(ctx context.Context, req *connect.Request[v1alpha1.CheckTokenRequest]) (*connect.Response[v1alpha1.CheckTokenResponse], error) {
+	return c.checkToken.CallUnary(ctx, req)
 }
 
 // GetCliIssuer calls mgmt.v1alpha1.AuthService.GetCliIssuer.
@@ -143,7 +159,10 @@ type AuthServiceHandler interface {
 	// Used by the CLI to refresh an expired Neosync accesss token.
 	// This should only be used if an access token was previously retrieved from the `LoginCli` or `RefreshCli` methods.
 	RefreshCli(context.Context, *connect.Request[v1alpha1.RefreshCliRequest]) (*connect.Response[v1alpha1.RefreshCliResponse], error)
+	// Empty endpoint to simply check if the provided access token is valid
+	CheckToken(context.Context, *connect.Request[v1alpha1.CheckTokenRequest]) (*connect.Response[v1alpha1.CheckTokenResponse], error)
 	// Used by the CLI to retrieve Auth Issuer information
+	// @deprecated
 	GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error)
 	// Used by the CLI to retrieve an Authorize URL for use with OAuth login.
 	GetAuthorizeUrl(context.Context, *connect.Request[v1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[v1alpha1.GetAuthorizeUrlResponse], error)
@@ -168,6 +187,11 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		svc.RefreshCli,
 		opts...,
 	)
+	authServiceCheckTokenHandler := connect.NewUnaryHandler(
+		AuthServiceCheckTokenProcedure,
+		svc.CheckToken,
+		opts...,
+	)
 	authServiceGetCliIssuerHandler := connect.NewUnaryHandler(
 		AuthServiceGetCliIssuerProcedure,
 		svc.GetCliIssuer,
@@ -189,6 +213,8 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceLoginCliHandler.ServeHTTP(w, r)
 		case AuthServiceRefreshCliProcedure:
 			authServiceRefreshCliHandler.ServeHTTP(w, r)
+		case AuthServiceCheckTokenProcedure:
+			authServiceCheckTokenHandler.ServeHTTP(w, r)
 		case AuthServiceGetCliIssuerProcedure:
 			authServiceGetCliIssuerHandler.ServeHTTP(w, r)
 		case AuthServiceGetAuthorizeUrlProcedure:
@@ -210,6 +236,10 @@ func (UnimplementedAuthServiceHandler) LoginCli(context.Context, *connect.Reques
 
 func (UnimplementedAuthServiceHandler) RefreshCli(context.Context, *connect.Request[v1alpha1.RefreshCliRequest]) (*connect.Response[v1alpha1.RefreshCliResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.RefreshCli is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) CheckToken(context.Context, *connect.Request[v1alpha1.CheckTokenRequest]) (*connect.Response[v1alpha1.CheckTokenResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.AuthService.CheckToken is not implemented"))
 }
 
 func (UnimplementedAuthServiceHandler) GetCliIssuer(context.Context, *connect.Request[v1alpha1.GetCliIssuerRequest]) (*connect.Response[v1alpha1.GetCliIssuerResponse], error) {
