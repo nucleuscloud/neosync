@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	accounts_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/accounts"
+	connections_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/connections"
 	jobs_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/jobs"
 	login_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/login"
 	sync_cmd "github.com/nucleuscloud/neosync/cli/internal/cmds/neosync/sync"
@@ -77,6 +78,7 @@ func Execute() {
 	rootCmd.AddCommand(login_cmd.NewCmd())
 	rootCmd.AddCommand(sync_cmd.NewCmd())
 	rootCmd.AddCommand(accounts_cmd.NewCmd())
+	rootCmd.AddCommand(connections_cmd.NewCmd())
 
 	cobra.CheckErr(rootCmd.Execute())
 }
