@@ -260,3 +260,7 @@ img {
 pre {
   @apply text-sm;
 }
+
+table {
+  @apply text-sm;
+}

@@ -17,315 +17,44 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
 
 ## Reference
 
-<TransformersTable
-  headers={['Name', 'Type', 'Code', 'Description']}
-  rowData={[
-    {
-      title: 'Generate Email',
-      type: 'string',
-      description: 'Generates a new randomized email address.',
-      pagelink: 'generate-email',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_email.go',
-    },
-    {
-      title: 'Transform Email',
-      type: 'string',
-      description: 'Transforms an existing email address.',
-      pagelink: 'transform-email',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_email.go',
-    },
-    {
-      title: 'Generate Boolean',
-      type: 'boolean',
-      description: 'Generates a boolean value at random.',
-      pagelink: 'generate-boolean',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_bool.go',
-    },
-    {
-      title: 'Generate Card Number',
-      type: 'int64',
-      description: 'Generates a card number.',
-      pagelink: 'generate-card-number',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_card_number.go',
-    },
-    {
-      title: 'Generate City',
-      type: 'string',
-      description:
-        'Randomly selects a city from a list of predfined US cities.',
-      pagelink: 'generate-city',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_city.go',
-    },
-    {
-      title: 'Generate E164 Phone Number',
-      type: 'string',
-      description: 'Generates a Generate phone number in e164 format.',
-      pagelink: 'generate-e164-phone-number',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_e164_phone.go',
-    },
-    {
-      title: 'Generate First Name',
-      type: 'string',
-      description: 'Generates a random first name.',
-      pagelink: 'generate-first-name',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_first_name.go',
-    },
-    {
-      title: 'Generate Float64',
-      type: 'float64',
-      description: 'Generates a random float64 value.',
-      pagelink: 'generate-float64',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_float.go',
-    },
-    {
-      title: 'Generate Full Address',
-      type: 'string',
-      description:
-        'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169.',
-      pagelink: 'generate-full-address',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_address.go',
-    },
-    {
-      title: 'Generate Full Name',
-      type: 'string',
-      description:
-        'Generates a new full name consisting of a first and last name',
-      pagelink: 'generate-full-name',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_name.go',
-    },
-    {
-      title: 'Generate Gender',
-      type: 'string',
-      description:
-        'Randomly generates one of the following genders: female, male, undefined, nonbinary.',
-      pagelink: 'generate-gender',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_gender.go',
-    },
-    {
-      title: 'Generate Int64 Phone Number',
-      type: 'int64',
-      description:
-        'Generates a new phone number of type int64 with a default length of 10.',
-      pagelink: 'generate-int64-phone-number',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_164_phone.go',
-    },
-    {
-      title: 'Generate Random Int64',
-      type: 'int64',
-      description:
-        'Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined.',
-      pagelink: 'generate-random-int64',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_int.go',
-    },
-    {
-      title: 'Generate Last Name',
-      type: 'int64',
-      description: 'Generates a random last name.',
-      pagelink: 'generate-last-name',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_last_name.go',
-    },
-    {
-      title: 'Generate SHA256 Hash',
-      type: 'string',
-      description: 'SHA256 hashes a randomly generated value.',
-      pagelink: 'generate-sha256-hash',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_sha256hash.go',
-    },
-    {
-      title: 'Generate SSN',
-      type: 'string',
-      description:
-        'Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>',
-      pagelink: 'generate-ssn',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_ssn.go',
-    },
-    {
-      title: 'Generate State',
-      type: 'string',
-      description:
-        'Randomly selects a US state and returns the two-character state code.',
-      pagelink: 'generate-state',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_state.go',
-    },
-    {
-      title: 'Generate Street Address',
-      type: 'string',
-      description:
-        'Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}. For example, 123 Main Street.',
-      pagelink: 'generate-street-address',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_street_address.go',
-    },
-    {
-      title: 'Generate String Phone Number',
-      type: 'string',
-      description:
-        'Generates a Generate phone number and returns it as a string.',
-      pagelink: 'generate-string-phone-number',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string_phone.go',
-    },
-    {
-      title: 'Generate Random String',
-      type: 'string',
-      description:
-        'Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.',
-      pagelink: 'generate-random-string',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string.go',
-    },
-    {
-      title: 'Generate Unix Timestamp',
-      type: 'int64',
-      description: 'Randomly generates a Unix timestamp',
-      pagelink: 'generate-unix-timestamp',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_unixtimestamp.go',
-    },
-    {
-      title: 'Generate Username',
-      type: 'string',
-      description:
-        'Randomly generates a username in the format<first_initial><last_name>.',
-      pagelink: 'generate-username',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_username.go',
-    },
-    {
-      title: 'Generate UTC Timestamp',
-      type: 'time',
-      description: 'Randomly generates a UTC timestamp.',
-      pagelink: 'generate-utc-timestamp',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_utctimestamp.go',
-    },
-    {
-      title: 'Generate UUID',
-      type: 'uuid',
-      description: 'Generates a new UUIDv4 id.',
-      pagelink: 'generate-uuid',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_uuid.go',
-    },
-    {
-      title: 'Generate Zipcode',
-      type: 'string',
-      description:
-        'Randomly selects a zip code from a list of predefined US zipcodes.',
-      pagelink: 'generate-zipcode',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_zipcode.go',
-    },
-    {
-      title: 'Transform E164 Phone Number',
-      type: 'string',
-      description: 'Transforms an existing E164 formatted phone number.',
-      pagelink: 'transform-e164-phone-number',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_e164_phone.go',
-    },
-    {
-      title: 'Transform First Name',
-      type: 'string',
-      description: 'Transforms an existing first name',
-      pagelink: 'transform-first-name',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_first_name.go',
-    },
-    {
-      title: 'Transform Float64',
-      type: 'float64',
-      description: 'Transforms an existing float value.',
-      pagelink: 'transform-float64',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_float.go',
-    },
-    {
-      title: 'Transform Full Name',
-      type: 'string',
-      description: 'Transforms an existing full name.',
-      pagelink: 'transform-full-name',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_full_name.go',
-    },
-    {
-      title: 'Transform Int64 Phone Number',
-      type: 'int64',
-      description:
-        'Transforms an existing phone number that is typed as an integer',
-      pagelink: 'transform-int64-phone-number',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int_phone.go',
-    },
-    {
-      title: 'Transform Int64',
-      type: 'int64',
-      description: 'Transforms an existing integer value.',
-      pagelink: 'transform-int64',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int.go',
-    },
-    {
-      title: 'Transform Last Name',
-      type: 'string',
-      description: 'Transforms an existing last name.',
-      pagelink: 'transform-last-name',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_last_name.go',
-    },
-    {
-      title: 'Transform Phone Number',
-      type: 'string',
-      description:
-        'Transforms an existing phone number that is typed as a string.',
-      pagelink: 'transform-phone-number',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_phone.go',
-    },
-    {
-      title: 'Transform String',
-      type: 'string',
-      description: 'Transforms an existing string value.',
-      pagelink: 'transform-string',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_string.go',
-    },
-    {
-      title: 'Passthrough',
-      type: 'string',
-      description:
-        'Passes the input value through to the desination with no changes.',
-      pagelink: 'passthrough',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go',
-    },
-    {
-      title: 'Null',
-      type: 'string',
-      description: 'Inserts a <null> string instead of the source value.',
-      pagelink: 'null',
-      codeRef:
-        'https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go',
-    },
-  ]}
-/>
+| Name                                                                              | Type    | Code                                                                                                                                                 | Description                                                                                                                      |
+| --------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| [Generate Email](/transformers/system#generate-email)                             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_email.go)                                     | Generates a new randomized email address.                                                                                        |
+| [Transform Email](/transformers/system#transform-email)                           | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_email.go)                                    | Transforms an existing email address.                                                                                            |
+| [Generate Boolean](/transformers/system#generate-boolean)                         | boolean | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_bool.go)                                      | Generates a boolean value at random.                                                                                             |
+| [Generate Card Number](/transformers/system#generate-card-number)                 | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_card_number.go)                               | Generates a card number.                                                                                                         |
+| [Generate City](/transformers/system#generate-city)                               | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_city.go)                                      | Randomly selects a city from a list of predefined US cities.                                                                     |
+| [Generate E164 Phone Number](/transformers/system#generate-e164-phone-number)     | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_e164_phone.go)                                | Generates a Generate phone number in e164 format.                                                                                |
+| [Generate First Name](/transformers/system#generate-first-name)                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_first_name.go)                                | Generates a random first name.                                                                                                   |
+| [Generate Float64](/transformers/system#generate-float64)                         | float64 | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_float.go)                                     | Generates a random float64 value.                                                                                                |
+| [Generate Full Address](/transformers/system#generate-full-address)               | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_address.go)                              | Randomly generates a street address.                                                                                             |
+| [Generate Full Name](/transformers/system#generate-full-name)                     | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_full_name.go)                                 | Generates a new full name consisting of a first and last name.                                                                   |
+| [Generate Gender](/transformers/system#generate-gender)                           | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_gender.go)                                    | Randomly generates one of the following genders: female, male, undefined, nonbinary.                                             |
+| [Generate Int64 Phone Number](/transformers/system#generate-int64-phone-number)   | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_164_phone.go)                                 | Generates a new phone number of type int64 with a default length of 10.                                                          |
+| [Generate Random Int64](/transformers/system#generate-random-int64)               | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_int.go)                                       | Generates a random integer value with a default length of 4 unless the Integer Length or Preserve Length parameters are defined. |
+| [Generate Last Name](/transformers/system#generate-last-name)                     | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_last_name.go)                                 | Generates a random last name.                                                                                                    |
+| [Generate SHA256 Hash](/transformers/system#generate-sha256-hash)                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_sha256hash.go)                                | SHA256 hashes a randomly generated value.                                                                                        |
+| [Generate SSN](/transformers/system#generate-ssn)                                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_ssn.go)                                       | Generates a completely random social security numbers including the hyphens in the format `xxx-xx-xxxx`.                         |
+| [Generate State](/transformers/system#generate-state)                             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_state.go)                                     | Randomly selects a US state and returns the two-character state code.                                                            |
+| [Generate Street Address](/transformers/system#generate-street-address)           | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_street_address.go)                            | Randomly generates a street address.                                                                                             |
+| [Generate String Phone Number](/transformers/system#generate-string-phone-number) | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string_phone.go)                              | Generates a Generate phone number and returns it as a string.                                                                    |
+| [Generate Random String](/transformers/system#generate-random-string)             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_string.go)                                    | Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.       |
+| [Generate Unix Timestamp](/transformers/system#generate-unix-timestamp)           | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_unixtimestamp.go)                             | Randomly generates a Unix timestamp.                                                                                             |
+| [Generate Username](/transformers/system#generate-username)                       | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_username.go)                                  | Randomly generates a username                                                                                                    |
+| [Generate UTC Timestamp](/transformers/system#generate-utc-timestamp)             | time    | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_utctimestamp.go)                              | Randomly generates a UTC timestamp.                                                                                              |
+| [Generate UUID](/transformers/system#generate-uuid)                               | uuid    | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_uuid.go)                                      | Generates a new UUIDv4 id.                                                                                                       |
+| [Generate Zipcode](/transformers/system#generate-zipcode)                         | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_zipcode.go)                                   | Randomly selects a zip code from a list of predefined US zipcodes.                                                               |
+| [Transform E164 Phone Number](/transformers/system#transform-e164-phone-number)   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_e164_phone.go)                               | Transforms an existing E164 formatted phone number.                                                                              |
+| [Transform First Name](/transformers/system#transform-first-name)                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_first_name.go)                               | Transforms an existing first name                                                                                                |
+| [Transform Float64](/transformers/system#transform-float64)                       | float64 | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_float.go)                                    | Transforms an existing float value.                                                                                              |
+| [Transform Full Name](/transformers/system#transform-full-name)                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_full_name.go)                                | Transforms an existing full name.                                                                                                |
+| [Transform Int64 Phone Number](/transformers/system#transform-int64-phone-number) | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int_phone.go)                                | Transforms an existing phone number that is typed as an integer                                                                  |
+| [Transform Int64](/transformers/system#transform-int64)                           | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_int.go)                                      | Transforms an existing integer value.                                                                                            |
+| [Transform Last Name](/transformers/system#transform-last-name)                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_last_name.go)                                | Transforms an existing last name.                                                                                                |
+| [Transform Phone Number](/transformers/system#transform-phone-number)             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_phone.go)                                    | Transforms an existing phone number that is typed as a string.                                                                   |
+| [Transform String](/transformers/system#transform-string)                         | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_string.go)                                   | Transforms an existing string value.                                                                                             |
+| [Passthrough](/transformers/system#passthrough)                                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Passes the input value through to the destination with no changes.                                                               |
+| [Null](/transformers/system#null)                                                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Inserts a `null` string instead of the source value.                                                                             |
 
 ### Generate Email\{#generate-email}
 
@@ -347,23 +76,12 @@ There are no configurations for this transformer.
 
 **Examples**
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['f98723uh@gmail.com'],
-    },
-    {
-      data: ['9cd@msn.com'],
-    },
-    {
-      data: ['mDy@gmail.edu'],
-    },
-    {
-      data: ['fweq23f@hotmail.com'],
-    },
-  ]}
-/>
+| Example Output        |
+| --------------------- |
+| `f98723uh@gmail.com`  |
+| `9cd@msn.com`         |
+| `mDy@gmail.edu `      |
+| `fweq23f@hotmail.com` |
 
 ### Transform Email\{#transform-email}
 
@@ -383,62 +101,21 @@ Would produce the following ouput value:
 
 Depending on your logic, you may want to configure the output email. The transform email transformer has the following configurations:
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'PreserveDomain',
-        'Carries over the input domain and top-level to the output email address.',
-        'false',
-        'john@gmail.com',
-        'fjf2903@gmail.com',
-      ],
-    },
-    {
-      data: [
-        'PreserveLength',
-        'Ensures the output email address is the same length as the input email address.',
-        'false',
-        'john@gmail.com',
-        'hw98@gmail.edu',
-      ],
-    },
-  ]}
-/>
+| Name           | Description                                                                     | Default | Example Input    | Example Output      |
+| -------------- | ------------------------------------------------------------------------------- | ------- | ---------------- | ------------------- |
+| PreserveDomain | Carries over the input domain and top-level to the output email address.        | false   | `john@gmail.com` | `fjf2903@gmail.com` |
+| PreserveLength | Ensures the output email address is the same length as the input email address. | false   | `john@gmail.com` | `hw98@gmail.edu `   |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential email formats. Here are some possible combinations:
 
-<DocsTable
-  headers={[
-    'PreserveLength',
-    'PreserveDomain',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: ['false', 'true', 'joe@gmail.com', 'f98723uh@gmail.com'],
-    },
-    {
-      data: ['true', 'false', 'joe@gmail.com', '9cd@ms0ej.com'],
-    },
-    {
-      data: ['true', 'true', 'joe@gmail.com', 'mDy@bdo3s.com'],
-    },
-    {
-      data: ['false', 'false', 'joe@gmail.com', 'fweq23f@fheuiw78.edu'],
-    },
-  ]}
-/>
+| PreserveLength | PreserveDomain | Example Input   | Example Output         |
+| -------------- | -------------- | --------------- | ---------------------- |
+| false          | true           | `joe@gmail.com` | `f98723uh@gmail.com`   |
+| true           | false          | `joe@gmail.com` | `9cd@ms0ej.com`        |
+| true           | true           | `joe@gmail.com` | `mDy@bdo3s.com`        |
+| false          | false          | `joe@gmail.com` | `fweq23f@fheuiw78.edu` |
 
 ### Generate Boolean\{#generate-boolean}
 
@@ -452,17 +129,10 @@ There are no configurations for the random boolean transformer.
 
 Here are some examples of what an output random boolean value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['true'],
-    },
-    {
-      data: ['false'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| true           |
+| false`         |
 
 ### Generate Card Number\{#generate-card-number}
 
@@ -474,35 +144,18 @@ By default, the card number transformer generates a random 16 digit card number 
 
 Depending on your validations, you may want to configure the output card number. The card number transformer has the following configurations:
 
-<DocsTable
-  headers={['Name', 'Description', 'Default', 'Example Output']}
-  rowData={[
-    {
-      data: [
-        'Valid Luhn',
-        'Generate a card number that can pass luhn validation.',
-        'true',
-        '6621238134011099',
-      ],
-    },
-  ]}
-/>
+| Name       | Description                                           | Default | Example Output   |
+| ---------- | ----------------------------------------------------- | ------- | ---------------- |
+| Valid Luhn | Generate a card number that can pass luhn validation. | true    | 6621238134011099 |
 
 **Examples**
 
 Here are some examples of an output card number:
 
-<DocsTable
-  headers={['Valid Luhn', 'Example Output']}
-  rowData={[
-    {
-      data: ['false', '3627893345931223'],
-    },
-    {
-      data: ['true', '6621238134011099'],
-    },
-  ]}
-/>
+| Valid Luhn | Example Output   |
+| ---------- | ---------------- |
+| false      | 3627893345931223 |
+| true       | 6621238134011099 |
 
 ### Generate City\{#generate-city}
 
@@ -518,17 +171,10 @@ There are no configurations for the city transformer.
 
 Here are some examples of what an output City value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['Manchester'],
-    },
-    {
-      data: ['Louisville'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| Louisville     |
+| Manchester     |
 
 ### Generate E164 Phone Number\{#generate-e164-phone-number}
 
@@ -541,47 +187,20 @@ TPhone numbers also vary in length with some international phone numbers reachin
 **Configurations**
 
 Depending on your validations, you may want to configure the output e164 phone number:
-
-<DocsTable
-  headers={['Name', 'Description', 'Default', 'Example Output']}
-  rowData={[
-    {
-      data: [
-        'Min',
-        'Min is the lower range of the a length value.',
-        '9',
-        '+29748675',
-      ],
-    },
-    {
-      data: [
-        'Max',
-        'Max is the upper range of  a length value.',
-        '12',
-        '+2037486752',
-      ],
-    },
-  ]}
-/>
+| Name | Description | Default | Example Output |
+|------|----------------------------------------------|---------|----------------|
+| Min | Min is the lower range of the a length value. | 9 | +29748675 |
+| Max | Max is the upper range of a length value. | 12 | +2037486752 |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
-<DocsTable
-  headers={['Min', 'Max', 'Example Output']}
-  rowData={[
-    {
-      data: ['9', '12', '+5209273239'],
-    },
-    {
-      data: ['10', '14', '+5209273239'],
-    },
-    {
-      data: ['12', '12', '+52092732323'],
-    },
-  ]}
-/>
+| Min | Max | Example Output |
+| --- | --- | -------------- |
+| 9   | 12  | +5209273239    |
+| 10  | 14  | +5209273239    |
+| 12  | 12  | +52092732323   |
 
 ### Generate First Name\{#generate-first-name}
 
@@ -597,20 +216,11 @@ There are no configurations for this transformer.
 
 There are several ways you can mix-and-match configurations to get different first name formats. Here are some possible combinations:
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['Benjamin'],
-    },
-    {
-      data: ['Gregory'],
-    },
-    {
-      data: ['Ashley'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| Benjamin       |
+| Gregory        |
+| Ashley         |
 
 ### Generate Float64\{#generate-float64}
 
@@ -625,65 +235,23 @@ This transformer supports both positive and negative float numbers with a max pr
 
 Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
 
-<DocsTable
-  headers={['Name', 'Description', 'Default', 'Example Output']}
-  rowData={[
-    {
-      data: [
-        'RandomizeSign',
-        'Randomly sets the sign of the value. Options are: positive, negative, random. ',
-        'positive',
-        '873.923',
-      ],
-    },
-    {
-      data: [
-        'Min',
-        'Specifies the min range for a generated float value. This supports negative values.  ',
-        '1.00',
-        '94.17',
-      ],
-    },
-    {
-      data: [
-        'Max',
-        'Specifies the max range for a generated float value. The supports negative values. ',
-        '100.00',
-        '34.8',
-      ],
-    },
-    {
-      data: [
-        'Precision',
-        'Sets the precision of the value. For example, a precision of 6 will generate a value such as 42.9812.',
-        '6',
-        '34.8367',
-      ],
-    },
-  ]}
-/>
+| Name          | Description                                                                                           | Default  | Example Output |
+| ------------- | ----------------------------------------------------------------------------------------------------- | -------- | -------------- |
+| RandomizeSign | Randomly sets the sign of the value. Options are: positive, negative, random.                         | positive | 873.923        |
+| Min           | Specifies the min range for a generated float value. This supports negative values.                   | 1.00     | 94.17          |
+| Max           | Specifies the max range for a generated float value. This supports negative values.                   | 100.00   | 34.8           |
+| Precision     | Sets the precision of the value. For example, a precision of 6 will generate a value such as 42.9812. | 6        | 34.8367        |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential random float formats. Here are some possible combinations:
 
-<DocsTable
-  headers={['RandomizeSign', 'Min', 'Max', 'Precision', 'Example Output']}
-  rowData={[
-    {
-      data: ['true', '2.00', '35.00', '4', '-23.84'],
-    },
-    {
-      data: ['true', '4.12', '19.43', '3', '7.28'],
-    },
-    {
-      data: ['false', '-30.00', '2.00', '8', '-15.54219'],
-    },
-    {
-      data: ['false', '-20.00', '30.00', '4', '20.19'],
-    },
-  ]}
-/>
+| RandomizeSign | Min    | Max   | Precision | Example Output |
+| ------------- | ------ | ----- | --------- | -------------- |
+| true          | 2.00   | 35.00 | 4         | -23.84         |
+| true          | 4.12   | 19.43 | 3         | 7.28           |
+| false         | -30.00 | 2.00  | 8         | -15.54219      |
+| false         | -20.00 | 30.00 | 4         | 20.19          |
 
 ### Generate Full Address\{#generate-full-address}
 
@@ -700,17 +268,10 @@ There are no configurations for the full adddress transformer.
 
 Here are some examples of what an output full address value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['509 Franklin Street Northeast Washington, DC, 20017'],
-    },
-    {
-      data: ['14 Huntingon Street Manchester, CT 06040'],
-    },
-  ]}
-/>
+| Example Output                                      |
+| --------------------------------------------------- |
+| 509 Franklin Street Northeast Washington, DC, 20017 |
+| 14 Huntingon Street Manchester, CT 06040            |
 
 ### Generate Full Name\{#generate-full-name}
 
@@ -724,42 +285,22 @@ There are no configurations for this transformer.
 
 Here are some examples of what an output full name value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['Edward Marshall'],
-    },
-    {
-      data: ['Dante Mayer'],
-    },
-    {
-      data: ['Gregory Johnson'],
-    },
-  ]}
-/>
+| Example Output  |
+| --------------- |
+| Edward Marshall |
+| Dante Mayer     |
+| Gregory Johnson |
 
 ### Generate Gender\{#generate-gender}
 
 The generate gender transformer randomly selects a gender value from a predefined list of genders. Here is the list:
 
-<DocsTable
-  headers={['Gender', 'Abbreviation']}
-  rowData={[
-    {
-      data: ['male', 'm'],
-    },
-    {
-      data: ['female', 'f'],
-    },
-    {
-      data: ['nonbinary', 'n'],
-    },
-    {
-      data: ['undefined', 'u'],
-    },
-  ]}
-/>
+| Gender    | Abbreviation |
+| --------- | ------------ |
+| male      | m            |
+| female    | f            |
+| nonbinary | n            |
+| undefined | u            |
 
 By default, the gender transformer does not abbreviate the gender. If you'd like to return an abbreviated gender, pass in the `abbreviate` config.
 
@@ -767,38 +308,19 @@ By default, the gender transformer does not abbreviate the gender. If you'd like
 
 Depending on your validations, you may want to configure the output gender. The gender transformer has the following configurations:
 
-<DocsTable
-  headers={['Name', 'Description', 'Default', 'Example Output']}
-  rowData={[
-    {
-      data: [
-        'Abbreviate',
-        'Abbreviate will abbreviate the output gender so that it is only one character. ',
-        'false',
-        'u',
-      ],
-    },
-  ]}
-/>
+| Name       | Description                                                                    | Default | Example Output |
+| ---------- | ------------------------------------------------------------------------------ | ------- | -------------- |
+| Abbreviate | Abbreviate will abbreviate the output gender so that it is only one character. | false   | u              |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different full name formats. Here are some possible combinations:
 
-<DocsTable
-  headers={['Abbreviate', 'Example Output']}
-  rowData={[
-    {
-      data: ['false', 'male'],
-    },
-    {
-      data: ['true', 'f'],
-    },
-    {
-      data: ['false', 'nonbinary'],
-    },
-  ]}
-/>
+| Abbreviate | Example Output |
+| ---------- | -------------- |
+| false      | male           |
+| true       | f              |
+| false      | nonbinary      |
 
 ### Generate Int64 Phone Number\{#generate-int64-phone-number}
 
@@ -815,17 +337,10 @@ There are no configurations for this transformer.
 
 Here are some examples of what the output values could look like:
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['5209273239'],
-    },
-    {
-      data: ['9378463528'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| 5209273239     |
+| 9378463528     |
 
 ### Generate Random Int64\{#generate-random-int64}
 
@@ -840,54 +355,21 @@ By default, the generate random int64 transformer generates an integer of 4 digi
 
 Depending on your validations, you may want to configure the output float. The random integer transformer has the following configurations:
 
-<DocsTable
-  headers={['Name', 'Description', 'Default', 'Example Output']}
-  rowData={[
-    {
-      data: [
-        'RandomizeSign',
-        'Randomly sets the sign of the value. Options are: positive, negative, random. ',
-        'positive',
-        '873',
-      ],
-    },
-    {
-      data: [
-        'Min',
-        'Specifies the min range for a generated int64 value. This supports negative values.  ',
-        '1',
-        '97',
-      ],
-    },
-    {
-      data: [
-        'Max',
-        'Specifies the max range for a generated int64 value. The supports negative values. ',
-        '40',
-        '34',
-      ],
-    },
-  ]}
-/>
+| Name          | Description                                                                         | Default  | Example Output |
+| ------------- | ----------------------------------------------------------------------------------- | -------- | -------------- |
+| RandomizeSign | Randomly sets the sign of the value. Options are: positive, negative, random.       | positive | 873            |
+| Min           | Specifies the min range for a generated int64 value. This supports negative values. | 1        | 97             |
+| Max           | Specifies the max range for a generated int64 value. This supports negative values. | 40       | 34             |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
 
-<DocsTable
-  headers={['RandomizeSign', 'Min', 'Max', 'Example Output']}
-  rowData={[
-    {
-      data: ['true', '10', '40', '-23'],
-    },
-    {
-      data: ['true', '-20', '-3', '-14'],
-    },
-    {
-      data: ['false', '2', '100', '54'],
-    },
-  ]}
-/>
+| RandomizeSign | Min | Max | Example Output |
+| ------------- | --- | --- | -------------- |
+| true          | 10  | 40  | -23            |
+| true          | -20 | -3  | -14            |
+| false         | 2   | 100 | 54             |
 
 ### Generate Last Name\{#generate-last-name}
 
@@ -901,20 +383,11 @@ This transformer has no configurations.
 
 Here are some possible output examples:
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['Dach'],
-    },
-    {
-      data: ['Sporer'],
-    },
-    {
-      data: ['Rodriguezon'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| Dach           |
+| Sporer         |
+| Rodriguezon    |
 
 ### Generate SHA256 Hash\{#generate-sha256-hash}
 
@@ -928,26 +401,11 @@ There are no configurations for the hash transformer.
 
 Here are some examples of what an output hash value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: [
-        '1b836d86806e16bd45164b9d665ce86dac9d9d55bf79d0e771265da9fbf950d1',
-      ],
-    },
-    {
-      data: [
-        'c74f07e35232c844a6639fef0c82ad093351cfa1a1b458fd2afc44cc19211508C',
-      ],
-    },
-    {
-      data: [
-        '18dd7ce288e5538fbdd9c736aa9951ddb317e42c0b928e2b4db672414a82f811',
-      ],
-    },
-  ]}
-/>
+| Example Output                                                    |
+| ----------------------------------------------------------------- |
+| 1b836d86806e16bd45164b9d665ce86dac9d9d55bf79d0e771265da9fbf950d1  |
+| c74f07e35232c844a6639fef0c82ad093351cfa1a1b458fd2afc44cc19211508C |
+| 18dd7ce288e5538fbdd9c736aa9951ddb317e42c0b928e2b4db672414a82f811  |
 
 ### Generate SSN\{#generate-ssn}
 
@@ -964,17 +422,10 @@ There are no configurations for the ssn transformer.
 
 Here are some examples of what an output street address value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['892-23-7634'],
-    },
-    {
-      data: ['479-82-3224'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| 892-23-7634    |
+| 479-82-3224    |
 
 ### Generate State\{#generate-state}
 
@@ -990,17 +441,10 @@ There are no configurations for the state transformer.
 
 Here are some examples of what an output state value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['Rhode Island'],
-    },
-    {
-      data: ['Missouri'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| Rhode Island   |
+| Missouri       |
 
 ### Generate Street Address\{#generate-street-address}
 
@@ -1017,17 +461,10 @@ There are no configurations for the street adddress transformer.
 
 Here are some examples of what an output street address value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['509 Franklin Street Northeast'],
-    },
-    {
-      data: ['14 Huntingon Street'],
-    },
-  ]}
-/>
+| Example Output                |
+| ----------------------------- |
+| 509 Franklin Street Northeast |
+| 14 Huntingon Street           |
 
 ### Generate String Phone Number\{#generate-string-phone-number}
 
@@ -1037,41 +474,19 @@ The generate string phone transformer generates a random string phone number. By
 
 Depending on your validations, you may want to configure the output phone number. The generate string phone number transformer has the following configuration:
 
-<DocsTable
-  headers={['Name', 'Description', 'Default', 'Example Output']}
-  rowData={[
-    {
-      data: [
-        'Include hyphens',
-        'Includes hyphens in the output phone numnber. Note that this config can only be used with default 10 digit phone numbers. ',
-        'false',
-        '290-374-8675',
-      ],
-    },
-  ]}
-/>
+| Name            | Description                                                                                                               | Default | Example Output |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------- | ------- | -------------- |
+| Include hyphens | Includes hyphens in the output phone numnber. Note that this config can only be used with default 10 digit phone numbers. | false   | 290-374-8675   |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
-<DocsTable
-  headers={[
-    'Include Hyphens',
-    'Example Output',
-
-]}
-rowData={[{
-data: ['false', '5209273239'],
-},
-{
-data: ['true', '520-927-3239'],
-},
-{
-data: ['false', '2927323921'],
-},
-]}
-/>
+| Include Hyphens | Example Output |
+| --------------- | -------------- |
+| false           | 5209273239     |
+| true            | 520-927-3239   |
+| false           | 2927323921     |
 
 ### Generate Random String\{#generate-random-string}
 
@@ -1086,46 +501,20 @@ By default, the random string transformer generates a string of 10 characters lo
 
 Depending on your validations, you may want to configure the output string. The generate string transformer has the following configurations:
 
-<DocsTable
-  headers={['Name', 'Description', 'Default', 'Example Output']}
-  rowData={[
-    {
-      data: [
-        'Min',
-        'Specifies the min range for a generated int64 value. This supports negative values.  ',
-        '2',
-        'jn9d',
-      ],
-    },
-    {
-      data: [
-        'Max',
-        'Specifies the max range for a generated int64 value. The supports negative values. ',
-        '7',
-        'hd9n93',
-      ],
-    },
-  ]}
-/>
+| Name | Description                                                                         | Default | Example Output |
+| ---- | ----------------------------------------------------------------------------------- | ------- | -------------- |
+| Min  | Specifies the min range for a generated int64 value. This supports negative values. | 2       | jn9d           |
+| Max  | Specifies the max range for a generated int64 value. This supports negative values. | 7       | hd9n93         |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
 
-<DocsTable
-  headers={['Min', 'Max', 'Example Output']}
-  rowData={[
-    {
-      data: ['2', '7', 'je7R6'],
-    },
-    {
-      data: ['1', '20', '29h23rega9'],
-    },
-    {
-      data: ['5', '5', 'h2dni'],
-    },
-  ]}
-/>
+| Min | Max | Example Output |
+| --- | --- | -------------- |
+| 2   | 7   | je7R6          |
+| 1   | 20  | 29h23rega9     |
+| 5   | 5   | h2dni          |
 
 ### Generate Unix Timestamp\{#generate-unix-timestamp}
 
@@ -1141,17 +530,10 @@ There are no configurations for this transformer.
 
 Here are some examples of what an output state value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['2524608000'],
-    },
-    {
-      data: ['946684800'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| 2524608000     |
+| 946684800      |
 
 ### Generate Username\{#generate-username}
 
@@ -1165,17 +547,10 @@ There are no configurations for the state transformer.
 
 Here are some examples of what an output state value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['jdoe'],
-    },
-    {
-      data: ['lsmith'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| jdoe           |
+| lsmith         |
 
 ### Generate UTC Timestamp\{#generate-utc-timestamp}
 
@@ -1191,22 +566,10 @@ There are no configurations for this transformer.
 
 Here are some examples of what an output state value may look like.
 
-<DocsTable
-  headers={[ 'Example Output']}
-  rowData={[
-    {
-      data: [
-        'July 8, 2025, 00:00:00 UTC',
-      ],
-    },
-    {
-      data: [
-        'September 21, 1989, 00:00:00 UTC',
-      ],
-    },
-
-]}
-/>
+| Example Output                   |
+| -------------------------------- |
+| July 8, 2025, 00:00:00 UTC       |
+| September 21, 1989, 00:00:00 UTC |
 
 ### Generate UUID\{#generate-uuid}
 
@@ -1219,35 +582,18 @@ For example:
 
 Depending on your validations, you may want to configure the output uuid. The uuid transformer has the following configurations:
 
-<DocsTable
-  headers={['Name', 'Description', 'Default', 'Example Output']}
-  rowData={[
-    {
-      data: [
-        'Include hyphens',
-        'Includes hyphens in the output UUID. Note: For some databases, such as Postgres, it will automatically convert any UUID without hyphens to having hyphens. ',
-        'false',
-        '6817d39c-ea4f-45ec-a81c-bc0801355576',
-      ],
-    },
-  ]}
-/>
+| Name            | Description                                                                                                                                                | Default | Example Output                       |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------ |
+| Include hyphens | Includes hyphens in the output UUID. Note: For some databases, such as Postgres, it will automatically convert any UUID without hyphens to having hyphens. | false   | 6817d39c-ea4f-45ec-a81c-bc0801355576 |
 
 **Examples**
 
 Here are some example UUID values that the uuid transformer can generate:
 
-<DocsTable
-  headers={['Include Hyphens', 'Example Output']}
-  rowData={[
-    {
-      data: ['false', '53ef1f16cd0d455cb45c4cb6434ae807'],
-    },
-    {
-      data: ['true', 'ab6b676b-0d0e-4e38-b98a-3935a832da7d'],
-    },
-  ]}
-/>
+| Include Hyphens | Example Output                       |
+| --------------- | ------------------------------------ |
+| false           | 53ef1f16cd0d455cb45c4cb6434ae807     |
+| true            | ab6b676b-0d0e-4e38-b98a-3935a832da7d |
 
 ### Generate Zipcode\{#generate-zipcode}
 
@@ -1263,17 +609,10 @@ There are no configurations for the zipcode transformer.
 
 Here are some examples of what an output zipcode value may look like.
 
-<DocsTable
-  headers={['Example Output']}
-  rowData={[
-    {
-      data: ['27563'],
-    },
-    {
-      data: ['90237'],
-    },
-  ]}
-/>
+| Example Output |
+| -------------- |
+| 27563          |
+| 90237          |
 
 ### Transform E164 Phone Number\{#transform-e164-phone-number}
 
@@ -1291,42 +630,18 @@ E164 Phone numbers vary in length with some international phone numbers reaching
 
 Depending on your validations, you may want to configure the output e164 phone number. The transform e164 phone number transformer has the following configurations:
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'Preserve Length',
-        'Preserve Length will ensure that the output e164phone number is the same length as the input phone number. If set to false, it will generate a value between 9 and 15 characters long.',
-        'false',
-        '+8923786243',
-        '+290374867526',
-      ],
-    },
-  ]}
-/>
+| Name            | Description                                                                                                                                                                             | Default | Example Input | Example Output |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
+| Preserve Length | Preserve Length will ensure that the output e164 phone number is the same length as the input phone number. If set to false, it will generate a value between 9 and 15 characters long. | false   | +8923786243   | +290374867526  |
 
 **Examples**
 
 Here are some examples of what the transform e164 phone number tranformer can output:
 
-<DocsTable
-  headers={['Preserve Length', 'Example Input', 'Example Output']}
-  rowData={[
-    {
-      data: ['false', '+2890923784', '+520927392'],
-    },
-    {
-      data: ['true', '+62890923784', '+52092732393'],
-    },
-  ]}
-/>
+| Preserve Length | Example Input | Example Output |
+| --------------- | ------------- | -------------- |
+| false           | +2890923784   | +520927392     |
+| true            | +62890923784  | +52092732393   |
 
 ### Transform First Name\{#transform-first-name}
 
@@ -1338,42 +653,18 @@ By default, the first name transformer generates a first name of random length. 
 
 Depending on your validations, you may want to configure the output first name. The first name transformer has the following configurations:
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'PreserveLength',
-        'Preserve Length will ensure that the output first name is the same length as the input first name. The preserveLength config only preserves names up to 12 characters long.',
-        'false',
-        'Johnathan',
-        'Bill',
-      ],
-    },
-  ]}
-/>
+| Name           | Description                                                                                                                                                                 | Default | Example Input | Example Output |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
+| PreserveLength | Preserve Length will ensure that the output first name is the same length as the input first name. The preserveLength config only preserves names up to 12 characters long. | false   | Johnathan     | Bill           |
 
 **Examples**
 
 Here are some examples of what the transform first name tranformer can output:
 
-<DocsTable
-  headers={['PreserveLength', 'Example Input', 'Example Output']}
-  rowData={[
-    {
-      data: ['false', 'Joe', 'Benjamin'],
-    },
-    {
-      data: ['true', 'Frank', 'Dante'],
-    },
-  ]}
-/>
+| PreserveLength | Example Input | Example Output |
+| -------------- | ------------- | -------------- |
+| false          | Joe           | Benjamin       |
+| true           | Frank         | Dante          |
 
 ### Transform Float64\{#transform-float64}
 
@@ -1388,59 +679,20 @@ The params `randomizationRangeMin` and `randomizationRangeMax` set an upper and 
 
 Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'Randomization Range Min',
-        'Sets the lower bound of a range for the input value.',
-        '20.00',
-        '50.23',
-        '43.30',
-      ],
-    },
-    {
-      data: [
-        'Randomization Range Max',
-        'Sets the upper bound of a range for the input value.',
-        '50.00',
-        '20.00',
-        '69.523',
-      ],
-    },
-  ]}
-/>
+| Name                    | Description                                          | Default | Example Input | Example Output |
+| ----------------------- | ---------------------------------------------------- | ------- | ------------- | -------------- |
+| Randomization Range Min | Sets the lower bound of a range for the input value. | 20.00   | 50.23         | 43.30          |
+| Randomization Range Max | Sets the upper bound of a range for the input value. | 50.00   | 20.00         | 69.523         |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential random float formats. Here are some possible combinations:
 
-<DocsTable
-  headers={[
-    'Randomization Range Min',
-    'Randomization Range Max',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: ['10', '20', '27.23', '17.248'],
-    },
-    {
-      data: ['14', '29', '2.344', '-9.24'],
-    },
-    {
-      data: ['5', '10', '-8.23', '-4.19'],
-    },
-  ]}
-/>
+| Randomization Range Min | Randomization Range Max | Example Input | Example Output |
+| ----------------------- | ----------------------- | ------------- | -------------- |
+| 10                      | 20                      | 27.23         | 17.248         |
+| 14                      | 29                      | 2.344         | -9.24          |
+| 5                       | 10                      | -8.23         | -4.19          |
 
 ### Transform Full Name\{#transform-full-name}
 
@@ -1452,45 +704,19 @@ By default, the full name transformer generates a full name of random length. To
 
 Depending on your validations, you may want to configure the output full name. The full name transformer has the following configurations:
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'PreserveLength',
-        'Preserve Length will ensure that the output full name is the same length as the input full name by preserving the length of the first and last names. The preserveLength config only preserves first and/or last names up to 12 characters long. So the max full name length is 25 characters.',
-        'false',
-        'John',
-        'Bill',
-      ],
-    },
-  ]}
-/>
+| Name           | Description                                                                                                                                                                                                                                                                                    | Default | Example Input | Example Output |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
+| PreserveLength | Preserve Length will ensure that the output full name is the same length as the input full name by preserving the length of the first and last names. The preserveLength config only preserves first and/or last names up to 12 characters long. So the max full name length is 25 characters. | false   | John          | Bill           |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different full name formats. Here are some possible combinations:
 
-<DocsTable
-  headers={['PreserveLength', 'Example Input', 'Example Output']}
-  rowData={[
-    {
-      data: ['false', 'Joe Smith', 'Edward Marshall'],
-    },
-    {
-      data: ['true', 'Frank Jones', 'Dante Mayer'],
-    },
-    {
-      data: ['false', 'Aidan Bell', 'Gregory Johnson'],
-    },
-  ]}
-/>
+| PreserveLength | Example Input | Example Output  |
+| -------------- | ------------- | --------------- |
+| false          | Joe Smith     | Edward Marshall |
+| true           | Frank Jones   | Dante Mayer     |
+| false          | Aidan Bell    | Gregory Johnson |
 
 ### Transform Int64 Phone Number\{#transform-int64-phone-number}
 
@@ -1508,42 +734,18 @@ You can see we generated a new phone integer value that can be used as an intege
 
 Depending on your validations, you may want to configure the output phone number.
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'PreserveLength',
-        'Preserve Length will ensure that the output phone number is the same length as the input phone number.',
-        'false',
-        '892387786243',
-        '2903748675392',
-      ],
-    },
-  ]}
-/>
+| Name           | Description                                                                                            | Default | Example Input | Example Output |
+| -------------- | ------------------------------------------------------------------------------------------------------ | ------- | ------------- | -------------- |
+| PreserveLength | Preserve Length will ensure that the output phone number is the same length as the input phone number. | false   | 892387786243  | 2903748675392  |
 
 **Examples**
 
 Here are some possible example output values:
 
-<DocsTable
-  headers={['PreserveLength', 'Example Input', 'Example Output']}
-  rowData={[
-    {
-      data: ['false', , '2890923784', '5209273239'],
-    },
-    {
-      data: ['true', '3839304957', '6395745371'],
-    },
-  ]}
-/>
+| PreserveLength | Example Input | Example Output |
+| -------------- | ------------- | -------------- |
+| false          | 2890923784    | 5209273239     |
+| true           | 3839304957    | 6395745371     |
 
 ### Transform Int64\{#transform-int64}
 
@@ -1558,59 +760,20 @@ By default, the random int transformer generates an integer of 4 digits long.
 
 Depending on your validations, you may want to configure the output integer. The random integer transformer has the following configurations:
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'Randomization Range Min',
-        'Sets the lower bound of a range for the input value.',
-        '20',
-        '50',
-        '43',
-      ],
-    },
-    {
-      data: [
-        'Randomization Range Max',
-        'Sets the upper bound of a range for the input value.',
-        '50',
-        '20',
-        '69',
-      ],
-    },
-  ]}
-/>
+| Name                    | Description                                          | Default | Example Input | Example Output |
+| ----------------------- | ---------------------------------------------------- | ------- | ------------- | -------------- |
+| Randomization Range Min | Sets the lower bound of a range for the input value. | 20      | 50            | 43             |
+| Randomization Range Max | Sets the upper bound of a range for the input value. | 50      | 20            | 69             |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential random int64 values. Here are some possible combinations:
 
-<DocsTable
-  headers={[
-    'Randomization Range Min',
-    'Randomization Range Max',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: ['5', '50', '10', '43'],
-    },
-    {
-      data: ['10', '70', '23', '91'],
-    },
-    {
-      data: ['20', '90', '30', '27'],
-    },
-  ]}
-/>
+| Randomization Range Min | Randomization Range Max | Example Input | Example Output |
+| ----------------------- | ----------------------- | ------------- | -------------- |
+| 5                       | 50                      | 10            | 43             |
+| 10                      | 70                      | 23            | 91             |
+| 20                      | 90                      | 30            | 27             |
 
 ### Transform Last Name\{#transform-last-name}
 
@@ -1622,45 +785,19 @@ By default, the last name transformer generates a last name of random length. To
 
 Depending on your validations, you may want to configure the output last name. The last name transformer has the following configurations:
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'PreserveLength',
-        'Preserve Length will ensure that the output last name is the same length as the input last name. The preserveLength config only preserves names up to 12 characters long.',
-        'false',
-        'Hills',
-        'Kunze',
-      ],
-    },
-  ]}
-/>
+| Name           | Description                                                                                                                                                               | Default | Example Input | Example Output |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
+| PreserveLength | Preserve Length will ensure that the output last name is the same length as the input last name. The preserveLength config only preserves names up to 12 characters long. | false   | Hills         | Kunze          |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different last name formats. Here are some possible combinations:
 
-<DocsTable
-  headers={['PreserveLength', 'Example Input', 'Example Output']}
-  rowData={[
-    {
-      data: ['false', 'Lei', 'Dach'],
-    },
-    {
-      data: ['true', 'Littel', 'Sporer'],
-    },
-    {
-      data: ['false', 'Johnsonston', 'Rodriguezon'],
-    },
-  ]}
-/>
+| PreserveLength | Example Input | Example Output |
+| -------------- | ------------- | -------------- |
+| false          | Lei           | Dach           |
+| true           | Littel        | Sporer         |
+| false          | Johnsonston   | Rodriguezon    |
 
 ### Transform Phone Number\{#transform-phone-number}
 
@@ -1678,62 +815,21 @@ Would produce the following ouput value:
 
 Depending on your validations, you may want to configure the output phone number. Here are the configurations for the transform string phone number transformer.
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'Include hyphens',
-        'Includes hyphens in the output phone numnber. Note that this config can only be used with default 10 digit phone numbers. ',
-        'false',
-        '9238724378',
-        '290-374-8675',
-      ],
-    },
-    {
-      data: [
-        'PreserveLength',
-        'Preserve Length will ensure that the output phone number is the same length as the input phone number.',
-        'false',
-        '892387243786243',
-        '290374867526392',
-      ],
-    },
-  ]}
-/>
+| Name            | Description                                                                                                              | Default | Example Input   | Example Output  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------ | ------- | --------------- | --------------- |
+| Include hyphens | Includes hyphens in the output phone number. Note that this config can only be used with default 10 digit phone numbers. | false   | 9238724378      | 290-374-8675    |
+| PreserveLength  | Preserve Length will ensure that the output phone number is the same length as the input phone number.                   | false   | 892387243786243 | 290374867526392 |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
-<DocsTable
-  headers={[
-    'PreserveLength',
-    'Include Hyphens',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: ['false', 'false', '2890923784', '5209273239'],
-    },
-    {
-      data: ['false', 'true', '2890923784', '520-927-3239'],
-    },
-    {
-      data: ['true', 'false', '289092378423', '520927323239'],
-    },
-    {
-      data: ['true', 'true', '2890923784', '520-922-3539'],
-    },
-  ]}
-/>
+| PreserveLength | Include Hyphens | Example Input | Example Output |
+| -------------- | --------------- | ------------- | -------------- |
+| false          | false           | 2890923784    | 5209273239     |
+| false          | true            | 2890923784    | 520-927-3239   |
+| true           | false           | 289092378423  | 520927323239   |
+| true           | true            | 2890923784    | 520-922-3539   |
 
 ### Transform String\{#transform-string}
 
@@ -1748,42 +844,18 @@ By default, the random string transformer generates a string of 10 characters lo
 
 Depending on your validations, you may want to configure the output string. The random string transformer has the following configurations:
 
-<DocsTable
-  headers={[
-    'Name',
-    'Description',
-    'Default',
-    'Example Input',
-    'Example Output',
-  ]}
-  rowData={[
-    {
-      data: [
-        'Preserve Length',
-        'Preserves the length of the input integer to the output string.',
-        'false',
-        'hello',
-        '9Fau3',
-      ],
-    },
-  ]}
-/>
+| Name            | Description                                                     | Default | Example Input | Example Output |
+| --------------- | --------------------------------------------------------------- | ------- | ------------- | -------------- |
+| Preserve Length | Preserves the length of the input integer to the output string. | false   | hello         | 9Fau3          |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
 
-<DocsTable
-  headers={['PreserveLength', 'Example Input', 'Example Output']}
-  rowData={[
-    {
-      data: ['false', 'bill', 'je7R6'],
-    },
-    {
-      data: ['true', 'lorem', 'i1NMe'],
-    },
-  ]}
-/>
+| PreserveLength | Example Input | Example Output |
+| -------------- | ------------- | -------------- |
+| false          | bill          | je7R6          |
+| true           | lorem         | i1NMe          |
 
 ### Passthrough\{#passthrough}
 
@@ -1801,11 +873,6 @@ There are no configurations for the null transformer.
 
 Here are some examples of what an output null value may look like.
 
-<DocsTable
-  headers={['Example Input', 'Example Output']}
-  rowData={[
-    {
-      data: ['N/A', 'null'],
-    },
-  ]}
-/>
+| Example Input | Example Output |
+| ------------- | -------------- |
+| N/A           | null           |
