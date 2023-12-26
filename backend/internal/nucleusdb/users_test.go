@@ -46,7 +46,7 @@ func Test_SetUserByAuth0Id(t *testing.T) {
 	assert.Equal(t, userUuid, resp.ID)
 }
 
-func Test_SetUserByAuth0Id_Association_User(t *testing.T) {
+func Test_SetUserByAuthSub_Association_User(t *testing.T) {
 	dbtxMock := NewMockDBTX(t)
 	querierMock := db_queries.NewMockQuerier(t)
 	mockTx := new(MockTx)
@@ -72,7 +72,7 @@ func Test_SetUserByAuth0Id_Association_User(t *testing.T) {
 	assert.Equal(t, userUuid, resp.ID)
 }
 
-func Test_SetUserByAuth0Id_NoAssociation(t *testing.T) {
+func Test_SetUserByAuthSub_NoAssociation(t *testing.T) {
 	dbtxMock := NewMockDBTX(t)
 	querierMock := db_queries.NewMockQuerier(t)
 	mockTx := new(MockTx)
@@ -88,7 +88,7 @@ func Test_SetUserByAuth0Id_NoAssociation(t *testing.T) {
 	querierMock.On("GetUserByProviderSub", ctx, mockTx, mockAuth0Id).Return(nilUser, sql.ErrNoRows)
 	querierMock.On("GetUserAssociationByProviderSub", ctx, mockTx, mockAuth0Id).Return(nilAssociation, sql.ErrNoRows)
 	querierMock.On("CreateNonMachineUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
-	querierMock.On("CreateAuth0IdentityProviderAssociation", ctx, mockTx, db_queries.CreateIdentityProviderAssociationParams{
+	querierMock.On("CreateIdentityProviderAssociation", ctx, mockTx, db_queries.CreateIdentityProviderAssociationParams{
 		UserID:      userUuid,
 		ProviderSub: mockAuth0Id,
 	}).Return(db_queries.NeosyncApiUserIdentityProviderAssociation{UserID: userUuid,
@@ -104,7 +104,7 @@ func Test_SetUserByAuth0Id_NoAssociation(t *testing.T) {
 	assert.Equal(t, userUuid, resp.ID)
 }
 
-func Test_SetUserByAuth0Id_Association_NoUser(t *testing.T) {
+func Test_SetUserByAuthSub_Association_NoUser(t *testing.T) {
 	dbtxMock := NewMockDBTX(t)
 	querierMock := db_queries.NewMockQuerier(t)
 	mockTx := new(MockTx)
@@ -131,7 +131,7 @@ func Test_SetUserByAuth0Id_Association_NoUser(t *testing.T) {
 	assert.Equal(t, userUuid, resp.ID)
 }
 
-func Test_SetUserByAuth0Id_CreateAuth0IdentityProviderAssociation_Error(t *testing.T) {
+func Test_SetUserByAuthSub_CreateIdentityProviderAssociation_Error(t *testing.T) {
 	dbtxMock := NewMockDBTX(t)
 	querierMock := db_queries.NewMockQuerier(t)
 	mockTx := new(MockTx)
@@ -147,7 +147,7 @@ func Test_SetUserByAuth0Id_CreateAuth0IdentityProviderAssociation_Error(t *testi
 	querierMock.On("GetUserByProviderSub", ctx, mockTx, mockAuth0Id).Return(nilUser, sql.ErrNoRows)
 	querierMock.On("GetUserAssociationByProviderSub", ctx, mockTx, mockAuth0Id).Return(nilAssociation, sql.ErrNoRows)
 	querierMock.On("CreateNonMachineUser", ctx, mockTx).Return(db_queries.NeosyncApiUser{ID: userUuid}, nil)
-	querierMock.On("CreateAuth0IdentityProviderAssociation", ctx, mockTx, db_queries.CreateIdentityProviderAssociationParams{
+	querierMock.On("CreateIdentityProviderAssociation", ctx, mockTx, db_queries.CreateIdentityProviderAssociationParams{
 		UserID:      userUuid,
 		ProviderSub: mockAuth0Id,
 	}).Return(nilAssociation, errors.New("bad news"))
