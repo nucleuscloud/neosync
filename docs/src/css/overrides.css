@@ -252,3 +252,11 @@ nav.menu {
 img {
   @apply border border-gray-300 shadow-lg rounded-lg overflow-hidden my-6;
 }
+
+.navbar__logo img {
+  @apply border-none shadow-none my-0 rounded-none;
+}
+
+pre {
+  @apply text-sm;
+}
