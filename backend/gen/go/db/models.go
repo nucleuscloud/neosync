@@ -107,9 +107,9 @@ type NeosyncApiUser struct {
 }
 
 type NeosyncApiUserIdentityProviderAssociation struct {
-	ID              pgtype.UUID
-	UserID          pgtype.UUID
-	Auth0ProviderID string
-	CreatedAt       pgtype.Timestamp
-	UpdatedAt       pgtype.Timestamp
+	ID          pgtype.UUID
+	UserID      pgtype.UUID
+	ProviderSub string
+	CreatedAt   pgtype.Timestamp
+	UpdatedAt   pgtype.Timestamp
 }

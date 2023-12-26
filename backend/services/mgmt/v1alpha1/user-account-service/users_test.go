@@ -103,7 +103,7 @@ func Test_GetUser(t *testing.T) {
 
 	ctx := getAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
-	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 
 	resp, err := m.Service.GetUser(ctx, &connect.Request[mgmtv1alpha1.GetUserRequest]{})
 
@@ -118,7 +118,7 @@ func Test_GetUser_InvalidToken(t *testing.T) {
 
 	_, err := m.Service.GetUser(context.Background(), &connect.Request[mgmtv1alpha1.GetUserRequest]{})
 
-	m.QuerierMock.AssertNotCalled(t, "GetUserAssociationByAuth0Id", context.Background(), mock.Anything, mock.Anything)
+	m.QuerierMock.AssertNotCalled(t, "GetUserAssociationByProviderSub", context.Background(), mock.Anything, mock.Anything)
 	assert.Error(t, err)
 }
 
@@ -128,7 +128,7 @@ func Test_GetUser_AssociationError(t *testing.T) {
 	ctx := getAuthenticatedCtxMock(mockAuthProvider)
 	var nilUserAssociation db_queries.NeosyncApiUserIdentityProviderAssociation
 
-	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(nilUserAssociation, sql.ErrNoRows)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(nilUserAssociation, sql.ErrNoRows)
 
 	_, err := m.Service.GetUser(ctx, &connect.Request[mgmtv1alpha1.GetUserRequest]{})
 
@@ -190,7 +190,7 @@ func Test_SetUser_InvalidToken(t *testing.T) {
 
 	_, err := m.Service.SetUser(context.Background(), &connect.Request[mgmtv1alpha1.SetUserRequest]{})
 
-	m.QuerierMock.AssertNotCalled(t, "GetUserByAuth0Id", context.Background(), mock.Anything, mock.Anything)
+	m.QuerierMock.AssertNotCalled(t, "GetUserByProviderSub", context.Background(), mock.Anything, mock.Anything)
 	assert.Error(t, err)
 }
 
@@ -205,7 +205,7 @@ func Test_GetUserAccounts(t *testing.T) {
 		getUserAccountMock(mockAccountId, slug, 0),
 	}
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	m.QuerierMock.On("GetAccountsByUser", ctx, mock.Anything, userUuid).Return(accounts, nil)
 
 	resp, err := m.Service.GetUserAccounts(ctx, &connect.Request[mgmtv1alpha1.GetUserAccountsRequest]{})
@@ -225,7 +225,7 @@ func Test_SetPersonalAccount(t *testing.T) {
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	ctx := getAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
-	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
 	m.QuerierMock.On("GetPersonalAccountByUserId", ctx, mockTx, userUuid).Return(db_queries.NeosyncApiAccount{ID: accountUuid}, nil)
 	m.QuerierMock.On("GetAccountUserAssociation", ctx, mockTx, db_queries.GetAccountUserAssociationParams{
@@ -252,7 +252,7 @@ func Test_IsUserInAccount_True(t *testing.T) {
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	m.QuerierMock.On("IsUserInAccount", ctx, mock.Anything, db_queries.IsUserInAccountParams{
 		AccountId: accountUuid,
 		UserId:    userUuid,
@@ -276,7 +276,7 @@ func Test_IsUserInAccount_False(t *testing.T) {
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	m.QuerierMock.On("IsUserInAccount", ctx, mock.Anything, db_queries.IsUserInAccountParams{
 		AccountId: accountUuid,
 		UserId:    userUuid,
@@ -300,7 +300,7 @@ func Test_IsUserInAccount_ApiKey(t *testing.T) {
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	m.QuerierMock.On("IsUserInAccountApiKey", ctx, mock.Anything, db_queries.IsUserInAccountApiKeyParams{
 		AccountId: accountUuid,
 		UserId:    userUuid,
@@ -322,7 +322,7 @@ func Test_CreateTeamAccount(t *testing.T) {
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
 	m.QuerierMock.On("GetAccountsByUser", ctx, mockTx, userUuid).Return([]db_queries.NeosyncApiAccount{{AccountSlug: "other"}}, nil)
 	m.QuerierMock.On("CreateTeamAccount", ctx, mockTx, mockTeamName).Return(db_queries.NeosyncApiAccount{ID: accountUuid, AccountSlug: mockTeamName}, nil)
@@ -350,7 +350,7 @@ func Test_GetTeamAccountMembers(t *testing.T) {
 	authProviderId := "auth-provider-id"
 	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
 	m.QuerierMock.On("GetUserIdentitiesByTeamAccount", ctx, mock.Anything, accountUuid).Return(
-		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, Auth0ProviderID: authProviderId}},
+		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, ProviderSub: authProviderId}},
 		nil,
 	)
 	m.Auth0MgmtMock.On("GetUserById", ctx, authProviderId).
@@ -376,7 +376,7 @@ func Test_GetTeamAccountMembers_NoAuthUser(t *testing.T) {
 	authProviderId := "auth-provider-id"
 	mockVerifyUserInAccount(ctx, m.QuerierMock, accountUuid, userUuid, true)
 	m.QuerierMock.On("GetUserIdentitiesByTeamAccount", ctx, mock.Anything, accountUuid).Return(
-		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, Auth0ProviderID: authProviderId}},
+		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, ProviderSub: authProviderId}},
 		nil,
 	)
 	m.Auth0MgmtMock.On("GetUserById", ctx, authProviderId).
@@ -562,13 +562,13 @@ func Test_AcceptTeamAccountInvite(t *testing.T) {
 	}
 
 	mockVerifyTeamAccount(ctx, m.QuerierMock, accountUuid, true)
-	m.QuerierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	m.QuerierMock.On("GetUserIdentityByUserId", ctx, mock.Anything, userUuid).Return(userAssociation, nil)
 	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
-	m.Auth0MgmtMock.On("GetUserById", ctx, userAssociation.Auth0ProviderID).
+	m.Auth0MgmtMock.On("GetUserById", ctx, userAssociation.ProviderSub).
 		Return(
 			&management.User{
-				ID:    &userAssociation.Auth0ProviderID,
+				ID:    &userAssociation.ProviderSub,
 				Email: &email,
 			}, nil,
 		)
@@ -647,8 +647,8 @@ func getAuthenticatedCtxMock(authProviderId string) context.Context {
 func getUserIdentityProviderAssociationMock(userId, providerId string) db_queries.NeosyncApiUserIdentityProviderAssociation {
 	idUuid, _ := nucleusdb.ToUuid(userId)
 	return db_queries.NeosyncApiUserIdentityProviderAssociation{
-		UserID:          idUuid,
-		Auth0ProviderID: providerId,
+		UserID:      idUuid,
+		ProviderSub: providerId,
 	}
 }
 
@@ -667,7 +667,7 @@ func mockVerifyUserInAccount(ctx context.Context, querierMock *db_queries.MockQu
 		inAccount = 1
 	}
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
-	querierMock.On("GetUserAssociationByAuth0Id", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	querierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	querierMock.On("IsUserInAccount", ctx, mock.Anything, db_queries.IsUserInAccountParams{
 		AccountId: accountUuid,
 		UserId:    userUuid,

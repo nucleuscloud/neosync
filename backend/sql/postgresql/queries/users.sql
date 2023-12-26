@@ -2,14 +2,14 @@
 SELECT * FROM neosync_api.users
 WHERE id = $1;
 
--- name: GetUserAssociationByAuth0Id :one
+-- name: GetUserAssociationByProviderSub :one
 SELECT * from neosync_api.user_identity_provider_associations
-WHERE auth0_provider_id = $1;
+WHERE provider_sub = $1;
 
--- name: GetUserByAuth0Id :one
+-- name: GetUserByProviderSub :one
 SELECT u.* from neosync_api.users u
 INNER JOIN neosync_api.user_identity_provider_associations uipa ON uipa.user_id = u.id
-WHERE uipa.auth0_provider_id = $1 and u.user_type = 0;
+WHERE uipa.provider_sub = $1 and u.user_type = 0;
 
 -- name: CreateNonMachineUser :one
 INSERT INTO neosync_api.users (
@@ -37,9 +37,9 @@ WHERE aua.account_id = sqlc.arg('accountId') AND a.account_type = 1;
 SELECT aipa.* FROM neosync_api.user_identity_provider_associations aipa
 WHERE aipa.user_id = $1;
 
--- name: CreateAuth0IdentityProviderAssociation :one
+-- name: CreateIdentityProviderAssociation :one
 INSERT INTO neosync_api.user_identity_provider_associations (
-  user_id, auth0_provider_id
+  user_id, provider_sub
 ) VALUES (
   $1, $2
 )
@@ -154,7 +154,7 @@ RETURNING *;
 
 -- name: GetActiveAccountInvites :many
 SELECT * FROM neosync_api.account_invites
-WHERE account_id = sqlc.arg('accountId') AND expires_at > CURRENT_TIMESTAMP AND accepted = false; 
+WHERE account_id = sqlc.arg('accountId') AND expires_at > CURRENT_TIMESTAMP AND accepted = false;
 
 -- name: UpdateActiveAccountInvitesToExpired :one
 UPDATE neosync_api.account_invites
