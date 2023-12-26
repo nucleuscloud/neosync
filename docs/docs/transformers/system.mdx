@@ -327,7 +327,7 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
   ]}
 />
 
-### Generate Email{#generate-email}
+### Generate Email\{#generate-email}
 
 The generate email transformer generates a new randomized email address in the format:
 
@@ -365,7 +365,7 @@ There are no configurations for this transformer.
   ]}
 />
 
-### Transform Email{#transform-email}
+### Transform Email\{#transform-email}
 
 The transform email transformer can anonymize an existing email address or generate a new randomized email address in the format:
 
@@ -440,7 +440,7 @@ There are several ways you can mix-and-match configurations to get different pot
   ]}
 />
 
-### Generate Boolean{#generate-boolean}
+### Generate Boolean\{#generate-boolean}
 
 The genereate boolean transformer randomly generates a boolean value.
 
@@ -464,7 +464,7 @@ Here are some examples of what an output random boolean value may look like.
   ]}
 />
 
-### Generate Card Number{#generate-card-number}
+### Generate Card Number\{#generate-card-number}
 
 The generate card number transformer generates a new card number that is [luhn valid.](https://en.wikipedia.org/wiki/Luhn_algorithm)
 
@@ -504,7 +504,7 @@ Here are some examples of an output card number:
   ]}
 />
 
-### Generate City{#generate-city}
+### Generate City\{#generate-city}
 
 The generate city transformers generates a randomly selected US city. You can see the complete list of cities that are available to be randomly selected [here](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
@@ -530,7 +530,7 @@ Here are some examples of what an output City value may look like.
   ]}
 />
 
-### Generate E164 Phone Number{#generate-e164-phone-number}
+### Generate E164 Phone Number\{#generate-e164-phone-number}
 
 The generate e164 phone transformer generates a new international phone number including the + sign. By default, the generate e164 transformer generates a random phone number with no hyphens in the format:
 
@@ -583,7 +583,7 @@ There are several ways you can mix-and-match configurations to get different pot
   ]}
 />
 
-### Generate First Name{#generate-first-name}
+### Generate First Name\{#generate-first-name}
 
 The generate first name transformer generates a valid first name from a list of predefined first name values. You can see the entire list of first name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/first-names.json)
 
@@ -612,7 +612,7 @@ There are several ways you can mix-and-match configurations to get different fir
   ]}
 />
 
-### Generate Float64{#generate-float64}
+### Generate Float64\{#generate-float64}
 
 The generate float transformer generates a random floating point number.
 
@@ -685,7 +685,7 @@ There are several ways you can mix-and-match configurations to get different pot
   ]}
 />
 
-### Generate Full Address{#generate-full-address}
+### Generate Full Address\{#generate-full-address}
 
 The generate full address transformer generates a randomly selected real full address that exists in the United States. You can see the complete list of full addresses that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json)
 
@@ -712,7 +712,7 @@ Here are some examples of what an output full address value may look like.
   ]}
 />
 
-### Generate Full Name{#generate-full-name}
+### Generate Full Name\{#generate-full-name}
 
 The generate full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system#generate-first-name) and [last](/transformers/system#generate-last-name) names transformers.
 
@@ -739,7 +739,7 @@ Here are some examples of what an output full name value may look like.
   ]}
 />
 
-### Generate Gender{#generate-gender}
+### Generate Gender\{#generate-gender}
 
 The generate gender transformer randomly selects a gender value from a predefined list of genders. Here is the list:
 
@@ -800,7 +800,7 @@ There are several ways you can mix-and-match configurations to get different ful
   ]}
 />
 
-### Generate Int64 Phone Number{#generate-int64-phone-number}
+### Generate Int64 Phone Number\{#generate-int64-phone-number}
 
 The generate int64 phone number generates a random 10 digit phone number with a valid US area code and returns it as an `int64` type with no hyphens. If you want to return a `string` or want to include hyphens, check out the [Generate String Phone transformer](/transformers/system#generate-string-phone-number).
 
@@ -827,7 +827,7 @@ Here are some examples of what the output values could look like:
   ]}
 />
 
-### Generate Random Int64{#generate-random-int64}
+### Generate Random Int64\{#generate-random-int64}
 
 The generate random int64 transformer generates a random integer and returns it as a int64 type.
 
@@ -889,7 +889,7 @@ There are several ways you can mix-and-match configurations to get different pot
   ]}
 />
 
-### Generate Last Name{#generate-last-name}
+### Generate Last Name\{#generate-last-name}
 
 The generate last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
 
@@ -916,7 +916,7 @@ Here are some possible output examples:
   ]}
 />
 
-### Generate SHA256 Hash{#generate-sha256-hash}
+### Generate SHA256 Hash\{#generate-sha256-hash}
 
 The generate sha256 hash transformer generates a random SHA256 hash and hex encodes the resulting value and returns it as a string.
 
@@ -949,7 +949,7 @@ Here are some examples of what an output hash value may look like.
   ]}
 />
 
-### Generate SSN{#generate-ssn}
+### Generate SSN\{#generate-ssn}
 
 The generate ssn transformer randomly generates a social security number and returns it with hyphens as a string.
 
@@ -976,7 +976,7 @@ Here are some examples of what an output street address value may look like.
   ]}
 />
 
-### Generate State{#generate-state}
+### Generate State\{#generate-state}
 
 The generate state transformer generates a randomly selected US state. You can see the complete list of states that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
@@ -1002,7 +1002,7 @@ Here are some examples of what an output state value may look like.
   ]}
 />
 
-### Generate Street Address{#generate-street-address}
+### Generate Street Address\{#generate-street-address}
 
 The generate street address transformer generates a randomly selects a real street address that exists in the United States. You can see the complete list of street addresses that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
@@ -1029,7 +1029,7 @@ Here are some examples of what an output street address value may look like.
   ]}
 />
 
-### Generate String Phone Number{#generate-string-phone-number}
+### Generate String Phone Number\{#generate-string-phone-number}
 
 The generate string phone transformer generates a random string phone number. By default, the string phone transformer generates a random 10 digit phone number with no hyphens.
 
@@ -1073,7 +1073,7 @@ data: ['false', '2927323921'],
 ]}
 />
 
-### Generate Random String{#generate-random-string}
+### Generate Random String\{#generate-random-string}
 
 The generate random string transformer generates a random string of alphanumeric characters.
 
@@ -1127,7 +1127,7 @@ There are several ways you can mix-and-match configurations to get different pot
   ]}
 />
 
-### Generate Unix Timestamp{#generate-unix-timestamp}
+### Generate Unix Timestamp\{#generate-unix-timestamp}
 
 The generate unix timestamp transformer randomly generates a unix timestamp in UTC timezone and returns back an int64 representation of that timestamp.
 
@@ -1153,7 +1153,7 @@ Here are some examples of what an output state value may look like.
   ]}
 />
 
-### Generate Username{#generate-username}
+### Generate Username\{#generate-username}
 
 The generate username transformer generates a random string in the format of `<first_initial><last_name>`. The last names are pulled from the last name transformer(/transformers/system#generate-last-name).
 
@@ -1177,7 +1177,7 @@ Here are some examples of what an output state value may look like.
   ]}
 />
 
-### Generate UTC Timestamp{#generate-utc-timestamp}
+### Generate UTC Timestamp\{#generate-utc-timestamp}
 
 The generate utc timestamp transformer randomly generates a utc timestamp in UTC timezone and returns back an time.Time representation of that timestamp.
 
@@ -1208,7 +1208,7 @@ Here are some examples of what an output state value may look like.
 ]}
 />
 
-### Generate UUID{#generate-uuid}
+### Generate UUID\{#generate-uuid}
 
 The generate UUID transformer generates a new UUID v4.
 
@@ -1249,7 +1249,7 @@ Here are some example UUID values that the uuid transformer can generate:
   ]}
 />
 
-### Generate Zipcode{#generate-zipcode}
+### Generate Zipcode\{#generate-zipcode}
 
 The generate zipcode transformer generates a randomly selected US zipcode. You can see the complete list of zipcodes that are available to be randomly selected [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/addresses.json).
 
@@ -1275,7 +1275,7 @@ Here are some examples of what an output zipcode value may look like.
   ]}
 />
 
-### Transform E164 Phone Number{#transform-e164-phone-number}
+### Transform E164 Phone Number\{#transform-e164-phone-number}
 
 The transform e164 phone transformer can anonymize an existing e164 phone number or completely generate a new one. It returns a string value with the format `+<number>`.
 
@@ -1328,7 +1328,7 @@ Here are some examples of what the transform e164 phone number tranformer can ou
   ]}
 />
 
-### Transform First Name{#transform-first-name}
+### Transform First Name\{#transform-first-name}
 
 The transform first name transformer generates a valid first name from a list of predefined first name values. You can see the entire list of first name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/first-names.json).
 
@@ -1375,7 +1375,7 @@ Here are some examples of what the transform first name tranformer can output:
   ]}
 />
 
-### Transform Float64{#transform-float64}
+### Transform Float64\{#transform-float64}
 
 The transform float transformer can anonymize an existing float64 value or generate a compeletely random floating point number.
 
@@ -1442,7 +1442,7 @@ There are several ways you can mix-and-match configurations to get different pot
   ]}
 />
 
-### Transform Full Name{#transform-full-name}
+### Transform Full Name\{#transform-full-name}
 
 The transform full name transformer generates a valid full name from a list of predefined full name values. The generated full name is made from a combination of the [first](/transformers/system#generate-first-name) and [last](/transformers/system#generate-last-name) names transformers.
 
@@ -1492,7 +1492,7 @@ There are several ways you can mix-and-match configurations to get different ful
   ]}
 />
 
-### Transform Int64 Phone Number{#transform-int64-phone-number}
+### Transform Int64 Phone Number\{#transform-int64-phone-number}
 
 The transform int64 phone transformer can anonymize an existing phone number or completely generate a new one. By default, the transform int64 phone number transformer generates a random 10 digit phone number.
 
@@ -1545,7 +1545,7 @@ Here are some possible example output values:
   ]}
 />
 
-### Transform Int64{#transform-int64}
+### Transform Int64\{#transform-int64}
 
 The random integer transformer generates a random integer.
 
@@ -1612,7 +1612,7 @@ There are several ways you can mix-and-match configurations to get different pot
   ]}
 />
 
-### Transform Last Name{#transform-last-name}
+### Transform Last Name\{#transform-last-name}
 
 The transform last name transformer generates a valid last name from a list of predefined last name values. You can see the entire list of last name value [here.](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/data-sets/last-names.json).
 
@@ -1662,7 +1662,7 @@ There are several ways you can mix-and-match configurations to get different las
   ]}
 />
 
-### Transform Phone Number{#transform-phone-number}
+### Transform Phone Number\{#transform-phone-number}
 
 The transform phone transformer can anonymize an existing phone number or completely generate a new one. This transformer specifically takes a string value and returns a string value.
 
@@ -1735,7 +1735,7 @@ There are several ways you can mix-and-match configurations to get different pot
   ]}
 />
 
-### Transform String{#transform-string}
+### Transform String\{#transform-string}
 
 The random string transformer generates a random string of alphanumeric characters.
 
@@ -1785,11 +1785,11 @@ There are several ways you can mix-and-match configurations to get different pot
   ]}
 />
 
-### Passthrough{#passthrough}
+### Passthrough\{#passthrough}
 
 The passthrough tranformer simplfy passes the input data out to the output without making any modications to it. This is useful in many circumstances but cautious of accidently leaking sensitive data through this transformer.
 
-### Null{#null}
+### Null\{#null}
 
 The null transformer simply returns a null value. This may be useful if you a column that can't be null but don't have a specific value that you want to insert.
 
