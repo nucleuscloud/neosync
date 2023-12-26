@@ -248,3 +248,7 @@ this is the class for the sidebar categories that section headers
 nav.menu {
   @apply px-0;
 }
+
+img {
+  @apply border border-gray-300 shadow-lg rounded-lg overflow-hidden my-6;
+}

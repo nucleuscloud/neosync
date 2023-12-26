@@ -5,8 +5,6 @@ hide_title: false
 slug: anonymization
 ---
 
-import { DocsImage } from '@site/src/CustomComponents/DocsImage.tsx';
-
 ## Introduction
 
 Neosync is a great way to anonymize senstive data and sync it across multiple environments for testing locally, in stage or your CI pipeline. Typically, teams will point Neosync to a snapshot of their production database and anonymize their production data to make it usable in lower level environments. This is a great way to get production-like data without the risk of security and compliance challenges.
@@ -19,11 +17,11 @@ Neosync provides the core anonymization functionlity through [transformers](/pla
 
 You can use the prebuilt Neosync transformers in order to anonymize the PII in this table (first_name, last_name, email and age). Here's what that would look like:
 
-<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/pii-anon.png" />
+![anon](https://assets.nucleuscloud.com/neosync/docs/pii-anon.png)
 
 We've mapped each transformer to the right column which means that every time the job is executed, the value in that column will be tranformed based on the transformer's settings. The output will be transformed source data without any of the PII which makes it usable in lower level environments.
 
-<DocsImage href="https://assets.nucleuscloud.com/neosync/docs/pii-anon-table.png" />
+![anon-table](https://assets.nucleuscloud.com/neosync/docs/pii-anon-table.png)
 
 Since the transformers are customizable, you can anonymize or mask any source data by writing your own user defined tranformer. Check out the [user defined transformers](/transformers/user-defined) guide for more information. This gives you ultimate flexibility to control your data.
 
