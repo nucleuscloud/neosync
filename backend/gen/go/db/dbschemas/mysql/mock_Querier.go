@@ -25,6 +25,10 @@ func (_m *MockQuerier) EXPECT() *MockQuerier_Expecter {
 func (_m *MockQuerier) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
 	ret := _m.Called(ctx, db)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetDatabaseSchema")
+	}
+
 	var r0 []*GetDatabaseSchemaRow
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX) ([]*GetDatabaseSchemaRow, error)); ok {
@@ -79,6 +83,10 @@ func (_c *MockQuerier_GetDatabaseSchema_Call) RunAndReturn(run func(context.Cont
 // GetForeignKeyConstraints provides a mock function with given fields: ctx, db, tableSchema
 func (_m *MockQuerier) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetForeignKeyConstraintsRow, error) {
 	ret := _m.Called(ctx, db, tableSchema)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForeignKeyConstraints")
+	}
 
 	var r0 []*GetForeignKeyConstraintsRow
 	var r1 error

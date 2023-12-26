@@ -2,6 +2,7 @@ package sync_cmd
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -10,10 +11,16 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5/pgxpool"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
+	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
@@ -41,11 +48,27 @@ import (
 
 const (
 	maxPgParamLimit = 65535
-	postgresDriver  = "postgres"
-	mysqlDriver     = "mysql"
+
+	postgresDriver DriverType = "postgres"
+	mysqlDriver    DriverType = "mysql"
+
+	awsS3Connection    ConnectionType = "awsS3"
+	postgresConnection ConnectionType = "postgres"
+	mysqlConnection    ConnectionType = "mysql"
 )
 
+var (
+	driverMap = map[string]DriverType{
+		string(postgresDriver): postgresDriver,
+		string(mysqlDriver):    mysqlDriver,
+	}
+)
+
+type ConnectionType string
+type DriverType string
+
 type model struct {
+	ctx            context.Context
 	groupedConfigs [][]*benthosConfigResponse
 	tableSynced    int
 	index          int
@@ -66,16 +89,26 @@ var (
 )
 
 type cmdConfig struct {
-	ConnectionId string            `yaml:"connection-id"`
-	Destination  destinationConfig `yaml:"destination"`
+	Source      *sourceConfig      `yaml:"source"`
+	Destination *destinationConfig `yaml:"destination"`
+}
+
+type sourceConfig struct {
+	ConnectionId   string          `yaml:"connection-id"`
+	ConnectionOpts *connectionOpts `yaml:"connection-opts,omitempty"`
+}
+
+type connectionOpts struct {
+	JobId    *string `yaml:"job-id,omitempty"`
+	JobRunId *string `yaml:"job-run-id,omitempty"`
 }
 
 type destinationConfig struct {
-	ConnectionUrl        string `yaml:"connection-url"`
-	Driver               string `yaml:"driver"`
-	InitSchema           bool   `yaml:"init-table-schema,omitempty"`
-	TruncateBeforeInsert bool   `yaml:"truncate-before-insert,omitempty"`
-	TruncateCascade      bool   `yaml:"truncate-cascade,omitempty"`
+	ConnectionUrl        string     `yaml:"connection-url"`
+	Driver               DriverType `yaml:"driver"`
+	InitSchema           bool       `yaml:"init-table-schema,omitempty"`
+	TruncateBeforeInsert bool       `yaml:"truncate-before-insert,omitempty"`
+	TruncateCascade      bool       `yaml:"truncate-cascade,omitempty"`
 }
 
 func NewCmd() *cobra.Command {
@@ -93,7 +126,12 @@ func NewCmd() *cobra.Command {
 				apiKey = &apiKeyStr
 			}
 
-			config := &cmdConfig{}
+			config := &cmdConfig{
+				Source: &sourceConfig{
+					ConnectionOpts: &connectionOpts{},
+				},
+				Destination: &destinationConfig{},
+			}
 			configPath, err := cmd.Flags().GetString("config")
 			if err != nil {
 				return err
@@ -115,7 +153,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 			if connectionId != "" {
-				config.ConnectionId = connectionId
+				config.Source.ConnectionId = connectionId
 			}
 
 			destConnUrl, err := cmd.Flags().GetString("destination-connection-url")
@@ -130,8 +168,9 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if driver != "" {
-				config.Destination.Driver = driver
+			pDriver, ok := parseDriverString(driver)
+			if ok {
+				config.Destination.Driver = pDriver
 			}
 
 			initSchema, err := cmd.Flags().GetBool("init-schema")
@@ -158,7 +197,23 @@ func NewCmd() *cobra.Command {
 				config.Destination.TruncateCascade = truncateCascade
 			}
 
-			if config.ConnectionId == "" {
+			jobId, err := cmd.Flags().GetString("job-id")
+			if err != nil {
+				return err
+			}
+			if jobId != "" {
+				config.Source.ConnectionOpts.JobId = &jobId
+			}
+
+			jobRunId, err := cmd.Flags().GetString("job-run-id")
+			if err != nil {
+				return err
+			}
+			if jobRunId != "" {
+				config.Source.ConnectionOpts.JobRunId = &jobRunId
+			}
+
+			if config.Source.ConnectionId == "" {
 				return fmt.Errorf("must provide connection-id")
 			}
 			if config.Destination.Driver == "" {
@@ -191,10 +246,12 @@ func NewCmd() *cobra.Command {
 	}
 
 	cmd.Flags().String("connection-id", "", "Connection id for sync source")
+	cmd.Flags().String("job-id", "", "Id of Job to sync data from. Only used with AWS S3 connections. Can use job-run-id instead.")
+	cmd.Flags().String("job-run-id", "", "Id of Job run to sync data from. Only used with AWS S3 connections. Can use job-id instead.")
 	cmd.Flags().String("destination-connection-url", "", "Connection url for sync output")
 	cmd.Flags().String("destination-driver", "", "Connection driver for sync output")
 	cmd.Flags().String("account-id", "", "Account source connection is in. Defaults to account id in cli context")
-	cmd.Flags().String("config", "", `Location of config file`)
+	cmd.Flags().String("config", "", "Location of config file")
 	cmd.Flags().Bool("init-schema", false, "Create table schema and its constraints")
 	cmd.Flags().Bool("truncate-before-insert", false, "Truncate table before insert")
 	cmd.Flags().Bool("truncate-cascade", false, "Truncate cascade table before insert (postgres only)")
@@ -222,11 +279,28 @@ func sync(
 		),
 	)
 
-	connection, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: cmd.ConnectionId,
+	connectiondataclient := mgmtv1alpha1connect.NewConnectionDataServiceClient(
+		http.DefaultClient,
+		serverconfig.GetApiBaseUrl(),
+		connect.WithInterceptors(
+			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(apiKey)),
+		),
+	)
+
+	connResp, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: cmd.Source.ConnectionId,
 	}))
 	if err != nil {
 		return err
+	}
+	connection := connResp.Msg.GetConnection()
+	connectionType, err := getConnectionType(connection)
+	if err != nil {
+		return err
+	}
+
+	if connectionType == awsS3Connection && (cmd.Source.ConnectionOpts.JobId == nil || *cmd.Source.ConnectionOpts.JobId == "") && (cmd.Source.ConnectionOpts.JobRunId == nil || *cmd.Source.ConnectionOpts.JobRunId == "") {
+		return errors.New("S3 source connection type requires job-id or job-run-id.")
 	}
 
 	var token *string
@@ -254,46 +328,142 @@ func sync(
 				return errors.New("Account Id not found. Please use account switch command to set account.")
 			}
 
-			if connection.Msg.Connection.AccountId != *accountId {
+			if connection.AccountId != *accountId {
 				return errors.New(fmt.Sprintf("Connection not found. AccountId: %s", *accountId)) // nolint
 			}
 		}
 	}
 
-	err = areSourceAndDestCompatible(connection.Msg.Connection, cmd.Destination.Driver)
+	err = areSourceAndDestCompatible(connection, cmd.Destination.Driver)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println(header.Render("\n── Preparing ─────────────────────────────────────")) // nolint
 	fmt.Println(printlog.Render("Retrieving connection schema..."))                    // nolint
-	schemaResp, err := connectionclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
-		Id: cmd.ConnectionId,
-	}))
-	if err != nil {
-		return err
-	}
 
-	tables := getSchemaTables(schemaResp.Msg.GetSchemas())
-	if len(tables) == 0 {
-		fmt.Println(bold.Render("No tables found.")) // nolint
-		return nil
-	}
-	schemaMap := map[string]string{}
-	for _, t := range tables {
-		schemaMap[t.Schema] = t.Schema
-	}
+	var tables []*SqlTable
+	var tableConstraints map[string]*mgmtv1alpha1.ForeignConstraintTables
+	var initTableStatementsMap map[string]string
 
-	fmt.Println(printlog.Render("Building foreign table constraints...")) // nolint
-	fkConnectionResp, err := connectionclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: cmd.ConnectionId}))
-	if err != nil {
-		return err
-	}
-	tableConstraints := fkConnectionResp.Msg.GetTableConstraints()
+	switch connectionType {
+	case awsS3Connection:
+		var cfg *mgmtv1alpha1.AwsS3SchemaConfig
+		if cmd.Source.ConnectionOpts.JobRunId != nil && *cmd.Source.ConnectionOpts.JobRunId != "" {
+			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobRunId{JobRunId: *cmd.Source.ConnectionOpts.JobRunId}}
+		} else if cmd.Source.ConnectionOpts.JobId != nil && *cmd.Source.ConnectionOpts.JobId != "" {
+			cfg = &mgmtv1alpha1.AwsS3SchemaConfig{Id: &mgmtv1alpha1.AwsS3SchemaConfig_JobId{JobId: *cmd.Source.ConnectionOpts.JobId}}
+		}
+		schemaResp, err := connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
+			ConnectionId: connection.Id,
+			SchemaConfig: &mgmtv1alpha1.ConnectionSchemaConfig{
+				Config: &mgmtv1alpha1.ConnectionSchemaConfig_AwsS3Config{
+					AwsS3Config: cfg,
+				},
+			},
+		}))
+		if err != nil {
+			return err
+		}
 
-	initTableStatementsMap, err := getTableInitStatementMap(ctx, connectionclient, cmd.ConnectionId, cmd.Destination)
-	if err != nil {
-		return err
+		tables = getSchemaTables(schemaResp.Msg.GetSchemas())
+		if len(tables) == 0 {
+			fmt.Println(bold.Render("No tables found.")) // nolint
+			return nil
+		}
+
+		schemaMap := map[string]struct{}{}
+		for _, s := range tables {
+			schemaMap[s.Schema] = struct{}{}
+		}
+		schemas := []string{}
+		for s := range schemaMap {
+			schemas = append(schemas, s)
+		}
+
+		fmt.Println(printlog.Render("Building foreign table constraints...")) // nolint
+		constraints, err := getDestinationForeignConstraints(ctx, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
+		if err != nil {
+			return err
+		}
+		tableConstraints = constraints
+
+		initTableStatementsMap = map[string]string{}
+		for _, t := range tables {
+			statements := []string{}
+			if cmd.Destination.TruncateBeforeInsert {
+				if cmd.Destination.TruncateCascade {
+					statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", t.Schema, t.Table))
+				} else {
+					statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", t.Schema, t.Table))
+				}
+			}
+			initTableStatementsMap[fmt.Sprintf("%s.%s", t.Schema, t.Table)] = strings.Join(statements, "\n")
+		}
+
+	case mysqlConnection:
+		schemaResp, err := connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
+			ConnectionId: connection.Id,
+			SchemaConfig: &mgmtv1alpha1.ConnectionSchemaConfig{
+				Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
+				},
+			},
+		}))
+		if err != nil {
+			return err
+		}
+
+		tables = getSchemaTables(schemaResp.Msg.GetSchemas())
+		if len(tables) == 0 {
+			fmt.Println(bold.Render("No tables found.")) // nolint
+			return nil
+		}
+
+		fmt.Println(printlog.Render("Building foreign table constraints...")) // nolint
+		fkConnectionResp, err := connectiondataclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
+		if err != nil {
+			return err
+		}
+		tableConstraints = fkConnectionResp.Msg.GetTableConstraints()
+
+		initTableStatementsMap, err = getTableInitStatementMap(ctx, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
+		if err != nil {
+			return err
+		}
+	case postgresConnection:
+		schemaResp, err := connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
+			ConnectionId: connection.Id,
+			SchemaConfig: &mgmtv1alpha1.ConnectionSchemaConfig{
+				Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
+				},
+			},
+		}))
+		if err != nil {
+			return err
+		}
+
+		tables = getSchemaTables(schemaResp.Msg.GetSchemas())
+		if len(tables) == 0 {
+			fmt.Println(bold.Render("No tables found.")) // nolint
+			return nil
+		}
+
+		fmt.Println(printlog.Render("Building foreign table constraints...")) // nolint
+		fkConnectionResp, err := connectiondataclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
+		if err != nil {
+			return err
+		}
+		tableConstraints = fkConnectionResp.Msg.GetTableConstraints()
+
+		initTableStatementsMap, err = getTableInitStatementMap(ctx, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
+		if err != nil {
+			return err
+		}
+
+	default:
+		return fmt.Errorf("this connection type is not currently supported")
 	}
 
 	fmt.Println(printlog.Render("Generating configs... \n")) // nolint
@@ -309,7 +479,7 @@ func sync(
 		}
 		initStatement := initTableStatementsMap[name]
 
-		benthosConfig := generateBenthosConfig(cmd, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, table.Columns, dependsOn, token)
+		benthosConfig := generateBenthosConfig(cmd, connectionType, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, table.Columns, dependsOn, token)
 		configs = append(configs, benthosConfig)
 	}
 
@@ -324,7 +494,7 @@ func sync(
 		log.SetOutput(io.Discard)
 	}
 	fmt.Println(header.Render("── Syncing Tables ────────────────────────────────")) // nolint
-	if _, err := tea.NewProgram(newModel(groupedConfigs), opts...).Run(); err != nil {
+	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs), opts...).Run(); err != nil {
 		fmt.Println("Error syncing data:", err) // nolint
 		os.Exit(1)
 	}
@@ -333,7 +503,7 @@ func sync(
 	return nil
 }
 
-func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver string) error {
+func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destinationDriver DriverType) error {
 	switch connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if destinationDriver != postgresDriver {
@@ -344,7 +514,6 @@ func areSourceAndDestCompatible(connection *mgmtv1alpha1.Connection, destination
 			return fmt.Errorf("Connection and destination types are incompatible [mysql, %s]", destinationDriver)
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
-		return errors.New("AWS S3 is not a supported source.")
 	default:
 		return errors.New("unsupported destination driver. only postgres and mysql are currently supported")
 	}
@@ -401,10 +570,10 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	return nil
 }
 
-func getTableInitStatementMap(ctx context.Context, connectionclient mgmtv1alpha1connect.ConnectionServiceClient, connectionId string, opts destinationConfig) (map[string]string, error) {
+func getTableInitStatementMap(ctx context.Context, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient, connectionId string, opts *destinationConfig) (map[string]string, error) {
 	if opts.InitSchema || opts.TruncateBeforeInsert || opts.TruncateCascade {
 		fmt.Println(printlog.Render("Creating init statements...")) // nolint
-		initStatementResp, err := connectionclient.GetConnectionInitStatements(ctx,
+		initStatementResp, err := connectiondataclient.GetConnectionInitStatements(ctx,
 			connect.NewRequest(&mgmtv1alpha1.GetConnectionInitStatementsRequest{
 				ConnectionId: connectionId,
 				Options: &mgmtv1alpha1.InitStatementOptions{
@@ -460,22 +629,32 @@ type benthosConfigResponse struct {
 
 func generateBenthosConfig(
 	cmd *cmdConfig,
+	connectionType ConnectionType,
 	schema, table, apiUrl, initStatement string,
 	columns, dependsOn []string,
 	authToken *string,
 ) *benthosConfigResponse {
 	tableName := fmt.Sprintf("%s.%s", schema, table)
 
+	var jobId, jobRunId *string
+	if cmd.Source.ConnectionOpts != nil {
+		jobRunId = cmd.Source.ConnectionOpts.JobRunId
+		jobId = cmd.Source.ConnectionOpts.JobId
+	}
+
 	bc := &neosync_benthos.BenthosConfig{
 		StreamConfig: neosync_benthos.StreamConfig{
 			Input: &neosync_benthos.InputConfig{
 				Inputs: neosync_benthos.Inputs{
 					NeosyncConnectionData: &neosync_benthos.NeosyncConnectionData{
-						ApiKey:       authToken,
-						ApiUrl:       apiUrl,
-						ConnectionId: cmd.ConnectionId,
-						Schema:       schema,
-						Table:        table,
+						ApiKey:         authToken,
+						ApiUrl:         apiUrl,
+						ConnectionId:   cmd.Source.ConnectionId,
+						ConnectionType: string(connectionType),
+						JobId:          jobId,
+						JobRunId:       jobRunId,
+						Schema:         schema,
+						Table:          table,
 					},
 				},
 			},
@@ -483,7 +662,7 @@ func generateBenthosConfig(
 			Output: &neosync_benthos.OutputConfig{
 				Outputs: neosync_benthos.Outputs{
 					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver:        cmd.Destination.Driver,
+						Driver:        string(cmd.Destination.Driver),
 						Dsn:           cmd.Destination.ConnectionUrl,
 						InitStatement: initStatement,
 						Table:         tableName,
@@ -562,7 +741,7 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 	return groupedConfigs
 }
 
-func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
+func newModel(ctx context.Context, groupedConfigs [][]*benthosConfigResponse) *model {
 	p := progress.New(
 		progress.WithDefaultGradient(),
 		progress.WithWidth(40),
@@ -571,6 +750,7 @@ func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 	s := spinner.New()
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 	return &model{
+		ctx:            ctx,
 		groupedConfigs: groupedConfigs,
 		tableSynced:    0,
 		spinner:        s,
@@ -579,8 +759,7 @@ func newModel(groupedConfigs [][]*benthosConfigResponse) *model {
 }
 
 func (m *model) Init() tea.Cmd {
-	return tea.Batch(syncConfigs(m.groupedConfigs[m.index]), m.spinner.Tick)
-
+	return tea.Batch(syncConfigs(m.ctx, m.groupedConfigs[m.index]), m.spinner.Tick)
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -616,7 +795,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(
 			progressCmd,
 			tea.Println(strings.Join(successStrs, " \n")),
-			syncConfigs(m.groupedConfigs[m.index]),
+			syncConfigs(m.ctx, m.groupedConfigs[m.index]),
 		)
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -661,15 +840,16 @@ func (m *model) View() string {
 
 type syncedDataMsg string
 
-func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
+func syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd {
 	return func() tea.Msg {
-		errgrp, errctx := errgroup.WithContext(context.Background())
+		errgrp, errctx := errgroup.WithContext(ctx)
 		for _, cfg := range configs {
 			cfg := cfg
 			errgrp.Go(func() error {
 				log.Printf("Syncing table %s \n", cfg.Name)
 				err := syncData(errctx, cfg)
 				if err != nil {
+					fmt.Printf("Error syncing table: %s \n", err.Error()) // nolint
 					return err
 				}
 				return nil
@@ -687,6 +867,54 @@ func syncConfigs(configs []*benthosConfigResponse) tea.Cmd {
 		}
 		return syncedDataMsg(message)
 	}
+}
+
+func getDestinationForeignConstraints(ctx context.Context, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string]*mgmtv1alpha1.ForeignConstraintTables, error) {
+	var td map[string][]string
+	switch connectionDriver {
+	case postgresDriver:
+		pgquerier := pg_queries.New()
+		pool, err := pgxpool.New(ctx, connectionUrl)
+		if err != nil {
+			return nil, err
+		}
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
+		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(pgquerier, cctx, pool, schemas)
+		if err != nil {
+			return nil, err
+		}
+		td = dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+	case mysqlDriver:
+		mysqlquerier := mysql_queries.New()
+		conn, err := sql.Open(string(connectionDriver), connectionUrl)
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if err := conn.Close(); err != nil {
+				fmt.Println(fmt.Errorf("failed to close mysql connection: %w", err).Error()) // nolint
+			}
+		}()
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
+		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(mysqlquerier, cctx, conn, schemas)
+		if err != nil {
+			return nil, err
+		}
+		td = dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
+	default:
+		return nil, errors.New("unsupported fk connection")
+	}
+
+	constraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
+	for key, tables := range td {
+		constraints[key] = &mgmtv1alpha1.ForeignConstraintTables{
+			Tables: tables,
+		}
+	}
+
+	return constraints, nil
 }
 
 func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
@@ -734,4 +962,22 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func parseDriverString(str string) (DriverType, bool) {
+	p, ok := driverMap[strings.ToLower(str)]
+	return p, ok
+}
+
+func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, error) {
+	if connection.ConnectionConfig.GetAwsS3Config() != nil {
+		return awsS3Connection, nil
+	}
+	if connection.ConnectionConfig.GetMysqlConfig() != nil {
+		return mysqlConnection, nil
+	}
+	if connection.ConnectionConfig.GetPgConfig() != nil {
+		return postgresConnection, nil
+	}
+	return "", errors.New("unsupported connection type")
 }

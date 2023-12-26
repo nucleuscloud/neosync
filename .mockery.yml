@@ -29,7 +29,6 @@ packages:
       UserAccountServiceClient:
       JobServiceClient:
       ConnectionServiceClient:
-      ConnectionServiceHandler:
       AuthServiceClient:
       TransformersServiceClient:
   github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager:
@@ -50,3 +49,6 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0:
     interfaces:
       Auth0MgmtClientInterface:
+  github.com/nucleuscloud/neosync/backend/internal/sqlconnect:
+    interfaces:
+      SqlConnector:

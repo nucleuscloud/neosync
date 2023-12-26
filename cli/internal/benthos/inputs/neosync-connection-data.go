@@ -14,12 +14,15 @@ import (
 )
 
 var neosyncConnectionDataConfigSpec = service.NewConfigSpec().
-	Summary("Creates an input that generates garbage.").
+	Summary("Streams Neosync connection data").
 	Field(service.NewStringField("api_key").Optional()).
 	Field(service.NewStringField("api_url")).
 	Field(service.NewStringField("connection_id")).
+	Field(service.NewStringField("connection_type")).
 	Field(service.NewStringField("schema")).
-	Field(service.NewStringField("table"))
+	Field(service.NewStringField("table")).
+	Field(service.NewStringField("job_id").Optional()).
+	Field(service.NewStringField("job_run_id").Optional())
 
 func newNeosyncConnectionDataInput(conf *service.ParsedConfig) (service.Input, error) {
 	var apiKey *string
@@ -41,6 +44,11 @@ func newNeosyncConnectionDataInput(conf *service.ParsedConfig) (service.Input, e
 		return nil, err
 	}
 
+	connectionType, err := conf.FieldString("connection_type")
+	if err != nil {
+		return nil, err
+	}
+
 	schema, err := conf.FieldString("schema")
 	if err != nil {
 		return nil, err
@@ -49,12 +57,35 @@ func newNeosyncConnectionDataInput(conf *service.ParsedConfig) (service.Input, e
 	if err != nil {
 		return nil, err
 	}
+
+	var jobId *string
+	if conf.Contains("job_id") {
+		jobIdStr, err := conf.FieldString("job_id")
+		if err != nil {
+			return nil, err
+		}
+		jobId = &jobIdStr
+	}
+	var jobRunId *string
+	if conf.Contains("job_run_id") {
+		jobRunIdStr, err := conf.FieldString("job_run_id")
+		if err != nil {
+			return nil, err
+		}
+		jobRunId = &jobRunIdStr
+	}
+
 	return service.AutoRetryNacks(&neosyncInput{
-		apiKey:       apiKey,
-		apiUrl:       apiUrl,
-		connectionId: connectionId,
-		schema:       schema,
-		table:        table,
+		apiKey:         apiKey,
+		apiUrl:         apiUrl,
+		connectionId:   connectionId,
+		connectionType: connectionType,
+		schema:         schema,
+		table:          table,
+		connectionOpts: &connOpts{
+			jobId:    jobId,
+			jobRunId: jobRunId,
+		},
 	}), nil
 }
 
@@ -71,15 +102,22 @@ func init() {
 
 //------------------------------------------------------------------------------
 
+type connOpts struct {
+	jobId    *string
+	jobRunId *string
+}
+
 type neosyncInput struct {
 	apiKey *string
 	apiUrl string
 
-	connectionId string
-	schema       string
-	table        string
+	connectionId   string
+	connectionType string
+	connectionOpts *connOpts
+	schema         string
+	table          string
 
-	neosyncConnectApi mgmtv1alpha1connect.ConnectionServiceClient
+	neosyncConnectApi mgmtv1alpha1connect.ConnectionDataServiceClient
 
 	recvMut sync.Mutex
 
@@ -87,16 +125,34 @@ type neosyncInput struct {
 }
 
 func (g *neosyncInput) Connect(ctx context.Context) error {
-	g.neosyncConnectApi = mgmtv1alpha1connect.NewConnectionServiceClient(
+	g.neosyncConnectApi = mgmtv1alpha1connect.NewConnectionDataServiceClient(
 		http.DefaultClient,
 		g.apiUrl,
 		connect.WithInterceptors(auth_interceptor.NewInterceptor(g.apiKey != nil, auth.AuthHeader, auth.GetAuthHeaderTokenFn(g.apiKey))),
 	)
 
+	var streamCfg *mgmtv1alpha1.ConnectionStreamConfig
+	if g.connectionType == "awsS3" {
+		awsS3Cfg := &mgmtv1alpha1.AwsS3StreamConfig{}
+		if g.connectionOpts != nil {
+			if g.connectionOpts.jobRunId != nil && *g.connectionOpts.jobRunId != "" {
+				awsS3Cfg.Id = &mgmtv1alpha1.AwsS3StreamConfig_JobRunId{JobRunId: *g.connectionOpts.jobRunId}
+			} else if g.connectionOpts.jobId != nil && *g.connectionOpts.jobId != "" {
+				awsS3Cfg.Id = &mgmtv1alpha1.AwsS3StreamConfig_JobId{JobId: *g.connectionOpts.jobId}
+			}
+		}
+		streamCfg = &mgmtv1alpha1.ConnectionStreamConfig{
+			Config: &mgmtv1alpha1.ConnectionStreamConfig_AwsS3Config{
+				AwsS3Config: awsS3Cfg,
+			},
+		}
+	}
+
 	resp, err := g.neosyncConnectApi.GetConnectionDataStream(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionDataStreamRequest{
 		ConnectionId: g.connectionId,
 		Schema:       g.schema,
 		Table:        g.table,
+		StreamConfig: streamCfg,
 	}))
 	if err != nil {
 		return err

@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package mgmt.v1alpha1;
+
+import "buf/validate/validate.proto";
+
+message PostgresStreamConfig {}
+message MysqlStreamConfig {}
+message AwsS3StreamConfig {
+  oneof id {
+    string job_id = 1 [(buf.validate.field).string.uuid = true];
+    string job_run_id = 2 [(buf.validate.field).string.min_len = 1];
+  }
+}
+
+message ConnectionStreamConfig {
+  oneof config {
+    option (buf.validate.oneof).required = true;
+
+    PostgresStreamConfig pg_config = 1;
+    AwsS3StreamConfig aws_s3_config = 2;
+    MysqlStreamConfig mysql_config = 3;
+  }
+}
+
+message GetConnectionDataStreamRequest {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  ConnectionStreamConfig stream_config = 2;
+  string schema = 3;
+  string table = 4;
+}
+
+// Each stream response is a single row in the requested schema and table
+message GetConnectionDataStreamResponse {
+  // A map of column name to the bytes value of the data that was found for that column and row
+  map<string, bytes> row = 1;
+}
+
+message PostgresSchemaConfig {}
+message MysqlSchemaConfig {}
+message AwsS3SchemaConfig {
+  oneof id {
+    string job_id = 1 [(buf.validate.field).string.uuid = true];
+    string job_run_id = 2 [(buf.validate.field).string.min_len = 1];
+  }
+}
+
+message ConnectionSchemaConfig {
+  oneof config {
+    option (buf.validate.oneof).required = true;
+
+    PostgresSchemaConfig pg_config = 1;
+    AwsS3SchemaConfig aws_s3_config = 2;
+    MysqlSchemaConfig mysql_config = 3;
+  }
+}
+
+message DatabaseColumn {
+  // The database schema. Ex: public
+  string schema = 1;
+  // The name of the table in the schema
+  string table = 2;
+  // The name of the column
+  string column = 3;
+  // The datatype of the column
+  string data_type = 4;
+}
+
+message GetConnectionSchemaRequest {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  ConnectionSchemaConfig schema_config = 2;
+}
+
+message GetConnectionSchemaResponse {
+  repeated DatabaseColumn schemas = 1;
+}
+
+message GetConnectionForeignConstraintsRequest {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message ForeignConstraintTables {
+  repeated string tables = 1;
+}
+
+// Dependency constraints for a specific table
+message GetConnectionForeignConstraintsResponse {
+  // the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.
+  map<string, ForeignConstraintTables> table_constraints = 1;
+}
+
+message InitStatementOptions {
+  bool init_schema = 1;
+  bool truncate_before_insert = 2;
+  bool truncate_cascade = 3;
+}
+message GetConnectionInitStatementsRequest {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+  InitStatementOptions options = 2;
+}
+
+// Init statement for a specific table
+message GetConnectionInitStatementsResponse {
+  // the key here is <schema>.<table> and value is the table init statement.
+  map<string, string> table_init_statements = 1;
+}
+
+// Service for managing connection data.
+// This is used in handle data from a connection
+service ConnectionDataService {
+  // Streaming endpoint that will stream the data available from the Connection to the client.
+  // Used primarily by the CLI sync command.
+  rpc GetConnectionDataStream(GetConnectionDataStreamRequest) returns (stream GetConnectionDataStreamResponse) {}
+  // Returns the schema for a specific connection. Used mostly for SQL-based connections
+  rpc GetConnectionSchema(GetConnectionSchemaRequest) returns (GetConnectionSchemaResponse) {}
+  // For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
+  // Used primarily by the CLI sync command to determine stream order.
+  rpc GetConnectionForeignConstraints(GetConnectionForeignConstraintsRequest) returns (GetConnectionForeignConstraintsResponse) {}
+  // For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
+  // Used primarily by the CLI sync command to create table schema init statement.
+  rpc GetConnectionInitStatements(GetConnectionInitStatementsRequest) returns (GetConnectionInitStatementsResponse) {}
+}

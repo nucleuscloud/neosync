@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb.js";
+import { CheckConnectionConfigRequest, CheckConnectionConfigResponse, CheckSqlQueryRequest, CheckSqlQueryResponse, CreateConnectionRequest, CreateConnectionResponse, DeleteConnectionRequest, DeleteConnectionResponse, GetConnectionRequest, GetConnectionResponse, GetConnectionsRequest, GetConnectionsResponse, IsConnectionNameAvailableRequest, IsConnectionNameAvailableResponse, UpdateConnectionRequest, UpdateConnectionResponse } from "./connection_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -94,17 +94,6 @@ export const ConnectionService = {
       kind: MethodKind.Unary,
     },
     /**
-     * Returns the schema for a specific connection. Used mostly for SQL-based connections
-     *
-     * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionSchema
-     */
-    getConnectionSchema: {
-      name: "GetConnectionSchema",
-      I: GetConnectionSchemaRequest,
-      O: GetConnectionSchemaResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
      * Checks a constructed SQL query against a sql-based connection to see if it's valid based on that connection's data schema
      * This is useful when constructing subsets to see if the WHERE clause is correct
      *
@@ -114,42 +103,6 @@ export const ConnectionService = {
       name: "CheckSqlQuery",
       I: CheckSqlQueryRequest,
       O: CheckSqlQueryResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * Streaming endpoint that will stream the data available from the Connection to the client.
-     * Used primarily by the CLI sync command.
-     *
-     * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionDataStream
-     */
-    getConnectionDataStream: {
-      name: "GetConnectionDataStream",
-      I: GetConnectionDataStreamRequest,
-      O: GetConnectionDataStreamResponse,
-      kind: MethodKind.ServerStreaming,
-    },
-    /**
-     * For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
-     * Used primarily by the CLI sync command to determine stream order.
-     *
-     * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionForeignConstraints
-     */
-    getConnectionForeignConstraints: {
-      name: "GetConnectionForeignConstraints",
-      I: GetConnectionForeignConstraintsRequest,
-      O: GetConnectionForeignConstraintsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
-     * Used primarily by the CLI sync command to create table schema init statement.
-     *
-     * @generated from rpc mgmt.v1alpha1.ConnectionService.GetConnectionInitStatements
-     */
-    getConnectionInitStatements: {
-      name: "GetConnectionInitStatements",
-      I: GetConnectionInitStatementsRequest,
-      O: GetConnectionInitStatementsResponse,
       kind: MethodKind.Unary,
     },
   }

@@ -17,6 +17,8 @@ import (
 	"connectrpc.com/validate"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
@@ -28,9 +30,11 @@ import (
 	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/sqlconnect"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
+	v1alpha1_connectiondataservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
@@ -82,6 +86,7 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.JobServiceName,
 		mgmtv1alpha1connect.TransformersServiceName,
 		mgmtv1alpha1connect.ApiKeyServiceName,
+		mgmtv1alpha1connect.ConnectionDataServiceName,
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
@@ -261,7 +266,8 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, nil)
+	sqlConnector := &sqlconnect.SqlOpenConnector{}
+	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -292,6 +298,25 @@ func serve(ctx context.Context) error {
 	api.Handle(
 		mgmtv1alpha1connect.NewTransformersServiceHandler(
 			transformerService,
+			connect.WithInterceptors(stdInterceptors...),
+			connect.WithInterceptors(stdAuthInterceptors...),
+		),
+	)
+
+	pgquerier := pg_queries.New()
+	mysqlquerier := mysql_queries.New()
+	connectionDataService := v1alpha1_connectiondataservice.New(
+		&v1alpha1_connectiondataservice.Config{},
+		useraccountService,
+		connectionService,
+		jobService,
+		sqlConnector,
+		pgquerier,
+		mysqlquerier,
+	)
+	api.Handle(
+		mgmtv1alpha1connect.NewConnectionDataServiceHandler(
+			connectionDataService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
 		),

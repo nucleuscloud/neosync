@@ -7,6 +7,7 @@ import (
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	"golang.org/x/sync/errgroup"
 )
 
 type GetTableCreateStatementRequest struct {
@@ -113,4 +114,36 @@ func GetUniqueSchemaColMappings(
 		}
 	}
 	return groupedSchemas
+}
+
+func GetAllMysqlFkConstraints(
+	mysqlquerier mysql_queries.Querier,
+	ctx context.Context,
+	conn mysql_queries.DBTX,
+	schemas []string,
+) ([]*mysql_queries.GetForeignKeyConstraintsRow, error) {
+	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range schemas {
+		idx := idx
+		schema := schemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := mysqlquerier.GetForeignKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*mysql_queries.GetForeignKeyConstraintsRow{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
 }

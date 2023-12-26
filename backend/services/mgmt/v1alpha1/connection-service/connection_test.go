@@ -10,6 +10,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -42,6 +43,14 @@ type mockConnector struct {
 
 func (mc *mockConnector) Open(driverName, dataSourceName string) (*sql.DB, error) {
 	return mc.db, nil
+}
+
+func (mc *mockConnector) MysqlOpen(dataSourceName string) (*sql.DB, error) {
+	return mc.db, nil
+}
+
+func (mc *mockConnector) PgPoolOpen(ctx context.Context, dataSourceName string) (*pgxpool.Pool, error) {
+	return nil, nil
 }
 
 // CheckConnectionConfig
