@@ -137,11 +137,6 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
-      type: 'doc',
-      id: 'overview/github-actions',
-      label: 'Github Actions',
-    },
-    {
       type: 'html',
       value: '<div>Deploy Neosync</div>',
       className: 'sidebarcategory',
@@ -186,6 +181,11 @@ const sidebars: SidebarsConfig = {
       type: 'doc',
       id: 'guides/creating-a-data-gen-job',
       label: 'Creating a Data Generation Job',
+    },
+    {
+      type: 'doc',
+      id: 'guides/using-neosync-in-ci',
+      label: 'Using Neosync in CI',
     },
     {
       type: 'html',

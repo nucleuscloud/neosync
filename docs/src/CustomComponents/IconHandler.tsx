@@ -6,11 +6,15 @@ import {
   LinkBreak1Icon,
   ListBulletIcon,
   Share1Icon,
-  StackIcon,
+  SymbolIcon,
   TokensIcon,
 } from '@radix-ui/react-icons';
 import React, { ReactElement } from 'react';
-import { AiOutlineMail, AiOutlinePhone } from 'react-icons/ai';
+import {
+  AiOutlineExperiment,
+  AiOutlineMail,
+  AiOutlinePhone,
+} from 'react-icons/ai';
 import {
   BiDownload,
   BiLogInCircle,
@@ -83,7 +87,9 @@ export function IconHandler(name: string): ReactElement {
       return <AvatarIcon />;
     case 'jobs':
     case 'Creating a Sync Job':
-      return <StackIcon />;
+      return <SymbolIcon />;
+    case 'Creating a Data Generation Job':
+      return <AiOutlineExperiment />;
     case 'list':
       return <ListBulletIcon />;
     case 'trigger':
@@ -95,6 +101,7 @@ export function IconHandler(name: string): ReactElement {
     case 'Core Concepts':
       return <GoLightBulb />;
     case 'Github Actions':
+    case 'Using Neosync in CI':
       return <GitHubLogoIcon />;
     case 'SDK':
       return <TbSdk />;
