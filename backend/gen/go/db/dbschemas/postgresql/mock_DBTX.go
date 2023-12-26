@@ -24,38 +24,6 @@ func (_m *MockDBTX) EXPECT() *MockDBTX_Expecter {
 	return &MockDBTX_Expecter{mock: &_m.Mock}
 }
 
-// Close provides a mock function with given fields:
-func (_m *MockDBTX) Close() {
-	_m.Called()
-}
-
-// MockDBTX_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type MockDBTX_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *MockDBTX_Expecter) Close() *MockDBTX_Close_Call {
-	return &MockDBTX_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *MockDBTX_Close_Call) Run(run func()) *MockDBTX_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockDBTX_Close_Call) Return() *MockDBTX_Close_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *MockDBTX_Close_Call) RunAndReturn(run func()) *MockDBTX_Close_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Exec provides a mock function with given fields: _a0, _a1, _a2
 func (_m *MockDBTX) Exec(_a0 context.Context, _a1 string, _a2 ...interface{}) (pgconn.CommandTag, error) {
 	var _ca []interface{}

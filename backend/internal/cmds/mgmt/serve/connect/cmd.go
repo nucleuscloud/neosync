@@ -30,6 +30,7 @@ import (
 	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/sqlconnect"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	v1alpha1_apikeyservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/api-key-service"
 	v1alpha1_authservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/auth-service"
@@ -265,7 +266,8 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, nil)
+	sqlConnector := &sqlconnect.SqlOpenConnector{}
+	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -308,7 +310,7 @@ func serve(ctx context.Context) error {
 		useraccountService,
 		connectionService,
 		jobService,
-		nil,
+		sqlConnector,
 		pgquerier,
 		mysqlquerier,
 	)

@@ -17,6 +17,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/sqlconnect"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -241,7 +242,7 @@ type serviceMocks struct {
 	SqlDbMock              *sql.DB
 	PgQueierMock           *pg_queries.MockQuerier
 	MysqlQueierMock        *mysql_queries.MockQuerier
-	SqlConnectorMock       *MockSqlConnector
+	SqlConnectorMock       *sqlconnect.MockSqlConnector
 	PgPoolMock             *MockPgPool
 }
 
@@ -253,7 +254,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockJobService := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockPgquerier := pg_queries.NewMockQuerier(t)
 	mockMysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlConnector := NewMockSqlConnector(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	mockPgPool := new(MockPgPool)
 
 	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
