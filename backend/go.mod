@@ -5,8 +5,8 @@ go 1.21.3
 replace github.com/nucleuscloud/neosync/worker => ../worker
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20231115204500-e097f827e652.2
-	connectrpc.com/connect v1.13.0
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.32.0-20231115204500-e097f827e652.1
+	connectrpc.com/connect v1.14.0
 	connectrpc.com/grpchealth v1.3.0
 	connectrpc.com/grpcreflect v1.2.0
 	connectrpc.com/otelconnect v0.6.0
@@ -28,7 +28,7 @@ require (
 	golang.org/x/net v0.19.0
 	golang.org/x/sync v0.5.0
 	google.golang.org/grpc v1.60.1
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.32.0
 )
 
 require (
