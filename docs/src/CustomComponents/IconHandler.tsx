@@ -82,6 +82,7 @@ export function IconHandler(name: string): ReactElement {
     case 'whoami':
       return <AvatarIcon />;
     case 'jobs':
+    case 'Creating a Sync Job':
       return <StackIcon />;
     case 'list':
       return <ListBulletIcon />;

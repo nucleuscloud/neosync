@@ -171,6 +171,22 @@ const sidebars: SidebarsConfig = {
       id: 'deploy/auth',
       label: 'Authentication',
     },
+
+    {
+      type: 'html',
+      value: '<div>Guides</div>',
+      className: 'sidebarcategory',
+    },
+    {
+      type: 'doc',
+      id: 'guides/creating-a-sync-job',
+      label: 'Creating a Sync Job',
+    },
+    {
+      type: 'doc',
+      id: 'guides/creating-a-data-gen-job',
+      label: 'Creating a Data Generation Job',
+    },
     {
       type: 'html',
       value: '<div>Connections</div>',
