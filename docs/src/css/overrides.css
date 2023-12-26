@@ -250,7 +250,7 @@ nav.menu {
 }
 
 img {
-  @apply border border-gray-300 shadow-lg rounded-lg overflow-hidden my-6;
+  @apply border border-gray-300 dark:border-gray-700 shadow-lg rounded-lg overflow-hidden my-6;
 }
 
 .navbar__logo img {
