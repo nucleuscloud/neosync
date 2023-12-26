@@ -11,17 +11,17 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
-func (d *NucleusDb) SetUserByAuth0Id(
+func (d *NucleusDb) SetUserByAuthSub(
 	ctx context.Context,
-	auth0UserId string,
+	authSub string,
 ) (*db_queries.NeosyncApiUser, error) {
 	var userResp *db_queries.NeosyncApiUser
 	if err := d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
-		user, err := d.Q.GetUserByAuth0Id(ctx, dbtx, auth0UserId)
+		user, err := d.Q.GetUserByProviderSub(ctx, dbtx, authSub)
 		if err != nil && !IsNoRows(err) {
 			return err
 		} else if err != nil && IsNoRows(err) {
-			association, err := d.Q.GetUserAssociationByAuth0Id(ctx, dbtx, auth0UserId)
+			association, err := d.Q.GetUserAssociationByProviderSub(ctx, dbtx, authSub)
 			if err != nil && !IsNoRows(err) {
 				return err
 			} else if err != nil && IsNoRows(err) {
@@ -31,9 +31,9 @@ func (d *NucleusDb) SetUserByAuth0Id(
 					return err
 				}
 				userResp = &user
-				association, err = d.Q.CreateAuth0IdentityProviderAssociation(ctx, dbtx, db_queries.CreateAuth0IdentityProviderAssociationParams{
-					UserID:          user.ID,
-					Auth0ProviderID: auth0UserId,
+				association, err = d.Q.CreateIdentityProviderAssociation(ctx, dbtx, db_queries.CreateIdentityProviderAssociationParams{
+					UserID:      user.ID,
+					ProviderSub: authSub,
 				})
 				if err != nil {
 					return err

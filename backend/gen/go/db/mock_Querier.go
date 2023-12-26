@@ -256,64 +256,6 @@ func (_c *MockQuerier_CreateAccountUserAssociation_Call) RunAndReturn(run func(c
 	return _c
 }
 
-// CreateAuth0IdentityProviderAssociation provides a mock function with given fields: ctx, db, arg
-func (_m *MockQuerier) CreateAuth0IdentityProviderAssociation(ctx context.Context, db DBTX, arg CreateAuth0IdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error) {
-	ret := _m.Called(ctx, db, arg)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateAuth0IdentityProviderAssociation")
-	}
-
-	var r0 NeosyncApiUserIdentityProviderAssociation
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAuth0IdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error)); ok {
-		return rf(ctx, db, arg)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateAuth0IdentityProviderAssociationParams) NeosyncApiUserIdentityProviderAssociation); ok {
-		r0 = rf(ctx, db, arg)
-	} else {
-		r0 = ret.Get(0).(NeosyncApiUserIdentityProviderAssociation)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateAuth0IdentityProviderAssociationParams) error); ok {
-		r1 = rf(ctx, db, arg)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_CreateAuth0IdentityProviderAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAuth0IdentityProviderAssociation'
-type MockQuerier_CreateAuth0IdentityProviderAssociation_Call struct {
-	*mock.Call
-}
-
-// CreateAuth0IdentityProviderAssociation is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-//   - arg CreateAuth0IdentityProviderAssociationParams
-func (_e *MockQuerier_Expecter) CreateAuth0IdentityProviderAssociation(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreateAuth0IdentityProviderAssociation_Call {
-	return &MockQuerier_CreateAuth0IdentityProviderAssociation_Call{Call: _e.mock.On("CreateAuth0IdentityProviderAssociation", ctx, db, arg)}
-}
-
-func (_c *MockQuerier_CreateAuth0IdentityProviderAssociation_Call) Run(run func(ctx context.Context, db DBTX, arg CreateAuth0IdentityProviderAssociationParams)) *MockQuerier_CreateAuth0IdentityProviderAssociation_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreateAuth0IdentityProviderAssociationParams))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_CreateAuth0IdentityProviderAssociation_Call) Return(_a0 NeosyncApiUserIdentityProviderAssociation, _a1 error) *MockQuerier_CreateAuth0IdentityProviderAssociation_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_CreateAuth0IdentityProviderAssociation_Call) RunAndReturn(run func(context.Context, DBTX, CreateAuth0IdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error)) *MockQuerier_CreateAuth0IdentityProviderAssociation_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CreateConnection provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) CreateConnection(ctx context.Context, db DBTX, arg CreateConnectionParams) (NeosyncApiConnection, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -368,6 +310,64 @@ func (_c *MockQuerier_CreateConnection_Call) Return(_a0 NeosyncApiConnection, _a
 }
 
 func (_c *MockQuerier_CreateConnection_Call) RunAndReturn(run func(context.Context, DBTX, CreateConnectionParams) (NeosyncApiConnection, error)) *MockQuerier_CreateConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateIdentityProviderAssociation provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) CreateIdentityProviderAssociation(ctx context.Context, db DBTX, arg CreateIdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateIdentityProviderAssociation")
+	}
+
+	var r0 NeosyncApiUserIdentityProviderAssociation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateIdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, CreateIdentityProviderAssociationParams) NeosyncApiUserIdentityProviderAssociation); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiUserIdentityProviderAssociation)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, CreateIdentityProviderAssociationParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_CreateIdentityProviderAssociation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateIdentityProviderAssociation'
+type MockQuerier_CreateIdentityProviderAssociation_Call struct {
+	*mock.Call
+}
+
+// CreateIdentityProviderAssociation is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg CreateIdentityProviderAssociationParams
+func (_e *MockQuerier_Expecter) CreateIdentityProviderAssociation(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_CreateIdentityProviderAssociation_Call {
+	return &MockQuerier_CreateIdentityProviderAssociation_Call{Call: _e.mock.On("CreateIdentityProviderAssociation", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_CreateIdentityProviderAssociation_Call) Run(run func(ctx context.Context, db DBTX, arg CreateIdentityProviderAssociationParams)) *MockQuerier_CreateIdentityProviderAssociation_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(CreateIdentityProviderAssociationParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_CreateIdentityProviderAssociation_Call) Return(_a0 NeosyncApiUserIdentityProviderAssociation, _a1 error) *MockQuerier_CreateIdentityProviderAssociation_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_CreateIdentityProviderAssociation_Call) RunAndReturn(run func(context.Context, DBTX, CreateIdentityProviderAssociationParams) (NeosyncApiUserIdentityProviderAssociation, error)) *MockQuerier_CreateIdentityProviderAssociation_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2401,27 +2401,27 @@ func (_c *MockQuerier_GetUser_Call) RunAndReturn(run func(context.Context, DBTX,
 	return _c
 }
 
-// GetUserAssociationByAuth0Id provides a mock function with given fields: ctx, db, auth0ProviderID
-func (_m *MockQuerier) GetUserAssociationByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUserIdentityProviderAssociation, error) {
-	ret := _m.Called(ctx, db, auth0ProviderID)
+// GetUserAssociationByProviderSub provides a mock function with given fields: ctx, db, providerSub
+func (_m *MockQuerier) GetUserAssociationByProviderSub(ctx context.Context, db DBTX, providerSub string) (NeosyncApiUserIdentityProviderAssociation, error) {
+	ret := _m.Called(ctx, db, providerSub)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetUserAssociationByAuth0Id")
+		panic("no return value specified for GetUserAssociationByProviderSub")
 	}
 
 	var r0 NeosyncApiUserIdentityProviderAssociation
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) (NeosyncApiUserIdentityProviderAssociation, error)); ok {
-		return rf(ctx, db, auth0ProviderID)
+		return rf(ctx, db, providerSub)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) NeosyncApiUserIdentityProviderAssociation); ok {
-		r0 = rf(ctx, db, auth0ProviderID)
+		r0 = rf(ctx, db, providerSub)
 	} else {
 		r0 = ret.Get(0).(NeosyncApiUserIdentityProviderAssociation)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
-		r1 = rf(ctx, db, auth0ProviderID)
+		r1 = rf(ctx, db, providerSub)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2429,57 +2429,57 @@ func (_m *MockQuerier) GetUserAssociationByAuth0Id(ctx context.Context, db DBTX,
 	return r0, r1
 }
 
-// MockQuerier_GetUserAssociationByAuth0Id_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserAssociationByAuth0Id'
-type MockQuerier_GetUserAssociationByAuth0Id_Call struct {
+// MockQuerier_GetUserAssociationByProviderSub_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserAssociationByProviderSub'
+type MockQuerier_GetUserAssociationByProviderSub_Call struct {
 	*mock.Call
 }
 
-// GetUserAssociationByAuth0Id is a helper method to define mock.On call
+// GetUserAssociationByProviderSub is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - auth0ProviderID string
-func (_e *MockQuerier_Expecter) GetUserAssociationByAuth0Id(ctx interface{}, db interface{}, auth0ProviderID interface{}) *MockQuerier_GetUserAssociationByAuth0Id_Call {
-	return &MockQuerier_GetUserAssociationByAuth0Id_Call{Call: _e.mock.On("GetUserAssociationByAuth0Id", ctx, db, auth0ProviderID)}
+//   - providerSub string
+func (_e *MockQuerier_Expecter) GetUserAssociationByProviderSub(ctx interface{}, db interface{}, providerSub interface{}) *MockQuerier_GetUserAssociationByProviderSub_Call {
+	return &MockQuerier_GetUserAssociationByProviderSub_Call{Call: _e.mock.On("GetUserAssociationByProviderSub", ctx, db, providerSub)}
 }
 
-func (_c *MockQuerier_GetUserAssociationByAuth0Id_Call) Run(run func(ctx context.Context, db DBTX, auth0ProviderID string)) *MockQuerier_GetUserAssociationByAuth0Id_Call {
+func (_c *MockQuerier_GetUserAssociationByProviderSub_Call) Run(run func(ctx context.Context, db DBTX, providerSub string)) *MockQuerier_GetUserAssociationByProviderSub_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
 	})
 	return _c
 }
 
-func (_c *MockQuerier_GetUserAssociationByAuth0Id_Call) Return(_a0 NeosyncApiUserIdentityProviderAssociation, _a1 error) *MockQuerier_GetUserAssociationByAuth0Id_Call {
+func (_c *MockQuerier_GetUserAssociationByProviderSub_Call) Return(_a0 NeosyncApiUserIdentityProviderAssociation, _a1 error) *MockQuerier_GetUserAssociationByProviderSub_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetUserAssociationByAuth0Id_Call) RunAndReturn(run func(context.Context, DBTX, string) (NeosyncApiUserIdentityProviderAssociation, error)) *MockQuerier_GetUserAssociationByAuth0Id_Call {
+func (_c *MockQuerier_GetUserAssociationByProviderSub_Call) RunAndReturn(run func(context.Context, DBTX, string) (NeosyncApiUserIdentityProviderAssociation, error)) *MockQuerier_GetUserAssociationByProviderSub_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetUserByAuth0Id provides a mock function with given fields: ctx, db, auth0ProviderID
-func (_m *MockQuerier) GetUserByAuth0Id(ctx context.Context, db DBTX, auth0ProviderID string) (NeosyncApiUser, error) {
-	ret := _m.Called(ctx, db, auth0ProviderID)
+// GetUserByProviderSub provides a mock function with given fields: ctx, db, providerSub
+func (_m *MockQuerier) GetUserByProviderSub(ctx context.Context, db DBTX, providerSub string) (NeosyncApiUser, error) {
+	ret := _m.Called(ctx, db, providerSub)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetUserByAuth0Id")
+		panic("no return value specified for GetUserByProviderSub")
 	}
 
 	var r0 NeosyncApiUser
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) (NeosyncApiUser, error)); ok {
-		return rf(ctx, db, auth0ProviderID)
+		return rf(ctx, db, providerSub)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) NeosyncApiUser); ok {
-		r0 = rf(ctx, db, auth0ProviderID)
+		r0 = rf(ctx, db, providerSub)
 	} else {
 		r0 = ret.Get(0).(NeosyncApiUser)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
-		r1 = rf(ctx, db, auth0ProviderID)
+		r1 = rf(ctx, db, providerSub)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2487,32 +2487,32 @@ func (_m *MockQuerier) GetUserByAuth0Id(ctx context.Context, db DBTX, auth0Provi
 	return r0, r1
 }
 
-// MockQuerier_GetUserByAuth0Id_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserByAuth0Id'
-type MockQuerier_GetUserByAuth0Id_Call struct {
+// MockQuerier_GetUserByProviderSub_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserByProviderSub'
+type MockQuerier_GetUserByProviderSub_Call struct {
 	*mock.Call
 }
 
-// GetUserByAuth0Id is a helper method to define mock.On call
+// GetUserByProviderSub is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - auth0ProviderID string
-func (_e *MockQuerier_Expecter) GetUserByAuth0Id(ctx interface{}, db interface{}, auth0ProviderID interface{}) *MockQuerier_GetUserByAuth0Id_Call {
-	return &MockQuerier_GetUserByAuth0Id_Call{Call: _e.mock.On("GetUserByAuth0Id", ctx, db, auth0ProviderID)}
+//   - providerSub string
+func (_e *MockQuerier_Expecter) GetUserByProviderSub(ctx interface{}, db interface{}, providerSub interface{}) *MockQuerier_GetUserByProviderSub_Call {
+	return &MockQuerier_GetUserByProviderSub_Call{Call: _e.mock.On("GetUserByProviderSub", ctx, db, providerSub)}
 }
 
-func (_c *MockQuerier_GetUserByAuth0Id_Call) Run(run func(ctx context.Context, db DBTX, auth0ProviderID string)) *MockQuerier_GetUserByAuth0Id_Call {
+func (_c *MockQuerier_GetUserByProviderSub_Call) Run(run func(ctx context.Context, db DBTX, providerSub string)) *MockQuerier_GetUserByProviderSub_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
 	})
 	return _c
 }
 
-func (_c *MockQuerier_GetUserByAuth0Id_Call) Return(_a0 NeosyncApiUser, _a1 error) *MockQuerier_GetUserByAuth0Id_Call {
+func (_c *MockQuerier_GetUserByProviderSub_Call) Return(_a0 NeosyncApiUser, _a1 error) *MockQuerier_GetUserByProviderSub_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetUserByAuth0Id_Call) RunAndReturn(run func(context.Context, DBTX, string) (NeosyncApiUser, error)) *MockQuerier_GetUserByAuth0Id_Call {
+func (_c *MockQuerier_GetUserByProviderSub_Call) RunAndReturn(run func(context.Context, DBTX, string) (NeosyncApiUser, error)) *MockQuerier_GetUserByProviderSub_Call {
 	_c.Call.Return(run)
 	return _c
 }

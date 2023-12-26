@@ -59,7 +59,7 @@ func (s *Service) GetUser(
 			UserId: nucleusdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
 		}), nil
 	} else if tokenctxResp.JwtContextData != nil {
-		user, err := s.db.Q.GetUserAssociationByAuth0Id(ctx, s.db.Db, tokenctxResp.JwtContextData.AuthUserId)
+		user, err := s.db.Q.GetUserAssociationByProviderSub(ctx, s.db.Db, tokenctxResp.JwtContextData.AuthUserId)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, nucleuserrors.New(err)
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -109,7 +109,7 @@ func (s *Service) SetUser(
 			return nil, nucleuserrors.New(err)
 		}
 
-		user, err := s.db.SetUserByAuth0Id(ctx, tokenCtxData.AuthUserId)
+		user, err := s.db.SetUserByAuthSub(ctx, tokenCtxData.AuthUserId)
 		if err != nil {
 			return nil, nucleuserrors.New(err)
 		}
@@ -264,8 +264,8 @@ func (s *Service) GetTeamAccountMembers(
 		i := i
 		user := userIdentities[i]
 		group.Go(func() error {
-			if user.Auth0ProviderID != "" {
-				authUser, err := s.auth0MgmtClient.GetUserById(ctx, user.Auth0ProviderID)
+			if user.ProviderSub != "" {
+				authUser, err := s.auth0MgmtClient.GetUserById(ctx, user.ProviderSub)
 				if err != nil {
 					// if unable to get auth user still return user id
 					dtoUsers[i] = &mgmtv1alpha1.AccountUser{
@@ -444,7 +444,7 @@ func (s *Service) AcceptTeamAccountInvite(
 	}
 
 	// check auth user email to invite email
-	authUser, err := s.auth0MgmtClient.GetUserById(ctx, userIdentity.Auth0ProviderID)
+	authUser, err := s.auth0MgmtClient.GetUserById(ctx, userIdentity.ProviderSub)
 	if err != nil {
 		return nil, err
 	}

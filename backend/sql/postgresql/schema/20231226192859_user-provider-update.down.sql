@@ -1,0 +1,2 @@
+ALTER TABLE neosync_api.user_identity_provider_associations
+RENAME COLUMN provider_sub TO auth0_provider_id;
