@@ -63,7 +63,7 @@ services:
       - kc-network
     volumes:
       - $PWD/.data/neosync-postgres/data:/var/lib/postgresql/data
-      - ./hack/pg-init:/docker-entrypoint-initdb.d
+      - $PWD/hack/pg-init:/docker-entrypoint-initdb.d
 
   api:
     container_name: neosync-api
