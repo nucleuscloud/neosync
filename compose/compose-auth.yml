@@ -3,7 +3,7 @@ services:
     container_name: neosync-app
     image: neosync-app
     build:
-      context: ./frontend
+      context: $PWD/frontend
       dockerfile: ./apps/web/dev/build/Dockerfile.dev
     ports:
       - 3000:3000
@@ -23,7 +23,7 @@ services:
       - AUTH_TOKEN_URL=http://keycloak:8080/realms/neosync/protocol/openid-connect/token
 
       - AUTH_CLIENT_ID=neosync-app
-      - AUTH_CLIENT_SECRET=Qt6Lxh8KvvvQkWQYUUwu3GATc01nTeYT
+      - AUTH_CLIENT_SECRET=72alWGzhHInDskRHduTQ8BjB4Lgn0n3a
       - AUTH_AUDIENCE=account
       - AUTH_SCOPE=openid email profile offline_access
       - AUTH_PROVIDER_ID=keycloak
@@ -69,7 +69,7 @@ services:
     container_name: neosync-api
     image: neosync-api
     build:
-      context: ./backend
+      context: $PWD/backend
       dockerfile: ./dev/build/Dockerfile.dev
     ports:
       - 8080:8080
@@ -96,8 +96,8 @@ services:
       - AUTH_EXPECTED_ISS=http://localhost:8083/realms/neosync
       - AUTH_CLI_CLIENT_ID=neosync-cli
       - AUTH_CLI_AUDIENCE=account
-      - AUTH_CLIENTID_SECRET={"neosync-cli":""}
-      - AUTH_SIGNATURE_ALGORITHM=RS512
+      - AUTH_CLIENTID_SECRET={"neosync-cli":"GkVsthDzDvBfzb2vT4UO95xbXrwoXE5w"}
+      - AUTH_SIGNATURE_ALGORITHM=RS256
 
     networks:
       - neosync-network
@@ -118,7 +118,7 @@ services:
     container_name: neosync-worker
     image: neosync-worker
     build:
-      context: ./worker
+      context: $PWD/worker
       dockerfile: ./dev/build/Dockerfile.dev
     environment:
       - NUCLEUS_ENV=dev
