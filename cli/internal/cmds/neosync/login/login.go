@@ -60,12 +60,13 @@ func login(ctx context.Context) error {
 		return err
 	}
 
+	var nokey *string
 	isAuthEnabled := true
 	userclient := mgmtv1alpha1connect.NewUserAccountServiceClient(
 		http.DefaultClient,
 		serverconfig.GetApiBaseUrl(),
 		connect.WithInterceptors(
-			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(nil)),
+			auth_interceptor.NewInterceptor(isAuthEnabled, auth.AuthHeader, auth.GetAuthHeaderTokenFn(nokey)),
 		),
 	)
 
