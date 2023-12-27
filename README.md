@@ -45,16 +45,6 @@ Our mission is to help developers build better, more resilient applications whil
 2. A platform that can anonymize sensitive data or automatically generate synthetic data from a schema and sync that across all environments
 3. An open source approach that allows you to keep your most sensitive data in your infrastructure
 
-## Table of Contents
-
-- [Features](#features)
-- [Getting Started](#get-started-for-free)
-- [Running Neosync Locally](#run-neosync-locally)
-- [Resources](#docs-and-support)
-- [Contributing](#contributing)
-- [Licensing](#licensing)
-- [Triggering a Release](#triggering-a-release)
-
 ## Features
 
 - Automatically generate synthetic data based on your schema
@@ -209,6 +199,16 @@ Once everything is up and running, the app can be accessed locally at `http://lo
 Work to be done:
 
 - inherit the temporal compose inside of the neosync compose, separate with compose profiles.
+
+#### Running Compose with Authentication
+
+Note, a compose file with authentication pre-configured can be found [here](./compose/compose-auth.yml).
+This will stand up Keycloak with a pre-configured realm that will allow logging in to Neosync with a standard username and password, competely offline!
+
+```
+$ docker compose -f temporal/compose.yml up -d
+$ docker compose -f compose/compose-auth.yml up -d
+```
 
 ## Resources
 

@@ -14,10 +14,9 @@ type Service struct {
 type Config struct {
 	IsAuthEnabled bool
 
-	CliClientId  string
-	CliAudience  string
-	IssuerUrl    string
-	AuthorizeUrl string
+	CliClientId string
+	CliAudience string
+	IssuerUrl   string
 }
 
 type AuthClient interface {
@@ -32,6 +31,7 @@ type AuthClient interface {
 		clientId string,
 		refreshToken string,
 	) (*auth_client.AuthTokenResponse, error)
+	GetAuthorizationEndpoint(ctx context.Context) (string, error)
 }
 
 func New(

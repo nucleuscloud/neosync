@@ -4,54 +4,88 @@ import NextAuth, { NextAuthConfig } from 'next-auth';
 
 function getProviders(): NextAuthConfig['providers'] {
   const providers: NextAuthConfig['providers'] = [];
-
-  const auth0Config = getAuth0Config();
-  if (auth0Config) {
+  const authConfig = getOAuthConfig();
+  if (authConfig) {
     providers.push({
-      id: 'auth0',
-      name: 'Auth0',
-      type: 'oidc',
-      issuer: auth0Config.issuer,
-      clientId: auth0Config.clientId,
-      clientSecret: auth0Config.clientSecret,
+      id: authConfig.id,
+      name: authConfig.name,
+      type: authConfig.type,
+      issuer: authConfig.expectedissuer,
+      clientId: authConfig.clientId,
+      clientSecret: authConfig.clientSecret ?? '',
       authorization: {
+        url: authConfig.authorizeUrl,
         params: {
-          audience: auth0Config.audience,
-          scope: auth0Config.scope,
+          audience: authConfig.audience,
+          scope: authConfig.scope,
         },
       },
-      wellKnown: `${auth0Config.issuer}/.well-known/openid-configuration`,
+      userinfo: authConfig.userInfoUrl,
+      token: authConfig.tokenUrl,
+
+      wellKnown: getWellKnown(authConfig.issuer),
     });
   }
 
   return providers;
 }
 
-function getAuth0Config(): Auth0Config | null {
-  const issuer = process.env.AUTH0_ISSUER;
-  const clientId = process.env.AUTH0_CLIENT_ID;
-  const clientSecret = process.env.AUTH0_CLIENT_SECRET;
-  const audience = process.env.AUTH0_AUDIENCE;
-  const scope = process.env.AUTH0_SCOPE;
+function getWellKnown(issuerUrl: string): string {
+  return `${trimEnd(issuerUrl, '/')}/.well-known/openid-configuration`;
+}
 
-  if (!issuer || !clientId || !clientSecret || !audience || !scope) {
+function trimEnd(val: string, chars: string): string {
+  return val.endsWith(chars) ? val.substring(0, chars.length - 1) : val;
+}
+
+interface OAuthConfig {
+  id: string;
+  name: string;
+  type: 'oidc';
+
+  issuer: string;
+  expectedissuer: string;
+
+  authorizeUrl?: string;
+  userInfoUrl?: string;
+  tokenUrl?: string;
+
+  clientId: string;
+  clientSecret?: string;
+  audience: string;
+  scope: string;
+}
+
+function getOAuthConfig(): OAuthConfig | null {
+  const issuer = process.env.AUTH_ISSUER;
+  const clientId = process.env.AUTH_CLIENT_ID;
+  const clientSecret = process.env.AUTH_CLIENT_SECRET;
+  const audience = process.env.AUTH_AUDIENCE;
+  const scope = process.env.AUTH_SCOPE;
+  if (!issuer || !clientId || !audience || !scope) {
     return null;
   }
+
+  const id = process.env.AUTH_PROVIDER_ID ?? 'unknown';
+  const name = process.env.AUTH_PROVIDER_NAME ?? 'unknown';
+  const expectedissuer = process.env.AUTH_EXPECTED_ISSUER || issuer;
+
   return {
+    id,
+    name,
+    type: 'oidc',
+
     issuer,
+    expectedissuer,
     clientId,
     clientSecret,
     audience,
     scope,
-  };
-}
 
-interface Auth0Config {
-  issuer: string;
-  clientId: string;
-  clientSecret: string;
-  audience: string;
-  scope: string;
+    authorizeUrl: process.env.AUTH_AUTHORIZE_URL,
+    userInfoUrl: process.env.AUTH_USERINFO_URL,
+    tokenUrl: process.env.AUTH_TOKEN_URL,
+  };
 }
 
 export const {
@@ -88,62 +122,79 @@ export const {
           // token can't be refreshed, fail
           throw new Error('session is expired, no refresh token available');
         }
-        if (!token.provider) {
-          throw new Error(
-            'unable to find provider to be used to refresh token'
-          );
+
+        const oauthConfig = getOAuthConfig();
+        if (!oauthConfig) {
+          throw new Error('unable to find provider to refresh token');
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        switch ((token as any).provider) {
-          case 'auth0': {
-            const auth0Provider = getAuth0Config();
-            if (!auth0Provider) {
-              throw new Error('unable to find auth0 provider to refresh token');
-            }
-            const response = await fetch(
-              `${auth0Provider?.issuer ?? ''}/oauth/token`,
-              {
-                headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                  client_id: auth0Provider?.clientId ?? '',
-                  client_secret: auth0Provider?.clientSecret ?? '',
-                  grant_type: 'refresh_token',
-                  refresh_token: (token as any).refreshToken, // eslint-disable-line @typescript-eslint/no-explicit-any
-                }),
-                method: 'POST',
-              }
-            );
-            const tokens: TokenSet = await response.json();
-            if (!response.ok) {
-              throw tokens;
-            }
-            token.accessToken = tokens.access_token;
-            // the refresh token may not always be returned. If it's not, don't update
-            if (tokens.refresh_token) {
-              token.refreshToken = tokens.refresh_token;
-            }
-            if (tokens.expires_at) {
-              token.expiresAt = tokens.expires_at;
-            } else if (tokens.expires_in) {
-              token.expiresAt = Math.floor(
-                addSeconds(new Date(), tokens.expires_in).getTime() / 1000
-              );
-            }
-            break;
-          }
-          default: {
-            throw new Error(
-              'unknown or unsupported provider type, unable to refresh token'
-            );
-          }
+
+        const response = await fetch(await getTokenUrl(oauthConfig.issuer), {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: oauthConfig.clientId,
+            client_secret: oauthConfig.clientSecret ?? '',
+            grant_type: 'refresh_token',
+            refresh_token: (token as any).refreshToken, // eslint-disable-line @typescript-eslint/no-explicit-any
+          }),
+          method: 'POST',
+        });
+        const tokens: TokenSet = await response.json();
+        if (!response.ok) {
+          throw tokens;
+        }
+        token.accessToken = tokens.access_token;
+        // the refresh token may not always be returned. If it's not, don't update
+        if (tokens.refresh_token) {
+          token.refreshToken = tokens.refresh_token;
+        }
+        if (tokens.expires_at) {
+          token.expiresAt = tokens.expires_at;
+        } else if (tokens.expires_in) {
+          token.expiresAt = Math.floor(
+            addSeconds(new Date(), tokens.expires_in).getTime() / 1000
+          );
         }
       }
       return token;
     },
   },
 });
+
+interface OidcConfiguration {
+  issuer: string;
+  authorization_endpoint: string;
+  token_endpoint: string;
+  userinfo_endpoint: string;
+  jwks_uri: string;
+}
+
+async function getTokenUrl(issuer: string): Promise<string> {
+  try {
+    const oidcConfig = await getOpenIdConfiguration(issuer);
+    if (!oidcConfig.token_endpoint) {
+      throw new Error('unable to find token endpoint');
+    }
+    console.log('found endpoint', oidcConfig.token_endpoint);
+    return oidcConfig.token_endpoint;
+  } catch (err) {
+    console.log('failed', err);
+    throw err;
+  }
+}
+
+async function getOpenIdConfiguration(
+  issuer: string
+): Promise<Partial<OidcConfiguration>> {
+  const wellKnownUrl = getWellKnown(issuer);
+
+  const res = await fetch(wellKnownUrl, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  return (await res.json()) as OidcConfiguration;
+}
 
 declare module 'next-auth' {
   export interface Session {

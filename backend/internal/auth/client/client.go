@@ -12,16 +12,16 @@ import (
 )
 
 type Client struct {
-	tokenurl          string
+	authBaseUrl       string
 	clientIdSecretMap map[string]string
 }
 
 func New(
-	tokenurl string,
+	authBaseUrl string,
 	clientIdSecretMap map[string]string,
 ) *Client {
 	return &Client{
-		tokenurl:          tokenurl,
+		authBaseUrl:       authBaseUrl,
 		clientIdSecretMap: clientIdSecretMap,
 	}
 }
@@ -71,7 +71,11 @@ func (c *Client) GetTokenResponse(
 			redirecturi,
 		),
 	)
-	req, err := http.NewRequestWithContext(ctx, "POST", c.tokenurl, payload)
+	tokenurl, err := c.getTokenEndpoint(ctx)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", tokenurl, payload)
 	if err != nil {
 		return nil, fmt.Errorf("unable to request oauth authorization code: %w", err)
 	}
@@ -128,7 +132,11 @@ func (c *Client) GetRefreshedAccessToken(
 			"grant_type=refresh_token&client_id=%s&client_secret=%s&refresh_token=%s", clientId, clientSecret, refreshToken,
 		),
 	)
-	req, err := http.NewRequestWithContext(ctx, "POST", c.tokenurl, payload)
+	tokenurl, err := c.getTokenEndpoint(ctx)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, "POST", tokenurl, payload)
 
 	if err != nil {
 		return nil, fmt.Errorf("unable to initiate refresh token request: %w", err)
@@ -171,4 +179,60 @@ func (c *Client) GetRefreshedAccessToken(
 		Result: tokenResponse,
 		Error:  nil,
 	}, nil
+}
+
+func (c *Client) getTokenEndpoint(ctx context.Context) (string, error) {
+	config, err := c.getOpenIdConfiguration(ctx)
+	if err != nil {
+		return "", err
+	}
+	if config.TokenEndpoint == "" {
+		return "", errors.New("unable to find token endpoint")
+	}
+	return config.TokenEndpoint, nil
+}
+
+func (c *Client) GetAuthorizationEndpoint(ctx context.Context) (string, error) {
+	config, err := c.getOpenIdConfiguration(ctx)
+	if err != nil {
+		return "", err
+	}
+	if config.AuthorizationEndpoint == "" {
+		return "", errors.New("unable to find authorization endpoint")
+	}
+	return config.AuthorizationEndpoint, nil
+}
+
+type openIdConfiguration struct {
+	Issuer                string `json:"issuer"`
+	AuthorizationEndpoint string `json:"authorization_endpoint"`
+	TokenEndpoint         string `json:"token_endpoint"`
+	UserinfoEndpoint      string `json:"userinfo_endpoint"`
+	JwksURI               string `json:"jwks_uri"`
+}
+
+func (c *Client) getOpenIdConfiguration(ctx context.Context) (*openIdConfiguration, error) {
+	configUrl := fmt.Sprintf("%s/.well-known/openid-configuration", strings.TrimSuffix(c.authBaseUrl, "/"))
+
+	req, err := http.NewRequestWithContext(ctx, "GET", configUrl, http.NoBody)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := getHttpClient().Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var bodyResp *openIdConfiguration
+	err = json.Unmarshal(body, &bodyResp)
+	if err != nil {
+		return nil, err
+	}
+	return bodyResp, nil
 }

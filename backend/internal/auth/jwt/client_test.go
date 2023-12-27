@@ -64,10 +64,10 @@ func Test_New(t *testing.T) {
 	_, err := New(nil)
 	assert.Error(t, err)
 
-	_, err = New(&ClientConfig{BaseUrl: "", ApiAudiences: []string{"foo"}})
+	_, err = New(&ClientConfig{BackendIssuerUrl: "http://example.com", SignatureAlgorithm: validator.RS256, ApiAudiences: []string{"foo"}})
 	assert.Nil(t, err)
 
-	_, err = New(&ClientConfig{BaseUrl: "", ApiAudiences: nil})
+	_, err = New(&ClientConfig{BackendIssuerUrl: "http://example.com", SignatureAlgorithm: validator.RS256, ApiAudiences: nil})
 	assert.Error(t, err, "fails if api audiences is nil")
 }
 
@@ -94,12 +94,11 @@ func Test_Client_InjectTokenCtx(t *testing.T) {
 		t,
 		data,
 		&TokenContextData{
-			ParsedToken:      validatedClaims,
-			RawToken:         "123",
-			Claims:           customclaims,
-			AuthUserId:       "test user",
-			Scopes:           []string{"foo", "bar"},
-			IsServiceAccount: false,
+			ParsedToken: validatedClaims,
+			RawToken:    "123",
+			Claims:      customclaims,
+			AuthUserId:  "test user",
+			Scopes:      []string{"foo", "bar"},
 		},
 	)
 }

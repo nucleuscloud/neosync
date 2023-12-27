@@ -34,6 +34,10 @@ stringData:
     AUTH_BASEURL: {{ .Values.auth.baseUrl }}
     {{- end }}
 
+    {{- if and .Values.auth .Values.auth.expectedIss }}
+    AUTH_EXPECTED_ISS: {{ .Values.auth.expectedIss }}
+    {{- end }}
+
     {{- if and .Values.auth .Values.auth.audience }}
     AUTH_AUDIENCE: {{ .Values.auth.audience }}
     {{- end }}
@@ -48,6 +52,10 @@ stringData:
 
    {{- if and .Values.auth .Values.auth.cliAudience }}
     AUTH_CLI_AUDIENCE: {{ .Values.auth.cliAudience }}
+    {{- end }}
+
+   {{- if and .Values.auth .Values.auth.signatureAlgorithm }}
+    AUTH_SIGNATURE_ALGORITHM: {{ .Values.auth.signatureAlgorithm }}
     {{- end }}
 
     {{- if and .Values.temporal .Values.temporal.url }}

@@ -15,8 +15,14 @@ import (
 )
 
 type ClientConfig struct {
-	BaseUrl      string
-	ApiAudiences []string
+	// Standard Issuer Url. Used for building the JWKS Provider
+	BackendIssuerUrl string
+	// Optionally provide a frontend Issuer Url. Falls back to BackendIssuerUrl if not provided.
+	// This should be equivalent to what will be present in the "iss" claim of the JWT token.
+	// This may be different depending auth provider or if running thorugh a reverse proxy
+	FrontendIssuerUrl  *string
+	ApiAudiences       []string
+	SignatureAlgorithm validator.SignatureAlgorithm
 }
 
 type JwtValidator interface {
@@ -33,17 +39,21 @@ func New(
 	if cfg == nil {
 		return nil, fmt.Errorf("must provide jwt client cfg")
 	}
-	issuerUrl, err := url.Parse(cfg.BaseUrl + "/")
+	issuerUrl, err := url.Parse(cfg.BackendIssuerUrl)
 	if err != nil {
 		return nil, err
 	}
-
 	provider := jwks.NewCachingProvider(issuerUrl, 5*time.Minute)
+
+	expectedIss := cfg.BackendIssuerUrl
+	if cfg.FrontendIssuerUrl != nil {
+		expectedIss = *cfg.FrontendIssuerUrl
+	}
 
 	jwtValidator, err := validator.New(
 		provider.KeyFunc,
-		validator.RS256,
-		issuerUrl.String(),
+		cfg.SignatureAlgorithm,
+		expectedIss,
 		cfg.ApiAudiences,
 		validator.WithCustomClaims(
 			func() validator.CustomClaims {
@@ -65,7 +75,7 @@ func New(
 func (j *Client) validateToken(ctx context.Context, accessToken string) (*validator.ValidatedClaims, error) {
 	rawParsedToken, err := j.jwtValidator.ValidateToken(ctx, accessToken)
 	if err != nil {
-		return nil, nucleuserrors.NewUnauthenticated("token was not valid")
+		return nil, nucleuserrors.NewUnauthenticated(err.Error())
 	}
 	validatedClaims, ok := rawParsedToken.(*validator.ValidatedClaims)
 	if !ok {
@@ -82,9 +92,8 @@ type TokenContextData struct {
 
 	Claims *CustomClaims
 
-	AuthUserId       string
-	Scopes           []string // Contains Scopes & Permissions
-	IsServiceAccount bool
+	AuthUserId string
+	Scopes     []string // Contains Scopes & Permissions
 }
 
 func (t *TokenContextData) HasScope(scope string) bool {
@@ -126,9 +135,8 @@ func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header) (contex
 
 		Claims: claims,
 
-		AuthUserId:       userId,
-		Scopes:           scopes,
-		IsServiceAccount: false,
+		AuthUserId: userId,
+		Scopes:     scopes,
 	})
 
 	return newCtx, nil

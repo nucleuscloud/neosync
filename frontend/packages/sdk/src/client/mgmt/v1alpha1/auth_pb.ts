@@ -495,3 +495,65 @@ export class RefreshCliResponse extends Message<RefreshCliResponse> {
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.CheckTokenRequest
+ */
+export class CheckTokenRequest extends Message<CheckTokenRequest> {
+  constructor(data?: PartialMessage<CheckTokenRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.CheckTokenRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckTokenRequest {
+    return new CheckTokenRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CheckTokenRequest {
+    return new CheckTokenRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CheckTokenRequest {
+    return new CheckTokenRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CheckTokenRequest | PlainMessage<CheckTokenRequest> | undefined, b: CheckTokenRequest | PlainMessage<CheckTokenRequest> | undefined): boolean {
+    return proto3.util.equals(CheckTokenRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.CheckTokenResponse
+ */
+export class CheckTokenResponse extends Message<CheckTokenResponse> {
+  constructor(data?: PartialMessage<CheckTokenResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.CheckTokenResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckTokenResponse {
+    return new CheckTokenResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CheckTokenResponse {
+    return new CheckTokenResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CheckTokenResponse {
+    return new CheckTokenResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CheckTokenResponse | PlainMessage<CheckTokenResponse> | undefined, b: CheckTokenResponse | PlainMessage<CheckTokenResponse> | undefined): boolean {
+    return proto3.util.equals(CheckTokenResponse, a, b);
+  }
+}
+

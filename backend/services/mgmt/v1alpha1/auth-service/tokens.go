@@ -102,9 +102,13 @@ func (s *Service) GetAuthorizeUrl(
 	params.Add("state", req.Msg.State)
 	params.Add("response_type", "code")
 
-	authorizeUrl := fmt.Sprintf("%s?%s", s.cfg.AuthorizeUrl, params.Encode())
+	authorizeUrl, err := s.authclient.GetAuthorizationEndpoint(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetAuthorizeUrlResponse{
-		Url: authorizeUrl,
+		Url: fmt.Sprintf("%s?%s", authorizeUrl, params.Encode()),
 	}), nil
 }
 
@@ -116,4 +120,11 @@ func (s *Service) GetCliIssuer(
 		Audience:  s.cfg.CliAudience,
 		IssuerUrl: s.cfg.IssuerUrl,
 	}), nil
+}
+
+func (s *Service) CheckToken(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.CheckTokenRequest],
+) (*connect.Response[mgmtv1alpha1.CheckTokenResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.CheckTokenResponse{}), nil
 }

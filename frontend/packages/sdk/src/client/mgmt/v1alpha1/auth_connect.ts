@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetAuthorizeUrlRequest, GetAuthorizeUrlResponse, GetAuthStatusRequest, GetAuthStatusResponse, GetCliIssuerRequest, GetCliIssuerResponse, LoginCliRequest, LoginCliResponse, RefreshCliRequest, RefreshCliResponse } from "./auth_pb.js";
+import { CheckTokenRequest, CheckTokenResponse, GetAuthorizeUrlRequest, GetAuthorizeUrlResponse, GetAuthStatusRequest, GetAuthStatusResponse, GetCliIssuerRequest, GetCliIssuerResponse, LoginCliRequest, LoginCliResponse, RefreshCliRequest, RefreshCliResponse } from "./auth_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -39,7 +39,19 @@ export const AuthService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Empty endpoint to simply check if the provided access token is valid
+     *
+     * @generated from rpc mgmt.v1alpha1.AuthService.CheckToken
+     */
+    checkToken: {
+      name: "CheckToken",
+      I: CheckTokenRequest,
+      O: CheckTokenResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
      * Used by the CLI to retrieve Auth Issuer information
+     * @deprecated
      *
      * @generated from rpc mgmt.v1alpha1.AuthService.GetCliIssuer
      */

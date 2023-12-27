@@ -3,7 +3,7 @@ services:
     container_name: neosync-app
     image: neosync-app
     build:
-      context: ./frontend
+      context: $PWD/frontend
       dockerfile: ./apps/web/dev/build/Dockerfile.dev
     ports:
       - 3000:3000
@@ -15,21 +15,34 @@ services:
 
       - POSTHOG_KEY=phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip
 
-      - AUTH_ENABLED=false
+      - AUTH_ENABLED=true
+      - AUTH_ISSUER=http://keycloak:8080/realms/neosync
+      - AUTH_EXPECTED_ISSUER=http://localhost:8083/realms/neosync
+      - AUTH_AUTHORIZE_URL=http://localhost:8083/realms/neosync/protocol/openid-connect/auth
+      - AUTH_USERINFO_URL=http://keycloak:8080/realms/neosync/protocol/openid-connect/userinfo
+      - AUTH_TOKEN_URL=http://keycloak:8080/realms/neosync/protocol/openid-connect/token
+
+      - AUTH_CLIENT_ID=neosync-app
+      - AUTH_CLIENT_SECRET=72alWGzhHInDskRHduTQ8BjB4Lgn0n3a
+      - AUTH_AUDIENCE=neosync
+      - AUTH_SCOPE=openid email profile offline_access
+      - AUTH_PROVIDER_ID=keycloak
+      - AUTH_PROVIDER_NAME=Keycloak
 
     networks:
       - neosync-network
+      - kc-network
     develop:
       watch:
-        - path: frontend/package.json
+        - path: $PWD/frontend/package.json
           action: rebuild
-        - path: frontend/package-lock.json
+        - path: $PWD/frontend/package-lock.json
           action: rebuild
-        - path: frontend/
+        - path: $PWD/frontend/
           action: sync
           target: /app
           ignore:
-            - frontend/node_modules/
+            - $PWD/frontend/node_modules/
 
   db:
     container_name: neosync-db
@@ -47,6 +60,7 @@ services:
       retries: 5
     networks:
       - neosync-network
+      - kc-network
     volumes:
       - $PWD/.data/neosync-postgres/data:/var/lib/postgresql/data
       - $PWD/hack/pg-init:/docker-entrypoint-initdb.d
@@ -55,7 +69,7 @@ services:
     container_name: neosync-api
     image: neosync-api
     build:
-      context: ./backend
+      context: $PWD/backend
       dockerfile: ./dev/build/Dockerfile.dev
     ports:
       - 8080:8080
@@ -76,11 +90,19 @@ services:
       - DB_MIGRATIONS_TABLE=neosync_api_schema_migrations
       - DB_MIGRATIONS_TABLE_QUOTED=false
 
-      - AUTH_ENABLED=false
+      - AUTH_ENABLED=true
+      - AUTH_AUDIENCE=neosync
+      - AUTH_BASEURL=http://keycloak:8080/realms/neosync
+      - AUTH_EXPECTED_ISS=http://localhost:8083/realms/neosync
+      - AUTH_CLI_CLIENT_ID=neosync-cli
+      - AUTH_CLI_AUDIENCE=neosync
+      - AUTH_CLIENTID_SECRET={"neosync-cli":"GkVsthDzDvBfzb2vT4UO95xbXrwoXE5w"}
+      - AUTH_SIGNATURE_ALGORITHM=RS256
 
     networks:
       - neosync-network
       - temporal-network
+      - kc-network
 
     depends_on:
       db:
@@ -88,7 +110,7 @@ services:
         restart: true
     develop:
       watch:
-        - path: backend/bin
+        - path: $PWD/backend/bin
           action: sync+restart
           target: /app
 
@@ -96,7 +118,7 @@ services:
     container_name: neosync-worker
     image: neosync-worker
     build:
-      context: ./worker
+      context: $PWD/worker
       dockerfile: ./dev/build/Dockerfile.dev
     environment:
       - NUCLEUS_ENV=dev
@@ -109,13 +131,44 @@ services:
       - temporal-network
     develop:
       watch:
-        - path: worker/bin
+        - path: $PWD/worker/bin
           action: sync+restart
           target: /app
+
+  keycloak:
+    container_name: neosync-auth-keycloak
+    image: quay.io/keycloak/keycloak
+    ports:
+      - 8083:8080
+    command: start-dev --import-realm
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=change_me
+
+      - KC_HOSTNAME_URL=http://localhost:8083
+
+      - KC_DB=postgres
+      - KC_DB_URL_HOST=db
+      - KC_DB_URL_PORT=5432
+      - KC_DB_URL_DATABASE=nucleus
+      - KC_DB_USERNAME=postgres
+      - KC_DB_PASSWORD=foofar
+      - KC_DB_SCHEMA=keycloak
+    volumes:
+      - $PWD/keycloak/imports:/opt/keycloak/data/import
+    networks:
+      - kc-network
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
 
 networks:
   neosync-network:
     driver: bridge
     name: neosync-network
+  kc-network:
+    driver: bridge
+    name: kc-network
   temporal-network:
     external: true
