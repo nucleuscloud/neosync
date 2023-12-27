@@ -48,19 +48,37 @@ These environment variables are loaded when running the `mgmt serve connect` com
 ## Backend API Database Migrations
 
 These environment variables are loaded when running the `mgmt migrate up` command which runs database migrations.
-| Variable | Description | Required | Default Value |
-|----------------------------|-------------------------------------------------------------------------------------------------------------------|----------|---------------|
-| DB_HOST | The database host | true | |
-| DB_PORT | The port used to connect to the database | true | |
-| DB_NAME | The name of the database | true | |
-| DB_USER | The username that will be used to connect to the database | true | |
-| DB_PASS | The password that will be used by the DB_USER to connect to the database | true | |
-| DB_SSL_DISABLE | Postgres requires SSL by default. Set this to "true" to disable ssl, which is useful for dev environments | false | false |
-| DB_SCHEMA_DIR | The directory where the migrations scripts are found. | false | |
-| DB_MIGRATIONS_TABLE | The name of the table where the migrations will be tracked. Useful if you want to override the default, or put into a different schema | false | |
-| DB_MIGRATIONS_TABLE_QUOTED | If the table set in DB_MIGRATIONS_TABLE contains quotes | false | |
+
+| Variable                   | Description                                                                                                                            | Required | Default Value |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------- |
+| DB_HOST                    | The database host                                                                                                                      | true     |               |
+| DB_PORT                    | The port used to connect to the database                                                                                               | true     |               |
+| DB_NAME                    | The name of the database                                                                                                               | true     |               |
+| DB_USER                    | The username that will be used to connect to the database                                                                              | true     |               |
+| DB_PASS                    | The password that will be used by the DB_USER to connect to the database                                                               | true     |               |
+| DB_SSL_DISABLE             | Postgres requires SSL by default. Set this to "true" to disable ssl, which is useful for dev environments                              | false    | false         |
+| DB_SCHEMA_DIR              | The directory where the migrations scripts are found.                                                                                  | false    |               |
+| DB_MIGRATIONS_TABLE        | The name of the table where the migrations will be tracked. Useful if you want to override the default, or put into a different schema | false    |               |
+| DB_MIGRATIONS_TABLE_QUOTED | If the table set in DB_MIGRATIONS_TABLE contains quotes                                                                                | false    |               |
 
 ## Frontend App
+
+| Variable                 | Description                                                                                                                                                            | Is Required | Default Value         |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------- |
+| AUTH_ENABLED             | Whether or not to enable authentication in the App. Should be required for any production environment                                                                  | false       | false                 |
+| NEXTAUTH_URL             | This the base url that the app will be accessible from. Note: this is not the base url for the auth service, but for the app itself. Required if AUTH_ENABLED is true  | false       |                       |
+| NEXTAUTH_SECRET          | This is a secret value that is used to encrypt the next-auth cookie that is stored in the browser. This should change per environment.                                 | true        |                       |
+| AUTH_CLIENT_ID           | The client id that will be used to authenticate via auth0. Required if AUTH_ENABLED is true                                                                            | false       |                       |
+| AUTH_CLIENT_SECRET       | The client secret that will be used to authenticate via auth0. Required if AUTH_ENABLED is true                                                                        | false       |                       |
+| AUTH_ISSUER              | The issuer url for auth0. This is typically the baseurl for the auth instance. Required if AUTH_ENABLED is true                                                        | false       |                       |
+| AUTH_SCOPE               | The space separated list of scopes that will be requested when issuing an access token. Required if AUTH_ENABLED is true                                               | false       |                       |
+| AUTH_AUDIENCE            | The audience that will be used when requesting the access token. Required if AUTH_ENABLED is true true                                                                 | false       |                       |
+| NEXT_PUBLIC_APP_BASE_URL | The url of the app. This is typically the same as NEXTAUTH_URL. Used for generating invite urls, among other things. This is not baked into the HTML or the image.true | false       |                       |
+| NEOSYNC_API_BASE_URL     | The base url of the Neosync API. This can be overridden to connect to different Neosync API environments                                                               | false       | http://localhost:8080 |
+
+## Worker
+
+These environment variables are loaded when running the `worker serve` command which starts the main worker instance.
 
 | Variable               | Description                                                                                                                                                                                   | Is Required | Default Value  |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- |
@@ -76,31 +94,15 @@ These environment variables are loaded when running the `mgmt migrate up` comman
 | NEOSYNC_URL            | The base url of the Neosync API that the worker will use to connect to                                                                                                                        | false       | localhost:8080 |
 | NEOSYNC_API_KEY        | The API key that will be provided as a bearer token in the Authentication header when making requests to the Neosync API                                                                      | false       |                |
 
-## Worker
-
-These environment variables are loaded when running the `worker serve` command which starts the main worker instance.
-| Variable | Description | Is Required | Default Value |
-|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|---------------|
-| HOST | The host that will be used when binding the http server. Set this to "0.0.0.0" for production environments | false | 127.0.0.1 |
-| PORT | The port that will be used to bind the http server | false | 8080 |
-| TEMPORAL_URL | The url used to connect to the temporal instance | false | localhost:7233|
-| TEMPORAL_NAMESPACE | The Temporal namespace to connect to | false | default |
-| TEMPORAL_TASK_QUEUE | The Temporal task queue name to connect to for Neosync jobs | true | |
-| TEMPORAL_CERT_KEY_PATH | The path on the filesystem where the worker can find the mTLS certificate key it will use to authenticate against Temporal. This will be used over the TEMPORAL_CERT_KEY environment variable | false | |
-| TEMPORAL_CERT_PATH | The path on the filesystem where the worker can find the mTLS certificate that will be used to authenticate against Temporal. This will be used over the TEMPORAL_CERT environment variable | false | |
-| TEMPORAL_CERT | The Temporal mTLS certificate contents. Use this if you want to load contents directly instead of mounting them to the filesystem | false | |
-| TEMPORAL_CERT_KEY | The Temporal mTLS certificate key contents. Use this if you want to load the contents directly instead of mounting them to the filesystem | false | |
-| NEOSYNC_URL | The base url of the Neosync API that the worker will use to connect to | false | localhost:8080|
-| NEOSYNC_API_KEY | The API key that will be provided as a bearer token in the Authentication header when making requests to the Neosync API | false | |
-
 ## CLI
 
 There are some environment variables that the CLI accepts to override default behavior to accomodate different environments.
-| Variable | Description | Is Required | Default Value |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------|-------------|---------------------|
-| NEOSYNC_API_URL | The base url of the Neosync API. This can be overridden to connect to different Neosync API environments | false | http://localhost:8080|
-| NEOSYNC_API_KEY | The api key for Neosync API. | false | |
-| LOGIN_HOST | The http server that is booted up running `neosync login` via an oauth flow | false | 127.0.0.1 |
-| LOGIN_REDIRECT_HOST| The redirect host that is sent alongside the oauth flow when running `neosync login` | false | 127.0.0.1 |
-| LOGIN_PORT | The port the http server runs on when running `neosync login` | false | 4242 |
-| NEOSYNC_CONFIG_DIR | The config directory to store Neosync-specific credentials. For Linux users, `$XDG_CONFIG_HOME` is also respected. | false | ~/.neosync |
+
+| Variable            | Description                                                                                                        | Is Required | Default Value         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------- | --------------------- |
+| NEOSYNC_API_URL     | The base url of the Neosync API. This can be overridden to connect to different Neosync API environments           | false       | http://localhost:8080 |
+| NEOSYNC_API_KEY     | The api key for Neosync API.                                                                                       | false       |                       |
+| LOGIN_HOST          | The http server that is booted up running `neosync login` via an oauth flow                                        | false       | 127.0.0.1             |
+| LOGIN_REDIRECT_HOST | The redirect host that is sent alongside the oauth flow when running `neosync login`                               | false       | 127.0.0.1             |
+| LOGIN_PORT          | The port the http server runs on when running `neosync login`                                                      | false       | 4242                  |
+| NEOSYNC_CONFIG_DIR  | The config directory to store Neosync-specific credentials. For Linux users, `$XDG_CONFIG_HOME` is also respected. | false       | ~/.neosync            |
