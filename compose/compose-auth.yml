@@ -24,7 +24,7 @@ services:
 
       - AUTH_CLIENT_ID=neosync-app
       - AUTH_CLIENT_SECRET=72alWGzhHInDskRHduTQ8BjB4Lgn0n3a
-      - AUTH_AUDIENCE=account
+      - AUTH_AUDIENCE=neosync
       - AUTH_SCOPE=openid email profile offline_access
       - AUTH_PROVIDER_ID=keycloak
       - AUTH_PROVIDER_NAME=Keycloak
@@ -34,15 +34,15 @@ services:
       - kc-network
     develop:
       watch:
-        - path: frontend/package.json
+        - path: $PWD/frontend/package.json
           action: rebuild
-        - path: frontend/package-lock.json
+        - path: $PWD/frontend/package-lock.json
           action: rebuild
-        - path: frontend/
+        - path: $PWD/frontend/
           action: sync
           target: /app
           ignore:
-            - frontend/node_modules/
+            - $PWD/frontend/node_modules/
 
   db:
     container_name: neosync-db
@@ -95,7 +95,7 @@ services:
       - AUTH_BASEURL=http://keycloak:8080/realms/neosync
       - AUTH_EXPECTED_ISS=http://localhost:8083/realms/neosync
       - AUTH_CLI_CLIENT_ID=neosync-cli
-      - AUTH_CLI_AUDIENCE=account
+      - AUTH_CLI_AUDIENCE=neosync
       - AUTH_CLIENTID_SECRET={"neosync-cli":"GkVsthDzDvBfzb2vT4UO95xbXrwoXE5w"}
       - AUTH_SIGNATURE_ALGORITHM=RS256
 
@@ -110,7 +110,7 @@ services:
         restart: true
     develop:
       watch:
-        - path: backend/bin
+        - path: $PWD/backend/bin
           action: sync+restart
           target: /app
 
@@ -131,7 +131,7 @@ services:
       - temporal-network
     develop:
       watch:
-        - path: worker/bin
+        - path: $PWD/worker/bin
           action: sync+restart
           target: /app
 
