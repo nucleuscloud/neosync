@@ -8,6 +8,7 @@ import (
 type CustomClaims struct {
 	Scope       string   `json:"scope"`
 	Permissions []string `json:"permissions,omitempty"`
+	Email       *string  `json:"email,omitempty"`
 }
 
 // Validate does nothing for this example, but we need

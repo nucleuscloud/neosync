@@ -92,9 +92,8 @@ type TokenContextData struct {
 
 	Claims *CustomClaims
 
-	AuthUserId       string
-	Scopes           []string // Contains Scopes & Permissions
-	IsServiceAccount bool
+	AuthUserId string
+	Scopes     []string // Contains Scopes & Permissions
 }
 
 func (t *TokenContextData) HasScope(scope string) bool {
@@ -136,9 +135,8 @@ func (j *Client) InjectTokenCtx(ctx context.Context, header http.Header) (contex
 
 		Claims: claims,
 
-		AuthUserId:       userId,
-		Scopes:           scopes,
-		IsServiceAccount: false,
+		AuthUserId: userId,
+		Scopes:     scopes,
 	})
 
 	return newCtx, nil

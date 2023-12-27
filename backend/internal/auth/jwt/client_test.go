@@ -94,12 +94,11 @@ func Test_Client_InjectTokenCtx(t *testing.T) {
 		t,
 		data,
 		&TokenContextData{
-			ParsedToken:      validatedClaims,
-			RawToken:         "123",
-			Claims:           customclaims,
-			AuthUserId:       "test user",
-			Scopes:           []string{"foo", "bar"},
-			IsServiceAccount: false,
+			ParsedToken: validatedClaims,
+			RawToken:    "123",
+			Claims:      customclaims,
+			AuthUserId:  "test user",
+			Scopes:      []string{"foo", "bar"},
 		},
 	)
 }

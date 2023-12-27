@@ -607,6 +607,64 @@ func Test_AcceptTeamAccountInvite(t *testing.T) {
 	assert.Equal(t, mockAccountId, resp.Msg.Account.Id)
 }
 
+func Test_AcceptTeamAccountInvite_JwtEmail(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockTx := new(nucleusdb.MockTx)
+
+	email := "fakeemail@fakefake.com"
+
+	data := &authjwt.TokenContextData{AuthUserId: mockAuthProvider, Claims: &authjwt.CustomClaims{
+		Email: &email,
+	}}
+	ctx := context.WithValue(context.Background(), authjwt.TokenContextKey{}, data)
+	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	token := uuid.NewString()
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	inviteUuid, _ := nucleusdb.ToUuid(uuid.NewString())
+	expiresAt := pgtype.Timestamp{
+		Time: time.Now().Add(1 * time.Hour),
+	}
+
+	mockVerifyTeamAccount(ctx, m.QuerierMock, accountUuid, true)
+	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
+	m.QuerierMock.On("GetUserIdentityByUserId", ctx, mock.Anything, userUuid).Return(userAssociation, nil)
+	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
+	m.QuerierMock.On("GetAccountInviteByToken", ctx, mockTx, token).Return(db_queries.NeosyncApiAccountInvite{
+		AccountID:    accountUuid,
+		SenderUserID: userUuid,
+		Email:        email,
+		ExpiresAt:    expiresAt,
+		ID:           inviteUuid,
+		Accepted:     pgtype.Bool{Bool: false},
+	}, nil)
+	m.QuerierMock.On("UpdateAccountInviteToAccepted", ctx, mockTx, inviteUuid).Return(db_queries.NeosyncApiAccountInvite{}, nil)
+	m.QuerierMock.On("GetAccountUserAssociation", ctx, mockTx, db_queries.GetAccountUserAssociationParams{
+		AccountId: accountUuid,
+		UserId:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{}, sql.ErrNoRows)
+	m.QuerierMock.On("CreateAccountUserAssociation", ctx, mockTx, db_queries.CreateAccountUserAssociationParams{
+		AccountID: accountUuid,
+		UserID:    userUuid,
+	}).Return(db_queries.NeosyncApiAccountUserAssociation{}, nil)
+	mockTx.On("Rollback", ctx).Return(nil)
+	mockTx.On("Commit", ctx).Return(nil)
+	m.QuerierMock.On("GetAccount", ctx, mock.Anything, accountUuid).Return(db_queries.NeosyncApiAccount{
+		ID:          accountUuid,
+		AccountType: int16(1),
+	}, nil)
+
+	resp, err := m.Service.AcceptTeamAccountInvite(ctx, &connect.Request[mgmtv1alpha1.AcceptTeamAccountInviteRequest]{
+		Msg: &mgmtv1alpha1.AcceptTeamAccountInviteRequest{
+			Token: token,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mockAccountId, resp.Msg.Account.Id)
+}
+
 type serviceMocks struct {
 	Service                   *Service
 	DbtxMock                  *nucleusdb.MockDBTX

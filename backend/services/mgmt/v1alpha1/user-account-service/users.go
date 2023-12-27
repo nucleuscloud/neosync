@@ -443,13 +443,32 @@ func (s *Service) AcceptTeamAccountInvite(
 		return nil, err
 	}
 
-	// check auth user email to invite email
-	authUser, err := s.auth0MgmtClient.GetUserById(ctx, userIdentity.ProviderSub)
+	tokenctxResp, err := tokenctx.GetTokenCtx(ctx)
 	if err != nil {
 		return nil, err
 	}
+	if tokenctxResp.JwtContextData == nil {
+		return nil, nucleuserrors.NewUnauthenticated("must be a valid jwt user to accept team account invites")
+	}
 
-	accountId, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, authUser.GetEmail())
+	var email *string
+	if tokenctxResp.JwtContextData.Claims != nil && tokenctxResp.JwtContextData.Claims.Email != nil {
+		email = tokenctxResp.JwtContextData.Claims.Email
+	} else {
+		// check auth user email to invite email
+		// todo: remove the need for this by adding the email to the auth0 jwt, if it's not already there.
+		authUser, err := s.auth0MgmtClient.GetUserById(ctx, userIdentity.ProviderSub)
+		if err != nil {
+			return nil, err
+		}
+		authUserEmail := authUser.GetEmail()
+		email = &authUserEmail
+	}
+	if email == nil {
+		return nil, nucleuserrors.NewUnauthenticated("unable to find email to valid to add user to account")
+	}
+
+	accountId, err := s.db.ValidateInviteAddUserToAccount(ctx, userUuid, req.Msg.Token, *email)
 	if err != nil {
 		return nil, err
 	}
