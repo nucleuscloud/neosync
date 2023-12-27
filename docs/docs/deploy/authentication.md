@@ -24,7 +24,7 @@ This form of authentication is configured with any Open Identity Connect (OIDC) 
 Internally, we utilize Auth0, and to date this is the only provider that has been fully tested for use with Neosync.
 
 Environment variables must be provided for the App ad API to properly configure User Authentication.
-See the [environment variables](/deploy/environment-variables.mdx) page for the whole list of required auth env vars.
+See the [environment variables](/deploy/environment-variables.md) page for the whole list of required auth env vars.
 The table shows that most of them are not required, however that is only ture if `AUTH_ENABLED` is set to false. They must be provided if `AUTH_ENABLED=true`.
 
 The descriptions of each environment variable detail exactly what the `AUTH_*` is and why it is needed.
@@ -97,4 +97,4 @@ If using Temporal Cloud, mTLS is required by default and must be configured to p
 Temporal has a guide for creating mTLS certs [here](https://docs.temporal.io/cloud/certificates#use-tcld-to-generate-certificates).
 
 Once these have been created, they must be provided as environment variables to both the API and Worker processes.
-Reference the [environment variables](/deploy/environment-variables.mdx) page for the `TEMPORAL_*` environment variables.
+Reference the [environment variables](/deploy/environment-variables.md) page for the `TEMPORAL_*` environment variables.
