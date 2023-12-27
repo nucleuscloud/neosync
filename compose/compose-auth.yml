@@ -140,7 +140,7 @@ services:
     image: quay.io/keycloak/keycloak
     ports:
       - 8083:8080
-    command: start-dev
+    command: start-dev --import-realm
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=change_me
@@ -154,6 +154,8 @@ services:
       - KC_DB_USERNAME=postgres
       - KC_DB_PASSWORD=foofar
       - KC_DB_SCHEMA=keycloak
+    volumes:
+      - $PWD/keycloak/imports:/opt/keycloak/data/import
     networks:
       - kc-network
     depends_on:
