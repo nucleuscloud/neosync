@@ -214,7 +214,7 @@ type openIdConfiguration struct {
 func (c *Client) getOpenIdConfiguration(ctx context.Context) (*openIdConfiguration, error) {
 	configUrl := fmt.Sprintf("%s/.well-known/openid-configuration", strings.TrimSuffix(c.authBaseUrl, "/"))
 
-	req, err := http.NewRequestWithContext(ctx, "GET", configUrl, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", configUrl, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
