@@ -156,12 +156,10 @@ func oAuthLogin(
 		if result.State != state {
 			return errors.New("state received from response was not what was sent")
 		}
-		fmt.Println("logging in to cli")
 		loginResp, err := authclient.LoginCli(ctx, connect.NewRequest(&mgmtv1alpha1.LoginCliRequest{Code: result.Code, RedirectUri: redirectUri}))
 		if err != nil {
 			return err
 		}
-		fmt.Println(loginResp.Msg.AccessToken)
 		err = userconfig.SetAccessToken(loginResp.Msg.AccessToken.AccessToken)
 		if err != nil {
 			return err
