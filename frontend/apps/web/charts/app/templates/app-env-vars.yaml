@@ -27,20 +27,41 @@ stringData:
     NEXTAUTH_URL: {{ .Values.nextAuthUrl }}
     {{- end }}
 
-    {{ if .Values.auth0.clientId }}
-    AUTH0_CLIENT_ID: {{ .Values.auth0.clientId }}
+    {{ if .Values.auth.clientId }}
+    AUTH_CLIENT_ID: {{ .Values.auth.clientId }}
     {{- end }}
-    {{ if .Values.auth0.clientSecret }}
-    AUTH0_CLIENT_SECRET: {{ .Values.auth0.clientSecret }}
+    {{ if .Values.auth.clientSecret }}
+    AUTH_CLIENT_SECRET: {{ .Values.auth.clientSecret }}
     {{- end }}
-    {{ if .Values.auth0.issuer }}
-    AUTH0_ISSUER: {{ .Values.auth0.issuer }}
+
+    {{ if .Values.auth.issuer }}
+    AUTH_ISSUER: {{ .Values.auth.issuer }}
     {{- end }}
-    {{ if .Values.auth0.scope }}
-    AUTH0_SCOPE: {{ .Values.auth0.scope }}
+    {{ if .Values.auth.expectedIssuer }}
+    AUTH_EXPECTED_ISSUER: {{ .Values.auth.expectedIssuer }}
     {{- end }}
-    {{ if .Values.auth0.audience }}
-    AUTH0_AUDIENCE: {{ .Values.auth0.audience }}
+    {{ if .Values.auth.authorizeUrl }}
+    AUTH_AUTHORIZE_URL: {{ .Values.auth.authorizeUrl }}
+    {{- end }}
+    {{ if .Values.auth.userinfoUrl }}
+    AUTH_USERINFO_URL: {{ .Values.auth.userinfoUrl }}
+    {{- end }}
+    {{ if .Values.auth.tokenUrl }}
+    AUTH_TOKEN_URL: {{ .Values.auth.tokenUrl }}
+    {{- end }}
+
+    {{ if .Values.auth.scope }}
+    AUTH_SCOPE: {{ .Values.auth.scope }}
+    {{- end }}
+    {{ if .Values.auth.audience }}
+    AUTH_AUDIENCE: {{ .Values.auth.audience }}
+    {{- end }}
+
+    {{ if .Values.auth.providerId }}
+    AUTH_PROVIDER_ID: {{ .Values.auth.providerId }}
+    {{- end }}
+    {{ if .Values.auth.providerName }}
+    AUTH_PROVIDER_NAME: {{ .Values.auth.providerName }}
     {{- end }}
 
     {{ if .Values.nextPublic.appBaseUrl }}

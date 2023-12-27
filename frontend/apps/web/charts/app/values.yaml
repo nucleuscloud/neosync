@@ -44,8 +44,6 @@ nextPublic:
 
 auth:
   enabled: false
-
-auth0:
   clientId:
   clientSecret:
   issuer:
