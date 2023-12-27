@@ -264,3 +264,11 @@ pre {
 table {
   @apply text-sm;
 }
+
+.clean-list a {
+  @apply no-underline;
+}
+
+header h2 a {
+  @apply text-3xl no-underline text-black;
+}

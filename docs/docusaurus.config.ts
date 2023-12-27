@@ -51,11 +51,17 @@ const config: Config = {
         docs: {
           routeBasePath: '/',
           sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/nucleuscloud/neosync/blob/main/docs',
         },
-        blog: false,
+        blog: {
+          routeBasePath: '/changelog',
+          editUrl: 'https://github.com/nucleuscloud/neosync/blob/main/docs',
+          blogTitle: 'Neosync Changelog',
+          blogDescription: 'Neosync Changelog',
+          blogSidebarTitle: ' Changelog',
+          blogSidebarCount: 'ALL',
+        },
         theme: {
           customCss: ['./src/css/custom.css'],
         },
@@ -111,6 +117,7 @@ const config: Config = {
         },
         { to: '/', label: 'Docs' },
         { to: '/api', label: 'API' },
+        { to: '/changelog', label: 'Changelog' },
       ],
     },
     footer: {
