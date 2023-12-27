@@ -91,7 +91,7 @@ services:
       - DB_MIGRATIONS_TABLE_QUOTED=false
 
       - AUTH_ENABLED=true
-      - AUTH_AUDIENCE=account
+      - AUTH_AUDIENCE=neosync
       - AUTH_BASEURL=http://keycloak:8080/realms/neosync
       - AUTH_EXPECTED_ISS=http://localhost:8083/realms/neosync
       - AUTH_CLI_CLIENT_ID=neosync-cli
