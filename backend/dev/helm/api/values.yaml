@@ -37,7 +37,7 @@ servicePort: 80
 containerPort: 8080
 
 auth:
-  baseUrl: https://auth.nucleuscloud.dev
+  baseUrl: https://auth.nucleuscloud.dev/
   audience: https://api.nucleuscloud.com
 
 temporal:
