@@ -521,7 +521,7 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Javascript",
 				Description: "Write custom javascript to transform data",
 				DataType:    "string",
-				Source:      string(Null),
+				Source:      string(Javascript),
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
 						JavascriptConfig: &mgmtv1alpha1.Javascript{Code: ""},
