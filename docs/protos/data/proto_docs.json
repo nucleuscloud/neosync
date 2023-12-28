@@ -3690,6 +3690,30 @@
           ]
         },
         {
+          "name": "Javascript",
+          "longName": "Javascript",
+          "fullName": "mgmt.v1alpha1.Javascript",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "code",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "Null",
           "longName": "Null",
           "fullName": "mgmt.v1alpha1.Null",
@@ -4532,6 +4556,18 @@
               "type": "GenerateDefault",
               "longType": "GenerateDefault",
               "fullType": "mgmt.v1alpha1.GenerateDefault",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "javascript_config",
+              "description": "",
+              "label": "",
+              "type": "Javascript",
+              "longType": "Javascript",
+              "fullType": "mgmt.v1alpha1.Javascript",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

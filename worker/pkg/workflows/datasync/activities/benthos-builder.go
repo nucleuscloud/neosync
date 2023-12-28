@@ -176,7 +176,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigReponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -240,7 +240,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigReponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}

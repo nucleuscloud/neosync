@@ -48,6 +48,7 @@ type TransformerConfigs struct {
 	Passthrough               *PassthroughConfig               `json:"passthrough,omitempty"`
 	Null                      *NullConfig                      `json:"null,omitempty"`
 	UserDefinedTransformer    *UserDefinedTransformerConfig    `json:"userDefinedTransformer,omitempty"`
+	Javascript                *JavascriptConfig                `json:"javascript,omitempty"`
 }
 
 type GenerateEmailConfig struct{}
@@ -173,6 +174,10 @@ type NullConfig struct{}
 
 type UserDefinedTransformerConfig struct {
 	Id string `json:"id"`
+}
+
+type JavascriptConfig struct {
+	Code string `json:"code"`
 }
 
 // from API -> DB
@@ -318,6 +323,10 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 	case *mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig:
 		t.UserDefinedTransformer = &UserDefinedTransformerConfig{
 			Id: tr.GetUserDefinedTransformerConfig().Id,
+		}
+	case *mgmtv1alpha1.TransformerConfig_JavascriptConfig:
+		t.Javascript = &JavascriptConfig{
+			Code: tr.GetJavascriptConfig().GetCode(),
 		}
 	default:
 		t = &TransformerConfigs{}
@@ -609,6 +618,14 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
 				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
 					Id: t.UserDefinedTransformer.Id,
+				},
+			},
+		}
+	case t.Javascript != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
+				JavascriptConfig: &mgmtv1alpha1.Javascript{
+					Code: t.Javascript.Code,
 				},
 			},
 		}

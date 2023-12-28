@@ -947,6 +947,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: GenerateDefault;
     case: "generateDefaultConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.Javascript javascript_config = 39;
+     */
+    value: Javascript;
+    case: "javascriptConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -995,6 +1001,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 36, name: "nullconfig", kind: "message", T: Null, oneof: "config" },
     { no: 37, name: "user_defined_transformer_config", kind: "message", T: UserDefinedTransformerConfig, oneof: "config" },
     { no: 38, name: "generate_default_config", kind: "message", T: GenerateDefault, oneof: "config" },
+    { no: 39, name: "javascript_config", kind: "message", T: Javascript, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -2332,6 +2339,43 @@ export class Null extends Message<Null> {
 
   static equals(a: Null | PlainMessage<Null> | undefined, b: Null | PlainMessage<Null> | undefined): boolean {
     return proto3.util.equals(Null, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.Javascript
+ */
+export class Javascript extends Message<Javascript> {
+  /**
+   * @generated from field: string code = 1;
+   */
+  code = "";
+
+  constructor(data?: PartialMessage<Javascript>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.Javascript";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Javascript {
+    return new Javascript().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Javascript {
+    return new Javascript().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Javascript {
+    return new Javascript().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Javascript | PlainMessage<Javascript> | undefined, b: Javascript | PlainMessage<Javascript> | undefined): boolean {
+    return proto3.util.equals(Javascript, a, b);
   }
 }
 

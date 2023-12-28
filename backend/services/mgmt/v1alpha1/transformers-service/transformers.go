@@ -54,6 +54,7 @@ const (
 	Passthrough               Transformation = "passthrough"
 	Null                      Transformation = "null"
 	Invalid                   Transformation = "invalid"
+	Javascript                Transformation = "javascript"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -513,6 +514,17 @@ func (s *Service) GetSystemTransformers(
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 						Nullconfig: &mgmtv1alpha1.Null{},
+					},
+				},
+			},
+			{
+				Name:        "Javascript",
+				Description: "Write custom javascript to transform data",
+				DataType:    "string",
+				Source:      string(Null),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
+						JavascriptConfig: &mgmtv1alpha1.Javascript{Code: ""},
 					},
 				},
 			},

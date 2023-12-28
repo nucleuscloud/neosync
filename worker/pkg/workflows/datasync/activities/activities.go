@@ -117,7 +117,7 @@ type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
-func (b *benthosBuilder) buildBenthosSqlSourceConfigReponses(
+func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	ctx context.Context,
 	mappings []*TableMapping,
 	dsn string,
