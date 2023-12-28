@@ -129,30 +129,6 @@ this is the class for the sidebar categories that section headers
     @apply text-gray-900 text-xl font-semibold dark:text-gray-300;
   }
 
-  .card {
-    @apply rounded-xl shadow-lg;
-  }
-
-  .custom-card-list {
-    @apply grid grid-cols-1 lg:grid-cols-2 gap-2;
-  }
-
-  .custom-card {
-    @apply border border-gray-200 dark:border-gray-900 dark:bg-[#232323] hover:dark:border-gray-700 hover:border-[#acc7f9] hover:shadow-md hover:text-gray-800 dark:text-gray-300 rounded-xl p-4 flex flex-col justify-between space-y-2 dark:hover:text-gray-100;
-  }
-
-  .custom-card-icon {
-    @apply border-2 border-blue-200 dark:border-gray-800 rounded-lg bg-blue-100 dark:bg-gray-700 dark:text-gray-300 p-2;
-  }
-
-  .card-title {
-    @apply font-semibold text-base;
-  }
-
-  .card-text {
-    @apply font-light;
-  }
-
   /*
     the prev and next nav links at the bottom of the page
     */

@@ -91,8 +91,8 @@ const config: Config = {
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
       defaultMode: 'light',
-      // disabling color mode and preference until dark mode switching is fixed
-      disableSwitch: true,
+      disableSwitch: false,
+      // disabling preference until dark mode switching is fixed: https://github.com/facebook/docusaurus/issues/8938
       respectPrefersColorScheme: false,
     },
     navbar: {

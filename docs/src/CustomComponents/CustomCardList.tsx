@@ -15,7 +15,7 @@ export interface Card {
 export function CustomCardList(props: Props): ReactElement {
   const { cards } = props;
   return (
-    <div className="custom-card-list no-underline">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 no-underline">
       {cards.map((item) => (
         <CustomCard
           key={item.title}
