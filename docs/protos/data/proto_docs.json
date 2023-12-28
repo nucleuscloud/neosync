@@ -3690,30 +3690,6 @@
           ]
         },
         {
-          "name": "Javascript",
-          "longName": "Javascript",
-          "fullName": "mgmt.v1alpha1.Javascript",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "code",
-              "description": "",
-              "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
           "name": "Null",
           "longName": "Null",
           "fullName": "mgmt.v1alpha1.Null",
@@ -4004,6 +3980,30 @@
               "type": "bool",
               "longType": "bool",
               "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TransformJavascript",
+          "longName": "TransformJavascript",
+          "fullName": "mgmt.v1alpha1.TransformJavascript",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "code",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -4565,9 +4565,9 @@
               "name": "javascript_config",
               "description": "",
               "label": "",
-              "type": "Javascript",
-              "longType": "Javascript",
-              "fullType": "mgmt.v1alpha1.Javascript",
+              "type": "TransformJavascript",
+              "longType": "TransformJavascript",
+              "fullType": "mgmt.v1alpha1.TransformJavascript",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

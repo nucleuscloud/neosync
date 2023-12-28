@@ -48,7 +48,7 @@ type TransformerConfigs struct {
 	Passthrough               *PassthroughConfig               `json:"passthrough,omitempty"`
 	Null                      *NullConfig                      `json:"null,omitempty"`
 	UserDefinedTransformer    *UserDefinedTransformerConfig    `json:"userDefinedTransformer,omitempty"`
-	Javascript                *JavascriptConfig                `json:"javascript,omitempty"`
+	TransformJavascript       *TransformJavascriptConfig       `json:"transformJavascript,omitempty"`
 }
 
 type GenerateEmailConfig struct{}
@@ -176,7 +176,7 @@ type UserDefinedTransformerConfig struct {
 	Id string `json:"id"`
 }
 
-type JavascriptConfig struct {
+type TransformJavascriptConfig struct {
 	Code string `json:"code"`
 }
 
@@ -325,7 +325,7 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 			Id: tr.GetUserDefinedTransformerConfig().Id,
 		}
 	case *mgmtv1alpha1.TransformerConfig_JavascriptConfig:
-		t.Javascript = &JavascriptConfig{
+		t.TransformJavascript = &TransformJavascriptConfig{
 			Code: tr.GetJavascriptConfig().GetCode(),
 		}
 	default:
@@ -621,11 +621,11 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				},
 			},
 		}
-	case t.Javascript != nil:
+	case t.TransformJavascript != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
-				JavascriptConfig: &mgmtv1alpha1.Javascript{
-					Code: t.Javascript.Code,
+				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: t.TransformJavascript.Code,
 				},
 			},
 		}

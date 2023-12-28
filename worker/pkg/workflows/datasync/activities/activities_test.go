@@ -203,30 +203,31 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 	ctx := context.Background()
 
 	output, err := bbuilder.buildProcessorConfig(ctx, nil)
+
 	assert.Nil(t, err)
-	assert.Empty(t, output)
+	assert.Empty(t, output.Mutation)
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{})
 	assert.Nil(t, err)
-	assert.Empty(t, output)
+	assert.Empty(t, output.Mutation)
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
 	})
 	assert.Nil(t, err)
-	assert.Empty(t, output)
+	assert.Empty(t, output.Mutation)
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
 	})
 	assert.Nil(t, err)
-	assert.Empty(t, output)
+	assert.Empty(t, output.Mutation)
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "passthrough"}},
 	})
 	assert.Nil(t, err)
-	assert.Empty(t, output)
+	assert.Empty(t, output.Mutation)
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "null", Config: &mgmtv1alpha1.TransformerConfig{
@@ -242,44 +243,28 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 	})
 
 	assert.Nil(t, err)
-	assert.Equal(t, output.Mutation, "root.id = null\nroot.name = null")
+	assert.Equal(t, *output.Mutation, "root.id = null\nroot.name = null")
 
-	mockTransformerClient.On(
-		"GetUserDefinedTransformerById",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
-			TransformerId: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{
-		Transformer: &mgmtv1alpha1.UserDefinedTransformer{
-			Id:          "123",
-			Name:        "stage",
-			Description: "description",
-			DataType:    "string",
-			Source:      "transform_email",
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
-					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-						PreserveDomain: true,
-						PreserveLength: false,
-					},
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_email",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
+				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
+					PreserveDomain: true,
+					PreserveLength: false,
 				},
 			},
 		},
-	}), nil)
+	}
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "transform_email", Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
-				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
-					Id: "123",
-				},
-			},
-		}}},
-	})
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.Nil(t, err)
-	assert.Equal(t, output.Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false)`)
+	assert.Equal(t, *output.Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false)`)
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
@@ -309,38 +294,22 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 	ctx := context.Background()
 
-	mockTransformerClient.On(
-		"GetUserDefinedTransformerById",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
-			TransformerId: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{
-		Transformer: &mgmtv1alpha1.UserDefinedTransformer{
-			Id:          "456",
-			Name:        "stage",
-			Description: "description",
-			DataType:    "string",
-			Source:      "javascript",
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
-					JavascriptConfig: &mgmtv1alpha1.Javascript{
-						Code: `(()=>{var payload = benthos.v0_msg_as_structured();payload.value+=" helloee";})();`,
-					},
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
+				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: `(()=>{var payload = benthos.v0_msg_as_structured();payload.value+=" helloee";})();`,
 				},
 			},
 		},
-	}), nil)
+	}
 
 	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "javascript", Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
-				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
-					Id: "456",
-				},
-			},
-		}}},
-	})
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
 	assert.Equal(t, res.Javascript.Code, `(()=>{var payload = benthos.v0_msg_as_structured();payload.id+=" helloee";})();`)
@@ -403,37 +372,22 @@ func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 	ctx := context.Background()
 
-	mockTransformerClient.On(
-		"GetUserDefinedTransformerById",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
-			TransformerId: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{
-		Transformer: &mgmtv1alpha1.UserDefinedTransformer{
-			Id:          "456",
-			Name:        "stage",
-			Description: "description",
-			DataType:    "string",
-			Source:      "javascript",
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
-					JavascriptConfig: &mgmtv1alpha1.Javascript{
-						Code: ``,
-					},
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
+				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: ``,
 				},
 			},
 		},
-	}), nil)
+	}
+
 	resp, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "javascript", Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
-				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
-					Id: "456",
-				},
-			},
-		}}},
-	})
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
 	assert.Equal(t, resp.Javascript.Code, ``)

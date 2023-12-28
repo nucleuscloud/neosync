@@ -1796,6 +1796,109 @@ func getBenthosConfigByName(resps []*BenthosConfigResponse, name string) *Bentho
 	return nil
 }
 
+func Test_ProcessorConfigEmpty(t *testing.T) {
+
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+
+	tableMappings := []*TableMapping{
+		{Schema: "public",
+			Table: "users",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "",
+					},
+				},
+			},
+		}}
+
+	dsn := "test"
+	driver := "test"
+	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
+
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
+	assert.Nil(t, err)
+	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
+
+}
+
+func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
+
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+
+	tableMappings := []*TableMapping{
+		{Schema: "public",
+			Table: "users",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "javascript",
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
+								JavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
+							},
+						},
+					},
+				},
+			},
+		}}
+
+	dsn := "test"
+	driver := "test"
+	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
+
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
+	assert.Nil(t, err)
+	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
+
+}
+
 // Generate -> S3
 // PG -> S3
 // Mysql -> S3

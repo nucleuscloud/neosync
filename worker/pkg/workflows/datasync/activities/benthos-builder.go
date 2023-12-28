@@ -583,7 +583,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 		if err != nil {
 			return nil, err
 		}
-		if mapping.Mutation == "" {
+		if mapping.Mutation == nil {
 			return nil, errors.New("unable to generate config mapping for table") // workshop this more
 		}
 
@@ -594,7 +594,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 						Generate: &neosync_benthos.Generate{
 							Interval: "",
 							Count:    count,
-							Mapping:  mapping.Mutation,
+							Mapping:  *mapping.Mutation,
 						},
 					},
 				},

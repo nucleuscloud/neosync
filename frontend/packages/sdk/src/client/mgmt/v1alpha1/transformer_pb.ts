@@ -949,9 +949,9 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "generateDefaultConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.Javascript javascript_config = 39;
+     * @generated from field: mgmt.v1alpha1.TransformJavascript javascript_config = 39;
      */
-    value: Javascript;
+    value: TransformJavascript;
     case: "javascriptConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
@@ -1001,7 +1001,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 36, name: "nullconfig", kind: "message", T: Null, oneof: "config" },
     { no: 37, name: "user_defined_transformer_config", kind: "message", T: UserDefinedTransformerConfig, oneof: "config" },
     { no: 38, name: "generate_default_config", kind: "message", T: GenerateDefault, oneof: "config" },
-    { no: 39, name: "javascript_config", kind: "message", T: Javascript, oneof: "config" },
+    { no: 39, name: "javascript_config", kind: "message", T: TransformJavascript, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -2343,39 +2343,39 @@ export class Null extends Message<Null> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.Javascript
+ * @generated from message mgmt.v1alpha1.TransformJavascript
  */
-export class Javascript extends Message<Javascript> {
+export class TransformJavascript extends Message<TransformJavascript> {
   /**
    * @generated from field: string code = 1;
    */
   code = "";
 
-  constructor(data?: PartialMessage<Javascript>) {
+  constructor(data?: PartialMessage<TransformJavascript>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.Javascript";
+  static readonly typeName = "mgmt.v1alpha1.TransformJavascript";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Javascript {
-    return new Javascript().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformJavascript {
+    return new TransformJavascript().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Javascript {
-    return new Javascript().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformJavascript {
+    return new TransformJavascript().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Javascript {
-    return new Javascript().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformJavascript {
+    return new TransformJavascript().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Javascript | PlainMessage<Javascript> | undefined, b: Javascript | PlainMessage<Javascript> | undefined): boolean {
-    return proto3.util.equals(Javascript, a, b);
+  static equals(a: TransformJavascript | PlainMessage<TransformJavascript> | undefined, b: TransformJavascript | PlainMessage<TransformJavascript> | undefined): boolean {
+    return proto3.util.equals(TransformJavascript, a, b);
   }
 }
 

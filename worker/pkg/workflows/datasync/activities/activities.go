@@ -174,9 +174,11 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			return nil, err
 		}
 
-		if processorConfig.Mutation != "" || processorConfig.Javascript.Code != "" {
+		if (processorConfig.Mutation != nil && *processorConfig.Mutation != "") ||
+			(processorConfig.Javascript != nil && processorConfig.Javascript.Code != "") {
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *processorConfig)
 		}
+
 		responses = append(responses, &BenthosConfigResponse{
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
@@ -577,11 +579,15 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 		}
 	}
 
+	mutationStr := strings.Join(mutations, "\n")
+	javascriptStr := strings.Join(javascript, "\n")
+
+	javascriptConfig := neosync_benthos.JavascriptConfig{
+		Code: javascriptStr,
+	}
 	pc := &neosync_benthos.ProcessorConfig{
-		Mutation: strings.Join(mutations, "\n"),
-		Javascript: neosync_benthos.JavascriptConfig{
-			Code: strings.Join(javascript, "\n"),
-		},
+		Mutation:   &mutationStr,
+		Javascript: &javascriptConfig,
 	}
 
 	return pc, nil

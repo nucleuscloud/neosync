@@ -7571,22 +7571,22 @@ var _ interface {
 	ErrorName() string
 } = NullValidationError{}
 
-// Validate checks the field values on Javascript with the rules defined in the
-// proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *Javascript) Validate() error {
+// Validate checks the field values on TransformJavascript with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TransformJavascript) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on Javascript with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in JavascriptMultiError, or
-// nil if none found.
-func (m *Javascript) ValidateAll() error {
+// ValidateAll checks the field values on TransformJavascript with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TransformJavascriptMultiError, or nil if none found.
+func (m *TransformJavascript) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *Javascript) validate(all bool) error {
+func (m *TransformJavascript) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -7596,18 +7596,19 @@ func (m *Javascript) validate(all bool) error {
 	// no validation rules for Code
 
 	if len(errors) > 0 {
-		return JavascriptMultiError(errors)
+		return TransformJavascriptMultiError(errors)
 	}
 
 	return nil
 }
 
-// JavascriptMultiError is an error wrapping multiple validation errors
-// returned by Javascript.ValidateAll() if the designated constraints aren't met.
-type JavascriptMultiError []error
+// TransformJavascriptMultiError is an error wrapping multiple validation
+// errors returned by TransformJavascript.ValidateAll() if the designated
+// constraints aren't met.
+type TransformJavascriptMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m JavascriptMultiError) Error() string {
+func (m TransformJavascriptMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -7616,11 +7617,11 @@ func (m JavascriptMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m JavascriptMultiError) AllErrors() []error { return m }
+func (m TransformJavascriptMultiError) AllErrors() []error { return m }
 
-// JavascriptValidationError is the validation error returned by
-// Javascript.Validate if the designated constraints aren't met.
-type JavascriptValidationError struct {
+// TransformJavascriptValidationError is the validation error returned by
+// TransformJavascript.Validate if the designated constraints aren't met.
+type TransformJavascriptValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -7628,22 +7629,24 @@ type JavascriptValidationError struct {
 }
 
 // Field function returns field value.
-func (e JavascriptValidationError) Field() string { return e.field }
+func (e TransformJavascriptValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e JavascriptValidationError) Reason() string { return e.reason }
+func (e TransformJavascriptValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e JavascriptValidationError) Cause() error { return e.cause }
+func (e TransformJavascriptValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e JavascriptValidationError) Key() bool { return e.key }
+func (e TransformJavascriptValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e JavascriptValidationError) ErrorName() string { return "JavascriptValidationError" }
+func (e TransformJavascriptValidationError) ErrorName() string {
+	return "TransformJavascriptValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e JavascriptValidationError) Error() string {
+func (e TransformJavascriptValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -7655,14 +7658,14 @@ func (e JavascriptValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sJavascript.%s: %s%s",
+		"invalid %sTransformJavascript.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = JavascriptValidationError{}
+var _ error = TransformJavascriptValidationError{}
 
 var _ interface {
 	Field() string
@@ -7670,7 +7673,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = JavascriptValidationError{}
+} = TransformJavascriptValidationError{}
 
 // Validate checks the field values on UserDefinedTransformerConfig with the
 // rules defined in the proto definition for this message. If any rules are
