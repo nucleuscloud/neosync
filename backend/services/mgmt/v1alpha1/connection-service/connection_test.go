@@ -10,12 +10,12 @@ import (
 	"connectrpc.com/connect"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	"github.com/nucleuscloud/neosync/backend/internal/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -37,28 +37,13 @@ const (
 	PostgresMock ConnTypeMock = "postgres"
 )
 
-type mockConnector struct {
-	db *sql.DB
-}
-
-func (mc *mockConnector) Open(driverName, dataSourceName string) (*sql.DB, error) {
-	return mc.db, nil
-}
-
-func (mc *mockConnector) MysqlOpen(dataSourceName string) (*sql.DB, error) {
-	return mc.db, nil
-}
-
-func (mc *mockConnector) PgPoolOpen(ctx context.Context, dataSourceName string) (*pgxpool.Pool, error) {
-	return nil, nil
-}
-
 // CheckConnectionConfig
 func Test_CheckConnectionConfig(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
 	m.SqlMock.ExpectPing()
+	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
 		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
@@ -79,6 +64,7 @@ func Test_CheckConnectionConfigs_Fail(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
+	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
 	m.SqlMock.ExpectPing().WillReturnError(errors.New("connection failed"))
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
@@ -516,6 +502,7 @@ func Test_CheckSqlQuery_Valid(t *testing.T) {
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock), nil)
 
 	mockQuery := "some query"
+	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
 	m.SqlMock.ExpectBegin()
 	m.SqlMock.ExpectPrepare(mockQuery)
 
@@ -544,6 +531,7 @@ func Test_CheckSqlQuery_Invalid(t *testing.T) {
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock), nil)
 
 	mockQuery := "another query"
+	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
 	m.SqlMock.ExpectBegin()
 	m.SqlMock.ExpectPrepare(mockQuery).WillReturnError(errors.New("error"))
 	m.SqlMock.ExpectRollback()
@@ -573,6 +561,7 @@ func Test_CheckSqlQuery_Error(t *testing.T) {
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock), nil)
 
 	mockQuery := "diff query"
+	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
 	m.SqlMock.ExpectBegin().WillReturnError(errors.New("error"))
 
 	resp, err := m.Service.CheckSqlQuery(context.Background(), &connect.Request[mgmtv1alpha1.CheckSqlQueryRequest]{
@@ -668,6 +657,7 @@ type serviceMocks struct {
 	DbtxMock               *nucleusdb.MockDBTX
 	QuerierMock            *db_queries.MockQuerier
 	UserAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient
+	SqlConnectorMock       *sqlconnect.MockSqlConnector
 	SqlMock                sqlmock.Sqlmock
 	SqlDbMock              *sql.DB
 }
@@ -676,19 +666,21 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, &mockConnector{db: sqlDbMock})
+	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, mockSqlConnector)
 
 	return &serviceMocks{
 		Service:                service,
 		DbtxMock:               mockDbtx,
 		QuerierMock:            mockQuerier,
 		UserAccountServiceMock: mockUserAccountService,
+		SqlConnectorMock:       mockSqlConnector,
 		SqlMock:                sqlMock,
 		SqlDbMock:              sqlDbMock,
 	}

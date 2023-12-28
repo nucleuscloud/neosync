@@ -12,11 +12,9 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	aws_s3 "github.com/nucleuscloud/neosync/backend/internal/aws/s3"
-	aws_session "github.com/nucleuscloud/neosync/backend/internal/aws/session"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
@@ -175,20 +173,19 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		awsS3Config := config.AwsS3Config
-		sess, err := aws_session.NewSession(awsS3Config)
+		s3Client, err := s.awsManager.NewS3Client(ctx, awsS3Config)
 		if err != nil {
-			logger.Error("unable to create AWS session")
+			logger.Error("unable to create AWS S3 client")
 			return err
 		}
-		s3Client := s3.New(sess)
-		logger.Info("created AWS session")
+		logger.Info("created AWS S3 client")
 
 		var jobRunId string
 		switch id := awsS3StreamCfg.Id.(type) {
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobRunId:
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.AwsS3StreamConfig_JobId:
-			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket)
+			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region)
 			if err != nil {
 				return err
 			}
@@ -201,26 +198,25 @@ func (s *Service) GetConnectionDataStream(
 		path := fmt.Sprintf("workflows/%s/activities/%s/data", jobRunId, tableName)
 		var pageToken *string
 		for {
-			var output *s3.ListObjectsV2Output
-			output, err = s3Client.ListObjectsV2(&s3.ListObjectsV2Input{
+			output, err := s.awsManager.ListObjectsV2(ctx, s3Client, awsS3Config.Region, &s3.ListObjectsV2Input{
 				Bucket:            aws.String(awsS3Config.Bucket),
 				Prefix:            aws.String(path),
 				ContinuationToken: pageToken,
 			})
-			if err != nil && !aws_s3.IsNotFound(err) {
+			if err != nil {
 				return err
 			}
-			if err != nil || *output.KeyCount == 0 {
+			if output == nil {
 				logger.Info(fmt.Sprintf("0 files found for path: %s", path))
 				break
 			}
 			for _, item := range output.Contents {
-				result, err := s3Client.GetObject(&s3.GetObjectInput{
+				result, err := s.awsManager.GetObject(ctx, s3Client, awsS3Config.Region, &s3.GetObjectInput{
 					Bucket: aws.String(awsS3Config.Bucket),
 					Key:    aws.String(*item.Key),
 				})
 				if err != nil {
-					return fmt.Errorf("error getting object from S3: %w", err)
+					return err
 				}
 
 				gzr, err := gzip.NewReader(result.Body)
@@ -263,7 +259,6 @@ func (s *Service) GetConnectionDataStream(
 						gzr.Close()
 						return err
 					}
-
 				}
 				if err := scanner.Err(); err != nil {
 					result.Body.Close()
@@ -389,20 +384,18 @@ func (s *Service) GetConnectionSchema(
 		}
 
 		awsS3Config := config.AwsS3Config
-		sess, err := aws_session.NewSession(awsS3Config)
+		s3Client, err := s.awsManager.NewS3Client(ctx, config.AwsS3Config)
 		if err != nil {
-			logger.Error("unable to create AWS session")
 			return nil, err
 		}
-		s3Client := s3.New(sess)
-		logger.Info("created AWS session")
+		logger.Info("created S3 AWS session")
 
 		var jobRunId string
 		switch id := awsCfg.Id.(type) {
 		case *mgmtv1alpha1.AwsS3SchemaConfig_JobRunId:
 			jobRunId = id.JobRunId
 		case *mgmtv1alpha1.AwsS3SchemaConfig_JobId:
-			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket)
+			runId, err := s.getLastestJobRunFromAwsS3(ctx, logger, s3Client, id.JobId, awsS3Config.Bucket, awsS3Config.Region)
 			if err != nil {
 				return nil, err
 			}
@@ -416,44 +409,42 @@ func (s *Service) GetConnectionSchema(
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		var pageToken *string
 		for {
-			var output *s3.ListObjectsV2Output
-			output, err = s3Client.ListObjectsV2(&s3.ListObjectsV2Input{
+			output, err := s.awsManager.ListObjectsV2(ctx, s3Client, awsS3Config.Region, &s3.ListObjectsV2Input{
 				Bucket:            aws.String(awsS3Config.Bucket),
 				Prefix:            aws.String(path),
 				Delimiter:         aws.String("/"),
 				ContinuationToken: pageToken,
 			})
-			if err != nil && !aws_s3.IsNotFound(err) {
+			if err != nil {
 				return nil, err
 			}
-			if err != nil || *output.KeyCount == 0 {
+			if output == nil {
 				break
 			}
-			for _, item := range output.CommonPrefixes {
-				folders := strings.Split(*item.Prefix, "activities")
+			for _, cp := range output.CommonPrefixes {
+				folders := strings.Split(*cp.Prefix, "activities")
 				tableFolder := strings.ReplaceAll(folders[len(folders)-1], "/", "")
 				schemaTableList := strings.Split(tableFolder, ".")
 
 				filePath := fmt.Sprintf("%s%s.%s/data", path, schemaTableList[0], schemaTableList[1])
-				var output *s3.ListObjectsV2Output
-				output, err = s3Client.ListObjectsV2(&s3.ListObjectsV2Input{
+				out, err := s.awsManager.ListObjectsV2(ctx, s3Client, awsS3Config.Region, &s3.ListObjectsV2Input{
 					Bucket:  aws.String(awsS3Config.Bucket),
 					Prefix:  aws.String(filePath),
-					MaxKeys: aws.Int64(1),
+					MaxKeys: aws.Int32(1),
 				})
-				if err != nil && !aws_s3.IsNotFound(err) {
+				if err != nil {
 					return nil, err
 				}
-				if err != nil || *output.KeyCount == 0 {
+				if out == nil {
 					break
 				}
-				item := output.Contents[0]
-				result, err := s3Client.GetObject(&s3.GetObjectInput{
+				item := out.Contents[0]
+				result, err := s.awsManager.GetObject(ctx, s3Client, awsS3Config.Region, &s3.GetObjectInput{
 					Bucket: aws.String(awsS3Config.Bucket),
 					Key:    aws.String(*item.Key),
 				})
 				if err != nil {
-					return nil, fmt.Errorf("error getting object from S3: %w", err)
+					return nil, err
 				}
 
 				gzr, err := gzip.NewReader(result.Body)
@@ -809,8 +800,9 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 func (s *Service) getLastestJobRunFromAwsS3(
 	ctx context.Context,
 	logger *slog.Logger,
-	s3Client *s3.S3,
+	s3Client *s3.Client,
 	jobId, bucket string,
+	region *string,
 ) (string, error) {
 	jobRunsResp, err := s.jobService.GetJobRecentRuns(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRecentRunsRequest{
 		JobId: jobId,
@@ -823,15 +815,15 @@ func (s *Service) getLastestJobRunFromAwsS3(
 	for i := len(jobRuns) - 1; i >= 0; i-- {
 		runId := jobRuns[i].JobRunId
 		path := fmt.Sprintf("workflows/%s/activities/", runId)
-		output, err := s3Client.ListObjectsV2(&s3.ListObjectsV2Input{
+		output, err := s.awsManager.ListObjectsV2(ctx, s3Client, region, &s3.ListObjectsV2Input{
 			Bucket:    aws.String(bucket),
 			Prefix:    aws.String(path),
 			Delimiter: aws.String("/"),
 		})
-		if err != nil && !aws_s3.IsNotFound(err) {
+		if err != nil {
 			return "", err
 		}
-		if err != nil && aws_s3.IsNotFound(err) {
+		if output == nil {
 			continue
 		}
 		if *output.KeyCount > 0 {
