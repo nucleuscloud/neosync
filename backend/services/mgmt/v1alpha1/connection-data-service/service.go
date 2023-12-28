@@ -4,6 +4,7 @@ import (
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
 	"github.com/nucleuscloud/neosync/backend/internal/sqlconnect"
 )
 
@@ -12,8 +13,10 @@ type Service struct {
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
 	connectionService  mgmtv1alpha1connect.ConnectionServiceClient
 	jobService         mgmtv1alpha1connect.JobServiceClient
-	sqlConnector       sqlconnect.SqlConnector
 
+	awsManager awsmanager.NeosyncAwsManagerClient
+
+	sqlConnector sqlconnect.SqlConnector
 	pgquerier    pg_queries.Querier
 	mysqlquerier mysql_queries.Querier
 }
@@ -27,6 +30,8 @@ func New(
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
 	jobService mgmtv1alpha1connect.JobServiceClient,
 
+	awsManager awsmanager.NeosyncAwsManagerClient,
+
 	sqlConnector sqlconnect.SqlConnector,
 	pgquerier pg_queries.Querier,
 	mysqlquerier mysql_queries.Querier,
@@ -36,6 +41,7 @@ func New(
 		useraccountService: useraccountService,
 		connectionService:  connectionService,
 		jobService:         jobService,
+		awsManager:         awsManager,
 		sqlConnector:       sqlConnector,
 		pgquerier:          pgquerier,
 		mysqlquerier:       mysqlquerier,

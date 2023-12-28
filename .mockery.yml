@@ -52,3 +52,6 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/sqlconnect:
     interfaces:
       SqlConnector:
+  github.com/nucleuscloud/neosync/backend/internal/aws:
+    interfaces:
+      NeosyncAwsManagerClient:

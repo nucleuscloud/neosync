@@ -25,6 +25,7 @@ import (
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
+	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -308,11 +309,13 @@ func serve(ctx context.Context) error {
 
 	pgquerier := pg_queries.New()
 	mysqlquerier := mysql_queries.New()
+	awsManager := awsmanager.New()
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},
 		useraccountService,
 		connectionService,
 		jobService,
+		awsManager,
 		sqlConnector,
 		pgquerier,
 		mysqlquerier,

@@ -41,7 +41,6 @@ func getShowTableCreate(
 ) (*DatabaseTableShowCreate, error) {
 	getShowTableCreateSql := fmt.Sprintf(`SHOW CREATE TABLE %s.%s;`, schema, table)
 	row := conn.QueryRowContext(ctx, getShowTableCreateSql)
-
 	var output DatabaseTableShowCreate
 	err := row.Scan(
 		&output.Table,
