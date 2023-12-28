@@ -261,6 +261,15 @@ message UserDefinedTransformerConfig {
   string id = 1 [(buf.validate.field).string.uuid = true];
 }
 
+message ValidateUserJavascriptCodeRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  string code = 2;
+}
+
+message ValidateUserJavascriptCodeResponse {
+  bool valid = 1;
+}
+
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
   rpc GetUserDefinedTransformers(GetUserDefinedTransformersRequest) returns (GetUserDefinedTransformersResponse) {}
@@ -269,4 +278,5 @@ service TransformersService {
   rpc DeleteUserDefinedTransformer(DeleteUserDefinedTransformerRequest) returns (DeleteUserDefinedTransformerResponse) {}
   rpc UpdateUserDefinedTransformer(UpdateUserDefinedTransformerRequest) returns (UpdateUserDefinedTransformerResponse) {}
   rpc IsTransformerNameAvailable(IsTransformerNameAvailableRequest) returns (IsTransformerNameAvailableResponse) {}
+  rpc ValidateUserJavascriptCode(ValidateUserJavascriptCodeRequest) returns (ValidateUserJavascriptCodeResponse) {}
 }

@@ -28,10 +28,6 @@ func (_m *MockAuthServiceClient) EXPECT() *MockAuthServiceClient_Expecter {
 func (_m *MockAuthServiceClient) GetAuthStatus(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAuthStatusRequest]) (*connect.Response[mgmtv1alpha1.GetAuthStatusResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetAuthStatus")
-	}
-
 	var r0 *connect.Response[mgmtv1alpha1.GetAuthStatusResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAuthStatusRequest]) (*connect.Response[mgmtv1alpha1.GetAuthStatusResponse], error)); ok {
@@ -86,10 +82,6 @@ func (_c *MockAuthServiceClient_GetAuthStatus_Call) RunAndReturn(run func(contex
 // GetAuthorizeUrl provides a mock function with given fields: _a0, _a1
 func (_m *MockAuthServiceClient) GetAuthorizeUrl(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAuthorizeUrlRequest]) (*connect.Response[mgmtv1alpha1.GetAuthorizeUrlResponse], error) {
 	ret := _m.Called(_a0, _a1)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAuthorizeUrl")
-	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetAuthorizeUrlResponse]
 	var r1 error
@@ -146,10 +138,6 @@ func (_c *MockAuthServiceClient_GetAuthorizeUrl_Call) RunAndReturn(run func(cont
 func (_m *MockAuthServiceClient) GetCliIssuer(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetCliIssuerRequest]) (*connect.Response[mgmtv1alpha1.GetCliIssuerResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
-	if len(ret) == 0 {
-		panic("no return value specified for GetCliIssuer")
-	}
-
 	var r0 *connect.Response[mgmtv1alpha1.GetCliIssuerResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetCliIssuerRequest]) (*connect.Response[mgmtv1alpha1.GetCliIssuerResponse], error)); ok {
@@ -205,10 +193,6 @@ func (_c *MockAuthServiceClient_GetCliIssuer_Call) RunAndReturn(run func(context
 func (_m *MockAuthServiceClient) LoginCli(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.LoginCliRequest]) (*connect.Response[mgmtv1alpha1.LoginCliResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
-	if len(ret) == 0 {
-		panic("no return value specified for LoginCli")
-	}
-
 	var r0 *connect.Response[mgmtv1alpha1.LoginCliResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.LoginCliRequest]) (*connect.Response[mgmtv1alpha1.LoginCliResponse], error)); ok {
@@ -263,10 +247,6 @@ func (_c *MockAuthServiceClient_LoginCli_Call) RunAndReturn(run func(context.Con
 // RefreshCli provides a mock function with given fields: _a0, _a1
 func (_m *MockAuthServiceClient) RefreshCli(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.RefreshCliRequest]) (*connect.Response[mgmtv1alpha1.RefreshCliResponse], error) {
 	ret := _m.Called(_a0, _a1)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RefreshCli")
-	}
 
 	var r0 *connect.Response[mgmtv1alpha1.RefreshCliResponse]
 	var r1 error

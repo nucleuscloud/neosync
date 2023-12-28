@@ -7776,3 +7776,219 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UserDefinedTransformerConfigValidationError{}
+
+// Validate checks the field values on ValidateUserJavascriptCodeRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ValidateUserJavascriptCodeRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ValidateUserJavascriptCodeRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ValidateUserJavascriptCodeRequestMultiError, or nil if none found.
+func (m *ValidateUserJavascriptCodeRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ValidateUserJavascriptCodeRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	// no validation rules for Code
+
+	if len(errors) > 0 {
+		return ValidateUserJavascriptCodeRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ValidateUserJavascriptCodeRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// ValidateUserJavascriptCodeRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ValidateUserJavascriptCodeRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ValidateUserJavascriptCodeRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ValidateUserJavascriptCodeRequestMultiError) AllErrors() []error { return m }
+
+// ValidateUserJavascriptCodeRequestValidationError is the validation error
+// returned by ValidateUserJavascriptCodeRequest.Validate if the designated
+// constraints aren't met.
+type ValidateUserJavascriptCodeRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ValidateUserJavascriptCodeRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ValidateUserJavascriptCodeRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ValidateUserJavascriptCodeRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ValidateUserJavascriptCodeRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ValidateUserJavascriptCodeRequestValidationError) ErrorName() string {
+	return "ValidateUserJavascriptCodeRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ValidateUserJavascriptCodeRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sValidateUserJavascriptCodeRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ValidateUserJavascriptCodeRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ValidateUserJavascriptCodeRequestValidationError{}
+
+// Validate checks the field values on ValidateUserJavascriptCodeResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ValidateUserJavascriptCodeResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ValidateUserJavascriptCodeResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ValidateUserJavascriptCodeResponseMultiError, or nil if none found.
+func (m *ValidateUserJavascriptCodeResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ValidateUserJavascriptCodeResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Valid
+
+	if len(errors) > 0 {
+		return ValidateUserJavascriptCodeResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ValidateUserJavascriptCodeResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// ValidateUserJavascriptCodeResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ValidateUserJavascriptCodeResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ValidateUserJavascriptCodeResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ValidateUserJavascriptCodeResponseMultiError) AllErrors() []error { return m }
+
+// ValidateUserJavascriptCodeResponseValidationError is the validation error
+// returned by ValidateUserJavascriptCodeResponse.Validate if the designated
+// constraints aren't met.
+type ValidateUserJavascriptCodeResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ValidateUserJavascriptCodeResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ValidateUserJavascriptCodeResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ValidateUserJavascriptCodeResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ValidateUserJavascriptCodeResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ValidateUserJavascriptCodeResponseValidationError) ErrorName() string {
+	return "ValidateUserJavascriptCodeResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ValidateUserJavascriptCodeResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sValidateUserJavascriptCodeResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ValidateUserJavascriptCodeResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ValidateUserJavascriptCodeResponseValidationError{}

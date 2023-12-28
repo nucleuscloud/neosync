@@ -2416,3 +2416,83 @@ export class UserDefinedTransformerConfig extends Message<UserDefinedTransformer
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.ValidateUserJavascriptCodeRequest
+ */
+export class ValidateUserJavascriptCodeRequest extends Message<ValidateUserJavascriptCodeRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  /**
+   * @generated from field: string code = 2;
+   */
+  code = "";
+
+  constructor(data?: PartialMessage<ValidateUserJavascriptCodeRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ValidateUserJavascriptCodeRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ValidateUserJavascriptCodeRequest {
+    return new ValidateUserJavascriptCodeRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ValidateUserJavascriptCodeRequest {
+    return new ValidateUserJavascriptCodeRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ValidateUserJavascriptCodeRequest {
+    return new ValidateUserJavascriptCodeRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ValidateUserJavascriptCodeRequest | PlainMessage<ValidateUserJavascriptCodeRequest> | undefined, b: ValidateUserJavascriptCodeRequest | PlainMessage<ValidateUserJavascriptCodeRequest> | undefined): boolean {
+    return proto3.util.equals(ValidateUserJavascriptCodeRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ValidateUserJavascriptCodeResponse
+ */
+export class ValidateUserJavascriptCodeResponse extends Message<ValidateUserJavascriptCodeResponse> {
+  /**
+   * @generated from field: bool valid = 1;
+   */
+  valid = false;
+
+  constructor(data?: PartialMessage<ValidateUserJavascriptCodeResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ValidateUserJavascriptCodeResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "valid", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ValidateUserJavascriptCodeResponse {
+    return new ValidateUserJavascriptCodeResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ValidateUserJavascriptCodeResponse {
+    return new ValidateUserJavascriptCodeResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ValidateUserJavascriptCodeResponse {
+    return new ValidateUserJavascriptCodeResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ValidateUserJavascriptCodeResponse | PlainMessage<ValidateUserJavascriptCodeResponse> | undefined, b: ValidateUserJavascriptCodeResponse | PlainMessage<ValidateUserJavascriptCodeResponse> | undefined): boolean {
+    return proto3.util.equals(ValidateUserJavascriptCodeResponse, a, b);
+  }
+}
+
