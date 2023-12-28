@@ -325,7 +325,7 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
 					JavascriptConfig: &mgmtv1alpha1.Javascript{
-						Code: `(() => {var payload = benthos.v0_msg_as_structured();payload.value += " helloee";})();`,
+						Code: `(()=>{var payload = benthos.v0_msg_as_structured();payload.value+=" helloee";})();`,
 					},
 				},
 			},
@@ -343,7 +343,7 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 	})
 
 	assert.NoError(t, err)
-	assert.Equal(t, res.Javascript.Code, `(() => {var payload = benthos.v0_msg_as_structured();payload.id += " helloee";})();`)
+	assert.Equal(t, res.Javascript.Code, `(()=>{var payload = benthos.v0_msg_as_structured();payload.id+=" helloee";})();`)
 }
 
 func Test_ShouldProcessColumnTrue(t *testing.T) {

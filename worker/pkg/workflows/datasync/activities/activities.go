@@ -168,15 +168,6 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 				},
 			},
 		}
-		// mutation, err := b.buildProcessorMutation(ctx, tableMapping.Mappings)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// if mutation != "" {
-		// 	bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
-		// 		Mutation: mutation,
-		// 	})
-		// }
 
 		processorConfig, err := b.buildProcessorConfig(ctx, tableMapping.Mappings)
 		if err != nil {
@@ -605,34 +596,6 @@ func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 
 func parseJavascriptForColumnName(jsCode, targetWord, replacementWord string) string {
 	return strings.ReplaceAll(jsCode, targetWord, replacementWord)
-}
-
-func (b *benthosBuilder) buildProcessorMutation(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
-	pieces := []string{}
-
-	for _, col := range cols {
-		if col.Transformer != nil && col.Transformer.Source != "" && col.Transformer.Source != "passthrough" && col.Transformer.Source != "generate_default" {
-
-			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
-
-				// handle user defined transformer -> get the user defined transformer configs using the id
-
-				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
-				if err != nil {
-					return "", errors.New("unable to look up user defined transformer config by id")
-				}
-				col.Transformer = val
-
-			}
-
-			mutation, err := computeMutationFunction(col)
-			if err != nil {
-				return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
-			}
-			pieces = append(pieces, fmt.Sprintf("root.%s = %s", col.Column, mutation))
-		}
-	}
-	return strings.Join(pieces, "\n"), nil
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id
