@@ -70,7 +70,7 @@ func (a *Activities) GenerateBenthosConfigs(
 
 	neosyncUrl := viper.GetString("NEOSYNC_URL")
 	if neosyncUrl == "" {
-		neosyncUrl = "localhost:8080"
+		neosyncUrl = "http://localhost:8080"
 	}
 
 	neosyncApiKey := viper.GetString("NEOSYNC_API_KEY")
@@ -218,28 +218,6 @@ func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosyn
 	}
 
 	return creds
-}
-
-const (
-	maxPgParamLimit = 65535
-)
-
-func computeMaxPgBatchCount(numCols int) int {
-	if numCols < 1 {
-		return maxPgParamLimit
-	}
-	return clampInt(maxPgParamLimit/numCols, 1, maxPgParamLimit) // automatically rounds down
-}
-
-// clamps the input between low, high
-func clampInt(input, low, high int) int {
-	if input < low {
-		return low
-	}
-	if input > high {
-		return high
-	}
-	return input
 }
 
 func areMappingsSubsetOfSchemas(

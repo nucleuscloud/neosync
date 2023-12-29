@@ -341,7 +341,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
 					filteredCols := b.filterColsBySource(resp.Config.Input.SqlSelect.Columns, colSourceMap)
-					logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
 
@@ -352,13 +351,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							ArgsMapping:   buildPlainInsertArgs(filteredCols),
 							InitStatement: initStmt,
 
-							ConnMaxIdle: 2,
-							ConnMaxOpen: 2,
-
 							Batching: &neosync_benthos.Batching{
-								Period: "1s",
-								// max allowed by postgres in a single batch
-								Count: computeMaxPgBatchCount(len(resp.Config.Input.SqlSelect.Columns)),
+								Period: "5s",
+								Count:  100,
 							},
 						},
 					})
@@ -406,8 +401,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 							Batching: &neosync_benthos.Batching{
 								Period: "1s",
-								// max allowed by postgres in a single batch
-								Count: computeMaxPgBatchCount(len(cols)),
+								Count:  100,
 							},
 						},
 					})
@@ -457,7 +451,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
 					filteredCols := b.filterColsBySource(resp.Config.Input.SqlSelect.Columns, colSourceMap)
-					logger.Info(fmt.Sprintf("sql batch count: %d", maxPgParamLimit/len(resp.Config.Input.SqlSelect.Columns)))
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
 							Driver: "mysql",
@@ -467,13 +460,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							ArgsMapping:   buildPlainInsertArgs(filteredCols),
 							InitStatement: initStmt,
 
-							ConnMaxIdle: 2,
-							ConnMaxOpen: 2,
-
 							Batching: &neosync_benthos.Batching{
-								Period: "1s",
-								// max allowed by postgres in a single batch
-								Count: computeMaxPgBatchCount(len(resp.Config.Input.SqlSelect.Columns)),
+								Period: "5s",
+								Count:  100,
 							},
 						},
 					})
@@ -515,13 +504,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							ArgsMapping:   buildPlainInsertArgs(filteredCols),
 							InitStatement: initStmt,
 
-							ConnMaxIdle: 2,
-							ConnMaxOpen: 2,
-
 							Batching: &neosync_benthos.Batching{
-								Period: "1s",
-								// max allowed by postgres in a single batch
-								Count: computeMaxPgBatchCount(len(cols)),
+								Period: "5s",
+								Count:  100,
 							},
 						},
 					})

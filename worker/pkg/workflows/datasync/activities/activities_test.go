@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"math"
 	"strconv"
 	"strings"
 	"testing"
@@ -128,25 +127,6 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 		},
 	)
 	assert.True(t, ok, "job mappings have same column count, but missing specific column")
-}
-
-func TestClampInt(t *testing.T) {
-	assert.Equal(t, clampInt(0, 1, 2), 1)
-	assert.Equal(t, clampInt(1, 1, 2), 1)
-	assert.Equal(t, clampInt(2, 1, 2), 2)
-	assert.Equal(t, clampInt(3, 1, 2), 2)
-	assert.Equal(t, clampInt(1, 1, 1), 1)
-
-	assert.Equal(t, clampInt(1, 3, 2), 3, "low is evaluated first, order is relevant")
-
-}
-
-func TestComputeMaxPgBatchCount(t *testing.T) {
-	assert.Equal(t, computeMaxPgBatchCount(65535), 1)
-	assert.Equal(t, computeMaxPgBatchCount(65536), 1, "anything over max should clamp to 1")
-	assert.Equal(t, computeMaxPgBatchCount(math.MaxInt), 1, "anything over pgmax should clamp to 1")
-	assert.Equal(t, computeMaxPgBatchCount(1), 65535)
-	assert.Equal(t, computeMaxPgBatchCount(0), 65535)
 }
 
 func Test_Sync_Run_Success(t *testing.T) {
