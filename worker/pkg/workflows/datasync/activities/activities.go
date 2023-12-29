@@ -545,7 +545,8 @@ func getMysqlDsn(
 
 func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (*neosync_benthos.ProcessorConfig, error) {
 	mutations := []string{}
-	javascript := []string{}
+	jsFunctions := []string{}
+	benthosOutputs := []string{}
 
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) {
@@ -558,7 +559,6 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 					return nil, errors.New("unable to look up user defined transformer config by id")
 				}
 				col.Transformer = val
-
 			}
 
 			if col.Transformer.Source == "transform_javascript" {
@@ -566,8 +566,8 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
 				// construct the js code and only append if there is code available
 				if code != "" {
-					js := constructJavascriptCode(code, col.Column)
-					javascript = append(javascript, js)
+					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
+					benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
 				}
 			} else {
 				mutation, err := computeMutationFunction(col)
@@ -586,11 +586,9 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 	if len(mutationStr) > 0 {
 		pc.Mutation = &mutationStr
 	}
-	if len(javascript) > 0 {
-		jsStr := strings.Join(javascript, "\n")
-		jsCode := fmt.Sprintf(`(() => {%s})();`, jsStr)
+	if len(jsFunctions) > 0 {
 		javascriptConfig := neosync_benthos.JavascriptConfig{
-			Code: jsCode,
+			Code: constructBenthosJsProcessor(jsFunctions, benthosOutputs),
 		}
 		pc.Javascript = &javascriptConfig
 	}
@@ -605,24 +603,39 @@ func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 		t.Source != "generate_default"
 }
 
-func parseJavascriptForColumnName(jsCode, targetWord, replacementWord string) string {
-	return strings.ReplaceAll(jsCode, targetWord, replacementWord)
-}
-
-func constructJavascriptCode(jsCode, col string) string {
+func constructJsFunction(jsCode, col string) string {
 	if jsCode != "" {
 		return fmt.Sprintf(`
 function fn_%s(value){
   %s
 };
-const input_%s = benthos.v0_msg_as_structured();
-const output_%s = { ...input_%s };
-output_%s["%s"] = fn_%s(input_%s["%s"]);
-benthos.v0_msg_set_structured(output_%s);
-`, col, jsCode, col, col, col, col, col, col, col, col, col)
+`, col, jsCode)
 	} else {
 		return ""
 	}
+}
+
+func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
+
+	jsFunctionStrings := strings.Join(jsFunctions, "\n")
+
+	benthosOutputString := strings.Join(benthosOutputs, "\n")
+
+	jsCode := fmt.Sprintf(`
+(() => {
+%s
+
+  const input = benthos.v0_msg_as_structured();
+  const output = { ...input_name };
+
+  %s
+  benthos.v0_msg_set_structured(output);
+})();`, jsFunctionStrings, benthosOutputString)
+	return jsCode
+}
+
+func constructBenthosOutput(col string) string {
+	return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s(input["%[1]s"]);`, col)
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id

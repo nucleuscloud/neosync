@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -213,12 +212,12 @@ pipeline:
     - javascript:
         code: |
           (() => { 
-          function fn1(value){
+          function fn_name(value){
           var a = value + "test";
           return a };
           const input = benthos.v0_msg_as_structured();
           const output = { ...input };
-          output["name"] = fn1(input["name"]);
+          output["name"] = fn_name(input["name"]);
           benthos.v0_msg_set_structured(output);
           })();
 output:
@@ -423,8 +422,16 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
-	constructedCode := constructJavascriptCode(code, col)
-	assert.Equal(t, res.Javascript.Code, fmt.Sprintf(`(() => {%s})();`, constructedCode))
+
+	jsFunctions := []string{}
+	benthosOutputs := []string{}
+
+	benthosOutput := constructBenthosOutput(col)
+	benthosOutputs = append(benthosOutputs, benthosOutput)
+	jsFunction := constructJsFunction(code, col)
+	jsFunctions = append(jsFunctions, jsFunction)
+	constructedProcessor := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
+	assert.Equal(t, res.Javascript.Code, constructedProcessor)
 }
 
 func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
@@ -482,10 +489,18 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}})
 
 	assert.NoError(t, err)
-	constructedCode := constructJavascriptCode(code, col)
-	constructedCode2 := constructJavascriptCode(code2, col2)
-	joinedCode := fmt.Sprintf("%s\n%s", constructedCode, constructedCode2)
-	assert.Equal(t, fmt.Sprintf(`(() => {%s})();`, joinedCode), res.Javascript.Code)
+
+	jsFunctions := []string{}
+	benthosOutputs := []string{}
+
+	benthosOutput := constructBenthosOutput(col)
+	benthosOutput2 := constructBenthosOutput(col2)
+	benthosOutputs = append(benthosOutputs, benthosOutput, benthosOutput2)
+	jsFunction := constructJsFunction(code, col)
+	jsFunction2 := constructJsFunction(code2, col2)
+	jsFunctions = append(jsFunctions, jsFunction, jsFunction2)
+	constructedProcessor := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
+	assert.Equal(t, constructedProcessor, res.Javascript.Code)
 
 }
 
@@ -519,40 +534,58 @@ func Test_ShouldProcessColumnFalse(t *testing.T) {
 	assert.Equal(t, false, res)
 }
 
-func Test_ParseJSForColumnName(t *testing.T) {
+func Test_ConstructJsFunction(t *testing.T) {
 
-	js := `var a = benthos.v0_msg_get_structured();var payload = a.value`
-	keyword := "value"
-	col := "name"
+	code := `var payload = value+=" hello";return payload;`
+	col := "col"
 
-	res := parseJavascriptForColumnName(js, keyword, col)
-
-	assert.Equal(t, "var a = benthos.v0_msg_get_structured();var payload = a.name", res)
+	res := constructJsFunction(code, col)
+	assert.Equal(t, `
+function fn_col(value){
+  var payload = value+=" hello";return payload;
+};
+`, res)
 }
 
-func Test_ConstructJavaScriptCode(t *testing.T) {
+func Test_ConstructBenthosJsProcessor(t *testing.T) {
+
+	jsFunctions := []string{}
+	benthosOutputs := []string{}
 
 	code := `var payload = value+=" hello";return payload;`
 	col := "name"
 
-	res := constructJavascriptCode(code, col)
-	assert.Equal(t, strings.TrimSpace(`
+	benthosOutput := constructBenthosOutput(col)
+	jsFunction := constructJsFunction(code, col)
+	benthosOutputs = append(benthosOutputs, benthosOutput)
+
+	jsFunctions = append(jsFunctions, jsFunction)
+
+	res := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
+
+	assert.Equal(t, `
+(() => {
+
 function fn_name(value){
   var payload = value+=" hello";return payload;
 };
-const input_name = benthos.v0_msg_as_structured();
-const output_name = { ...input_name };
-output_name["name"] = fn_name(input_name["name"]);
-benthos.v0_msg_set_structured(output_name);`), strings.TrimSpace(res))
+
+
+  const input = benthos.v0_msg_as_structured();
+  const output = { ...input_name };
+
+  output["name"] = fn_name(input["name"]);
+  benthos.v0_msg_set_structured(output);
+})();`, res)
 }
 
-func Test_ConstructJavaScriptCodeEmpty(t *testing.T) {
+func Test_ConstructBenthosOutput(t *testing.T) {
 
-	code := ``
-	col := "name"
+	col := "col"
 
-	res := constructJavascriptCode(code, col)
-	assert.Empty(t, res)
+	res := constructBenthosOutput(col)
+
+	assert.Equal(t, `output["col"] = fn_col(input["col"]);`, res)
 }
 
 func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
