@@ -6,6 +6,7 @@ import { cn } from '@/libs/utils';
 import { usePathname } from 'next/navigation';
 import { useAccount } from '../providers/account-provider';
 import Logo from './Logo';
+import { getPathNameHighlight } from './util';
 
 export function MainNav({
   className,
@@ -13,6 +14,8 @@ export function MainNav({
 }: React.HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
   const { account } = useAccount();
+
+  const accountName = account?.name ?? 'personal';
 
   return (
     <div className="mr-4 hidden lg:flex">
@@ -27,63 +30,53 @@ export function MainNav({
           href="/"
           className={cn(
             'text-sm font-medium transition-colors hover:text-primary',
-            highlightPathName('/') ? 'text-foreground' : 'text-foreground/60'
+            getPathNameHighlight('/')
           )}
         >
           Overview
         </Link> */}
         <Link
-          href={`/${account?.name}/jobs`}
+          href={`/${accountName}/jobs`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
-            highlightPathName('/job', pathname)
-              ? 'text-foreground'
-              : 'text-foreground/60'
+            getPathNameHighlight('/job', pathname)
           )}
         >
           Jobs
         </Link>
         <Link
-          href={`/${account?.name}/runs`}
+          href={`/${accountName}/runs`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
-            highlightPathName('/run', pathname)
-              ? 'text-foreground'
-              : 'text-foreground/60'
+            getPathNameHighlight('/run', pathname)
           )}
         >
           Runs
         </Link>
         <Link
-          href={`/${account?.name}/transformers`}
+          href={`/${accountName}/transformers`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
-            highlightPathName('/transformer', pathname)
-              ? 'text-foreground'
-              : 'text-foreground/60'
+            getPathNameHighlight('/transformer', pathname)
           )}
         >
           Transformers
         </Link>
         <Link
-          href={`/${account?.name}/connections`}
+          href={`/${accountName}/connections`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
-            highlightPathName('connection', pathname)
-              ? 'text-foreground'
-              : 'text-foreground/60'
+            getPathNameHighlight('connection', pathname)
           )}
         >
           Connections
         </Link>
 
         <Link
-          href={`/${account?.name}/settings`}
+          href={`/${accountName}/settings`}
           className={cn(
             'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
-            highlightPathName('/settings', pathname)
-              ? 'text-foreground'
-              : 'text-foreground/60'
+            getPathNameHighlight('/settings', pathname)
           )}
         >
           Settings
@@ -92,10 +85,3 @@ export function MainNav({
     </div>
   );
 }
-
-export const highlightPathName = (href: string, pathname: string): boolean => {
-  if (href === '/' && pathname === '/') {
-    return true;
-  }
-  return href !== '/' && pathname.includes(href);
-};

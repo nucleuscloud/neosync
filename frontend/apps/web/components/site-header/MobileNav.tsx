@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/libs/utils';
 import { useAccount } from '../providers/account-provider';
-import { highlightPathName } from './MainNav';
+import { getPathNameHighlight } from './util';
 
 export function MobileNav() {
   const [open, setOpen] = React.useState(false);
@@ -49,9 +49,10 @@ export function MobileNav() {
                     onOpenChange={setOpen}
                     className={cn(
                       'text-sm font-medium text-muted-foreground transition-colors hover:text-black dark:hover:text-white',
-                      highlightPathName(`${item.href.split('/')[2]}`, pathname)
-                        ? 'text-foreground'
-                        : 'text-foreground/60'
+                      getPathNameHighlight(
+                        `${item.href.split('/')[2]}`,
+                        pathname
+                      )
                     )}
                   >
                     {item.title}
