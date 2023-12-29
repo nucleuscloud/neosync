@@ -4,8 +4,8 @@ import Link from 'next/link';
 
 import { cn } from '@/libs/utils';
 import { usePathname } from 'next/navigation';
+import { useAccount } from '../providers/account-provider';
 import Logo from './Logo';
-import { useAccount } from './providers/account-provider';
 
 export function MainNav({
   className,

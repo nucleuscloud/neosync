@@ -15,9 +15,9 @@ import {
   CreateTeamAccountResponse,
   UserAccountType,
 } from '@neosync/sdk';
-import { useAccount } from './providers/account-provider';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Button } from './ui/button';
+import { useAccount } from '../providers/account-provider';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Button } from '../ui/button';
 import {
   Command,
   CommandEmpty,
@@ -26,7 +26,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from './ui/command';
+} from '../ui/command';
 import {
   Dialog,
   DialogContent,
@@ -35,12 +35,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from './ui/dialog';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { Skeleton } from './ui/skeleton';
-import { toast } from './ui/use-toast';
+} from '../ui/dialog';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Skeleton } from '../ui/skeleton';
+import { toast } from '../ui/use-toast';
 
 interface Props {}
 

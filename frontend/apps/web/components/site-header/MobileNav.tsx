@@ -6,13 +6,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 
 import { getMobileMainNav } from '@/app/config/mobile-nav-config';
-import Logo from '@/components/Logo';
+import Logo from '@/components/site-header/Logo';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/libs/utils';
+import { useAccount } from '../providers/account-provider';
 import { highlightPathName } from './MainNav';
-import { useAccount } from './providers/account-provider';
 
 export function MobileNav() {
   const [open, setOpen] = React.useState(false);

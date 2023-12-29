@@ -1,8 +1,8 @@
 import SiteFooter from '@/components/SiteFooter';
-import SiteHeader from '@/components/SiteHeader';
 import AccountProvider from '@/components/providers/account-provider';
 import { PostHogIdentifier } from '@/components/providers/posthog-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
+import SiteHeader from '@/components/site-header/SiteHeader';
 import { Toaster } from '@/components/ui/toaster';
 import { ReactElement, ReactNode, Suspense } from 'react';
 import { auth, signIn } from './api/auth/[...nextauth]/auth';
