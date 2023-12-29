@@ -28,6 +28,10 @@ func (_m *MockTransformersServiceClient) EXPECT() *MockTransformersServiceClient
 func (_m *MockTransformersServiceClient) CreateUserDefinedTransformer(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CreateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.CreateUserDefinedTransformerResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CreateUserDefinedTransformer")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.CreateUserDefinedTransformerResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CreateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.CreateUserDefinedTransformerResponse], error)); ok {
@@ -82,6 +86,10 @@ func (_c *MockTransformersServiceClient_CreateUserDefinedTransformer_Call) RunAn
 // DeleteUserDefinedTransformer provides a mock function with given fields: _a0, _a1
 func (_m *MockTransformersServiceClient) DeleteUserDefinedTransformer(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.DeleteUserDefinedTransformerResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteUserDefinedTransformer")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.DeleteUserDefinedTransformerResponse]
 	var r1 error
@@ -138,6 +146,10 @@ func (_c *MockTransformersServiceClient_DeleteUserDefinedTransformer_Call) RunAn
 func (_m *MockTransformersServiceClient) GetSystemTransformers(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetSystemTransformersRequest]) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetSystemTransformers")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetSystemTransformersResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetSystemTransformersRequest]) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error)); ok {
@@ -192,6 +204,10 @@ func (_c *MockTransformersServiceClient_GetSystemTransformers_Call) RunAndReturn
 // GetUserDefinedTransformerById provides a mock function with given fields: _a0, _a1
 func (_m *MockTransformersServiceClient) GetUserDefinedTransformerById(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetUserDefinedTransformerByIdRequest]) (*connect.Response[mgmtv1alpha1.GetUserDefinedTransformerByIdResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserDefinedTransformerById")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.GetUserDefinedTransformerByIdResponse]
 	var r1 error
@@ -248,6 +264,10 @@ func (_c *MockTransformersServiceClient_GetUserDefinedTransformerById_Call) RunA
 func (_m *MockTransformersServiceClient) GetUserDefinedTransformers(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetUserDefinedTransformersRequest]) (*connect.Response[mgmtv1alpha1.GetUserDefinedTransformersResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserDefinedTransformers")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.GetUserDefinedTransformersResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetUserDefinedTransformersRequest]) (*connect.Response[mgmtv1alpha1.GetUserDefinedTransformersResponse], error)); ok {
@@ -302,6 +322,10 @@ func (_c *MockTransformersServiceClient_GetUserDefinedTransformers_Call) RunAndR
 // IsTransformerNameAvailable provides a mock function with given fields: _a0, _a1
 func (_m *MockTransformersServiceClient) IsTransformerNameAvailable(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[mgmtv1alpha1.IsTransformerNameAvailableResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsTransformerNameAvailable")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.IsTransformerNameAvailableResponse]
 	var r1 error
@@ -358,6 +382,10 @@ func (_c *MockTransformersServiceClient_IsTransformerNameAvailable_Call) RunAndR
 func (_m *MockTransformersServiceClient) UpdateUserDefinedTransformer(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.UpdateUserDefinedTransformerResponse], error) {
 	ret := _m.Called(_a0, _a1)
 
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserDefinedTransformer")
+	}
+
 	var r0 *connect.Response[mgmtv1alpha1.UpdateUserDefinedTransformerResponse]
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.UpdateUserDefinedTransformerResponse], error)); ok {
@@ -412,6 +440,10 @@ func (_c *MockTransformersServiceClient_UpdateUserDefinedTransformer_Call) RunAn
 // ValidateUserJavascriptCode provides a mock function with given fields: _a0, _a1
 func (_m *MockTransformersServiceClient) ValidateUserJavascriptCode(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse], error) {
 	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateUserJavascriptCode")
+	}
 
 	var r0 *connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse]
 	var r1 error

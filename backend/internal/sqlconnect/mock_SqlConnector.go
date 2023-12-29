@@ -28,6 +28,10 @@ func (_m *MockSqlConnector) EXPECT() *MockSqlConnector_Expecter {
 func (_m *MockSqlConnector) MysqlOpen(connectionStr string) (*sql.DB, error) {
 	ret := _m.Called(connectionStr)
 
+	if len(ret) == 0 {
+		panic("no return value specified for MysqlOpen")
+	}
+
 	var r0 *sql.DB
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string) (*sql.DB, error)); ok {
@@ -81,6 +85,10 @@ func (_c *MockSqlConnector_MysqlOpen_Call) RunAndReturn(run func(string) (*sql.D
 // Open provides a mock function with given fields: driverName, connectionStr
 func (_m *MockSqlConnector) Open(driverName string, connectionStr string) (*sql.DB, error) {
 	ret := _m.Called(driverName, connectionStr)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Open")
+	}
 
 	var r0 *sql.DB
 	var r1 error
@@ -136,6 +144,10 @@ func (_c *MockSqlConnector_Open_Call) RunAndReturn(run func(string, string) (*sq
 // PgPoolOpen provides a mock function with given fields: ctx, connectionStr
 func (_m *MockSqlConnector) PgPoolOpen(ctx context.Context, connectionStr string) (*pgxpool.Pool, error) {
 	ret := _m.Called(ctx, connectionStr)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PgPoolOpen")
+	}
 
 	var r0 *pgxpool.Pool
 	var r1 error
