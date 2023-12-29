@@ -2,7 +2,6 @@ package datasync_activities
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"strings"
 	"testing"
@@ -1934,7 +1933,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 						Source: "transform_javascript",
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value+=" hello";return payload;`},
+								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value += " hello";return payload;`},
 							},
 						},
 					},
@@ -1947,7 +1946,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 						Source: "transform_javascript",
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value+=" firstname";return payload;`},
+								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value += " firstname";return payload;`},
 							},
 						},
 					},
@@ -1964,34 +1963,30 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
 	assert.NoError(t, err)
-	a, _ := yaml.Marshal(res[0].Config.Pipeline)
-	fmt.Println("res", string(a))
-
 	assert.Equal(
 		t,
 		strings.TrimSpace(`
-			- javascript:
-				code: |
-					(() => {
-						function fnname(value) {
-							var payload = value += " hello";
-							return payload;
-						};
-						const input1 = benthos.v0_msg_as_structured();
-						const output1 = { ...input1 };
-						output1["name"] = fnname(input1["name"]);
-						benthos.v0_msg_set_structured(output1);
-	
-						function fnfirst_name(value) {
-							var payload = value += " firstname";
-							return payload;
-						};
-						const input2 = benthos.v0_msg_as_structured();
-						const output2 = { ...input2 };
-						output2["first_name"] = fnfirst_name(input2["first_name"]);
-						benthos.v0_msg_set_structured(output2);
-					})()
-	`), strings.TrimSpace(string(out)))
+- javascript:
+    code: |-
+        (() => {
+        function fn_name(value){
+          var payload = value += " hello";return payload;
+        };
+        const input_name = benthos.v0_msg_as_structured();
+        const output_name = { ...input_name };
+        output_name["name"] = fn_name(input_name["name"]);
+        benthos.v0_msg_set_structured(output_name);
+
+
+        function fn_first_name(value){
+          var payload = value += " firstname";return payload;
+        };
+        const input_first_name = benthos.v0_msg_as_structured();
+        const output_first_name = { ...input_first_name };
+        output_first_name["first_name"] = fn_first_name(input_first_name["first_name"]);
+        benthos.v0_msg_set_structured(output_first_name);
+        })();
+    `), strings.TrimSpace(string(out)))
 }
 
 // Generate -> S3

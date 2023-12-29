@@ -537,13 +537,13 @@ func Test_ConstructJavaScriptCode(t *testing.T) {
 
 	res := constructJavascriptCode(code, col)
 	assert.Equal(t, strings.TrimSpace(`
-function fnname(value){
+function fn_name(value){
   var payload = value+=" hello";return payload;
 };
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["name"] = fnname(input["name"]);
-benthos.v0_msg_set_structured(output);`), strings.TrimSpace(res))
+const input_name = benthos.v0_msg_as_structured();
+const output_name = { ...input_name };
+output_name["name"] = fn_name(input_name["name"]);
+benthos.v0_msg_set_structured(output_name);`), strings.TrimSpace(res))
 }
 
 func Test_ConstructJavaScriptCodeEmpty(t *testing.T) {

@@ -612,14 +612,14 @@ func parseJavascriptForColumnName(jsCode, targetWord, replacementWord string) st
 func constructJavascriptCode(jsCode, col string) string {
 	if jsCode != "" {
 		return fmt.Sprintf(`
-function fn%s(value){
+function fn_%s(value){
   %s
 };
-const input = benthos.v0_msg_as_structured();
-const output = { ...input };
-output["%s"] = fn%s(input["%s"]);
-benthos.v0_msg_set_structured(output);
-`, col, jsCode, col, col, col)
+const input_%s = benthos.v0_msg_as_structured();
+const output_%s = { ...input_%s };
+output_%s["%s"] = fn_%s(input_%s["%s"]);
+benthos.v0_msg_set_structured(output_%s);
+`, col, jsCode, col, col, col, col, col, col, col, col, col)
 	} else {
 		return ""
 	}
