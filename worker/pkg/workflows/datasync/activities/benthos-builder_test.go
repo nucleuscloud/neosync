@@ -154,12 +154,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -306,12 +304,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES (DEFAULT, $1);
                 args_mapping: root = [this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -469,12 +465,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -639,12 +633,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES (DEFAULT, $1);
                 args_mapping: root = [this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -847,12 +839,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -891,12 +881,10 @@ output:
                 query: INSERT INTO public.user_account_associations (id, user_id) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.user_id]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -1049,12 +1037,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES (?, ?);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -1218,12 +1204,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES (?, ?);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -1424,12 +1408,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES (?, ?);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -1468,12 +1450,10 @@ output:
                 query: INSERT INTO public.user_account_associations (id, user_id) VALUES (?, ?);
                 args_mapping: root = [this.id, this.user_id]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -1623,12 +1603,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES (DEFAULT, ?);
                 args_mapping: root = [this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),
@@ -1793,12 +1771,10 @@ output:
                 query: INSERT INTO public.users (id, name) VALUES (DEFAULT, ?);
                 args_mapping: root = [this.name]
                 init_statement: ""
-                conn_max_idle: 2
-                conn_max_open: 2
                 batching:
-                    count: 32767
+                    count: 100
                     byte_size: 0
-                    period: 1s
+                    period: 5s
                     check: ""
                     processors: []
 `),

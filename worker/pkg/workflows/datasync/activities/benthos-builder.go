@@ -396,11 +396,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 							InitStatement: initStmt,
 
-							ConnMaxIdle: 2,
-							ConnMaxOpen: 2,
-
 							Batching: &neosync_benthos.Batching{
-								Period: "1s",
+								Period: "5s",
 								Count:  100,
 							},
 						},
@@ -537,7 +534,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
 						Batching: &neosync_benthos.Batching{
 							Count:  100,
-							Period: "1s",
+							Period: "5s",
 							Processors: []*neosync_benthos.BatchProcessor{
 								{Archive: &neosync_benthos.ArchiveProcessor{Format: "lines"}},
 								{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
