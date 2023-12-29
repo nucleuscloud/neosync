@@ -21,7 +21,7 @@ type WorkflowResponse struct{}
 
 func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 2 * time.Minute, // this will need to be drastically increased and probably settable via the UI
+		StartToCloseTimeout: 10 * time.Minute, // this will need to be drastically increased and probably settable via the UI
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 1,
 		},

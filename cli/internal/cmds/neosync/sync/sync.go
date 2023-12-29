@@ -668,12 +668,10 @@ func generateBenthosConfig(
 						Table:         tableName,
 						Columns:       columns,
 						ArgsMapping:   buildPlainInsertArgs(columns),
-						ConnMaxIdle:   2,
-						ConnMaxOpen:   2,
 						Batching: &neosync_benthos.Batching{
-							Period: "1s",
+							Period: "5s",
 							// max allowed by postgres in a single batch
-							Count: computeMaxPgBatchCount(len(columns)),
+							Count: 100,
 						},
 					},
 				},
