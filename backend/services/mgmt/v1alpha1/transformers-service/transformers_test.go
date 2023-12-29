@@ -423,21 +423,16 @@ func Test_IsTransformerNameAvailable_False(t *testing.T) {
 func Test_ValidateUserJavascriptCode_True(t *testing.T) {
 	m := createServiceMock(t)
 
-	// Sample JavaScript code to test.
-	code := `(()=>{var payload = benthos.v0_msg_as_structured();payload.value+=" helloee";})();`
+	code := `var payload = value+=" hello";return payload;`
 
-	// Mock the user account validation to return true.
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 
-	// Call the service method with the JavaScript code.
 	resp, err := m.Service.ValidateUserJavascriptCode(context.Background(), &connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]{
 		Msg: &mgmtv1alpha1.ValidateUserJavascriptCodeRequest{
 			AccountId: mockAccountId,
 			Code:      code,
 		},
 	})
-
-	// Assert no error was returned and the response is as expected.
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, true, resp.Msg.Valid)
@@ -446,13 +441,9 @@ func Test_ValidateUserJavascriptCode_True(t *testing.T) {
 func Test_ValidateUserJavascriptCode_False(t *testing.T) {
 	m := createServiceMock(t)
 
-	// Sample JavaScript code to test.
-	code := `(()=>{var payload benthos.v0_msg_as_structured();payload.value+=" helloee";})();`
+	code := `var payload = value" hello";return payload;`
 
-	// Mock the user account validation to return true.
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-
-	// Call the service method with the JavaScript code.
 	resp, err := m.Service.ValidateUserJavascriptCode(context.Background(), &connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]{
 		Msg: &mgmtv1alpha1.ValidateUserJavascriptCodeRequest{
 			AccountId: mockAccountId,
@@ -463,7 +454,7 @@ func Test_ValidateUserJavascriptCode_False(t *testing.T) {
 	// Assert no error was returned and the response is as expected.
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t, false, resp.Msg.Valid)
+	assert.Equal(t, resp.Msg.Valid, false)
 }
 
 //nolint:all

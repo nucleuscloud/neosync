@@ -2,6 +2,7 @@ package v1alpha1_transformersservice
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
 	"github.com/dop251/goja"
@@ -732,7 +733,10 @@ func (s *Service) ValidateUserJavascriptCode(ctx context.Context, req *connect.R
 	if err != nil {
 		return nil, err
 	}
-	_, err = goja.Compile("test", req.Msg.Code, true)
+
+	js := constructJavascriptCode(req.Msg.Code, "test")
+
+	_, err = goja.Compile("test", js, true)
 	if err != nil {
 		return connect.NewResponse(&mgmtv1alpha1.ValidateUserJavascriptCodeResponse{
 			Valid: false,
@@ -742,4 +746,12 @@ func (s *Service) ValidateUserJavascriptCode(ctx context.Context, req *connect.R
 	return connect.NewResponse(&mgmtv1alpha1.ValidateUserJavascriptCodeResponse{
 		Valid: true,
 	}), nil
+}
+
+func constructJavascriptCode(jsCode, col string) string {
+	if jsCode != "" {
+		return fmt.Sprintf(`(()=>{function fn1(value){%s};const input = benthos.v0_msg_as_structured();const output = { ...input };output["%[2]s"] = fn1(input["%[2]s"]);benthos.v0_msg_set_structured(output);})();`, jsCode, col)
+	} else {
+		return ""
+	}
 }

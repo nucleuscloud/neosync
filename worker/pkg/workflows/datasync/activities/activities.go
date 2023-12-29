@@ -564,8 +564,10 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 
 			if col.Transformer.Source == "javascript" {
 				// parse the js code and replace the key param word which is 'value' with the column name
-				parsed := parseJavascriptForColumnName(col.Transformer.Config.GetJavascriptConfig().GetCode(), "value", col.Column)
-				javascript = append(javascript, parsed)
+				js := constructJavascriptCode(col.Transformer.Config.GetJavascriptConfig().GetCode(), col.Column)
+				//parsed := parseJavascriptForColumnName(col.Transformer.Config.GetJavascriptConfig().GetCode(), "value", col.Column)
+				// javascript = append(javascript, parsed)
+				javascript = append(javascript, js)
 
 			} else {
 
@@ -585,9 +587,13 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 	javascriptConfig := neosync_benthos.JavascriptConfig{
 		Code: javascriptStr,
 	}
-	pc := &neosync_benthos.ProcessorConfig{
-		Mutation:   &mutationStr,
-		Javascript: &javascriptConfig,
+
+	pc := &neosync_benthos.ProcessorConfig{}
+	if len(mutationStr) > 0 {
+		pc.Mutation = &mutationStr
+	}
+	if len(javascriptStr) > 0 {
+		pc.Javascript = &javascriptConfig
 	}
 
 	return pc, nil
@@ -602,6 +608,14 @@ func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 
 func parseJavascriptForColumnName(jsCode, targetWord, replacementWord string) string {
 	return strings.ReplaceAll(jsCode, targetWord, replacementWord)
+}
+
+func constructJavascriptCode(jsCode, col string) string {
+	if jsCode != "" {
+		return fmt.Sprintf(`(()=>{function fn1(value){%s};const input = benthos.v0_msg_as_structured();const output = { ...input };output["%[2]s"] = fn1(input["%[2]s"]);benthos.v0_msg_set_structured(output);})();`, jsCode, col)
+	} else {
+		return ""
+	}
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id

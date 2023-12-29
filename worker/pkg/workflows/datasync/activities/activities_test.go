@@ -294,6 +294,9 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 	ctx := context.Background()
 
+	code := `var payload = value+=" hello";return payload;`
+	col := "name"
+
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
 		Description: "description",
@@ -302,17 +305,18 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
 				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: `(()=>{var payload = benthos.v0_msg_as_structured();payload.value+=" helloee";})();`,
+					Code: code,
 				},
 			},
 		},
 	}
 
 	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
-	assert.Equal(t, res.Javascript.Code, `(()=>{var payload = benthos.v0_msg_as_structured();payload.id+=" helloee";})();`)
+	constructedCode := constructJavascriptCode(code, col)
+	assert.Equal(t, res.Javascript.Code, constructedCode)
 }
 
 func Test_ShouldProcessColumnTrue(t *testing.T) {
@@ -390,7 +394,7 @@ func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
-	assert.Equal(t, resp.Javascript.Code, ``)
+	assert.Empty(t, resp.Javascript)
 
 }
 
