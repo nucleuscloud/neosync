@@ -563,10 +563,8 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 			}
 
 			if col.Transformer.Source == "javascript" {
-				// parse the js code and replace the key param word which is 'value' with the column name
+				// construct the js code
 				js := constructJavascriptCode(col.Transformer.Config.GetJavascriptConfig().GetCode(), col.Column)
-				//parsed := parseJavascriptForColumnName(col.Transformer.Config.GetJavascriptConfig().GetCode(), "value", col.Column)
-				// javascript = append(javascript, parsed)
 				javascript = append(javascript, js)
 
 			} else {
