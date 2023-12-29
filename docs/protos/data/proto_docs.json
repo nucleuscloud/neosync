@@ -4562,7 +4562,7 @@
               "defaultValue": ""
             },
             {
-              "name": "javascript_config",
+              "name": "transform_javascript_config",
               "description": "",
               "label": "",
               "type": "TransformJavascript",

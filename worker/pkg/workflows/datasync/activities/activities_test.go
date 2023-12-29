@@ -190,10 +190,6 @@ output:
 	require.NoError(t, err)
 }
 
-type ExpectedJsValue struct {
-	Name string
-}
-
 func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
@@ -415,8 +411,8 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 		DataType:    "string",
 		Source:      "transform_javascript",
 		Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
-				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
 					Code: code,
 				},
 			},
@@ -459,8 +455,8 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 		DataType:    "string",
 		Source:      "transform_javascript",
 		Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
-				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
 					Code: code,
 				},
 			},
@@ -473,8 +469,8 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 		DataType:    "string",
 		Source:      "transform_javascript",
 		Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
-				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
 					Code: code2,
 				},
 			},
@@ -486,7 +482,7 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}})
 
 	assert.NoError(t, err)
-
+	fmt.Println("res", res.Javascript)
 	constructedCode := constructJavascriptCode(code, col)
 	constructedCode2 := constructJavascriptCode(code2, col2)
 	joinedCode := fmt.Sprintf("%s\n%s", constructedCode, constructedCode2)
@@ -557,8 +553,8 @@ func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
 		DataType:    "string",
 		Source:      "transform_javascript",
 		Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
-				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
 					Code: ``,
 				},
 			},

@@ -553,7 +553,6 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 
 				// handle user defined transformer -> get the user defined transformer configs using the id
-
 				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
 				if err != nil {
 					return nil, errors.New("unable to look up user defined transformer config by id")
@@ -563,12 +562,15 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 			}
 
 			if col.Transformer.Source == "transform_javascript" {
-				// construct the js code
-				js := constructJavascriptCode(col.Transformer.Config.GetJavascriptConfig().GetCode(), col.Column)
-				javascript = append(javascript, js)
+
+				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
+				// construct the js code and only append if there is code available
+				if code != "" {
+					js := constructJavascriptCode(code, col.Column)
+					javascript = append(javascript, js)
+				}
 
 			} else {
-
 				mutation, err := computeMutationFunction(col)
 				if err != nil {
 					return nil, fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
@@ -585,7 +587,7 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 	if len(mutationStr) > 0 {
 		pc.Mutation = &mutationStr
 	}
-	if len(javascript) > 0 && !sliceContainsEmptyString(javascript) {
+	if len(javascript) > 0 {
 		jsStr := strings.Join(javascript, "\n")
 		jsCode := fmt.Sprintf(`(() => {%s})();`, jsStr)
 		javascriptConfig := neosync_benthos.JavascriptConfig{
@@ -595,16 +597,6 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 	}
 
 	return pc, nil
-}
-
-// the default value for the javascript transformer is an empty string, so we need to check if someone sets the transformer to javascript but doesn't provide code, so we can not include it in the processors list
-func sliceContainsEmptyString(s []string) bool {
-	for _, v := range s {
-		if v == "" {
-			return true
-		}
-	}
-	return false
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
@@ -620,7 +612,7 @@ func parseJavascriptForColumnName(jsCode, targetWord, replacementWord string) st
 
 func constructJavascriptCode(jsCode, col string) string {
 	if jsCode != "" {
-		return fmt.Sprintf(`function fn1(value){%s};const input = benthos.v0_msg_as_structured();const output = { ...input };output["%[2]s"] = fn1(input["%[2]s"]);benthos.v0_msg_set_structured(output)`, jsCode, col)
+		return fmt.Sprintf(`function fn%[2]s(value){%s};const input = benthos.v0_msg_as_structured();const output = { ...input };output["%[2]s"] = fn%[2]s(input["%[2]s"]);benthos.v0_msg_set_structured(output)`, jsCode, col)
 	} else {
 		return ""
 	}

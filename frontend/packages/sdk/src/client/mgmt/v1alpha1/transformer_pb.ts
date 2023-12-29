@@ -949,10 +949,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "generateDefaultConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformJavascript javascript_config = 39;
+     * @generated from field: mgmt.v1alpha1.TransformJavascript transform_javascript_config = 39;
      */
     value: TransformJavascript;
-    case: "javascriptConfig";
+    case: "transformJavascriptConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -1001,7 +1001,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 36, name: "nullconfig", kind: "message", T: Null, oneof: "config" },
     { no: 37, name: "user_defined_transformer_config", kind: "message", T: UserDefinedTransformerConfig, oneof: "config" },
     { no: 38, name: "generate_default_config", kind: "message", T: GenerateDefault, oneof: "config" },
-    { no: 39, name: "javascript_config", kind: "message", T: TransformJavascript, oneof: "config" },
+    { no: 39, name: "transform_javascript_config", kind: "message", T: TransformJavascript, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
