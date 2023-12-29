@@ -562,7 +562,7 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 
 			}
 
-			if col.Transformer.Source == "javascript" {
+			if col.Transformer.Source == "transform_javascript" {
 				// construct the js code
 				js := constructJavascriptCode(col.Transformer.Config.GetJavascriptConfig().GetCode(), col.Column)
 				javascript = append(javascript, js)
@@ -580,21 +580,31 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 	}
 
 	mutationStr := strings.Join(mutations, "\n")
-	javascriptStr := strings.Join(javascript, "\n")
-
-	javascriptConfig := neosync_benthos.JavascriptConfig{
-		Code: javascriptStr,
-	}
 
 	pc := &neosync_benthos.ProcessorConfig{}
 	if len(mutationStr) > 0 {
 		pc.Mutation = &mutationStr
 	}
-	if len(javascriptStr) > 0 {
+	if len(javascript) > 0 && !sliceContainsEmptyString(javascript) {
+		jsStr := strings.Join(javascript, "\n")
+		jsCode := fmt.Sprintf(`(() => {%s})();`, jsStr)
+		javascriptConfig := neosync_benthos.JavascriptConfig{
+			Code: jsCode,
+		}
 		pc.Javascript = &javascriptConfig
 	}
 
 	return pc, nil
+}
+
+// the default value for the javascript transformer is an empty string, so we need to check if someone sets the transformer to javascript but doesn't provide code, so we can not include it in the processors list
+func sliceContainsEmptyString(s []string) bool {
+	for _, v := range s {
+		if v == "" {
+			return true
+		}
+	}
+	return false
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
@@ -610,7 +620,7 @@ func parseJavascriptForColumnName(jsCode, targetWord, replacementWord string) st
 
 func constructJavascriptCode(jsCode, col string) string {
 	if jsCode != "" {
-		return fmt.Sprintf(`(()=>{function fn1(value){%s};const input = benthos.v0_msg_as_structured();const output = { ...input };output["%[2]s"] = fn1(input["%[2]s"]);benthos.v0_msg_set_structured(output);})();`, jsCode, col)
+		return fmt.Sprintf(`function fn1(value){%s};const input = benthos.v0_msg_as_structured();const output = { ...input };output["%[2]s"] = fn1(input["%[2]s"]);benthos.v0_msg_set_structured(output)`, jsCode, col)
 	} else {
 		return ""
 	}

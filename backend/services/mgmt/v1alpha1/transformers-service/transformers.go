@@ -56,7 +56,7 @@ const (
 	Passthrough               Transformation = "passthrough"
 	Null                      Transformation = "null"
 	Invalid                   Transformation = "invalid"
-	Javascript                Transformation = "javascript"
+	Javascript                Transformation = "transform_javascript"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -520,7 +520,7 @@ func (s *Service) GetSystemTransformers(
 				},
 			},
 			{
-				Name:        "Javascript",
+				Name:        "Transform Javascript",
 				Description: "Write custom javascript to transform data",
 				DataType:    "any",
 				Source:      string(Javascript),

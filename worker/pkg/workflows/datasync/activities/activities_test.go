@@ -5,12 +5,16 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+	"io"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -186,6 +190,114 @@ output:
 	require.NoError(t, err)
 }
 
+type ExpectedJsValue struct {
+	Name string
+}
+
+func Test_Sync_Run_Success_Javascript(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	activities := &Activities{}
+	env.RegisterActivity(activities)
+
+	// benthos writes to stdout, need to capture that to evaluate the returned value, so we create a pipe to capture what is written to stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	val, err := env.ExecuteActivity(activities.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    mapping: root = {"name":"evis"}
+    interval: 1s
+    count: 1
+pipeline:
+  processors:
+    - javascript:
+        code: |
+          (() => { 
+          function fn1(value){
+          var a = value + "test";
+          return a };
+          const input = benthos.v0_msg_as_structured();
+          const output = { ...input };
+          output["name"] = fn1(input["name"]);
+          benthos.v0_msg_set_structured(output);
+          })();
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	assert.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	assert.NoError(t, err)
+
+	w.Close()
+	stdoutBytes, _ := io.ReadAll(r)
+	stringResult := string(stdoutBytes)
+
+	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
+
+	assert.Equal(t, `{"name":"evistest"}`, returnValue)
+}
+
+func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	activities := &Activities{}
+	env.RegisterActivity(activities)
+
+	// benthos writes to stdout, need to capture that to evaluate the returned value, so we create a pipe to capture what is written to stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	val, err := env.ExecuteActivity(activities.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    mapping: root = {"name":"evis"}
+    interval: 1s
+    count: 1
+pipeline:
+  processors:
+    - mutation: 
+        root.name = this.name.reverse()
+    - javascript:
+        code: |
+          (() => { 
+          function fn1(value){
+          var a = value + "test";
+          return a };
+          const input = benthos.v0_msg_as_structured();
+          const output = { ...input };
+          output["name"] = fn1(input["name"]);
+          benthos.v0_msg_set_structured(output);
+          })();
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	assert.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	assert.NoError(t, err)
+
+	w.Close()
+	stdoutBytes, _ := io.ReadAll(r)
+	stringResult := string(stdoutBytes)
+
+	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
+
+	assert.Equal(t, `{"name":"sivetest"}`, returnValue)
+}
+
 func Test_buildProcessorConfigMutation(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
@@ -295,13 +407,13 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 	ctx := context.Background()
 
 	code := `var payload = value+=" hello";return payload;`
-	col := "name"
+	col := "col"
 
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
 		Description: "description",
 		DataType:    "string",
-		Source:      "javascript",
+		Source:      "transform_javascript",
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
 				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -316,7 +428,70 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 
 	assert.NoError(t, err)
 	constructedCode := constructJavascriptCode(code, col)
-	assert.Equal(t, res.Javascript.Code, constructedCode)
+	assert.Equal(t, res.Javascript.Code, fmt.Sprintf(`(() => {%s})();`, constructedCode))
+}
+
+func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
+
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	ctx := context.Background()
+
+	code := `var payload = value+=" hello";return payload;`
+	col := "name"
+	code2 := `var payload = value*2;return payload;`
+	col2 := "age"
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
+				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: code,
+				},
+			},
+		},
+	}
+
+	jsT2 := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
+				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: code2,
+				},
+			},
+		},
+	}
+
+	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}})
+
+	assert.NoError(t, err)
+
+	constructedCode := constructJavascriptCode(code, col)
+	constructedCode2 := constructJavascriptCode(code2, col2)
+	joinedCode := fmt.Sprintf("%s\n%s", constructedCode, constructedCode2)
+	assert.Equal(t, fmt.Sprintf(`(() => {%s})();`, joinedCode), res.Javascript.Code)
+
 }
 
 func Test_ShouldProcessColumnTrue(t *testing.T) {
@@ -380,7 +555,7 @@ func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
 		Name:        "stage",
 		Description: "description",
 		DataType:    "string",
-		Source:      "javascript",
+		Source:      "transform_javascript",
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
 				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{

@@ -312,6 +312,13 @@ output:
                     processors: []
 `),
 	)
+
+	// create a new streambuilder instance so we can access the SetYaml method
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
@@ -1878,7 +1885,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "javascript",
+						Source: "transform_javascript",
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
 								JavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
