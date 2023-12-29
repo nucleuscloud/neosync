@@ -2,6 +2,7 @@ package datasync_activities
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"strings"
 	"testing"
@@ -1905,126 +1906,93 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 
 }
 
-// func Test_ProcessorConfigMultiJavascript(t *testing.T) {
+func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 
-// 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-// 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-// 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-// 	pgcache := map[string]pg_queries.DBTX{
-// 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-// 		"fake-stage-url": pg_queries.NewMockDBTX(t),
-// 	}
-// 	pgquerier := pg_queries.NewMockQuerier(t)
-// 	mysqlcache := map[string]mysql_queries.DBTX{}
-// 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-// 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 
-// 	tableMappings := []*TableMapping{
-// 		{Schema: "public",
-// 			Table: "users",
-// 			Mappings: []*mgmtv1alpha1.JobMapping{
-// 				{
-// 					Schema: "public",
-// 					Table:  "users",
-// 					Column: "id",
-// 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-// 						Source: "generate_default",
-// 					},
-// 				},
-// 				{
-// 					Schema: "public",
-// 					Table:  "users",
-// 					Column: "name",
-// 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-// 						Source: "transform_javascript",
-// 						Config: &mgmtv1alpha1.TransformerConfig{
-// 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-// 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value+=" hello";return payload;`},
-// 							},
-// 						},
-// 					},
-// 				},
-// 			},
-// 		},
-// 		{Schema: "public",
-// 			Table: "users",
-// 			Mappings: []*mgmtv1alpha1.JobMapping{
-// 				{
-// 					Schema: "public",
-// 					Table:  "users",
-// 					Column: "id",
-// 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-// 						Source: "generate_default",
-// 					},
-// 				},
-// 				{
-// 					Schema: "public",
-// 					Table:  "users",
-// 					Column: "first-name",
-// 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-// 						Source: "transform_javascript",
-// 						Config: &mgmtv1alpha1.TransformerConfig{
-// 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-// 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value+=" name";return payload;`},
-// 							},
-// 						},
-// 					},
-// 				},
-// 			},
-// 		}}
+	tableMappings := []*TableMapping{
+		{Schema: "public",
+			Table: "users",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "transform_javascript",
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value+=" hello";return payload;`},
+							},
+						},
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "first_name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "transform_javascript",
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value+=" firstname";return payload;`},
+							},
+						},
+					},
+				},
+			},
+		}}
 
-// 	dsn := "test"
-// 	driver := "test"
-// 	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
+	dsn := "test"
+	driver := "test"
+	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
 
-// 	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
-// 	assert.Nil(t, err)
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
+	assert.Nil(t, err)
 
-// 	out, err := yaml.Marshal(res[0].Config)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, assert.Equal(
-// 		t,
-// 		strings.TrimSpace(string(out)),
-// 		strings.TrimSpace(`
-// input:
-//     label: ""
-//     sql_select:
-//         driver: mysql
-//         dsn: fake-prod-url
-//         table: public.users
-//         columns:
-//             - id
-//             - name
-// buffer: null
-// pipeline:
-//     threads: -1
-//     processors: []
-// output:
-//     label: ""
-//     broker:
-//         pattern: fan_out
-//         outputs:
-//             - sql_raw:
-//                 driver: mysql
-//                 dsn: fake-stage-url
-//                 query: INSERT INTO public.users (id, name) VALUES (DEFAULT, ?);
-//                 args_mapping: root = [this.name]
-//                 init_statement: ""
-//                 conn_max_idle: 2
-//                 conn_max_open: 2
-//                 batching:
-//                     count: 32767
-//                     byte_size: 0
-//                     period: 1s
-//                     check: ""
-//                     processors: []
-// `),
-// 	), res[0].Config.StreamConfig.Pipeline.Processors)
-// 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
+	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
+	assert.NoError(t, err)
+	a, _ := yaml.Marshal(res[0].Config.Pipeline)
+	fmt.Println("res", string(a))
 
-// }
+	assert.Equal(
+		t,
+		strings.TrimSpace(`
+			- javascript:
+				code: |
+					(() => {
+						function fnname(value) {
+							var payload = value += " hello";
+							return payload;
+						};
+						const input1 = benthos.v0_msg_as_structured();
+						const output1 = { ...input1 };
+						output1["name"] = fnname(input1["name"]);
+						benthos.v0_msg_set_structured(output1);
+	
+						function fnfirst_name(value) {
+							var payload = value += " firstname";
+							return payload;
+						};
+						const input2 = benthos.v0_msg_as_structured();
+						const output2 = { ...input2 };
+						output2["first_name"] = fnfirst_name(input2["first_name"]);
+						benthos.v0_msg_set_structured(output2);
+					})()
+	`), strings.TrimSpace(string(out)))
+}
 
 // Generate -> S3
 // PG -> S3

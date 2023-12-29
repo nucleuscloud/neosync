@@ -531,6 +531,24 @@ func Test_ParseJSForColumnName(t *testing.T) {
 	assert.Equal(t, "var a = benthos.v0_msg_get_structured();var payload = a.name", res)
 }
 
+func Test_ConstructJavaScriptCode(t *testing.T) {
+
+	code := `var payload = value+=" hello";return payload;`
+	col := "name"
+
+	res := constructJavascriptCode(code, col)
+	assert.Equal(t, `function fnname(value){var payload = value+=" hello";return payload;};const input = benthos.v0_msg_as_structured();const output = { ...input };output["name"] = fnname(input["name"]);benthos.v0_msg_set_structured(output);`, res)
+}
+
+func Test_ConstructJavaScriptCodeEmpty(t *testing.T) {
+
+	code := ``
+	col := "name"
+
+	res := constructJavascriptCode(code, col)
+	assert.Empty(t, res)
+}
+
 func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)

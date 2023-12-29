@@ -569,7 +569,6 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 					js := constructJavascriptCode(code, col.Column)
 					javascript = append(javascript, js)
 				}
-
 			} else {
 				mutation, err := computeMutationFunction(col)
 				if err != nil {
@@ -612,7 +611,15 @@ func parseJavascriptForColumnName(jsCode, targetWord, replacementWord string) st
 
 func constructJavascriptCode(jsCode, col string) string {
 	if jsCode != "" {
-		return fmt.Sprintf(`function fn%[2]s(value){%s};const input = benthos.v0_msg_as_structured();const output = { ...input };output["%[2]s"] = fn%[2]s(input["%[2]s"]);benthos.v0_msg_set_structured(output)`, jsCode, col)
+		return fmt.Sprintf(`
+function fn%s(value) {
+    %s
+};
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["%s"] = fn%s(input["%s"]);
+benthos.v0_msg_set_structured(output);
+`, col, jsCode, col, col, col)
 	} else {
 		return ""
 	}
