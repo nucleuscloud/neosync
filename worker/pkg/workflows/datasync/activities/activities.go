@@ -612,8 +612,8 @@ func parseJavascriptForColumnName(jsCode, targetWord, replacementWord string) st
 func constructJavascriptCode(jsCode, col string) string {
 	if jsCode != "" {
 		return fmt.Sprintf(`
-function fn%s(value) {
-    %s
+function fn%s(value){
+  %s
 };
 const input = benthos.v0_msg_as_structured();
 const output = { ...input };

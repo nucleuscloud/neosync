@@ -482,7 +482,6 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}})
 
 	assert.NoError(t, err)
-	fmt.Println("res", res.Javascript)
 	constructedCode := constructJavascriptCode(code, col)
 	constructedCode2 := constructJavascriptCode(code2, col2)
 	joinedCode := fmt.Sprintf("%s\n%s", constructedCode, constructedCode2)
@@ -537,7 +536,14 @@ func Test_ConstructJavaScriptCode(t *testing.T) {
 	col := "name"
 
 	res := constructJavascriptCode(code, col)
-	assert.Equal(t, `function fnname(value){var payload = value+=" hello";return payload;};const input = benthos.v0_msg_as_structured();const output = { ...input };output["name"] = fnname(input["name"]);benthos.v0_msg_set_structured(output);`, res)
+	assert.Equal(t, strings.TrimSpace(`
+function fnname(value){
+  var payload = value+=" hello";return payload;
+};
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["name"] = fnname(input["name"]);
+benthos.v0_msg_set_structured(output);`), strings.TrimSpace(res))
 }
 
 func Test_ConstructJavaScriptCodeEmpty(t *testing.T) {
