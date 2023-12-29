@@ -525,8 +525,8 @@ func (s *Service) GetSystemTransformers(
 				DataType:    "any",
 				Source:      string(Javascript),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
-						JavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
+					Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+						TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
 					},
 				},
 			},
@@ -750,7 +750,10 @@ func (s *Service) ValidateUserJavascriptCode(ctx context.Context, req *connect.R
 
 func constructJavascriptCode(jsCode, col string) string {
 	if jsCode != "" {
-		return fmt.Sprintf(`(()=>{function fn1(value){%s};const input = benthos.v0_msg_as_structured();const output = { ...input };output["%[2]s"] = fn1(input["%[2]s"]);benthos.v0_msg_set_structured(output);})();`, jsCode, col)
+		return fmt.Sprintf(`(()=>{
+			function fn1(value){
+				%s
+				}})();`, jsCode)
 	} else {
 		return ""
 	}

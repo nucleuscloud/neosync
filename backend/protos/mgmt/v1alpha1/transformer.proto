@@ -128,7 +128,7 @@ message TransformerConfig {
     Null nullconfig = 36;
     UserDefinedTransformerConfig user_defined_transformer_config = 37;
     GenerateDefault generate_default_config = 38;
-    TransformJavascript javascript_config = 39;
+    TransformJavascript transform_javascript_config = 39;
   }
 }
 

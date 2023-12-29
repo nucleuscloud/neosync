@@ -423,7 +423,9 @@ func Test_IsTransformerNameAvailable_False(t *testing.T) {
 func Test_ValidateUserJavascriptCode_True(t *testing.T) {
 	m := createServiceMock(t)
 
-	code := `var payload = value+=" hello";return payload;`
+	code := `
+	var payload = value+=" hello";
+	return payload;`
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 

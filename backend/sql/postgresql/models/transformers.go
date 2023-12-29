@@ -324,9 +324,9 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.UserDefinedTransformer = &UserDefinedTransformerConfig{
 			Id: tr.GetUserDefinedTransformerConfig().Id,
 		}
-	case *mgmtv1alpha1.TransformerConfig_JavascriptConfig:
+	case *mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig:
 		t.TransformJavascript = &TransformJavascriptConfig{
-			Code: tr.GetJavascriptConfig().GetCode(),
+			Code: tr.GetTransformJavascriptConfig().Code,
 		}
 	default:
 		t = &TransformerConfigs{}
@@ -623,8 +623,8 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 		}
 	case t.TransformJavascript != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_JavascriptConfig{
-				JavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
 					Code: t.TransformJavascript.Code,
 				},
 			},
