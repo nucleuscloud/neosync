@@ -1,29 +1,26 @@
 'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import { PageProps } from '@/components/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement } from 'react';
 
-export default function AccountPage({ params }: PageProps): ReactElement {
+export default function AccountPage(): ReactElement {
   const router = useRouter();
-  const { data, isLoading } = useGetUserAccounts();
-  const accountName = params?.account ?? 'personal'; // if not present, may need to update url to include personal
-  const account = data?.accounts.find((a) => a.name === accountName);
+  const { account, isLoading } = useAccount();
 
-  useEffect(() => {
-    if (isLoading || !account?.name) {
-      return;
-    }
-    router.push(`/${account.name}/jobs`);
-  }, [isLoading, accountName, account?.id]);
+  // useEffect(() => {
+  //   if (isLoading || !account?.name) {
+  //     return;
+  //   }
+  //   router.push(`/${account.name}/jobs`);
+  // }, [isLoading, account?.name, account?.id]);
 
   if (isLoading) {
-    return <Skeleton className="w-full h-full" />;
+    return <Skeleton className="w-full h-full py-2" />;
   }
 
   if (!account) {
