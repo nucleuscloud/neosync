@@ -6,19 +6,19 @@ on:
     types: [published]
 
 jobs:
-  build-images:
+  build_and_deploy:
     runs-on: ubuntu-20.04
     steps:
       - name: Clone Repository
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4
       
       - name: Check Docker Version
         run: docker --version
 
       - name: Setup Go v1.23
-        uses: actions/setup-go@v5.0.0
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.21.3'
+          go-version: worker/go.sum
 
       - name: Make Build
         run: make all
@@ -37,14 +37,14 @@ jobs:
 
       - name: Tag Docker Images
         run: |
-          docker tag neosync-worker burnerjhon/burnerjhon-neosync-worker
-          docker tag neosync-api burnerjhon/burnerjhon-neosync-api
-          docker tag neosync-app burnerjhon/burnerjhon-neosync-app
+          docker tag neosync-worker neosync/neosync-worker
+          docker tag neosync-api neosync/neosync-api
+          docker tag neosync-app neosync/neosync-app
 
       - name: Push Docker Images
         run: |
-          docker push burnerjhon/burnerjhon-neosync-worker
-          docker push burnerjhon/burnerjhon-neosync-api
-          docker push burnerjhon/burnerjhon-neosync-app
+          docker push neosync/neosync-worker
+          docker push neosync/neosync-api
+          docker push neosync/neosync-app
         
 
