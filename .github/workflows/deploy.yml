@@ -13,7 +13,13 @@ jobs:
       
       - name: Check Docker Version
         run: docker --version
+
+      - name: Make Build
+        run: make all
         
       - name: Build Docker Images
         run: docker compose build
+
+      - name: Check Docker Images
+        run: docker images 
 
