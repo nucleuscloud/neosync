@@ -1,0 +1,19 @@
+name: Deploy
+
+on: 
+  release:
+    types: [published]
+
+jobs:
+  build-images:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v4.1.1
+      
+      - name: Check Docker Version
+        run: docker --version
+        
+      - name: Build Docker Images
+        run: docker compose build
+
