@@ -18,7 +18,7 @@ jobs:
       - name: Setup Go v1.23
         uses: actions/setup-go@v5.0.0
         with:
-          go-version: backend/go.mod
+          go-version: '1.21.3'
 
       - name: Make Build
         run: make all
