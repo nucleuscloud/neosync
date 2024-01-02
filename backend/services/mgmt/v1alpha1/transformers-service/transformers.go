@@ -734,7 +734,7 @@ func (s *Service) ValidateUserJavascriptCode(ctx context.Context, req *connect.R
 		return nil, err
 	}
 
-	js := constructJavascriptCode(req.Msg.Code, "test")
+	js := constructJavascriptCode(req.Msg.Code)
 
 	_, err = goja.Compile("test", js, true)
 	if err != nil {
@@ -748,7 +748,7 @@ func (s *Service) ValidateUserJavascriptCode(ctx context.Context, req *connect.R
 	}), nil
 }
 
-func constructJavascriptCode(jsCode, col string) string {
+func constructJavascriptCode(jsCode string) string {
 	if jsCode != "" {
 		return fmt.Sprintf(`(()=>{
 			function fn1(value){

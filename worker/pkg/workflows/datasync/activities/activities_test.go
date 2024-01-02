@@ -5,7 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"io"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -196,12 +196,14 @@ func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	activities := &Activities{}
 	env.RegisterActivity(activities)
 
-	// benthos writes to stdout, need to capture that to evaluate the returned value, so we create a pipe to capture what is written to stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
+	tmpFile, err := os.CreateTemp("", "test")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+	defer os.Remove(tmpFile.Name())
 
 	val, err := env.ExecuteActivity(activities.Sync, &SyncRequest{
-		BenthosConfig: strings.TrimSpace(`
+		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
 input:
   generate:
     mapping: root = {"name":"evis"}
@@ -222,17 +224,20 @@ pipeline:
           })();
 output:
   label: ""
-  stdout:
+  file:
+    path:  %s
     codec: lines
-`),
+`, tmpFile.Name())),
 	}, &SyncMetadata{Schema: "public", Table: "test"})
 	assert.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
 	assert.NoError(t, err)
 
-	w.Close()
-	stdoutBytes, _ := io.ReadAll(r)
+	stdoutBytes, err := os.ReadFile(tmpFile.Name())
+	if err != nil {
+		t.Fatalf("Failed to read from temp file: %v", err)
+	}
 	stringResult := string(stdoutBytes)
 
 	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
@@ -247,12 +252,14 @@ func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	activities := &Activities{}
 	env.RegisterActivity(activities)
 
-	// benthos writes to stdout, need to capture that to evaluate the returned value, so we create a pipe to capture what is written to stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
+	tmpFile, err := os.CreateTemp("", "test")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+	defer os.Remove(tmpFile.Name())
 
 	val, err := env.ExecuteActivity(activities.Sync, &SyncRequest{
-		BenthosConfig: strings.TrimSpace(`
+		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
 input:
   generate:
     mapping: root = {"name":"evis"}
@@ -275,17 +282,20 @@ pipeline:
           })();
 output:
   label: ""
-  stdout:
+  file:
+    path:  %s
     codec: lines
-`),
+	`, tmpFile.Name())),
 	}, &SyncMetadata{Schema: "public", Table: "test"})
 	assert.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
 	assert.NoError(t, err)
 
-	w.Close()
-	stdoutBytes, _ := io.ReadAll(r)
+	stdoutBytes, err := os.ReadFile(tmpFile.Name())
+	if err != nil {
+		t.Fatalf("Failed to read from temp file: %v", err)
+	}
 	stringResult := string(stdoutBytes)
 
 	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
