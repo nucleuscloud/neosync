@@ -36,12 +36,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
     ],
   };
 
-  console.log('the data', company);
   const options = {
     Authorization: `Bearer ${env.HUBSPOT_TOKEN}`,
   };
-
-  console.log('calling the api');
 
   try {
     await axios.post(
