@@ -176,7 +176,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigReponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -240,7 +240,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigReponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -579,11 +579,11 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 			count = tableOpt.Count
 		}
 
-		mapping, err := b.buildProcessorMutation(ctx, tableMapping.Mappings)
+		mapping, err := b.buildProcessorConfig(ctx, tableMapping.Mappings)
 		if err != nil {
 			return nil, err
 		}
-		if mapping == "" {
+		if mapping.Mutation == nil {
 			return nil, errors.New("unable to generate config mapping for table") // workshop this more
 		}
 
@@ -594,7 +594,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 						Generate: &neosync_benthos.Generate{
 							Interval: "",
 							Count:    count,
-							Mapping:  mapping,
+							Mapping:  *mapping.Mutation,
 						},
 					},
 				},

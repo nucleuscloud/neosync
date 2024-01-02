@@ -5,12 +5,15 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -186,7 +189,121 @@ output:
 	require.NoError(t, err)
 }
 
-func Test_buildProcessorMutation(t *testing.T) {
+func Test_Sync_Run_Success_Javascript(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	activities := &Activities{}
+	env.RegisterActivity(activities)
+
+	tmpFile, err := os.CreateTemp("", "test")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	val, err := env.ExecuteActivity(activities.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
+input:
+  generate:
+    mapping: root = {"name":"evis"}
+    interval: 1s
+    count: 1
+pipeline:
+  processors:
+    - javascript:
+        code: |
+          (() => { 
+          function fn_name(value){
+          var a = value + "test";
+          return a };
+          const input = benthos.v0_msg_as_structured();
+          const output = { ...input };
+          output["name"] = fn_name(input["name"]);
+          benthos.v0_msg_set_structured(output);
+          })();
+output:
+  label: ""
+  file:
+    path:  %s
+    codec: lines
+`, tmpFile.Name())),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	assert.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	assert.NoError(t, err)
+
+	stdoutBytes, err := os.ReadFile(tmpFile.Name())
+	if err != nil {
+		t.Fatalf("Failed to read from temp file: %v", err)
+	}
+	stringResult := string(stdoutBytes)
+
+	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
+
+	assert.Equal(t, `{"name":"evistest"}`, returnValue)
+}
+
+func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	activities := &Activities{}
+	env.RegisterActivity(activities)
+
+	tmpFile, err := os.CreateTemp("", "test")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	val, err := env.ExecuteActivity(activities.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
+input:
+  generate:
+    mapping: root = {"name":"evis"}
+    interval: 1s
+    count: 1
+pipeline:
+  processors:
+    - mutation: 
+        root.name = this.name.reverse()
+    - javascript:
+        code: |
+          (() => { 
+          function fn1(value){
+          var a = value + "test";
+          return a };
+          const input = benthos.v0_msg_as_structured();
+          const output = { ...input };
+          output["name"] = fn1(input["name"]);
+          benthos.v0_msg_set_structured(output);
+          })();
+output:
+  label: ""
+  file:
+    path:  %s
+    codec: lines
+	`, tmpFile.Name())),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	assert.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	assert.NoError(t, err)
+
+	stdoutBytes, err := os.ReadFile(tmpFile.Name())
+	if err != nil {
+		t.Fatalf("Failed to read from temp file: %v", err)
+	}
+	stringResult := string(stdoutBytes)
+
+	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
+
+	assert.Equal(t, `{"name":"sivetest"}`, returnValue)
+}
+
+func Test_buildProcessorConfigMutation(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -202,33 +319,34 @@ func Test_buildProcessorMutation(t *testing.T) {
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 	ctx := context.Background()
 
-	output, err := bbuilder.buildProcessorMutation(ctx, nil)
-	assert.Nil(t, err)
-	assert.Empty(t, output)
+	output, err := bbuilder.buildProcessorConfig(ctx, nil)
 
-	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{})
 	assert.Nil(t, err)
-	assert.Empty(t, output)
+	assert.Empty(t, output.Mutation)
 
-	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{})
+	assert.Nil(t, err)
+	assert.Empty(t, output.Mutation)
+
+	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
 	})
 	assert.Nil(t, err)
-	assert.Empty(t, output)
+	assert.Empty(t, output.Mutation)
 
-	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
 	})
 	assert.Nil(t, err)
-	assert.Empty(t, output)
+	assert.Empty(t, output.Mutation)
 
-	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "passthrough"}},
 	})
 	assert.Nil(t, err)
-	assert.Empty(t, output)
+	assert.Empty(t, output.Mutation)
 
-	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "null", Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
@@ -242,46 +360,30 @@ func Test_buildProcessorMutation(t *testing.T) {
 	})
 
 	assert.Nil(t, err)
-	assert.Equal(t, output, "root.id = null\nroot.name = null")
+	assert.Equal(t, *output.Mutation, "root.id = null\nroot.name = null")
 
-	mockTransformerClient.On(
-		"GetUserDefinedTransformerById",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
-			TransformerId: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{
-		Transformer: &mgmtv1alpha1.UserDefinedTransformer{
-			Id:          "123",
-			Name:        "stage",
-			Description: "description",
-			DataType:    "string",
-			Source:      "transform_email",
-			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
-					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-						PreserveDomain: true,
-						PreserveLength: false,
-					},
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_email",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
+				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
+					PreserveDomain: true,
+					PreserveLength: false,
 				},
 			},
 		},
-	}), nil)
+	}
 
-	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "transform_email", Config: &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
-				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
-					Id: "123",
-				},
-			},
-		}}},
-	})
+	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.Nil(t, err)
-	assert.Equal(t, output, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false)`)
+	assert.Equal(t, *output.Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false)`)
 
-	output, err = bbuilder.buildProcessorMutation(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
@@ -290,6 +392,311 @@ func Test_buildProcessorMutation(t *testing.T) {
 	})
 	assert.Error(t, err)
 	assert.Empty(t, output)
+
+}
+
+const code = `var payload = value+=" hello";return payload;`
+
+func Test_buildProcessorConfigJavascript(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	ctx := context.Background()
+
+	col := "address"
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: code,
+				},
+			},
+		},
+	}
+
+	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
+
+	assert.NoError(t, err)
+	assert.Equal(t, `
+(() => {
+
+function fn_address(value){
+  var payload = value+=" hello";return payload;
+};
+
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["address"] = fn_address(input["address"]);
+benthos.v0_msg_set_structured(output);
+})();`,
+		res.Javascript.Code,
+	)
+}
+
+const col = "name"
+
+func Test_buildProcessorConfigJavascriptMultiLineScript(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	ctx := context.Background()
+
+	code :=
+		`var payload = value+=" hello";
+  payload.replace("hello","newHello");
+  return payload;`
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: code,
+				},
+			},
+		},
+	}
+
+	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
+
+	assert.NoError(t, err)
+	assert.Equal(t, `
+(() => {
+
+function fn_name(value){
+  var payload = value+=" hello";
+  payload.replace("hello","newHello");
+  return payload;
+};
+
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["name"] = fn_name(input["name"]);
+benthos.v0_msg_set_structured(output);
+})();`,
+		res.Javascript.Code,
+	)
+}
+
+func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
+
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	ctx := context.Background()
+
+	code2 := `var payload = value*2;return payload;`
+	col2 := "age"
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: code,
+				},
+			},
+		},
+	}
+
+	jsT2 := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: code2,
+				},
+			},
+		},
+	}
+
+	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}})
+
+	assert.NoError(t, err)
+	assert.Equal(t, `
+(() => {
+
+function fn_name(value){
+  var payload = value+=" hello";return payload;
+};
+
+
+function fn_age(value){
+  var payload = value*2;return payload;
+};
+
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["name"] = fn_name(input["name"]);
+output["age"] = fn_age(input["age"]);
+benthos.v0_msg_set_structured(output);
+})();`,
+		res.Javascript.Code,
+	)
+}
+
+func Test_ShouldProcessColumnTrue(t *testing.T) {
+
+	val := &mgmtv1alpha1.JobMappingTransformer{
+		Source: "generate_email",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
+				Nullconfig: &mgmtv1alpha1.Null{},
+			},
+		},
+	}
+
+	res := shouldProcessColumn(val)
+	assert.Equal(t, true, res)
+}
+
+func Test_ShouldProcessColumnFalse(t *testing.T) {
+
+	val := &mgmtv1alpha1.JobMappingTransformer{
+		Source: "passthrough",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
+				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
+			},
+		},
+	}
+
+	res := shouldProcessColumn(val)
+	assert.Equal(t, false, res)
+}
+
+func Test_ConstructJsFunction(t *testing.T) {
+
+	col := "col"
+
+	res := constructJsFunction(code, col)
+	assert.Equal(t, `
+function fn_col(value){
+  var payload = value+=" hello";return payload;
+};
+`, res)
+}
+
+func Test_ConstructBenthosJsProcessor(t *testing.T) {
+
+	jsFunctions := []string{}
+	benthosOutputs := []string{}
+
+	benthosOutput := constructBenthosOutput(col)
+	jsFunction := constructJsFunction(code, col)
+	benthosOutputs = append(benthosOutputs, benthosOutput)
+
+	jsFunctions = append(jsFunctions, jsFunction)
+
+	res := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
+
+	assert.Equal(t, `
+(() => {
+
+function fn_name(value){
+  var payload = value+=" hello";return payload;
+};
+
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["name"] = fn_name(input["name"]);
+benthos.v0_msg_set_structured(output);
+})();`, res)
+}
+
+func Test_ConstructBenthosOutput(t *testing.T) {
+
+	col := "col"
+
+	res := constructBenthosOutput(col)
+
+	assert.Equal(t, `output["col"] = fn_col(input["col"]);`, res)
+}
+
+func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	ctx := context.Background()
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: ``,
+				},
+			},
+		},
+	}
+
+	resp, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
+
+	assert.NoError(t, err)
+	assert.Empty(t, resp.Javascript)
+
 }
 
 func Test_convertUserDefinedFunctionConfig(t *testing.T) {

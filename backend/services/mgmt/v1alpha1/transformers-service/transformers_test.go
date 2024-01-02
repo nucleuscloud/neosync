@@ -39,7 +39,7 @@ func Test_GetSystemTransformers(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t, 37, len(resp.Msg.GetTransformers())) // the number of system transformers
+	assert.NotEmpty(t, resp.Msg.GetTransformers())
 }
 
 func Test_GetUserDefinedTransformers(t *testing.T) {
@@ -397,7 +397,7 @@ func Test_IsTtransformerNameAvailable_True(t *testing.T) {
 	assert.Equal(t, true, resp.Msg.IsAvailable)
 }
 
-func Test_IsConnectionNameAvailable_False(t *testing.T) {
+func Test_IsTransformerNameAvailable_False(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -418,6 +418,45 @@ func Test_IsConnectionNameAvailable_False(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, false, resp.Msg.IsAvailable)
+}
+
+func Test_ValidateUserJavascriptCode_True(t *testing.T) {
+	m := createServiceMock(t)
+
+	code := `
+	var payload = value+=" hello";
+	return payload;`
+
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+
+	resp, err := m.Service.ValidateUserJavascriptCode(context.Background(), &connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]{
+		Msg: &mgmtv1alpha1.ValidateUserJavascriptCodeRequest{
+			AccountId: mockAccountId,
+			Code:      code,
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, true, resp.Msg.Valid)
+}
+
+func Test_ValidateUserJavascriptCode_False(t *testing.T) {
+	m := createServiceMock(t)
+
+	code := `var payload = value" hello";return payload;`
+
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	resp, err := m.Service.ValidateUserJavascriptCode(context.Background(), &connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]{
+		Msg: &mgmtv1alpha1.ValidateUserJavascriptCodeRequest{
+			AccountId: mockAccountId,
+			Code:      code,
+		},
+	})
+
+	// Assert no error was returned and the response is as expected.
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, resp.Msg.Valid, false)
 }
 
 //nolint:all

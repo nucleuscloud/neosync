@@ -159,6 +159,10 @@ const userDefinedTransformerConfig = Yup.object().shape({
   id: Yup.string().required('This field is required.'),
 });
 
+const transformJavascriptConfig = Yup.object().shape({
+  code: Yup.string().required('This field is required.'),
+});
+
 type ConfigType = TransformerConfig['config'];
 
 // Helper function to extract the 'case' property from a config type
@@ -216,6 +220,7 @@ const TRANSFORMER_SCHEMA_CONFIGS: Record<
   transformPhoneNumberConfig: transformPhoneNumberConfig,
   transformStringConfig: transformStringConfig,
   userDefinedTransformerConfig: userDefinedTransformerConfig,
+  transformJavascriptConfig: transformJavascriptConfig,
 };
 
 export const TransformerConfigSchema = Yup.lazy((v) => {

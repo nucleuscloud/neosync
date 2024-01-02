@@ -437,6 +437,65 @@ func (_c *MockTransformersServiceClient_UpdateUserDefinedTransformer_Call) RunAn
 	return _c
 }
 
+// ValidateUserJavascriptCode provides a mock function with given fields: _a0, _a1
+func (_m *MockTransformersServiceClient) ValidateUserJavascriptCode(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateUserJavascriptCode")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]) *connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockTransformersServiceClient_ValidateUserJavascriptCode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidateUserJavascriptCode'
+type MockTransformersServiceClient_ValidateUserJavascriptCode_Call struct {
+	*mock.Call
+}
+
+// ValidateUserJavascriptCode is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]
+func (_e *MockTransformersServiceClient_Expecter) ValidateUserJavascriptCode(_a0 interface{}, _a1 interface{}) *MockTransformersServiceClient_ValidateUserJavascriptCode_Call {
+	return &MockTransformersServiceClient_ValidateUserJavascriptCode_Call{Call: _e.mock.On("ValidateUserJavascriptCode", _a0, _a1)}
+}
+
+func (_c *MockTransformersServiceClient_ValidateUserJavascriptCode_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest])) *MockTransformersServiceClient_ValidateUserJavascriptCode_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]))
+	})
+	return _c
+}
+
+func (_c *MockTransformersServiceClient_ValidateUserJavascriptCode_Call) Return(_a0 *connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse], _a1 error) *MockTransformersServiceClient_ValidateUserJavascriptCode_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockTransformersServiceClient_ValidateUserJavascriptCode_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse], error)) *MockTransformersServiceClient_ValidateUserJavascriptCode_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockTransformersServiceClient creates a new instance of MockTransformersServiceClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockTransformersServiceClient(t interface {

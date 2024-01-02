@@ -128,6 +128,7 @@ message TransformerConfig {
     Null nullconfig = 36;
     UserDefinedTransformerConfig user_defined_transformer_config = 37;
     GenerateDefault generate_default_config = 38;
+    TransformJavascript transform_javascript_config = 39;
   }
 }
 
@@ -252,8 +253,21 @@ message Passthrough {}
 
 message Null {}
 
+message TransformJavascript {
+  string code = 1;
+}
+
 message UserDefinedTransformerConfig {
   string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ValidateUserJavascriptCodeRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  string code = 2;
+}
+
+message ValidateUserJavascriptCodeResponse {
+  bool valid = 1;
 }
 
 service TransformersService {
@@ -264,4 +278,5 @@ service TransformersService {
   rpc DeleteUserDefinedTransformer(DeleteUserDefinedTransformerRequest) returns (DeleteUserDefinedTransformerResponse) {}
   rpc UpdateUserDefinedTransformer(UpdateUserDefinedTransformerRequest) returns (UpdateUserDefinedTransformerResponse) {}
   rpc IsTransformerNameAvailable(IsTransformerNameAvailableRequest) returns (IsTransformerNameAvailableResponse) {}
+  rpc ValidateUserJavascriptCode(ValidateUserJavascriptCodeRequest) returns (ValidateUserJavascriptCodeResponse) {}
 }

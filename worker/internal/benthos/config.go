@@ -58,7 +58,12 @@ type PipelineConfig struct {
 }
 
 type ProcessorConfig struct {
-	Mutation string `json:"mutation" yaml:"mutation"`
+	Mutation   *string           `json:"mutation,omitempty" yaml:"mutation,omitempty"`
+	Javascript *JavascriptConfig `json:"javascript,omitempty" yaml:"javascript,omitempty"`
+}
+
+type JavascriptConfig struct {
+	Code string `json:"code" yaml:"code"`
 }
 
 type OutputConfig struct {

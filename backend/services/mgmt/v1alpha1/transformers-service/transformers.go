@@ -2,8 +2,10 @@ package v1alpha1_transformersservice
 
 import (
 	"context"
+	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/dop251/goja"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
@@ -54,6 +56,7 @@ const (
 	Passthrough               Transformation = "passthrough"
 	Null                      Transformation = "null"
 	Invalid                   Transformation = "invalid"
+	TransformJavascript       Transformation = "transform_javascript"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -516,6 +519,17 @@ func (s *Service) GetSystemTransformers(
 					},
 				},
 			},
+			{
+				Name:        "Transform Javascript",
+				Description: "Write custom javascript to transform data",
+				DataType:    "any",
+				Source:      string(TransformJavascript),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+						TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
+					},
+				},
+			},
 		},
 	}), nil
 }
@@ -710,4 +724,37 @@ func (s *Service) IsTransformerNameAvailable(ctx context.Context, req *connect.R
 		IsAvailable: count == 0,
 	}), nil
 
+}
+
+// use the goja library to validate that the javascript can compile and theoretically run
+func (s *Service) ValidateUserJavascriptCode(ctx context.Context, req *connect.Request[mgmtv1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserJavascriptCodeResponse], error) {
+
+	_, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	js := constructJavascriptCode(req.Msg.Code)
+
+	_, err = goja.Compile("test", js, true)
+	if err != nil {
+		return connect.NewResponse(&mgmtv1alpha1.ValidateUserJavascriptCodeResponse{
+			Valid: false,
+		}), nil
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.ValidateUserJavascriptCodeResponse{
+		Valid: true,
+	}), nil
+}
+
+func constructJavascriptCode(jsCode string) string {
+	if jsCode != "" {
+		return fmt.Sprintf(`(()=>{
+			function fn1(value){
+				%s
+				}})();`, jsCode)
+	} else {
+		return ""
+	}
 }

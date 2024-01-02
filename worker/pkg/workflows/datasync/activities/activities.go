@@ -117,7 +117,7 @@ type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
-func (b *benthosBuilder) buildBenthosSqlSourceConfigReponses(
+func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	ctx context.Context,
 	mappings []*TableMapping,
 	dsn string,
@@ -168,15 +168,17 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigReponses(
 				},
 			},
 		}
-		mutation, err := b.buildProcessorMutation(ctx, tableMapping.Mappings)
+
+		processorConfig, err := b.buildProcessorConfig(ctx, tableMapping.Mappings)
 		if err != nil {
 			return nil, err
 		}
-		if mutation != "" {
-			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, neosync_benthos.ProcessorConfig{
-				Mutation: mutation,
-			})
+
+		if (processorConfig.Mutation != nil && *processorConfig.Mutation != "") ||
+			(processorConfig.Javascript != nil && processorConfig.Javascript.Code != "") {
+			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *processorConfig)
 		}
+
 		responses = append(responses, &BenthosConfigResponse{
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
@@ -541,32 +543,97 @@ func getMysqlDsn(
 	}
 }
 
-func (b *benthosBuilder) buildProcessorMutation(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
-	pieces := []string{}
+func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (*neosync_benthos.ProcessorConfig, error) {
+	mutations := []string{}
+	jsFunctions := []string{}
+	benthosOutputs := []string{}
 
 	for _, col := range cols {
-		if col.Transformer != nil && col.Transformer.Source != "" && col.Transformer.Source != "passthrough" && col.Transformer.Source != "generate_default" {
+		if shouldProcessColumn(col.Transformer) {
 
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 
 				// handle user defined transformer -> get the user defined transformer configs using the id
-
 				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
 				if err != nil {
-					return "", errors.New("unable to look up user defined transformer config by id")
+					return nil, errors.New("unable to look up user defined transformer config by id")
 				}
 				col.Transformer = val
-
 			}
 
-			mutation, err := computeMutationFunction(col)
-			if err != nil {
-				return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
+			if col.Transformer.Source == "transform_javascript" {
+
+				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
+				// construct the js code and only append if there is code available
+				if code != "" {
+					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
+					benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
+				}
+			} else {
+				mutation, err := computeMutationFunction(col)
+				if err != nil {
+					return nil, fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
+				}
+				mutations = append(mutations, fmt.Sprintf("root.%s = %s", col.Column, mutation))
 			}
-			pieces = append(pieces, fmt.Sprintf("root.%s = %s", col.Column, mutation))
+
 		}
 	}
-	return strings.Join(pieces, "\n"), nil
+
+	mutationStr := strings.Join(mutations, "\n")
+
+	pc := &neosync_benthos.ProcessorConfig{}
+	if len(mutationStr) > 0 {
+		pc.Mutation = &mutationStr
+	}
+	if len(jsFunctions) > 0 {
+		javascriptConfig := neosync_benthos.JavascriptConfig{
+			Code: constructBenthosJsProcessor(jsFunctions, benthosOutputs),
+		}
+		pc.Javascript = &javascriptConfig
+	}
+
+	return pc, nil
+}
+
+func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
+	return t != nil &&
+		t.Source != "" &&
+		t.Source != "passthrough" &&
+		t.Source != "generate_default"
+}
+
+func constructJsFunction(jsCode, col string) string {
+	if jsCode != "" {
+		return fmt.Sprintf(`
+function fn_%s(value){
+  %s
+};
+`, col, jsCode)
+	} else {
+		return ""
+	}
+}
+
+func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
+
+	jsFunctionStrings := strings.Join(jsFunctions, "\n")
+
+	benthosOutputString := strings.Join(benthosOutputs, "\n")
+
+	jsCode := fmt.Sprintf(`
+(() => {
+%s
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+%s
+benthos.v0_msg_set_structured(output);
+})();`, jsFunctionStrings, benthosOutputString)
+	return jsCode
+}
+
+func constructBenthosOutput(col string) string {
+	return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s(input["%[1]s"]);`, col)
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id

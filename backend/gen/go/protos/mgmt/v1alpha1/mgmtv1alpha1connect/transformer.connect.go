@@ -54,6 +54,9 @@ const (
 	// TransformersServiceIsTransformerNameAvailableProcedure is the fully-qualified name of the
 	// TransformersService's IsTransformerNameAvailable RPC.
 	TransformersServiceIsTransformerNameAvailableProcedure = "/mgmt.v1alpha1.TransformersService/IsTransformerNameAvailable"
+	// TransformersServiceValidateUserJavascriptCodeProcedure is the fully-qualified name of the
+	// TransformersService's ValidateUserJavascriptCode RPC.
+	TransformersServiceValidateUserJavascriptCodeProcedure = "/mgmt.v1alpha1.TransformersService/ValidateUserJavascriptCode"
 )
 
 // TransformersServiceClient is a client for the mgmt.v1alpha1.TransformersService service.
@@ -65,6 +68,7 @@ type TransformersServiceClient interface {
 	DeleteUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.DeleteUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.DeleteUserDefinedTransformerResponse], error)
 	UpdateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.UpdateUserDefinedTransformerResponse], error)
 	IsTransformerNameAvailable(context.Context, *connect.Request[v1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[v1alpha1.IsTransformerNameAvailableResponse], error)
+	ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error)
 }
 
 // NewTransformersServiceClient constructs a client for the mgmt.v1alpha1.TransformersService
@@ -112,6 +116,11 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 			baseURL+TransformersServiceIsTransformerNameAvailableProcedure,
 			opts...,
 		),
+		validateUserJavascriptCode: connect.NewClient[v1alpha1.ValidateUserJavascriptCodeRequest, v1alpha1.ValidateUserJavascriptCodeResponse](
+			httpClient,
+			baseURL+TransformersServiceValidateUserJavascriptCodeProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -124,6 +133,7 @@ type transformersServiceClient struct {
 	deleteUserDefinedTransformer  *connect.Client[v1alpha1.DeleteUserDefinedTransformerRequest, v1alpha1.DeleteUserDefinedTransformerResponse]
 	updateUserDefinedTransformer  *connect.Client[v1alpha1.UpdateUserDefinedTransformerRequest, v1alpha1.UpdateUserDefinedTransformerResponse]
 	isTransformerNameAvailable    *connect.Client[v1alpha1.IsTransformerNameAvailableRequest, v1alpha1.IsTransformerNameAvailableResponse]
+	validateUserJavascriptCode    *connect.Client[v1alpha1.ValidateUserJavascriptCodeRequest, v1alpha1.ValidateUserJavascriptCodeResponse]
 }
 
 // GetSystemTransformers calls mgmt.v1alpha1.TransformersService.GetSystemTransformers.
@@ -165,6 +175,11 @@ func (c *transformersServiceClient) IsTransformerNameAvailable(ctx context.Conte
 	return c.isTransformerNameAvailable.CallUnary(ctx, req)
 }
 
+// ValidateUserJavascriptCode calls mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode.
+func (c *transformersServiceClient) ValidateUserJavascriptCode(ctx context.Context, req *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error) {
+	return c.validateUserJavascriptCode.CallUnary(ctx, req)
+}
+
 // TransformersServiceHandler is an implementation of the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceHandler interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
@@ -174,6 +189,7 @@ type TransformersServiceHandler interface {
 	DeleteUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.DeleteUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.DeleteUserDefinedTransformerResponse], error)
 	UpdateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.UpdateUserDefinedTransformerResponse], error)
 	IsTransformerNameAvailable(context.Context, *connect.Request[v1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[v1alpha1.IsTransformerNameAvailableResponse], error)
+	ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error)
 }
 
 // NewTransformersServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -217,6 +233,11 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 		svc.IsTransformerNameAvailable,
 		opts...,
 	)
+	transformersServiceValidateUserJavascriptCodeHandler := connect.NewUnaryHandler(
+		TransformersServiceValidateUserJavascriptCodeProcedure,
+		svc.ValidateUserJavascriptCode,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.TransformersService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TransformersServiceGetSystemTransformersProcedure:
@@ -233,6 +254,8 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 			transformersServiceUpdateUserDefinedTransformerHandler.ServeHTTP(w, r)
 		case TransformersServiceIsTransformerNameAvailableProcedure:
 			transformersServiceIsTransformerNameAvailableHandler.ServeHTTP(w, r)
+		case TransformersServiceValidateUserJavascriptCodeProcedure:
+			transformersServiceValidateUserJavascriptCodeHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -268,4 +291,8 @@ func (UnimplementedTransformersServiceHandler) UpdateUserDefinedTransformer(cont
 
 func (UnimplementedTransformersServiceHandler) IsTransformerNameAvailable(context.Context, *connect.Request[v1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[v1alpha1.IsTransformerNameAvailableResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.IsTransformerNameAvailable is not implemented"))
+}
+
+func (UnimplementedTransformersServiceHandler) ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode is not implemented"))
 }
