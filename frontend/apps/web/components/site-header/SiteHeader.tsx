@@ -3,14 +3,15 @@ import { siteConfig } from '@/app/config/site';
 import { cn } from '@/libs/utils';
 import { GitHubLogoIcon, TwitterLogoIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
+import { ReactElement } from 'react';
+import { buttonVariants } from '../ui/button';
 import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
 import { ModeToggle } from './ModeToggle';
 import { UserNav } from './UserNav';
-import { buttonVariants } from './ui/button';
 
-export default function SiteHeader() {
+export default function SiteHeader(): ReactElement {
   const systemAppConfig = getSystemAppConfig();
   const iconButtonClassNames = cn(
     buttonVariants({
