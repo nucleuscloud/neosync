@@ -1,7 +1,6 @@
 name: Deploy
 
 on: 
-  push:
   release:
     types: [published]
 

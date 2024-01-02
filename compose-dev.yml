@@ -1,7 +1,10 @@
 services:
   app:
     container_name: neosync-app
-    image: neosync/neosync-app
+    image: neosync-app
+    build:
+      context: ./frontend
+      dockerfile: ./apps/web/dev/build/Dockerfile.dev
     ports:
       - 3000:3000
     environment:
@@ -50,7 +53,10 @@ services:
 
   api:
     container_name: neosync-api
-    image: neosync/neosync-api
+    image: neosync-api
+    build:
+      context: ./backend
+      dockerfile: ./dev/build/Dockerfile.dev
     ports:
       - 8080:8080
     command: serve connect
@@ -88,7 +94,10 @@ services:
 
   worker:
     container_name: neosync-worker
-    image: neosync/neosync-worker
+    image: neosync-worker
+    build:
+      context: ./worker
+      dockerfile: ./dev/build/Dockerfile.dev
     environment:
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
