@@ -176,7 +176,6 @@ async function getTokenUrl(issuer: string): Promise<string> {
     if (!oidcConfig.token_endpoint) {
       throw new Error('unable to find token endpoint');
     }
-    console.log('found endpoint', oidcConfig.token_endpoint);
     return oidcConfig.token_endpoint;
   } catch (err) {
     console.log('failed', err);

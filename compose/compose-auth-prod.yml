@@ -1,10 +1,7 @@
 services:
   app:
     container_name: neosync-app
-    image: neosync-app
-    build:
-      context: $PWD/frontend
-      dockerfile: ./apps/web/dev/build/Dockerfile.dev
+    image: ghcr.io/nucleuscloud/neosync/app
     ports:
       - 3000:3000
     environment:
@@ -33,17 +30,6 @@ services:
     networks:
       - neosync-network
       - kc-network
-    develop:
-      watch:
-        - path: $PWD/frontend/package.json
-          action: rebuild
-        - path: $PWD/frontend/package-lock.json
-          action: rebuild
-        - path: $PWD/frontend/
-          action: sync
-          target: /app
-          ignore:
-            - $PWD/frontend/node_modules/
 
   db:
     container_name: neosync-db
@@ -68,10 +54,7 @@ services:
 
   api:
     container_name: neosync-api
-    image: neosync-api
-    build:
-      context: $PWD/backend
-      dockerfile: ./dev/build/Dockerfile.dev
+    image: ghcr.io/nucleuscloud/neosync/api
     ports:
       - 8080:8080
     command: serve connect
@@ -81,7 +64,7 @@ services:
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
       - DB_AUTO_MIGRATE=true
-      - DB_SCHEMA_DIR=/app/migrations
+      - DB_SCHEMA_DIR=/migrations
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=nucleus
@@ -109,18 +92,10 @@ services:
       db:
         condition: service_healthy
         restart: true
-    develop:
-      watch:
-        - path: $PWD/backend/bin
-          action: sync+restart
-          target: /app
 
   worker:
     container_name: neosync-worker
-    image: neosync-worker
-    build:
-      context: $PWD/worker
-      dockerfile: ./dev/build/Dockerfile.dev
+    image: ghcr.io/nucleuscloud/neosync/worker
     environment:
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
@@ -130,11 +105,6 @@ services:
     networks:
       - neosync-network
       - temporal-network
-    develop:
-      watch:
-        - path: $PWD/worker/bin
-          action: sync+restart
-          target: /app
 
   keycloak:
     container_name: neosync-auth-keycloak
