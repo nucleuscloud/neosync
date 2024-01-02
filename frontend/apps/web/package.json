@@ -41,7 +41,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^0.2.0",
     "cron-validate": "^1.4.5",
-    "date-fns": "^2.30.0",
+    "date-fns": "^3.0.6",
     "memoize-one": "^6.0.0",
     "nanoid": "^5.0.4",
     "next": "^14.0.3",
