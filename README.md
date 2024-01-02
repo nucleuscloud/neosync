@@ -59,37 +59,73 @@ Our mission is to help developers build better, more resilient applications whil
 
 ## Getting started
 
-You can also check out our [Docs](https://docs.neosync.dev) for more guides including a production-ready guide. Note: these are still a work in progress.
+You can also check out our [Docs](https://docs.neosync.dev) for more guides including a production-ready guide.
 
 ## Run Neosync locally
 
-To set up and run Neosync locally, make sure you have Git and Docker installed on your system.
+Neosync is a fully dockerized setup. Due to this, there are many different ways to run Neosync.
 
-The sections below detail the tools required to build and run the Neosync development environment.
-This can be circumvented by using our official devcontainer which comes pre-installed with all of the tools necessary.
+There are three officially supported ways of running Neosync locally:
 
-There are then two ways to start Neosync:
+1. Bare Metal
+2. `docker compose`
+3. Kubernetes via Tilt and Kind.
 
-- Tilt
-- Docker Compose
+For more in-depth details on environment variables as well as Kubernetes deployments, check out the [Deploy Neosync](https://docs.neosync.dev/deploy/introduction) section of our Docs.
 
-Tilt is the method we currently use to development Neosync. This lets us develop as if we are running inside of a Kubernetes cluster.
-This isn't for everyone, which is we also offer a compose method for a simpler, kubernetesless approach.
+This readme will focus more on the development environment and simple steps to getting Neosync up on your system.
 
-Check out the sections below for which method applies to you.
+### Simply trying Neosync
+
+If you just want to try out Neosync to see what it's like or get a feel for the product, most of the development setup guide below can be skipped.
+We provide a `compose.yml` file that contains production image references that allow you to get up and running with just a few commands without having to build anything on your system.
+
+The simplest configuration of Neosync is standing it up without any form of authentication.
+This can be done with the following commands:
+
+```sh
+$ docker compose -f temporal/compose.yml up -d
+$ docker compose -f compose/compose-prod.yml up -d
+```
+
+Neosync will now be available on [http://localhost:3000](http://localhost:3000).
+
+A compose file is also provided that stands up [Keycloak](https://keycloak.org), an open source auth solution.
+
+To stand up Neosync with auth, simply run the following commands:
+
+```sh
+$ docker compose -f temporal/compose.yml up -d
+$ docker compose -f compose/compose-auth-prod.yml up -d
+```
+
+Neosync will now be available on [http://localhost:3000](http://localhost:3000) with authentication pre-configured!
+Click the login with Keycloak button, register an account (locally) and you'll be logged in!
+
+### Neosync Development Environment
+
+This section goes into detail each tool that is used for development Neosync.
+This section casts a wide net, and some tools may not be required depending on if you are using a Tilt setup or a Compose setup.
+Most of the `Kubernetes` focused tools can be skipped if develoing via compose.
+
+### Neosync DevContainer
+
+Neosync has a pre-published [devcontainer](https://containers.dev/) that can be used to easily get a working Neosync dev environment.
+This container comes pre-packaged with all of the tools needed for developing Neosync, and works with Tilt or Compose, or Bare Metal setups.
 
 ### Tools
 
-Currently, the primary development environment is done by deploying the app and its dependent resources into a `kind` cluster using `tilt`.
-We utilize `helm` charts to wrap up deployable artifacts and have `tilt` install these to closely mimic a production environment.
-Due to this, there are a number of dependencies that must be installed on a host system prior to being able to run `neosync` locally.
+This section contains a flat list of the tools that are used to develop Neosync and why.
 
 Detailed below are the main dependencies are descriptions of how they are utilized:
 
 #### Kubernetes
 
-Kubernetes is used today as our primary development environment. Tilt is a great tool that lets you define your environment in code.
-This lets us develop quickly, locally, while closely mimicking a real production environment.
+If you're choosing to develop in a Tilt environment, this section is more important as it contains all of the K8s focused tooling.
+
+Tilt is a great tool that is used to automate the setup of a Kubernetes cluster. There are multiple `Tiltfile`'s througout the code, along with a top-level one that is used to inject all of the K8s manifests to setup Neosync inside of a K8s cluster.
+
+This enables fast development, locally, while closely mimicking a real production environment.
 
 - [kind](https://github.com/kubernetes-sigs/kind)
   - Kubernetes in Docker. We use this to spin up a barebones kubernetes cluster that deploys all of the `neosync` resources.
@@ -106,9 +142,9 @@ This lets us develop quickly, locally, while closely mimicking a real production
 - [helmfile](https://github.com/helmfile/helmfile)
   - Declaratively define a helmfile in code! We have all of our dev charts defined as a helmfile, of which Tilt points directly to.
 
-#### Golang + Protobuf
+#### Go + Protobuf
 
-- Golang
+- [Go](https://go.dev/)
   - The language of choice for our backend and worker packages
 - [sqlc](https://github.com/sqlc-dev/sqlc)
   - Our tool of choice for the data-layer. This lets us write pure SQL and let sqlc generate the rest.
@@ -116,16 +152,17 @@ This lets us develop quickly, locally, while closely mimicking a real production
   - Our tool of choice for interfacing with protobuf
 - [golangci-ci](https://github.com/golangci/golangci-lint)
   - The golang linter of choice
+- [migrate](https://github.com/golang-migrate/migrate)
+  - Golang Migrate is the tool that is used to run DB Migrations for the API.
 
 #### Npm/Nodejs
 
-- Node/Npm
+- [Node/Npm](https://nodejs.org/en)
+  - Used to run the app, along with Nextjs.
 
 All of these tools can be easily installed with `brew` if on a Mac.
 Today, `sqlc` and `buf` don't need to be installed locally as we exec docker images for running them.
 This lets us declare the versions in code and docker takes care of the rest.
-
-It's of course possible run everything on bare metal without Kuberentes or Tilt, but there will be more work getting everything up and running (at least today).
 
 ### Brew Install
 
@@ -135,21 +172,55 @@ Each tool above can be straightforwardly installed with brew if on Linux/MacOS
 brew install kind tilt-dev/tap/tilt tilt-dev/tap/ctlptl kubernetes-cli kustomize helm helmfile go sqlc buf golangci-lint node
 ```
 
-### Devcontainer
+### Setup with Compose
 
-Host machine setup can be skipped by developing inside of a vscode devcontainer.
-This container comes pre-baked with all of the tools we use to develop and work on neosync.
-This container also supports running neosync with compose or tilt.
+When running with either `Tilt` or `docker compose`, volumes are mapped from these filesystems to the host machine for both neosync and Temporal's databases.
+A volume is mounted locally in a `.data` folder.
 
-### Running Docker with Docker Desktop
+To enable hot reloading, must run `docker compose watch` instead of `up`. **Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
+This works pretty well with the `app`, but can be a bit buggy with the `api` or `worker`.
+Sometimes it's a little easier to just rebuild the docker container like.
 
-When running with either `Tilt` or `docker compose`, we map volumes from these filesystems to the host machine for both neosync and Temporal's databases.
-We mount a container path locally in a `.data` folder. If on a Mac, ensure that you've allowed wherever this repository has been cloned into to the allow-list in Docker Desktop.
+Assuming the latest binary is available in the bin folder:
+
+```
+$ docker compose up -d --build api
+```
+
+#### Building the backend and worker when using Docker Compose.
+
+If using the dev-focused compose instead of the `*-prod.yml` compose files, the binaries for the `api` and `worker` will need to be built.
+
+When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your native OS is not Linux (or aren't running in a devcontainer).
+The `make dbuild` command ensures that the Go binary is compiled for Linux instead of the host os.
+
+This will need to be done for both the `worker` and `api` processes prior to running compose up.
+
+```sh
+$ docker compose -f temporal/compose.yml up -d
+$ docker compose -f compose.yml up -d
+```
+
+Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000).
+
+#### Running Compose with Authentication
+
+Note, a compose file with authentication pre-configured can be found [here](./compose/compose-auth.yml).
+This will stand up Keycloak with a pre-configured realm that will allow logging in to Neosync with a standard username and password, completely offline!
+
+```sh
+$ docker compose -f temporal/compose.yml up -d
+$ docker compose -f compose/compose-auth.yml up -d
+```
+
+#### Docker Desktop
+
+If using Docker Desktop, the host file path to the `.data` folder will need to be added to the File Sharing tab.
 
 The allow list can be found by first opening Docker Desktop. `Settings -> Resources -> File Sharing` and add the path to the Neosync repository.
 
-If you don't want to do this, you can remove the volume mappings in the compose file or remove the pvc for Tilt.
-This comes at a negative of the local database not surviving restarts, however.
+If you don't want to do this, the volume mappings can be removed from the compose file, or by removing the PVC for Tilt.
+This comes at a negative of the local database not surviving restarts.
 
 ### Setup with Tilt
 
@@ -167,48 +238,7 @@ After the cluster has been successfully created, `tilt up` can be run to start u
 Refer to the top-level [Tiltfile](./Tiltfile) for a clear picture of everything that runs.
 Each dependency in the `neosync` repo is split into sub-Tiltfiles so that they can be run in isolation, or in combination with other sub-resources more easily.
 
-Once everything is up and running, the app can be accessed at locally at `http://localhost:3000`.
-
-### Setup with Docker Compose
-
-Neosync can be run with compose. This works pretty well, but is a bit more manual today than with Tilt.
-Not everything is hot-reload, but you can successfully run everything using just compose instead of having to manage a kubernetes cluster and running Tilt.
-To enable hot reloading, must run `docker compose watch` instead of `up`. **Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
-
-There are two compose files that need to be run today. The first is the Temporal compose, the second is the Neosync compose.
-It's suggested you run these separate (as of today) for a clean separation of concerns.
-
-#### Building the backend and worker when using Docker Compose.
-
-Prior to running `docker compose up -d`, the worker and api will need to be built.
-
-When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your native OS is not Linux (or aren't running in a devcontainer).
-The `make dbuild` command ensures that the Go binary is compiled for Linux instead of the host os.
-
-This will need to be done for both the `worker` and `api` processes prior to running compose up.
-
-#### Running Compose
-
-```
-$ docker compose -f temporal/compose.yml up -d
-$ docker compose -f compose.yml up -d
-```
-
-Once everything is up and running, the app can be accessed locally at `http://localhost:3000`.
-
-Work to be done:
-
-- inherit the temporal compose inside of the neosync compose, separate with compose profiles.
-
-#### Running Compose with Authentication
-
-Note, a compose file with authentication pre-configured can be found [here](./compose/compose-auth.yml).
-This will stand up Keycloak with a pre-configured realm that will allow logging in to Neosync with a standard username and password, competely offline!
-
-```
-$ docker compose -f temporal/compose.yml up -d
-$ docker compose -f compose/compose-auth.yml up -d
-```
+Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000).
 
 ## Resources
 

@@ -1,0 +1,92 @@
+services:
+  app:
+    container_name: neosync-app
+    image: ghcr.io/nucleuscloud/neosync/app
+    ports:
+      - 3000:3000
+    environment:
+      - NUCLEUS_ENV=dev
+      - NEXTAUTH_SECRET=foo
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEOSYNC_API_BASE_URL=http://api:8080
+      - NEXT_PUBLIC_APP_BASE_URL=http://localhost:3000
+
+      - POSTHOG_KEY=phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip
+
+      - AUTH_ENABLED=false
+
+    networks:
+      - neosync-network
+
+  db:
+    container_name: neosync-db
+    image: postgres:15
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=nucleus
+      - POSTGRES_PASSWORD=foofar
+      - PGUSER=postgres
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - neosync-network
+    volumes:
+      - $PWD/.data/neosync-postgres/data:/var/lib/postgresql/data
+      - $PWD/hack/pg-init:/docker-entrypoint-initdb.d
+
+  api:
+    container_name: neosync-api
+    image: ghcr.io/nucleuscloud/neosync/api
+    ports:
+      - 8080:8080
+    command: serve connect
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8080
+      - NUCLEUS_ENV=dev
+      - TEMPORAL_URL=temporal:7233
+      - DB_AUTO_MIGRATE=true
+      - DB_SCHEMA_DIR=/migrations
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=nucleus
+      - DB_USER=postgres
+      - DB_PASS=foofar
+      - DB_SSL_DISABLE=true
+      - DB_MIGRATIONS_TABLE=neosync_api_schema_migrations
+      - DB_MIGRATIONS_TABLE_QUOTED=false
+
+      - AUTH_ENABLED=false
+
+    networks:
+      - neosync-network
+      - temporal-network
+
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+
+  worker:
+    container_name: neosync-worker
+    image: ghcr.io/nucleuscloud/neosync/worker
+    environment:
+      - NUCLEUS_ENV=dev
+      - TEMPORAL_URL=temporal:7233
+      - TEMPORAL_NAMESPACE=default
+      - TEMPORAL_TASK_QUEUE=sync-job
+      - NEOSYNC_URL=http://api:8080
+    networks:
+      - neosync-network
+      - temporal-network
+
+networks:
+  neosync-network:
+    driver: bridge
+    name: neosync-network
+  temporal-network:
+    external: true
