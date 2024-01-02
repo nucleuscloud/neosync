@@ -40,5 +40,11 @@ jobs:
           docker tag neosync-worker burnerjhon/burnerjhon-neosync-worker
           docker tag neosync-api burnerjhon/burnerjhon-neosync-api
           docker tag neosync-app burnerjhon/burnerjhon-neosync-app
+
+      - name: Push Docker Images
+        run: |
+          docker push burnerjhon/burnerjhon-neosync-worker
+          docker push burnerjhon/burnerjhon-neosync-api
+          docker push burnerjhon/burnerjhon-neosync-app
         
 
