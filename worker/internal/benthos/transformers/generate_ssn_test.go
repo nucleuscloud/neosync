@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"fmt"
 	"regexp"
 	"testing"
 
@@ -11,15 +10,11 @@ import (
 
 func Test_GenerateSSN(t *testing.T) {
 
-	for i := 0; i < 100; i++ {
-		res, err := GenerateRandomSSN()
-		assert.NoError(t, err)
-		fmt.Println("res", res)
-	}
+	res, err := GenerateRandomSSN()
 
-	// assert.NoError(t, err)
-	// assert.IsType(t, "", res, "The actual value type should be a string")
-	// assert.True(t, isValidSSN(res), `The returned ssn should follow this regex = ^\d{3}-\d{2}-\d{4}$)`)
+	assert.NoError(t, err)
+	assert.IsType(t, "", res, "The actual value type should be a string")
+	assert.True(t, isValidSSN(res), `The returned ssn should follow this regex = ^\d{3}-\d{2}-\d{4}$)`)
 }
 
 func Test_SSNTransformer(t *testing.T) {
