@@ -10,7 +10,7 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { useSessionStorage } from 'usehooks-ts';
+import { useLocalStorage } from 'usehooks-ts';
 
 interface AccountContextType {
   account: UserAccount | undefined;
@@ -30,14 +30,14 @@ interface Props {
 }
 
 const DEFAULT_ACCOUNT_NAME = 'personal';
-const SESSION_ACCOUNT_KEY = 'account';
+const STORAGE_ACCOUNT_KEY = 'account';
 
 export default function AccountProvider(props: Props): ReactElement {
   const { children } = props;
   const { account } = useParams();
   const accountName = useGetAccountName();
-  const [, setSessionAccount] = useSessionStorage(
-    SESSION_ACCOUNT_KEY,
+  const [, setLastSelectedAccount] = useLocalStorage(
+    STORAGE_ACCOUNT_KEY,
     accountName ?? DEFAULT_ACCOUNT_NAME
   );
 
@@ -63,7 +63,7 @@ export default function AccountProvider(props: Props): ReactElement {
     }
     if (foundAccount) {
       setUserAccount(foundAccount);
-      setSessionAccount(foundAccount.name);
+      setLastSelectedAccount(foundAccount.name);
       const accountParam = getSingleOrUndefined(account);
       if (!accountParam || accountParam !== foundAccount.name) {
         router.push(`/${foundAccount.name}/jobs`);
@@ -81,7 +81,7 @@ export default function AccountProvider(props: Props): ReactElement {
     if (userAccount.name !== accountName) {
       router.push(`/${userAccount.name}`);
       setUserAccount(userAccount);
-      setSessionAccount(userAccount.name);
+      setLastSelectedAccount(userAccount.name);
     }
   }
 
@@ -101,8 +101,8 @@ export default function AccountProvider(props: Props): ReactElement {
 
 function useGetAccountName(): string {
   const { account } = useParams();
-  const [storedAccount] = useSessionStorage(
-    SESSION_ACCOUNT_KEY,
+  const [storedAccount] = useLocalStorage(
+    STORAGE_ACCOUNT_KEY,
     account ?? DEFAULT_ACCOUNT_NAME
   );
 

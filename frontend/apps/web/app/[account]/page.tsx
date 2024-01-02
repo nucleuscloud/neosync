@@ -6,18 +6,18 @@ import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Skeleton } from '@/components/ui/skeleton';
 import Error from 'next/error';
 import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 
 export default function AccountPage(): ReactElement {
   const router = useRouter();
   const { account, isLoading } = useAccount();
 
-  // useEffect(() => {
-  //   if (isLoading || !account?.name) {
-  //     return;
-  //   }
-  //   router.push(`/${account.name}/jobs`);
-  // }, [isLoading, account?.name, account?.id]);
+  useEffect(() => {
+    if (isLoading || !account?.name) {
+      return;
+    }
+    router.push(`/${account.name}/jobs`);
+  }, [isLoading, account?.name, account?.id]);
 
   if (isLoading) {
     return <Skeleton className="w-full h-full py-2" />;
