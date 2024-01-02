@@ -1,5 +1,15 @@
 'use client';
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
   Menubar,
   MenubarContent,
   MenubarItem,
@@ -8,12 +18,13 @@ import {
 } from '@/components/ui/menubar';
 import { env } from '@/env';
 import { FireMixpanel } from '@/lib/mixpanel';
-import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import { ArrowRightIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { GiHamburgerMenu } from 'react-icons/gi';
+import PrivateBetaForm from '../buttons/PrivateBetaForm';
 import { Button } from '../ui/button';
 
 export default function TopNav(): ReactElement {
@@ -81,7 +92,7 @@ export default function TopNav(): ReactElement {
         </div>
         <div>
           <Button
-            variant="default"
+            variant="navLink"
             onClick={() => {
               FireMixpanel('github button', {
                 source: 'top-nav',
@@ -91,10 +102,44 @@ export default function TopNav(): ReactElement {
           >
             <Link href="https://github.com/nucleuscloud/neosync">
               <div className="flex flex-row items-center">
-                Star us on <GitHubLogoIcon className="ml-2 h-4 w-4" />
+                <GitHubLogoIcon className="ml-2 h-4 w-4" />
               </div>
             </Link>
           </Button>
+        </div>
+        <div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="default">
+                Private Beta <ArrowRightIcon className="ml-2 h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg bg-black border border-gray-600 p-6">
+              <DialogHeader>
+                <DialogTitle className="text-white text-2xl">
+                  Join the Neosync Cloud Private Beta
+                </DialogTitle>
+                <DialogDescription className="pt-10 text-gray-300 text-md">
+                  Want to use Neosync but don&apos;t want to host it yourself?
+                  Sign up for the private beta of Neosync Cloud.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex items-center space-x-2">
+                <PrivateBetaForm />
+              </div>
+              <DialogFooter className="sm:justify-start">
+                <DialogClose asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-white hover:bg-gray-800 hover:text-white"
+                  >
+                    Close
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       <MobileMenu />
