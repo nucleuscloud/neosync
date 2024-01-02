@@ -16,17 +16,6 @@ services:
 
     networks:
       - neosync-network
-    develop:
-      watch:
-        - path: frontend/package.json
-          action: rebuild
-        - path: frontend/package-lock.json
-          action: rebuild
-        - path: frontend/
-          action: sync
-          target: /app
-          ignore:
-            - frontend/node_modules/
 
   db:
     container_name: neosync-db
@@ -80,11 +69,6 @@ services:
       db:
         condition: service_healthy
         restart: true
-    develop:
-      watch:
-        - path: backend/bin
-          action: sync+restart
-          target: /app
 
   worker:
     container_name: neosync-worker
@@ -98,11 +82,6 @@ services:
     networks:
       - neosync-network
       - temporal-network
-    develop:
-      watch:
-        - path: worker/bin
-          action: sync+restart
-          target: /app
 
 networks:
   neosync-network:
