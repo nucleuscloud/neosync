@@ -240,6 +240,20 @@ Each dependency in the `neosync` repo is split into sub-Tiltfiles so that they c
 
 Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000).
 
+## Analytics
+
+Posthog is used to capture analytics.
+
+Today, they are only captured in a very minimal sense within Neosync app. Eventually this will be extended to the CLI.
+
+You can see what information is captured by checking out the [posthog-provider](https://github.com/nucleuscloud/neosync/blob/main/frontend/apps/web/components/providers/posthog-provider.tsx) component that wraps each page's React components.
+
+Analytics are used simply to get a better view into how people use Neosync.
+
+### Disabling Analytics
+
+If allowing Neosync to capture analytics is not desired, simply remove the `POSTHOG_KEY` from the environment, or disable analytics via the `NEOSYNC_ANALYTICS_ENABLED=false` environment variable.
+
 ## Resources
 
 Some resources to help you along the way:
