@@ -402,7 +402,7 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 	ctx := context.Background()
 
 	code := `var payload = value+=" hello";return payload;`
-	col := "col"
+	col := "name"
 
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
@@ -422,16 +422,20 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
+	assert.Equal(t, `
+(() => {
 
-	jsFunctions := []string{}
-	benthosOutputs := []string{}
+function fn_name(value){
+  var payload = value+=" hello";return payload;
+};
 
-	benthosOutput := constructBenthosOutput(col)
-	benthosOutputs = append(benthosOutputs, benthosOutput)
-	jsFunction := constructJsFunction(code, col)
-	jsFunctions = append(jsFunctions, jsFunction)
-	constructedProcessor := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
-	assert.Equal(t, res.Javascript.Code, constructedProcessor)
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["name"] = fn_name(input["name"]);
+benthos.v0_msg_set_structured(output);
+})();`,
+		res.Javascript.Code,
+	)
 }
 
 func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
@@ -489,19 +493,26 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}})
 
 	assert.NoError(t, err)
+	assert.Equal(t, `
+(() => {
 
-	jsFunctions := []string{}
-	benthosOutputs := []string{}
+function fn_name(value){
+  var payload = value+=" hello";return payload;
+};
 
-	benthosOutput := constructBenthosOutput(col)
-	benthosOutput2 := constructBenthosOutput(col2)
-	benthosOutputs = append(benthosOutputs, benthosOutput, benthosOutput2)
-	jsFunction := constructJsFunction(code, col)
-	jsFunction2 := constructJsFunction(code2, col2)
-	jsFunctions = append(jsFunctions, jsFunction, jsFunction2)
-	constructedProcessor := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
-	assert.Equal(t, constructedProcessor, res.Javascript.Code)
 
+function fn_age(value){
+  var payload = value*2;return payload;
+};
+
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["name"] = fn_name(input["name"]);
+output["age"] = fn_age(input["age"]);
+benthos.v0_msg_set_structured(output);
+})();`,
+		res.Javascript.Code,
+	)
 }
 
 func Test_ShouldProcessColumnTrue(t *testing.T) {
@@ -570,12 +581,10 @@ function fn_name(value){
   var payload = value+=" hello";return payload;
 };
 
-
-  const input = benthos.v0_msg_as_structured();
-  const output = { ...input_name };
-
-  output["name"] = fn_name(input["name"]);
-  benthos.v0_msg_set_structured(output);
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["name"] = fn_name(input["name"]);
+benthos.v0_msg_set_structured(output);
 })();`, res)
 }
 

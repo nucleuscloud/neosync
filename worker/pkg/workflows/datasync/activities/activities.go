@@ -624,12 +624,10 @@ func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
 	jsCode := fmt.Sprintf(`
 (() => {
 %s
-
-  const input = benthos.v0_msg_as_structured();
-  const output = { ...input_name };
-
-  %s
-  benthos.v0_msg_set_structured(output);
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+%s
+benthos.v0_msg_set_structured(output);
 })();`, jsFunctionStrings, benthosOutputString)
 	return jsCode
 }
