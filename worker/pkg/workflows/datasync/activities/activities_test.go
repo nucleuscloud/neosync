@@ -385,6 +385,8 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 
 }
 
+const code = `var payload = value+=" hello";return payload;`
+
 func Test_buildProcessorConfigJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
@@ -401,8 +403,64 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 	ctx := context.Background()
 
-	code := `var payload = value+=" hello";return payload;`
-	col := "name"
+	col := "address"
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    "string",
+		Source:      "transform_javascript",
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: code,
+				},
+			},
+		},
+	}
+
+	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
+
+	assert.NoError(t, err)
+	assert.Equal(t, `
+(() => {
+
+function fn_address(value){
+  var payload = value+=" hello";return payload;
+};
+
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["address"] = fn_address(input["address"]);
+benthos.v0_msg_set_structured(output);
+})();`,
+		res.Javascript.Code,
+	)
+}
+
+const col = "name"
+
+func Test_buildProcessorConfigJavascriptMultiLineScript(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	ctx := context.Background()
+
+	code :=
+		`var payload = value+=" hello";
+  payload.replace("hello","newHello");
+  return payload;`
 
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
@@ -426,7 +484,9 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 (() => {
 
 function fn_name(value){
-  var payload = value+=" hello";return payload;
+  var payload = value+=" hello";
+  payload.replace("hello","newHello");
+  return payload;
 };
 
 const input = benthos.v0_msg_as_structured();
@@ -455,8 +515,6 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 	ctx := context.Background()
 
-	code := `var payload = value+=" hello";return payload;`
-	col := "name"
 	code2 := `var payload = value*2;return payload;`
 	col2 := "age"
 
@@ -547,7 +605,6 @@ func Test_ShouldProcessColumnFalse(t *testing.T) {
 
 func Test_ConstructJsFunction(t *testing.T) {
 
-	code := `var payload = value+=" hello";return payload;`
 	col := "col"
 
 	res := constructJsFunction(code, col)
@@ -562,9 +619,6 @@ func Test_ConstructBenthosJsProcessor(t *testing.T) {
 
 	jsFunctions := []string{}
 	benthosOutputs := []string{}
-
-	code := `var payload = value+=" hello";return payload;`
-	col := "name"
 
 	benthosOutput := constructBenthosOutput(col)
 	jsFunction := constructJsFunction(code, col)

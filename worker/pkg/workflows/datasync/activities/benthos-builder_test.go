@@ -1895,9 +1895,9 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 			},
 		}}
 
-	dsn := "test"
-	driver := "test"
-	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
+	dsn := "dsn"
+	driver := "driver"
+	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
 
 	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
 	assert.Nil(t, err)
