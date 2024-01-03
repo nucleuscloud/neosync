@@ -154,7 +154,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			for _, resp := range responses {
 				dependsOn, ok := constraintMap[resp.Name]
 				if ok {
-					resp.DependsOn = dependsOn
+					// remove circular dependencies to allow job to run
+					filteredDependsOn := []string{}
+					for _, t := range dependsOn {
+						if t != resp.Name {
+							filteredDependsOn = append(filteredDependsOn, t)
+						}
+					}
+					resp.DependsOn = filteredDependsOn
 				}
 			}
 		}
@@ -406,6 +413,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
+
 				} else {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
