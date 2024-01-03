@@ -19,6 +19,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
@@ -106,7 +107,7 @@ type connectionOpts struct {
 type destinationConfig struct {
 	ConnectionUrl        string     `yaml:"connection-url"`
 	Driver               DriverType `yaml:"driver"`
-	InitSchema           bool       `yaml:"init-table-schema,omitempty"`
+	InitSchema           bool       `yaml:"init-schema,omitempty"`
 	TruncateBeforeInsert bool       `yaml:"truncate-before-insert,omitempty"`
 	TruncateCascade      bool       `yaml:"truncate-cascade,omitempty"`
 }
@@ -398,7 +399,7 @@ func sync(
 					statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", t.Schema, t.Table))
 				}
 			}
-			initTableStatementsMap[fmt.Sprintf("%s.%s", t.Schema, t.Table)] = strings.Join(statements, "\n")
+			initTableStatementsMap[dbschemas_utils.BuildTable(t.Schema, t.Table)] = strings.Join(statements, "\n")
 		}
 
 	case mysqlConnection:
@@ -469,17 +470,23 @@ func sync(
 	fmt.Println(printlog.Render("Generating configs... \n")) // nolint
 	configs := []*benthosConfigResponse{}
 	for _, table := range tables {
-		name := fmt.Sprintf("%s.%s", table.Schema, table.Table)
-		dependsOn := tableConstraints[name].GetTables()
-
-		for _, n := range dependsOn {
-			if name == n {
+		name := dbschemas_utils.BuildTable(table.Schema, table.Table)
+		constraints := tableConstraints[name].GetConstraints()
+		dependsOnMap := map[string]struct{}{}
+		for _, c := range constraints {
+			dependsOnMap[c.ForeignKey.Table] = struct{}{}
+		}
+		uniqueDependsOn := []string{}
+		for tableName := range dependsOnMap {
+			if name == tableName {
 				return fmt.Errorf("Circular dependency detected. exiting...")
 			}
+			uniqueDependsOn = append(uniqueDependsOn, tableName)
 		}
+
 		initStatement := initTableStatementsMap[name]
 
-		benthosConfig := generateBenthosConfig(cmd, connectionType, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, table.Columns, dependsOn, token)
+		benthosConfig := generateBenthosConfig(cmd, connectionType, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, table.Columns, uniqueDependsOn, token)
 		configs = append(configs, benthosConfig)
 	}
 
@@ -600,7 +607,7 @@ type SqlTable struct {
 func getSchemaTables(schemas []*mgmtv1alpha1.DatabaseColumn) []*SqlTable {
 	tableColMap := map[string][]string{}
 	for _, record := range schemas {
-		table := fmt.Sprintf("%s.%s", record.Schema, record.Table)
+		table := dbschemas_utils.BuildTable(record.Schema, record.Table)
 		_, ok := tableColMap[table]
 		if ok {
 			tableColMap[table] = append(tableColMap[table], record.Column)
@@ -634,7 +641,7 @@ func generateBenthosConfig(
 	columns, dependsOn []string,
 	authToken *string,
 ) *benthosConfigResponse {
-	tableName := fmt.Sprintf("%s.%s", schema, table)
+	tableName := dbschemas_utils.BuildTable(schema, table)
 
 	var jobId, jobRunId *string
 	if cmd.Source.ConnectionOpts != nil {
@@ -868,7 +875,7 @@ func syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd 
 }
 
 func getDestinationForeignConstraints(ctx context.Context, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string]*mgmtv1alpha1.ForeignConstraintTables, error) {
-	var td map[string][]string
+	var td dbschemas_utils.TableDependency
 	switch connectionDriver {
 	case postgresDriver:
 		pgquerier := pg_queries.New()
@@ -905,14 +912,22 @@ func getDestinationForeignConstraints(ctx context.Context, connectionDriver Driv
 		return nil, errors.New("unsupported fk connection")
 	}
 
-	constraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
-	for key, tables := range td {
-		constraints[key] = &mgmtv1alpha1.ForeignConstraintTables{
-			Tables: tables,
+	tableConstraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
+	for tableName, d := range td {
+		tableConstraints[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
+			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
+		}
+		for _, c := range d.Constraints {
+			tableConstraints[tableName].Constraints = append(tableConstraints[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
+				Column: c.Column, IsNullable: false, ForeignKey: &mgmtv1alpha1.ForeignKey{
+					Table:  c.ForeignKey.Table,
+					Column: c.ForeignKey.Column,
+				},
+			})
 		}
 	}
 
-	return constraints, nil
+	return tableConstraints, nil
 }
 
 func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {

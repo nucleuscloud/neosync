@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -105,58 +105,42 @@ func buildNullableText(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	return "NULL"
 }
 
-type TableDependency = map[string][]string
-
 // Key is schema.table value is list of tables that key depends on
 func GetPostgresTableDependencies(
 	constraints []*pg_queries.GetForeignKeyConstraintsRow,
-) TableDependency {
-	tdmap := map[string][]string{}
-	for _, constraint := range constraints {
-		tdmap[buildTableKey(constraint.SchemaName, constraint.TableName)] = []string{}
-	}
+) dbschemas.TableDependency {
+	tableConstraints := map[string]*dbschemas.TableConstraints{}
+	for _, c := range constraints {
+		tableName := dbschemas.BuildTable(c.SchemaName, c.TableName)
 
-	for _, constraint := range constraints {
-		key := buildTableKey(constraint.SchemaName, constraint.TableName)
-		tdmap[key] = append(tdmap[key], buildTableKey(constraint.ForeignSchemaName, constraint.ForeignTableName))
-	}
-
-	for k, v := range tdmap {
-		tdmap[k] = UniqueSlice[string](func(val string) string { return val }, v)
-	}
-	return tdmap
-}
-
-func UniqueSlice[T any](keyFn func(T) string, genSlices ...[]T) []T {
-	seen := map[string]struct{}{}
-	output := []T{}
-
-	for genIdx := range genSlices {
-		for idx := range genSlices[genIdx] {
-			val := genSlices[genIdx][idx]
-			key := keyFn(val)
-			if _, ok := seen[key]; !ok {
-				output = append(output, val)
-				seen[key] = struct{}{}
+		constraint, ok := tableConstraints[tableName]
+		if !ok {
+			tableConstraints[tableName] = &dbschemas.TableConstraints{
+				Constraints: []*dbschemas.ForeignConstraint{
+					{Column: c.ColumnName, IsNullable: dbschemas.ConvertIsNullableToBool(c.IsNullable), ForeignKey: &dbschemas.ForeignKey{
+						Table:  dbschemas.BuildTable(c.ForeignSchemaName, c.ForeignTableName),
+						Column: c.ForeignColumnName,
+					}},
+				},
 			}
+		} else {
+			constraint.Constraints = append(constraint.Constraints, &dbschemas.ForeignConstraint{
+				Column: c.ColumnName, IsNullable: dbschemas.ConvertIsNullableToBool(c.IsNullable), ForeignKey: &dbschemas.ForeignKey{
+					Table:  dbschemas.BuildTable(c.ForeignSchemaName, c.ForeignTableName),
+					Column: c.ForeignColumnName,
+				},
+			})
 		}
 	}
-	return output
-}
-
-func buildTableKey(
-	schemaName string,
-	tableName string,
-) string {
-	return fmt.Sprintf("%s.%s", schemaName, tableName)
+	return tableConstraints
 }
 
 func GetUniqueSchemaColMappings(
-	dbschemas []*pg_queries.GetDatabaseSchemaRow,
+	schemas []*pg_queries.GetDatabaseSchemaRow,
 ) map[string]map[string]struct{} {
 	groupedSchemas := map[string]map[string]struct{}{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
-	for _, record := range dbschemas {
-		key := dbschemas_utils.BuildTable(record.TableSchema, record.TableName)
+	for _, record := range schemas {
+		key := dbschemas.BuildTable(record.TableSchema, record.TableName)
 		if _, ok := groupedSchemas[key]; ok {
 			groupedSchemas[key][record.ColumnName] = struct{}{}
 		} else {

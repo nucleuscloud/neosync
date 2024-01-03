@@ -78,8 +78,20 @@ message GetConnectionSchemaResponse {
 message GetConnectionForeignConstraintsRequest {
   string connection_id = 1 [(buf.validate.field).string.uuid = true];
 }
+
+message ForeignKey {
+  string table = 1;
+  string column = 2;
+}
+
+message ForeignConstraint {
+  string column = 1;
+  bool is_nullable = 2;
+  ForeignKey foreign_key = 3;
+}
+
 message ForeignConstraintTables {
-  repeated string tables = 1;
+  repeated ForeignConstraint constraints = 1;
 }
 
 // Dependency constraints for a specific table

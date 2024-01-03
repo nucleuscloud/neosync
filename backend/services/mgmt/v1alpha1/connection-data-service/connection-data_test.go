@@ -291,6 +291,7 @@ func Test_GetConnectionForeignConstraints_Mysql(t *testing.T) {
 				SchemaName:        "public",
 				TableName:         "user_account_associations",
 				ColumnName:        "user_id",
+				IsNullable:        "NO",
 				ForeignSchemaName: "public",
 				ForeignTableName:  "users",
 				ForeignColumnName: "id",
@@ -306,7 +307,9 @@ func Test_GetConnectionForeignConstraints_Mysql(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, resp.Msg.TableConstraints, 1)
 	assert.EqualValues(t, map[string]*mgmtv1alpha1.ForeignConstraintTables{
-		"public.user_account_associations": {Tables: []string{"public.users"}},
+		"public.user_account_associations": {Constraints: []*mgmtv1alpha1.ForeignConstraint{
+			{Column: "user_id", IsNullable: false, ForeignKey: &mgmtv1alpha1.ForeignKey{Table: "public.users", Column: "id"}},
+		}},
 	}, resp.Msg.TableConstraints)
 }
 
@@ -342,6 +345,7 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 				SchemaName:        "public",
 				TableName:         "user_account_associations",
 				ColumnName:        "user_id",
+				IsNullable:        "NO",
 				ForeignSchemaName: "public",
 				ForeignTableName:  "users",
 				ForeignColumnName: "id",
@@ -357,7 +361,9 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, resp.Msg.TableConstraints, 1)
 	assert.EqualValues(t, map[string]*mgmtv1alpha1.ForeignConstraintTables{
-		"public.user_account_associations": {Tables: []string{"public.users"}},
+		"public.user_account_associations": {Constraints: []*mgmtv1alpha1.ForeignConstraint{
+			{Column: "user_id", IsNullable: false, ForeignKey: &mgmtv1alpha1.ForeignKey{Table: "public.users", Column: "id"}},
+		}},
 	}, resp.Msg.TableConstraints)
 }
 

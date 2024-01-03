@@ -25,6 +25,8 @@ kcu.table_name as table_name
 ,
 kcu.column_name as column_name
 ,
+c.is_nullable as is_nullable
+,
 kcu.referenced_table_schema AS foreign_schema_name
 ,
 kcu.referenced_table_name AS foreign_table_name
@@ -35,6 +37,11 @@ FROM
 JOIN information_schema.key_column_usage kcu
 	ON
 	kcu.constraint_name = rc.constraint_name
+JOIN information_schema.columns as c
+	ON
+	c.table_schema = kcu.table_schema 
+	AND c.table_name = kcu.table_name 
+	AND c.column_name = kcu.column_name
 WHERE
 	kcu.table_schema = ?
 ORDER BY

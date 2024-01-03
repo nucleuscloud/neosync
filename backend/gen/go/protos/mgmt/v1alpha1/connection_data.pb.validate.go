@@ -1894,6 +1894,244 @@ var _ interface {
 	ErrorName() string
 } = GetConnectionForeignConstraintsRequestValidationError{}
 
+// Validate checks the field values on ForeignKey with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ForeignKey) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ForeignKey with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ForeignKeyMultiError, or
+// nil if none found.
+func (m *ForeignKey) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ForeignKey) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Table
+
+	// no validation rules for Column
+
+	if len(errors) > 0 {
+		return ForeignKeyMultiError(errors)
+	}
+
+	return nil
+}
+
+// ForeignKeyMultiError is an error wrapping multiple validation errors
+// returned by ForeignKey.ValidateAll() if the designated constraints aren't met.
+type ForeignKeyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ForeignKeyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ForeignKeyMultiError) AllErrors() []error { return m }
+
+// ForeignKeyValidationError is the validation error returned by
+// ForeignKey.Validate if the designated constraints aren't met.
+type ForeignKeyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ForeignKeyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ForeignKeyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ForeignKeyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ForeignKeyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ForeignKeyValidationError) ErrorName() string { return "ForeignKeyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ForeignKeyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sForeignKey.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ForeignKeyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ForeignKeyValidationError{}
+
+// Validate checks the field values on ForeignConstraint with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ForeignConstraint) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ForeignConstraint with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ForeignConstraintMultiError, or nil if none found.
+func (m *ForeignConstraint) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ForeignConstraint) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Column
+
+	// no validation rules for IsNullable
+
+	if all {
+		switch v := interface{}(m.GetForeignKey()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ForeignConstraintValidationError{
+					field:  "ForeignKey",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ForeignConstraintValidationError{
+					field:  "ForeignKey",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetForeignKey()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ForeignConstraintValidationError{
+				field:  "ForeignKey",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ForeignConstraintMultiError(errors)
+	}
+
+	return nil
+}
+
+// ForeignConstraintMultiError is an error wrapping multiple validation errors
+// returned by ForeignConstraint.ValidateAll() if the designated constraints
+// aren't met.
+type ForeignConstraintMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ForeignConstraintMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ForeignConstraintMultiError) AllErrors() []error { return m }
+
+// ForeignConstraintValidationError is the validation error returned by
+// ForeignConstraint.Validate if the designated constraints aren't met.
+type ForeignConstraintValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ForeignConstraintValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ForeignConstraintValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ForeignConstraintValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ForeignConstraintValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ForeignConstraintValidationError) ErrorName() string {
+	return "ForeignConstraintValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ForeignConstraintValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sForeignConstraint.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ForeignConstraintValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ForeignConstraintValidationError{}
+
 // Validate checks the field values on ForeignConstraintTables with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1915,6 +2153,40 @@ func (m *ForeignConstraintTables) validate(all bool) error {
 	}
 
 	var errors []error
+
+	for idx, item := range m.GetConstraints() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ForeignConstraintTablesValidationError{
+						field:  fmt.Sprintf("Constraints[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ForeignConstraintTablesValidationError{
+						field:  fmt.Sprintf("Constraints[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ForeignConstraintTablesValidationError{
+					field:  fmt.Sprintf("Constraints[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
 
 	if len(errors) > 0 {
 		return ForeignConstraintTablesMultiError(errors)
