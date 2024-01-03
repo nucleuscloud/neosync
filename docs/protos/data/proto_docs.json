@@ -2346,6 +2346,54 @@
           ]
         },
         {
+          "name": "ForeignConstraint",
+          "longName": "ForeignConstraint",
+          "fullName": "mgmt.v1alpha1.ForeignConstraint",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "column",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "is_nullable",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "foreign_key",
+              "description": "",
+              "label": "",
+              "type": "ForeignKey",
+              "longType": "ForeignKey",
+              "fullType": "mgmt.v1alpha1.ForeignKey",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "ForeignConstraintTables",
           "longName": "ForeignConstraintTables",
           "fullName": "mgmt.v1alpha1.ForeignConstraintTables",
@@ -2356,9 +2404,45 @@
           "extensions": [],
           "fields": [
             {
-              "name": "tables",
+              "name": "constraints",
               "description": "",
               "label": "repeated",
+              "type": "ForeignConstraint",
+              "longType": "ForeignConstraint",
+              "fullType": "mgmt.v1alpha1.ForeignConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ForeignKey",
+          "longName": "ForeignKey",
+          "fullName": "mgmt.v1alpha1.ForeignKey",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "column",
+              "description": "",
+              "label": "",
               "type": "string",
               "longType": "string",
               "fullType": "string",

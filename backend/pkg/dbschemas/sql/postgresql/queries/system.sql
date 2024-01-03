@@ -61,6 +61,8 @@ WHERE
     ,
     kcu.column_name
     ,
+    c.is_nullable
+    ,
     kcu2.table_schema AS foreign_schema_name
     ,
     kcu2.table_name AS foreign_table_name
@@ -75,8 +77,14 @@ JOIN information_schema.key_column_usage kcu2
     ON
     kcu2.ordinal_position = kcu.position_in_unique_constraint
     AND kcu2.constraint_name = rc.unique_constraint_name
+JOIN information_schema.columns as c
+	ON
+	c.table_schema = kcu.table_schema 
+	AND c.table_name = kcu.table_name 
+	AND c.column_name = kcu.column_name
 WHERE
     kcu.table_schema = sqlc.arg('tableSchema')
 ORDER BY
     rc.constraint_name,
     kcu.ordinal_position;
+

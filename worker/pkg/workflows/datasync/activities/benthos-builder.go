@@ -13,6 +13,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
@@ -94,7 +95,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			}
 			connection := fkConnectionResp.Msg.Connection
 
-			var td map[string][]string
+			var td dbschemas_utils.TableDependency
 			switch fkconnconfig := connection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 				pgconfig := fkconnconfig.PgConfig
@@ -149,8 +150,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				return nil, errors.New("unsupported fk connection")
 			}
 
+			constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
 			for _, resp := range responses {
-				dependsOn, ok := td[resp.Name]
+				dependsOn, ok := constraintMap[resp.Name]
 				if ok {
 					resp.DependsOn = dependsOn
 				}
@@ -213,9 +215,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
 
 		for _, resp := range responses {
-			dependsOn, ok := td[resp.Name]
+			dependsOn, ok := constraintMap[resp.Name]
 			if ok {
 				resp.DependsOn = dependsOn
 			}
@@ -277,9 +280,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
+		constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
 
 		for _, resp := range responses {
-			dependsOn, ok := td[resp.Name]
+			dependsOn, ok := constraintMap[resp.Name]
 			if ok {
 				resp.DependsOn = dependsOn
 			}

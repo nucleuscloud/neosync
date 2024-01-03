@@ -18,6 +18,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 )
@@ -27,6 +28,24 @@ type DatabaseSchema struct {
 	TableName   string `db:"table_name,omitempty"`
 	ColumnName  string `db:"column_name,omitempty"`
 	DataType    string `db:"data_type,omitempty"`
+}
+
+type DateScanner struct {
+	val *time.Time
+}
+
+func (ds *DateScanner) Scan(input interface{}) error { // nolint
+	if input == nil {
+		return nil
+	}
+
+	switch input := input.(type) {
+	case time.Time:
+		*ds.val = input
+		return nil
+	default:
+		return fmt.Errorf("unable to scan type %T into DateScanner", input)
+	}
 }
 
 func (s *Service) GetConnectionDataStream(
@@ -80,7 +99,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table) //nolint
+		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table) //nolint
 		rows, err := conn.QueryContext(cctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -138,7 +157,7 @@ func (s *Service) GetConnectionDataStream(
 			columnNames = append(columnNames, col.Name)
 		}
 
-		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table) //nolint
+		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table) //nolint
 		rows, err := pool.Query(cctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -148,16 +167,33 @@ func (s *Service) GetConnectionDataStream(
 		for rows.Next() {
 			values := make([][]byte, len(columnNames))
 			valuesWrapped := make([]any, 0, len(columnNames))
-			for i := range values {
-				valuesWrapped = append(valuesWrapped, &values[i])
+
+			for i, col := range r.FieldDescriptions() {
+				if col.DataTypeOID == 1082 { // OID for date
+					var t time.Time
+					ds := DateScanner{val: &t}
+					valuesWrapped = append(valuesWrapped, &ds)
+				} else {
+					valuesWrapped = append(valuesWrapped, &values[i])
+				}
 			}
+
 			if err := rows.Scan(valuesWrapped...); err != nil {
 				return err
 			}
 			row := map[string][]byte{}
 			for i, v := range values {
 				col := columnNames[i]
-				row[col] = v
+				if r.FieldDescriptions()[i].DataTypeOID == 1082 { // OID for date
+					// Convert time.Time value to []byte
+					if ds, ok := valuesWrapped[i].(*DateScanner); ok && ds.val != nil {
+						row[col] = []byte(ds.val.Format(time.RFC3339))
+					} else {
+						row[col] = nil
+					}
+				} else {
+					row[col] = v
+				}
 			}
 
 			if err := stream.Send(&mgmtv1alpha1.GetConnectionDataStreamResponse{Row: row}); err != nil {
@@ -317,7 +353,7 @@ func (s *Service) GetConnectionSchema(
 		}
 		defer conn.Close()
 
-		dbschemas, err := s.mysqlquerier.GetDatabaseSchema(cctx, conn)
+		dbschema, err := s.mysqlquerier.GetDatabaseSchema(cctx, conn)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -327,7 +363,7 @@ func (s *Service) GetConnectionSchema(
 		}
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
-		for _, col := range dbschemas {
+		for _, col := range dbschema {
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
 				Schema:   col.TableSchema,
 				Table:    col.TableName,
@@ -354,7 +390,7 @@ func (s *Service) GetConnectionSchema(
 		}
 		defer pool.Close()
 
-		dbschemas, err := s.pgquerier.GetDatabaseSchema(cctx, pool)
+		dbschema, err := s.pgquerier.GetDatabaseSchema(cctx, pool)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -364,7 +400,7 @@ func (s *Service) GetConnectionSchema(
 		}
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
-		for _, col := range dbschemas {
+		for _, col := range dbschema {
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
 				Schema:   col.TableSchema,
 				Table:    col.TableName,
@@ -525,7 +561,7 @@ func (s *Service) GetConnectionForeignConstraints(
 		schemas = append(schemas, s)
 	}
 
-	var td map[string][]string
+	var td dbschemas.TableDependency
 	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		mysqlconfig := config.MysqlConfig
@@ -575,19 +611,28 @@ func (s *Service) GetConnectionForeignConstraints(
 			}), nil
 		}
 		td = dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+
 	default:
 		return nil, errors.New("unsupported fk connection")
 	}
 
-	constraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
-	for key, tables := range td {
-		constraints[key] = &mgmtv1alpha1.ForeignConstraintTables{
-			Tables: tables,
+	tableConstraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
+	for tableName, d := range td {
+		tableConstraints[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
+			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
+		}
+		for _, c := range d.Constraints {
+			tableConstraints[tableName].Constraints = append(tableConstraints[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
+				Column: c.Column, IsNullable: c.IsNullable, ForeignKey: &mgmtv1alpha1.ForeignKey{
+					Table:  c.ForeignKey.Table,
+					Column: c.ForeignKey.Column,
+				},
+			})
 		}
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionForeignConstraintsResponse{
-		TableConstraints: constraints,
+		TableConstraints: tableConstraints,
 	}), nil
 }
 

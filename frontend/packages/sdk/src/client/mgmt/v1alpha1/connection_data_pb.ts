@@ -621,13 +621,105 @@ export class GetConnectionForeignConstraintsRequest extends Message<GetConnectio
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.ForeignKey
+ */
+export class ForeignKey extends Message<ForeignKey> {
+  /**
+   * @generated from field: string table = 1;
+   */
+  table = "";
+
+  /**
+   * @generated from field: string column = 2;
+   */
+  column = "";
+
+  constructor(data?: PartialMessage<ForeignKey>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ForeignKey";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ForeignKey {
+    return new ForeignKey().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ForeignKey {
+    return new ForeignKey().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ForeignKey {
+    return new ForeignKey().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ForeignKey | PlainMessage<ForeignKey> | undefined, b: ForeignKey | PlainMessage<ForeignKey> | undefined): boolean {
+    return proto3.util.equals(ForeignKey, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ForeignConstraint
+ */
+export class ForeignConstraint extends Message<ForeignConstraint> {
+  /**
+   * @generated from field: string column = 1;
+   */
+  column = "";
+
+  /**
+   * @generated from field: bool is_nullable = 2;
+   */
+  isNullable = false;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.ForeignKey foreign_key = 3;
+   */
+  foreignKey?: ForeignKey;
+
+  constructor(data?: PartialMessage<ForeignConstraint>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ForeignConstraint";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "is_nullable", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "foreign_key", kind: "message", T: ForeignKey },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ForeignConstraint {
+    return new ForeignConstraint().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ForeignConstraint {
+    return new ForeignConstraint().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ForeignConstraint {
+    return new ForeignConstraint().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ForeignConstraint | PlainMessage<ForeignConstraint> | undefined, b: ForeignConstraint | PlainMessage<ForeignConstraint> | undefined): boolean {
+    return proto3.util.equals(ForeignConstraint, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.ForeignConstraintTables
  */
 export class ForeignConstraintTables extends Message<ForeignConstraintTables> {
   /**
-   * @generated from field: repeated string tables = 1;
+   * @generated from field: repeated mgmt.v1alpha1.ForeignConstraint constraints = 1;
    */
-  tables: string[] = [];
+  constraints: ForeignConstraint[] = [];
 
   constructor(data?: PartialMessage<ForeignConstraintTables>) {
     super();
@@ -637,7 +729,7 @@ export class ForeignConstraintTables extends Message<ForeignConstraintTables> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.ForeignConstraintTables";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "tables", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 1, name: "constraints", kind: "message", T: ForeignConstraint, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ForeignConstraintTables {
