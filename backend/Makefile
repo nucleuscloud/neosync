@@ -30,6 +30,10 @@ gen:
 	./hack/gen.sh
 .PHONY: gen
 
+clean:
+	rm -rf bin
+.PHONY: clean
+
 install-tools: install-go-tools
 .PHONY: install-tools
 

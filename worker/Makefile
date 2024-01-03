@@ -25,6 +25,10 @@ gen: ## Generate code
 	./hack/gen.sh
 .PHONY: gen
 
+clean: 
+	rm -rf bin
+.PHONY: clean
+
 # build-debug:
 # 	CGO_ENABLED=0 $(GO) build -gcflags="all=-N -l" -o bin/mgmt cmd/mgmt/*.go
 # .PHONY: build-debug

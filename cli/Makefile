@@ -20,6 +20,10 @@ build: vet
 	CGO_ENABLED=0 $(GO) build -o bin/neosync -ldflags="-s -w -X 'github.com/nucleuscloud/neosync/cli/internal/version.buildDate=${BUILD_DATE}' -X 'github.com/nucleuscloud/neosync/cli/internal/version.gitCommit=${GIT_COMMIT}' -X 'github.com/nucleuscloud/neosync/cli/internal/version.gitVersion=${VERSION}'" cmd/neosync/*.go
 .PHONY: build
 
+clean:
+	rm -rf bin
+.PHONY: clean
+
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[/.a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 .PHONY: help

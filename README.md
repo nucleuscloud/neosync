@@ -81,22 +81,32 @@ If you just want to try out Neosync to see what it's like or get a feel for the 
 We provide a `compose.yml` file that contains production image references that allow you to get up and running with just a few commands without having to build anything on your system.
 
 The simplest configuration of Neosync is standing it up without any form of authentication.
-This can be done with the following commands:
+This can be done with the following command:
 
 ```sh
-$ docker compose -f temporal/compose.yml up -d
-$ docker compose -f compose/compose-prod.yml up -d
+make compose-up
+```
+
+To stop, run:
+
+```sh
+make compose-down
 ```
 
 Neosync will now be available on [http://localhost:3000](http://localhost:3000).
 
 A compose file is also provided that stands up [Keycloak](https://keycloak.org), an open source auth solution.
 
-To stand up Neosync with auth, simply run the following commands:
+To stand up Neosync with auth, simply run the following command:
 
 ```sh
-$ docker compose -f temporal/compose.yml up -d
-$ docker compose -f compose/compose-auth-prod.yml up -d
+make compose-auth-up
+```
+
+To stop, run:
+
+```sh
+make compose-auth-down
 ```
 
 Neosync will now be available on [http://localhost:3000](http://localhost:3000) with authentication pre-configured!
@@ -191,14 +201,31 @@ $ docker compose up -d --build api
 
 If using the dev-focused compose instead of the `*-prod.yml` compose files, the binaries for the `api` and `worker` will need to be built.
 
+Run the following command to build the binaries:
+
+```sh
+make build
+```
+
+To Rebuild the binaries, run:
+
+```sh
+make rebuild
+```
+
 When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your native OS is not Linux (or aren't running in a devcontainer).
 The `make dbuild` command ensures that the Go binary is compiled for Linux instead of the host os.
 
-This will need to be done for both the `worker` and `api` processes prior to running compose up.
+This will need to be done for both the `worker` and `api` processes prior to running compose up. Using the following command will build both the binaries for you:
 
 ```sh
-$ docker compose -f temporal/compose.yml up -d
-$ docker compose -f compose.yml up -d
+make compose-dev-up
+```
+
+To stop, run:
+
+```sh
+make compose-dev-down
 ```
 
 Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000).
@@ -209,8 +236,13 @@ Note, a compose file with authentication pre-configured can be found [here](./co
 This will stand up Keycloak with a pre-configured realm that will allow logging in to Neosync with a standard username and password, completely offline!
 
 ```sh
-$ docker compose -f temporal/compose.yml up -d
-$ docker compose -f compose/compose-auth.yml up -d
+make compose-dev-auth-up
+```
+
+To stop, run:
+
+```sh
+make compose-dev-auth-down
 ```
 
 #### Docker Desktop
