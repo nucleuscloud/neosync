@@ -3988,6 +3988,30 @@
           ]
         },
         {
+          "name": "TransformJavascript",
+          "longName": "TransformJavascript",
+          "fullName": "mgmt.v1alpha1.TransformJavascript",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "code",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "TransformLastName",
           "longName": "TransformLastName",
           "fullName": "mgmt.v1alpha1.TransformLastName",
@@ -4536,6 +4560,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "transform_javascript_config",
+              "description": "",
+              "label": "",
+              "type": "TransformJavascript",
+              "longType": "TransformJavascript",
+              "fullType": "mgmt.v1alpha1.TransformJavascript",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -4766,6 +4802,66 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "ValidateUserJavascriptCodeRequest",
+          "longName": "ValidateUserJavascriptCodeRequest",
+          "fullName": "mgmt.v1alpha1.ValidateUserJavascriptCodeRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "code",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ValidateUserJavascriptCodeResponse",
+          "longName": "ValidateUserJavascriptCodeResponse",
+          "fullName": "mgmt.v1alpha1.ValidateUserJavascriptCodeResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "valid",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         }
       ],
       "services": [
@@ -4857,6 +4953,18 @@
               "responseType": "IsTransformerNameAvailableResponse",
               "responseLongType": "IsTransformerNameAvailableResponse",
               "responseFullType": "mgmt.v1alpha1.IsTransformerNameAvailableResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "ValidateUserJavascriptCode",
+              "description": "",
+              "requestType": "ValidateUserJavascriptCodeRequest",
+              "requestLongType": "ValidateUserJavascriptCodeRequest",
+              "requestFullType": "mgmt.v1alpha1.ValidateUserJavascriptCodeRequest",
+              "requestStreaming": false,
+              "responseType": "ValidateUserJavascriptCodeResponse",
+              "responseLongType": "ValidateUserJavascriptCodeResponse",
+              "responseFullType": "mgmt.v1alpha1.ValidateUserJavascriptCodeResponse",
               "responseStreaming": false
             }
           ]
