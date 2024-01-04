@@ -526,7 +526,7 @@ func (s *Service) GetSystemTransformers(
 				Source:      string(TransformJavascript),
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
-						TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `let input = value + "test"; return input;"`},
+						TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `let input = value + "test"; return input;`},
 					},
 				},
 			},
