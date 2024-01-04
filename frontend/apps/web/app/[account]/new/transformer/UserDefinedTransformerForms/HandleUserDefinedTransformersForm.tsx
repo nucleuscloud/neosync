@@ -14,6 +14,7 @@ import UserDefinedTransformFloat64Form from './UserDefinedTransformFloat64Form';
 import UserDefinedTransformFullNameForm from './UserDefinedTransformFullNameForm';
 import UserDefinedTransformInt64Form from './UserDefinedTransformInt64Form';
 import UserDefinedTransformIntPhoneNumberForm from './UserDefinedTransformInt64PhoneForm';
+import UserDefinedTransformJavascriptForm from './UserDefinedTransformJavascriptForm';
 import UserDefinedTransformLastNameForm from './UserDefinedTransformLastNameForm';
 import UserDefinedTransformPhoneNumberForm from './UserDefinedTransformPhoneNumberForm';
 import UserDefinedTransformStringForm from './UserDefinedTransformStringForm';
@@ -62,6 +63,8 @@ export function handleUserDefinedTransformerForm(
       return <UserDefinedTransformPhoneNumberForm isDisabled={disabled} />;
     case 'transform_string':
       return <UserDefinedTransformStringForm isDisabled={disabled} />;
+    case 'transform_javascript':
+      return <UserDefinedTransformJavascriptForm isDisabled={disabled} />;
     default:
       <div>No transformer found</div>;
   }

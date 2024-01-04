@@ -210,6 +210,40 @@ function MobileMenu(): ReactElement {
                 </Link>
               </Button>
             </MenubarItem>
+            <MenubarItem>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="default">
+                    Private Beta <ArrowRightIcon className="ml-2 h-5 w-5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg bg-black border border-gray-600 p-6">
+                  <DialogHeader>
+                    <DialogTitle className="text-white text-2xl">
+                      Join the Neosync Cloud Private Beta
+                    </DialogTitle>
+                    <DialogDescription className="pt-10 text-gray-300 text-md">
+                      Want to use Neosync but don&apos;t want to host it
+                      yourself? Sign up for the private beta of Neosync Cloud.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex items-center space-x-2">
+                    <PrivateBetaForm />
+                  </div>
+                  <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="text-white hover:bg-gray-800 hover:text-white"
+                      >
+                        Close
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
       </Menubar>

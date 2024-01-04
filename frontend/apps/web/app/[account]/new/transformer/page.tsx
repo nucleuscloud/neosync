@@ -202,7 +202,7 @@ export default function NewTransformer(): ReactElement {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormDescription>
-                        The Transformer decription.
+                        The Transformer description.
                       </FormDescription>
                       <FormControl>
                         <Input
