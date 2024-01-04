@@ -33,6 +33,7 @@ import TransformFloatForm from './Sheetforms/TransformFloat64Form';
 import TransformFullNameForm from './Sheetforms/TransformFullNameForm';
 import TransformInt64Form from './Sheetforms/TransformInt64Form';
 import TransformInt64PhoneForm from './Sheetforms/TransformInt64PhoneForm';
+import TransformJavascriptForm from './Sheetforms/TransformJavascriptForm';
 import TransformLastNameForm from './Sheetforms/TransformLastNameForm';
 import TransformPhoneNumberForm from './Sheetforms/TransformPhoneNumberForm';
 import TransformStringForm from './Sheetforms/TransformStringForm';
@@ -250,6 +251,15 @@ function handleTransformerForm(
           transformer={transformer}
         />
       );
+    case 'transform_javascript':
+      return (
+        <TransformJavascriptForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
+        />
+      );
+
     default:
       <div>No transformer component found</div>;
   }

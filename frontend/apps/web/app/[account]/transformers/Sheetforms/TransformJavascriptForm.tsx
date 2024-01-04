@@ -1,59 +1,61 @@
 'use client';
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form';
-
 import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import Editor from '@monaco-editor/react';
 import {
-  ValidateUserJavascriptCodeRequest,
-  ValidateUserJavascriptCodeResponse,
-} from '@neosync/sdk';
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from '@/components/ui/form';
+import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
+import { Editor } from '@monaco-editor/react';
+import { TransformJavascript } from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
-  CreateUserDefinedTransformerSchema,
-  UpdateUserDefinedTransformer,
-} from '../schema';
-
+  IsUserJavascriptCodeValid,
+  ValidCode,
+} from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 interface Props {
-  isDisabled?: boolean;
+  index?: number;
+  transformer: Transformer;
+  setIsSheetOpen?: (val: boolean) => void;
 }
 
-export type ValidCode = 'valid' | 'invalid' | 'null';
+export default function TransformJavascriptForm(props: Props): ReactElement {
+  const { index, setIsSheetOpen, transformer } = props;
 
-export default function UserDefinedTransformJavascriptForm(
-  props: Props
-): ReactElement {
-  const fc = useFormContext<
-    UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
-  >();
+  const fc = useFormContext();
 
-  const { isDisabled } = props;
+  const codeValue = fc.getValues(
+    `mappings.${index}.transformer.config.value.code`
+  );
+  const [userCode, setUserCode] = useState<string>(codeValue);
+  const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
+  const [isCodeValid, setIsCodeValid] = useState<ValidCode>('null');
+  const { resolvedTheme } = useTheme();
 
   const options = {
     minimap: { enabled: false },
-    readOnly: isDisabled,
+    readOnly: isUserDefinedTransformer(transformer),
   };
 
-  const { resolvedTheme } = useTheme();
-
-  const [userCode, setUserCode] = useState<string>(
-    fc.getValues('config.value.code')
-  );
-
-  const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
-  const [isCodeValid, setIsCodeValid] = useState<ValidCode>('null');
+  const handleSubmit = () => {
+    fc.setValue(
+      `mappings.${index}.transformer.config.value`,
+      new TransformJavascript({ code: userCode }),
+      {
+        shouldValidate: false,
+      }
+    );
+    setIsSheetOpen!(false);
+  };
 
   const account = useAccount();
 
@@ -82,11 +84,10 @@ export default function UserDefinedTransformJavascriptForm(
   }
 
   return (
-    <div className="pt-4">
+    <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`config.value.code`}
-        control={fc.control}
-        render={({ field }) => (
+        name={`mappings.${index}.transformer.config.value.preserveLength`}
+        render={() => (
           <FormItem>
             <div className="flex flex-row justify-between">
               <div className="space-y-0.5">
@@ -131,11 +132,10 @@ export default function UserDefinedTransformJavascriptForm(
                   height="50vh"
                   width="100%"
                   language="javascript"
-                  value={field.value}
+                  value={userCode}
                   theme={resolvedTheme == 'dark' ? 'vs-dark' : 'cobalt'}
-                  defaultValue={field.value}
+                  defaultValue={userCode}
                   onChange={(e) => {
-                    field.onChange(e);
                     setUserCode(e ?? '');
                   }}
                   options={options}
@@ -145,31 +145,11 @@ export default function UserDefinedTransformJavascriptForm(
           </FormItem>
         )}
       />
+      <div className="flex justify-end">
+        <Button type="button" onClick={handleSubmit}>
+          Save
+        </Button>
+      </div>
     </div>
   );
-}
-
-export async function IsUserJavascriptCodeValid(
-  code: string,
-  accountId: string
-): Promise<ValidateUserJavascriptCodeResponse> {
-  const body = new ValidateUserJavascriptCodeRequest({
-    code: code,
-    accountId: accountId,
-  });
-  const res = await fetch(
-    `/api/accounts/${accountId}/transformers/user-defined/validate-code`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return ValidateUserJavascriptCodeResponse.fromJson(await res.json());
 }
