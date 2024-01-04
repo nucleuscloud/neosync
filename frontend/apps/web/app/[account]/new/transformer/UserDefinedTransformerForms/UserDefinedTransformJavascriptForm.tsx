@@ -95,7 +95,8 @@ export default function UserDefinedTransformJavascriptForm(
                   Define your own Transformation below using Javascript. The
                   input value will be available at the{' '}
                   <code className="bg-gray-200 px-1 py-0.5 rounded">value</code>{' '}
-                  keyword.{' '}
+                  keyword. Click <b>Validate</b> to check that your code
+                  compiles.{' '}
                   <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined" />
                 </div>
               </div>
