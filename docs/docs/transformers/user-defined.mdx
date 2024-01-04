@@ -70,6 +70,30 @@ let input = value + 'test';
 return input;
 ```
 
+You can also do more complicated transformations such as:
+
+```javascript
+function manipulateString(str) {
+  let result = reverseString(str);
+
+  result = capitalizeString(result);
+
+  return result;
+}
+// capitalie the string
+function capitalizeString(s) {
+  return s.toUpperCase();
+}
+// reverse the string
+function reverseString(s) {
+  return s.split('').reverse().join('');
+}
+
+const input = manipulateString(value);
+
+return input;
+```
+
 Would return `johntest`. The code editor comes with autocomplete for most standard methods and syntax highlighting. Lastly, we do not currently support module imports in this section. **Important**: make sure you include a return statement or the custom function will not return a value.
 
 5. Once you are satisified with your custom code, click on the **Validate** button to ensure that your javascript compiles and is valid. If it does not compile, we will return an **invalid** error.
