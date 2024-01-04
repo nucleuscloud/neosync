@@ -124,7 +124,10 @@ function Links(): ReactElement {
             Privacy Policy
           </div>
         </Link>
-        <Link className="pl-0 font-satoshi no-underline" href="/tos">
+        <Link
+          className="pl-0 font-satoshi no-underline"
+          href="/terms-of-service"
+        >
           <div className="text-gray-500 text-sm hover:text-gray-200">
             Terms of Service
           </div>
