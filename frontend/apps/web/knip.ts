@@ -28,12 +28,13 @@ const config = {
     'postcss',
     'eslint-config-next',
     // 'memoize-one',
+    'monaco-editor',
     'tailwindcss-animate',
     'use-resize-observer',
     'react-day-picker',
     'react-dom',
   ],
-  ignoreBinaries: ['tail', 'next'],
+  ignoreBinaries: ['tail', 'next', 'knip'],
 };
 
 export default config;
