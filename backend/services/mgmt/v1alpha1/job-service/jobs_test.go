@@ -651,7 +651,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 		ID: job.ID,
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH.String(),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
