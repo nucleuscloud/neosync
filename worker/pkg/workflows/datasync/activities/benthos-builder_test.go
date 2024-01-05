@@ -301,8 +301,8 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: fake-stage-url
-                query: INSERT INTO public.users (id, name) VALUES (DEFAULT, $1);
-                args_mapping: root = [this.name]
+                query: INSERT INTO public.users (id, name) VALUES ($1, $2);
+                args_mapping: root = [this.id, this.name]
                 init_statement: ""
                 batching:
                     count: 100
@@ -637,8 +637,8 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: fake-stage-url
-                query: INSERT INTO public.users (id, name) VALUES (DEFAULT, $1);
-                args_mapping: root = [this.name]
+                query: INSERT INTO public.users (id, name) VALUES ($1, $2);
+                args_mapping: root = [this.id, this.name]
                 init_statement: ""
                 batching:
                     count: 100
@@ -1607,8 +1607,8 @@ output:
             - sql_raw:
                 driver: mysql
                 dsn: fake-stage-url
-                query: INSERT INTO public.users (id, name) VALUES (DEFAULT, ?);
-                args_mapping: root = [this.name]
+                query: INSERT INTO public.users (id, name) VALUES (?, ?);
+                args_mapping: root = [this.id, this.name]
                 init_statement: ""
                 batching:
                     count: 100
@@ -1775,8 +1775,8 @@ output:
             - sql_raw:
                 driver: mysql
                 dsn: fake-stage-url
-                query: INSERT INTO public.users (id, name) VALUES (DEFAULT, ?);
-                args_mapping: root = [this.name]
+                query: INSERT INTO public.users (id, name) VALUES (?, ?);
+                args_mapping: root = [this.id, this.name]
                 init_statement: ""
                 batching:
                     count: 100
