@@ -1,4 +1,5 @@
 import Footer from '@/components/Footer';
+import GithubBanner from '@/components/banner/GithubBanner';
 import TopNav from '@/components/nav/TopNav';
 import Script from 'next/script';
 import '../styles/global.css';
@@ -47,6 +48,7 @@ __ls("newPageView");
 `}
         </Script>
         <div className="flex flex-col w-full relative">
+          <GithubBanner />
           <TopNav />
           <div>{children}</div>
           <Footer />
