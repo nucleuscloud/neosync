@@ -111,7 +111,7 @@ export default function TopNav(): ReactElement {
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="default">
-                Private Beta <ArrowRightIcon className="ml-2 h-5 w-5" />
+                Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg bg-black border border-gray-600 p-6">
@@ -204,7 +204,6 @@ function MobileMenu(): ReactElement {
               >
                 <Link href="https://github.com/nucleuscloud/neosync">
                   <div className="flex flex-row items-center">
-                    <p>Star us on</p>
                     <GitHubLogoIcon className="ml-2 h-4 w-4" />
                   </div>
                 </Link>
@@ -214,7 +213,7 @@ function MobileMenu(): ReactElement {
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="default">
-                    Private Beta <ArrowRightIcon className="ml-2 h-5 w-5" />
+                    Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg bg-black border border-gray-600 p-6">
