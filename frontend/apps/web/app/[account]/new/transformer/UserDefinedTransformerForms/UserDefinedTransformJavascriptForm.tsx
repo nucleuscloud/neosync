@@ -97,7 +97,7 @@ export default function UserDefinedTransformJavascriptForm(
                   <code className="bg-gray-200 px-1 py-0.5 rounded">value</code>{' '}
                   keyword. Click <b>Validate</b> to check that your code
                   compiles.{' '}
-                  <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined" />
+                  <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#custom-code-transformers" />
                 </div>
               </div>
               <div className="flex flex-row gap-2">
