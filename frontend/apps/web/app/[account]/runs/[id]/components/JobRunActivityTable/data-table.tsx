@@ -8,7 +8,6 @@ import {
   VisibilityState,
   flexRender,
   getCoreRowModel,
-  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
   getFilteredRowModel,
@@ -48,6 +47,9 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
     setColumnVisibility({ error: isError });
   }, [isError]);
 
+  const [pagination, setPagination] = React.useState<number>(0);
+  const [pageSize, setPageSize] = React.useState<number>(10);
+
   const table = useReactTable({
     data,
     columns,
@@ -56,15 +58,14 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
       columnVisibility,
       rowSelection,
       columnFilters,
+      pagination: { pageIndex: pagination, pageSize: pageSize },
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
-    getRowCanExpand: () => true,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -135,7 +136,11 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination
+        table={table}
+        setPagination={setPagination}
+        setPageSize={setPageSize}
+      />
     </div>
   );
 }
