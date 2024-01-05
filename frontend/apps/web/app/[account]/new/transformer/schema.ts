@@ -3,6 +3,7 @@ import {
   TransformerConfig,
 } from '@neosync/sdk';
 import * as Yup from 'yup';
+import { IsUserJavascriptCodeValid } from './UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 
 const transformEmailConfig = Yup.object().shape({
   preserveDomain: Yup.boolean().required('This field is required.'),
@@ -160,7 +161,34 @@ const userDefinedTransformerConfig = Yup.object().shape({
 });
 
 const transformJavascriptConfig = Yup.object().shape({
-  code: Yup.string().required('This field is required.'),
+  code: Yup.string()
+    .required('This field is required.')
+    .test(
+      'is-valid-javascript',
+      'The JavaScript code is invalid.',
+      async (value, context) => {
+        const accountId = context?.options?.context?.accountId;
+        if (!accountId) {
+          return context.createError({
+            message: 'Unable to verify Account Id.',
+          });
+        }
+        try {
+          const res = await IsUserJavascriptCodeValid(value, accountId);
+          if (res.valid == true) {
+            return true;
+          } else {
+            return context.createError({
+              message: 'Javascript is not valid',
+            });
+          }
+        } catch (error) {
+          return context.createError({
+            message: 'Unable to verify Javascript code.',
+          });
+        }
+      }
+    ),
 });
 
 type ConfigType = TransformerConfig['config'];
