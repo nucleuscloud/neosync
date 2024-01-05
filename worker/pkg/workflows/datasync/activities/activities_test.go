@@ -1087,7 +1087,7 @@ func Test_TransformerStringLint(t *testing.T) {
 	transformers := []*mgmtv1alpha1.SystemTransformer{
 		{
 
-			Name: "generate_email",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
 					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
@@ -1095,7 +1095,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_email",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -1106,7 +1106,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_bool",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
 					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
@@ -1114,7 +1114,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_card_number",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
 					GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
@@ -1124,7 +1124,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_city",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
 					GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
@@ -1132,7 +1132,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_e164_phone_number",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
 					GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
@@ -1143,7 +1143,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_first_name",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
 					GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
@@ -1151,7 +1151,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_float64",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FLOAT64.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
@@ -1163,7 +1163,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_full_address",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
 					GenerateFullAddressConfig: &mgmtv1alpha1.GenerateFullAddress{},
@@ -1171,7 +1171,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_full_name",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 					GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -1179,7 +1179,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_gender",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_GENDER.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
 					GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
@@ -1189,7 +1189,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_int64_phone_number",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
 					GenerateInt64PhoneNumberConfig: &mgmtv1alpha1.GenerateInt64PhoneNumber{},
@@ -1197,7 +1197,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_int64",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
@@ -1209,7 +1209,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_last_name",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_LAST_NAME.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
 					GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
@@ -1217,7 +1217,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_sha256hash",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SHA256HASH.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
 					GenerateSha256HashConfig: &mgmtv1alpha1.GenerateSha256Hash{},
@@ -1225,7 +1225,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_ssn",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
 					GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
@@ -1233,7 +1233,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_state",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
 					GenerateStateConfig: &mgmtv1alpha1.GenerateState{},
@@ -1241,7 +1241,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_street_address",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
 					GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
@@ -1249,7 +1249,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_string_phone_number",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 					GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
@@ -1259,7 +1259,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_string",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
@@ -1270,7 +1270,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_unixtimestamp",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
 					GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
@@ -1278,7 +1278,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_username",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_USERNAME.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{
 					GenerateUsernameConfig: &mgmtv1alpha1.GenerateUsername{},
@@ -1286,7 +1286,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_utctimestamp",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{
 					GenerateUtctimestampConfig: &mgmtv1alpha1.GenerateUtcTimestamp{},
@@ -1294,7 +1294,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_uuid",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
@@ -1304,7 +1304,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_zipcode",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_ZIPCODE.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
 					GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
@@ -1312,7 +1312,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_e164_phone_number",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
 					TransformE164PhoneNumberConfig: &mgmtv1alpha1.TransformE164PhoneNumber{
@@ -1322,7 +1322,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_first_name",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
 					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
@@ -1332,7 +1332,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_float64",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
 					TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
@@ -1343,7 +1343,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_full_name",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
 					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
@@ -1353,7 +1353,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_int64_phone_number",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
 					TransformInt64PhoneNumberConfig: &mgmtv1alpha1.TransformInt64PhoneNumber{
@@ -1363,7 +1363,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_int64",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 					TransformInt64Config: &mgmtv1alpha1.TransformInt64{
@@ -1374,7 +1374,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_last_name",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
 					TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
@@ -1384,7 +1384,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_phone_number",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 					TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
@@ -1395,7 +1395,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_string",
+			Name: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 					TransformStringConfig: &mgmtv1alpha1.TransformString{
@@ -1412,7 +1412,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			&mgmtv1alpha1.JobMapping{
 				Column: col,
 				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: transformer.Source,
+					Source: mgmtv1alpha1.TransformerSource(mgmtv1alpha1.TransformerSource_value[transformer.Name]),
 					Config: transformer.Config,
 				},
 			})
