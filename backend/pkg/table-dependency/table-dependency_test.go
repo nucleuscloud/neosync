@@ -1,8 +1,6 @@
 package tabledependency
 
 import (
-	"fmt"
-	"sort"
 	"testing"
 
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
@@ -86,21 +84,6 @@ func Test_FindCircularDependencies(t *testing.T) {
 			actual := findCircularDependencies(tt.dependencies)
 
 			assert.Len(t, tt.expect, len(actual))
-			fmt.Println(tt.name)
-			fmt.Printf("actual: %+v\n", actual)
-
-			fmt.Printf("expect: %+v\n\n", tt.expect)
-
-			for _, cycle := range actual {
-				sort.Strings(cycle)
-				// fmt.Printf("cycle: %+v\n", cycle)
-				// fmt.Println(tt.name)
-				// fmt.Printf("actual: %+v\n", actual)
-
-				// fmt.Printf("expect: %+v\n\n", tt.expect)
-
-				// assert.Contains(t, tt.expect, cycle)
-			}
 			assert.ElementsMatch(t, tt.expect, actual)
 		})
 	}
