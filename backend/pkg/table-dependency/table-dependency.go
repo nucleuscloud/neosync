@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"sort"
 
+	"github.com/go-faker/faker/v4/pkg/slice"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 )
 
@@ -306,20 +308,36 @@ func GetSyncConfigs(dependencies dbschemas.TableDependency, tables []string) []*
 		}
 	}
 
+	jsonFg, _ := json.MarshalIndent(depsMap, "", " ")
+	fmt.Printf("\n\n  depsMap: %s \n\n", string(jsonFg))
+
 	circularDeps := findCircularDependencies(depsMap)
+	jsonFr, _ := json.MarshalIndent(circularDeps, "", " ")
+	fmt.Printf("\n\n   circularDeps: %s \n\n", string(jsonFr))
 	configs := []*SyncConfig{}
 
 	for _, table := range tables {
-		inCircularDep, nullableCols := isInCircularDependency(table, circularDeps, dependencies)
+		inCircularDep, cycle, nullableCols := isInCircularDependency(table, circularDeps, dependencies)
 		if inCircularDep {
 			// Handle circular dependencies
 			// First, create the exclude config
 			// only add empty exclude if all foreign constraints are nullable
 			if len(nullableCols) != 0 {
 				excludeConfig := &SyncConfig{
-					Table:   table,
-					Columns: &SyncColumn{Exclude: nullableCols},
+					Table:     table,
+					Columns:   &SyncColumn{Exclude: nullableCols},
+					DependsOn: []*DependsOn{},
 				}
+				jsonF, _ := json.MarshalIndent(depsMap[table], "", " ")
+				fmt.Printf("\n\n   depsMap[table]: %s \n\n", string(jsonF))
+				// Only add depends on if not in the circular dependency
+				for _, dep := range depsMap[table] {
+					if !slice.Contains(cycle, dep) {
+						excludeConfig.DependsOn = append(excludeConfig.DependsOn, &DependsOn{Table: dep, Columns: []string{foreignKeyMap[table][dep]}})
+					}
+				}
+				jsonFt, _ := json.MarshalIndent(excludeConfig, "", " ")
+				fmt.Printf("\n\n  excludeConfig: %s \n\n", string(jsonFt))
 
 				configs = append(configs, excludeConfig)
 			}
@@ -359,19 +377,25 @@ func GetSyncConfigs(dependencies dbschemas.TableDependency, tables []string) []*
 }
 
 // isInCircularDependency checks if a table is in a circular dependency and returns nullable columns if true.
-func isInCircularDependency(table string, circularDeps [][]string, dependencies dbschemas.TableDependency) (bool, []string) {
+func isInCircularDependency(table string, circularDeps [][]string, dependencies dbschemas.TableDependency) (bool, []string, []string) {
 	var nullableCols []string
 	for _, cycle := range circularDeps {
 		if isInSlice(table, cycle) {
+			fmt.Printf("----  table: %s  ----- \n", table)
+			jsonFx, _ := json.MarshalIndent(cycle, "", " ")
+			fmt.Printf("\n  %s \n", string(jsonFx))
 			for _, constraint := range dependencies[table].Constraints {
-				if constraint.IsNullable {
+				jsonF, _ := json.MarshalIndent(constraint, "", " ")
+				fmt.Printf("\n  %s \n", string(jsonF))
+				if constraint.IsNullable && slices.Contains(cycle, constraint.ForeignKey.Table) {
+					// if constraint.IsNullable {
 					nullableCols = append(nullableCols, constraint.Column)
 				}
 			}
-			return true, nullableCols
+			return true, cycle, nullableCols
 		}
 	}
-	return false, nil
+	return false, nil, nil
 }
 
 // isInSlice checks if an item is in a slice.
@@ -384,104 +408,223 @@ func isInSlice(item string, slice []string) bool {
 	return false
 }
 
-func GetSyncConfigsOld(tableDeps dbschemas.TableDependency, tables []string) []*SyncConfig {
-	configs := []*SyncConfig{}
+func findCircularDependencies(dependencies map[string][]string) [][]string {
+	visited := make(map[string]bool)
+	var result [][]string
 
-	tableDepsMap := dbschemas.BuildDependsOnSlice(tableDeps)
-	fmt.Printf("%+v\n\n", tableDepsMap)
-
-	cycles := findCircularDependencies(tableDepsMap)
-	// cycles := [][]string{{"public.a", "public.b"}, {"public.b"}}
-	fmt.Printf("cycles %+v\n", cycles)
-
-	for _, t := range tables {
-		tableCycles := getTableCyles(t, cycles)
-		fmt.Printf("table: %s \n", t)
-		if len(tableCycles) > 0 {
-			for _, tc := range tableCycles {
-				deps := tableDeps[t]
-				for _, d := range deps.Constraints {
-					if slices.Contains(tc, d.ForeignKey.Table) {
-						// update this logic to do all nullable at once
-						if d.IsNullable {
-							configs = append(
-								configs,
-								&SyncConfig{Table: t, Columns: &SyncColumn{Exclude: []string{d.Column}}, DependsOn: []*DependsOn{}},
-								&SyncConfig{Table: t, Columns: &SyncColumn{Include: []string{d.Column}}, DependsOn: []*DependsOn{{Table: d.ForeignKey.Table, Columns: []string{d.ForeignKey.Column}}}},
-							)
-						} else {
-							configs = append(
-								configs,
-								&SyncConfig{Table: t, DependsOn: []*DependsOn{{Table: d.ForeignKey.Table, Columns: []string{d.ForeignKey.Column}}}},
-							)
-
-						}
-
-					}
-
-				}
-
-			}
-
-		} else {
-			fmt.Println("No table cycles")
-			// no cycles
-			c := &SyncConfig{Table: t, DependsOn: []*DependsOn{}}
-			if deps, ok := tableDeps[t]; ok {
-				fkMap := getForeignKeyColMap(deps.Constraints)
-				for t, cols := range fkMap {
-					c.DependsOn = append(c.DependsOn, &DependsOn{Table: t, Columns: cols})
-				}
-			}
-			configs = append(configs, c)
+	for node := range dependencies {
+		if !visited[node] {
+			cycles := dfs(node, dependencies, visited, make(map[string]bool), []string{})
+			result = append(result, cycles...)
 		}
 	}
-
-	jsonFx, _ := json.MarshalIndent(configs, "", " ")
-	fmt.Printf("\n\n  %s \n\n", string(jsonFx))
-
-	return configs
+	return uniqueCycles(result)
 }
 
-func findCircularDependencies(deps map[string][]string) [][]string {
-	visited := make(map[string]bool)
-	stack := make(map[string]bool)
+func dfs(node string, dependencies map[string][]string, visited, recStack map[string]bool, path []string) [][]string {
+	if recStack[node] {
+		index := findInPath(node, path)
+		if index != -1 {
+			return [][]string{path[index:]}
+		}
+		return nil
+	}
+
+	if visited[node] {
+		return nil
+	}
+
+	visited[node] = true
+	recStack[node] = true
+	path = append(path, node)
 	var cycles [][]string
 
-	for node := range deps {
-		if !visited[node] {
-			var path []string
-			if cycle := findCycle(node, deps, visited, stack, path); len(cycle) > 0 {
-				cycles = append(cycles, cycle)
-			}
-		}
+	for _, neighbor := range dependencies[node] {
+		foundCycles := dfs(neighbor, dependencies, visited, recStack, path)
+		cycles = append(cycles, foundCycles...)
 	}
-	fmt.Printf("%+v\n", cycles)
 
+	recStack[node] = false
 	return cycles
 }
 
-func findCycle(node string, deps map[string][]string, visited, stack map[string]bool, path []string) []string {
-	visited[node] = true
-	stack[node] = true
-	path = append(path, node)
-
-	for _, dep := range deps[node] {
-		if !visited[dep] {
-			if cycle := findCycle(dep, deps, visited, stack, path); len(cycle) > 0 {
-				return cycle
-			}
-		} else if stack[dep] {
-			for i, n := range path {
-				if n == dep {
-					return path[i:]
-				}
-			}
+func findInPath(node string, path []string) int {
+	for i, n := range path {
+		if n == node {
+			return i
 		}
 	}
-	stack[node] = false
-	return nil
+	return -1
 }
+
+func uniqueCycles(cycles [][]string) [][]string {
+	seen := make(map[string]bool)
+	var unique [][]string
+
+	for _, cycle := range cycles {
+		key := cycleKey(cycle)
+		if !seen[key] {
+			seen[key] = true
+			unique = append(unique, cycle)
+		}
+	}
+
+	return unique
+}
+
+func cycleKey(cycle []string) string {
+	min := cycle[0]
+	for _, node := range cycle {
+		if node < min {
+			min = node
+		}
+	}
+
+	startIndex := -1
+	for i, node := range cycle {
+		if node == min && (startIndex == -1 || cycle[i-1] > cycle[(i+1)%len(cycle)]) {
+			startIndex = i
+		}
+	}
+
+	key := ""
+	for i := 0; i < len(cycle); i++ {
+		key += cycle[(startIndex+i)%len(cycle)] + ","
+	}
+	return key
+}
+
+// func findCircularDependencies(dependencies map[string][]string) [][]string {
+// 	allVisited := make(map[string]bool)
+// 	var result [][]string
+
+// 	for node := range dependencies {
+// 		if !allVisited[node] {
+// 			visited, recStack := make(map[string]bool), make(map[string]bool)
+// 			cycle := dfs(node, dependencies, visited, recStack, node, []string{})
+// 			if len(cycle) > 0 {
+// 				result = append(result, cycle)
+// 				for _, n := range cycle {
+// 					allVisited[n] = true
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return result
+// }
+
+// func dfs(current string, dependencies map[string][]string, visited, recStack map[string]bool, start string, path []string) []string {
+// 	if recStack[current] {
+// 		if current == start {
+// 			return path
+// 		}
+// 		return nil
+// 	}
+
+// 	if visited[current] {
+// 		return nil
+// 	}
+
+// 	visited[current] = true
+// 	recStack[current] = true
+// 	path = append(path, current)
+
+// 	for _, neighbor := range dependencies[current] {
+// 		if cycle := dfs(neighbor, dependencies, visited, recStack, start, path); cycle != nil {
+// 			return cycle
+// 		}
+// 	}
+
+// 	recStack[current] = false
+// 	return nil
+// }
+
+func removeDuplicateCycles(cycles [][]string) [][]string {
+	// Normalize each cycle
+	for i, cycle := range cycles {
+		cycles[i] = normalizeCycle(cycle)
+	}
+
+	// Use a map to remove duplicates
+	uniqueCycles := make(map[string][]string)
+	for _, cycle := range cycles {
+		key := generateKey(cycle)
+		if _, exists := uniqueCycles[key]; !exists {
+			uniqueCycles[key] = cycle
+		}
+	}
+
+	// Convert the map back to a slice
+	var result [][]string
+	for _, cycle := range uniqueCycles {
+		result = append(result, cycle)
+	}
+
+	return result
+}
+
+// normalizeCycle normalizes the cycle by rotating it so that its smallest element is first.
+func normalizeCycle(cycle []string) []string {
+	if len(cycle) == 0 {
+		return cycle
+	}
+
+	smallestIndex := 0
+	for i := range cycle {
+		if cycle[i] < cycle[smallestIndex] {
+			smallestIndex = i
+		}
+	}
+
+	// Rotate the slice
+	return append(cycle[smallestIndex:], cycle[:smallestIndex]...)
+}
+
+// generateKey creates a unique key for a cycle by joining its elements.
+func generateKey(cycle []string) string {
+	sort.Strings(cycle) // Ensuring consistent order for the key
+	return fmt.Sprint(cycle)
+}
+
+// func findCircularDependencies(deps map[string][]string) [][]string {
+// 	visited := make(map[string]bool)
+// 	stack := make(map[string]bool)
+// 	var cycles [][]string
+
+// 	for node := range deps {
+// 		if !visited[node] {
+// 			var path []string
+// 			if cycle := findCycle(node, deps, visited, stack, path); len(cycle) > 0 {
+// 				cycles = append(cycles, cycle)
+// 			}
+// 		}
+// 	}
+// 	fmt.Printf("%+v\n", cycles)
+
+// 	return cycles
+// }
+
+// func findCycle(node string, deps map[string][]string, visited, stack map[string]bool, path []string) []string {
+// 	visited[node] = true
+// 	stack[node] = true
+// 	path = append(path, node)
+
+// 	for _, dep := range deps[node] {
+// 		if !visited[dep] {
+// 			if cycle := findCycle(dep, deps, visited, stack, path); len(cycle) > 0 {
+// 				return cycle
+// 			}
+// 		} else if stack[dep] {
+// 			for i, n := range path {
+// 				if n == dep {
+// 					return path[i:]
+// 				}
+// 			}
+// 		}
+// 	}
+// 	stack[node] = false
+// 	return nil
+// }
 
 /*
   need function to get root benthos configs and dependent benthod configs
