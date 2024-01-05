@@ -176,7 +176,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               />
             </div>
           </div>
-          <div className="flex flex-row justify-end">
+          <div className="flex flex-row justify-between">
+            <Button
+              variant="outline"
+              type="reset"
+              onClick={() => router.push(`/${account?.name}/new/job`)}
+            >
+              Back
+            </Button>
             <Button type="submit" disabled={!form.formState.isValid}>
               Next
             </Button>
