@@ -21,7 +21,6 @@ import (
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
-	tabledeps "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 )
 
 type DatabaseSchema struct {
@@ -616,11 +615,6 @@ func (s *Service) GetConnectionForeignConstraints(
 	default:
 		return nil, errors.New("unsupported fk connection")
 	}
-
-	tables := []string{"public.regions", "public.locations", "public.dependents", "public.employees", "public.departments", "public.countries", "public.jobs"}
-	// tables := []string{"public.employees"}
-	// tables := []string{"public.a", "public.b"}
-	tabledeps.GetSyncConfigs(td, tables)
 
 	tableConstraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
 	for tableName, d := range td {
