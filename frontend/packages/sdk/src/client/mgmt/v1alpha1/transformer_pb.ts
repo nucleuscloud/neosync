@@ -7,6 +7,260 @@ import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialM
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
+ * @generated from enum mgmt.v1alpha1.TransformerSource
+ */
+export enum TransformerSource {
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_PASSTHROUGH = 1;
+   */
+  PASSTHROUGH = 1,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_DEFAULT = 2;
+   */
+  GENERATE_DEFAULT = 2,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT = 3;
+   */
+  TRANSFORM_JAVASCRIPT = 3,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_EMAIL = 4;
+   */
+  GENERATE_EMAIL = 4,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_EMAIL = 5;
+   */
+  TRANSFORM_EMAIL = 5,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_BOOL = 6;
+   */
+  GENERATE_BOOL = 6,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER = 7;
+   */
+  GENERATE_CARD_NUMBER = 7,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_CITY = 8;
+   */
+  GENERATE_CITY = 8,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER = 9;
+   */
+  GENERATE_E164_PHONE_NUMBER = 9,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_FIRST_NAME = 10;
+   */
+  GENERATE_FIRST_NAME = 10,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_FLOAT64 = 11;
+   */
+  GENERATE_FLOAT64 = 11,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS = 12;
+   */
+  GENERATE_FULL_ADDRESS = 12,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_FULL_NAME = 13;
+   */
+  GENERATE_FULL_NAME = 13,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_GENDER = 14;
+   */
+  GENERATE_GENDER = 14,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER = 15;
+   */
+  GENERATE_INT64_PHONE_NUMBER = 15,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_INT64 = 16;
+   */
+  GENERATE_INT64 = 16,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_RANDOM_INT64 = 17;
+   */
+  GENERATE_RANDOM_INT64 = 17,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_LAST_NAME = 18;
+   */
+  GENERATE_LAST_NAME = 18,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_SHA256HASH = 19;
+   */
+  GENERATE_SHA256HASH = 19,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_SSN = 20;
+   */
+  GENERATE_SSN = 20,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_STATE = 21;
+   */
+  GENERATE_STATE = 21,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS = 22;
+   */
+  GENERATE_STREET_ADDRESS = 22,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER = 23;
+   */
+  GENERATE_STRING_PHONE_NUMBER = 23,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_STRING = 24;
+   */
+  GENERATE_STRING = 24,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING = 25;
+   */
+  GENERATE_RANDOM_STRING = 25,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP = 26;
+   */
+  GENERATE_UNIXTIMESTAMP = 26,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_USERNAME = 27;
+   */
+  GENERATE_USERNAME = 27,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP = 28;
+   */
+  GENERATE_UTCTIMESTAMP = 28,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_UUID = 29;
+   */
+  GENERATE_UUID = 29,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_ZIPCODE = 30;
+   */
+  GENERATE_ZIPCODE = 30,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER = 31;
+   */
+  TRANSFORM_E164_PHONE_NUMBER = 31,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME = 32;
+   */
+  TRANSFORM_FIRST_NAME = 32,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_FLOAT64 = 33;
+   */
+  TRANSFORM_FLOAT64 = 33,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME = 34;
+   */
+  TRANSFORM_FULL_NAME = 34,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER = 35;
+   */
+  TRANSFORM_INT64_PHONE_NUMBER = 35,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_INT64 = 36;
+   */
+  TRANSFORM_INT64 = 36,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME = 37;
+   */
+  TRANSFORM_LAST_NAME = 37,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER = 38;
+   */
+  TRANSFORM_PHONE_NUMBER = 38,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_TRANSFORM_STRING = 39;
+   */
+  TRANSFORM_STRING = 39,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_NULL = 40;
+   */
+  NULL = 40,
+}
+// Retrieve enum metadata with: proto3.getEnumType(TransformerSource)
+proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
+  { no: 0, name: "TRANSFORMER_SOURCE_UNSPECIFIED" },
+  { no: 1, name: "TRANSFORMER_SOURCE_PASSTHROUGH" },
+  { no: 2, name: "TRANSFORMER_SOURCE_GENERATE_DEFAULT" },
+  { no: 3, name: "TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT" },
+  { no: 4, name: "TRANSFORMER_SOURCE_GENERATE_EMAIL" },
+  { no: 5, name: "TRANSFORMER_SOURCE_TRANSFORM_EMAIL" },
+  { no: 6, name: "TRANSFORMER_SOURCE_GENERATE_BOOL" },
+  { no: 7, name: "TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER" },
+  { no: 8, name: "TRANSFORMER_SOURCE_GENERATE_CITY" },
+  { no: 9, name: "TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER" },
+  { no: 10, name: "TRANSFORMER_SOURCE_GENERATE_FIRST_NAME" },
+  { no: 11, name: "TRANSFORMER_SOURCE_GENERATE_FLOAT64" },
+  { no: 12, name: "TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS" },
+  { no: 13, name: "TRANSFORMER_SOURCE_GENERATE_FULL_NAME" },
+  { no: 14, name: "TRANSFORMER_SOURCE_GENERATE_GENDER" },
+  { no: 15, name: "TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER" },
+  { no: 16, name: "TRANSFORMER_SOURCE_GENERATE_INT64" },
+  { no: 17, name: "TRANSFORMER_SOURCE_GENERATE_RANDOM_INT64" },
+  { no: 18, name: "TRANSFORMER_SOURCE_GENERATE_LAST_NAME" },
+  { no: 19, name: "TRANSFORMER_SOURCE_GENERATE_SHA256HASH" },
+  { no: 20, name: "TRANSFORMER_SOURCE_GENERATE_SSN" },
+  { no: 21, name: "TRANSFORMER_SOURCE_GENERATE_STATE" },
+  { no: 22, name: "TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS" },
+  { no: 23, name: "TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER" },
+  { no: 24, name: "TRANSFORMER_SOURCE_GENERATE_STRING" },
+  { no: 25, name: "TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING" },
+  { no: 26, name: "TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP" },
+  { no: 27, name: "TRANSFORMER_SOURCE_GENERATE_USERNAME" },
+  { no: 28, name: "TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP" },
+  { no: 29, name: "TRANSFORMER_SOURCE_GENERATE_UUID" },
+  { no: 30, name: "TRANSFORMER_SOURCE_GENERATE_ZIPCODE" },
+  { no: 31, name: "TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER" },
+  { no: 32, name: "TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME" },
+  { no: 33, name: "TRANSFORMER_SOURCE_TRANSFORM_FLOAT64" },
+  { no: 34, name: "TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME" },
+  { no: 35, name: "TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER" },
+  { no: 36, name: "TRANSFORMER_SOURCE_TRANSFORM_INT64" },
+  { no: 37, name: "TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME" },
+  { no: 38, name: "TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER" },
+  { no: 39, name: "TRANSFORMER_SOURCE_TRANSFORM_STRING" },
+  { no: 40, name: "TRANSFORMER_SOURCE_NULL" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetSystemTransformersRequest
  */
 export class GetSystemTransformersRequest extends Message<GetSystemTransformersRequest> {
@@ -671,9 +925,9 @@ export class SystemTransformer extends Message<SystemTransformer> {
   dataType = "";
 
   /**
-   * @generated from field: string source = 4;
+   * @generated from field: mgmt.v1alpha1.TransformerSource source = 4;
    */
-  source = "";
+  source = TransformerSource.UNSPECIFIED;
 
   /**
    * @generated from field: mgmt.v1alpha1.TransformerConfig config = 5;
@@ -691,7 +945,7 @@ export class SystemTransformer extends Message<SystemTransformer> {
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "source", kind: "enum", T: proto3.getEnumType(TransformerSource) },
     { no: 5, name: "config", kind: "message", T: TransformerConfig },
   ]);
 

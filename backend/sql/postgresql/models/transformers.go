@@ -183,7 +183,7 @@ type TransformJavascriptConfig struct {
 // from API -> DB
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
 
-	t.Source = tr.Source
+	t.Source = tr.Source.String()
 
 	config := &TransformerConfigs{}
 
@@ -339,7 +339,7 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 
 func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMappingTransformer {
 	return &mgmtv1alpha1.JobMappingTransformer{
-		Source: t.Source,
+		Source: t.ToTransformerDto().GetSource(),
 		Config: t.Config.ToTransformerConfigDto(),
 	}
 }

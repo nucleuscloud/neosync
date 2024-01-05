@@ -2885,11 +2885,225 @@
       "name": "mgmt/v1alpha1/transformer.proto",
       "description": "",
       "package": "mgmt.v1alpha1",
-      "hasEnums": false,
+      "hasEnums": true,
       "hasExtensions": false,
       "hasMessages": true,
       "hasServices": true,
-      "enums": [],
+      "enums": [
+        {
+          "name": "TransformerSource",
+          "longName": "TransformerSource",
+          "fullName": "mgmt.v1alpha1.TransformerSource",
+          "description": "",
+          "values": [
+            {
+              "name": "TRANSFORMER_SOURCE_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_PASSTHROUGH",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_DEFAULT",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT",
+              "number": "3",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_EMAIL",
+              "number": "4",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_EMAIL",
+              "number": "5",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_BOOL",
+              "number": "6",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER",
+              "number": "7",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_CITY",
+              "number": "8",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER",
+              "number": "9",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_FIRST_NAME",
+              "number": "10",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_FLOAT64",
+              "number": "11",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS",
+              "number": "12",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_FULL_NAME",
+              "number": "13",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_GENDER",
+              "number": "14",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER",
+              "number": "15",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_INT64",
+              "number": "16",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_RANDOM_INT64",
+              "number": "17",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_LAST_NAME",
+              "number": "18",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_SHA256HASH",
+              "number": "19",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_SSN",
+              "number": "20",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_STATE",
+              "number": "21",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS",
+              "number": "22",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER",
+              "number": "23",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_STRING",
+              "number": "24",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING",
+              "number": "25",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP",
+              "number": "26",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_USERNAME",
+              "number": "27",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP",
+              "number": "28",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_UUID",
+              "number": "29",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_ZIPCODE",
+              "number": "30",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER",
+              "number": "31",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME",
+              "number": "32",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_FLOAT64",
+              "number": "33",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME",
+              "number": "34",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER",
+              "number": "35",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_INT64",
+              "number": "36",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME",
+              "number": "37",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER",
+              "number": "38",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_TRANSFORM_STRING",
+              "number": "39",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_NULL",
+              "number": "40",
+              "description": ""
+            }
+          ]
+        }
+      ],
       "extensions": [],
       "messages": [
         {
@@ -3761,9 +3975,9 @@
               "name": "source",
               "description": "",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "TransformerSource",
+              "longType": "TransformerSource",
+              "fullType": "mgmt.v1alpha1.TransformerSource",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -6528,9 +6742,9 @@
               "name": "source",
               "description": "",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "TransformerSource",
+              "longType": "TransformerSource",
+              "fullType": "mgmt.v1alpha1.TransformerSource",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

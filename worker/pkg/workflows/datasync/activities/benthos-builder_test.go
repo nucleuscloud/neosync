@@ -59,7 +59,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_uuid",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
@@ -74,7 +74,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_full_name",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -213,7 +213,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_default",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
 									GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
@@ -226,7 +226,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_full_name",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -352,7 +352,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 					{
@@ -360,7 +360,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 				},
@@ -520,7 +520,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_default",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 						},
 					},
 					{
@@ -528,7 +528,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 				},
@@ -688,7 +688,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 					{
@@ -696,7 +696,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 					{
@@ -704,7 +704,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 						Table:  "user_account_associations",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 					{
@@ -712,7 +712,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 						Table:  "user_account_associations",
 						Column: "user_id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 				},
@@ -948,7 +948,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_uuid",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
@@ -963,7 +963,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_full_name",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -1091,7 +1091,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 					{
@@ -1099,7 +1099,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 				},
@@ -1258,7 +1258,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 					{
@@ -1266,7 +1266,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 					{
@@ -1274,7 +1274,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 						Table:  "user_account_associations",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 					{
@@ -1282,7 +1282,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 						Table:  "user_account_associations",
 						Column: "user_id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 				},
@@ -1518,7 +1518,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_default",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
 									GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
@@ -1531,7 +1531,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_full_name",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
 							Config: &mgmtv1alpha1.TransformerConfig{
 								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -1658,7 +1658,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 						Table:  "users",
 						Column: "id",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_default",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 						},
 					},
 					{
@@ -1666,7 +1666,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "passthrough",
+							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 						},
 					},
 				},
@@ -1828,7 +1828,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 					Table:  "users",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1836,7 +1836,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 					Table:  "users",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_NULL,
 					},
 				},
 			},
@@ -1876,7 +1876,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1884,7 +1884,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "transform_javascript",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: ""},
@@ -1930,7 +1930,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "transform_javascript",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value + " hello";return payload;`},
@@ -1943,7 +1943,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "first_name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "transform_javascript",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 						Config: &mgmtv1alpha1.TransformerConfig{
 							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value + " firstname";return payload;`},

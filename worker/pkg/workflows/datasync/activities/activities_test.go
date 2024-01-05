@@ -341,18 +341,18 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 	assert.Empty(t, output.Mutation)
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "passthrough"}},
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH}},
 	})
 	assert.Nil(t, err)
 	assert.Empty(t, output.Mutation)
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "null", Config: &mgmtv1alpha1.TransformerConfig{
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_NULL, Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "null", Config: &mgmtv1alpha1.TransformerConfig{
+		{Schema: "public", Table: "users", Column: "name", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_NULL, Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
@@ -366,7 +366,7 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 		Name:        "stage",
 		Description: "description",
 		DataType:    "string",
-		Source:      "transform_email",
+		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -384,7 +384,7 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 	assert.Equal(t, *output.Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false)`)
 
 	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_NULL, Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
@@ -419,7 +419,7 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 		Name:        "stage",
 		Description: "description",
 		DataType:    "string",
-		Source:      "transform_javascript",
+		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -476,7 +476,7 @@ func Test_buildProcessorConfigJavascriptMultiLineScript(t *testing.T) {
 		Name:        "stage",
 		Description: "description",
 		DataType:    "string",
-		Source:      "transform_javascript",
+		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -532,7 +532,7 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 		Name:        "stage",
 		Description: "description",
 		DataType:    "string",
-		Source:      "transform_javascript",
+		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -546,7 +546,7 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 		Name:        "stage",
 		Description: "description",
 		DataType:    "string",
-		Source:      "transform_javascript",
+		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -586,7 +586,7 @@ benthos.v0_msg_set_structured(output);
 func Test_ShouldProcessColumnTrue(t *testing.T) {
 
 	val := &mgmtv1alpha1.JobMappingTransformer{
-		Source: "generate_email",
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
@@ -601,7 +601,7 @@ func Test_ShouldProcessColumnTrue(t *testing.T) {
 func Test_ShouldProcessColumnFalse(t *testing.T) {
 
 	val := &mgmtv1alpha1.JobMappingTransformer{
-		Source: "passthrough",
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
 				PassthroughConfig: &mgmtv1alpha1.Passthrough{},
@@ -681,7 +681,7 @@ func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
 		Name:        "stage",
 		Description: "description",
 		DataType:    "string",
-		Source:      "transform_javascript",
+		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
@@ -728,7 +728,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 			Name:        "stage",
 			Description: "description",
 			DataType:    "string",
-			Source:      "transform_email",
+			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL.String(),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -741,7 +741,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	}), nil)
 
 	jmt := &mgmtv1alpha1.JobMappingTransformer{
-		Source: "transform_email",
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig{
 				UserDefinedTransformerConfig: &mgmtv1alpha1.UserDefinedTransformerConfig{
@@ -752,7 +752,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	}
 
 	expected := &mgmtv1alpha1.JobMappingTransformer{
-		Source: "transform_email",
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -989,7 +989,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 	val, err := computeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
-				Source: "null",
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_NULL,
 			},
 		})
 	assert.NoError(t, err)
@@ -1412,7 +1412,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			&mgmtv1alpha1.JobMapping{
 				Column: col,
 				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: transformer.Name,
+					Source: transformer.Source,
 					Config: transformer.Config,
 				},
 			})

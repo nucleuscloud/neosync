@@ -338,7 +338,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
-						colSourceMap[col.Column] = col.GetTransformer().Source
+						colSourceMap[col.Column] = col.GetTransformer().Source.String()
 					}
 					filteredCols := b.filterColsBySource(resp.Config.Input.SqlSelect.Columns, colSourceMap)
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
@@ -367,7 +367,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					cols := buildPlainColumns(tm.Mappings)
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
-						colSourceMap[col.Column] = col.GetTransformer().Source
+						colSourceMap[col.Column] = col.GetTransformer().Source.String()
 					}
 					// filters out default columns
 					filteredCols := b.filterColsBySource(cols, colSourceMap)
@@ -445,7 +445,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
-						colSourceMap[col.Column] = col.GetTransformer().Source
+						colSourceMap[col.Column] = col.GetTransformer().Source.String()
 					}
 					filteredCols := b.filterColsBySource(resp.Config.Input.SqlSelect.Columns, colSourceMap)
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
@@ -473,7 +473,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					cols := buildPlainColumns(tm.Mappings)
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
-						colSourceMap[col.Column] = col.GetTransformer().Source
+						colSourceMap[col.Column] = col.GetTransformer().Source.String()
 					}
 					// filters out default columns
 					filteredCols := b.filterColsBySource(cols, colSourceMap)
