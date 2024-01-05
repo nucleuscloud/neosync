@@ -6,7 +6,6 @@ import (
 	"slices"
 	"sort"
 
-	"github.com/go-faker/faker/v4/pkg/slice"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 )
 
@@ -317,7 +316,7 @@ func GetSyncConfigs(dependencies dbschemas.TableDependency, tables []string) []*
 	configs := []*SyncConfig{}
 
 	for _, table := range tables {
-		inCircularDep, cycle, nullableCols := isInCircularDependency(table, circularDeps, dependencies)
+		inCircularDep, cycles, nullableCols := isInCircularDependency(table, circularDeps, dependencies)
 		if inCircularDep {
 			// Handle circular dependencies
 			// First, create the exclude config
@@ -332,7 +331,7 @@ func GetSyncConfigs(dependencies dbschemas.TableDependency, tables []string) []*
 				fmt.Printf("\n\n   depsMap[table]: %s \n\n", string(jsonF))
 				// Only add depends on if not in the circular dependency
 				for _, dep := range depsMap[table] {
-					if !slice.Contains(cycle, dep) {
+					if !isDependencyInCycle(dep, cycles) {
 						excludeConfig.DependsOn = append(excludeConfig.DependsOn, &DependsOn{Table: dep, Columns: []string{foreignKeyMap[table][dep]}})
 					}
 				}
@@ -376,9 +375,23 @@ func GetSyncConfigs(dependencies dbschemas.TableDependency, tables []string) []*
 	return configs
 }
 
+func isDependencyInCycle(dep string, cycles [][]string) bool {
+	for _, cycle := range cycles {
+		for _, table := range cycle {
+			if table == dep {
+				return true
+			}
+		}
+	}
+	return false
+
+}
+
 // isInCircularDependency checks if a table is in a circular dependency and returns nullable columns if true.
-func isInCircularDependency(table string, circularDeps [][]string, dependencies dbschemas.TableDependency) (bool, []string, []string) {
+func isInCircularDependency(table string, circularDeps [][]string, dependencies dbschemas.TableDependency) (bool, [][]string, []string) {
 	var nullableCols []string
+	inCircularDependency := false
+	cycles := [][]string{}
 	for _, cycle := range circularDeps {
 		if isInSlice(table, cycle) {
 			fmt.Printf("----  table: %s  ----- \n", table)
@@ -392,10 +405,12 @@ func isInCircularDependency(table string, circularDeps [][]string, dependencies 
 					nullableCols = append(nullableCols, constraint.Column)
 				}
 			}
-			return true, cycle, nullableCols
+			cycles = append(cycles, cycle)
+			inCircularDependency = true
+			// return true, cycle, nullableCols
 		}
 	}
-	return false, nil, nil
+	return inCircularDependency, cycles, nullableCols
 }
 
 // isInSlice checks if an item is in a slice.
