@@ -54,6 +54,9 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
+  const [pagination, setPagination] = React.useState<number>(0);
+  const [pageSize, setPageSize] = React.useState<number>(10);
+
   const table = useReactTable({
     data,
     columns,
@@ -62,6 +65,7 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
       columnVisibility,
       rowSelection,
       columnFilters,
+      pagination: { pageIndex: pagination, pageSize: pageSize },
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -136,7 +140,11 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination
+        table={table}
+        setPagination={setPagination}
+        setPageSize={setPageSize}
+      />
     </div>
   );
 }
