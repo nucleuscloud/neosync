@@ -3,8 +3,6 @@ package tabledependency
 import (
 	"fmt"
 	"slices"
-	"sort"
-	"strings"
 
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 )
@@ -183,9 +181,7 @@ func uniqueCycles(cycles [][]string) [][]string {
 	var unique [][]string
 
 	for _, cycle := range cycles {
-		sort.Strings(cycle)
-		key := strings.Join(cycle, ",") // create sorted unique key
-
+		key := cycleKey(cycle)
 		if !seen[key] {
 			seen[key] = true
 			unique = append(unique, cycle)
@@ -193,4 +189,27 @@ func uniqueCycles(cycles [][]string) [][]string {
 	}
 
 	return unique
+}
+
+func cycleKey(cycle []string) string {
+	min := cycle[0]
+	for _, node := range cycle {
+		if node < min {
+			min = node
+		}
+	}
+
+	startIndex := -1
+	for i, node := range cycle {
+		if node == min && (startIndex == -1 || cycle[i-1] > cycle[(i+1)%len(cycle)]) {
+			startIndex = i
+		}
+	}
+
+	key := ""
+	for i := 0; i < len(cycle); i++ {
+		key += cycle[(startIndex+i)%len(cycle)] + ","
+	}
+
+	return key
 }

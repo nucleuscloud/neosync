@@ -47,6 +47,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	completed := map[string]struct{}{}
 
 	workselector := workflow.NewSelector(ctx)
+	// jsonF, _ := json.MarshalIndent(bcResp.BenthosConfigs, "", " ")
+	// fmt.Printf("\n\n  %s \n\n", string(jsonF))
 
 	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
 	var activityErr error

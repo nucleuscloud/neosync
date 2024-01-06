@@ -3,6 +3,7 @@ package datasync_activities
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"golang.org/x/sync/errgroup"
 
@@ -185,12 +187,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
-		if err != nil {
-			return nil, err
-		}
-		responses = append(responses, sourceResponses...)
-
 		if _, ok := b.pgpool[dsn]; !ok {
 			pool, err := pgxpool.New(ctx, dsn)
 			if err != nil {
@@ -200,6 +196,31 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			b.pgpool[dsn] = pool
 		}
 		pool := b.pgpool[dsn]
+
+		allConstraints, err := b.getAllPostgresFkConstraintsFromMappings(ctx, pool, job.Mappings)
+		if err != nil {
+			return nil, err
+		}
+		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
+
+		//
+		tables := []string{}
+		for _, group := range groupedMappings {
+			tables = append(tables, dbschemas_utils.BuildTable(group.Schema, group.Table))
+		}
+
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
+
+		//
+
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
+		if err != nil {
+			return nil, err
+		}
+		jsonF, _ := json.MarshalIndent(sourceResponses, "", " ")
+		fmt.Printf("\n\n sourceResponses: %s \n\n", string(jsonF))
+		responses = append(responses, sourceResponses...)
 
 		// validate job mappings align with sql connections
 		dbschemas, err := b.pgquerier.GetDatabaseSchema(ctx, pool)
@@ -217,12 +238,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, errors.New(msg)
 		}
 
-		allConstraints, err := b.getAllPostgresFkConstraintsFromMappings(ctx, pool, job.Mappings)
-		if err != nil {
-			return nil, err
-		}
-		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-		constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
+		// allConstraints, err := b.getAllPostgresFkConstraintsFromMappings(ctx, pool, job.Mappings)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		// constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
 
 		for _, resp := range responses {
 			dependsOn, ok := constraintMap[resp.Name]
@@ -307,6 +328,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		for _, resp := range responses {
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+				jsonF, _ := json.MarshalIndent(resp, "", " ")
+				fmt.Printf("\n\n  resp: %s \n\n", string(jsonF))
 				dsn, err := getPgDsn(connection.PgConfig)
 				if err != nil {
 					return nil, err

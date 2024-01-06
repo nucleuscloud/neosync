@@ -26,6 +26,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
@@ -191,6 +192,117 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	}
 
 	return responses, nil
+}
+
+func (b *benthosBuilder) buildBenthosSqlSourceConfigResponsesByDependency(
+	ctx context.Context,
+	mappings []*TableMapping,
+	dsn string,
+	driver string,
+	sourceTableOpts map[string]*sqlSourceTableOptions,
+	dependencyConfigs []*tabledependency.RunConfig,
+) ([]*BenthosConfigResponse, error) {
+	responses := []*BenthosConfigResponse{}
+
+	// for each mapping find dependency config
+	// if config has table include / exclude create both
+
+	dependencyMap := map[string][]*tabledependency.RunConfig{}
+	for _, cfg := range dependencyConfigs {
+		_, ok := dependencyMap[cfg.Table]
+		if ok {
+			dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
+		} else {
+			dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
+		}
+	}
+
+	for i := range mappings {
+		tableMapping := mappings[i]
+		cols := buildPlainColumns(tableMapping.Mappings)
+		if areAllColsNull(tableMapping.Mappings) {
+			// skipping table as no columns are mapped
+			continue
+		}
+
+		config := dependencyMap[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+
+		if len(config) > 1 {
+
+		} else {
+			var where string
+			tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+			if tableOpt != nil && tableOpt.WhereClause != nil {
+				where = *tableOpt.WhereClause
+			}
+
+			bc := &neosync_benthos.BenthosConfig{
+				StreamConfig: neosync_benthos.StreamConfig{
+					Input: &neosync_benthos.InputConfig{
+						Inputs: neosync_benthos.Inputs{
+							SqlSelect: &neosync_benthos.SqlSelect{
+								Driver: driver,
+								Dsn:    dsn,
+
+								Table:   neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table),
+								Where:   where,
+								Columns: cols,
+							},
+						},
+					},
+					Pipeline: &neosync_benthos.PipelineConfig{
+						Threads:    -1,
+						Processors: []neosync_benthos.ProcessorConfig{},
+					},
+					Output: &neosync_benthos.OutputConfig{
+						Outputs: neosync_benthos.Outputs{
+							Broker: &neosync_benthos.OutputBrokerConfig{
+								Pattern: "fan_out",
+								Outputs: []neosync_benthos.Outputs{},
+							},
+						},
+					},
+				},
+			}
+
+			processorConfig, err := b.buildProcessorConfig(ctx, tableMapping.Mappings)
+			if err != nil {
+				return nil, err
+			}
+
+			if (processorConfig.Mutation != nil && *processorConfig.Mutation != "") ||
+				(processorConfig.Javascript != nil && processorConfig.Javascript.Code != "") {
+				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *processorConfig)
+			}
+
+			responses = append(responses, &BenthosConfigResponse{
+				Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
+				Config:    bc,
+				DependsOn: []string{},
+
+				tableSchema: tableMapping.Schema,
+				tableName:   tableMapping.Table,
+			})
+
+		}
+
+	}
+
+	return responses, nil
+}
+
+func getIncludeExcludeColumns(configs []*tabledependency.RunConfig) ([]string, []string) {
+	include := []string{}
+	exclude := []string{}
+	for _, c := range configs {
+		if c.Columns != nil && c.Columns.Exclude != nil {
+			exclude = append(exclude, c.Columns.Exclude...)
+		}
+		if c.Columns != nil && c.Columns.Include != nil {
+			include = append(exclude, c.Columns.Include...)
+		}
+	}
+	return include, exclude
 }
 
 func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosync_benthos.AwsCredentials {
