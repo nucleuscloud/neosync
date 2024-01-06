@@ -10,7 +10,7 @@ import { Button } from '../ui/button';
 export default function GithubBanner() {
   const router = useRouter();
   return (
-    <div className=" top-0 flex flex-row gap-3 justify-center w-full h-[35px]-400 items-center bg-[#D9E6ED]">
+    <div className=" top-0 flex flex-row gap-3 justify-center w-full h-[35px]-400 items-center bg-[#e4e9ec]">
       <div>
         If you like Neosync, give it a{' '}
         <StarFilledIcon className="text-yellow-500 inline h-[20px] w-[20px]" />{' '}
