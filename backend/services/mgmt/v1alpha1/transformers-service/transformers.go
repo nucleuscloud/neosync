@@ -57,6 +57,7 @@ const (
 	Null                      Transformation = "null"
 	Invalid                   Transformation = "invalid"
 	TransformJavascript       Transformation = "transform_javascript"
+	GenerateCategorical       Transformation = "generate_categorical"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -528,6 +529,19 @@ func (s *Service) GetSystemTransformers(
 					Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 						TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `let input = value + "test"; 
 return input;`},
+					},
+				},
+			},
+			{
+				Name:        "Generate Categorical",
+				Description: "Randomly selects a value from a predefined list of values",
+				DataType:    "string",
+				Source:      string(GenerateCategorical),
+				Config: &mgmtv1alpha1.TransformerConfig{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
+						GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
+							Categories: []string{""},
+						},
 					},
 				},
 			},
