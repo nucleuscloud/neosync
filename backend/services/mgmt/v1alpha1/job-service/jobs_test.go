@@ -363,11 +363,11 @@ func Test_CreateJob(t *testing.T) {
 		},
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH.String(),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 			{Schema: "schema-2", Table: "table-2", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH.String(),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
@@ -416,11 +416,11 @@ func Test_CreateJob(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 				{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},
@@ -651,7 +651,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 		ID: job.ID,
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH.String(),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
@@ -682,7 +682,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},

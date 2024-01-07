@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
-import { TransformerConfig } from "./transformer_pb.js";
+import { TransformerConfig, TransformerSource } from "./transformer_pb.js";
 
 /**
  * @generated from enum mgmt.v1alpha1.JobStatus
@@ -1205,9 +1205,9 @@ export class CreateJobResponse extends Message<CreateJobResponse> {
  */
 export class JobMappingTransformer extends Message<JobMappingTransformer> {
   /**
-   * @generated from field: string source = 1;
+   * @generated from field: mgmt.v1alpha1.TransformerSource source = 1;
    */
-  source = "";
+  source = TransformerSource.UNSPECIFIED;
 
   /**
    * @generated from field: mgmt.v1alpha1.TransformerConfig config = 3;
@@ -1222,7 +1222,7 @@ export class JobMappingTransformer extends Message<JobMappingTransformer> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.JobMappingTransformer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "source", kind: "enum", T: proto3.getEnumType(TransformerSource) },
     { no: 3, name: "config", kind: "message", T: TransformerConfig },
   ]);
 
