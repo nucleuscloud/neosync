@@ -80,15 +80,18 @@ export default function NewTransformer(): ReactElement {
   const router = useRouter();
 
   useEffect(() => {
-  if (transformerToClone) {
-    form.setValue('name', 'name1');
-    form.setValue('source', transformerToClone.source);
-    form.setValue('config', convertTransformerConfigToForm(transformerToClone.config));
-    form.setValue('description', transformerToClone.description);
-    setBase(transformerToClone);
-    setOpenBaseSelect(false);
-  }
-}, []);
+    if (transformerToClone) {
+      form.setValue('name', 'name1');
+      form.setValue('source', transformerToClone.source);
+      form.setValue(
+        'config',
+        convertTransformerConfigToForm(transformerToClone.config)
+      );
+      form.setValue('description', transformerToClone.description);
+      setBase(transformerToClone);
+      setOpenBaseSelect(false);
+    }
+  }, []);
 
   async function onSubmit(
     values: CreateUserDefinedTransformerSchema
@@ -238,7 +241,10 @@ export default function NewTransformer(): ReactElement {
             {handleUserDefinedTransformerForm(form.getValues('source'))}
           </div>
           <div className="flex flex-row justify-end">
-            <Button type="submit" disabled={!isAutoFill ?? !form.formState.isValid}>
+            <Button
+              type="submit"
+              disabled={!isAutoFill ?? !form.formState.isValid}
+            >
               Submit
             </Button>
           </div>
