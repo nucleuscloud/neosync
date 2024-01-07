@@ -13,7 +13,7 @@ var testPhoneNumberHyphens = "183-849-2831"
 var testPhoneNumberLong = "183849232831"
 var testPhoneNumberNoHyphens = "1838492831"
 
-func Test_GeneratePhoneNumberPreserveLengthHyphensError(t *testing.T) {
+func Test_TransformPhoneNumberPreserveLengthHyphensError(t *testing.T) {
 
 	_, err := TransformPhoneNumber(testPhoneNumberLong, true, true)
 
@@ -21,27 +21,24 @@ func Test_GeneratePhoneNumberPreserveLengthHyphensError(t *testing.T) {
 
 }
 
-func Test_GeneratePhoneNumberPreserveLengthTrueHyphensTrue(t *testing.T) {
+func Test_TransformPhoneNumberPreserveLengthTrueHyphensTrue(t *testing.T) {
 
 	res, err := TransformPhoneNumber(testPhoneNumberNoHyphens, true, true)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(testPhoneNumberHyphens), len(*res), "The actual value should be 10 digits long")
 	assert.True(t, strings.Contains(*res, "-"), "The expecter value should have hyphens")
-
 }
 
-func Test_GeneratePhoneNumberPreserveLengthTrueHyphensFalse(t *testing.T) {
+func Test_TransformPhoneNumberPreserveLengthTrueHyphensFalse(t *testing.T) {
 
 	res, err := TransformPhoneNumber(testPhoneNumberHyphens, true, false)
-
 	assert.NoError(t, err)
 	assert.False(t, strings.Contains(*res, "-"), "The output int phone number should not contain hyphens and may not be the same length as the input")
 	assert.Equal(t, len(testPhoneNumberNoHyphens), len(*res), "The actual value should be 10 digits long")
-
 }
 
-func Test_GeneratePhoneNumberPreserveLengthFalseHyphensTrue(t *testing.T) {
+func Test_TranformPhoneNumberPreserveLengthFalseHyphensTrue(t *testing.T) {
 
 	res, err := TransformPhoneNumber(testPhoneNumberHyphens, false, true)
 
@@ -51,14 +48,12 @@ func Test_GeneratePhoneNumberPreserveLengthFalseHyphensTrue(t *testing.T) {
 
 }
 
-func Test_GeneratePhoneNumberPreserveLengthFalseHyphensFalse(t *testing.T) {
+func Test_TransformPhoneNumberPreserveLengthFalseHyphensFalse(t *testing.T) {
 
 	res, err := TransformPhoneNumber(testPhoneNumberHyphens, false, false)
-
 	assert.NoError(t, err)
 	assert.False(t, strings.Contains(*res, "-"), "The output int phone number should not contain hyphens and may not be the same length as the input")
 	assert.Equal(t, len(testPhoneNumberNoHyphens), len(*res), "The actual value should be 10 digits long")
-
 }
 
 func Test_PhoneNumberTransformerWithValue(t *testing.T) {

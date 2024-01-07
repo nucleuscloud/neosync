@@ -29,10 +29,8 @@ func Test_GeneratePhoneNumberNoHyphens(t *testing.T) {
 func Test_GenerateRandomPhoneNumberHyphens(t *testing.T) {
 
 	res, err := GenerateRandomPhoneNumberHyphens()
-
 	assert.NoError(t, err)
 	assert.Equal(t, len(testStringPhoneHyphens), len(res), "The length of the output phone number should be the same as the input phone number")
-
 }
 
 func Test_GenerateRandomPhoneNumberNoHyphens(t *testing.T) {

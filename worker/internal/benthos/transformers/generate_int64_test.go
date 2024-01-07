@@ -19,6 +19,7 @@ func Test_GenerateRandomIntPositive(t *testing.T) {
 
 	assert.GreaterOrEqual(t, res, min, "The value should be greater than or equal to the min")
 	assert.LessOrEqual(t, res, max, "The value should be less than or equal the max")
+
 }
 
 func Test_GenerateRandomIntNegative(t *testing.T) {
