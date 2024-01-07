@@ -39,8 +39,8 @@ import {
   TransformerConfig,
 } from '@neosync/sdk';
 import { CheckIcon } from '@radix-ui/react-icons';
-import { useRouter } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ReactElement, useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { handleUserDefinedTransformerForm } from './UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
 import {
@@ -54,6 +54,15 @@ export default function NewTransformer(): ReactElement {
   );
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
   const { account } = useAccount();
+  const searchParams = useSearchParams();
+  const transformerNameToClone = searchParams.get('transformerToClone');
+
+  const { data } = useGetSystemTransformers();
+  const transformers = data?.transformers ?? [];
+  const transformerToClone = data?.transformers.find(
+    (item: SystemTransformer) => item.source == transformerNameToClone
+  );
+  const isAutoFill = transformerToClone ? true : false;
 
   const form = useForm<CreateUserDefinedTransformerSchema>({
     resolver: yupResolver(CREATE_USER_DEFINED_TRANSFORMER_SCHEMA),
@@ -69,6 +78,17 @@ export default function NewTransformer(): ReactElement {
   });
 
   const router = useRouter();
+
+  useEffect(() => {
+  if (transformerToClone) {
+    form.setValue('name', transformerToClone.name);
+    form.setValue('source', transformerToClone.source);
+    form.setValue('config', convertTransformerConfigToForm(transformerToClone.config));
+    form.setValue('description', transformerToClone.description);
+    setBase(transformerToClone);
+    setOpenBaseSelect(false);
+  }
+}, []);
 
   async function onSubmit(
     values: CreateUserDefinedTransformerSchema
@@ -98,9 +118,6 @@ export default function NewTransformer(): ReactElement {
       });
     }
   }
-
-  const { data } = useGetSystemTransformers();
-  const transformers = data?.transformers ?? [];
 
   return (
     <OverviewContainer
@@ -221,7 +238,7 @@ export default function NewTransformer(): ReactElement {
             {handleUserDefinedTransformerForm(form.getValues('source'))}
           </div>
           <div className="flex flex-row justify-end">
-            <Button type="submit" disabled={!form.formState.isValid}>
+            <Button type="submit" disabled={!isAutoFill ?? !form.formState.isValid}>
               Submit
             </Button>
           </div>

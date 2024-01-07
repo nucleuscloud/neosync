@@ -58,7 +58,7 @@ export default function ViewSystemTransformers({
       Header={
         <PageHeader
           header={currentTransformer?.name ?? 'System Transformer'}
-          extraHeading={<NewTransformerButton />}
+          extraHeading={<NewTransformerButton transformerToClone={currentTransformer?.name}/>}
         />
       }
       containerClassName="px-12 md:px-24 lg:px-32"
@@ -135,10 +135,13 @@ export default function ViewSystemTransformers({
   );
 }
 
-function NewTransformerButton(): ReactElement {
+function NewTransformerButton(props): ReactElement {
   const { account } = useAccount();
+  let transformerToClone = props?.transformerToClone ?? '';
+  transformerToClone = transformerToClone.toLowerCase().split(' ').join('_');
+
   return (
-    <NextLink href={`/${account?.name}/new/transformer`}>
+    <NextLink href={`/${account?.name}/new/transformer?transformerToClone=${transformerToClone}`}>
       <Button>
         <ButtonText text="Clone Transformer" />
       </Button>
