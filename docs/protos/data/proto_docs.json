@@ -3155,6 +3155,30 @@
           ]
         },
         {
+          "name": "GenerateCategorical",
+          "longName": "GenerateCategorical",
+          "fullName": "mgmt.v1alpha1.GenerateCategorical",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "categories",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GenerateCity",
           "longName": "GenerateCity",
           "fullName": "mgmt.v1alpha1.GenerateCity",
@@ -4652,6 +4676,18 @@
               "type": "TransformJavascript",
               "longType": "TransformJavascript",
               "fullType": "mgmt.v1alpha1.TransformJavascript",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "generate_categorical_config",
+              "description": "",
+              "label": "",
+              "type": "GenerateCategorical",
+              "longType": "GenerateCategorical",
+              "fullType": "mgmt.v1alpha1.GenerateCategorical",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
