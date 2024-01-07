@@ -40,7 +40,7 @@ import {
 } from '@neosync/sdk';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ReactElement, useState, useEffect } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { handleUserDefinedTransformerForm } from './UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
 import {
@@ -81,7 +81,7 @@ export default function NewTransformer(): ReactElement {
 
   useEffect(() => {
   if (transformerToClone) {
-    form.setValue('name', transformerToClone.name);
+    form.setValue('name', 'name1');
     form.setValue('source', transformerToClone.source);
     form.setValue('config', convertTransformerConfigToForm(transformerToClone.config));
     form.setValue('description', transformerToClone.description);
