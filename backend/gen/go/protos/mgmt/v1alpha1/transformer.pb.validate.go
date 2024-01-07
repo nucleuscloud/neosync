@@ -3704,6 +3704,47 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
+	case *TransformerConfig_GenerateCategoricalConfig:
+		if v == nil {
+			err := TransformerConfigValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetGenerateCategoricalConfig()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "GenerateCategoricalConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TransformerConfigValidationError{
+						field:  "GenerateCategoricalConfig",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetGenerateCategoricalConfig()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TransformerConfigValidationError{
+					field:  "GenerateCategoricalConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -7995,3 +8036,107 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ValidateUserJavascriptCodeResponseValidationError{}
+
+// Validate checks the field values on GenerateCategorical with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GenerateCategorical) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GenerateCategorical with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GenerateCategoricalMultiError, or nil if none found.
+func (m *GenerateCategorical) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GenerateCategorical) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Categories
+
+	if len(errors) > 0 {
+		return GenerateCategoricalMultiError(errors)
+	}
+
+	return nil
+}
+
+// GenerateCategoricalMultiError is an error wrapping multiple validation
+// errors returned by GenerateCategorical.ValidateAll() if the designated
+// constraints aren't met.
+type GenerateCategoricalMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GenerateCategoricalMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GenerateCategoricalMultiError) AllErrors() []error { return m }
+
+// GenerateCategoricalValidationError is the validation error returned by
+// GenerateCategorical.Validate if the designated constraints aren't met.
+type GenerateCategoricalValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GenerateCategoricalValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GenerateCategoricalValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GenerateCategoricalValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GenerateCategoricalValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GenerateCategoricalValidationError) ErrorName() string {
+	return "GenerateCategoricalValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GenerateCategoricalValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGenerateCategorical.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GenerateCategoricalValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GenerateCategoricalValidationError{}
