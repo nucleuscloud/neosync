@@ -19,6 +19,7 @@ import {
 } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import GenerateCardNumberForm from './Sheetforms/GenerateCardNumberForm';
+import GenerateCategoricalForm from './Sheetforms/GenerateCategoricalForm';
 import GenerateE164PhoneNumberForm from './Sheetforms/GenerateE164PhoneNumberForm';
 import GenerateFloatForm from './Sheetforms/GenerateFloat64Form';
 import GenerateGenderForm from './Sheetforms/GenerateGenderForm';
@@ -257,6 +258,13 @@ function handleTransformerForm(
           index={index}
           setIsSheetOpen={setIsSheetOpen}
           transformer={transformer}
+        />
+      );
+    case 'generate_categorical':
+      return (
+        <GenerateCategoricalForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
         />
       );
 

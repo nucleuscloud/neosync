@@ -2508,9 +2508,9 @@ export class ValidateUserJavascriptCodeResponse extends Message<ValidateUserJava
  */
 export class GenerateCategorical extends Message<GenerateCategorical> {
   /**
-   * @generated from field: repeated string categories = 1;
+   * @generated from field: string categories = 1;
    */
-  categories: string[] = [];
+  categories = "";
 
   constructor(data?: PartialMessage<GenerateCategorical>) {
     super();
@@ -2520,7 +2520,7 @@ export class GenerateCategorical extends Message<GenerateCategorical> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateCategorical";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "categories", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 1, name: "categories", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateCategorical {

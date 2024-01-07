@@ -182,7 +182,7 @@ type TransformJavascriptConfig struct {
 }
 
 type GenerateCategoricalConfig struct {
-	Categories []string `json:"categories"`
+	Categories string `json:"categories"`
 }
 
 // from API -> DB

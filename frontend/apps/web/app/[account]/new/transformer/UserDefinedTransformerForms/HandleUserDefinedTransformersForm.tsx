@@ -1,5 +1,6 @@
 import { ReactElement } from 'react';
 import UserDefinedGenerateCardNumberForm from './UserDefinedGenerateCardNumber';
+import UserDefinedGenerateCategoricalForm from './UserDefinedGenerateCategoricalForm';
 import UserDefinedGenerateE164NumberForm from './UserDefinedGenerateE164PhoneNumberForm';
 import UserDefinedGenerateFloat64Form from './UserDefinedGenerateFloat64Form';
 import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
@@ -27,6 +28,8 @@ export function handleUserDefinedTransformerForm(
   switch (value) {
     case 'generate_card_number':
       return <UserDefinedGenerateCardNumberForm isDisabled={disabled} />;
+    case 'generate_categorical':
+      return <UserDefinedGenerateCategoricalForm isDisabled={disabled} />;
     case 'generate_e164_phone_number':
       return <UserDefinedGenerateE164NumberForm isDisabled={disabled} />;
     case 'generate_float64':

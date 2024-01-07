@@ -8059,6 +8059,8 @@ func (m *GenerateCategorical) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Categories
+
 	if len(errors) > 0 {
 		return GenerateCategoricalMultiError(errors)
 	}

@@ -272,7 +272,7 @@ message ValidateUserJavascriptCodeResponse {
 }
 
 message GenerateCategorical {
-  repeated string categories = 1;
+  string categories = 1;
 }
 
 service TransformersService {

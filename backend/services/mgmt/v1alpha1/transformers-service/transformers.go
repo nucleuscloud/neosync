@@ -540,7 +540,7 @@ return input;`},
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
 						GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
-							Categories: []string{"value1", "value2"},
+							Categories: "value1,value2",
 						},
 					},
 				},
