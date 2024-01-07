@@ -139,7 +139,9 @@ export default function ViewSystemTransformers({
   );
 }
 
-function NewTransformerButton(props): ReactElement {
+function NewTransformerButton(props: {
+  transformerToClone: string | undefined;
+}): ReactElement {
   const { account } = useAccount();
   let transformerToClone = props?.transformerToClone ?? '';
   transformerToClone = transformerToClone.toLowerCase().split(' ').join('_');
