@@ -39,7 +39,7 @@ import {
   TransformerConfig,
 } from '@neosync/sdk';
 import { CheckIcon } from '@radix-ui/react-icons';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { handleUserDefinedTransformerForm } from './UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
@@ -49,18 +49,24 @@ import {
 } from './schema';
 
 export default function NewTransformer(): ReactElement {
+  const { account } = useAccount();
+
+  const { data } = useGetSystemTransformers();
+  const transformers = data?.transformers ?? [];
+
+  const transformerQueryParam = useSearchParams().get('transformer');
   const [base, setBase] = useState<SystemTransformer>(
-    new SystemTransformer({})
+    transformers.find((item) => item.source == transformerQueryParam) ??
+      new SystemTransformer({})
   );
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
-  const { account } = useAccount();
 
   const form = useForm<CreateUserDefinedTransformerSchema>({
     resolver: yupResolver(CREATE_USER_DEFINED_TRANSFORMER_SCHEMA),
     mode: 'onChange',
     defaultValues: {
       name: '',
-      source: '',
+      source: transformerQueryParam ?? '',
       type: '',
       config: convertTransformerConfigToForm(new TransformerConfig()),
       description: '',
@@ -98,9 +104,6 @@ export default function NewTransformer(): ReactElement {
       });
     }
   }
-
-  const { data } = useGetSystemTransformers();
-  const transformers = data?.transformers ?? [];
 
   return (
     <OverviewContainer
