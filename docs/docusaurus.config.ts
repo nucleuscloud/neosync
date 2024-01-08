@@ -127,6 +127,14 @@ const config: Config = {
       theme: themes.github,
       darkTheme: themes.dracula,
     },
+    algolia: {
+      appId: 'LUROM0SS2F',
+      apiKey: 'a58584698f0541be72a223f5b33d59a9',
+      indexName: 'neosync',
+      contextualSearch: true,
+      searchParameters: {},
+      searchPagePath: 'search',
+    },
   },
 };
 
