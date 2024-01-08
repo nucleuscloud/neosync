@@ -105,9 +105,6 @@ export default function NewTransformer(): ReactElement {
     }
   }
 
-  console.log('params', transformerQueryParam);
-  console.log('values:', form.getValues());
-
   return (
     <OverviewContainer
       Header={<PageHeader header="Create a new Transformer" />}
