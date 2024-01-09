@@ -72,9 +72,8 @@ function Hero(): ReactElement {
         Open Source Synthetic Data Orchestration
       </div>
       <h3 className="text-[#606060]  text-md lg:text-lg font-light relative text-center z-20 ">
-        A developer-first way to create safe, anonymized or synthetic data and
-        sync it across all environments for high-quality local, stage and CI
-        testing
+        A developer-first way to create anonymized or synthetic data and sync it
+        across all environments for high-quality local, stage and CI testing
       </h3>
       <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30">
         <Button className="px-4">
@@ -415,7 +414,7 @@ function UseCases(): ReactElement {
             </div>
             <div className="flex flex-col space-y-8 lg:w-[60%]">
               <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi z-10">
-                Use GitOps to hydrate your CI databases with safe data
+                Use GitOps to hydrate your CI databases with synthetic data
               </div>
               <div className="flex flex-col justify-start">
                 {citesting.map((item) => (
