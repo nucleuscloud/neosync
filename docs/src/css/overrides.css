@@ -197,6 +197,14 @@ this is the class for the sidebar categories that section headers
   }
 }
 
+.DocSearch.DocSearch-Button {
+  @apply hover:bg-[#ebedf0] hover:font-light hover:text-[#A4A6A8] font-light;
+}
+
+.DocSearch-Search-Icon {
+  @apply w-[16px];
+}
+
 /* fills the github link in the top nav with the svg */
 .header-github-link::before {
   content: '';
