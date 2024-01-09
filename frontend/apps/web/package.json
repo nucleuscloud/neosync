@@ -42,7 +42,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^0.2.0",
     "cron-validate": "^1.4.5",
-    "date-fns": "^3.0.6",
+    "date-fns": "^3.1.0",
     "memoize-one": "^6.0.0",
     "monaco-editor": "^0.45.0",
     "nanoid": "^5.0.4",
