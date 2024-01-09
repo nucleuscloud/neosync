@@ -1,7 +1,7 @@
 ---
-title: Changelog 2
+title: Public facing APIs
 hide_table_of_contents: false
-slug: /changelog-2
+slug: /public-facing-apis
 authors:
   - name: Evis Drenova
     title: Co-Founder/CEO, Neosync

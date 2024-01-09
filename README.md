@@ -2,15 +2,18 @@
   <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/readme_header_new_logo.png">
 </p>
 
-<p align="center" style="font-size: 24px">
-Open source Test Data Management
+<p align="center" style="font-size: 24px;font-weight: 500;">
+Open Source Synthetic Data Orchestration
 <p>
 
-<p align="center" style="font-size: 14px">
-Neosync is a developer-first way to create anonymized, secure test data and sync it across all environments for high-quality local, stage and CI testing
-<p>
+<div align='center'>
+ | <a href="https://neosync.dev">Webiste</a> |
+ <a href="https://docs.neosync.dev">Docs</a> |
+ <a href="https://neosync.dev/blog">Blog</a> |
+ <a href="https://docs.neosync.dev/changelog">Changelog</a> |
+ </div>
 
-<p align="center">
+<p align="center" style='padding-top: 20px'>
   <a href='http://makeapullrequest.com'>
     <img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/>
   </a>
@@ -37,7 +40,7 @@ Neosync is a developer-first way to create anonymized, secure test data and sync
 
 ![neosync-data-flow](https://assets.nucleuscloud.com/neosync/docs/readmeheader.svg)
 
-[Neosync](https://neosync.dev) is an open source platform that connects to a snapshot of your production database and allows teams to either generate synthetic data from their production schema or anonymize production-data and sync it across all of their environments for high-quality local, stage and CI testing.
+[Neosync](https://neosync.dev) is a developer-first way to create anonymized or synthetic data and sync it across all environments for high-quality local, stage and CI testing
 
 Our mission is to help developers build better, more resilient applications while protecting sensitive data. To do that, we built Neosync to give teams three things:
 
