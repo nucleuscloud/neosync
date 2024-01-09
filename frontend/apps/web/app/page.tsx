@@ -1,11 +1,23 @@
+import AccountPageRedirect from '@/components/AccountPageRedirect';
+import OverviewContainer from '@/components/containers/OverviewContainer';
+import PageHeader from '@/components/headers/PageHeader';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { ReactElement } from 'react';
 import BaseLayout from './BaseLayout';
-import AccountPage from './[account]/page';
 
 export default function Home(): ReactElement {
   return (
     <BaseLayout>
-      <AccountPage />
+      <AccountPageRedirect>
+        <OverviewContainer
+          Header={<PageHeader header={`Home`} />}
+          containerClassName="home-page"
+        >
+          <div className="flex flex-col gap-4">
+            <SkeletonTable />
+          </div>
+        </OverviewContainer>
+      </AccountPageRedirect>
     </BaseLayout>
   );
 }
