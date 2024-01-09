@@ -61,14 +61,14 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-           <DropdownMenuItem
-               className="cursor-pointer"
-               onClick={() =>
-                router.push(`/${account?.name}/transformers/${transformer.id}`)
-              }
-            >
-              View
-            </DropdownMenuItem>
+      <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() =>
+            router.push(`/${account?.name}/transformers/${transformer.id}`)
+          }
+        >
+          View
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DeleteConfirmationDialog
           trigger={
