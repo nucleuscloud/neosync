@@ -2,7 +2,7 @@
 
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Row } from '@tanstack/react-table';
-
+import Link from 'next/link';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
@@ -62,12 +62,10 @@ export function DataTableRowActions<TData>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem
-          className="cursor-pointer"
-          onClick={() =>
-            router.push(`/${account?.name}/transformers/${transformer.id}`)
-          }
-        >
-          View
+          className="cursor-pointer">
+          <Link href={`/${account?.name}/transformers/${transformer.id}`}>
+                <span>View</span>
+                </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DeleteConfirmationDialog
