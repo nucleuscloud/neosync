@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { Checkbox } from '@/components/ui/checkbox';
-
+import NextLink from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
@@ -52,7 +52,14 @@ export function getUserDefinedTransformerColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {row.original.name}
+               <div>
+                  <NextLink
+                    className="hover:underline"
+                    href={`/${account?.name}/transformers/${transformer.id}`}
+                >
+                  {row.original.name}
+                </NextLink>
+              </div>
             </span>
           </div>
         );
@@ -67,7 +74,12 @@ export function getUserDefinedTransformerColumns(
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <Badge variant="outline">{row.original.dataType}</Badge>
+            <NextLink
+              className="hover:underline"
+              href={`/${account?.name}/transformers/${row.original.id}`}
+            >
+              <Badge variant="outline">{row.original.dataType}</Badge>
+            </NextLink>
           </div>
         );
       },
@@ -80,9 +92,14 @@ export function getUserDefinedTransformerColumns(
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
-              {row.original.source}
-            </span>
+            <NextLink
+              className="hover:underline"
+              href={`/${account?.name}/transformers/${row.original.id}`}
+            >
+              <span className="max-w-[500px] truncate font-medium">
+                {row.original.source}
+              </span>
+            </NextLink>
           </div>
         );
       },
