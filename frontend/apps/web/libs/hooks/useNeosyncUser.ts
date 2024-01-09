@@ -14,9 +14,11 @@ import { useGetSystemAppConfig } from './useGetSystemAppConfig';
  * This hook should be called at least once in the app to ensure that the user record is set.
  */
 export function useNeosyncUser(): HookReply<SetUserResponse> {
-  const { status } = useSession();
   const { data: systemAppConfigData, isLoading: systemAppConfigLoading } =
     useGetSystemAppConfig();
+  const { status } = useSession({
+    required: systemAppConfigData?.isAuthEnabled ?? false,
+  });
   const isReady =
     !systemAppConfigLoading &&
     isReadyStatus(systemAppConfigData?.isAuthEnabled ?? false, status);
