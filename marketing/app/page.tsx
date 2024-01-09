@@ -151,7 +151,7 @@ function TableTypes(): ReactElement {
           {tableTypes.map((item) => (
             <div
               key={item.name}
-              className="justify-center border border-gray-400 bg-white shadow-lg rounded-xl p-6 w-[800px] h-[400px]"
+              className="justify-center border border-gray-400 bg-white shadow-lg rounded-xl p-6 lg:w-[800px] lg:h-[400px]"
             >
               <div className="justify-center flex">{item.image}</div>
               <div className="text-xl text-gray-800 font-satoshi font-semibold pt-10">
@@ -414,7 +414,7 @@ function UseCases(): ReactElement {
               />
             </div>
             <div className="flex flex-col space-y-8 lg:w-[60%]">
-              <div className="text-gray-900 font-semibold text-4xl font-satoshi z-10">
+              <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi z-10">
                 Use GitOps to hydrate your CI databases with safe data
               </div>
               <div className="flex flex-col justify-start">
