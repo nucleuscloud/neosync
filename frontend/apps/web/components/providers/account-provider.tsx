@@ -58,7 +58,7 @@ export default function AccountProvider(props: Props): ReactElement {
     const foundAccount = accountsResponse?.accounts.find(
       (a) => a.name === accountName
     );
-    if (userAccount && foundAccount && userAccount?.id === foundAccount?.id) {
+    if (userAccount && foundAccount && userAccount.id === foundAccount.id) {
       return;
     }
     if (foundAccount) {
