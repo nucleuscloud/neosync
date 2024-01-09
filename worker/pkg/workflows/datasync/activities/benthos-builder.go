@@ -151,21 +151,23 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			default:
 				return nil, errors.New("unsupported fk connection")
 			}
+			fmt.Println(td)
 
-			constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
-			for _, resp := range responses {
-				dependsOn, ok := constraintMap[resp.Name]
-				if ok {
-					// remove circular dependencies to allow job to run
-					filteredDependsOn := []string{}
-					for _, t := range dependsOn {
-						if t != resp.Name {
-							filteredDependsOn = append(filteredDependsOn, t)
-						}
-					}
-					resp.DependsOn = filteredDependsOn
-				}
-			}
+			// TODO CLEAN THIS UP
+			// constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
+			// for _, resp := range responses {
+			// 	dependsOn, ok := constraintMap[resp.Name]
+			// 	if ok {
+			// 		// remove circular dependencies to allow job to run
+			// 		filteredDependsOn := []string{}
+			// 		for _, t := range dependsOn {
+			// 			if t != resp.Name {
+			// 				filteredDependsOn = append(filteredDependsOn, t)
+			// 			}
+			// 		}
+			// 		resp.DependsOn = filteredDependsOn
+			// 	}
+			// }
 		}
 
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
@@ -202,19 +204,22 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-		constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
+		// constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
 
 		//
 		tables := []string{}
 		for _, group := range groupedMappings {
-			tables = append(tables, dbschemas_utils.BuildTable(group.Schema, group.Table))
+			if !areAllColsNull(group.Mappings) {
+				tables = append(tables, dbschemas_utils.BuildTable(group.Schema, group.Table))
+			}
 		}
 
+		// TODO how to handle excluded tables where all cols are null
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
 
 		//
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts, dependencyConfigs)
 		if err != nil {
 			return nil, err
 		}
@@ -245,12 +250,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
 		// constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
 
-		for _, resp := range responses {
-			dependsOn, ok := constraintMap[resp.Name]
-			if ok {
-				resp.DependsOn = dependsOn
-			}
-		}
+		// for _, resp := range responses {
+		// 	dependsOn, ok := constraintMap[resp.Name]
+		// 	if ok {
+		// 		resp.DependsOn = dependsOn
+		// 	}
+		// }
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Mysql.ConnectionId)
 		if err != nil {
@@ -271,12 +276,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts)
-		if err != nil {
-			return nil, err
-		}
-		responses = append(responses, sourceResponses...)
-
 		if _, ok := b.mysqlpool[dsn]; !ok {
 			pool, err := sql.Open("mysql", dsn)
 			if err != nil {
@@ -286,6 +285,28 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			b.mysqlpool[dsn] = pool
 		}
 		pool := b.mysqlpool[dsn]
+
+		allConstraints, err := b.getAllMysqlFkConstraintsFromMappings(ctx, pool, job.Mappings)
+		if err != nil {
+			return nil, err
+		}
+		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
+
+		tables := []string{}
+		for _, group := range groupedMappings {
+			if !areAllColsNull(group.Mappings) {
+				tables = append(tables, dbschemas_utils.BuildTable(group.Schema, group.Table))
+			}
+		}
+
+		// TODO how to handle excluded tables where all cols are null
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
+
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts, dependencyConfigs)
+		if err != nil {
+			return nil, err
+		}
+		responses = append(responses, sourceResponses...)
 
 		// validate job mappings align with sql connections
 		dbschemas, err := b.mysqlquerier.GetDatabaseSchema(ctx, pool)
@@ -303,19 +324,19 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, errors.New(msg)
 		}
 
-		allConstraints, err := b.getAllMysqlFkConstraintsFromMappings(ctx, pool, job.Mappings)
-		if err != nil {
-			return nil, err
-		}
-		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
-		constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
+		// allConstraints, err := b.getAllMysqlFkConstraintsFromMappings(ctx, pool, job.Mappings)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
+		// constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
 
-		for _, resp := range responses {
-			dependsOn, ok := constraintMap[resp.Name]
-			if ok {
-				resp.DependsOn = dependsOn
-			}
-		}
+		// for _, resp := range responses {
+		// 	dependsOn, ok := constraintMap[resp.Name]
+		// 	if ok {
+		// 		resp.DependsOn = dependsOn
+		// 	}
+		// }
 	default:
 		return nil, errors.New("unsupported job source")
 	}
@@ -651,7 +672,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 		responses = append(responses, &BenthosConfigResponse{
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
-			DependsOn: []string{},
+			DependsOn: []*tabledependency.DependsOn{},
 
 			tableSchema: tableMapping.Schema,
 			tableName:   tableMapping.Table,

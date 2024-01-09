@@ -2,6 +2,7 @@ package datasync_workflow
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -44,7 +45,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 
 	started := map[string]struct{}{}
-	completed := map[string]struct{}{}
+	completed := map[string][]string{}
 
 	workselector := workflow.NewSelector(ctx)
 	// jsonF, _ := json.MarshalIndent(bcResp.BenthosConfigs, "", " ")
@@ -115,7 +116,7 @@ func invokeSync(
 	config *datasync_activities.BenthosConfigResponse,
 	ctx workflow.Context,
 	started map[string]struct{},
-	completed map[string]struct{},
+	completed map[string][]string,
 	logger log.Logger,
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
@@ -135,13 +136,19 @@ func invokeSync(
 			ctx,
 			wfActivites.Sync,
 			&datasync_activities.SyncRequest{BenthosConfig: string(configbits)}, metadata).Get(ctx, &result)
-		completed[config.Name] = struct{}{}
+		completed[config.Name] = []string{}
+		_, ok := completed[config.Name]
+		if ok {
+			completed[config.Name] = append(completed[config.Name], config.Columns...)
+		} else {
+			completed[config.Name] = config.Columns
+		}
 		settable.Set(result, err)
 	})
 	return future
 }
 
-func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed map[string]struct{}) bool {
+func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed map[string][]string) bool {
 	if config == nil {
 		return false
 	}
@@ -149,8 +156,15 @@ func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed 
 	if len(config.DependsOn) == 0 {
 		return true
 	}
+	// check that all columns in dependency has been completed
 	for _, dep := range config.DependsOn {
-		if _, ok := completed[dep]; !ok {
+		if cols, ok := completed[dep.Table]; ok {
+			for _, dc := range dep.Columns {
+				if !slices.Contains(cols, dc) {
+					return false
+				}
+			}
+		} else {
 			return false
 		}
 	}

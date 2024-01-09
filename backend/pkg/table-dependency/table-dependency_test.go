@@ -1,6 +1,8 @@
 package tabledependency
 
 import (
+	"encoding/json"
+	"fmt"
 	"sort"
 	"testing"
 
@@ -346,11 +348,67 @@ func Test_GetRunConfigs(t *testing.T) {
 				{Table: "public.d", Columns: &SyncColumn{Include: []string{"e_id"}}, DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
 			},
 		},
+		{
+			name: "Subset of tables",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.b", "public.c"},
+			expect: []*RunConfig{
+				{Table: "public.c", DependsOn: []*DependsOn{}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+			},
+		},
+		// TODO handle this situation
+		{
+			name: "OTHER",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a", "public.c"},
+			expect: []*RunConfig{
+				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := GetRunConfigs(tt.dependencies, tt.tables)
+			jsonF, _ := json.MarshalIndent(actual, "", " ")
+			fmt.Printf("\n actual: %s \n", string(jsonF))
+			jsonFx, _ := json.MarshalIndent(tt.expect, "", " ")
+			fmt.Printf("\n expect: %s \n", string(jsonFx))
+
 			assert.ElementsMatch(t, tt.expect, actual)
 		})
 	}

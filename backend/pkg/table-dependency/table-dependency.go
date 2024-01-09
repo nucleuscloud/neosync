@@ -30,6 +30,7 @@ type ConstraintColumns struct {
 
 func GetRunConfigs(dependencies dbschemas.TableDependency, tables []string) []*RunConfig {
 	depsMap := map[string][]string{}
+	filteredDepsMap := map[string][]string{}        // only include tables that are in tables arg list
 	foreignKeyMap := map[string]map[string]string{} // map: table -> foreign key table -> foreign key column
 
 	for table, constraints := range dependencies {
@@ -37,10 +38,13 @@ func GetRunConfigs(dependencies dbschemas.TableDependency, tables []string) []*R
 		for _, constraint := range constraints.Constraints {
 			depsMap[table] = append(depsMap[table], constraint.ForeignKey.Table)
 			foreignKeyMap[table][constraint.ForeignKey.Table] = constraint.ForeignKey.Column
+			if slices.Contains(tables, table) && slices.Contains(tables, constraint.ForeignKey.Table) {
+				filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
+			}
 		}
 	}
 
-	circularDeps := findCircularDependencies(depsMap)
+	circularDeps := findCircularDependencies(filteredDepsMap)
 	configs := []*RunConfig{}
 	for _, table := range tables {
 		cd := isInCircularDependency(table, circularDeps, dependencies)
@@ -55,7 +59,7 @@ func GetRunConfigs(dependencies dbschemas.TableDependency, tables []string) []*R
 					DependsOn: []*DependsOn{},
 				}
 				// only add depends on if not in the circular dependency
-				for _, dep := range depsMap[table] {
+				for _, dep := range filteredDepsMap[table] {
 					if !isInCycle(dep, cd.Cycles) {
 						excludeConfig.DependsOn = append(excludeConfig.DependsOn, &DependsOn{Table: dep, Columns: []string{foreignKeyMap[table][dep]}})
 					}
@@ -73,7 +77,7 @@ func GetRunConfigs(dependencies dbschemas.TableDependency, tables []string) []*R
 			}
 
 			dependsOnMap := map[string]struct{}{}
-			for _, dep := range depsMap[table] {
+			for _, dep := range filteredDepsMap[table] {
 				_, ok := dependsOnMap[fmt.Sprintf("%s.%s", dep, foreignKeyMap[table][dep])]
 				if !ok {
 					includeConfig.DependsOn = append(includeConfig.DependsOn, &DependsOn{Table: dep, Columns: []string{foreignKeyMap[table][dep]}})
@@ -87,7 +91,7 @@ func GetRunConfigs(dependencies dbschemas.TableDependency, tables []string) []*R
 				Table:     table,
 				DependsOn: []*DependsOn{},
 			}
-			for _, dep := range depsMap[table] {
+			for _, dep := range filteredDepsMap[table] {
 				config.DependsOn = append(config.DependsOn, &DependsOn{Table: dep, Columns: []string{foreignKeyMap[table][dep]}})
 			}
 			configs = append(configs, config)

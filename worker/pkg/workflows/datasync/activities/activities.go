@@ -44,8 +44,9 @@ type GenerateBenthosConfigsResponse struct {
 
 type BenthosConfigResponse struct {
 	Name      string
-	DependsOn []string
+	DependsOn []*tabledependency.DependsOn
 	Config    *neosync_benthos.BenthosConfig
+	Columns   []string
 
 	tableSchema string
 	tableName   string
@@ -125,87 +126,9 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	dsn string,
 	driver string,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
-) ([]*BenthosConfigResponse, error) {
-	responses := []*BenthosConfigResponse{}
-
-	for i := range mappings {
-		tableMapping := mappings[i]
-		cols := buildPlainColumns(tableMapping.Mappings)
-		if areAllColsNull(tableMapping.Mappings) {
-			// skipping table as no columns are mapped
-			continue
-		}
-
-		var where string
-		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
-		if tableOpt != nil && tableOpt.WhereClause != nil {
-			where = *tableOpt.WhereClause
-		}
-
-		bc := &neosync_benthos.BenthosConfig{
-			StreamConfig: neosync_benthos.StreamConfig{
-				Input: &neosync_benthos.InputConfig{
-					Inputs: neosync_benthos.Inputs{
-						SqlSelect: &neosync_benthos.SqlSelect{
-							Driver: driver,
-							Dsn:    dsn,
-
-							Table:   neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table),
-							Where:   where,
-							Columns: cols,
-						},
-					},
-				},
-				Pipeline: &neosync_benthos.PipelineConfig{
-					Threads:    -1,
-					Processors: []neosync_benthos.ProcessorConfig{},
-				},
-				Output: &neosync_benthos.OutputConfig{
-					Outputs: neosync_benthos.Outputs{
-						Broker: &neosync_benthos.OutputBrokerConfig{
-							Pattern: "fan_out",
-							Outputs: []neosync_benthos.Outputs{},
-						},
-					},
-				},
-			},
-		}
-
-		processorConfig, err := b.buildProcessorConfig(ctx, tableMapping.Mappings)
-		if err != nil {
-			return nil, err
-		}
-
-		if (processorConfig.Mutation != nil && *processorConfig.Mutation != "") ||
-			(processorConfig.Javascript != nil && processorConfig.Javascript.Code != "") {
-			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *processorConfig)
-		}
-
-		responses = append(responses, &BenthosConfigResponse{
-			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
-			Config:    bc,
-			DependsOn: []string{},
-
-			tableSchema: tableMapping.Schema,
-			tableName:   tableMapping.Table,
-		})
-	}
-
-	return responses, nil
-}
-
-func (b *benthosBuilder) buildBenthosSqlSourceConfigResponsesByDependency(
-	ctx context.Context,
-	mappings []*TableMapping,
-	dsn string,
-	driver string,
-	sourceTableOpts map[string]*sqlSourceTableOptions,
 	dependencyConfigs []*tabledependency.RunConfig,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
-
-	// for each mapping find dependency config
-	// if config has table include / exclude create both
 
 	dependencyMap := map[string][]*tabledependency.RunConfig{}
 	for _, cfg := range dependencyConfigs {
@@ -219,23 +142,107 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponsesByDependency(
 
 	for i := range mappings {
 		tableMapping := mappings[i]
-		cols := buildPlainColumns(tableMapping.Mappings)
 		if areAllColsNull(tableMapping.Mappings) {
 			// skipping table as no columns are mapped
 			continue
 		}
 
-		config := dependencyMap[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+		tableName := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
+		configs := dependencyMap[tableName]
+		var where string
+		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+		if tableOpt != nil && tableOpt.WhereClause != nil {
+			where = *tableOpt.WhereClause
+		}
 
-		if len(config) > 1 {
+		if len(configs) > 1 {
+			shouldRunInclude := true
+			for _, cfg := range configs {
+				var tableMappings []*mgmtv1alpha1.JobMapping
+				if cfg.Columns != nil && cfg.Columns.Exclude != nil && len(cfg.Columns.Exclude) > 0 {
+					tm := []*mgmtv1alpha1.JobMapping{}
+					for _, col := range cfg.Columns.Exclude {
+						for _, m := range tableMapping.Mappings {
+							if m.Column != col {
+								tm = append(tm, m)
+							}
+						}
+					}
+					if len(tm) == 0 {
+						// what if column is  not in job mapping. meaning user didn't select it
+						tm = tableMapping.Mappings
+						shouldRunInclude = false
+					}
+					tableMappings = tm
+				} else if cfg.Columns != nil && cfg.Columns.Include != nil && len(cfg.Columns.Include) > 0 {
+					if shouldRunInclude {
+						tm := []*mgmtv1alpha1.JobMapping{}
+						for _, col := range cfg.Columns.Include {
+							for _, m := range tableMapping.Mappings {
+								if m.Column == col {
+									tm = append(tm, m)
+								}
+							}
+						}
+						tableMappings = tm
+					}
+				}
 
-		} else {
-			var where string
-			tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
-			if tableOpt != nil && tableOpt.WhereClause != nil {
-				where = *tableOpt.WhereClause
+				cols := buildPlainColumns(tableMappings)
+				bc := &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Driver: driver,
+									Dsn:    dsn,
+
+									Table:   tableName,
+									Where:   where,
+									Columns: cols,
+								},
+							},
+						},
+						Pipeline: &neosync_benthos.PipelineConfig{
+							Threads:    -1,
+							Processors: []neosync_benthos.ProcessorConfig{},
+						},
+						Output: &neosync_benthos.OutputConfig{
+							Outputs: neosync_benthos.Outputs{
+								Broker: &neosync_benthos.OutputBrokerConfig{
+									Pattern: "fan_out",
+									Outputs: []neosync_benthos.Outputs{},
+								},
+							},
+						},
+					},
+				}
+
+				processorConfig, err := b.buildProcessorConfig(ctx, tableMappings)
+				if err != nil {
+					return nil, err
+				}
+
+				if (processorConfig.Mutation != nil && *processorConfig.Mutation != "") ||
+					(processorConfig.Javascript != nil && processorConfig.Javascript.Code != "") {
+					bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *processorConfig)
+				}
+
+				responses = append(responses, &BenthosConfigResponse{
+					Name:      tableName,
+					Config:    bc,
+					DependsOn: cfg.DependsOn,
+					Columns:   cols,
+
+					tableSchema: tableMapping.Schema,
+					tableName:   tableMapping.Table,
+				})
+
 			}
 
+		} else {
+			cols := buildPlainColumns(tableMapping.Mappings)
+			cfg := configs[0]
 			bc := &neosync_benthos.BenthosConfig{
 				StreamConfig: neosync_benthos.StreamConfig{
 					Input: &neosync_benthos.InputConfig{
@@ -244,7 +251,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponsesByDependency(
 								Driver: driver,
 								Dsn:    dsn,
 
-								Table:   neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table),
+								Table:   tableName,
 								Where:   where,
 								Columns: cols,
 							},
@@ -276,9 +283,10 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponsesByDependency(
 			}
 
 			responses = append(responses, &BenthosConfigResponse{
-				Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
+				Name:      tableName,
 				Config:    bc,
-				DependsOn: []string{},
+				DependsOn: cfg.DependsOn,
+				Columns:   cols,
 
 				tableSchema: tableMapping.Schema,
 				tableName:   tableMapping.Table,
@@ -289,20 +297,6 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponsesByDependency(
 	}
 
 	return responses, nil
-}
-
-func getIncludeExcludeColumns(configs []*tabledependency.RunConfig) ([]string, []string) {
-	include := []string{}
-	exclude := []string{}
-	for _, c := range configs {
-		if c.Columns != nil && c.Columns.Exclude != nil {
-			exclude = append(exclude, c.Columns.Exclude...)
-		}
-		if c.Columns != nil && c.Columns.Include != nil {
-			include = append(exclude, c.Columns.Include...)
-		}
-	}
-	return include, exclude
 }
 
 func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosync_benthos.AwsCredentials {

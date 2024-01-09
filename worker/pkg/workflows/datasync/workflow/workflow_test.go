@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
 	"github.com/stretchr/testify/assert"
@@ -67,7 +68,7 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
 				Name:      "public.users",
-				DependsOn: []string{},
+				DependsOn: []*tabledependency.DependsOn{},
 				Config:    &neosync_benthos.BenthosConfig{},
 			},
 		}}, nil)
@@ -97,12 +98,13 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
 				Name:      "public.users",
-				DependsOn: []string{},
+				DependsOn: []*tabledependency.DependsOn{},
 				Config:    &neosync_benthos.BenthosConfig{},
+				Columns:   []string{"id"},
 			},
 			{
 				Name:      "public.foo",
-				DependsOn: []string{"public.users"},
+				DependsOn: []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}},
 			},
 		}}, nil)
 	count := 0
@@ -146,17 +148,20 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
 				Name:      "public.users",
-				DependsOn: []string{},
+				DependsOn: []*tabledependency.DependsOn{},
 				Config:    &neosync_benthos.BenthosConfig{},
+				Columns:   []string{"id"},
 			},
 			{
 				Name:      "public.accounts",
-				DependsOn: []string{},
+				DependsOn: []*tabledependency.DependsOn{},
 				Config:    &neosync_benthos.BenthosConfig{},
+				Columns:   []string{"id"},
 			},
 			{
 				Name:      "public.foo",
-				DependsOn: []string{"public.users", "public.accounts"},
+				DependsOn: []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				Columns:   []string{"id"},
 			},
 		}}, nil)
 	counter := atomic.NewInt32(0)
@@ -205,17 +210,20 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
 				Name:      "public.users",
-				DependsOn: []string{},
+				DependsOn: []*tabledependency.DependsOn{},
 				Config:    &neosync_benthos.BenthosConfig{},
+				Columns:   []string{"id"},
 			},
 			{
 				Name:      "public.accounts",
-				DependsOn: []string{},
+				DependsOn: []*tabledependency.DependsOn{},
 				Config:    &neosync_benthos.BenthosConfig{},
+				Columns:   []string{"id"},
 			},
 			{
 				Name:      "public.foo",
-				DependsOn: []string{"public.users", "public.accounts"},
+				DependsOn: []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				Columns:   []string{"id"},
 			},
 		}}, nil)
 
@@ -248,7 +256,7 @@ func Test_isConfigReady(t *testing.T) {
 		isConfigReady(
 			&datasync_activities.BenthosConfigResponse{
 				Name:      "foo",
-				DependsOn: []string{},
+				DependsOn: []*tabledependency.DependsOn{},
 			},
 			nil,
 		),
@@ -260,10 +268,10 @@ func Test_isConfigReady(t *testing.T) {
 		isConfigReady(
 			&datasync_activities.BenthosConfigResponse{
 				Name:      "foo",
-				DependsOn: []string{"bar", "baz"},
+				DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
 			},
-			map[string]struct{}{
-				"bar": {},
+			map[string][]string{
+				"bar": {"id"},
 			},
 		),
 		"not all dependencies are finished",
@@ -274,13 +282,27 @@ func Test_isConfigReady(t *testing.T) {
 		isConfigReady(
 			&datasync_activities.BenthosConfigResponse{
 				Name:      "foo",
-				DependsOn: []string{"bar", "baz"},
+				DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
 			},
-			map[string]struct{}{
-				"bar": {},
-				"baz": {},
+			map[string][]string{
+				"bar": {"id"},
+				"baz": {"id"},
 			},
 		),
 		"all dependencies are finished",
+	)
+
+	assert.False(
+		t,
+		isConfigReady(
+			&datasync_activities.BenthosConfigResponse{
+				Name:      "foo",
+				DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id", "f_id"}}},
+			},
+			map[string][]string{
+				"bar": {"id"},
+			},
+		),
+		"not all dependencies columns are finished",
 	)
 }
